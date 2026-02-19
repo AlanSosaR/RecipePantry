@@ -62,12 +62,18 @@ class DashboardManager {
             });
         }
 
-        // Navegación Sidebar Desktop
-        document.querySelectorAll('.nav-item').forEach(item => {
+        // Navegación Sidebar Desktop y Mobile
+        document.querySelectorAll('.nav-item, .nav-item-mobile').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 const view = item.dataset.view;
-                this.switchView(view, item);
+                if (view) {
+                    this.switchView(view, item);
+                    // Si es mobile, cerramos el drawer
+                    if (window.innerWidth < 1024 || item.classList.contains('nav-item-mobile')) {
+                        this.toggleMobileMenu(false);
+                    }
+                }
             });
         });
 
@@ -84,17 +90,15 @@ class DashboardManager {
 
         if (!drawer || !overlay) return;
 
-        const isHidden = drawer.classList.contains('-translate-x-full');
-        const shouldOpen = forceState !== null ? forceState : isHidden;
+        const isOpen = drawer.classList.contains('active');
+        const shouldOpen = forceState !== null ? forceState : !isOpen;
 
         if (shouldOpen) {
-            drawer.classList.remove('-translate-x-full');
-            overlay.classList.remove('hidden');
-            setTimeout(() => overlay.classList.remove('opacity-0'), 10); // Fade in
+            drawer.classList.add('active');
+            overlay.classList.add('active');
         } else {
-            drawer.classList.add('-translate-x-full');
-            overlay.classList.add('opacity-0');
-            setTimeout(() => overlay.classList.add('hidden'), 300); // Wait for transition
+            drawer.classList.remove('active');
+            overlay.classList.remove('active');
         }
     }
 
@@ -117,12 +121,20 @@ class DashboardManager {
 
         // Actualizar desktop
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        if (activeItem) activeItem.classList.add('active');
+        // Encontrar el item desktop correspondiente a la vista si no se pasó
+        if (!activeItem || activeItem.classList.contains('nav-item-mobile')) {
+            const desktopItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+            if (desktopItem) desktopItem.classList.add('active');
+        } else {
+            activeItem.classList.add('active');
+        }
 
-        // Actualizar mobile (si existe)
+        // Actualizar mobile
         document.querySelectorAll('.nav-item-mobile').forEach(i => {
-            if (i.dataset.view === view) i.classList.add('bg-emerald-light', 'text-primary');
-            else i.classList.remove('bg-emerald-light', 'text-primary');
+            i.classList.remove('active');
+            // Remover clases de color específicas si se usaban antes
+            i.classList.remove('bg-emerald-light', 'text-primary');
+            if (i.dataset.view === view) i.classList.add('active');
         });
 
         // Lógica de filtrado rápido según la vista

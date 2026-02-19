@@ -2563,3 +2563,93 @@ select.input-field {
     color: #6B7280;
     text-decoration: underline;
 }
+
+/* ─── Mobile Drawer (Native CSS) ────────────────────────────────── */
+.mobile-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100%;
+    background: var(--surface);
+    z-index: 2000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    border-right: 1px solid var(--outline);
+}
+
+.mobile-drawer.active {
+    transform: translateX(0);
+}
+
+.mobile-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.mobile-drawer-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+}
+
+/* Utilitarios de layout responsivo específicos para Drive Dashboard */
+@media (max-width: 1023px) {
+    .hidden-mobile-lg {
+        display: none !important;
+    }
+
+    .visible-mobile-lg {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .hidden-desktop-lg {
+        display: none !important;
+    }
+
+    .visible-desktop-lg {
+        display: flex !important;
+    }
+}
+
+/* Sidebar Nav Item Styling (Native) */
+.nav-item,
+.nav-item-mobile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    border-radius: 999px;
+    /* Pill shape */
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.nav-item:hover,
+.nav-item-mobile:hover {
+    background-color: var(--surface-variant);
+    color: var(--text-main);
+}
+
+.nav-item.active,
+.nav-item-mobile.active {
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.w-full {
+    width: 100%;
+}
