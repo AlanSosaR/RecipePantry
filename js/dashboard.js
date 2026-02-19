@@ -8,11 +8,29 @@ class DashboardManager {
     }
 
     async init() {
-        console.log('🚀 Inicializando dashboard...');
+        console.log('🚀 Inicializando RecipeHub...');
 
-        // 1. Verificar autenticación
-        const isAuth = await window.authManager.requireAuth();
-        if (!isAuth) return;
+        // 1. Verificar autenticación silenciosamente
+        const isAuthenticated = await window.authManager.checkAuth();
+
+        const landingEl = document.getElementById('landing-section');
+        const dashboardEl = document.getElementById('dashboard-section');
+
+        if (!isAuthenticated) {
+            console.log('💡 Mostrando modo landing');
+            if (landingEl) landingEl.classList.remove('hidden');
+            if (dashboardEl) dashboardEl.classList.add('hidden');
+            return;
+        }
+
+        console.log('✅ Usuario logueado, mostrando dashboard');
+        if (landingEl) landingEl.classList.add('hidden');
+        if (dashboardEl) dashboardEl.classList.remove('hidden');
+
+        // Cargar datos del usuario para el saludo
+        const name = window.authManager.currentUser.first_name || 'Chef';
+        const greetingEl = document.getElementById('user-greeting');
+        if (greetingEl) greetingEl.textContent = `Hola, ${name}`;
 
         // 2. Cargar datos iniciales
         await this.loadRecipes();
