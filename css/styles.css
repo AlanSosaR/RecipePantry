@@ -202,3 +202,8 @@ body {
     background: var(--primary-container);
     color: var(--on-primary-container);
 }
+
+/* ─── Utilidades ─────────────────────────────────────────────────── */
+.hidden {
+    display: none !important;
+}

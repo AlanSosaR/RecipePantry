@@ -80,7 +80,7 @@ class AuthManager {
         if (!isAuthenticated) {
             // Guardar URL actual para redirigir después del login
             sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return false;
         }
 

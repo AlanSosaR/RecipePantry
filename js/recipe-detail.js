@@ -20,7 +20,7 @@ class RecipeDetailManager {
         // 1. Verificar autenticación
         const isAuth = await window.authManager.checkAuth();
         if (!isAuth) {
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
             return;
         }
 
