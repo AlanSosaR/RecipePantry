@@ -5,44 +5,14 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>RecipeHub Personal Gateway</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;700;900&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
-        rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#064E3B",
-                        "primary-dark": "#003324",
-                        "surface-light": "#ffffff",
-                        "surface-variant": "#f0f2f5",
-                        "on-surface": "#1d1b20",
-                        "outline": "#79747e",
-                        "emerald-light": "#ECFDF5",
-                    },
-                    fontFamily: {
-                        "display": ["Epilogue", "sans-serif"],
-                        "body": ["Inter", "sans-serif"],
-                    },
-                    boxShadow: {
-                        'md3': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-                        'md3-lg': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    }
-                },
-            },
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .bg-emerald-gradient {
-                background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent),
-                            radial-gradient(circle at bottom left, rgba(6, 78, 59, 0.05), transparent);
-            }
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        /* Login Specific Styles */
+        .bg-emerald-gradient {
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent),
+                radial-gradient(circle at bottom left, rgba(6, 78, 59, 0.05), transparent);
         }
     </style>
 </head>
