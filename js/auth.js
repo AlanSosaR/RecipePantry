@@ -171,7 +171,7 @@ class AuthManager {
             this.session = null;
 
             console.log('✅ Logout exitoso');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
 
         } catch (error) {
             console.error('❌ Error en logout:', error);
