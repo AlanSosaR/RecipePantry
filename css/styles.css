@@ -8,14 +8,13 @@
 
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
-    /* Colores - Palette Premium Orange */
+    /* Colores - Mockup High Fidelity */
     --primary: #FF7A50;
-    --primary-light: #FF9E7D;
+    --primary-light: #FFF0EB;
     --primary-dark: #cc6140;
     --on-primary: #FFFFFF;
 
-    --secondary: #2D9596;
-    --secondary-light: #3DB5B6;
+    --secondary: #2D3A3A;
     --on-secondary: #FFFFFF;
 
     --success: #10B981;
@@ -24,11 +23,11 @@
 
     /* Superficies y Neutros */
     --bg: #FFFFFF;
-    --surface: #F9FAFB;
+    --surface: #F8F9FA;
     --surface-variant: #F3F4F6;
-    --on-surface: #111827;
-    --on-surface-variant: #4B5563;
-    --outline: #E5E7EB;
+    --on-surface: #1A1A1A;
+    --on-surface-variant: #64748B;
+    --outline: #E2E8F0;
 
     /* Espaciado */
     --space-xs: 8px;
@@ -36,24 +35,24 @@
     --space-md: 16px;
     --space-lg: 24px;
     --space-xl: 32px;
+    --space-2xl: 48px;
 
-    /* Border Radius - Premium Curve */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --radius-2xl: 32px;
+    /* Border Radius - Premium mockup style */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-2xl: 40px;
     --radius-full: 9999px;
 
-    /* Sombras - Premium Depth */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
-    --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.15);
+    /* Sombras */
+    --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.08);
 
     /* Tipografía */
-    --font-display: 'Epilogue', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-display: 'Poppins', sans-serif;
+    --font-body: 'Poppins', sans-serif;
 
     /* Transiciones */
     --transition-fast: 150ms ease-out;

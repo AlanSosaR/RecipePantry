@@ -8,13 +8,13 @@ class DashboardManager {
     }
 
     async init() {
-        console.log('🚀 Inicializando RecipeHub...');
+        console.log('🚀 Inicializando RecipeHub Premium...');
 
         // 1. Verificar autenticación silenciosamente
         const isAuthenticated = await window.authManager.checkAuth();
 
         const landingEl = document.getElementById('landing-section');
-        const dashboardEl = document.getElementById('dashboard-section');
+        const dashboardEl = document.getElementById('dashboard-app'); // Nuevo ID contenedor principal
 
         if (!isAuthenticated) {
             console.log('💡 Mostrando modo landing');
@@ -23,23 +23,33 @@ class DashboardManager {
             return;
         }
 
-        console.log('✅ Usuario logueado, mostrando dashboard');
+        console.log('✅ Usuario logueado, preparando dashboard premium');
         if (landingEl) landingEl.classList.add('hidden');
         if (dashboardEl) dashboardEl.classList.remove('hidden');
 
-        // Cargar datos del usuario para el saludo
-        const name = window.authManager.currentUser.first_name || 'Chef';
-        const greetingEl = document.getElementById('user-greeting');
-        if (greetingEl) greetingEl.textContent = `Hola, ${name}`;
+        // Actualizar datos de usuario en la UI
+        this.updateUserUI();
 
         // 2. Cargar datos iniciales
         await this.loadRecipes();
-        this.loadStats();
         this.loadCategories();
         this.setupEventListeners();
     }
 
+    updateUserUI() {
+        if (!window.authManager.currentUser) return;
+        const user = window.authManager.currentUser;
+
+        const nameEl = document.getElementById('user-name');
+        if (nameEl) nameEl.textContent = `Chef ${user.first_name || 'User'}`;
+
+        // El saludo del banner hero si existe
+        const heroGreeting = document.getElementById('hero-greeting');
+        if (heroGreeting) heroGreeting.textContent = `Hola, ${user.first_name || 'Chef'}`;
+    }
+
     setupEventListeners() {
+        // Buscador
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             let timeout;
@@ -48,20 +58,36 @@ class DashboardManager {
                 timeout = setTimeout(() => this.loadRecipes({ search: e.target.value }), 300);
             });
         }
+
+        // Navegación Sidebar
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const view = item.dataset.view;
+                this.switchView(view, item);
+            });
+        });
+    }
+
+    switchView(view, activeItem) {
+        console.log('Cambiando a vista:', view);
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        activeItem.classList.add('active');
+
+        // Lógica de filtrado rápido según la vista
+        if (view === 'favorites') {
+            this.loadRecipes({ favorite: true });
+        } else if (view === 'recipes' || view === 'overview') {
+            this.loadRecipes();
+        }
     }
 
     async loadRecipes(filters = {}) {
-        const loadingEl = document.getElementById('loadingState');
-        const gridEl = document.getElementById('recipesGrid');
-        const emptyEl = document.getElementById('emptyState');
-
-        if (loadingEl) loadingEl.classList.remove('hidden');
-        if (gridEl) gridEl.classList.add('hidden');
-        if (emptyEl) emptyEl.classList.add('hidden');
+        // En este nuevo diseño, el dashboard tiene secciones fijas. 
+        // Si hay búsqueda, mostramos un "Search Results" global.
+        // Si no, mostramos las secciones del mockup.
 
         const result = await window.db.getMyRecipes(filters);
-
-        if (loadingEl) loadingEl.classList.add('hidden');
 
         if (!result.success) {
             console.error('Error cargando recetas:', result.error);
@@ -70,90 +96,102 @@ class DashboardManager {
 
         this.currentRecipes = result.recipes;
 
-        if (this.currentRecipes.length === 0) {
-            if (emptyEl) emptyEl.classList.remove('hidden');
+        if (filters.search) {
+            this.renderSearchResults(this.currentRecipes);
         } else {
-            if (gridEl) {
-                gridEl.classList.remove('hidden');
-                this.renderRecipes(this.currentRecipes);
-            }
+            this.renderDashboardSections(this.currentRecipes);
         }
     }
 
-    renderRecipes(recipes) {
-        const gridEl = document.getElementById('recipesGrid');
-        if (!gridEl) return;
+    renderDashboardSections(recipes) {
+        // 1. "Based on the food you like" (primeras 3)
+        const featured = recipes.slice(0, 3);
+        this.renderFeatured(featured);
 
-        gridEl.innerHTML = recipes.map(recipe => `
-            <div class="recipe-card animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <div class="recipe-card-actions" onclick="event.stopPropagation()">
-                    <button 
-                        class="icon-button favorite ${recipe.is_favorite ? 'active' : ''}" 
-                        onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})"
-                    >
-                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' ${recipe.is_favorite ? 1 : 0}">
-                            favorite
-                        </span>
-                    </button>
-                    <button class="icon-button" onclick="window.location.href='recipe-form.html?id=${recipe.id}'">
-                        <span class="material-symbols-outlined">edit</span>
-                    </button>
+        // 2. "More Recipes" (el resto)
+        const more = recipes.slice(3);
+        this.renderMore(more);
+    }
+
+    renderFeatured(recipes) {
+        const container = document.getElementById('featuredGrid');
+        if (!container) return;
+
+        if (recipes.length === 0) {
+            container.innerHTML = '<p class="empty-msg">No hay sugerencias aún.</p>';
+            return;
+        }
+
+        container.innerHTML = recipes.map(recipe => `
+            <div class="card-featured animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="card-featured__img-box">
+                    <img src="${recipe.primaryImage || 'assets/placeholder-recipe.jpg'}" alt="${recipe.name_es}">
                 </div>
-                
-                <div class="recipe-card-image ${!recipe.primaryImage ? 'no-image' : ''}">
-                    ${recipe.primaryImage ?
-                `<img src="${recipe.primaryImage}" alt="${recipe.name_es}" loading="lazy">` :
-                `<span class="material-symbols-outlined" style="font-size: 48px; opacity: 0.3">restaurant</span>`
-            }
-                </div>
-                
-                <div class="recipe-card-content">
-                    <div class="recipe-card-category" style="background: ${recipe.category?.color}20; color: ${recipe.category?.color}">
-                        <span class="material-symbols-outlined" style="font-size: 14px">${recipe.category?.icon || 'label'}</span>
-                        ${recipe.category?.name_es || 'Sin categoría'}
+                <div class="card-featured__content">
+                    <h3>${recipe.name_es}</h3>
+                    <p>${recipe.calories || '150'} kcal</p>
+                    
+                    <div class="card-featured__tags">
+                        <div class="tag-item">
+                            <span class="material-symbols-outlined">leaf</span>
+                            <span>VEG</span>
+                        </div>
+                        <div class="tag-item">
+                            <span class="material-symbols-outlined">nutrition</span>
+                            <span>TOM</span>
+                        </div>
                     </div>
-                    <h3 class="recipe-card-title">${recipe.name_es}</h3>
-                    <div class="recipe-card-meta">
-                        <div class="meta-item">
-                            <span class="material-symbols-outlined" style="font-size: 16px">schedule</span>
-                            ${recipe.prep_time_minutes || 0}'
-                        </div>
-                        <div class="meta-item">
-                            <span class="material-symbols-outlined" style="font-size: 16px">restaurant</span>
-                            ${recipe.difficulty === 'easy' ? 'Fácil' : recipe.difficulty === 'medium' ? 'Media' : 'Difícil'}
-                        </div>
+
+                    <div class="card-featured__footer">
+                        <button class="btn-watch">
+                            <span class="material-symbols-outlined">play_circle</span>
+                            Watch
+                        </button>
+                        <span class="time-label">
+                            <span class="material-symbols-outlined">schedule</span>
+                            ${recipe.prep_time_minutes || '15'} mins
+                        </span>
                     </div>
                 </div>
             </div>
         `).join('');
     }
 
-    async toggleFavorite(recipeId, currentStatus) {
-        const result = await window.db.toggleFavorite(recipeId, currentStatus);
-        if (result.success) {
-            this.loadRecipes({ search: document.getElementById('searchInput')?.value });
+    renderMore(recipes) {
+        const container = document.getElementById('moreRecipesList');
+        if (!container) return;
+
+        if (recipes.length === 0) {
+            container.innerHTML = '<p class="empty-msg">Explora más recetas pronto.</p>';
+            return;
         }
-    }
 
-    async loadStats() {
-        const statsEl = document.getElementById('statsSection');
-        if (!statsEl) return;
-
-        const total = this.currentRecipes.length;
-        const favs = this.currentRecipes.filter(r => r.is_favorite).length;
-
-        statsEl.innerHTML = `
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">${total}</div>
-                    <div class="stat-label">Recetas</div>
+        container.innerHTML = recipes.map(recipe => `
+            <div class="card-compact animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="card-compact__img">
+                    <img src="${recipe.primaryImage || 'assets/placeholder-recipe.jpg'}" alt="${recipe.name_es}">
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" style="color: var(--error)">${favs}</div>
-                    <div class="stat-label">Favoritos</div>
+                <div class="card-compact__info">
+                    <h4>${recipe.name_es}</h4>
+                    <p>${recipe.description_es || 'Una deliciosa receta casera...'}</p>
+                    <span class="card-compact__time">
+                        <span class="material-symbols-outlined">play_circle</span>
+                        ${recipe.prep_time_minutes || '15'} mins
+                    </span>
                 </div>
             </div>
-        `;
+        `).join('');
+    }
+
+    renderSearchResults(recipes) {
+        // Si el usuario busca, ocultamos las secciones y mostramos un grid normal
+        const mainContent = document.getElementById('main-dashboard-content');
+        const resultsContent = document.getElementById('search-results-content');
+
+        if (recipes.length === 0) {
+            // Mostrar empty state
+        }
+        // TODO: Implementar toggle de vistas de búsqueda
     }
 
     async loadCategories() {
@@ -165,11 +203,11 @@ class DashboardManager {
             const categories = result.categories;
             chipsContainer.innerHTML = `
                 <button class="chip active" onclick="window.dashboard.handleCategory('all', this)">
-                    Todas
+                    All Recipes
                 </button>
-                ${categories.map(cat => `
+                ${categories.slice(0, 4).map(cat => `
                     <button class="chip" onclick="window.dashboard.handleCategory('${cat.id}', this)">
-                        <span class="material-symbols-outlined" style="font-size: 18px">${cat.icon}</span>
+                        <span class="material-symbols-outlined">${cat.icon}</span>
                         ${cat.name_es}
                     </button>
                 `).join('')}
@@ -180,7 +218,6 @@ class DashboardManager {
     handleCategory(categoryId, chipEl) {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         chipEl.classList.add('active');
-
         const filters = categoryId === 'all' ? {} : { categoryId };
         this.loadRecipes(filters);
     }

@@ -51,79 +51,125 @@
 
 /* ─── Tablet (768px – 1023px) ────────────────────────────────────── */
 @media (min-width: 768px) {
-    #app {
-        max-width: var(--content-max);
-        margin: 0 auto;
-        position: relative;
-        box-shadow: 0 0 40px rgba(0, 0, 0, .3);
-        min-height: 100dvh;
-    }
-
-    .recipe-grid {
+    .recipes-featured-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
     }
 
-    .detail-stats {
-        grid-template-columns: repeat(4, 1fr);
+    .recipes-compact-list {
+        grid-template-columns: 1fr;
     }
 
-    .dashboard-header {
-        padding: 20px 20px 12px;
+    .sidebar {
+        width: 80px;
+        padding: 24px 0;
     }
 
-    .form-screen {
-        padding: 24px 24px 48px;
+    .sidebar-logo span:not(.material-symbols-outlined),
+    .nav-item span:not(.material-symbols-outlined) {
+        display: none;
+    }
+
+    .sidebar-logo {
+        padding: 0;
+        justify-content: center;
+        margin-bottom: 32px;
+    }
+
+    .nav-item {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .main-content {
+        padding: 24px 32px;
     }
 }
 
 /* ─── Desktop (≥ 1024px) ─────────────────────────────────────────── */
 @media (min-width: 1024px) {
-    :root {
-        --content-max: 480px;
+    .recipes-featured-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 
-    body {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        background: var(--surface-variant);
-        padding: 40px 0;
+    .sidebar {
+        width: 260px;
     }
 
-    #app {
-        border-radius: 32px;
-        overflow: hidden;
-        min-height: calc(100dvh - 80px);
-        max-height: calc(100dvh - 80px);
-        overflow-y: auto;
+    .sidebar-logo span:not(.material-symbols-outlined),
+    .nav-item span:not(.material-symbols-outlined) {
+        display: block;
     }
 
-    .bottom-nav {
-        position: sticky;
-        bottom: 0;
+    .sidebar-logo {
+        padding: 0 32px;
+        justify-content: flex-start;
     }
 
-    .fab {
-        position: sticky;
-        bottom: 88px;
+    .nav-item {
+        justify-content: flex-start;
+        padding: 14px 16px;
     }
 }
 
 /* ─── Landscape phone ─────────────────────────────────────────────── */
-@media (max-height: 500px) and (orientation: landscape) {
+@media (max-width: 480px) {
     .detail-hero {
-        height: 180px;
+        height: 300px;
     }
 
-    .login-container {
-        padding: 12px 20px;
-        min-height: unset;
+    .detail-hero h1 {
+        font-size: 28px;
     }
 
-    .login-brand {
-        display: none;
+    .detail-main {
+        padding: 24px;
+        margin-top: -24px;
     }
+
+    .detail-tabs {
+        gap: 16px;
+    }
+
+    .tab-item {
+        font-size: 14px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .recipe-detail-app {
+        flex-direction: row;
+        background: #F8F9FA;
+    }
+
+    .detail-hero {
+        width: 40%;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .detail-main {
+        flex: 1;
+        margin-top: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 64px;
+        max-width: 900px;
+        background: #FFFFFF;
+    }
+}
+
+.login-container {
+    padding: 12px 20px;
+    min-height: unset;
+}
+
+.login-brand {
+    display: none;
 }
 
 /* ─── Safe areas (notch, home indicator) ─────────────────────────── */
