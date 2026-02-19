@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Receta - RecipeHub Premium</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+</head>
+
+<body class="recipe-form-app">
+    <div class="form-container">
+        <!-- Header -->
+        <header class="form-header">
+            <button class="icon-button" onclick="history.back()">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1 id="formTitle">Nueva Receta</h1>
+            <div class="header-actions">
+                <button id="btnOCR" class="btn-secondary">
+                    <span class="material-symbols-outlined">center_focus_strong</span>
+                    Escanear
+                </button>
+            </div>
+        </header>
+
+        <form id="recipeForm" class="premium-form">
+            <!-- Sección: Imagen -->
+            <section class="form-section">
+                <div id="imageUploadArea" class="image-upload-area">
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    <div class="upload-placeholder">
+                        <span class="material-symbols-outlined">add_a_photo</span>
+                        <p>Toca para agregar una foto</p>
+                    </div>
+                    <img id="imagePreview" src="" alt="Previsualización" class="hidden">
+                    <button type="button" id="btnRemoveImage" class="btn-remove hidden">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Sección: Información Básica -->
+            <section class="form-section">
+                <div class="input-group">
+                    <label for="name">Nombre de la Receta</label>
+                    <input type="text" id="name" name="name_es" placeholder="Ej: Lasagna de Berenjena" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="description">Descripción (Opcional)</label>
+                    <textarea id="description" name="description_es" placeholder="Cuéntanos un poco sobre este plato..."
+                        rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="category">Categoría</label>
+                        <select id="category" name="category_id" required>
+                            <!-- Se carga dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="difficulty">Dificultad</label>
+                        <select id="difficulty" name="difficulty" required>
+                            <option value="easy">Fácil</option>
+                            <option value="medium">Media</option>
+                            <option value="hard">Difícil</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="prepTime">Tiempo (min)</label>
+                        <input type="number" id="prepTime" name="prep_time_minutes" min="1" placeholder="30">
+                    </div>
+                    <div class="input-group">
+                        <label for="servings">Porciones</label>
+                        <input type="number" id="servings" name="servings" min="1" placeholder="4">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección: Ingredientes -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h2>Ingredientes</h2>
+                    <button type="button" id="btnAddIngredient" class="btn-add-item">
+                        <span class="material-symbols-outlined">add</span>
+                    </button>
+                </div>
+                <div id="ingredientsList" class="dynamic-list">
+                    <!-- Los ingredientes se agregan aquí -->
+                </div>
+            </section>
+
+            <!-- Sección: Pasos -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h2>Preparación</h2>
+                    <button type="button" id="btnAddStep" class="btn-add-item">
+                        <span class="material-symbols-outlined">add</span>
+                    </button>
+                </div>
+                <div id="stepsList" class="dynamic-list">
+                    <!-- Los pasos se agregan aquí -->
+                </div>
+            </section>
+
+            <!-- Submit -->
+            <div class="form-actions">
+                <button type="submit" id="btnSave" class="btn-primary w-full">
+                    <span class="material-symbols-outlined">save</span>
+                    Guardar Receta
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/recipe-form.js"></script>
+</body>
+
+</html>
