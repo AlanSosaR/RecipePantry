@@ -360,98 +360,151 @@ select.input-field {
     margin-bottom: 8px;
 }
 
-/* ─── Login / Register Screen ────────────────────────────────────── */
-.login-container {
+/* ─── Premium Auth Screen (Centered Card) ─────────────────────────── */
+.auth-bg {
+    min-height: 100dvh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100dvh;
-    padding: 24px 20px;
-    gap: 24px;
+    background: #F8F9FA;
+    padding: 20px;
 }
 
-.login-brand {
+.auth-card {
+    width: 100%;
+    max-width: 480px;
+    background: #FFFFFF;
+    border-radius: 32px;
+    padding: 40px 32px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    text-align: center;
+    gap: 24px;
+    animation: fadeInUp 0.4s ease;
 }
 
-.login-logo {
-    font-size: 4rem;
-}
-
-.login-brand h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
+.auth-logo-box {
+    width: 64px;
+    height: 64px;
+    background: #FFEEE8;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--primary);
+    font-size: 2rem;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1A1A1A;
+    margin: 0 0 8px;
+    font-family: var(--font-display);
+}
+
+.auth-header p {
+    color: #64748B;
+    font-size: 1rem;
+    line-height: 1.5;
     margin: 0;
 }
 
-.login-brand p {
-    color: var(--on-surface-variant);
-    font-size: 0.9rem;
-}
-
-.login-card {
+.auth-social-btn {
     width: 100%;
-    max-width: 420px;
-    background: var(--surface-container-low);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: var(--elevation-2);
+    height: 56px;
+    border-radius: 28px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #1A1A1A;
+}
+
+.auth-social-btn:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.auth-social-btn.btn-apple {
+    background: #000000;
+    color: #FFFFFF;
+    border: none;
+}
+
+.auth-social-btn.btn-apple:hover {
+    background: #1A1A1A;
+}
+
+.auth-divider {
+    width: 100%;
+    display: flex;
+    align-items: center;
     gap: 16px;
+    color: #94A3B8;
+    font-size: 0.875rem;
 }
 
-.tabs-container {
-    display: flex;
-    background: var(--surface-container);
-    border-radius: 16px;
-    padding: 4px;
-    gap: 4px;
-}
-
-.tab-btn {
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
     flex: 1;
-    padding: 8px 16px;
-    border-radius: 12px;
-    border: none;
-    background: transparent;
-    color: var(--on-surface-variant);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .2s, color .2s;
+    height: 1px;
+    background: #E2E8F0;
 }
 
-.tab-btn.active-tab {
+.auth-primary-btn {
+    width: 100%;
+    height: 56px;
+    border-radius: 28px;
     background: var(--primary);
-    color: var(--on-primary);
-}
-
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-wrapper .input-field {
-    padding-right: 48px;
-}
-
-.toggle-password {
-    position: absolute;
-    right: 8px;
-    background: none;
+    color: #FFFFFF;
     border: none;
-    cursor: pointer;
-    color: var(--on-surface-variant);
+    font-weight: 700;
+    font-size: 1rem;
     display: flex;
     align-items: center;
-    padding: 6px;
-    border-radius: 50%;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 122, 80, 0.25);
+    transition: all 0.2s;
+}
+
+.auth-primary-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(255, 122, 80, 0.35);
+}
+
+.auth-footer {
+    font-size: 0.8125rem;
+    color: #94A3B8;
+    line-height: 1.6;
+}
+
+.auth-footer a {
+    color: #64748B;
+    text-decoration: underline;
+}
+
+.auth-switch {
+    font-size: 0.9375rem;
+    color: #64748B;
+}
+
+.auth-switch span {
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
 }
 
 /* ─── Dashboard ──────────────────────────────────────────────────── */

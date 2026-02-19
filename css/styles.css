@@ -9,11 +9,11 @@
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
     /* Colores primarios */
-    --primary: #FF6B35;
+    --primary: #FF7A50;
     --on-primary: #FFFFFF;
     --primary-container: #FFD8C8;
     --on-primary-container: #5A1700;
-    --primary-dark: #E85D2A;
+    --primary-dark: #E6633D;
     --primary-light: #FFF0EA;
 
     /* Secundario */
@@ -35,28 +35,28 @@
     --on-error-container: #410002;
 
     /* Superficies */
-    --surface: #FFF8F5;
+    --surface: #F5F7FA;
     --on-surface: #201A17;
     --surface-variant: #F5DDD6;
     --on-surface-variant: #53433E;
-    --surface-container: #F0E4DF;
+    --surface-container: #FFFFFF;
     --surface-container-low: #FAF0EB;
     --surface-container-high: #E8DDD8;
     --inverse-surface: #362F2C;
     --inverse-on-surface: #FAEDEA;
 
     /* Bordes */
-    --outline: #857370;
+    --outline: #E2E8F0;
     --outline-variant: #D8C2BC;
 
     /* Elevación */
-    --elevation-1: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .08);
-    --elevation-2: 0 3px 6px rgba(0, 0, 0, .14), 0 2px 4px rgba(0, 0, 0, .10);
-    --elevation-3: 0 6px 12px rgba(0, 0, 0, .16), 0 4px 6px rgba(0, 0, 0, .10);
-    --elevation-4: 0 10px 20px rgba(0, 0, 0, .18), 0 6px 8px rgba(0, 0, 0, .10);
+    --elevation-1: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --elevation-2: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --elevation-3: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --elevation-4: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
     /* Tipografía */
-    --font-display: 'Poppins', sans-serif;
+    --font-display: 'Epilogue', sans-serif;
     --font-body: 'Inter', sans-serif;
 }
 

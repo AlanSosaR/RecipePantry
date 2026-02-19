@@ -64,97 +64,188 @@ function setupScreenLogic(screenId) {
 }
 
 // ── PANTALLA: Login / Registro ─────────────────────────────────────────────
+// ── PANTALLA: Login / Registro ─────────────────────────────────────────────
 function setupLoginScreen() {
-    const loginTab = document.getElementById('tab-login');
-    const registerTab = document.getElementById('tab-register');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
+    const app = document.getElementById('app');
 
-    if (!loginTab) return;
+    // Función para renderizar el estado inicial (Login o Registro)
+    const renderAuth = (isRegister = false) => {
+        const title = isRegister ? 'Empieza hoy' : 'Bienvenido a tu Recetario';
+        const subTitle = isRegister ? 'Únete a miles de amantes de la cocina.' : 'Tu colección privada de recetas, escaneadas y organizadas.';
+        const primaryAction = isRegister ? 'Crear cuenta con email' : 'Ingresar con email';
+        const switchText = isRegister ? '¿Ya tienes cuenta? <span>Inicia sesión</span>' : '¿No tienes cuenta? <span>Regístrate</span>';
 
-    // Toggle entre Login y Registro
-    loginTab.addEventListener('click', () => {
-        loginTab.classList.add('active-tab');
-        registerTab.classList.remove('active-tab');
-        loginForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
-    });
+        app.innerHTML = `
+            <div class="auth-bg fade-in">
+                <div class="auth-card">
+                    <div class="auth-logo-box">
+                        <span class="material-symbols-outlined" style="font-size: 32px">menu_book</span>
+                    </div>
+                    
+                    <div class="auth-header">
+                        <h1>${title}</h1>
+                        <p>${subTitle}</p>
+                    </div>
 
-    registerTab.addEventListener('click', () => {
-        registerTab.classList.add('active-tab');
-        loginTab.classList.remove('active-tab');
-        loginForm.classList.add('hidden');
-        registerForm.classList.remove('hidden');
-    });
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+                        <button class="auth-social-btn" id="btn-google">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20">
+                            Iniciar sesión con Google
+                        </button>
+                        <button class="auth-social-btn btn-apple" id="btn-apple">
+                            <i class="fa-brands fa-apple" style="font-size: 20px"></i>
+                            Iniciar sesión con Apple
+                        </button>
+                    </div>
 
-    // Formulario de Login
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = loginForm.querySelector('input[type="email"]').value.trim();
-        const password = loginForm.querySelector('input[type="password"]').value;
-        const btn = loginForm.querySelector('button[type="submit"]');
+                    <div class="auth-divider">o continuar con</div>
 
-        if (!email || !password) {
-            showFormError(loginForm, 'Por favor completa todos los campos.');
-            return;
-        }
+                    <button class="auth-primary-btn" id="btn-show-email-form">
+                        <span class="material-symbols-outlined">mail</span>
+                        ${primaryAction}
+                    </button>
 
-        setButtonLoading(btn, true, 'Ingresando...');
-        const { error } = await auth.signIn(email, password);
-        setButtonLoading(btn, false, 'Ingresar');
+                    <div class="auth-footer">
+                        Al continuar, aceptas nuestros <a href="#">Términos de Servicio</a> y <a href="#">Política de Privacidad</a>.
+                    </div>
 
-        if (error) showFormError(loginForm, translateAuthError(error.message));
-    });
+                    <div class="auth-switch" id="auth-toggle">
+                        ${switchText}
+                    </div>
+                </div>
+            </div>
+        `;
 
-    // Formulario de Registro
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const firstName = registerForm.querySelector('#reg-first-name').value.trim();
-        const lastName = registerForm.querySelector('#reg-last-name').value.trim();
-        const email = registerForm.querySelector('#reg-email').value.trim();
-        const password = registerForm.querySelector('#reg-password').value;
-        const confirm = registerForm.querySelector('#reg-confirm').value;
-        const btn = registerForm.querySelector('button[type="submit"]');
+        // Event listeners
+        document.getElementById('btn-google')?.addEventListener('click', () => {
+            showToast('Inicio con Google próximamente');
+        });
 
-        if (!firstName || !email || !password) {
-            showFormError(registerForm, 'Por favor completa los campos requeridos.');
-            return;
-        }
-        if (password.length < 6) {
-            showFormError(registerForm, 'La contraseña debe tener al menos 6 caracteres.');
-            return;
-        }
-        if (password !== confirm) {
-            showFormError(registerForm, 'Las contraseñas no coinciden.');
-            return;
-        }
+        document.getElementById('btn-apple')?.addEventListener('click', () => {
+            showToast('Inicio con Apple próximamente');
+        });
 
-        setButtonLoading(btn, true, 'Creando cuenta...');
-        const { data, error } = await auth.signUp(email, password, firstName, lastName);
-        setButtonLoading(btn, false, 'Crear cuenta');
+        document.getElementById('btn-show-email-form')?.addEventListener('click', () => {
+            renderEmailForm(isRegister);
+        });
 
-        if (error) {
-            showFormError(registerForm, translateAuthError(error.message));
-        } else if (data?.user && !data.session) {
-            showFormSuccess(registerForm, '¡Cuenta creada! Revisa tu email para confirmar tu cuenta.');
-        }
-    });
+        document.getElementById('auth-toggle')?.addEventListener('click', () => {
+            renderAuth(!isRegister);
+        });
+    };
 
-    // Toggle visibilidad de contraseña
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-        btn.addEventListener('click', () => {
+    // Función para mostrar el formulario de email (Login o Registro)
+    const renderEmailForm = (isRegister) => {
+        const card = document.querySelector('.auth-card');
+        const title = isRegister ? 'Crea tu cuenta' : 'Ingresa tus datos';
+
+        card.innerHTML = `
+            <div class="auth-logo-box">
+                <span class="material-symbols-outlined" style="font-size: 32px">mail</span>
+            </div>
+            
+            <div class="auth-header" style="margin-bottom: 8px;">
+                <h1>${title}</h1>
+                <p>Usa tu correo electrónico para continuar.</p>
+            </div>
+
+            <form id="auth-form" class="form-group" style="width: 100%; text-align: left; gap: 16px;">
+                <div id="auth-error-msg" class="form-error"></div>
+                
+                ${isRegister ? `
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="auth-name" class="input-field" placeholder="Tu nombre" required>
+                    </div>
+                ` : ''}
+
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" id="auth-email" class="input-field" placeholder="ejemplo@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="auth-password" class="input-field" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password">
+                            <span class="material-symbols-outlined">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-primary-btn" style="margin-top: 8px;">
+                    ${isRegister ? 'Registrarse' : 'Ingresar'}
+                </button>
+            </form>
+
+            <div class="btn-ghost-sm" id="btn-back-auth" style="margin-top: -8px;">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Atrás
+            </div>
+        `;
+
+        // Lógica del formulario
+        const form = document.getElementById('auth-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const btn = form.querySelector('button[type="submit"]');
+            const errorEl = document.getElementById('auth-error-msg');
+
+            setButtonLoading(btn, true, isRegister ? 'Creando...' : 'Ingresando...');
+
+            let result;
+            if (isRegister) {
+                const firstName = document.getElementById('auth-name').value.trim();
+                result = await auth.signUp(email, password, firstName);
+            } else {
+                result = await auth.signIn(email, password);
+            }
+
+            setButtonLoading(btn, false, isRegister ? 'Registrarse' : 'Ingresar');
+
+            if (result.error) {
+                errorEl.textContent = translateAuthError(result.error.message);
+                errorEl.style.display = 'block';
+            } else if (isRegister && !result.data.session) {
+                card.innerHTML = `
+                    <div class="auth-logo-box">
+                        <span class="material-symbols-outlined" style="font-size: 32px">mark_email_read</span>
+                    </div>
+                    <div class="auth-header">
+                        <h1>¡Casi listo!</h1>
+                        <p>Hemos enviado un correo a <b>${email}</b>. Confirma tu cuenta para empezar.</p>
+                    </div>
+                    <button class="auth-primary-btn" onclick="location.reload()">
+                        Entendido
+                    </button>
+                `;
+            }
+        });
+
+        // Toggle visor contraseña
+        card.querySelector('.toggle-password').addEventListener('click', (e) => {
+            const btn = e.currentTarget;
             const input = btn.previousElementSibling;
-            if (!input) return;
             const icon = btn.querySelector('.material-symbols-outlined');
             if (input.type === 'password') {
                 input.type = 'text';
-                if (icon) icon.textContent = 'visibility';
+                icon.textContent = 'visibility';
             } else {
                 input.type = 'password';
-                if (icon) icon.textContent = 'visibility_off';
+                icon.textContent = 'visibility_off';
             }
         });
-    });
+
+        document.getElementById('btn-back-auth')?.addEventListener('click', () => {
+            renderAuth(isRegister);
+        });
+    };
+
+    // Iniciar con la vista de Login
+    renderAuth(false);
 }
 
 // ── PANTALLA: Dashboard ────────────────────────────────────────────────────
