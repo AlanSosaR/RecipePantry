@@ -1,0 +1,205 @@
+/* =========================================================
+   styles.css  –  RecipeHub Personal
+   Design tokens (CSS variables) — Material 3 Expressive
+   ========================================================= */
+
+/* ─── Google Fonts ──────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+
+/* ─── Tokens — Light Mode ────────────────────────────────────────── */
+:root {
+    /* Colores primarios */
+    --primary: #FF6B35;
+    --on-primary: #FFFFFF;
+    --primary-container: #FFD8C8;
+    --on-primary-container: #5A1700;
+    --primary-dark: #E85D2A;
+    --primary-light: #FFF0EA;
+
+    /* Secundario */
+    --secondary: #755848;
+    --on-secondary: #FFFFFF;
+    --secondary-container: #FFD8C8;
+    --on-secondary-container: #2B1608;
+
+    /* Terciario */
+    --tertiary: #5A6238;
+    --on-tertiary: #FFFFFF;
+    --tertiary-container: #DEE8B3;
+    --on-tertiary-container: #181E00;
+
+    /* Error */
+    --error: #BA1A1A;
+    --on-error: #FFFFFF;
+    --error-container: #FFDAD6;
+    --on-error-container: #410002;
+
+    /* Superficies */
+    --surface: #FFF8F5;
+    --on-surface: #201A17;
+    --surface-variant: #F5DDD6;
+    --on-surface-variant: #53433E;
+    --surface-container: #F0E4DF;
+    --surface-container-low: #FAF0EB;
+    --surface-container-high: #E8DDD8;
+    --inverse-surface: #362F2C;
+    --inverse-on-surface: #FAEDEA;
+
+    /* Bordes */
+    --outline: #857370;
+    --outline-variant: #D8C2BC;
+
+    /* Elevación */
+    --elevation-1: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .08);
+    --elevation-2: 0 3px 6px rgba(0, 0, 0, .14), 0 2px 4px rgba(0, 0, 0, .10);
+    --elevation-3: 0 6px 12px rgba(0, 0, 0, .16), 0 4px 6px rgba(0, 0, 0, .10);
+    --elevation-4: 0 10px 20px rgba(0, 0, 0, .18), 0 6px 8px rgba(0, 0, 0, .10);
+
+    /* Tipografía */
+    --font-display: 'Poppins', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+/* ─── Dark Mode ──────────────────────────────────────────────────── */
+[data-theme="dark"],
+.dark {
+    --primary: #FFB59B;
+    --on-primary: #5A1700;
+    --primary-container: #7E2E00;
+    --on-primary-container: #FFD8C8;
+
+    --secondary: #E7BEAE;
+    --on-secondary: #432B1E;
+    --secondary-container: #5C3F32;
+    --on-secondary-container: #FFD8C8;
+
+    --tertiary: #C2CC98;
+    --on-tertiary: #2D330F;
+    --tertiary-container: #434B23;
+    --on-tertiary-container: #DEE8B3;
+
+    --error: #FFB4AB;
+    --on-error: #690005;
+    --error-container: #93000A;
+    --on-error-container: #FFDAD6;
+
+    --surface: #1A1210;
+    --on-surface: #EDE0DC;
+    --surface-variant: #53433E;
+    --on-surface-variant: #D8C2BC;
+    --surface-container: #2E2220;
+    --surface-container-low: #201A17;
+    --surface-container-high: #3A2D2A;
+    --inverse-surface: #EDE0DC;
+    --inverse-on-surface: #201A17;
+
+    --outline: #A08C87;
+    --outline-variant: #53433E;
+
+    --elevation-1: 0 1px 3px rgba(0, 0, 0, .3), 0 1px 2px rgba(0, 0, 0, .2);
+    --elevation-2: 0 3px 6px rgba(0, 0, 0, .35), 0 2px 4px rgba(0, 0, 0, .25);
+    --elevation-3: 0 6px 12px rgba(0, 0, 0, .4), 0 4px 6px rgba(0, 0, 0, .3);
+    --elevation-4: 0 10px 20px rgba(0, 0, 0, .45), 0 6px 8px rgba(0, 0, 0, .3);
+}
+
+/* Preferencia del sistema */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --primary: #FFB59B;
+        --on-primary: #5A1700;
+        --primary-container: #7E2E00;
+        --on-primary-container: #FFD8C8;
+
+        --secondary: #E7BEAE;
+        --on-secondary: #432B1E;
+        --secondary-container: #5C3F32;
+        --on-secondary-container: #FFD8C8;
+
+        --tertiary: #C2CC98;
+        --on-tertiary: #2D330F;
+        --tertiary-container: #434B23;
+        --on-tertiary-container: #DEE8B3;
+
+        --error: #FFB4AB;
+        --on-error: #690005;
+        --error-container: #93000A;
+        --on-error-container: #FFDAD6;
+
+        --surface: #1A1210;
+        --on-surface: #EDE0DC;
+        --surface-variant: #53433E;
+        --on-surface-variant: #D8C2BC;
+        --surface-container: #2E2220;
+        --surface-container-low: #201A17;
+        --surface-container-high: #3A2D2A;
+        --inverse-surface: #EDE0DC;
+        --inverse-on-surface: #201A17;
+
+        --outline: #A08C87;
+        --outline-variant: #53433E;
+
+        --elevation-1: 0 1px 3px rgba(0, 0, 0, .3), 0 1px 2px rgba(0, 0, 0, .2);
+        --elevation-2: 0 3px 6px rgba(0, 0, 0, .35), 0 2px 4px rgba(0, 0, 0, .25);
+        --elevation-3: 0 6px 12px rgba(0, 0, 0, .4), 0 4px 6px rgba(0, 0, 0, .3);
+        --elevation-4: 0 10px 20px rgba(0, 0, 0, .45), 0 6px 8px rgba(0, 0, 0, .3);
+    }
+}
+
+/* ─── Base Global ────────────────────────────────────────────────── */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-body);
+    background: var(--surface);
+    color: var(--on-surface);
+    transition: background-color .3s ease, color .3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: contain;
+}
+
+/* ─── Scrollbar Custom ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--outline-variant);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--outline);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ─── Focus visible ──────────────────────────────────────────────── */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ─── Selección de texto ─────────────────────────────────────────── */
+::selection {
+    background: var(--primary-container);
+    color: var(--on-primary-container);
+}

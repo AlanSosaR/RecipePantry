@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecipeHub – Modo Cocina</title>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="screen-header cooking-header">
+        <button id="btn-cooking-back" class="btn-icon">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <div class="cooking-header-center">
+            <h1 id="cooking-recipe-name" class="screen-title">Modo Cocina</h1>
+            <div class="cooking-progress-dots" id="cooking-dots"></div>
+        </div>
+        <button id="btn-cooking-done" class="btn-icon text-primary" title="Finalizar">
+            <span class="material-symbols-outlined">check_circle</span>
+        </button>
+    </div>
+
+    <div class="cooking-screen">
+        <!-- Timer / info rápida -->
+        <div class="cooking-quick-info">
+            <div class="cooking-info-chip">
+                <span class="material-symbols-outlined">schedule</span>
+                <span id="cooking-timer">00:00</span>
+            </div>
+            <button id="btn-cooking-timer-toggle" class="cooking-timer-btn" title="Iniciar/Pausar timer">
+                <span class="material-symbols-outlined" id="timer-icon">play_arrow</span>
+            </button>
+            <div class="cooking-info-chip">
+                <span class="material-symbols-outlined">group</span>
+                <span id="cooking-servings">—</span>
+            </div>
+        </div>
+
+        <!-- Paso actual (card grande) -->
+        <div class="cooking-step-card">
+            <div class="cooking-step-num-badge" id="cooking-step-badge">Paso 1</div>
+            <p id="cooking-step-text" class="cooking-step-text">Cargando pasos...</p>
+            <div id="cooking-step-time" class="cooking-step-time hidden">
+                <span class="material-symbols-outlined">timer</span>
+                <span id="cooking-step-minutes"></span>
+            </div>
+        </div>
+
+        <!-- Navegación entre pasos -->
+        <div class="cooking-nav">
+            <button id="btn-prev-step" class="btn-cooking-nav" disabled>
+                <span class="material-symbols-outlined">arrow_back_ios</span>
+                Anterior
+            </button>
+            <div class="cooking-step-counter">
+                <span id="cooking-current-step">1</span>
+                <span class="cooking-step-sep">/</span>
+                <span id="cooking-total-steps">—</span>
+            </div>
+            <button id="btn-next-step" class="btn-cooking-nav btn-cooking-nav--primary">
+                Siguiente
+                <span class="material-symbols-outlined">arrow_forward_ios</span>
+            </button>
+        </div>
+
+        <!-- Lista de ingredientes (expandible) -->
+        <details class="cooking-ingredients-panel">
+            <summary class="cooking-ingredients-summary">
+                <span class="material-symbols-outlined">grocery</span>
+                Ver ingredientes
+                <span class="material-symbols-outlined ml-auto">expand_more</span>
+            </summary>
+            <ul id="cooking-ingredients-list" class="cooking-ingredients-ul"></ul>
+        </details>
+
+        <!-- Botón finalizar -->
+        <button id="btn-finish-cooking" class="btn-primary btn-full cooking-finish-btn hidden">
+            <span class="material-symbols-outlined">emoji_events</span>
+            ¡Receta completada!
+        </button>
+    </div>
+
+</body>
+
+</html>

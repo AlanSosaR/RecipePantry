@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecipeHub Personal - Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FF7043", // Updated to Orange based on request
+                        secondary: "#FFAB91", // Lighter orange for accents
+                        "background-light": "#FFF8F5", // Very subtle orange-white
+                        "background-dark": "#1c1917", // Warm dark background
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#2C2B2A",
+                        "text-main-light": "#1F2937",
+                        "text-main-dark": "#E5E7EB",
+                        "text-sub-light": "#6B7280",
+                        "text-sub-dark": "#9CA3AF",
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        sans: ['DM Sans', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1rem",
+                        'xl': '1.5rem',
+                        '2xl': '2rem',
+                        '3xl': '2.5rem',
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(255,112,67,0.15)', // Updated shadow color
+                    }
+                },
+            },
+        };
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }.no-scrollbar {
+            -ms-overflow-style: none;scrollbar-width: none;}
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-text-main-light dark:text-text-main-dark min-h-screen antialiased selection:bg-primary selection:text-white pb-24">
+<header class="relative bg-primary pt-12 pb-24 px-6 rounded-b-3xl shadow-soft z-10">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center space-x-3">
+<div class="relative">
+<img alt="User profile picture" class="w-12 h-12 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFoAsVUpi58uSqSselJYZT_GFRN5U-hKvUV85_EmjdWeihdLQmkKxoclPNRGRnfMJVWkwoFpybPNb4lQjJK5SRrWZLcapgtMjc05wtF6WMN-3sEvnj5iQCqq1kPuaDbfBWII4h8hNfxXNUnrfbJNAvlOryH6bYfnCMFDHHVqJuw7v0CEQkf4btNae-53oi5VHb4hPk0xyT8Ddr1i9EP68_i-rl8FNjStFJ8JCPLcvARtg8T7XVifr84_aFuGiIXEYsgXVucrWlyiBH"/>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-white border-2 border-primary rounded-full">
+<span class="material-icons-round text-[8px] text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">skillet</span>
+</div>
+</div>
+<div>
+<p class="text-orange-50 text-sm font-medium opacity-90">Good Morning</p>
+<h1 class="text-white text-2xl font-bold font-display">Hola, María</h1>
+</div>
+</div>
+<button class="text-white p-2 rounded-full hover:bg-white/20 transition-colors">
+<span class="material-icons-round">notifications_none</span>
+</button>
+</div>
+<div class="absolute -bottom-7 left-6 right-6">
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-lg p-2 flex items-center justify-between">
+<div class="flex items-center flex-1 px-3">
+<span class="material-icons-round text-text-sub-light dark:text-text-sub-dark mr-2">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-text-main-light dark:text-text-main-dark placeholder-text-sub-light dark:placeholder-text-sub-dark text-sm" placeholder="Search Food Items" type="text"/>
+</div>
+<button class="bg-primary text-white p-3 rounded-xl shadow-md hover:bg-opacity-90 transition">
+<span class="material-icons-round text-xl">tune</span>
+</button>
+</div>
+</div>
+</header>
+<section class="mt-12 px-6">
+<div class="flex justify-between items-end mb-4">
+<h2 class="text-lg font-bold text-text-main-light dark:text-text-main-dark">Categories</h2>
+</div>
+<div class="flex space-x-4 overflow-x-auto no-scrollbar pb-2">
+<button class="flex flex-col items-center space-y-2 min-w-[70px] group">
+<div class="w-16 h-16 bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm flex items-center justify-center border border-transparent group-hover:border-primary group-hover:shadow-md transition-all">
+<span class="text-2xl">🍕</span>
+</div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark group-hover:text-primary transition-colors">Pizzas</span>
+</button>
+<button class="flex flex-col items-center space-y-2 min-w-[70px] group">
+<div class="w-16 h-16 bg-primary text-white rounded-2xl shadow-md flex items-center justify-center transform scale-105 transition-all">
+<span class="text-2xl">🥗</span>
+</div>
+<span class="text-xs font-bold text-primary dark:text-primary">Salads</span>
+</button>
+<button class="flex flex-col items-center space-y-2 min-w-[70px] group">
+<div class="w-16 h-16 bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm flex items-center justify-center border border-transparent group-hover:border-primary group-hover:shadow-md transition-all">
+<span class="text-2xl">🥤</span>
+</div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark group-hover:text-primary transition-colors">Shakes</span>
+</button>
+<button class="flex flex-col items-center space-y-2 min-w-[70px] group">
+<div class="w-16 h-16 bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm flex items-center justify-center border border-transparent group-hover:border-primary group-hover:shadow-md transition-all">
+<span class="text-2xl">🍔</span>
+</div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark group-hover:text-primary transition-colors">Burger</span>
+</button>
+<button class="flex flex-col items-center space-y-2 min-w-[70px] group">
+<div class="w-16 h-16 bg-surface-light dark:bg-surface-dark rounded-2xl shadow-sm flex items-center justify-center border border-transparent group-hover:border-primary group-hover:shadow-md transition-all">
+<span class="text-2xl">🍣</span>
+</div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark group-hover:text-primary transition-colors">Sushi</span>
+</button>
+</div>
+</section>
+<section class="mt-6 px-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold text-text-main-light dark:text-text-main-dark">Popular Recipes</h2>
+<a class="text-sm font-medium text-primary hover:text-opacity-80 transition-colors" href="#">View all &gt;</a>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-light dark:bg-surface-dark rounded-3xl p-4 shadow-soft relative flex flex-col items-center text-center group">
+<div class="relative w-28 h-28 -mt-8 mb-3 shadow-lg rounded-full overflow-hidden border-4 border-surface-light dark:border-surface-dark">
+<img alt="Sea Platter dish with eggs and vegetables" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiBTmQTC3b90l4Szj-FtQIY2ow5ArMZx1MHbbDFp82VfAXv0S8rzwagoxFuzpJoZCef-yoOTsJLazrQPSD9tAIPQnkh-qLEWutd__Elphn7pbJ-bD4S_xliIyXnLaPhwdMmqb1lMuZLMFxLO8BNRWNjQ2bf3a0Qjaf-NYjAgvxd94pdvEeLxhkxNMzJDTgYZEoONV6bK55rvFiprk6z44GrUeTCnY5BRSLK-xqPhdPjq5nvpKG8EcrxWUh70xvYnPYj2G9IZHs09wk"/>
+</div>
+<h3 class="font-bold text-lg text-text-main-light dark:text-text-main-dark mb-1">Sea Platter</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mb-3">Maritime Star Restaurant</p>
+<div class="flex items-center justify-between w-full mt-auto">
+<div class="flex items-center text-primary text-xs font-bold">
+<span class="material-icons-round text-sm mr-0.5">star</span>
+                        4.5
+                    </div>
+<span class="text-primary font-bold text-sm">$20</span>
+</div>
+<button class="absolute top-3 right-3 text-red-400 hover:text-red-500 transition-colors">
+<span class="material-icons-round">favorite_border</span>
+</button>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-3xl p-4 shadow-soft relative flex flex-col items-center text-center group">
+<div class="relative w-28 h-28 -mt-8 mb-3 shadow-lg rounded-full overflow-hidden border-4 border-surface-light dark:border-surface-dark">
+<img alt="Chicken Pizza" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlqqpte4wTHJjglT_2o7YkAnJtqSlzdXeOifVtuEqyNYGmJWjS0dGjNI1bqQ6y6_vzV4ppcjU6PZkvD03D__6GPSLk-dC0O9dd17Xa0JBAcoT2kGSxDOJ8a1ZdFBTFPNwD3wa74gnMk8Akuk1sBrJktu8B2SAkiKl9cEIBefFa1NDoweWaz6CSTvf5-7XIjxof4Bjd1DewbUyKgejTz_sbmfVAM9jM1fX1vKDGdQfRuA8rOouJuAMnTrShRc46rqUTUj9AMSelMR3U"/>
+</div>
+<h3 class="font-bold text-lg text-text-main-light dark:text-text-main-dark mb-1">Chicken Pizza</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mb-3">Rio Lounge Cafe</p>
+<div class="flex items-center justify-between w-full mt-auto">
+<div class="flex items-center text-primary text-xs font-bold">
+<span class="material-icons-round text-sm mr-0.5">star</span>
+                        4.7
+                    </div>
+<span class="text-primary font-bold text-sm">$15</span>
+</div>
+<button class="absolute top-3 right-3 text-red-500 hover:text-red-600 transition-colors">
+<span class="material-icons-round">favorite</span>
+</button>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-3xl p-4 shadow-soft relative flex flex-col items-center text-center group mt-8">
+<div class="relative w-28 h-28 -mt-8 mb-3 shadow-lg rounded-full overflow-hidden border-4 border-surface-light dark:border-surface-dark">
+<img alt="Fresh Salad Bowl" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBku1MBxpKKwKCCHXs20pRdGtLio4_s6u2NK0KsxN4dYzjOBbxhm6inM75a_fuSW4kPlKjPyleelORRDdeQXqM_8V0hBRO5kMZsbnaWu4-3sB8-ynkmJZfrwDt8i-wjOHA0lJwc7uXWTSQ7MNHdZFvihtHrIaJgV0YcYispdriFUOsY5Ci_TA-OfNHMZkRJNOZnY9CARFGY0rT2cqvODXmw3X_LOkm_bsMJ6RrTct6KHal0pwsoRXZ95KPs6wbBOgOH7POhhGGA0-42"/>
+</div>
+<h3 class="font-bold text-lg text-text-main-light dark:text-text-main-dark mb-1">Green Salad</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mb-3">Healthy Bites</p>
+<div class="flex items-center justify-between w-full mt-auto">
+<div class="flex items-center text-primary text-xs font-bold">
+<span class="material-icons-round text-sm mr-0.5">star</span>
+                        4.8
+                    </div>
+<div class="flex items-center text-text-sub-light dark:text-text-sub-dark text-xs">
+<span class="material-icons-round text-sm mr-0.5">schedule</span>
+                        10m
+                    </div>
+</div>
+<button class="absolute top-3 right-3 text-text-sub-light dark:text-text-sub-dark hover:text-red-400 transition-colors">
+<span class="material-icons-round">favorite_border</span>
+</button>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark rounded-3xl p-4 shadow-soft relative flex flex-col items-center text-center group mt-8">
+<div class="relative w-28 h-28 -mt-8 mb-3 shadow-lg rounded-full overflow-hidden border-4 border-surface-light dark:border-surface-dark">
+<img alt="Beef Burger" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNCNSR4y-jvzQQOH9zwHjAam_ZjuPVxUfxQhXarAxg12HVtIOE5Nm-gJIkvgdecY0r33zL2UJ9_zWq4D-LlPLwv7_YDN8XegzCe29YMtBtygnH7WYuMLmOAESu0lSnv0MQqYqqHPM80x7BeSEXE7ZpgPcDAQn2KdI6HzMOmzf6Bc1KSLCsJwozyNjDc9Lg9BoPx3VMpUDU9rK3PgOYbwzgpGufzS1xpKq5YJdbwdh82TDsE5bxT1gysU-b6gjQZ7AeK8QKclNZckFB"/>
+</div>
+<h3 class="font-bold text-lg text-text-main-light dark:text-text-main-dark mb-1">King Burger</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mb-3">Burger House</p>
+<div class="flex items-center justify-between w-full mt-auto">
+<div class="flex items-center text-primary text-xs font-bold">
+<span class="material-icons-round text-sm mr-0.5">star</span>
+                        4.2
+                    </div>
+<div class="flex items-center text-text-sub-light dark:text-text-sub-dark text-xs">
+<span class="material-icons-round text-sm mr-0.5">local_fire_department</span>
+                        350 kcal
+                    </div>
+</div>
+<button class="absolute top-3 right-3 text-text-sub-light dark:text-text-sub-dark hover:text-red-400 transition-colors">
+<span class="material-icons-round">favorite_border</span>
+</button>
+</div>
+</div>
+</section>
+<nav class="fixed bottom-0 left-0 right-0 bg-surface-light dark:bg-surface-dark shadow-[0_-5px_20px_rgba(0,0,0,0.05)] rounded-t-3xl px-8 py-4 z-50">
+<div class="flex justify-between items-center">
+<button class="flex flex-col items-center justify-center text-primary">
+<span class="material-icons-round text-2xl">home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-sub-light dark:text-text-sub-dark hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">receipt_long</span>
+</button>
+<div class="relative -top-8">
+<button class="bg-primary text-white w-14 h-14 rounded-full shadow-lg shadow-orange-300/50 dark:shadow-orange-900/50 flex items-center justify-center transform transition hover:scale-105 active:scale-95">
+<span class="material-icons-round text-2xl">document_scanner</span>
+</button>
+</div>
+<button class="flex flex-col items-center justify-center text-text-sub-light dark:text-text-sub-dark hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">bookmark_border</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-sub-light dark:text-text-sub-dark hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-icons-round text-2xl">person_outline</span>
+</button>
+</div>
+</nav>
+<div class="fixed bottom-24 right-6 flex flex-col gap-3 z-40">
+<button class="bg-surface-light dark:bg-surface-dark text-primary p-3 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+<span class="material-icons-round">edit</span>
+</button>
+</div>
+</body></html>

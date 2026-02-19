@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecipeHub – Escáner OCR</title>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="screen-header">
+        <button id="btn-ocr-back" class="btn-icon">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h1 class="screen-title">Escanear Receta</h1>
+        <span></span>
+    </div>
+
+    <div class="ocr-screen">
+        <!-- Área de carga -->
+        <div id="ocr-upload-area" class="ocr-upload-area" role="button" tabindex="0" aria-label="Seleccionar imagen">
+            <span class="material-symbols-outlined ocr-upload-icon">add_photo_alternate</span>
+            <p class="ocr-upload-title">Toca o arrastra una imagen</p>
+            <p class="ocr-upload-hint">JPG, PNG, WEBP — hasta 10 MB</p>
+        </div>
+
+        <!-- Procesando / resultados -->
+        <div class="ocr-result-card">
+            <div class="ocr-result-header">
+                <span class="material-symbols-outlined">text_fields</span>
+                <h3>Texto detectado</h3>
+            </div>
+            <div id="ocr-result-text" class="ocr-result-text">
+                Aquí aparecerá el texto detectado...
+            </div>
+        </div>
+
+        <!-- Usar texto -->
+        <button id="btn-use-text" type="button" class="btn-primary btn-full" disabled>
+            <span class="material-symbols-outlined">check</span>
+            Usar este texto en la receta
+        </button>
+
+        <p class="ocr-disclaimer">
+            <span class="material-symbols-outlined text-sm">info</span>
+            El texto detectado se pre-llenará en el formulario de la receta.
+        </p>
+    </div>
+</body>
+
+</html>

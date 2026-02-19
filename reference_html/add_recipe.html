@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecipeHub – Agregar Receta</title>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="screen-header">
+        <button id="btn-add-back" class="btn-icon">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h1 class="screen-title">Nueva Receta</h1>
+        <button id="btn-ocr-inline" class="btn-icon text-primary" title="Escanear desde imagen">
+            <span class="material-symbols-outlined">document_scanner</span>
+        </button>
+    </div>
+
+    <div class="form-screen">
+        <!-- Nombre -->
+        <div class="form-group">
+            <label class="form-label" for="recipe-name">Nombre de la receta *</label>
+            <input id="recipe-name" class="input-field" type="text" placeholder="Ej: Tacos al pastor"
+                autocomplete="off" />
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group">
+            <label class="form-label" for="recipe-description">Descripción</label>
+            <textarea id="recipe-description" class="input-field resize-none" rows="2"
+                placeholder="Breve descripción de la receta..."></textarea>
+        </div>
+
+        <!-- Categoría y Dificultad -->
+        <div class="form-row">
+            <div class="form-group flex-1">
+                <label class="form-label" for="recipe-category">Categoría</label>
+                <select id="recipe-category" class="input-field">
+                    <option value="">Seleccionar...</option>
+                </select>
+            </div>
+            <div class="form-group flex-1">
+                <label class="form-label" for="recipe-difficulty">Dificultad</label>
+                <select id="recipe-difficulty" class="input-field">
+                    <option value="easy">Fácil</option>
+                    <option value="medium">Medio</option>
+                    <option value="hard">Difícil</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tiempos y Porciones -->
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="recipe-prep-time">Prep. (min)</label>
+                <input id="recipe-prep-time" class="input-field" type="number" min="0" placeholder="15" />
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="recipe-cook-time">Cocción (min)</label>
+                <input id="recipe-cook-time" class="input-field" type="number" min="0" placeholder="30" />
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="recipe-servings">Porciones</label>
+                <input id="recipe-servings" class="input-field" type="number" min="1" placeholder="4" />
+            </div>
+        </div>
+
+        <!-- Ingredientes -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined">grocery</span>
+                    Ingredientes
+                </h2>
+                <button id="btn-add-ingredient" type="button" class="btn-ghost-sm">
+                    <span class="material-symbols-outlined">add</span>
+                    Agregar
+                </button>
+            </div>
+            <div id="ingredients-list" class="ingredients-stack"></div>
+        </div>
+
+        <!-- Pasos -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined">format_list_numbered</span>
+                    Pasos de Preparación
+                </h2>
+                <button id="btn-add-step" type="button" class="btn-ghost-sm">
+                    <span class="material-symbols-outlined">add</span>
+                    Agregar
+                </button>
+            </div>
+            <div id="steps-list" class="steps-stack"></div>
+        </div>
+
+        <!-- Botón Guardar -->
+        <button id="btn-save-recipe" type="button" class="btn-primary btn-full mt-6">
+            <span class="material-symbols-outlined">save</span>
+            Guardar Receta
+        </button>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+/* =========================================================
+   responsive.css  –  RecipeHub Personal
+   Mobile-first breakpoints
+   ========================================================= */
+
+/* ─── Base: mobile (< 480px) ────────────────────────────────────── */
+:root {
+    --content-max: 600px;
+}
+
+/* ─── Small phones (< 360px) ─────────────────────────────────────── */
+@media (max-width: 360px) {
+    .screen-title {
+        font-size: 1.1rem;
+    }
+
+    .detail-name {
+        font-size: 1.25rem;
+    }
+
+    .recipe-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .detail-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Medium phones (481px – 767px) ─────────────────────────────── */
+@media (min-width: 481px) {
+    .recipe-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 0 20px;
+    }
+
+    .ocr-upload-area {
+        padding: 56px 32px;
+    }
+
+    .login-card {
+        border-radius: 28px;
+        padding: 32px;
+    }
+}
+
+/* ─── Tablet (768px – 1023px) ────────────────────────────────────── */
+@media (min-width: 768px) {
+    #app {
+        max-width: var(--content-max);
+        margin: 0 auto;
+        position: relative;
+        box-shadow: 0 0 40px rgba(0, 0, 0, .3);
+        min-height: 100dvh;
+    }
+
+    .recipe-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .detail-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .dashboard-header {
+        padding: 20px 20px 12px;
+    }
+
+    .form-screen {
+        padding: 24px 24px 48px;
+    }
+}
+
+/* ─── Desktop (≥ 1024px) ─────────────────────────────────────────── */
+@media (min-width: 1024px) {
+    :root {
+        --content-max: 480px;
+    }
+
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        background: var(--surface-variant);
+        padding: 40px 0;
+    }
+
+    #app {
+        border-radius: 32px;
+        overflow: hidden;
+        min-height: calc(100dvh - 80px);
+        max-height: calc(100dvh - 80px);
+        overflow-y: auto;
+    }
+
+    .bottom-nav {
+        position: sticky;
+        bottom: 0;
+    }
+
+    .fab {
+        position: sticky;
+        bottom: 88px;
+    }
+}
+
+/* ─── Landscape phone ─────────────────────────────────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+    .detail-hero {
+        height: 180px;
+    }
+
+    .login-container {
+        padding: 12px 20px;
+        min-height: unset;
+    }
+
+    .login-brand {
+        display: none;
+    }
+}
+
+/* ─── Safe areas (notch, home indicator) ─────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .bottom-nav {
+        padding-bottom: env(safe-area-inset-bottom);
+        height: calc(72px + env(safe-area-inset-bottom));
+    }
+}

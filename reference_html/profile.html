@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecipeHub – Perfil</title>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="screen-header">
+        <button id="btn-profile-back" class="btn-icon">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h1 class="screen-title">Mi Perfil</h1>
+        <button id="btn-profile-edit" class="btn-icon text-primary" title="Editar perfil">
+            <span class="material-symbols-outlined">edit</span>
+        </button>
+    </div>
+
+    <div class="profile-screen">
+        <!-- Avatar y datos del usuario -->
+        <div class="profile-hero">
+            <div class="profile-avatar-wrap">
+                <img id="profile-avatar-img" src="" alt="Tu foto de perfil" class="profile-avatar"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                <div class="profile-avatar-placeholder" style="display:none">
+                    <span class="material-symbols-outlined">person</span>
+                </div>
+            </div>
+            <button id="btn-change-avatar" class="profile-avatar-change" title="Cambiar foto">
+                <span class="material-symbols-outlined">photo_camera</span>
+            </button>
+            <h2 id="profile-full-name" class="profile-name">—</h2>
+            <p id="profile-email" class="profile-email">—</p>
+            <p id="profile-collection" class="profile-collection-tag">🍽️ Mi colección personal</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="profile-stats-row">
+            <div class="profile-stat">
+                <span id="stat-recipes" class="profile-stat__value">0</span>
+                <span class="profile-stat__label">Recetas</span>
+            </div>
+            <div class="profile-stat-divider"></div>
+            <div class="profile-stat">
+                <span id="stat-favorites" class="profile-stat__value">0</span>
+                <span class="profile-stat__label">Favoritas</span>
+            </div>
+            <div class="profile-stat-divider"></div>
+            <div class="profile-stat">
+                <span id="stat-cooked" class="profile-stat__value">0</span>
+                <span class="profile-stat__label">Cocinadas</span>
+            </div>
+        </div>
+
+        <!-- Opciones -->
+        <div class="profile-menu">
+            <button class="profile-menu-item" id="btn-edit-name">
+                <span class="material-symbols-outlined profile-menu-icon">person</span>
+                <div class="profile-menu-text">
+                    <span class="profile-menu-title">Editar nombre</span>
+                    <span class="profile-menu-sub">Cambia cómo te llamas en la app</span>
+                </div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+
+            <button class="profile-menu-item" id="btn-export-recipes">
+                <span class="material-symbols-outlined profile-menu-icon">download</span>
+                <div class="profile-menu-text">
+                    <span class="profile-menu-title">Exportar recetas</span>
+                    <span class="profile-menu-sub">Descarga tus recetas en JSON</span>
+                </div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+
+            <button class="profile-menu-item" id="btn-theme-toggle">
+                <span class="material-symbols-outlined profile-menu-icon">dark_mode</span>
+                <div class="profile-menu-text">
+                    <span class="profile-menu-title">Tema oscuro</span>
+                    <span class="profile-menu-sub">Activar / desactivar</span>
+                </div>
+                <span class="material-symbols-outlined" id="theme-toggle-icon">chevron_right</span>
+            </button>
+
+            <button class="profile-menu-item profile-menu-item--danger" id="btn-logout-profile">
+                <span class="material-symbols-outlined profile-menu-icon">logout</span>
+                <div class="profile-menu-text">
+                    <span class="profile-menu-title">Cerrar sesión</span>
+                    <span class="profile-menu-sub">Salir de tu cuenta</span>
+                </div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Input oculto para cambiar avatar -->
+    <input type="file" id="avatar-file-input" accept="image/*" class="hidden" />
+</body>
+
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>RecipeHub – Detalle de Receta</title>
+</head>
+
+<body>
+  <!-- Header -->
+  <div class="screen-header">
+    <button id="btn-details-back" class="btn-icon">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1 class="screen-title">Detalle</h1>
+    <button id="btn-delete-recipe" class="btn-icon text-danger" title="Eliminar receta">
+      <span class="material-symbols-outlined">delete</span>
+    </button>
+  </div>
+
+  <!-- Botones de Acción -->
+  <div class="detail-actions">
+    <button id="btn-cook-now" class="btn-primary flex-1">
+      <span class="material-symbols-outlined">restaurant</span>
+      Cocinar ahora
+    </button>
+    <button id="btn-share-recipe" class="btn-secondary">
+      <span class="material-symbols-outlined">share</span>
+    </button>
+  </div>
+
+  <!-- Imagen Hero -->
+  <div class="detail-hero">
+    <img id="detail-img" src="" alt="Imagen de la receta" class="detail-hero__img" />
+    <div class="detail-hero__overlay"></div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="detail-content">
+    <!-- Nombre y categoría -->
+    <div class="detail-meta">
+      <h2 id="detail-name" class="detail-name">—</h2>
+      <span id="detail-category" class="detail-category-badge">—</span>
+    </div>
+
+    <!-- Stats inline -->
+    <div class="detail-stats">
+      <div class="stat-item">
+        <span class="material-symbols-outlined stat-icon">schedule</span>
+        <div>
+          <p class="stat-label">Preparación</p>
+          <p id="detail-prep-time" class="stat-value">—</p>
+        </div>
+      </div>
+      <div class="stat-item">
+        <span class="material-symbols-outlined stat-icon">local_fire_department</span>
+        <div>
+          <p class="stat-label">Cocción</p>
+          <p id="detail-cook-time" class="stat-value">—</p>
+        </div>
+      </div>
+      <div class="stat-item">
+        <span class="material-symbols-outlined stat-icon">signal_cellular_alt</span>
+        <div>
+          <p class="stat-label">Dificultad</p>
+          <p id="detail-difficulty" class="stat-value">—</p>
+        </div>
+      </div>
+      <div class="stat-item">
+        <span class="material-symbols-outlined stat-icon">group</span>
+        <div>
+          <p class="stat-label">Porciones</p>
+          <p id="detail-servings" class="stat-value">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div class="detail-section">
+      <h3 class="detail-section__title">Descripción</h3>
+      <p id="detail-description" class="detail-section__text">—</p>
+    </div>
+
+    <!-- Ingredientes -->
+    <div class="detail-section">
+      <h3 class="detail-section__title">
+        <span class="material-symbols-outlined">grocery</span>
+        Ingredientes
+      </h3>
+      <ul id="detail-ingredients" class="ingredients-ul"></ul>
+    </div>
+
+    <!-- Pasos -->
+    <div class="detail-section">
+      <h3 class="detail-section__title">
+        <span class="material-symbols-outlined">format_list_numbered</span>
+        Preparación
+      </h3>
+      <ol id="detail-steps" class="steps-ol"></ol>
+    </div>
+  </div>
+</body>
+
+</html>
