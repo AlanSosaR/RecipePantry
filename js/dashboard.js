@@ -62,7 +62,7 @@ class DashboardManager {
             });
         }
 
-        // Navegación Sidebar
+        // Navegación Sidebar Desktop
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -70,12 +70,60 @@ class DashboardManager {
                 this.switchView(view, item);
             });
         });
+
+        // Listener para cerrar drawer al hacer click fuera
+        const overlay = document.getElementById('mobile-drawer-overlay');
+        if (overlay) {
+            overlay.addEventListener('click', () => this.toggleMobileMenu(false));
+        }
+    }
+
+    toggleMobileMenu(forceState = null) {
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('mobile-drawer-overlay');
+
+        if (!drawer || !overlay) return;
+
+        const isHidden = drawer.classList.contains('-translate-x-full');
+        const shouldOpen = forceState !== null ? forceState : isHidden;
+
+        if (shouldOpen) {
+            drawer.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10); // Fade in
+        } else {
+            drawer.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300); // Wait for transition
+        }
+    }
+
+    handleMobileNav(view, itemElement) {
+        // Cerrar menú primero
+        this.toggleMobileMenu(false);
+
+        // Sincronizar con desktop sidebar si es posible
+        const desktopItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+        if (desktopItem) {
+            this.switchView(view, desktopItem);
+        } else {
+            // Fallback si no hay item de escritorio (raro)
+            this.loadRecipes(view === 'favorites' ? { favorite: true } : {});
+        }
     }
 
     switchView(view, activeItem) {
         console.log('Cambiando a vista:', view);
+
+        // Actualizar desktop
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        activeItem.classList.add('active');
+        if (activeItem) activeItem.classList.add('active');
+
+        // Actualizar mobile (si existe)
+        document.querySelectorAll('.nav-item-mobile').forEach(i => {
+            if (i.dataset.view === view) i.classList.add('bg-emerald-light', 'text-primary');
+            else i.classList.remove('bg-emerald-light', 'text-primary');
+        });
 
         // Lógica de filtrado rápido según la vista
         if (view === 'favorites') {
@@ -85,25 +133,9 @@ class DashboardManager {
         }
     }
 
+    // handleNav Legacy removido o mantenido por compatibilidad si es necesario
     handleNav(view) {
-        // Encontrar el item correspondiente en el sidebar para mantener sincronía
-        const sidebarItem = document.querySelector(`.nav-item[data-view="${view}"]`);
-        if (sidebarItem) {
-            this.switchView(view, sidebarItem);
-        } else {
-            console.log('Navegando vía Bottom Nav:', view);
-            if (view === 'saved') {
-                this.loadRecipes({ favorite: true });
-            } else {
-                this.loadRecipes();
-            }
-        }
-
-        // Actualizar estado activo en bottom-nav
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        if (event && event.currentTarget && event.currentTarget.classList.contains('nav-btn')) {
-            event.currentTarget.classList.add('active');
-        }
+        this.handleMobileNav(view, null);
     }
 
     async loadRecipes(filters = {}) {

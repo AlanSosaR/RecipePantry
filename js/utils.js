@@ -53,4 +53,11 @@ window.formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', options);
 };
 
+// Exportar como objeto utils para retrocompatibilidad
+window.utils = {
+    showToast: window.showToast,
+    setButtonLoading: window.setButtonLoading,
+    formatDate: window.formatDate
+};
+
 console.log('✅ Utilidades inicializadas');
