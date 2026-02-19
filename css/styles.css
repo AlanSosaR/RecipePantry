@@ -8,56 +8,56 @@
 
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
-    /* Colores primarios */
+    /* Colores - Palette Premium Orange */
     --primary: #FF7A50;
+    --primary-light: #FF9E7D;
+    --primary-dark: #cc6140;
     --on-primary: #FFFFFF;
-    --primary-container: #FFD8C8;
-    --on-primary-container: #5A1700;
-    --primary-dark: #E6633D;
-    --primary-light: #FFF0EA;
 
-    /* Secundario */
-    --secondary: #755848;
+    --secondary: #2D9596;
+    --secondary-light: #3DB5B6;
     --on-secondary: #FFFFFF;
-    --secondary-container: #FFD8C8;
-    --on-secondary-container: #2B1608;
 
-    /* Terciario */
-    --tertiary: #5A6238;
-    --on-tertiary: #FFFFFF;
-    --tertiary-container: #DEE8B3;
-    --on-tertiary-container: #181E00;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
 
-    /* Error */
-    --error: #BA1A1A;
-    --on-error: #FFFFFF;
-    --error-container: #FFDAD6;
-    --on-error-container: #410002;
+    /* Superficies y Neutros */
+    --bg: #FFFFFF;
+    --surface: #F9FAFB;
+    --surface-variant: #F3F4F6;
+    --on-surface: #111827;
+    --on-surface-variant: #4B5563;
+    --outline: #E5E7EB;
 
-    /* Superficies */
-    --surface: #F5F7FA;
-    --on-surface: #201A17;
-    --surface-variant: #F5DDD6;
-    --on-surface-variant: #53433E;
-    --surface-container: #FFFFFF;
-    --surface-container-low: #FAF0EB;
-    --surface-container-high: #E8DDD8;
-    --inverse-surface: #362F2C;
-    --inverse-on-surface: #FAEDEA;
+    /* Espaciado */
+    --space-xs: 8px;
+    --space-sm: 12px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
 
-    /* Bordes */
-    --outline: #E2E8F0;
-    --outline-variant: #D8C2BC;
+    /* Border Radius - Premium Curve */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-2xl: 32px;
+    --radius-full: 9999px;
 
-    /* Elevación */
-    --elevation-1: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --elevation-2: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --elevation-3: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    --elevation-4: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    /* Sombras - Premium Depth */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.15);
 
     /* Tipografía */
     --font-display: 'Epilogue', sans-serif;
     --font-body: 'Inter', sans-serif;
+
+    /* Transiciones */
+    --transition-fast: 150ms ease-out;
+    --transition-base: 250ms ease-out;
 }
 
 /* ─── Dark Mode ──────────────────────────────────────────────────── */

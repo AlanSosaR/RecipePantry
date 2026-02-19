@@ -4,38 +4,19 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>RecipeHub Personal</title>
+    <title>RecipeHub - Dashboard</title>
 
-    <!-- Material 3 & Phosphor Icons -->
+    <!-- Fuentes e Iconos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet" />
+        href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
         rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-    <!-- Tailwind CSS (for quick prototype/reference styles) -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#FF7A50",
-                        "primary-dark": "#E6633D",
-                        "background-light": "#FFF8F5",
-                        "background-dark": "#1A1A1A",
-                    },
-                    fontFamily: {
-                        display: ["Poppins", "sans-serif"],
-                        body: ["Inter", "sans-serif"],
-                    }
-                }
-            }
-        };
-    </script>
-
+    <!-- Estilos -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/responsive.css">
@@ -43,15 +24,104 @@
 
 <body>
     <div id="app">
-        <!-- El contenido se inyecta dinámicamente por app.js -->
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Cargando RecipeHub...</p>
-        </div>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content container">
+                <div class="logo">
+                    <div class="logo-box">
+                        <span class="material-symbols-outlined">restaurant</span>
+                    </div>
+                    <span>RecipeHub</span>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-button" onclick="window.location.href='profile.html'">
+                        <span class="material-symbols-outlined">account_circle</span>
+                    </button>
+                    <button class="icon-button" onclick="window.authManager.signOut()">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container py-lg">
+            <!-- Hero / Saludo -->
+            <div class="hero-section mb-lg">
+                <h1 id="user-greeting">Hola, Chef</h1>
+                <p>¿Qué vamos a cocinar hoy?</p>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="search-section mb-lg">
+                <div class="search-wrapper">
+                    <span class="material-symbols-outlined search-icon">search</span>
+                    <input type="text" id="searchInput" class="search-input"
+                        placeholder="Busca por nombre o ingrediente...">
+                </div>
+            </div>
+
+            <!-- Category Chips -->
+            <div class="filter-chips no-scrollbar mb-lg" id="categoryChips">
+                <div class="spinner-sm"></div>
+            </div>
+
+            <!-- Stats -->
+            <div id="statsSection" class="mb-lg"></div>
+
+            <!-- Recipe Grid -->
+            <div class="section-header mb-md">
+                <h2>Mis Recetas</h2>
+                <button class="btn-text" onclick="window.location.href='recipes.html'">Ver todas</button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>Cargando tus recetas...</p>
+            </div>
+
+            <!-- Grid -->
+            <div id="recipesGrid" class="recipes-grid hidden"></div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state hidden">
+                <span class="material-symbols-outlined" style="font-size: 64px">menu_book</span>
+                <h3>Aún no tienes recetas</h3>
+                <p>Empieza agregando tu primera receta manualmente o escaneando una foto.</p>
+                <div class="mt-lg">
+                    <button class="btn-primary" onclick="window.location.href='ocr.html'">
+                        <span class="material-symbols-outlined">camera_alt</span>
+                        Escanear Receta
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- FAB -->
+        <button class="fab" onclick="window.location.href='add-recipe.html'">
+            <span class="material-symbols-outlined">add</span>
+        </button>
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        // Personalizar saludo al cargar
+        window.addEventListener('load', async () => {
+            await window.authManager.checkAuth();
+            if (window.authManager.currentUser) {
+                const name = window.authManager.currentUser.first_name;
+                document.getElementById('user-greeting').textContent = `Hola, ${name}`;
+            }
+        });
+    </script>
 </body>
 
 </html>

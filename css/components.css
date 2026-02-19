@@ -107,6 +107,13 @@ ol {
     }
 }
 
+/* ─── Spinner ─────────────────────────────────────────────────────── */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .spinner {
     width: 48px;
     height: 48px;
@@ -117,84 +124,125 @@ ol {
 }
 
 .spinner-sm {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border: 2px solid var(--surface-variant);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin .8s linear infinite;
 }
 
-/* ─── Toast ───────────────────────────────────────────────────────── */
-@keyframes toastIn {
-    from {
-        transform: translateY(20px) translateX(-50%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0) translateX(-50%);
-        opacity: 1;
-    }
+/* ─── Toast Container ───────────────────────────────────────────── */
+.toast-container {
+    position: fixed;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    pointer-events: none;
 }
 
 .toast {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--inverse-surface, #e6e1e5);
-    color: var(--inverse-on-surface, #1c1b1f);
-    padding: 12px 24px;
-    border-radius: 24px;
-    font-size: 0.875rem;
-    z-index: 9999;
-    max-width: 90vw;
-    text-align: center;
-    box-shadow: var(--elevation-3);
-    animation: toastIn .2s ease;
-}
-
-/* ─── Screen Header ──────────────────────────────────────────────── */
-.screen-header {
+    background: var(--on-surface);
+    color: var(--bg);
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--surface-container-low);
-    border-bottom: 1px solid var(--outline-variant);
+    gap: var(--space-sm);
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+    min-width: 280px;
+}
+
+.toast-success {
+    border-left: 4px solid var(--success);
+}
+
+.toast-error {
+    border-left: 4px solid var(--error);
+}
+
+/* ─── Screen Header (Navegación) ─────────────────────────────────── */
+.header {
+    height: 72px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--outline);
     position: sticky;
     top: 0;
     z-index: 100;
-    min-height: 64px;
-}
-
-.screen-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--on-surface);
-    margin: 0;
-    flex: 1;
-    text-align: center;
-}
-
-/* ─── Botones ─────────────────────────────────────────────────────── */
-.btn-icon {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--on-surface);
+}
+
+.logo-box {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: var(--on-surface-variant);
-    cursor: pointer;
-    transition: background .2s;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-icon:hover {
+/* ─── Botones e Iconos ───────────────────────────────────────────── */
+.icon-button {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--on-surface-variant);
+    transition: var(--transition-fast);
+}
+
+.icon-button:hover {
     background: var(--surface-variant);
+    color: var(--primary);
+}
+
+.btn-primary {
+    height: 48px;
+    padding: 0 var(--space-lg);
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    transition: var(--transition-base);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-icon:active {
