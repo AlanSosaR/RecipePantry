@@ -2,67 +2,143 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecipeHub - Bienvenida</title>
-
-    <!-- Fuentes e Iconos -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700;800&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>RecipeHub Personal Gateway</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
         rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-
-    <!-- Estilos -->
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/components.css">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#064E3B",
+                        "primary-dark": "#003324",
+                        "surface-light": "#ffffff",
+                        "surface-variant": "#f0f2f5",
+                        "on-surface": "#1d1b20",
+                        "outline": "#79747e",
+                        "emerald-light": "#ECFDF5",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'md3': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'md3-lg': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-emerald-gradient {
+                background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent),
+                            radial-gradient(circle at bottom left, rgba(6, 78, 59, 0.05), transparent);
+            }
+        }
+    </style>
 </head>
 
-<body>
-    <div class="login-card">
-        <div class="icon-container">
-            <span class="material-symbols-outlined">menu_book</span>
+<body
+    class="bg-surface-variant font-body text-on-surface antialiased min-h-screen flex items-center justify-center p-4 bg-emerald-gradient">
+    <div
+        class="w-full max-w-md bg-surface-light rounded-[28px] shadow-md3-lg p-8 md:p-12 border border-white/50 relative overflow-hidden">
+
+        <div class="flex flex-col items-center mb-6 relative z-10">
+            <div class="size-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
+                <span class="material-symbols-outlined text-4xl">menu_book</span>
+            </div>
+            <h1 id="main-title"
+                class="font-display text-3xl md:text-3xl font-bold text-center tracking-tight text-primary mb-2">
+                Bienvenido a tu Recetario
+            </h1>
+            <p id="main-subtitle"
+                class="text-center text-gray-500 font-body text-sm md:text-base max-w-[280px] mx-auto leading-relaxed">
+                Tu colección privada de recetas, escaneadas y organizadas.
+            </p>
         </div>
 
-        <h1>Bienvenido a tu Recetario</h1>
-        <p class="subtitle">Tu colección privada de recetas, escaneadas y organizadas.</p>
-
-        <form id="unified-form">
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" id="email" class="form-input" placeholder="ejemplo@correo.com" required>
+        <form id="unified-form" class="space-y-4 mb-6 relative z-10">
+            <div class="space-y-1">
+                <label class="block text-sm font-semibold text-gray-700" for="email">Email</label>
+                <input
+                    class="w-full h-12 px-4 rounded-xl border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all font-body text-gray-800 placeholder:text-gray-400"
+                    id="email" placeholder="ejemplo@correo.com" type="email" required />
             </div>
-            <div class="form-group">
-                <label class="form-label">Contraseña</label>
-                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            <div class="space-y-1">
+                <label class="block text-sm font-semibold text-gray-700" for="password">Contraseña</label>
+                <input
+                    class="w-full h-12 px-4 rounded-xl border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all font-body text-gray-800 placeholder:text-gray-400"
+                    id="password" placeholder="••••••••" type="password" required />
             </div>
-            <button type="submit" class="btn-main" id="btn-submit">Ingresar</button>
+            <div class="pt-2">
+                <button type="submit" id="btn-submit"
+                    class="w-full relative flex items-center justify-center gap-2 bg-primary text-white h-12 rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 focus:ring-2 focus:ring-offset-2 focus:ring-primary active:scale-95">
+                    <span class="font-bold text-[15px]">Ingresar</span>
+                </button>
+            </div>
         </form>
 
-        <div class="divider">o continuar con</div>
+        <div class="relative py-2 mb-6">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-surface-light text-gray-500">o continuar con</span>
+            </div>
+        </div>
 
-        <div class="social-buttons">
-            <button class="btn-social" onclick="window.utils.showToast('Google disponible pronto')">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                Iniciar sesión con Google
+        <div class="space-y-4 relative z-10">
+            <button onclick="window.showToast('Google disponible pronto')"
+                class="w-full relative flex items-center justify-center gap-3 bg-white border border-[#747775] text-[#1f1f1f] h-12 rounded-full hover:bg-gray-50 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4"></path>
+                    <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"></path>
+                    <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"></path>
+                    <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"></path>
+                </svg>
+                <span class="font-medium text-[15px]">Google</span>
             </button>
-            <button class="btn-social btn-apple" onclick="window.utils.showToast('Apple disponible pronto')">
-                <i class="fa-brands fa-apple" style="font-size: 18px"></i>
-                Iniciar sesión con Apple
+            <button onclick="window.showToast('Apple disponible pronto')"
+                class="w-full relative flex items-center justify-center gap-3 bg-black text-white h-12 rounded-full hover:bg-gray-800 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                <i class="fa-brands fa-apple text-xl"></i>
+                <span class="font-medium text-[15px]">Apple</span>
+            </button>
+
+            <button onclick="handleSwitch()"
+                class="w-full relative flex items-center justify-center gap-2 text-primary hover:bg-primary/5 h-12 rounded-full transition-all mt-2 group">
+                <span class="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform">mail</span>
+                <span id="switch-text" class="font-bold text-[15px]">Crear cuenta con email</span>
             </button>
         </div>
 
-        <a class="create-account-link" onclick="handleSwitch()">
-            <span class="material-symbols-outlined" style="font-size: 18px">mail</span>
-            <span id="switch-text">Crear cuenta con email</span>
-        </a>
+        <div class="mt-8 text-center relative z-10">
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-4">
+                RecipeHub Personal • 2026
+            </p>
+        </div>
 
-        <div class="footer-legal">
-            Al continuar, aceptas nuestros <a href="#">Términos de Servicio</a> y <a href="#">Política de
-                Privacidad</a>.
+        <!-- Decorative Blurs -->
+        <div class="absolute top-[-10%] right-[-5%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-3xl opacity-60 -z-0">
+        </div>
+        <div
+            class="absolute bottom-[-10%] left-[-5%] w-[60%] h-[60%] bg-emerald-500/10 rounded-full blur-3xl opacity-60 -z-0">
         </div>
     </div>
 
@@ -77,17 +153,20 @@
 
         function handleSwitch() {
             isLogin = !isLogin;
-            const title = document.querySelector('h1');
+            const title = document.getElementById('main-title');
+            const subtitle = document.getElementById('main-subtitle');
             const btnSubmit = document.getElementById('btn-submit');
             const switchText = document.getElementById('switch-text');
 
             if (isLogin) {
                 title.textContent = "Bienvenido a tu Recetario";
-                btnSubmit.textContent = "Ingresar";
+                subtitle.textContent = "Tu colección privada de recetas, escaneadas y organizadas.";
+                btnSubmit.querySelector('span').textContent = "Ingresar";
                 switchText.textContent = "Crear cuenta con email";
             } else {
                 title.textContent = "Únete a RecipeHub";
-                btnSubmit.textContent = "Registrarse";
+                subtitle.textContent = "Comienza a organizar tu legado culinario hoy mismo.";
+                btnSubmit.querySelector('span').textContent = "Registrarse";
                 switchText.textContent = "Ya tengo cuenta, ingresar";
             }
         }
@@ -99,26 +178,25 @@
             const btn = document.getElementById('btn-submit');
 
             if (isLogin) {
-                window.utils.setButtonLoading(btn, true, 'Ingresando...');
+                setButtonLoading(btn, true, 'Ingresando...');
                 const result = await window.authManager.signIn(email, password);
-                window.utils.setButtonLoading(btn, false, 'Ingresar');
+                setButtonLoading(btn, false, 'Ingresar');
 
                 if (result.success) {
                     window.location.href = 'index.html';
                 } else {
-                    window.utils.showToast(result.error, 'error');
+                    showToast(result.error, 'error');
                 }
             } else {
-                window.utils.setButtonLoading(btn, true, 'Creando...');
-                // Nota: Usamos una cadena vacía para el nombre por ahora como simplificación
+                setButtonLoading(btn, true, 'Creando...');
                 const result = await window.authManager.signUp(email, password, 'Chef', '');
-                window.utils.setButtonLoading(btn, false, 'Registrarse');
+                setButtonLoading(btn, false, 'Registrarse');
 
                 if (result.success) {
-                    window.utils.showToast('¡Cuenta creada! Revisa tu email.', 'success');
+                    showToast('¡Cuenta creada! Revisa tu email.', 'success');
                     setTimeout(() => handleSwitch(), 3000);
                 } else {
-                    window.utils.showToast(result.error, 'error');
+                    showToast(result.error, 'error');
                 }
             }
         });
