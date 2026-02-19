@@ -85,6 +85,27 @@ class DashboardManager {
         }
     }
 
+    handleNav(view) {
+        // Encontrar el item correspondiente en el sidebar para mantener sincronía
+        const sidebarItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+        if (sidebarItem) {
+            this.switchView(view, sidebarItem);
+        } else {
+            console.log('Navegando vía Bottom Nav:', view);
+            if (view === 'saved') {
+                this.loadRecipes({ favorite: true });
+            } else {
+                this.loadRecipes();
+            }
+        }
+
+        // Actualizar estado activo en bottom-nav
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        if (event && event.currentTarget && event.currentTarget.classList.contains('nav-btn')) {
+            event.currentTarget.classList.add('active');
+        }
+    }
+
     async loadRecipes(filters = {}) {
         // En este nuevo diseño, el dashboard tiene secciones fijas. 
         // Si hay búsqueda, mostramos un "Search Results" global.

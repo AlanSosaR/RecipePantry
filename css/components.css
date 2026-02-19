@@ -1,8 +1,3 @@
-/* =========================================================
-   components.css  –  RecipeHub Personal
-   Sistema de diseño : Material 3 Expressive  (dark-first)
-   ========================================================= */
-
 /* ─── Importar Material Symbols (por si no está en index.html) ─── */
 /* Ya está en index.html, no se re-importa aquí */
 
@@ -168,6 +163,129 @@ ol {
     border-left: 4px solid var(--error);
 }
 
+/* ─── Chips de Categoría (Stitch) ─────────────────────────────────── */
+.filter-chips {
+    display: flex;
+    gap: var(--space-md);
+    overflow-x: auto;
+    padding: var(--space-xs) var(--space-md);
+    margin: 0 calc(-1 * var(--space-md));
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.filter-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.chip {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    padding: var(--space-xs);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.chip .material-symbols-outlined {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    color: var(--on-surface-variant);
+    border-radius: var(--radius-full);
+    font-size: 28px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-base);
+}
+
+.chip.active .material-symbols-outlined {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 8px 16px rgba(255, 112, 67, 0.3);
+}
+
+.chip span:not(.material-symbols-outlined) {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+}
+
+.chip.active span:not(.material-symbols-outlined) {
+    color: var(--primary);
+}
+
+/* ─── Tarjetas de Receta Compactas (Modo Lista) ─────────────────── */
+.card-compact {
+    display: flex;
+    gap: var(--space-md);
+    background: var(--surface);
+    padding: var(--space-sm);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+    border: 1px solid var(--outline-variant);
+}
+
+.card-compact:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-compact__img {
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+}
+
+.card-compact__img img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+}
+
+.card-compact__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.card-compact__info h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--on-surface);
+}
+
+.card-compact__info p {
+    font-size: 12px;
+    color: var(--on-surface-variant);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-compact__time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
 /* ─── Screen Header (Navegación) ─────────────────────────────────── */
 .header {
     height: 72px;
@@ -208,46 +326,68 @@ ol {
     justify-content: center;
 }
 
-/* ─── Botones e Iconos ───────────────────────────────────────────── */
-.icon-button {
-    width: 44px;
-    height: 44px;
+/* ─── Navegación Móvil (Stitch) ─────────────────────────────────── */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: var(--surface);
+    display: none;
+    /* Visible solo en móviles vía responsive.css */
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--on-surface-variant);
+    transition: var(--transition-base);
+}
+
+.nav-btn.active {
+    color: var(--primary);
+}
+
+.nav-label {
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.fab-container {
+    position: relative;
+    top: -32px;
+}
+
+.fab {
+    width: 64px;
+    height: 64px;
+    background: var(--primary);
+    color: white;
     border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--on-surface-variant);
-    transition: var(--transition-fast);
-}
-
-.icon-button:hover {
-    background: var(--surface-variant);
-    color: var(--primary);
-}
-
-.btn-primary {
-    height: 48px;
-    padding: 0 var(--space-lg);
-    background: var(--primary);
-    color: white;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-sm);
+    box-shadow: 0 8px 16px rgba(255, 112, 67, 0.4);
+    border: 4px solid var(--surface);
     transition: var(--transition-base);
-    box-shadow: var(--shadow-md);
 }
 
-.btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+.fab:active {
+    transform: scale(0.9) rotate(90deg);
 }
 
-.btn-icon:active {
-    background: oklch(from var(--primary) l c h / 0.2);
-}
+/* ────────────────────────────────────────────────────────────────── */
 
 .btn-icon.text-primary {
     color: var(--primary);

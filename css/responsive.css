@@ -111,31 +111,67 @@
     }
 }
 
-/* ─── Landscape phone ─────────────────────────────────────────────── */
-@media (max-width: 480px) {
-    .detail-hero {
-        height: 300px;
+/* ─── Utilidades de Visibilidad ─────────────────────────────────── */
+.mobile-only {
+    display: flex !important;
+}
+
+@media (min-width: 768px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+.desktop-only {
+    display: none !important;
+}
+
+@media (min-width: 768px) {
+    .desktop-only {
+        display: flex !important;
+    }
+}
+
+/* ─── Ajustes de Layout Móvil ───────────────────────────────────── */
+@media (max-width: 767px) {
+    .sidebar {
+        display: none !important;
     }
 
-    .detail-hero h1 {
-        font-size: 28px;
+    .bottom-nav {
+        display: flex !important;
     }
 
-    .detail-main {
-        padding: 24px;
-        margin-top: -24px;
+    .main-content {
+        padding: var(--space-md) var(--space-md) 100px !important;
+        height: 100dvh;
     }
 
-    .detail-tabs {
-        gap: 16px;
+    .hero-banner {
+        flex-direction: column;
+        padding: var(--space-md);
     }
 
-    .tab-item {
-        font-size: 14px;
+    .hero-banner__img-container {
+        display: none;
     }
 
-    .info-grid {
-        grid-template-columns: 1fr;
+    .top-bar {
+        background: var(--primary) !important;
+        margin: calc(-1 * var(--space-md)) calc(-1 * var(--space-md)) var(--space-lg);
+        padding: var(--space-lg) var(--space-md) var(--space-xl);
+        border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+        color: white;
+    }
+
+    .top-bar .icon-button,
+    .top-bar .btn-notif {
+        color: white;
+    }
+
+    .search-wrapper {
+        margin-top: -30px;
+        box-shadow: var(--shadow-lg);
     }
 }
 

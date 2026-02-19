@@ -228,6 +228,31 @@
                     </div>
                 </div>
             </main>
+
+            <!-- Navigation and Actions (Mobile Only) -->
+            <nav class="bottom-nav">
+                <button class="nav-btn active" onclick="window.dashboard.handleNav('home')">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-btn" onclick="window.dashboard.handleNav('saved')">
+                    <span class="material-symbols-outlined">favorite</span>
+                    <span class="nav-label">Saved</span>
+                </button>
+                <div class="fab-container">
+                    <button class="fab" onclick="window.location.href='ocr.html'">
+                        <span class="material-symbols-outlined">document_scanner</span>
+                    </button>
+                </div>
+                <button class="nav-btn" onclick="window.dashboard.handleNav('recipes')">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    <span class="nav-label">My Recipes</span>
+                </button>
+                <button class="nav-btn" onclick="window.location.href='profile.html'">
+                    <span class="material-symbols-outlined">person</span>
+                    <span class="nav-label">Profile</span>
+                </button>
+            </nav>
         </section>
     </div>
 
