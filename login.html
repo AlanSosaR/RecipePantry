@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecipeHub - Iniciar Sesión</title>
+    <title>RecipeHub - Bienvenida</title>
 
     <!-- Fuentes e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,297 +18,51 @@
 
     <!-- Estilos -->
     <link rel="stylesheet" href="css/styles.css">
-
-    <style>
-        :root {
-            --bg-color: #F4F4F9;
-            /* Fondo suave como el de la imagen */
-            --card-bg: #FFFFFF;
-        }
-
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            /* Elimina barras laterales innecesarias */
-            font-family: var(--font-body);
-            background-color: var(--bg-color);
-        }
-
-        .login-page {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .login-card {
-            background: var(--card-bg);
-            border-radius: 40px;
-            /* Bordes muy redondeados como en la imagen */
-            padding: 48px 40px;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .login-icon-box {
-            width: 64px;
-            height: 64px;
-            background: #FFF0EB;
-            color: #FF7A50;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 32px;
-        }
-
-        .login-icon-box span {
-            font-size: 32px;
-            font-variation-settings: 'FILL' 0;
-        }
-
-        .login-card h1 {
-            font-family: var(--font-display);
-            font-size: 36px;
-            font-weight: 800;
-            color: #1A1A1A;
-            margin-bottom: 12px;
-            line-height: 1.2;
-        }
-
-        .login-card p {
-            color: #666;
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 40px;
-            max-width: 340px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .auth-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .btn-auth {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            height: 56px;
-            border-radius: 28px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-            border: 1px solid #E5E7EB;
-            background: white;
-            color: #1A1A1A;
-        }
-
-        .btn-auth:hover {
-            background: #F9FAFB;
-            transform: translateY(-1px);
-        }
-
-        .btn-auth.btn-black {
-            background: #000000;
-            color: #FFFFFF;
-            border: none;
-        }
-
-        .btn-auth.btn-black:hover {
-            background: #222222;
-        }
-
-        .btn-auth.btn-primary {
-            background: #FF7A50;
-            color: #FFFFFF;
-            border: none;
-            box-shadow: 0 8px 16px rgba(255, 122, 80, 0.2);
-        }
-
-        .btn-auth.btn-primary:hover {
-            background: #E6633D;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #999;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: #EEE;
-        }
-
-        .legal-text {
-            font-size: 12px;
-            color: #999;
-            margin-top: 16px;
-            line-height: 1.6;
-        }
-
-        .legal-text a {
-            color: #666;
-            text-decoration: underline;
-        }
-
-        .switch-auth {
-            margin-top: 24px;
-            font-size: 15px;
-            color: #666;
-        }
-
-        .switch-auth span {
-            color: #FF7A50;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        /* Forms Hidden by Default */
-        .auth-form-container {
-            display: none;
-            text-align: left;
-            margin-top: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #333;
-        }
-
-        .form-input {
-            width: 100%;
-            height: 52px;
-            padding: 0 16px;
-            border: 1px solid #E5E7EB;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.2s;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #FF7A50;
-            box-shadow: 0 0 0 4px rgba(255, 122, 80, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="css/components.css">
 </head>
 
 <body>
-    <div class="login-page">
-        <div class="login-card animate-fade-in">
-            <div class="login-icon-box">
-                <span class="material-symbols-outlined">menu_book</span>
+    <div class="login-card">
+        <div class="icon-container">
+            <span class="material-symbols-outlined">menu_book</span>
+        </div>
+
+        <h1>Bienvenido a tu Recetario</h1>
+        <p class="subtitle">Tu colección privada de recetas, escaneadas y organizadas.</p>
+
+        <form id="unified-form">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="email" class="form-input" placeholder="ejemplo@correo.com" required>
             </div>
-
-            <div id="main-view">
-                <h1>Bienvenido a tu Recetario</h1>
-                <p>Tu colección privada de recetas, escaneadas y organizadas.</p>
-
-                <div class="auth-buttons">
-                    <button class="btn-auth" onclick="showToast('Disponible pronto')">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                        Iniciar sesión con Google
-                    </button>
-                    <button class="btn-auth btn-black" onclick="showToast('Disponible pronto')">
-                        <i class="fa-brands fa-apple" style="font-size: 20px"></i>
-                        Iniciar sesión con Apple
-                    </button>
-
-                    <div class="divider">o continuar con</div>
-
-                    <button class="btn-auth btn-primary" onclick="showView('register')">
-                        <span class="material-symbols-outlined">mail</span>
-                        Crear cuenta con email
-                    </button>
-                </div>
-
-                <div class="legal-text">
-                    Al continuar, aceptas nuestros <a href="#">Términos de Servicio</a> y <a href="#">Política de
-                        Privacidad</a>.
-                </div>
-
-                <div class="switch-auth">
-                    ¿Ya tienes cuenta? <span onclick="showView('login')">Inicia sesión</span>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
             </div>
+            <button type="submit" class="btn-main" id="btn-submit">Ingresar</button>
+        </form>
 
-            <!-- Login Email Form -->
-            <div id="login-view" class="auth-form-container">
-                <h2 style="margin-bottom: 24px">Iniciar Sesión</h2>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="email" class="form-input" placeholder="ejemplo@correo.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Contraseña</label>
-                        <input type="password" id="password" class="form-input" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn-auth btn-primary" id="btn-login"
-                        style="margin-top: 10px">Ingresar</button>
-                </form>
-                <div class="switch-auth" style="text-align: center">
-                    <span onclick="showView('main')">← Volver</span>
-                </div>
-            </div>
+        <div class="divider">o continuar con</div>
 
-            <!-- Register Email Form -->
-            <div id="register-view" class="auth-form-container">
-                <h2 style="margin-bottom: 24px">Crear Cuenta</h2>
-                <form id="register-form">
-                    <div class="form-group">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" id="reg-name" class="form-input" placeholder="Tu nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="reg-email" class="form-input" placeholder="ejemplo@correo.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Contraseña</label>
-                        <input type="password" id="reg-password" class="form-input" placeholder="Mínimo 6 caracteres"
-                            minlength="6" required>
-                    </div>
-                    <button type="submit" class="btn-auth btn-primary" id="btn-register"
-                        style="margin-top: 10px">Registrarse</button>
-                </form>
-                <div class="switch-auth" style="text-align: center">
-                    <span onclick="showView('main')">← Volver</span>
-                </div>
-            </div>
+        <div class="social-buttons">
+            <button class="btn-social" onclick="window.utils.showToast('Google disponible pronto')">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                Iniciar sesión con Google
+            </button>
+            <button class="btn-social btn-apple" onclick="window.utils.showToast('Apple disponible pronto')">
+                <i class="fa-brands fa-apple" style="font-size: 18px"></i>
+                Iniciar sesión con Apple
+            </button>
+        </div>
+
+        <a class="create-account-link" onclick="handleSwitch()">
+            <span class="material-symbols-outlined" style="font-size: 18px">mail</span>
+            <span id="switch-text">Crear cuenta con email</span>
+        </a>
+
+        <div class="footer-legal">
+            Al continuar, aceptas nuestros <a href="#">Términos de Servicio</a> y <a href="#">Política de
+                Privacidad</a>.
         </div>
     </div>
 
@@ -319,61 +73,58 @@
     <script src="js/utils.js"></script>
 
     <script>
-        function showView(view) {
-            document.getElementById('main-view').style.display = 'none';
-            document.getElementById('login-view').style.display = 'none';
-            document.getElementById('register-view').style.display = 'none';
+        let isLogin = true;
 
-            if (view === 'main') {
-                document.getElementById('main-view').style.display = 'block';
-            } else if (view === 'login') {
-                document.getElementById('login-view').style.display = 'block';
-            } else if (view === 'register') {
-                document.getElementById('register-view').style.display = 'block';
+        function handleSwitch() {
+            isLogin = !isLogin;
+            const title = document.querySelector('h1');
+            const btnSubmit = document.getElementById('btn-submit');
+            const switchText = document.getElementById('switch-text');
+
+            if (isLogin) {
+                title.textContent = "Bienvenido a tu Recetario";
+                btnSubmit.textContent = "Ingresar";
+                switchText.textContent = "Crear cuenta con email";
+            } else {
+                title.textContent = "Únete a RecipeHub";
+                btnSubmit.textContent = "Registrarse";
+                switchText.textContent = "Ya tengo cuenta, ingresar";
             }
         }
 
-        // Manejo de Login
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        document.getElementById('unified-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('btn-login');
+            const btn = document.getElementById('btn-submit');
 
-            setButtonLoading(btn, true, 'Ingresando...');
-            const result = await authManager.signIn(email, password);
-            setButtonLoading(btn, false, 'Ingresar');
+            if (isLogin) {
+                window.utils.setButtonLoading(btn, true, 'Ingresando...');
+                const result = await window.authManager.signIn(email, password);
+                window.utils.setButtonLoading(btn, false, 'Ingresar');
 
-            if (result.success) {
-                window.location.href = 'index.html';
+                if (result.success) {
+                    window.location.href = 'index.html';
+                } else {
+                    window.utils.showToast(result.error, 'error');
+                }
             } else {
-                showToast(result.error, 'error');
+                window.utils.setButtonLoading(btn, true, 'Creando...');
+                // Nota: Usamos una cadena vacía para el nombre por ahora como simplificación
+                const result = await window.authManager.signUp(email, password, 'Chef', '');
+                window.utils.setButtonLoading(btn, false, 'Registrarse');
+
+                if (result.success) {
+                    window.utils.showToast('¡Cuenta creada! Revisa tu email.', 'success');
+                    setTimeout(() => handleSwitch(), 3000);
+                } else {
+                    window.utils.showToast(result.error, 'error');
+                }
             }
         });
 
-        // Manejo de Registro
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-password').value;
-            const btn = document.getElementById('btn-register');
-
-            setButtonLoading(btn, true, 'Creando...');
-            const result = await authManager.signUp(email, password, name, '');
-            setButtonLoading(btn, false, 'Registrarse');
-
-            if (result.success) {
-                showToast('¡Cuenta creada! Revisa tu email.', 'success');
-                setTimeout(() => showView('login'), 3000);
-            } else {
-                showToast(result.error, 'error');
-            }
-        });
-
-        // Verificar si ya está logueado
         window.addEventListener('load', async () => {
-            const isAuth = await authManager.checkAuth();
+            const isAuth = await window.authManager.checkAuth();
             if (isAuth) window.location.href = 'index.html';
         });
     </script>

@@ -68,184 +68,103 @@ function setupScreenLogic(screenId) {
 function setupLoginScreen() {
     const app = document.getElementById('app');
 
-    // Función para renderizar el estado inicial (Login o Registro)
-    const renderAuth = (isRegister = false) => {
-        const title = isRegister ? 'Empieza hoy' : 'Bienvenido a tu Recetario';
-        const subTitle = isRegister ? 'Únete a miles de amantes de la cocina.' : 'Tu colección privada de recetas, escaneadas y organizadas.';
-        const primaryAction = isRegister ? 'Crear cuenta con email' : 'Ingresar con email';
-        const switchText = isRegister ? '¿Ya tienes cuenta? <span>Inicia sesión</span>' : '¿No tienes cuenta? <span>Regístrate</span>';
+    const renderUnifiedAuth = (isRegister = false) => {
+        const title = isRegister ? 'Únete a RecipeHub' : 'Bienvenido a tu Recetario';
+        const primaryAction = isRegister ? 'Registrarse' : 'Ingresar';
+        const switchText = isRegister ? 'Ya tengo cuenta, ingresar' : 'Crear cuenta con email';
 
         app.innerHTML = `
             <div class="auth-bg fade-in">
-                <div class="auth-card">
-                    <div class="auth-logo-box">
-                        <span class="material-symbols-outlined" style="font-size: 32px">menu_book</span>
-                    </div>
-                    
-                    <div class="auth-header">
-                        <h1>${title}</h1>
-                        <p>${subTitle}</p>
+                <div class="login-card">
+                    <div class="icon-container">
+                        <span class="material-symbols-outlined">menu_book</span>
                     </div>
 
-                    <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
-                        <button class="auth-social-btn" id="btn-google">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20">
+                    <h1>${title}</h1>
+                    <p class="subtitle">Tu colección privada de recetas, escaneadas y organizadas.</p>
+
+                    <form id="unified-form">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="email" class="form-input" placeholder="ejemplo@correo.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn-main" id="btn-submit">${primaryAction}</button>
+                    </form>
+
+                    <div class="divider">o continuar con</div>
+
+                    <div class="social-buttons">
+                        <button class="btn-social" id="btn-google">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                             Iniciar sesión con Google
                         </button>
-                        <button class="auth-social-btn btn-apple" id="btn-apple">
-                            <i class="fa-brands fa-apple" style="font-size: 20px"></i>
+                        <button class="btn-social btn-apple" id="btn-apple">
+                            <i class="fa-brands fa-apple" style="font-size: 18px"></i>
                             Iniciar sesión con Apple
                         </button>
                     </div>
 
-                    <div class="auth-divider">o continuar con</div>
+                    <a class="create-account-link" id="auth-toggle">
+                        <span class="material-symbols-outlined" style="font-size: 18px">mail</span>
+                        <span>${switchText}</span>
+                    </a>
 
-                    <button class="auth-primary-btn" id="btn-show-email-form">
-                        <span class="material-symbols-outlined">mail</span>
-                        ${primaryAction}
-                    </button>
-
-                    <div class="auth-footer">
+                    <div class="footer-legal">
                         Al continuar, aceptas nuestros <a href="#">Términos de Servicio</a> y <a href="#">Política de Privacidad</a>.
-                    </div>
-
-                    <div class="auth-switch" id="auth-toggle">
-                        ${switchText}
                     </div>
                 </div>
             </div>
         `;
 
-        // Event listeners
+        // Event Listeners
+        document.getElementById('auth-toggle')?.addEventListener('click', () => {
+            renderUnifiedAuth(!isRegister);
+        });
+
         document.getElementById('btn-google')?.addEventListener('click', () => {
-            showToast('Inicio con Google próximamente');
+            if (window.utils?.showToast) window.utils.showToast('Google disponible pronto');
+            else if (typeof showToast === 'function') showToast('Google disponible pronto');
         });
 
         document.getElementById('btn-apple')?.addEventListener('click', () => {
-            showToast('Inicio con Apple próximamente');
+            if (window.utils?.showToast) window.utils.showToast('Apple disponible pronto');
+            else if (typeof showToast === 'function') showToast('Apple disponible pronto');
         });
 
-        document.getElementById('btn-show-email-form')?.addEventListener('click', () => {
-            renderEmailForm(isRegister);
-        });
-
-        document.getElementById('auth-toggle')?.addEventListener('click', () => {
-            renderAuth(!isRegister);
-        });
-    };
-
-    // Función para mostrar el formulario de email (Login o Registro)
-    const renderEmailForm = (isRegister) => {
-        const card = document.querySelector('.auth-card');
-        const title = isRegister ? 'Crea tu cuenta' : 'Ingresa tus datos';
-
-        card.innerHTML = `
-            <div class="auth-logo-box">
-                <span class="material-symbols-outlined" style="font-size: 32px">mail</span>
-            </div>
-            
-            <div class="auth-header" style="margin-bottom: 8px;">
-                <h1>${title}</h1>
-                <p>Usa tu correo electrónico para continuar.</p>
-            </div>
-
-            <form id="auth-form" class="form-group" style="width: 100%; text-align: left; gap: 16px;">
-                <div id="auth-error-msg" class="form-error"></div>
-                
-                ${isRegister ? `
-                    <div class="form-group">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" id="auth-name" class="input-field" placeholder="Tu nombre" required>
-                    </div>
-                ` : ''}
-
-                <div class="form-group">
-                    <label class="form-label">Correo electrónico</label>
-                    <input type="email" id="auth-email" class="input-field" placeholder="ejemplo@email.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Contraseña</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="auth-password" class="input-field" placeholder="••••••••" required>
-                        <button type="button" class="toggle-password">
-                            <span class="material-symbols-outlined">visibility_off</span>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="auth-primary-btn" style="margin-top: 8px;">
-                    ${isRegister ? 'Registrarse' : 'Ingresar'}
-                </button>
-            </form>
-
-            <div class="btn-ghost-sm" id="btn-back-auth" style="margin-top: -8px;">
-                <span class="material-symbols-outlined">arrow_back</span>
-                Atrás
-            </div>
-        `;
-
-        // Lógica del formulario
-        const form = document.getElementById('auth-form');
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('unified-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const btn = form.querySelector('button[type="submit"]');
-            const errorEl = document.getElementById('auth-error-msg');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-submit');
+            const showT = window.utils?.showToast || (typeof showToast === 'function' ? showToast : console.log);
+            const setL = window.utils?.setButtonLoading || (typeof setButtonLoading === 'function' ? setButtonLoading : () => { });
 
-            setButtonLoading(btn, true, isRegister ? 'Creando...' : 'Ingresando...');
+            setL(btn, true, isRegister ? 'Creando...' : 'Ingresando...');
 
-            let result;
-            if (isRegister) {
-                const firstName = document.getElementById('auth-name').value.trim();
-                result = await auth.signUp(email, password, firstName);
-            } else {
-                result = await auth.signIn(email, password);
+            try {
+                if (isRegister) {
+                    const result = await auth.signUp(email, password, 'Chef');
+                    if (result.error) throw result.error;
+                    showT('¡Cuenta creada! Revisa tu email.', 'success');
+                    setTimeout(() => renderUnifiedAuth(false), 3000);
+                } else {
+                    const result = await auth.signIn(email, password);
+                    if (result.error) throw result.error;
+                    // El cambio de estado de sesión debería disparar navigateTo('dashboard') en initApp
+                }
+            } catch (err) {
+                showT(err.message, 'error');
+            } finally {
+                setL(btn, false, primaryAction);
             }
-
-            setButtonLoading(btn, false, isRegister ? 'Registrarse' : 'Ingresar');
-
-            if (result.error) {
-                errorEl.textContent = translateAuthError(result.error.message);
-                errorEl.style.display = 'block';
-            } else if (isRegister && !result.data.session) {
-                card.innerHTML = `
-                    <div class="auth-logo-box">
-                        <span class="material-symbols-outlined" style="font-size: 32px">mark_email_read</span>
-                    </div>
-                    <div class="auth-header">
-                        <h1>¡Casi listo!</h1>
-                        <p>Hemos enviado un correo a <b>${email}</b>. Confirma tu cuenta para empezar.</p>
-                    </div>
-                    <button class="auth-primary-btn" onclick="location.reload()">
-                        Entendido
-                    </button>
-                `;
-            }
-        });
-
-        // Toggle visor contraseña
-        card.querySelector('.toggle-password').addEventListener('click', (e) => {
-            const btn = e.currentTarget;
-            const input = btn.previousElementSibling;
-            const icon = btn.querySelector('.material-symbols-outlined');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.textContent = 'visibility';
-            } else {
-                input.type = 'password';
-                icon.textContent = 'visibility_off';
-            }
-        });
-
-        document.getElementById('btn-back-auth')?.addEventListener('click', () => {
-            renderAuth(isRegister);
         });
     };
 
-    // Iniciar con la vista de Login
-    renderAuth(false);
+    renderUnifiedAuth(false);
 }
 
 // ── PANTALLA: Dashboard ────────────────────────────────────────────────────
