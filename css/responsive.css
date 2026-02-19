@@ -135,7 +135,18 @@
 /* ─── Ajustes de Layout Móvil ───────────────────────────────────── */
 @media (max-width: 767px) {
     .sidebar {
-        display: none !important;
+        display: flex !important;
+        position: fixed;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+        z-index: 2000;
+        transition: left 0.3s ease;
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.active {
+        left: 0;
     }
 
     .bottom-nav {
@@ -145,6 +156,7 @@
     .main-content {
         padding: var(--space-md) var(--space-md) 100px !important;
         height: 100dvh;
+        overflow-y: auto;
     }
 
     .hero-banner {

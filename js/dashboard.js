@@ -147,34 +147,24 @@ class DashboardManager {
         }
 
         container.innerHTML = recipes.map(recipe => `
-            <div class="card-featured animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <div class="card-featured__img-box">
+            <div class="card-recipe animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="card-recipe__img">
                     <img src="${recipe.primaryImage || 'assets/placeholder-recipe.jpg'}" alt="${recipe.name_es}">
+                    <button class="card-recipe__save" onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
+                        <span class="material-symbols-outlined">${recipe.isFavorited ? 'favorite' : 'favorite_border'}</span>
+                    </button>
                 </div>
-                <div class="card-featured__content">
-                    <h3>${recipe.name_es}</h3>
-                    <p>${recipe.calories || '150'} kcal</p>
-                    
-                    <div class="card-featured__tags">
-                        <div class="tag-item">
-                            <span class="material-symbols-outlined">leaf</span>
-                            <span>VEG</span>
-                        </div>
-                        <div class="tag-item">
-                            <span class="material-symbols-outlined">nutrition</span>
-                            <span>TOM</span>
-                        </div>
-                    </div>
-
-                    <div class="card-featured__footer">
-                        <button class="btn-watch">
-                            <span class="material-symbols-outlined">play_circle</span>
-                            Watch
-                        </button>
-                        <span class="time-label">
+                <div class="card-recipe__content">
+                    <h4>${recipe.name_es}</h4>
+                    <div class="card-recipe__meta">
+                        <div>
                             <span class="material-symbols-outlined">schedule</span>
-                            ${recipe.prep_time_minutes || '15'} mins
-                        </span>
+                            <span>${recipe.prep_time_minutes || '20'} min</span>
+                        </div>
+                        <div>
+                            <span class="material-symbols-outlined">electric_bolt</span>
+                            <span>${recipe.calories || '150'} kcal</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,32 +180,60 @@ class DashboardManager {
             return;
         }
 
+        // En móvil usamos el mismo estilo de tarjeta premium pero tal vez en un grid diferente
         container.innerHTML = recipes.map(recipe => `
-            <div class="card-compact animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <div class="card-compact__img">
+            <div class="card-recipe animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="card-recipe__img">
                     <img src="${recipe.primaryImage || 'assets/placeholder-recipe.jpg'}" alt="${recipe.name_es}">
+                    <button class="card-recipe__save" onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
+                        <span class="material-symbols-outlined">favorite_border</span>
+                    </button>
                 </div>
-                <div class="card-compact__info">
+                <div class="card-recipe__content">
                     <h4>${recipe.name_es}</h4>
-                    <p>${recipe.description_es || 'Una deliciosa receta casera...'}</p>
-                    <span class="card-compact__time">
-                        <span class="material-symbols-outlined">play_circle</span>
-                        ${recipe.prep_time_minutes || '15'} mins
-                    </span>
+                    <div class="card-recipe__meta">
+                        <div>
+                            <span class="material-symbols-outlined">schedule</span>
+                            <span>${recipe.prep_time_minutes || '20'} min</span>
+                        </div>
+                        <div>
+                            <span class="material-symbols-outlined">electric_bolt</span>
+                            <span>${recipe.calories || '150'} kcal</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
     }
 
     renderSearchResults(recipes) {
-        // Si el usuario busca, ocultamos las secciones y mostramos un grid normal
-        const mainContent = document.getElementById('main-dashboard-content');
-        const resultsContent = document.getElementById('search-results-content');
+        const resultsGrid = document.getElementById('recipesGrid');
+        if (!resultsGrid) return;
+
+        document.getElementById('main-dashboard-content').classList.add('hidden');
+        document.getElementById('search-results-content').classList.remove('hidden');
 
         if (recipes.length === 0) {
-            // Mostrar empty state
+            resultsGrid.innerHTML = '<p class="empty-msg">No se encontraron recetas.</p>';
+            return;
         }
-        // TODO: Implementar toggle de vistas de búsqueda
+
+        resultsGrid.innerHTML = recipes.map(recipe => `
+            <div class="card-recipe animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="card-recipe__img">
+                    <img src="${recipe.primaryImage || 'assets/placeholder-recipe.jpg'}" alt="${recipe.name_es}">
+                </div>
+                <div class="card-recipe__content">
+                    <h4>${recipe.name_es}</h4>
+                    <div class="card-recipe__meta">
+                        <div>
+                            <span class="material-symbols-outlined">schedule</span>
+                            <span>${recipe.prep_time_minutes || '20'} min</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
     }
 
     async loadCategories() {
@@ -227,12 +245,13 @@ class DashboardManager {
             const categories = result.categories;
             chipsContainer.innerHTML = `
                 <button class="chip active" onclick="window.dashboard.handleCategory('all', this)">
-                    All Recipes
+                    <span class="material-symbols-outlined">grid_view</span>
+                    <span>Todos</span>
                 </button>
-                ${categories.slice(0, 4).map(cat => `
+                ${categories.map(cat => `
                     <button class="chip" onclick="window.dashboard.handleCategory('${cat.id}', this)">
-                        <span class="material-symbols-outlined">${cat.icon}</span>
-                        ${cat.name_es}
+                        <span class="material-symbols-outlined">${cat.icon || 'restaurant'}</span>
+                        <span>${cat.name_es}</span>
                     </button>
                 `).join('')}
             `;
@@ -244,6 +263,18 @@ class DashboardManager {
         chipEl.classList.add('active');
         const filters = categoryId === 'all' ? {} : { categoryId };
         this.loadRecipes(filters);
+    }
+
+    async toggleFavorite(recipeId) {
+        console.log('Toggle favorite:', recipeId);
+        // Lógica de Supabase vendrá aquí
+        window.utils.showToast('Receta guardada en favoritos');
+    }
+
+    openNewRecipeModal() {
+        // Redirigir o abrir modal de creación
+        window.location.href = '#create';
+        window.utils.showToast('Funcionalidad de edición próximamente');
     }
 }
 

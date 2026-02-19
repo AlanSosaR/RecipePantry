@@ -131,28 +131,41 @@
             <!-- Main Content Area -->
             <main class="main-content">
                 <header class="top-bar">
-                    <button id="btnMenu" class="icon-button mobile-only">
-                        <span class="material-symbols-outlined">menu</span>
-                    </button>
-
-                    <div class="search-wrapper">
-                        <span class="material-symbols-outlined search-icon">search</span>
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search by food name...">
-                        <span class="material-symbols-outlined filter-icon">tune</span>
+                    <div class="header-mobile-top mobile-only">
+                        <div style="width: 40px;"></div>
+                        <h1 class="header-mobile-title">Mi Recetario</h1>
+                        <div class="user-profile-avatar-only" onclick="window.location.href='profile.html'">
+                            <img src="https://ui-avatars.com/api/?name=Chef+Mario&background=fddbc7&color=1A1A1A"
+                                class="avatar" alt="User">
+                        </div>
                     </div>
 
-                    <div class="top-bar-actions">
-                        <button class="btn-notif">
-                            <span class="material-symbols-outlined">notifications</span>
-                            <div class="notif-dot"></div>
+                    <div class="top-bar-inner">
+                        <button id="btnSidebarDesktop" class="icon-button desktop-only">
+                            <span class="material-symbols-outlined">menu_open</span>
                         </button>
-                        <div class="user-profile-small" onclick="window.location.href='profile.html'">
-                            <div class="user-info-text desktop-only">
-                                <span class="name" id="user-name">Chef Mario</span>
-                                <span class="role">Free Account</span>
+
+                        <div class="search-wrapper">
+                            <button id="btnMenuMobile" class="mobile-menu-trigger mobile-only">
+                                <span class="material-symbols-outlined">menu</span>
+                            </button>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Buscar recetas...">
+                            <span class="material-symbols-outlined search-icon">search</span>
+                        </div>
+
+                        <div class="top-bar-actions">
+                            <button class="btn-notif desktop-only">
+                                <span class="material-symbols-outlined">notifications</span>
+                                <div class="notif-dot"></div>
+                            </button>
+                            <div class="user-profile-small" onclick="window.location.href='profile.html'">
+                                <div class="user-info-text desktop-only">
+                                    <span class="name" id="user-name">Chef Mario</span>
+                                    <span class="role">Plan Gratuito</span>
+                                </div>
+                                <img src="https://ui-avatars.com/api/?name=Chef+Mario&background=fddbc7&color=1A1A1A"
+                                    class="avatar" alt="User">
                             </div>
-                            <img src="https://ui-avatars.com/api/?name=Chef+Mario&background=FF7A50&color=fff"
-                                class="avatar" alt="User">
                         </div>
                     </div>
                 </header>
@@ -167,31 +180,38 @@
 
                 <!-- Default Dashboard Content -->
                 <div id="main-dashboard-content">
-                    <!-- Hero Banner -->
-                    <section class="hero-banner mb-lg">
+                    <!-- Hero Banner (Daily Recommendation) -->
+                    <section class="hero-banner mb-lg animate-fade-in">
                         <div class="hero-banner__content">
-                            <h1>Add your own recipe</h1>
-                            <p>Upload your own home-made recipe, scan from a book, and share it with other members of
-                                our community.</p>
-                            <button class="btn-banner-upload" onclick="window.location.href='recipe-form.html'">
-                                <span class="material-symbols-outlined">add</span>
-                                Upload Now
-                            </button>
+                            <span class="badge-premium">Recomendación del Día</span>
+                            <h1>Pasta con Pesto de Albahaca</h1>
+                            <p>Una receta clásica italiana, cremosa y lista en solo 15 minutos. ¡Pruébala ahora!</p>
+                            <div class="hero-actions">
+                                <button class="btn-banner-primary"
+                                    onclick="window.location.href='recipe-detail.html?id=daily'">
+                                    <span class="material-symbols-outlined">play_circle</span>
+                                    Cocinar Ahora
+                                </button>
+                                <button class="btn-banner-secondary desktop-only">
+                                    <span class="material-symbols-outlined">bookmark</span>
+                                    Guardar
+                                </button>
+                            </div>
                         </div>
                         <div class="hero-banner__img-container">
                             <img src="https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=800"
-                                alt="Cooking">
+                                alt="Pasta Pesto">
                         </div>
                     </section>
 
                     <!-- Featured Section -->
                     <section class="dashboard-section mb-lg">
                         <div class="dashboard-section-header mb-md">
-                            <h2>Based on the food you like</h2>
-                            <a href="#" class="btn-view-more">View All</a>
+                            <h2>Basado en lo que te gusta</h2>
+                            <a href="#" class="btn-view-more">Ver Todo</a>
                         </div>
-                        <div id="featuredGrid" class="recipes-featured-grid">
-                            <!-- Loading state or empty -->
+                        <div id="featuredGrid" class="recipes-grid">
+                            <!-- Loading state -->
                         </div>
                     </section>
 
@@ -207,9 +227,9 @@
                     <!-- More Recipes List -->
                     <section class="dashboard-section">
                         <div class="dashboard-section-header mb-md">
-                            <h2>More Recipes</h2>
+                            <h2>Explorar más</h2>
                         </div>
-                        <div id="moreRecipesList" class="recipes-compact-list">
+                        <div id="moreRecipesList" class="recipes-grid">
                             <!-- Managed by JS -->
                         </div>
                     </section>
@@ -233,26 +253,31 @@
             <nav class="bottom-nav">
                 <button class="nav-btn active" onclick="window.dashboard.handleNav('home')">
                     <span class="material-symbols-outlined">home</span>
-                    <span class="nav-label">Home</span>
+                    <span class="nav-label">Inicio</span>
                 </button>
                 <button class="nav-btn" onclick="window.dashboard.handleNav('saved')">
                     <span class="material-symbols-outlined">favorite</span>
-                    <span class="nav-label">Saved</span>
+                    <span class="nav-label">Guardados</span>
                 </button>
-                <div class="fab-container">
-                    <button class="fab" onclick="window.location.href='ocr.html'">
-                        <span class="material-symbols-outlined">document_scanner</span>
-                    </button>
-                </div>
                 <button class="nav-btn" onclick="window.dashboard.handleNav('recipes')">
                     <span class="material-symbols-outlined">receipt_long</span>
-                    <span class="nav-label">My Recipes</span>
+                    <span class="nav-label">Mis Recetas</span>
                 </button>
                 <button class="nav-btn" onclick="window.location.href='profile.html'">
                     <span class="material-symbols-outlined">person</span>
-                    <span class="nav-label">Profile</span>
+                    <span class="nav-label">Perfil</span>
                 </button>
             </nav>
+
+            <!-- Dual FAB (Mobile Only) -->
+            <div class="dual-fab mobile-only">
+                <button class="fab-secondary" onclick="window.dashboard.openNewRecipeModal()">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="fab-primary" onclick="window.location.href='ocr.html'">
+                    <span class="material-symbols-outlined">photo_camera</span>
+                </button>
+            </div>
         </section>
     </div>
 

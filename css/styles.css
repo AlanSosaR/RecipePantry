@@ -8,26 +8,33 @@
 
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
-    /* Colores - Mockup High Fidelity */
-    --primary: #FF7A50;
-    --primary-light: #FFF0EB;
-    --primary-dark: #cc6140;
+    /* Colores Mashup Premium - Inspirados en Stitch */
+    --primary: #064e3b;
+    /* Verde Esmeralda Deep */
+    --primary-light: #e6f2ee;
+    --primary-dark: #043d2e;
     --on-primary: #FFFFFF;
 
-    --secondary: #2D3A3A;
+    --secondary: #ff6933;
+    /* Naranja Vibrante */
+    --secondary-light: #fddbc7;
+    /* Melocotón / Peach */
     --on-secondary: #FFFFFF;
+
+    /* Superficies Orgánicas */
+    --bg: #f7f2ed;
+    /* Fondo Crema Orgánico */
+    --surface: #FFFFFF;
+    --surface-variant: #f3f0ec;
+    --surface-peach: #fddbc7;
+
+    --on-surface: #1A1A1A;
+    --on-surface-variant: #64748B;
+    --outline: #E2E8F0;
 
     --success: #10B981;
     --warning: #F59E0B;
     --error: #EF4444;
-
-    /* Superficies y Neutros */
-    --bg: #FFFFFF;
-    --surface: #F8F9FA;
-    --surface-variant: #F3F4F6;
-    --on-surface: #1A1A1A;
-    --on-surface-variant: #64748B;
-    --outline: #E2E8F0;
 
     /* Espaciado */
     --space-xs: 8px;
@@ -37,7 +44,7 @@
     --space-xl: 32px;
     --space-2xl: 48px;
 
-    /* Border Radius - Premium mockup style */
+    /* Border Radius - Premium Mashup */
     --radius-sm: 12px;
     --radius-md: 16px;
     --radius-lg: 24px;
@@ -50,9 +57,9 @@
     --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.04);
     --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.08);
 
-    /* Tipografía */
-    --font-display: 'Poppins', sans-serif;
-    --font-body: 'Poppins', sans-serif;
+    /* Tipografía Premium */
+    --font-display: 'Epilogue', sans-serif;
+    --font-body: 'Inter', sans-serif;
 
     /* Transiciones */
     --transition-fast: 150ms ease-out;

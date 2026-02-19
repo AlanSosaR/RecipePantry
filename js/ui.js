@@ -16,18 +16,18 @@ window.initTheme = function () {
 }
 
 window.setupMobileMenu = function () {
-    const btnMenu = document.getElementById('btnMenu');
+    const btnMenuMobile = document.getElementById('btnMenuMobile');
     const sidebar = document.querySelector('.sidebar');
 
-    if (btnMenu && sidebar) {
-        btnMenu.addEventListener('click', (e) => {
+    if (btnMenuMobile && sidebar) {
+        btnMenuMobile.addEventListener('click', (e) => {
             e.stopPropagation();
             sidebar.classList.toggle('active');
         });
 
         // Cerrar al hacer click fuera
         document.addEventListener('click', (e) => {
-            if (!sidebar.contains(e.target) && !btnMenu.contains(e.target) && sidebar.classList.contains('active')) {
+            if (!sidebar.contains(e.target) && !btnMenuMobile.contains(e.target) && sidebar.classList.contains('active')) {
                 sidebar.classList.remove('active');
             }
         });
