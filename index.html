@@ -277,26 +277,27 @@
                             </div>
                         </div>
 
-                        <!-- Search Results View (Hidden by default) -->
-                        <div id="search-results-content" class="hidden">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-                                <button onclick="window.location.reload()" class="p-2 rounded-full hover:bg-gray-100">
-                                    <span class="material-symbols-outlined text-gray-600">arrow_back</span>
-                                </button>
-                                <h1 class="brand-font" style="font-size: 24px; font-weight: bold; color: #111827;">
-                                    Resultados de búsqueda</h1>
-                            </div>
-                            <div id="searchResultsGrid" class="recipes-grid"></div>
-                        </div>
                     </div>
                 </div>
-                <!-- FAB Mobile -->
-                <!-- Global FAB -->
-                <button class="fab-global" onclick="window.location.href='recipe-form.html'" title="Nueva Receta">
-                    <span class="material-symbols-outlined" style="font-size: 28px;">add</span>
-                </button>
-            </main>
-        </section>
+    </div>
+    </div>
+    </div>
+    <!-- FAB Navigation Menu -->
+    <div
+        style="position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 50;">
+        <!-- FAB OCR -->
+        <button class="fab-global" onclick="window.location.href='ocr.html'" title="Escanear Receta"
+            style="width: 48px; height: 48px; background: var(--secondary); margin-bottom: 0; box-shadow: 0 4px 12px rgba(255,122,80,0.3);">
+            <span class="material-symbols-outlined" style="font-size: 24px;">photo_camera</span>
+        </button>
+
+        <!-- FAB Manual -->
+        <button class="fab-global" onclick="window.location.href='recipe-form.html'" title="Nueva Receta Manual">
+            <span class="material-symbols-outlined" style="font-size: 28px;">add</span>
+        </button>
+    </div>
+    </main>
+    </section>
     </div>
 
     <!-- Scripts -->

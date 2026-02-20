@@ -4,90 +4,563 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escáner OCR - RecipeHub Premium</title>
+    <title>Escanear Receta - RecipeHub</title>
+
+    <!-- Fuentes e Iconos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Estilos Base -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/responsive.css">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+
+    <!-- Supabase & Tesseract -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #064E3B;
+            /* Verde Esmeralda del proyecto */
+            --primary-light: #ECFDF5;
+            --secondary: #FF7A50;
+            /* Naranja acento */
+        }
+
+        .ocr-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            padding-top: 80px;
+        }
+
+        .ocr-step {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .ocr-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropzone {
+            width: 100%;
+            height: 240px;
+            border: 2px dashed #E5E7EB;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .dropzone:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .dropzone.dragover {
+            border-color: var(--primary);
+            background: #D1FAE5;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 16px;
+            margin: 16px 0;
+            object-fit: contain;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #F3F4F6;
+            border-radius: 99px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, #10B981 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .extracted-text {
+            width: 100%;
+            min-height: 300px;
+            padding: 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            background: #F9FAFB;
+        }
+
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .confidence-high {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .confidence-medium {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .confidence-low {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .tab-button {
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6B7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .parsed-section {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #F3F4F6;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .parsed-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #F3F4F6;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* M3 Style Form Inputs for OCR */
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #D1D5DB;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.1);
+        }
+
+        .header-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #F3F4F6;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+    </style>
 </head>
 
-<body class="ocr-app">
-    <div class="ocr-viewport">
-        <!-- Barra Superior -->
-        <div class="ocr-header">
-            <button class="btn-back-ocr" onclick="history.back()">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-            <div class="ocr-title">Escáner de Recetas</div>
-            <button id="btnFlash" class="btn-icon-ocr">
-                <span class="material-symbols-outlined">flash_on</span>
-            </button>
+<body style="background-color: #F9FAFB;">
+    <!-- Top Bar -->
+    <header class="header-fixed">
+        <button onclick="goBack()" style="background:none; border:none; padding:8px; cursor:pointer; color:#374151;">
+            <span class="material-symbols-rounded">arrow_back</span>
+        </button>
+        <h1 style="font-size: 18px; font-weight: 700; margin-left: 12px;">Escanear Receta</h1>
+    </header>
+
+    <main class="ocr-container">
+        <!-- PASO 1: Capturar Imagen -->
+        <div id="step1" class="ocr-step active">
+            <h2 style="font-size: 24px; margin-bottom: 8px;">Captura o Sube la Foto</h2>
+            <p style="color: #6B7280; margin-bottom: 24px;">Toma una foto de tu receta o sube una imagen existente de tu
+                galería.</p>
+
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                <span class="material-symbols-rounded"
+                    style="font-size: 48px; color: var(--primary); margin-bottom: 12px;">photo_camera</span>
+                <p style="font-weight: 500; color: #374151;">Toca para seleccionar archivo</p>
+                <p style="font-size: 12px; color: #9CA3AF; margin-top: 4px;">PNG, JPG hasta 10MB</p>
+            </div>
+
+            <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;"
+                onchange="handleFileSelect(event)">
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
+                    onclick="openCamera()">
+                    <span class="material-symbols-rounded">camera</span>
+                    Cámara
+                </button>
+                <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
+                    onclick="openGallery()">
+                    <span class="material-symbols-rounded">image</span>
+                    Galería
+                </button>
+            </div>
+
+            <div
+                style="margin-top: 32px; padding: 20px; background: white; border-radius: 20px; border: 1px solid #F3F4F6;">
+                <p
+                    style="font-size: 14px; color: #374151; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="font-size: 18px; color: #F59E0B;">lightbulb</span>
+                    Consejos Pro:
+                </p>
+                <ul style="margin-top: 12px; font-size: 14px; color: #6B7280; padding-left: 20px; line-height: 1.6;">
+                    <li>Asegúrate que el texto sea legible.</li>
+                    <li>Usa buena iluminación (evita sombras).</li>
+                    <li>Mantén la cámara paralela al papel.</li>
+                </ul>
+            </div>
         </div>
 
-        <!-- Cámara -->
-        <div class="camera-preview">
-            <video id="videoFeed" autoplay playsinline muted></video>
-            <div class="camera-overlay">
-                <div class="camera-guides">
-                    <div class="scanning-line"></div>
+        <!-- PASO 2: Procesando -->
+        <div id="step2" class="ocr-step">
+            <h2 style="font-size: 24px; margin-bottom: 8px;">Procesando...</h2>
+            <p style="color: #6B7280; margin-bottom: 24px;">Estamos convirtiendo tu imagen en texto digital.</p>
+
+            <div style="text-align: center;">
+                <img id="previewImage" class="preview-image" alt="Preview">
+
+                <div style="display: flex; flex-direction: column; align-items: center; margin: 32px 0;">
+                    <div class="spinner"></div>
+                    <p id="processingStatus" style="margin-top: 16px; font-weight: 500; color: var(--primary);">
+                        Iniciando Tesseract...</p>
+                </div>
+
+                <div class="progress-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASO 3: Editar y Guardar -->
+        <div id="step3" class="ocr-step">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <h2 style="font-size: 24px; margin: 0;">Resultado</h2>
+                <span id="confidenceBadge" class="confidence-badge"></span>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div style="display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px; overflow-x: auto;">
+                <button class="tab-button active" data-tab="raw" onclick="switchTab('raw')">Texto Crudo</button>
+                <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')">Vista Previa</button>
+            </div>
+
+            <!-- Tab: Raw Text -->
+            <div id="tabRaw" class="tab-content">
+                <textarea id="extractedText" class="extracted-text" placeholder="Edita el texto aquí..."></textarea>
+                <p style="font-size: 12px; color: #6B7280; margin-top: 8px; font-style: italic;">
+                    Puedes corregir cualquier error de detección directamente arriba.
+                </p>
+            </div>
+
+            <!-- Tab: Parsed Preview -->
+            <div id="tabParsed" class="tab-content" style="display: none;">
+                <div class="parsed-section">
+                    <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Nombre
+                        de la Receta</label>
+                    <input type="text" id="parsedName" class="form-input" style="margin-top: 8px; font-weight: 600;">
+                </div>
+
+                <div class="parsed-section">
+                    <label
+                        style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Ingredientes</label>
+                    <div id="parsedIngredients" style="margin-top: 8px;"></div>
+                </div>
+
+                <div class="parsed-section">
+                    <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Pasos
+                        de Preparación</label>
+                    <div id="parsedSteps" style="margin-top: 8px;"></div>
                 </div>
             </div>
 
-            <!-- Toast de Ayuda -->
-            <div class="camera-tip">
-                Alinea el texto dentro del recuadro
+            <div style="display: flex; gap: 12px; margin-top: 32px; padding-bottom: 40px;">
+                <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
+                    onclick="goToStep(1)">
+                    <span class="material-symbols-rounded">refresh</span>
+                    Reintentar
+                </button>
+                <button id="btnSaveRecipe" class="btn btn-primary"
+                    style="flex: 2; border-radius: 16px; height: 56px; background: var(--primary);"
+                    onclick="saveRecipe()">
+                    <span class="material-symbols-rounded">check_circle</span>
+                    Guardar Receta
+                </button>
             </div>
         </div>
-
-        <!-- Controles Inferiores -->
-        <div class="camera-controls">
-            <!-- Selector de Galería -->
-            <button id="btnGallery" class="btn-icon-ocr">
-                <span class="material-symbols-outlined">photo_library</span>
-                <input type="file" id="ocrGalleryInput" accept="image/*" hidden>
-            </button>
-
-            <!-- Botón Obturador -->
-            <button id="btnCapture" class="btn-capture"></button>
-
-            <!-- Cambio Cámara -->
-            <button id="btnSwitchCamera" class="btn-icon-ocr">
-                <span class="material-symbols-outlined">flip_camera_ios</span>
-            </button>
-        </div>
-
-        <!-- Modal de Procesamiento/Resultados (Overlay) -->
-        <div id="ocrModal" class="ocr-modal hidden">
-            <div class="ocr-modal-content">
-                <div id="ocrLoading" class="ocr-loading-state">
-                    <div class="premium-spinner"></div>
-                    <h3>Procesando Receta</h3>
-                    <p>Estamos extrayendo los ingredientes y pasos...</p>
-                </div>
-
-                <div id="ocrResults" class="ocr-results hidden">
-                    <h3>Texto Extraído</h3>
-                    <div class="results-container">
-                        <textarea id="extractedText" class="premium-textarea"></textarea>
-                    </div>
-                    <div class="modal-actions">
-                        <button id="btnRetryOCR" class="btn-secondary">Reintentar</button>
-                        <button id="btnImportOCR" class="btn-primary">Importar Datos</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/db.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/ocr.js"></script>
+
+    <script>
+        // Variables de estado
+        let currentImageFile = null;
+        let ocrResults = { text: '', confidence: 0 };
+        let parsedData = { name: '', ingredients: [], steps: [] };
+
+        window.addEventListener('load', () => {
+            setupDragAndDrop();
+        });
+
+        function setupDragAndDrop() {
+            const dz = document.getElementById('dropzone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(name => {
+                dz.addEventListener(name, e => { e.preventDefault(); e.stopPropagation(); });
+            });
+            dz.addEventListener('dragover', () => dz.classList.add('dragover'));
+            dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+            dz.addEventListener('drop', e => {
+                dz.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) handleImageFile(file);
+            });
+        }
+
+        function openCamera() {
+            const input = document.getElementById('fileInput');
+            input.setAttribute('capture', 'environment');
+            input.click();
+        }
+
+        function openGallery() {
+            const input = document.getElementById('fileInput');
+            input.removeAttribute('capture');
+            input.click();
+        }
+
+        function handleFileSelect(e) {
+            if (e.target.files[0]) handleImageFile(e.target.files[0]);
+        }
+
+        function handleImageFile(file) {
+            if (!file.type.startsWith('image/')) return;
+            currentImageFile = file;
+
+            // Preview
+            const reader = new FileReader();
+            reader.onload = e => document.getElementById('previewImage').src = e.target.result;
+            reader.readAsDataURL(file);
+
+            goToStep(2);
+            startOCR(file);
+        }
+
+        async function startOCR(file) {
+            const status = document.getElementById('processingStatus');
+            const bar = document.getElementById('progressBar');
+
+            try {
+                const results = await window.ocrProcessor.processImage(file, m => {
+                    if (m.status === 'recognizing text') {
+                        const p = Math.round(m.progress * 100);
+                        status.textContent = `Analizando texto... ${p}%`;
+                        bar.style.width = p + '%';
+                    }
+                });
+
+                ocrResults = results;
+                document.getElementById('extractedText').value = results.text;
+
+                // Confidence Badge
+                const badge = document.getElementById('confidenceBadge');
+                const conf = Math.round(results.confidence);
+                badge.textContent = `${conf}% Confianza`;
+                badge.className = 'confidence-badge ' + (conf > 80 ? 'confidence-high' : conf > 50 ? 'confidence-medium' : 'confidence-low');
+
+                // Parse
+                parsedData = window.ocrProcessor.parseRecipeText(results.text);
+                renderParsedData();
+
+                setTimeout(() => goToStep(3), 500);
+            } catch (err) {
+                console.error(err);
+                alert('Error al procesar la imagen');
+                goToStep(1);
+            }
+        }
+
+        function renderParsedData() {
+            document.getElementById('parsedName').value = parsedData.name || '';
+
+            const ingContainer = document.getElementById('parsedIngredients');
+            ingContainer.innerHTML = parsedData.ingredients.map((ing, i) => `
+                <div class="parsed-item">
+                    <input type="text" class="form-input" value="${ing.quantity || ''} ${ing.unit || ''} ${ing.name}" 
+                           onchange="updateIng(${i}, this.value)">
+                </div>
+            `).join('') || '<p style="color:#9CA3AF; font-size:14px;">No se detectaron ingredientes</p>';
+
+            const stepContainer = document.getElementById('parsedSteps');
+            stepContainer.innerHTML = parsedData.steps.map((s, i) => `
+                <div class="parsed-item" style="align-items: flex-start;">
+                    <span style="font-weight:700; color:var(--primary); margin-top:8px;">${i + 1}.</span>
+                    <textarea class="form-input" style="min-height:60px;" onchange="updateStep(${i}, this.value)">${s.instruction}</textarea>
+                </div>
+            `).join('') || '<p style="color:#9CA3AF; font-size:14px;">No se detectaron pasos</p>';
+        }
+
+        function updateIng(i, val) {
+            const p = window.ocrProcessor.parseIngredient(val);
+            if (p) parsedData.ingredients[i] = p;
+        }
+
+        function updateStep(i, val) {
+            parsedData.steps[i].instruction = val;
+        }
+
+        async function saveRecipe() {
+            const btn = document.getElementById('btnSaveRecipe');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="width:20px; height:20px; border-width:2px; margin-right:8px;"></span>Guardando...';
+
+            try {
+                // Sincronizar nombre y texto crudo
+                parsedData.name = document.getElementById('parsedName').value.trim();
+                const rawText = document.getElementById('extractedText').value;
+
+                if (!parsedData.name) throw new Error('La receta necesita un nombre');
+
+                // 1. Crear Receta
+                const recipeRes = await window.db.createRecipe({
+                    name_es: parsedData.name,
+                    ocr_raw_text: rawText,
+                    ocr_confidence: ocrResults.confidence,
+                    created_from_ocr: true
+                });
+
+                if (!recipeRes.success) throw new Error(recipeRes.error);
+                const recipeId = recipeRes.recipe.id;
+
+                // 2. Ingredientes
+                if (parsedData.ingredients.length > 0) {
+                    const ings = parsedData.ingredients.map(ing => ({
+                        name_es: ing.name,
+                        quantity: ing.quantity,
+                        unit_es: ing.unit,
+                        raw_text: `${ing.quantity || ''} ${ing.unit || ''} ${ing.name}`.trim()
+                    }));
+                    await window.db.addIngredients(recipeId, ings);
+                }
+
+                // 3. Pasos
+                if (parsedData.steps.length > 0) {
+                    const steps = parsedData.steps.map((s, idx) => ({
+                        instruction_es: s.instruction,
+                        step_order: idx + 1
+                    }));
+                    await window.db.addSteps(recipeId, steps);
+                }
+
+                // 4. Imagen
+                if (currentImageFile) {
+                    await window.db.uploadImage(currentImageFile, recipeId);
+                }
+
+                window.utils.showToast('¡Receta guardada!', 'success');
+                setTimeout(() => window.location.href = `recipe-detail.html?id=${recipeId}`, 1000);
+
+            } catch (err) {
+                console.error(err);
+                window.utils.showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-rounded">check_circle</span> Guardar Receta';
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.getElementById('tabRaw').style.display = tab === 'raw' ? 'block' : 'none';
+            document.getElementById('tabParsed').style.display = tab === 'parsed' ? 'block' : 'none';
+        }
+
+        function goToStep(s) {
+            document.querySelectorAll('.ocr-step').forEach((el, i) => el.classList.toggle('active', i === (s - 1)));
+        }
+
+        function goBack() {
+            if (confirm('¿Deseas salir? Se perderá el progreso actual.')) history.back();
+        }
+    </script>
 </body>
 
 </html>

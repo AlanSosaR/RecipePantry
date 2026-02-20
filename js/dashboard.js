@@ -193,9 +193,8 @@ class DashboardManager {
     }
 
     async loadRecipes(filters = {}) {
-        // En este nuevo diseño, el dashboard tiene secciones fijas. 
-        // Si hay búsqueda, mostramos un "Search Results" global.
-        // Si no, mostramos las secciones del mockup.
+        // Guardar filtros actuales para re-renders (cambio de modo vista)
+        this.lastFilters = filters;
 
         const result = await window.db.getMyRecipes(filters);
 
@@ -206,11 +205,26 @@ class DashboardManager {
 
         this.currentRecipes = result.recipes;
 
-        if (filters.search) {
-            this.renderSearchResults(this.currentRecipes);
-        } else {
-            this.renderDashboardSections(this.currentRecipes);
+        // Actualizar título de la vista si es una búsqueda
+        const titleEl = document.getElementById('view-title');
+        if (titleEl) {
+            if (filters.search) {
+                titleEl.textContent = `Resultados para "${filters.search}"`;
+            } else if (filters.favorite) {
+                titleEl.textContent = 'Favoritos';
+            } else if (filters.categoryId) {
+                // El título se actualiza en handleCategory, pero por si acaso:
+                if (!this.lastCategoryName) {
+                    const cat = document.querySelector(`[data-category-id="${filters.categoryId}"]`);
+                    if (cat) this.lastCategoryName = cat.querySelector('span:last-child').textContent;
+                }
+                titleEl.textContent = this.lastCategoryName || 'Categoría';
+            } else {
+                titleEl.textContent = 'Mis Recetas';
+            }
         }
+
+        this.renderDashboardSections(this.currentRecipes);
     }
 
     renderDashboardSections(recipes) {
@@ -306,36 +320,6 @@ class DashboardManager {
 
     // Métodos renderFeatured y renderMore eliminados por redundancia en diseño Drive
 
-    renderSearchResults(recipes) {
-        const resultsGrid = document.getElementById('recipesGrid');
-        if (!resultsGrid) return;
-
-        document.getElementById('main-dashboard-content').classList.add('hidden');
-        document.getElementById('search-results-content').classList.remove('hidden');
-
-        if (recipes.length === 0) {
-            resultsGrid.innerHTML = '<p class="empty-msg">No se encontraron recetas.</p>';
-            return;
-        }
-
-        resultsGrid.innerHTML = recipes.map(recipe => `
-            <div class="card-recipe animate-fade-in" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <div class="card-recipe__img">
-                    <img src="${recipe.primaryImage || window.DEFAULT_RECIPE_IMAGE}" alt="${recipe.name_es}">
-                </div>
-                <div class="card-recipe__content">
-                    <h4>${recipe.name_es}</h4>
-                    <div class="card-recipe__meta">
-                        <div>
-                            <span class="material-symbols-outlined">schedule</span>
-                            <span>${recipe.prep_time_minutes || '20'} min</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
     async loadCategories() {
         // Render in Sidebar (Desktop & Mobile)
         const sidebarContainer = document.getElementById('sidebar-categories');
@@ -382,6 +366,7 @@ class DashboardManager {
         }
 
         // Load Recipes for this category
+        this.lastCategoryName = element ? element.querySelector('span:last-child').textContent : null;
         this.loadRecipes({ categoryId: categoryId });
     }
 
