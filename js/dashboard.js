@@ -219,8 +219,8 @@ class DashboardManager {
                 <div class="icon-cell"></div>
                 <div class="title-cell">Nombre</div>
                 <div class="meta-cell">Categoría</div>
-                <div class="meta-cell">Modificado</div>
-                <div class="meta-cell">Tiempo</div>
+                <div class="meta-cell">Acceso</div>
+                <div class="meta-cell">Última modificación</div>
                 <div class="action-cell"></div>
             </div>
         `;
@@ -233,18 +233,25 @@ class DashboardManager {
                     </div>
                     <div class="title-cell">
                         <span class="title">${recipe.name_es}</span>
-                        <div class="meta-mobile">General • ${date}</div>
                     </div>
                     <div class="meta-cell"><span class="badge-tag">General</span></div>
+                    <div class="meta-cell">Solo tú</div>
                     <div class="meta-cell">${date}</div>
-                    <div class="meta-cell">--</div>
-                    <div class="action-cell flex justify-end">
-                         <button class="btn-favorite-m3 ${recipe.is_favorite ? 'active' : ''}" 
-                            onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
-                            <span class="material-symbols-outlined pb-1">
-                                ${recipe.is_favorite ? 'star' : 'star_border'}
-                            </span>
-                        </button>
+                    <div class="action-cell">
+                        <div class="row-actions">
+                            <button class="btn-action-icon" title="Compartir" onclick="event.stopPropagation(); window.utils.showToast('Enlace copiado', 'success')">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                            <button class="btn-action-icon" title="Editar" onclick="event.stopPropagation(); window.location.href='recipe-form.html?id=${recipe.id}'">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="btn-favorite-m3 ${recipe.is_favorite ? 'active' : ''}" 
+                                onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
+                                <span class="material-symbols-outlined">
+                                    ${recipe.is_favorite ? 'star' : 'star_border'}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;

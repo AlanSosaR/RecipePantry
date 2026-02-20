@@ -562,10 +562,11 @@ ol {
 .list-header,
 .file-row {
     display: grid;
-    grid-template-columns: 64px 1fr 120px 140px 100px 60px;
+    grid-template-columns: 48px 2.5fr 1fr 1fr 1.5fr 40px;
     gap: 12px;
     align-items: center;
-    padding: 12px 24px;
+    padding: 0 24px;
+    height: 52px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -599,7 +600,7 @@ ol {
 
     .list-header,
     .file-row {
-        grid-template-columns: 60px 1fr 60px;
+        grid-template-columns: 48px 1fr 40px;
         /* Only Icon, Title, Action on small screens */
     }
 
@@ -627,48 +628,73 @@ ol {
     }
 }
 
+.action-cell {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* --- Dropbox-style Hover Actions --- */
+.row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateX(10px);
+    pointer-events: none;
+    padding-left: 12px;
+    height: 100%;
+}
+
+.file-row:hover .row-actions {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.btn-action-icon,
+.btn-favorite-m3 {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--on-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-action-icon:hover,
+.btn-favorite-m3:hover {
+    background-color: var(--surface-container-high);
+    color: var(--primary);
+}
+
+.btn-favorite-m3.active {
+    color: #FFB800;
+    /* Gold for favorites */
+}
+
+.btn-action-icon .material-symbols-outlined,
+.btn-favorite-m3 .material-symbols-outlined {
+    font-size: 20px;
+}
+
 .icon-cell {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     background: var(--surface-container);
     color: #5F6368;
     border-radius: 8px;
     transition: background 0.2s;
-}
-
-/* Ensure header cells don't have fixed sizes if they are grid items */
-.list-header .icon-cell,
-.list-header .meta-cell,
-.list-header .title-cell {
-    width: auto;
-    height: auto;
-    background: transparent;
-    padding: 0;
-}
-
-.title-cell {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--on-surface);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-right: 16px;
-}
-
-.title-cell .title {
-    color: var(--on-surface);
-}
-
-.meta-cell {
-    font-size: 14px;
-    color: #5F6368;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
 }
 
 .badge-tag {
@@ -682,20 +708,6 @@ ol {
     border: 1px solid var(--outline-variant);
 }
 
-/* Favorite Button - M3 Expressive */
-.btn-favorite-m3 {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--on-surface-variant);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
 .btn-favorite-m3:hover {
     background: var(--surface-container-high);
