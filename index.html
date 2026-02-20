@@ -98,12 +98,7 @@
                         <span class="brand-font"
                             style="font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">RecipeHub</span>
                     </div>
-                    <button class="btn-primary w-full"
-                        style="border-radius: 16px; justify-content: flex-start; padding-left: 20px;"
-                        onclick="window.location.href='recipe-form.html'">
-                        <span class="material-symbols-outlined" style="font-size: 24px;">add</span>
-                        <span>Nuevo</span>
-                    </button>
+
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 16px; width: 100%;">
@@ -169,12 +164,7 @@
                     </button>
                 </div>
                 <div style="padding: 16px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1;">
-                    <button class="btn-primary w-full"
-                        style="border-radius: 16px; justify-content: flex-start; padding-left: 20px; margin-bottom: 24px;"
-                        onclick="window.location.href='recipe-form.html'">
-                        <span class="material-symbols-outlined" style="font-size: 24px;">add</span>
-                        <span>Nueva Receta</span>
-                    </button>
+
                     <!-- Mobile Nav Items -->
                     <a href="#" class="nav-item-mobile active" data-view="overview"
                         onclick="window.dashboard.handleMobileNav('overview', this)">
@@ -284,11 +274,9 @@
                     </div>
                 </div>
                 <!-- FAB Mobile -->
-                <button
-                    class="hidden-desktop-lg fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-2xl shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-30"
-                    style="border:none; box-shadow: var(--shadow-lg);"
-                    onclick="window.location.href='recipe-form.html'">
-                    <span class="material-symbols-outlined text-[28px]">add</span>
+                <!-- Global FAB -->
+                <button class="fab-global" onclick="window.location.href='recipe-form.html'" title="Nueva Receta">
+                    <span class="material-symbols-outlined" style="font-size: 28px;">add</span>
                 </button>
             </main>
         </section>

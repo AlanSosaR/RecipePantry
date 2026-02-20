@@ -2822,3 +2822,34 @@ select.input-field {
 .w-full {
     width: 100%;
 }
+
+/* ─── Global FAB ────────────────────────────────────────────────── */
+.fab-global {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    background-color: var(--primary);
+    color: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.fab-global:hover {
+    transform: scale(1.05);
+    background-color: #047857;
+    /* Emerald 700 */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.fab-global:active {
+    transform: scale(0.95);
+}
