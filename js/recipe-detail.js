@@ -62,7 +62,11 @@ class RecipeDetailManager {
         }
 
         // Text data
-        document.getElementById('recipeTitle').textContent = recipe.name_es;
+        const titleMobile = document.getElementById('recipeTitleMobile');
+        const titleDesktop = document.getElementById('recipeTitleDesktop');
+
+        if (titleMobile) titleMobile.textContent = recipe.name_es;
+        if (titleDesktop) titleDesktop.textContent = recipe.name_es;
         document.getElementById('recipeDescription').textContent = recipe.description_es || 'Sin descripción';
 
         // Difficulty removed from UI
