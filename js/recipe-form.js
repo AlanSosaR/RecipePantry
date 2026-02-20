@@ -310,8 +310,7 @@ class RecipeFormManager {
                 const ingredientsData = ingredients.map(ing => ({
                     name_es: ing.name,
                     quantity: ing.quantity,
-                    unit_es: ing.unit,
-                    raw_text: `${ing.quantity || ''} ${ing.unit || ''} ${ing.name}`.trim()
+                    unit_es: ing.unit
                 }));
                 const ingResult = await window.db.addIngredients(recipeId, ingredientsData);
                 if (!ingResult.success) console.warn('Error guardando ingredientes:', ingResult.error);

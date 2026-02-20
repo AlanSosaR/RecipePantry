@@ -95,15 +95,18 @@ class RecipeDetailManager {
             return;
         }
 
-        listEl.innerHTML = ingredients.map(ing => `
-            <li class="ingredient-item">
-                <input type="checkbox" id="ing-${ing.id}">
-                <label for="ing-${ing.id}">
-                    <span class="custom-checkbox"></span>
-                    <span class="ing-text">${ing.raw_text}</span>
-                </label>
-            </li>
-        `).join('');
+        listEl.innerHTML = ingredients.map(ing => {
+            const text = `${ing.quantity || ''} ${ing.unit_es || ''} ${ing.name_es}`.trim();
+            return `
+                <li class="ingredient-item">
+                    <input type="checkbox" id="ing-${ing.id}">
+                    <label for="ing-${ing.id}">
+                        <span class="custom-checkbox"></span>
+                        <span class="ing-text">${text}</span>
+                    </label>
+                </li>
+            `;
+        }).join('');
     }
 
     renderSteps() {

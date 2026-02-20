@@ -173,7 +173,6 @@ class DatabaseManager {
             const items = ingredients.map(ing => ({
                 recipe_id: recipeId,
                 name_es: ing.name_es,
-                raw_text: ing.raw_text || ing.name_es,
                 unit_es: ing.unit_es || ing.unit || null,
                 quantity: ing.quantity || null
             }));
