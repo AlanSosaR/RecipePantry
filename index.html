@@ -229,47 +229,62 @@
 
                 <div style="flex: 1; overflow-y: auto; padding: 20px 32px;" class="hide-scrollbar">
                     <div style="max-width: 1280px; margin: 0 auto;">
-                        <div
-                            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                            <h1 class="brand-font" style="font-size: 24px; font-weight: bold; color: #111827;">Mis
-                                Recetas</h1>
+                        <!-- Main Dashboard Views -->
+                        <div id="main-dashboard-content">
                             <div
-                                style="display: flex; gap: 8px; background: white; border: 1px solid var(--outline); padding: 4px; border-radius: 12px;">
-                                <button id="view-list"
-                                    style="padding: 6px; color: #94A3B8; background: transparent; border: none; border-radius: 8px; cursor: pointer; display: flex;"><span
-                                        class="material-symbols-outlined">list</span></button>
-                                <button id="view-grid"
-                                    style="padding: 6px; color: var(--primary); background: var(--primary-light); border-radius: 8px; border: none; cursor: pointer; display: flex;"><span
-                                        class="material-symbols-outlined">grid_view</span></button>
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                                <h1 class="brand-font" style="font-size: 24px; font-weight: bold; color: #111827;">Mis
+                                    Recetas</h1>
+                                <div
+                                    style="display: flex; gap: 8px; background: white; border: 1px solid var(--outline); padding: 4px; border-radius: 12px;">
+                                    <button id="view-list"
+                                        style="padding: 6px; color: #94A3B8; background: transparent; border: none; border-radius: 8px; cursor: pointer; display: flex;"><span
+                                            class="material-symbols-outlined">list</span></button>
+                                    <button id="view-grid"
+                                        style="padding: 6px; color: var(--primary); background: var(--primary-light); border-radius: 8px; border: none; cursor: pointer; display: flex;"><span
+                                            class="material-symbols-outlined">grid_view</span></button>
+                                </div>
+                            </div>
+
+                            <!-- Carpetas Section -->
+                            <div style="margin-bottom: 32px;">
+                                <h2
+                                    style="font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                                    Carpetas</h2>
+                                <div id="categoryChips" class="folder-grid">
+                                    <!-- Loaded by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Archivos Section -->
+                            <div>
+                                <h2
+                                    style="font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                                    Archivos</h2>
+                                <div id="recipesGrid" class="recipes-grid">
+                                    <!-- Loaded by JS -->
+                                </div>
+                                <!-- Empty State -->
+                                <div id="emptyState" class="hidden" style="text-align: center; padding: 64px 0;">
+                                    <span class="material-symbols-outlined"
+                                        style="font-size: 64px; color: #E5E7EB; margin-bottom: 16px;">folder_open</span>
+                                    <h3 style="font-size: 18px; color: #374151; margin-bottom: 8px;">No hay recetas aquí
+                                    </h3>
+                                    <p style="color: #6B7280;">Sube tu primera receta o búscala en otra carpeta.</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Carpetas Section -->
-                        <div style="margin-bottom: 32px;">
-                            <h2
-                                style="font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
-                                Carpetas</h2>
-                            <div id="categoryChips" class="folder-grid">
-                                <!-- Loaded by JS -->
+                        <!-- Search Results View (Hidden by default) -->
+                        <div id="search-results-content" class="hidden">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                                <button onclick="window.location.reload()" class="p-2 rounded-full hover:bg-gray-100">
+                                    <span class="material-symbols-outlined text-gray-600">arrow_back</span>
+                                </button>
+                                <h1 class="brand-font" style="font-size: 24px; font-weight: bold; color: #111827;">
+                                    Resultados de búsqueda</h1>
                             </div>
-                        </div>
-
-                        <!-- Archivos Section -->
-                        <div>
-                            <h2
-                                style="font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
-                                Archivos</h2>
-                            <div id="recipesGrid" class="recipes-grid">
-                                <!-- Loaded by JS -->
-                            </div>
-                            <!-- Empty State -->
-                            <div id="emptyState" class="hidden" style="text-align: center; padding: 64px 0;">
-                                <span class="material-symbols-outlined"
-                                    style="font-size: 64px; color: #E5E7EB; margin-bottom: 16px;">folder_open</span>
-                                <h3 style="font-size: 18px; color: #374151; margin-bottom: 8px;">No hay recetas aquí
-                                </h3>
-                                <p style="color: #6B7280;">Sube tu primera receta o búscala en otra carpeta.</p>
-                            </div>
+                            <div id="searchResultsGrid" class="recipes-grid"></div>
                         </div>
                     </div>
                 </div>

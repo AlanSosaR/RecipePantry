@@ -31,9 +31,11 @@ class DashboardManager {
         // Actualizar datos de usuario en la UI
         this.updateUserUI();
 
-        // 2. Cargar datos iniciales
-        await this.loadRecipes();
+        // 2. Cargar datos iniciales (Paralelo para mejor UX)
+        // Cargar categorías primero o en paralelo para que siempre se vean
         this.loadCategories();
+        await this.loadRecipes(); // Esperamos este porque define el estado vacío/grid
+
         this.setupEventListeners();
 
         // 3. Inicializar menú móvil
