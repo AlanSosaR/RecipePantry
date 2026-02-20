@@ -19,21 +19,21 @@ class OCRProcessor {
 
         const tesseractInstance = typeof Tesseract !== 'undefined' ? Tesseract : window.Tesseract;
 
-        const worker = await tesseractInstance.createWorker({
-            logger: m => onProgress && onProgress(m)
-        });
-
         try {
-            await worker.loadLanguage('spa+eng');
-            await worker.initialize('spa+eng');
-            const { data } = await worker.recognize(imageFile);
-            await worker.terminate();
+            // En v5, Tesseract.recognize es la forma más limpia y robusta 
+            // de manejar el ciclo de vida del worker automáticamente.
+            const { data } = await tesseractInstance.recognize(imageFile, 'spa+eng', {
+                logger: m => {
+                    if (onProgress) onProgress(m);
+                }
+            });
+
             return {
                 text: data.text,
                 confidence: data.confidence
             };
         } catch (error) {
-            if (worker) await worker.terminate();
+            console.error('Error en Tesseract.recognize:', error);
             throw error;
         }
     }
