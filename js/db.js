@@ -206,6 +206,36 @@ class DatabaseManager {
         }
     }
 
+    async deleteIngredients(recipeId) {
+        try {
+            const { error } = await window.supabaseClient
+                .from('ingredients')
+                .delete()
+                .eq('recipe_id', recipeId);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error eliminando ingredientes:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async deleteSteps(recipeId) {
+        try {
+            const { error } = await window.supabaseClient
+                .from('preparation_steps')
+                .delete()
+                .eq('recipe_id', recipeId);
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error eliminando pasos:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // ============================================
     // IMAGES
     // ============================================

@@ -239,9 +239,33 @@ class RecipeFormManager {
                 await window.db.uploadImage(this.selectedImage, recipeId);
             }
 
-            // 2. Guardar Ingredientes (Lógica simplificada: borrar y recrear o actualizar)
-            // Para simplicidad en este MVP, asumiremos que el backend maneja la relación o lo haremos manual post-MVP
-            // window.ui.showToast('¡Receta guardada con éxito!', 'success');
+            // 2. Recolectar y Guardar Ingredientes
+            const ingredientInputs = document.querySelectorAll('.ingredient-input');
+            const ingredientsData = Array.from(ingredientInputs)
+                .map(input => ({ name_es: input.value.trim() }))
+                .filter(ing => ing.name_es !== '');
+
+            if (this.isEditing) {
+                await window.db.deleteIngredients(recipeId);
+            }
+            if (ingredientsData.length > 0) {
+                await window.db.addIngredients(recipeId, ingredientsData);
+            }
+
+            // 3. Recolectar y Guardar Pasos
+            const stepTextareas = document.querySelectorAll('.step-textarea');
+            const stepsData = Array.from(stepTextareas)
+                .map(textarea => ({ instruction_es: textarea.value.trim() }))
+                .filter(step => step.instruction_es !== '');
+
+            if (this.isEditing) {
+                await window.db.deleteSteps(recipeId);
+            }
+            if (stepsData.length > 0) {
+                await window.db.addSteps(recipeId, stepsData);
+            }
+
+            window.ui.showToast('¡Receta guardada con éxito!', 'success');
 
             setTimeout(() => {
                 window.location.href = `recipe-detail.html?id=${recipeId}`;
