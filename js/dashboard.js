@@ -250,15 +250,14 @@ class DashboardManager {
         // Toggle container classes
         if (this.viewMode === 'list') {
             container.classList.add('list-view');
-            container.classList.remove('recipes-grid'); // Remove grid class implies default block or flex
+            container.classList.remove('recipes-grid');
         } else {
             container.classList.remove('list-view');
             container.classList.add('recipes-grid');
         }
 
-        container.innerHTML = recipes.map(recipe => {
-            if (this.viewMode === 'list') {
-                const header = `
+        if (this.viewMode === 'list') {
+            const header = `
                 <div class="list-header hidden-mobile-lg">
                     <div class="icon-cell"></div>
                     <div class="title-cell">Nombre</div>
@@ -268,9 +267,9 @@ class DashboardManager {
                     <div class="action-cell"></div>
                 </div>
             `;
-                const rows = recipes.map(recipe => {
-                    const date = new Date(recipe.updated_at).toLocaleDateString();
-                    return `
+            const rows = recipes.map(recipe => {
+                const date = new Date(recipe.updated_at).toLocaleDateString();
+                return `
                     <div class="file-row group" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
                         <div class="icon-cell">
                             <span class="material-symbols-outlined" style="font-size: 24px; color: #9CA3AF;">description</span>
@@ -292,34 +291,35 @@ class DashboardManager {
                         </div>
                     </div>
                 `;
-                }).join('');
-                container.innerHTML = header + rows;
-            } else {
-                container.innerHTML = recipes.map(recipe => `
+            }).join('');
+            container.innerHTML = header + rows;
+        } else {
+            container.innerHTML = recipes.map(recipe => `
                 <div class="card-recipe animate-fade-in group cursor-pointer" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
                     <div class="card-recipe__img relative overflow-hidden flex items-center justify-center bg-gray-50" style="aspect-ratio: 1/1;">
                         ${recipe.primaryImage ?
-                        `<img src="${recipe.primaryImage}" alt="${recipe.name_es}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` :
-                        `<span class="material-symbols-outlined text-gray-300" style="font-size: 80px;">description</span>`
-                    }
-                        <button class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-gray-600 hover:text-red-500 shadow-sm" 
-                            onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
-                            <span class="material-symbols-outlined text-[20px] ${recipe.is_favorite ? 'fill-1 text-primary' : ''}">
-                                ${recipe.is_favorite ? 'favorite' : 'favorite_border'}
-                            </span>
-                        </button>
+                    `<img src="${recipe.primaryImage}" alt="${recipe.name_es}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` :
+                    `<span class="material-symbols-outlined text-[48px] text-gray-300">description</span>`
+                }
+                        <div class="card-recipe__favorite absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 hover:text-primary"
+                                onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
+                                <span class="material-symbols-outlined text-[18px] ${recipe.is_favorite ? 'fill-1 text-primary' : ''}">
+                                    ${recipe.is_favorite ? 'star' : 'star_border'}
+                                </span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="card-recipe__content p-4">
-                        <h4 class="font-medium text-gray-900 text-sm line-clamp-1 mb-1" title="${recipe.name_es}">${recipe.name_es}</h4>
-                        <div class="flex items-center gap-2 text-xs text-gray-500">
-                             <span class="material-symbols-outlined text-[14px]">description</span>
-                             <span>General</span>
+                    <div class="card-recipe__info p-3">
+                        <h3 class="text-sm font-medium text-gray-900 truncate mb-1">${recipe.name_es}</h3>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] text-gray-500 font-medium px-2 py-0.5 bg-gray-100 rounded-full">General</span>
+                            <span class="text-[11px] text-gray-400">${new Date(recipe.updated_at).toLocaleDateString()}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
-            }
-        }).join('');
+        }
     }
 
     // Métodos renderFeatured y renderMore eliminados por redundancia en diseño Drive
