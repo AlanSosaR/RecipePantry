@@ -12,12 +12,20 @@ class OCRProcessor {
      * Procesa una imagen y devuelve el texto extraído con su confianza.
      */
     async processImage(imageFile, onProgress) {
-        // Inicializar worker cada vez para asegurar frescura (puedes cachearlo si prefieres)
-        const worker = await Tesseract.createWorker('spa+eng', 1, {
+        if (typeof Tesseract === 'undefined' && typeof window.Tesseract === 'undefined') {
+            console.error('Tesseract is not defined');
+            throw new Error('El sistema de reconocimiento (Tesseract) no se ha cargado correctamente. Por favor, recarga la página.');
+        }
+
+        const tesseractInstance = typeof Tesseract !== 'undefined' ? Tesseract : window.Tesseract;
+
+        const worker = await tesseractInstance.createWorker({
             logger: m => onProgress && onProgress(m)
         });
 
         try {
+            await worker.loadLanguage('spa+eng');
+            await worker.initialize('spa+eng');
             const { data } = await worker.recognize(imageFile);
             await worker.terminate();
             return {
@@ -25,7 +33,7 @@ class OCRProcessor {
                 confidence: data.confidence
             };
         } catch (error) {
-            await worker.terminate();
+            if (worker) await worker.terminate();
             throw error;
         }
     }
