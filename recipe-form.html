@@ -1063,12 +1063,9 @@
                         placeholder="El texto aparecerá aquí..."></textarea>
                 </div>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="display:flex; justify-content:center;">
                     <button id="btnRetryOCR"
-                        style="padding:14px;background:white;border:1px solid #ddd;border-radius:14px;font-weight:600;font-size:14px;cursor:pointer;">Reintentar</button>
-                    <button id="btnImportOCR"
-                        style="padding:14px;background:#E8F5E9;color:#064E3B;border:none;border-radius:14px;font-weight:600;font-size:14px;cursor:pointer;">Importar
-                        al Form</button>
+                        style="width:100%;padding:14px;background:white;border:1px solid #ddd;border-radius:14px;font-weight:600;font-size:14px;cursor:pointer;">Reintentar</button>
                 </div>
 
                 <button id="btnSaveDirectOCR"
@@ -1203,29 +1200,19 @@
         }
 
         // --- Result Actions ---
-        const btnImportOCR = document.getElementById('btnImportOCR');
-        if (btnImportOCR) {
-            btnImportOCR.addEventListener('click', () => {
+        const btnSaveDirectOCR = document.getElementById('btnSaveDirectOCR');
+        if (btnSaveDirectOCR) {
+            btnSaveDirectOCR.addEventListener('click', async () => {
                 const text = document.getElementById('extractedText').value;
                 const name = document.getElementById('ocrRecipeName').value;
 
-                if (name) document.getElementById('recipeForm').name.value = name;
+                if (!name) {
+                    window.utils.showToast('Asigna un nombre a la receta', 'error');
+                    return;
+                }
 
-                // Parse ingredients and steps into the main form
                 const parsed = window.ocrProcessor.parseRecipeText(text);
-
-                // Clear existing and add new
-                document.getElementById('ingredientsList').innerHTML = '';
-                document.getElementById('stepsList').innerHTML = '';
-
-                parsed.ingredients.forEach(ing => window.recipeForm.addIngredient(ing));
-                parsed.steps.forEach(step => {
-                    // Adapt step format for addStep
-                    window.recipeForm.addStep({ instruction_es: step.instruction });
-                });
-
-                if (window.ocr) window.ocr.close();
-                window.utils.showToast('Datos importados al formulario', 'success');
+                await window.recipeForm.saveProcessedRecipe(name, parsed.ingredients, parsed.steps);
             });
         }
 

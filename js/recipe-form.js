@@ -278,6 +278,60 @@ class RecipeFormManager {
             btnSave.textContent = 'Guardar Receta';
         }
     }
+
+    /**
+     * Guarda una receta directamente desde el OCR.
+     */
+    async saveProcessedRecipe(name, ingredients, steps) {
+        const btnSaveOCR = document.getElementById('btnSaveDirectOCR');
+        const ocrLoading = document.getElementById('ocrLoading');
+
+        try {
+            btnSaveOCR.disabled = true;
+            btnSaveOCR.innerHTML = '<span class="spinner-small"></span> Guardando...';
+
+            // 1. Obtener ID de categoría 'General'
+            const catsResult = await window.db.getMyCategories();
+            const generalCat = catsResult.categories.find(c => c.name_es === 'General') || catsResult.categories[0];
+
+            const recipeData = {
+                name_es: name,
+                description_es: 'Receta escaneada con OCR',
+                category_id: generalCat ? generalCat.id : null
+            };
+
+            const result = await window.db.createRecipe(recipeData);
+            const recipeId = result.recipe?.id;
+
+            if (!result.success) throw new Error(result.error);
+
+            // 2. Guardar Ingredientes
+            if (ingredients.length > 0) {
+                const ingredientsData = ingredients.map(ing => ({ name_es: ing.name }));
+                await window.db.addIngredients(recipeId, ingredientsData);
+            }
+
+            // 3. Guardar Pasos
+            if (steps.length > 0) {
+                const stepsData = steps.map(step => ({ instruction_es: step.instruction }));
+                await window.db.addSteps(recipeId, stepsData);
+            }
+
+            window.utils.showToast('¡Receta creada con éxito!', 'success');
+
+            if (window.ocr) window.ocr.close();
+
+            setTimeout(() => {
+                window.location.href = `recipe-detail.html?id=${recipeId}`;
+            }, 800);
+
+        } catch (error) {
+            console.error('Error salvando receta desde OCR:', error);
+            window.utils.showToast('Error al crear la receta', 'error');
+            btnSaveOCR.disabled = false;
+            btnSaveOCR.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">cloud_upload</span> Crear Receta Ahora';
+        }
+    }
 }
 
 // Inicializar
