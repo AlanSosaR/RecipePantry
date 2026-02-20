@@ -578,10 +578,106 @@ ol {
     color: var(--text-main);
 }
 
-.file-row .meta {
+.file-row .meta-mobile {
+    display: none;
     font-size: 12px;
     color: var(--text-secondary);
     margin-top: 2px;
+}
+
+@media (max-width: 767px) {
+    .file-row .meta-mobile {
+        display: block;
+    }
+}
+
+.file-row .meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* New Dropbox Style List Columns */
+.recipes-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
+    border: 1px solid var(--outline);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.list-header {
+    display: grid;
+    grid-template-columns: 48px 2fr 1fr 1fr 80px 48px;
+    gap: 16px;
+    padding: 12px 24px;
+    background: var(--surface-variant);
+    border-bottom: 1px solid var(--outline);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.file-row {
+    display: grid;
+    grid-template-columns: 48px 2fr 1fr 1fr 80px 48px;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 24px;
+    background: white;
+    border-bottom: 1px solid var(--surface-variant);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+@media (max-width: 767px) {
+    .list-header {
+        display: none;
+    }
+
+    .file-row {
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .file-row .meta-cell {
+        display: none;
+    }
+}
+
+.icon-cell {
+    display: flex;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.title-cell {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meta-cell {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.badge-tag {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--primary-light);
+    color: var(--primary);
 }
 
 .file-row .actions {

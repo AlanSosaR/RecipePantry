@@ -258,55 +258,65 @@ class DashboardManager {
 
         container.innerHTML = recipes.map(recipe => {
             if (this.viewMode === 'list') {
-                return `
+                const header = `
+                <div class="list-header hidden-mobile-lg">
+                    <div class="icon-cell"></div>
+                    <div class="title-cell">Nombre</div>
+                    <div class="meta-cell">Categoría</div>
+                    <div class="meta-cell">Modificado</div>
+                    <div class="meta-cell">Tiempo</div>
+                    <div class="action-cell"></div>
+                </div>
+            `;
+                container.innerHTML = header + recipes.map(recipe => {
+                    const date = new Date(recipe.updated_at).toLocaleDateString();
+                    return `
                     <div class="file-row group" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                        <div class="icon-wrapper">
-                            <span class="material-symbols-outlined" style="font-size: 24px;">description</span>
+                        <div class="icon-cell">
+                            <span class="material-symbols-outlined" style="font-size: 24px; color: #9CA3AF;">description</span>
                         </div>
-                        <div class="content">
+                        <div class="title-cell">
                             <span class="title">${recipe.name_es}</span>
+                            <div class="meta-mobile">General • ${date}</div>
                         </div>
-                        <!-- Actions (Visible on Hover/Mobile) -->
-                         <button class="mobile-action p-2 rounded-full hover:bg-gray-100" 
+                        <div class="meta-cell"><span class="badge-tag">General</span></div>
+                        <div class="meta-cell">${date}</div>
+                        <div class="meta-cell">--</div>
+                        <div class="action-cell flex justify-end">
+                             <button class="p-2 rounded-full hover:bg-gray-100 transition-colors" 
+                                onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
+                                <span class="material-symbols-outlined text-[20px] ${recipe.is_favorite ? 'fill-1 text-primary' : ''}">
+                                    ${recipe.is_favorite ? 'star' : 'star_border'}
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            } else {
+                container.innerHTML = recipes.map(recipe => `
+                <div class="card-recipe animate-fade-in group cursor-pointer" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                    <div class="card-recipe__img relative overflow-hidden flex items-center justify-center bg-gray-50" style="aspect-ratio: 1/1;">
+                        ${recipe.primaryImage ?
+                        `<img src="${recipe.primaryImage}" alt="${recipe.name_es}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` :
+                        `<span class="material-symbols-outlined text-gray-300" style="font-size: 80px;">description</span>`
+                    }
+                        <button class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-gray-600 hover:text-red-500 shadow-sm" 
                             onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
                             <span class="material-symbols-outlined text-[20px] ${recipe.is_favorite ? 'fill-1 text-primary' : ''}">
-                                ${recipe.is_favorite ? 'star' : 'star_border'}
+                                ${recipe.is_favorite ? 'favorite' : 'favorite_border'}
                             </span>
                         </button>
                     </div>
-                `;
-            } else {
-                return `
-            <div class="card-recipe animate-fade-in group cursor-pointer" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <div class="card-recipe__img relative overflow-hidden">
-                    <img src="${recipe.primaryImage || window.DEFAULT_RECIPE_IMAGE}" alt="${recipe.name_es}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    <button class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white text-gray-600 hover:text-red-500" 
-                        onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}')">
-                        <span class="material-symbols-outlined text-[20px] ${recipe.is_favorite ? 'fill-1 text-primary' : ''}">
-                            ${recipe.is_favorite ? 'favorite' : 'favorite_border'}
-                        </span>
-                    </button>
-                     <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-end">
-                         <span class="text-white text-xs font-medium flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[16px]">visibility</span>
-                             Ver
-                         </span>
-                    </div>
-                </div>
-                <div class="card-recipe__content p-3">
-                    <div class="flex items-start justify-between gap-2 mb-1">
-                        <h4 class="font-medium text-gray-900 text-sm line-clamp-1" title="${recipe.name_es}">${recipe.name_es}</h4>
-                        <span class="material-symbols-outlined text-gray-400 text-[18px]">more_vert</span>
-                    </div>
-                    <div class="card-recipe__meta flex items-center gap-3 text-xs text-gray-500">
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">description</span>
-                            <span>Ver receta</span>
+                    <div class="card-recipe__content p-4">
+                        <h4 class="font-medium text-gray-900 text-sm line-clamp-1 mb-1" title="${recipe.name_es}">${recipe.name_es}</h4>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                             <span class="material-symbols-outlined text-[14px]">description</span>
+                             <span>General</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `).join('');
             }
         }).join('');
     }
