@@ -47,6 +47,13 @@ class RecipeFormManager {
             select.innerHTML = result.categories.map(cat => `
                 <option value="${cat.id}">${cat.name_es}</option>
             `).join('');
+
+            // Trigger has-value logic
+            if (select.value) select.classList.add('has-value');
+            select.addEventListener('change', () => {
+                if (select.value) select.classList.add('has-value');
+                else select.classList.remove('has-value');
+            });
         }
     }
 
@@ -73,7 +80,12 @@ class RecipeFormManager {
                 this.showPreview(primary.image_url);
             }
 
-            // Ingredientes
+            // Trigger has-value for all inputs/selects loaded
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.value) el.classList.add('has-value');
+            });
+
+            // Ingredients
             r.ingredients.forEach(ing => this.addIngredient(ing));
             if (r.ingredients.length === 0) this.addIngredient();
 
@@ -151,16 +163,26 @@ class RecipeFormManager {
         // Usar clases del nuevo diseño (components.css form components)
 
         const item = document.createElement('div');
-        item.className = 'flex items-center gap-3 group animate-fade-in';
+        item.className = 'flex items-center gap-3 group animate-fade-in mb-4';
         item.innerHTML = `
             <span class="material-symbols-outlined text-gray-300 cursor-move">drag_indicator</span>
-            <input type="text" class="form-input flex-1" placeholder="Ej. 2 tazas de harina" value="${data ? data.raw_text || data.name_es : ''}" required>
-            <button type="button" class="btn-remove-small text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1">
+            <div class="m3-field flex-1 mb-0" style="margin-bottom:0">
+                <input type="text" class="ingredient-input" placeholder=" " value="${data ? data.raw_text || data.name_es : ''}" required>
+                <label>Ingrediente</label>
+            </div>
+            <button type="button" class="del-btn text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         `;
 
-        item.querySelector('.btn-remove-small').addEventListener('click', () => item.remove());
+        const input = item.querySelector('input');
+        input.addEventListener('input', () => {
+            if (input.value) input.classList.add('has-value');
+            else input.classList.remove('has-value');
+        });
+        if (data) input.classList.add('has-value');
+
+        item.querySelector('.del-btn').addEventListener('click', () => item.remove());
         container.appendChild(item);
     }
 
@@ -169,18 +191,26 @@ class RecipeFormManager {
         const stepNum = container.children.length + 1;
 
         const item = document.createElement('div');
-        item.className = 'flex gap-4 group animate-fade-in';
+        item.className = 'flex gap-4 group animate-fade-in mb-4';
         item.innerHTML = `
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-sm flex items-center justify-center mt-1 step-number">${stepNum}</div>
-            <div class="flex-1">
-                <textarea class="form-textarea block w-full resize-none" placeholder="Describe este paso..." rows="2" required>${data ? data.instruction_es : ''}</textarea>
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-sm flex items-center justify-center mt-3 step-number">${stepNum}</div>
+            <div class="m3-field textarea flex-1 mb-0" style="margin-bottom:0">
+                <textarea class="step-textarea block w-full resize-none" placeholder=" " rows="2" required>${data ? data.instruction_es : ''}</textarea>
+                <label>Descripción del paso</label>
             </div>
-            <button type="button" class="btn-remove-small text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all self-start mt-2 p-1">
+            <button type="button" class="del-btn text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all self-start mt-3 p-1">
                 <span class="material-symbols-outlined text-[20px]">delete</span>
             </button>
         `;
 
-        item.querySelector('.btn-remove-small').addEventListener('click', () => {
+        const textarea = item.querySelector('textarea');
+        textarea.addEventListener('input', () => {
+            if (textarea.value) textarea.classList.add('has-value');
+            else textarea.classList.remove('has-value');
+        });
+        if (data) textarea.classList.add('has-value');
+
+        item.querySelector('.del-btn').addEventListener('click', () => {
             item.remove();
             this.updateStepNumbers();
         });

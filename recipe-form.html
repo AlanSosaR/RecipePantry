@@ -263,7 +263,8 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 0;
+            gap: 16px;
+            /* Aumentado de 0 para separación entre tarjetas */
             padding-bottom: 80px;
         }
 
@@ -272,8 +273,8 @@
             background: var(--md-surface);
             border: 1px solid var(--md-outline-var);
             border-radius: var(--md-shape-xl);
-            padding: 28px;
-            margin-bottom: 16px;
+            padding: 32px;
+            /* Aumentado ligeramente */
             box-shadow: var(--md-elev-1);
             transition: box-shadow .2s;
         }
@@ -367,7 +368,8 @@
         /* ─── M3 Outlined Text Field ──────────────────── */
         .m3-field {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            /* Aumentado para mayor espacio entre campos */
         }
 
         .m3-field:last-child {
@@ -377,15 +379,15 @@
         .m3-field label {
             position: absolute;
             top: 50%;
-            left: 16px;
+            left: 12px;
             transform: translateY(-50%);
             font-size: 16px;
             color: var(--md-on-surface-var);
             background: var(--md-surface);
-            padding: 0 4px;
+            padding: 0 6px;
             pointer-events: none;
-            transition: top .15s ease, font-size .15s ease, color .15s ease, transform .15s ease;
-            z-index: 1;
+            transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
             line-height: 1;
         }
 
@@ -398,7 +400,7 @@
         .m3-field select,
         .m3-field textarea {
             width: 100%;
-            padding: 18px 16px 6px;
+            padding: 16px;
             font-family: var(--font-body);
             font-size: 16px;
             color: var(--md-on-surface);
@@ -449,9 +451,9 @@
         .m3-field select.has-value+label,
         .m3-field textarea:focus+label,
         .m3-field textarea:not(:placeholder-shown)+label {
-            top: 8px;
-            transform: none;
+            top: 0;
             font-size: 12px;
+            font-weight: 500;
             color: var(--md-primary);
         }
 
