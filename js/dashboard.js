@@ -181,9 +181,11 @@ class DashboardManager {
 
         // Lógica de filtrado rápido según la vista
         if (view === 'favorites') {
-            this.loadRecipes({ favorite: true });
+            this.loadRecipes({ favorite: true, orderBy: 'name_es', ascending: true });
         } else if (view === 'recipes' || view === 'overview') {
-            this.loadRecipes();
+            this.loadRecipes({ orderBy: 'name_es', ascending: true });
+        } else if (view === 'recent') {
+            this.loadRecipes({ orderBy: 'updated_at', ascending: false });
         }
     }
 

@@ -58,6 +58,18 @@
     --font-display: 'Epilogue', sans-serif;
     --font-body: 'Inter', sans-serif;
 
+    /* Material 3 Expressive Tokens */
+    --surface-container-low: #F7F9F8;
+    --surface-container: #F0F4F2;
+    --surface-container-high: #E9EFED;
+    --secondary-container: #D1FAE5;
+    --on-secondary-container: #064E3B;
+    --tertiary-container: #FFEDD5;
+    --on-tertiary-container: #9A3412;
+    --outline-variant: #E2E8F0;
+    --on-surface-variant: #444746;
+    --on-surface: #1B1B1F;
+
     /* Transiciones */
     --transition-fast: 150ms ease-out;
     --transition-base: 250ms ease-out;

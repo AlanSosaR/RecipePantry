@@ -16,8 +16,12 @@ class DatabaseManager {
                     images:recipe_images(id, image_url, is_primary)
                 `)
                 .eq('user_id', window.authManager.currentUser.id)
-                .eq('is_active', true)
-                .order('created_at', { ascending: false });
+                .eq('is_active', true);
+
+            // Ordenamiento dinámico
+            const orderBy = filters.orderBy || 'name_es';
+            const ascending = filters.ascending !== undefined ? filters.ascending : true;
+            query = query.order(orderBy, { ascending });
 
             // Aplicar filtros
             if (filters.favorite) {
