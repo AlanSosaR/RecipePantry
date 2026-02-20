@@ -104,7 +104,7 @@
                 <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 16px; width: 100%;">
                     <a href="#" class="nav-item active" data-view="overview">
                         <span class="material-symbols-outlined fill-1" style="font-size: 20px;">hard_drive</span>
-                        <span style="font-size: 14px;">Mi Unidad</span>
+                        <span style="font-size: 14px;">Mis Recetas</span>
                     </a>
                     <a href="#" class="nav-item" data-view="recent">
                         <span class="material-symbols-outlined" style="font-size: 20px;">schedule</span>
@@ -137,21 +137,7 @@
                     </a>
                 </div>
 
-                <div style="margin-top: auto; padding: 24px;">
-                    <div style="background: var(--surface-variant); border-radius: 16px; padding: 16px;">
-                        <div
-                            style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">
-                            <span>Almacenamiento</span>
-                            <span>80%</span>
-                        </div>
-                        <div
-                            style="width: 100%; background: #E5E7EB; height: 6px; border-radius: 99px; margin-bottom: 8px;">
-                            <div style="background: var(--primary); height: 6px; border-radius: 99px; width: 80%;">
-                            </div>
-                        </div>
-                        <p style="font-size: 12px; color: #9CA3AF;">12GB de 15GB usados</p>
-                    </div>
-                </div>
+                <!-- Almacenamiento removed -->
             </nav>
 
             <!-- Mobile Drawer Overlay -->
@@ -177,7 +163,7 @@
                     <a href="#" class="nav-item-mobile active" data-view="overview"
                         onclick="window.dashboard.handleMobileNav('overview', this)">
                         <span class="material-symbols-outlined fill-1">hard_drive</span>
-                        <span>Mi Unidad</span>
+                        <span>Mis Recetas</span>
                     </a>
                     <a href="#" class="nav-item-mobile" data-view="recent"
                         onclick="window.dashboard.handleMobileNav('recent', this)">
@@ -218,7 +204,7 @@
                     <!-- Search Bar -->
                     <div class="search-wrapper" style="flex: 1; max-width: 700px; margin: 0 16px;">
                         <span class="material-symbols-outlined search-icon">search</span>
-                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar en Drive..." />
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar recetas..." />
                         <button
                             style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center;">
                             <span class="material-symbols-outlined">tune</span>

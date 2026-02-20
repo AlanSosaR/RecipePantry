@@ -268,7 +268,7 @@ class DashboardManager {
                     <div class="action-cell"></div>
                 </div>
             `;
-                container.innerHTML = header + recipes.map(recipe => {
+                const rows = recipes.map(recipe => {
                     const date = new Date(recipe.updated_at).toLocaleDateString();
                     return `
                     <div class="file-row group" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
@@ -293,6 +293,7 @@ class DashboardManager {
                     </div>
                 `;
                 }).join('');
+                container.innerHTML = header + rows;
             } else {
                 container.innerHTML = recipes.map(recipe => `
                 <div class="card-recipe animate-fade-in group cursor-pointer" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
