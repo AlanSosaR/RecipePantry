@@ -91,6 +91,8 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior-y: contain;
+    /* Remove blue touch highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ─── Scrollbar Custom ───────────────────────────────────────────── */
