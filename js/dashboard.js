@@ -19,12 +19,14 @@ class DashboardManager {
 
         if (!isAuthenticated) {
             console.log('💡 Mostrando modo landing');
+            document.body.classList.add('mode-landing');
             if (landingEl) landingEl.classList.remove('hidden');
             if (dashboardEl) dashboardEl.classList.add('hidden');
             return;
         }
 
         console.log('✅ Usuario logueado, preparando dashboard premium');
+        document.body.classList.remove('mode-landing');
         if (landingEl) landingEl.classList.add('hidden');
         if (dashboardEl) dashboardEl.classList.remove('hidden');
 

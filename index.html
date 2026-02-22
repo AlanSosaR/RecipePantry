@@ -46,11 +46,14 @@
                 radial-gradient(circle at top right, rgba(16, 185, 129, 0.15), transparent 60%),
                 radial-gradient(circle at bottom left, rgba(6, 78, 59, 0.08), transparent 60%);
             min-height: 100dvh;
+            font-family: var(--font-body);
+        }
+
+        body.mode-landing {
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            font-family: var(--font-body);
         }
 
         .landing-container {
@@ -271,10 +274,14 @@
         .fade-m3 {
             animation: m3-fade-up 0.6s var(--m3-easing) forwards;
         }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 
-<body>
+<body class="mode-landing">
     <div id="landing-section">
         <div class="landing-card-expressive">
             <!-- Language Switcher INSIDE the card -->
