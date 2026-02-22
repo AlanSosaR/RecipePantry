@@ -49,11 +49,13 @@
             font-family: var(--font-body);
         }
 
-        body.mode-landing {
+        .mode-landing-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            min-height: 100dvh;
+            width: 100%;
         }
 
         .landing-container {
@@ -281,8 +283,8 @@
     </style>
 </head>
 
-<body class="mode-landing">
-    <div id="landing-section">
+<body class="body-drive">
+    <div id="landing-section" class="mode-landing-wrapper">
         <div class="landing-card-expressive">
             <!-- Language Switcher INSIDE the card -->
             <div class="language-toggle" onclick="toggleLanguage()">

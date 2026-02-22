@@ -20,14 +20,12 @@ class DashboardManager {
 
             if (!isAuthenticated) {
                 console.log('💡 Modo Landing: Usuario no detectado');
-                document.body.classList.add('mode-landing');
                 if (landingEl) landingEl.classList.remove('hidden');
                 if (dashboardEl) dashboardEl.classList.add('hidden');
                 return;
             }
 
             console.log('✅ Modo Dashboard: Usuario detectado:', window.authManager.currentUser);
-            document.body.classList.remove('mode-landing');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
 

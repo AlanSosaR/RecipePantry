@@ -1189,6 +1189,7 @@ select.input-field {
 /* ─── Dashboard Premium (Sidebar + Main) ────────────────────────── */
 .dashboard-app {
     display: flex;
+    width: 100%;
     min-height: 100vh;
     background: var(--bg);
 }
