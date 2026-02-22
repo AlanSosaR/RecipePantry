@@ -3420,3 +3420,223 @@ select.input-field {
         left: 0;
     }
 }
+
+/* =========================================================
+   Dropbox Style - Structural Refinement
+   ========================================================= */
+
+.dashboard-app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg);
+    transition: all 0.3s var(--m3-easing);
+    position: relative;
+}
+
+/* Sidebar Sequence Fixes */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding: 24px;
+}
+
+/* Slim Sidebar CSS */
+@media (min-width: 1024px) {
+    .sidebar.sidebar--slim {
+        width: 80px;
+    }
+
+    .sidebar.sidebar--slim .logo-text,
+    .sidebar.sidebar--slim .user-info-m3,
+    .sidebar.sidebar--slim .nav-item span:not(.material-symbols-outlined),
+    .sidebar.sidebar--slim .btn-logout-m3 .logout-text {
+        display: none;
+    }
+
+    .sidebar.sidebar--slim .sidebar-header {
+        padding: 24px 0;
+        justify-content: center;
+    }
+
+    .sidebar.sidebar--slim .sidebar-logo {
+        padding: 0;
+        justify-content: center;
+    }
+
+    .sidebar.sidebar--slim .sidebar-user-profile {
+        padding: 12px 0;
+        margin: 8px;
+        justify-content: center;
+    }
+
+    .sidebar.sidebar--slim .nav-item {
+        justify-content: center;
+        padding: 12px;
+        margin: 4px 8px;
+    }
+}
+
+/* Right Sidebar: Details Panel */
+.details-sidebar {
+    width: 0;
+    background: var(--bg);
+    border-left: 1px solid var(--outline-variant);
+    transition: width 0.3s var(--m3-easing);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.details-sidebar.active {
+    width: 320px;
+}
+
+.details-sidebar-header {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.details-sidebar-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* View Switcher Menu */
+.view-switcher-m3 {
+    position: relative;
+}
+
+.view-menu-m3 {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 200px;
+    background: var(--bg);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--outline-variant);
+    padding: 8px 0;
+    z-index: 100;
+}
+
+.view-menu-m3 .menu-header {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+}
+
+.menu-item-m3 {
+    width: 100%;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--on-surface);
+    transition: background 0.2s;
+    text-align: left;
+}
+
+.menu-item-m3:hover {
+    background: var(--surface-container-low);
+}
+
+.menu-item-m3 .check {
+    margin-left: auto;
+    font-size: 18px;
+    color: var(--primary);
+    opacity: 0;
+}
+
+.menu-item-m3.active .check {
+    opacity: 1;
+}
+
+/* List View Alignment (Table Style) */
+.list-view-m3 {
+    display: flex;
+    flex-direction: column;
+    min-width: 800px;
+    /* Ensure columns don't squash too much */
+}
+
+/* Grid Layout Definition */
+.list-header-m3,
+.file-row-m3 {
+    display: grid;
+    grid-template-columns: 56px 1fr 140px 120px 160px 80px;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.list-header-m3 {
+    height: 48px;
+    border-bottom: 1px solid var(--outline-variant);
+    color: var(--on-surface-variant);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.file-row-m3 {
+    height: 56px;
+    border-bottom: 1px solid var(--outline-variant);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.file-row-m3:hover {
+    background: var(--surface-container-low);
+}
+
+.file-row-m3.selected {
+    background: var(--primary-light);
+}
+
+.recipe-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Grid View Large */
+.recipes-grid.grid-view--large {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: 32px;
+    padding: 0 4px 100px;
+}
+
+.recipes-grid.grid-view--large .recipe-card-image {
+    height: 240px;
+}
+
+@media (max-width: 1023px) {
+    .details-sidebar.active {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 102;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+    }
+}

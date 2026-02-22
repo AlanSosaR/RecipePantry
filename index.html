@@ -405,7 +405,7 @@
             <div class="sidebar-footer">
                 <button onclick="window.authManager.signOut()" class="btn-logout-m3">
                     <span class="material-symbols-outlined">logout</span>
-                    <span>Cerrar Sesión</span>
+                    <span class="logout-text">Cerrar Sesión</span>
                 </button>
             </div>
         </aside>
@@ -439,16 +439,32 @@
                     <h3 id="view-title" style="font-size: 20px; font-weight: 700; color: var(--on-surface);">Mis Recetas
                     </h3>
 
-                    <!-- View Switcher (Dropbox Style) -->
+                    <!-- View Switcher (Dropbox Style Dropdown) -->
                     <div class="view-switcher-m3">
-                        <button id="view-list-btn" class="btn-icon-m3 active"
-                            onclick="window.dashboard.switchDisplayMode('list')" title="Vista Lista">
-                            <span class="material-symbols-outlined">view_list</span>
+                        <button id="view-mode-trigger" class="btn-icon-m3" onclick="window.dashboard.toggleViewMenu()"
+                            title="Diseño">
+                            <span id="current-view-icon" class="material-symbols-outlined">view_list</span>
                         </button>
-                        <button id="view-grid-btn" class="btn-icon-m3"
-                            onclick="window.dashboard.switchDisplayMode('grid')" title="Vista Cuadrícula">
-                            <span class="material-symbols-outlined">grid_view</span>
-                        </button>
+                        <div id="view-mode-menu" class="view-menu-m3 hidden">
+                            <div class="menu-header">Diseño</div>
+                            <button onclick="window.dashboard.switchDisplayMode('grid', this)" class="menu-item-m3">
+                                <span class="material-symbols-outlined">grid_view</span>
+                                <span>Cuadrícula</span>
+                                <span class="check material-symbols-outlined">check</span>
+                            </button>
+                            <button onclick="window.dashboard.switchDisplayMode('grid-large', this)"
+                                class="menu-item-m3">
+                                <span class="material-symbols-outlined">grid_view_large</span>
+                                <span>Cuadrícula grande</span>
+                                <span class="check material-symbols-outlined">check</span>
+                            </button>
+                            <button onclick="window.dashboard.switchDisplayMode('list', this)"
+                                class="menu-item-m3 active">
+                                <span class="material-symbols-outlined">view_list</span>
+                                <span>Lista</span>
+                                <span class="check material-symbols-outlined">check</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -485,9 +501,7 @@
         <aside id="details-sidebar" class="details-sidebar">
             <div class="details-sidebar-header">
                 <h3>Información</h3>
-                <button class="btn-icon-m3" onclick="window.dashboard.toggleDetailsSidebar(false)">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+                <!-- Close Button Removed per User Request -->
             </div>
             <div id="details-content" class="details-content">
                 <div class="details-empty">

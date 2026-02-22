@@ -122,6 +122,13 @@ class DashboardManager {
         }
     }
 
+    toggleViewMenu() {
+        const menu = document.getElementById('view-mode-menu');
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+    }
+
     toggleDetailsSidebar(forceState = null) {
         const sidebar = document.getElementById('details-sidebar');
         if (!sidebar) return;
@@ -138,12 +145,25 @@ class DashboardManager {
         }
     }
 
-    switchDisplayMode(mode) {
+    switchDisplayMode(mode, element) {
         this.displayMode = mode;
 
-        // Update Switcher UI
-        document.getElementById('view-list-btn')?.classList.toggle('active', mode === 'list');
-        document.getElementById('view-grid-btn')?.classList.toggle('active', mode === 'grid');
+        // Update current view icon in trigger
+        const iconSpan = document.getElementById('current-view-icon');
+        if (iconSpan) {
+            if (mode === 'list') iconSpan.textContent = 'view_list';
+            else if (mode === 'grid') iconSpan.textContent = 'grid_view';
+            else if (mode === 'grid-large') iconSpan.textContent = 'grid_view_large';
+        }
+
+        // Update active state in menu
+        document.querySelectorAll('.menu-item-m3').forEach(item => {
+            item.classList.remove('active');
+        });
+        if (element) element.classList.add('active');
+
+        // Close menu
+        this.toggleViewMenu();
 
         this.renderRecipesGrid(this.currentRecipes);
     }
@@ -201,19 +221,19 @@ class DashboardManager {
         }
         if (emptyState) emptyState.classList.add('hidden');
 
-        if (this.displayMode === 'grid') {
-            container.className = 'recipes-grid grid-view';
+        if (this.displayMode.startsWith('grid')) {
+            container.className = `recipes-grid ${this.displayMode === 'grid-large' ? 'grid-view--large' : 'grid-view'}`;
             container.innerHTML = recipes.map(recipe => this.renderRecipeCard(recipe)).join('');
         } else {
-            container.className = 'recipes-grid list-view'; // Reusing your list structure
+            container.className = 'recipes-grid list-view-m3';
             const header = `
-                <div class="list-header hidden-mobile-lg">
-                    <div class="icon-cell"></div>
-                    <div class="title-cell">NOMBRE</div>
-                    <div class="meta-cell">CATEGORÍA</div>
-                    <div class="meta-cell">ACCESO</div>
-                    <div class="meta-cell">ÚLTIMA MODIFICACIÓN</div>
-                    <div class="action-cell"></div>
+                <div class="list-header-m3 hidden-mobile-lg">
+                    <div class="col-icon"></div>
+                    <div class="col-name">NOMBRE</div>
+                    <div class="col-category">CATEGORÍA</div>
+                    <div class="col-access">ACCESO</div>
+                    <div class="col-date">ÚLTIMA MODIFICACIÓN</div>
+                    <div class="col-actions"></div>
                 </div>
             `;
             const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
@@ -228,21 +248,21 @@ class DashboardManager {
         const isSelected = this.selectedRecipeId === recipe.id;
 
         return `
-            <div class="file-row group ${isSelected ? 'selected' : ''}" 
+            <div class="file-row-m3 ${isSelected ? 'selected' : ''}" 
                  onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
                  ondblclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <div class="icon-cell">
-                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">description</span>
+                <div class="col-icon">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary-light-on);">description</span>
                 </div>
-                <div class="title-cell">
-                    <span class="title">${recipe.name_es}</span>
+                <div class="col-name">
+                    <span class="recipe-name">${recipe.name_es}</span>
                 </div>
-                <div class="meta-cell">
+                <div class="col-category">
                     <span class="badge-tag">General</span>
                 </div>
-                <div class="meta-cell">Solo tú</div>
-                <div class="meta-cell">${date}</div>
-                <div class="action-cell">
+                <div class="col-access">Solo tú</div>
+                <div class="col-date">${date}</div>
+                <div class="col-actions">
                     <div class="row-actions">
                         <button class="btn-action-icon" title="Editar" onclick="event.stopPropagation(); window.location.href='recipe-form.html?id=${recipe.id}'">
                             <span class="material-symbols-outlined">edit</span>
