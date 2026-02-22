@@ -132,58 +132,16 @@
     }
 }
 
-/* ─── Ajustes de Layout Móvil ───────────────────────────────────── */
+/* ─── Ajustes de Layout Móvil (Limpiado para M3) ───────────────────── */
 @media (max-width: 767px) {
-    .sidebar {
-        display: flex !important;
-        position: fixed;
-        left: -100%;
-        top: 0;
-        bottom: 0;
-        z-index: 2000;
-        transition: left 0.3s ease;
-        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar.active {
-        left: 0;
-    }
-
-    .bottom-nav {
-        display: flex !important;
-    }
-
     .main-content {
-        padding: var(--space-md) var(--space-md) 100px !important;
+        padding: 0 16px 100px !important;
         height: 100dvh;
         overflow-y: auto;
     }
 
-    .hero-banner {
-        flex-direction: column;
-        padding: var(--space-md);
-    }
-
-    .hero-banner__img-container {
-        display: none;
-    }
-
-    .top-bar {
-        background: var(--primary) !important;
-        margin: calc(-1 * var(--space-md)) calc(-1 * var(--space-md)) var(--space-lg);
-        padding: var(--space-lg) var(--space-md) var(--space-xl);
-        border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
-        color: white;
-    }
-
-    .top-bar .icon-button,
-    .top-bar .btn-notif {
-        color: white;
-    }
-
-    .search-wrapper {
-        margin-top: -30px;
-        box-shadow: var(--shadow-lg);
+    .main-content-scroll {
+        padding-top: 16px;
     }
 }
 

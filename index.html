@@ -30,6 +30,19 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/responsive.css">
 
+    <script>
+        // Anti-flicker: Hide landing immediately if user was likely logged in
+        if (localStorage.getItem('sb-auth-token') || localStorage.getItem('supabase.auth.token')) {
+            document.documentElement.classList.add('auth-likely');
+            window.addEventListener('DOMContentLoaded', () => {
+                const landing = document.getElementById('landing-section');
+                if (landing) landing.classList.add('hidden');
+                const dashboard = document.getElementById('dashboard-app');
+                if (dashboard) dashboard.classList.remove('hidden');
+            });
+        }
+    </script>
+
     <style>
         /* ─── Material 3 Expressive Landing Design ─── */
         :root {
@@ -280,6 +293,11 @@
         .hidden {
             display: none !important;
         }
+
+        /* Initial state to prevent flicker */
+        #landing-section:not(.hidden)~#dashboard-app {
+            display: none;
+        }
     </style>
 </head>
 
@@ -338,11 +356,26 @@
 
     <!-- DASHBOARD VIEW (Hidden by default) -->
     <div id="dashboard-app" class="dashboard-app hidden">
-        <!-- Sidebar Desktop -->
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <span class="material-symbols-outlined">menu_book</span>
-                <span>RecipeHub</span>
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
+
+        <!-- Sidebar Desktop & Mobile Drawer -->
+        <aside id="main-sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span class="material-symbols-outlined">menu_book</span>
+                    <span>RecipeHub</span>
+                </div>
+            </div>
+
+            <div class="sidebar-user-profile">
+                <div class="user-avatar-m3">
+                    <span id="sidebar-user-initials">CH</span>
+                </div>
+                <div class="user-info-m3">
+                    <span id="sidebar-user-greeting" class="user-greeting">Hola, Chef</span>
+                    <span class="user-status">Premium</span>
+                </div>
             </div>
 
             <nav class="sidebar-nav">
@@ -354,23 +387,18 @@
                     <span class="material-symbols-outlined">star</span>
                     <span>Favoritos</span>
                 </a>
+                <a href="#" class="nav-item" onclick="window.location.href='ocr.html'">
+                    <span class="material-symbols-outlined">document_scanner</span>
+                    <span>Escanear Receta</span>
+                </a>
                 <a href="#" class="nav-item" data-view="shared">
                     <span class="material-symbols-outlined">share</span>
                     <span>Compartidas</span>
                 </a>
-
-                <div
-                    style="margin: 24px 32px 8px; font-size: 11px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em;">
-                    Categorías
-                </div>
-                <div id="sidebar-categories" class="sidebar-nav" style="padding: 0 16px;">
-                    <!-- Dinámico -->
-                </div>
             </nav>
 
-            <div style="margin-top: auto; padding: 24px;">
-                <button onclick="window.authManager.signOut()" class="btn nav-item"
-                    style="width: 100%; border: none; background: none; color: #EF4444; display: flex; align-items: center; gap: 12px;">
+            <div class="sidebar-footer">
+                <button onclick="window.authManager.signOut()" class="btn-logout-m3">
                     <span class="material-symbols-outlined">logout</span>
                     <span>Cerrar Sesión</span>
                 </button>
@@ -379,94 +407,62 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-bar">
-                <div class="search-wrapper">
-                    <span class="material-symbols-outlined">search</span>
-                    <input type="text" id="searchInput" placeholder="Buscar en mi recetario...">
-                </div>
+            <header class="top-bar-m3">
+                <button id="hamburger-menu" class="btn-icon-m3 hamburger-btn"
+                    onclick="window.dashboard.toggleSidebar(true)">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
 
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <button class="btn-icon">
-                        <span class="material-symbols-outlined">notifications</span>
-                    </button>
-                    <div
-                        style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--secondary); font-weight: 700; font-size: 12px;">
-                        <span id="user-avatar-initials">CH</span>
+                <div class="search-container-m3">
+                    <div class="search-wrapper-m3">
+                        <span class="material-symbols-outlined">search</span>
+                        <input type="text" id="searchInput" placeholder="Buscar en mi recetario...">
                     </div>
                 </div>
+
+                <div class="top-bar-actions-m3">
+                    <button class="btn-icon-m3">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                </div>
             </header>
+            <div class="main-content-scroll">
 
-            <!-- Banner Hero -->
-            <section
-                style="background: linear-gradient(135deg, #059669 0%, #064E3B 100%); border-radius: 24px; padding: 40px; color: white; margin-bottom: 40px; position: relative; overflow: hidden;">
-                <div style="position: relative; z-index: 2;">
-                    <h2 id="hero-greeting"
-                        style="font-size: 32px; font-weight: 800; margin: 0 0 8px 0; font-family: var(--font-display);">
-                        Hola, Chef</h2>
-                    <p style="opacity: 0.9; font-size: 16px; margin: 0;">¿Qué vamos a cocinar hoy?</p>
-                </div>
-                <span class="material-symbols-outlined"
-                    style="position: absolute; right: -20px; bottom: -20px; font-size: 200px; opacity: 0.1;">restaurant</span>
-            </section>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                <h3 id="view-title" style="font-size: 20px; font-weight: 700; color: var(--on-surface);">Mis Recetas
-                </h3>
-                <button class="btn-primary" onclick="window.location.href='recipe-form.html'"
-                    style="padding: 10px 20px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                    <span class="material-symbols-outlined">add</span>
-                    Nueva Receta
-                </button>
-            </div>
-
-            <!-- Grid de Recetas -->
-            <div id="recipesGrid" class="recipes-grid">
-                <div class="loading-inline">
-                    <div class="spinner-sm"></div>
-                    <p style="margin-left: 12px; color: var(--text-secondary);">Cargando recetas...</p>
-                </div>
-            </div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
-                <div style="font-size: 64px; color: #E5E7EB; margin-bottom: 24px;">
-                    <span class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
-                </div>
-                <h4 style="font-size: 18px; font-weight: 700; color: var(--on-surface);">Aún no tienes recetas</h4>
-                <p style="color: var(--on-surface-variant); margin-top: 8px;">Comienza digitalizando tus recetas en
-                    papel o agrega una manualmente.</p>
-                <button class="btn-primary" style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
-                    <span class="material-symbols-outlined">document_scanner</span>
-                    Escanear Receta
-                </button>
-            </div>
-        </main>
-
-        <!-- Mobile Nav Bar (Drive Style) -->
-        <nav class="mobile-nav-bar lg:hidden">
-            <button class="nav-item-mobile active" data-view="recipes">
-                <span class="material-symbols-outlined">home</span>
-                <span>Inicio</span>
-            </button>
-            <button class="nav-item-mobile" data-view="favorites">
-                <span class="material-symbols-outlined">star</span>
-                <span>Favoritos</span>
-            </button>
-            <button class="nav-item-mobile" onclick="window.location.href='ocr.html'">
                 <div
-                    style="background: var(--primary); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
-                    <span class="material-symbols-outlined">document_scanner</span>
+                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 0 4px;">
+                    <h3 id="view-title" style="font-size: 20px; font-weight: 700; color: var(--on-surface);">Mis Recetas
+                    </h3>
                 </div>
+
+                <!-- Grid de Recetas -->
+                <div id="recipesGrid" class="recipes-grid">
+                    <div class="loading-inline">
+                        <div class="spinner-sm"></div>
+                        <p style="margin-left: 12px; color: var(--text-secondary);">Cargando recetas...</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
+                    <div style="font-size: 64px; color: #E5E7EB; margin-bottom: 24px;">
+                        <span class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
+                    </div>
+                    <h4 style="font-size: 18px; font-weight: 700; color: var(--on-surface);">Aún no tienes recetas</h4>
+                    <p style="color: var(--on-surface-variant); margin-top: 8px;">Comienza digitalizando tus recetas en
+                        papel o agrega una manualmente.</p>
+                    <button class="btn-primary" style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
+                        <span class="material-symbols-outlined">document_scanner</span>
+                        Escanear Receta
+                    </button>
+                </div>
+            </div> <!-- .main-content-scroll close -->
+
+            <!-- Floating Action Button (FAB) -->
+            <button class="fab-m3" onclick="window.location.href='recipe-form.html'" aria-label="Nueva Receta">
+                <span class="material-symbols-outlined">add</span>
             </button>
-            <button class="nav-item-mobile" data-view="shared">
-                <span class="material-symbols-outlined">group</span>
-                <span>Social</span>
-            </button>
-            <button class="nav-item-mobile" id="user-menu-mobile">
-                <span class="material-symbols-outlined">person</span>
-                <span>Perfil</span>
-            </button>
-        </nav>
+        </main>
     </div>
 
     <!-- Scripts -->

@@ -13,6 +13,7 @@ class DashboardManager {
             console.log('🚀 Inicializando RecipeHub Premium...');
 
             // 1. Verificar autenticación silenciosamente
+            // Nota: El HTML ya tiene lógica para ocultar el dashboard si el landing no está oculto
             const isAuthenticated = await window.authManager.checkAuth();
 
             const landingEl = document.getElementById('landing-section');
@@ -26,6 +27,7 @@ class DashboardManager {
             }
 
             console.log('✅ Modo Dashboard: Usuario detectado:', window.authManager.currentUser);
+            // Ocultar landing y mostrar dashboard inmediatamente
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
 
@@ -33,19 +35,15 @@ class DashboardManager {
             this.updateUserUI();
 
             // 2. Cargar datos iniciales
-            console.log('📦 Cargando categorías y recetas...');
-            this.loadCategories().catch(e => console.error('Error cargando categorías:', e));
+            console.log('📦 Cargando recetas...');
+            // Categorías removidas por petición del usuario
             await this.loadRecipes().catch(e => console.error('Error cargando recetas:', e));
 
             console.log('✨ Dashboard listo');
 
             this.setupEventListeners();
-
-            // 3. Inicializar menú móvil
-            if (window.setupMobileMenu) window.setupMobileMenu();
         } catch (error) {
             console.error('❌ Error crítico en Dashboard.init:', error);
-            // Fallback: mostrar landing si algo falla mucho
             const landingEl = document.getElementById('landing-section');
             if (landingEl) landingEl.classList.remove('hidden');
         }
@@ -55,12 +53,18 @@ class DashboardManager {
         if (!window.authManager.currentUser) return;
         const user = window.authManager.currentUser;
 
-        const nameEl = document.getElementById('user-name');
-        if (nameEl) nameEl.textContent = `Chef ${user.first_name || 'User'}`;
+        // Actualizar saludo en sidebar
+        const sidebarGreeting = document.getElementById('sidebar-user-greeting');
+        if (sidebarGreeting) {
+            sidebarGreeting.textContent = `Hola, ${user.first_name || 'Chef'}`;
+        }
 
-        // El saludo del banner hero si existe
-        const heroGreeting = document.getElementById('hero-greeting');
-        if (heroGreeting) heroGreeting.textContent = `Hola, ${user.first_name || 'Chef'}`;
+        // Actualizar iniciales
+        const sidebarInitials = document.getElementById('sidebar-user-initials');
+        if (sidebarInitials) {
+            const initials = (user.first_name?.[0] || 'C') + (user.last_name?.[0] || 'H');
+            sidebarInitials.textContent = initials.toUpperCase();
+        }
     }
 
     setupEventListeners() {
@@ -74,100 +78,68 @@ class DashboardManager {
             });
         }
 
-        // Navegación Sidebar Desktop y Mobile
-        document.querySelectorAll('.nav-item, .nav-item-mobile').forEach(item => {
+        // Navegación Sidebar Desktop
+        document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                e.preventDefault();
                 const view = item.dataset.view;
                 if (view) {
+                    e.preventDefault();
                     this.switchView(view, item);
                     // Si es mobile, cerramos el drawer
-                    if (window.innerWidth < 1024 || item.classList.contains('nav-item-mobile')) {
-                        this.toggleMobileMenu(false);
+                    if (window.innerWidth < 1024) {
+                        this.toggleSidebar(false);
                     }
                 }
             });
         });
 
-        const overlay = document.getElementById('mobile-drawer-overlay');
+        // Overlay se maneja vía onclick en el HTML para simplicidad, pero añadimos respaldo aquí
+        const overlay = document.getElementById('sidebar-overlay');
         if (overlay) {
-            overlay.addEventListener('click', () => this.toggleMobileMenu(false));
+            overlay.addEventListener('click', () => this.toggleSidebar(false));
         }
     }
 
+    toggleSidebar(forceState = null) {
+        const sidebar = document.getElementById('main-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-    toggleMobileMenu(forceState = null) {
-        const drawer = document.getElementById('mobile-drawer');
-        const overlay = document.getElementById('mobile-drawer-overlay');
+        if (!sidebar || !overlay) return;
 
-        if (!drawer || !overlay) return;
-
-        const isOpen = drawer.classList.contains('active');
+        const isOpen = sidebar.classList.contains('active');
         const shouldOpen = forceState !== null ? forceState : !isOpen;
 
         if (shouldOpen) {
-            drawer.classList.add('active');
+            sidebar.classList.add('active');
             overlay.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
         } else {
-            drawer.classList.remove('active');
+            sidebar.classList.remove('active');
             overlay.classList.remove('active');
-        }
-    }
-
-    handleMobileNav(view, itemElement) {
-        // Cerrar menú primero
-        this.toggleMobileMenu(false);
-
-        // Sincronizar con desktop sidebar si es posible
-        const desktopItem = document.querySelector(`.nav-item[data-view="${view}"]`);
-        if (desktopItem) {
-            this.switchView(view, desktopItem);
-        } else {
-            // Fallback si no hay item de escritorio (raro)
-            this.loadRecipes(view === 'favorites' ? { favorite: true } : {});
+            document.body.style.overflow = '';
         }
     }
 
     switchView(view, activeItem) {
         console.log('Cambiando a vista:', view);
 
-        // Actualizar desktop
+        // Actualizar estado activo
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        // Encontrar el item desktop correspondiente a la vista si no se pasó
-        if (!activeItem || activeItem.classList.contains('nav-item-mobile')) {
-            const desktopItem = document.querySelector(`.nav-item[data-view="${view}"]`);
-            if (desktopItem) desktopItem.classList.add('active');
-        } else {
-            activeItem.classList.add('active');
-        }
-
-        // Actualizar mobile
-        document.querySelectorAll('.nav-item-mobile').forEach(i => {
-            i.classList.remove('active');
-            // Remover clases de color específicas si se usaban antes
-            i.classList.remove('bg-emerald-light', 'text-primary');
-            if (i.dataset.view === view) i.classList.add('active');
-        });
+        if (activeItem) activeItem.classList.add('active');
 
         // Lógica de filtrado rápido según la vista
         if (view === 'favorites') {
             this.loadRecipes({ favorite: true, orderBy: 'name_es', ascending: true });
-        } else if (view === 'recipes' || view === 'overview') {
+        } else if (view === 'recipes') {
             this.loadRecipes({ orderBy: 'name_es', ascending: true });
-        } else if (view === 'recent') {
-            this.loadRecipes({ orderBy: 'updated_at', ascending: false });
+        } else if (view === 'shared') {
+            // Placeholder para compartidas
+            this.loadRecipes({ shared: true });
         }
     }
 
-    // handleNav Legacy removido o mantenido por compatibilidad si es necesario
-    handleNav(view) {
-        this.handleMobileNav(view, null);
-    }
-
     async loadRecipes(filters = {}) {
-        // Guardar filtros actuales para re-renders (cambio de modo vista)
         this.lastFilters = filters;
-
         const result = await window.db.getMyRecipes(filters);
 
         if (!result.success) {
@@ -177,52 +149,37 @@ class DashboardManager {
 
         this.currentRecipes = result.recipes;
 
-        // Actualizar título de la vista si es una búsqueda
         const titleEl = document.getElementById('view-title');
         if (titleEl) {
             if (filters.search) {
                 titleEl.textContent = `Resultados para "${filters.search}"`;
             } else if (filters.favorite) {
                 titleEl.textContent = 'Favoritos';
-            } else if (filters.categoryId) {
-                // El título se actualiza en handleCategory, pero por si acaso:
-                if (!this.lastCategoryName) {
-                    const cat = document.querySelector(`[data-category-id="${filters.categoryId}"]`);
-                    if (cat) this.lastCategoryName = cat.querySelector('span:last-child').textContent;
-                }
-                titleEl.textContent = this.lastCategoryName || 'Categoría';
+            } else if (filters.shared) {
+                titleEl.textContent = 'Compartidas';
             } else {
                 titleEl.textContent = 'Mis Recetas';
             }
         }
 
-        this.renderDashboardSections(this.currentRecipes);
+        this.renderRecipesGrid(this.currentRecipes);
     }
 
-    renderDashboardSections(recipes) {
-        // En diseño Drive, mostramos un grid unificado de "Archivos"
+    renderRecipesGrid(recipes) {
         const container = document.getElementById('recipesGrid');
-        if (!container) {
-            console.error('No se encontró el contenedor recipesGrid');
-            return;
-        }
+        if (!container) return;
+
+        const emptyState = document.getElementById('emptyState');
 
         if (recipes.length === 0) {
-            // Mostrar estado vacío si no es búsqueda (búsqueda tiene su propia lógica)
             container.innerHTML = '';
-            const emptyState = document.getElementById('emptyState');
             if (emptyState) emptyState.classList.remove('hidden');
             return;
         }
 
-        // Ocultar estado vacío si hay recetas
-        const emptyState = document.getElementById('emptyState');
         if (emptyState) emptyState.classList.add('hidden');
 
-        // Toggle container classes
-        container.classList.add('list-view');
-        container.classList.remove('recipes-grid');
-
+        // Render unificado como lista refinada
         const header = `
             <div class="list-header hidden-mobile-lg">
                 <div class="icon-cell"></div>
@@ -233,6 +190,7 @@ class DashboardManager {
                 <div class="action-cell"></div>
             </div>
         `;
+
         const rows = recipes.map(recipe => {
             const date = new Date(recipe.updated_at).toLocaleDateString('es-ES', {
                 day: '2-digit', month: '2-digit', year: 'numeric'
@@ -240,7 +198,7 @@ class DashboardManager {
             return `
                 <div class="file-row group" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
                     <div class="icon-cell">
-                        <span class="material-symbols-outlined" style="font-size: 24px; color: #9CA3AF;">description</span>
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">description</span>
                     </div>
                     <div class="title-cell">
                         <span class="title">${recipe.name_es}</span>
@@ -266,84 +224,25 @@ class DashboardManager {
                 </div>
             `;
         }).join('');
+
         container.innerHTML = header + rows;
-    }
-
-    // Métodos renderFeatured y renderMore eliminados por redundancia en diseño Drive
-
-    async loadCategories() {
-        // Render in Sidebar (Desktop & Mobile)
-        const sidebarContainer = document.getElementById('sidebar-categories');
-        const mobileContainer = document.getElementById('mobile-categories');
-
-        const result = await window.db.getMyCategories();
-        if (result.success) {
-            const categories = result.categories;
-
-            const renderCategoryItem = (cat, isMobile) => `
-                <a href="#" class="${isMobile ? 'nav-item-mobile' : 'nav-item'}" 
-                   onclick="window.dashboard.handleCategory('${cat.id}', this)"
-                   data-category-id="${cat.id}">
-                    <span class="material-symbols-outlined" style="font-size: 20px; color: ${cat.color || '#666'}">folder</span>
-                    <span style="font-size: 14px;">${cat.name_es}</span>
-                </a>
-            `;
-
-            // Inject into Desktop Sidebar
-            if (sidebarContainer) {
-                sidebarContainer.innerHTML = categories.map(cat => renderCategoryItem(cat, false)).join('');
-                // Add "New Folder" button if desired, or keep it manageable
-            }
-
-            // Inject into Mobile Drawer
-            if (mobileContainer) {
-                mobileContainer.innerHTML = categories.map(cat => renderCategoryItem(cat, true)).join('');
-            }
-        }
-    }
-
-    handleCategory(categoryId, element) {
-        // Update Active State
-        document.querySelectorAll('.nav-item, .nav-item-mobile').forEach(el => el.classList.remove('active'));
-        if (element) element.classList.add('active');
-
-        // Close Mobile Menu if open
-        this.toggleMobileMenu(false);
-
-        // Update Title
-        const titleEl = document.getElementById('view-title');
-        if (titleEl && element) {
-            titleEl.textContent = element.querySelector('span:last-child').textContent;
-        }
-
-        // Load Recipes for this category
-        this.lastCategoryName = element ? element.querySelector('span:last-child').textContent : null;
-        this.loadRecipes({ categoryId: categoryId });
     }
 
     async toggleFavorite(recipeId, currentStatus) {
         const result = await window.db.toggleFavorite(recipeId, currentStatus);
         if (result.success) {
             window.utils.showToast(result.isFavorite ? 'Añadido a favoritos' : 'Eliminado de favoritos', 'success');
-
-            // Actualizar estado local y re-renderizar
             const recipe = this.currentRecipes.find(r => r.id === recipeId);
             if (recipe) {
                 recipe.is_favorite = result.isFavorite;
-                this.renderDashboardSections(this.currentRecipes);
+                this.renderRecipesGrid(this.currentRecipes);
             }
         } else {
             window.utils.showToast('Error al actualizar favoritos', 'error');
         }
     }
-
-    openNewRecipeModal() {
-        // Redirigir o abrir modal de creación
-        window.location.href = '#create';
-        window.utils.showToast('Funcionalidad de edición próximamente');
-    }
 }
 
 // Inicializar y exponer
 window.dashboard = new DashboardManager();
-window.addEventListener('load', () => window.dashboard.init());
+window.addEventListener('DOMContentLoaded', () => window.dashboard.init());
