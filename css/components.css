@@ -3206,10 +3206,10 @@ select.input-field {
    ========================================================= */
 
 .top-bar-m3 {
-    height: 72px;
+    padding: 32px 24px 16px;
+    /* Increased top padding for Dropbox look */
     display: flex;
     align-items: center;
-    padding: 0 24px;
     gap: 16px;
     position: sticky;
     top: 0;

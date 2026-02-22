@@ -364,8 +364,13 @@
             <div class="sidebar-header">
                 <div class="sidebar-logo">
                     <span class="material-symbols-outlined">menu_book</span>
-                    <span>RecipeHub</span>
+                    <span class="logo-text">RecipeHub</span>
                 </div>
+                <!-- Mini Toggle for Slim Sidebar (Desktop Only) -->
+                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
+                    onclick="window.dashboard.toggleSlimSidebar()">
+                    <span class="material-symbols-outlined">side_navigation</span>
+                </button>
             </div>
 
             <div class="sidebar-user-profile">
@@ -433,6 +438,18 @@
                     style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 0 4px;">
                     <h3 id="view-title" style="font-size: 20px; font-weight: 700; color: var(--on-surface);">Mis Recetas
                     </h3>
+
+                    <!-- View Switcher (Dropbox Style) -->
+                    <div class="view-switcher-m3">
+                        <button id="view-list-btn" class="btn-icon-m3 active"
+                            onclick="window.dashboard.switchDisplayMode('list')" title="Vista Lista">
+                            <span class="material-symbols-outlined">view_list</span>
+                        </button>
+                        <button id="view-grid-btn" class="btn-icon-m3"
+                            onclick="window.dashboard.switchDisplayMode('grid')" title="Vista Cuadrícula">
+                            <span class="material-symbols-outlined">grid_view</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Grid de Recetas -->
@@ -463,6 +480,22 @@
                 <span class="material-symbols-outlined">add</span>
             </button>
         </main>
+
+        <!-- Right Sidebar: Details Panel (Dropbox Style) -->
+        <aside id="details-sidebar" class="details-sidebar">
+            <div class="details-sidebar-header">
+                <h3>Información</h3>
+                <button class="btn-icon-m3" onclick="window.dashboard.toggleDetailsSidebar(false)">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="details-content" class="details-content">
+                <div class="details-empty">
+                    <span class="material-symbols-outlined">info</span>
+                    <p>Selecciona una receta para ver los detalles</p>
+                </div>
+            </div>
+        </aside>
     </div>
 
     <!-- Scripts -->

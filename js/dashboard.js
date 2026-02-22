@@ -4,8 +4,9 @@
 class DashboardManager {
     constructor() {
         this.currentFilters = {};
-        this.viewMode = 'list'; // Enforce list view
-        this.currentFilter = 'all';
+        this.displayMode = 'list'; // Default view mode
+        this.currentRecipes = [];
+        this.selectedRecipeId = null;
     }
 
     async init() {
@@ -13,7 +14,6 @@ class DashboardManager {
             console.log('🚀 Inicializando RecipeHub Premium...');
 
             // 1. Verificar autenticación silenciosamente
-            // Nota: El HTML ya tiene lógica para ocultar el dashboard si el landing no está oculto
             const isAuthenticated = await window.authManager.checkAuth();
 
             const landingEl = document.getElementById('landing-section');
@@ -27,7 +27,6 @@ class DashboardManager {
             }
 
             console.log('✅ Modo Dashboard: Usuario detectado:', window.authManager.currentUser);
-            // Ocultar landing y mostrar dashboard inmediatamente
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
 
@@ -36,7 +35,6 @@ class DashboardManager {
 
             // 2. Cargar datos iniciales
             console.log('📦 Cargando recetas...');
-            // Categorías removidas por petición del usuario
             await this.loadRecipes().catch(e => console.error('Error cargando recetas:', e));
 
             console.log('✨ Dashboard listo');
@@ -85,7 +83,6 @@ class DashboardManager {
                 if (view) {
                     e.preventDefault();
                     this.switchView(view, item);
-                    // Si es mobile, cerramos el drawer
                     if (window.innerWidth < 1024) {
                         this.toggleSidebar(false);
                     }
@@ -93,7 +90,6 @@ class DashboardManager {
             });
         });
 
-        // Overlay se maneja vía onclick en el HTML para simplicidad, pero añadimos respaldo aquí
         const overlay = document.getElementById('sidebar-overlay');
         if (overlay) {
             overlay.addEventListener('click', () => this.toggleSidebar(false));
@@ -103,7 +99,6 @@ class DashboardManager {
     toggleSidebar(forceState = null) {
         const sidebar = document.getElementById('main-sidebar');
         const overlay = document.getElementById('sidebar-overlay');
-
         if (!sidebar || !overlay) return;
 
         const isOpen = sidebar.classList.contains('active');
@@ -112,7 +107,7 @@ class DashboardManager {
         if (shouldOpen) {
             sidebar.classList.add('active');
             overlay.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
+            document.body.style.overflow = 'hidden';
         } else {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
@@ -120,20 +115,48 @@ class DashboardManager {
         }
     }
 
-    switchView(view, activeItem) {
-        console.log('Cambiando a vista:', view);
+    toggleSlimSidebar() {
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('sidebar--slim');
+        }
+    }
 
-        // Actualizar estado activo
+    toggleDetailsSidebar(forceState = null) {
+        const sidebar = document.getElementById('details-sidebar');
+        if (!sidebar) return;
+
+        const isOpen = sidebar.classList.contains('active');
+        const shouldOpen = forceState !== null ? forceState : !isOpen;
+
+        if (shouldOpen) {
+            sidebar.classList.add('active');
+        } else {
+            sidebar.classList.remove('active');
+            this.selectedRecipeId = null;
+            this.updateSelectionUI();
+        }
+    }
+
+    switchDisplayMode(mode) {
+        this.displayMode = mode;
+
+        // Update Switcher UI
+        document.getElementById('view-list-btn')?.classList.toggle('active', mode === 'list');
+        document.getElementById('view-grid-btn')?.classList.toggle('active', mode === 'grid');
+
+        this.renderRecipesGrid(this.currentRecipes);
+    }
+
+    switchView(view, activeItem) {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if (activeItem) activeItem.classList.add('active');
 
-        // Lógica de filtrado rápido según la vista
         if (view === 'favorites') {
             this.loadRecipes({ favorite: true, orderBy: 'name_es', ascending: true });
         } else if (view === 'recipes') {
             this.loadRecipes({ orderBy: 'name_es', ascending: true });
         } else if (view === 'shared') {
-            // Placeholder para compartidas
             this.loadRecipes({ shared: true });
         }
     }
@@ -176,56 +199,143 @@ class DashboardManager {
             if (emptyState) emptyState.classList.remove('hidden');
             return;
         }
-
         if (emptyState) emptyState.classList.add('hidden');
 
-        // Render unificado como lista refinada
-        const header = `
-            <div class="list-header hidden-mobile-lg">
-                <div class="icon-cell"></div>
-                <div class="title-cell">NOMBRE</div>
-                <div class="meta-cell">CATEGORÍA</div>
-                <div class="meta-cell">ACCESO</div>
-                <div class="meta-cell">ÚLTIMA MODIFICACIÓN</div>
-                <div class="action-cell"></div>
-            </div>
-        `;
-
-        const rows = recipes.map(recipe => {
-            const date = new Date(recipe.updated_at).toLocaleDateString('es-ES', {
-                day: '2-digit', month: '2-digit', year: 'numeric'
-            });
-            return `
-                <div class="file-row group" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                    <div class="icon-cell">
-                        <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">description</span>
-                    </div>
-                    <div class="title-cell">
-                        <span class="title">${recipe.name_es}</span>
-                    </div>
-                    <div class="meta-cell">
-                        <span class="badge-tag">General</span>
-                    </div>
-                    <div class="meta-cell">Solo tú</div>
-                    <div class="meta-cell">${date}</div>
-                    <div class="action-cell">
-                        <div class="row-actions">
-                            <button class="btn-action-icon" title="Editar" onclick="event.stopPropagation(); window.location.href='recipe-form.html?id=${recipe.id}'">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                            <button class="btn-favorite-m3 ${recipe.is_favorite ? 'active' : ''}" 
-                                onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
-                                <span class="material-symbols-outlined">
-                                    ${recipe.is_favorite ? 'star' : 'star_border'}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
+        if (this.displayMode === 'grid') {
+            container.className = 'recipes-grid grid-view';
+            container.innerHTML = recipes.map(recipe => this.renderRecipeCard(recipe)).join('');
+        } else {
+            container.className = 'recipes-grid list-view'; // Reusing your list structure
+            const header = `
+                <div class="list-header hidden-mobile-lg">
+                    <div class="icon-cell"></div>
+                    <div class="title-cell">NOMBRE</div>
+                    <div class="meta-cell">CATEGORÍA</div>
+                    <div class="meta-cell">ACCESO</div>
+                    <div class="meta-cell">ÚLTIMA MODIFICACIÓN</div>
+                    <div class="action-cell"></div>
                 </div>
             `;
-        }).join('');
+            const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
+            container.innerHTML = header + rows;
+        }
+    }
 
-        container.innerHTML = header + rows;
+    renderRecipeRow(recipe) {
+        const date = new Date(recipe.updated_at).toLocaleDateString('es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        const isSelected = this.selectedRecipeId === recipe.id;
+
+        return `
+            <div class="file-row group ${isSelected ? 'selected' : ''}" 
+                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
+                 ondblclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="icon-cell">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">description</span>
+                </div>
+                <div class="title-cell">
+                    <span class="title">${recipe.name_es}</span>
+                </div>
+                <div class="meta-cell">
+                    <span class="badge-tag">General</span>
+                </div>
+                <div class="meta-cell">Solo tú</div>
+                <div class="meta-cell">${date}</div>
+                <div class="action-cell">
+                    <div class="row-actions">
+                        <button class="btn-action-icon" title="Editar" onclick="event.stopPropagation(); window.location.href='recipe-form.html?id=${recipe.id}'">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="btn-favorite-m3 ${recipe.is_favorite ? 'active' : ''}" 
+                            onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
+                            <span class="material-symbols-outlined">${recipe.is_favorite ? 'star' : 'star_border'}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderRecipeCard(recipe) {
+        const date = new Date(recipe.updated_at).toLocaleDateString('es-ES', {
+            day: '2-digit', month: '2-digit'
+        });
+        const isSelected = this.selectedRecipeId === recipe.id;
+
+        return `
+            <div class="recipe-card-m3 ${isSelected ? 'selected' : ''}" 
+                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
+                 ondblclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                <div class="recipe-card-image">
+                    ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${recipe.name_es}">` : `<span class="material-symbols-outlined">restaurant</span>`}
+                </div>
+                <div class="recipe-card-content">
+                    <h4 class="recipe-card-title">${recipe.name_es}</h4>
+                    <div class="recipe-card-meta">
+                        <span>General</span>
+                        <span>${date}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    handleRecipeClick(recipeId) {
+        this.selectedRecipeId = recipeId;
+        this.updateSelectionUI();
+        this.showRecipeDetails(recipeId);
+    }
+
+    updateSelectionUI() {
+        document.querySelectorAll('.file-row, .recipe-card-m3').forEach(el => {
+            el.classList.remove('selected');
+        });
+        const activeItem = document.querySelector(`[onclick*="${this.selectedRecipeId}"]`);
+        if (activeItem) activeItem.classList.add('selected');
+    }
+
+    async showRecipeDetails(recipeId) {
+        const recipe = this.currentRecipes.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        this.toggleDetailsSidebar(true);
+        const detailsContent = document.getElementById('details-content');
+        if (!detailsContent) return;
+
+        const date = new Date(recipe.updated_at).toLocaleTimeString('es-ES', {
+            hour: '2-digit', minute: '2-digit'
+        }) + ' ' + new Date(recipe.updated_at).toLocaleDateString('es-ES');
+
+        detailsContent.innerHTML = `
+            <div class="details-preview">
+                <div class="recipe-card-image" style="height: 200px; border-radius: 12px; margin-bottom: 20px;">
+                    ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${recipe.name_es}">` : `<span class="material-symbols-outlined">restaurant</span>`}
+                </div>
+                <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">${recipe.name_es}</h2>
+                <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                    <span class="badge-tag">General</span>
+                    <span class="badge-tag" style="background: #E0F2FE; color: #0369A1;">Solo tú</span>
+                </div>
+                
+                <div class="detail-info-group" style="margin-bottom: 24px;">
+                    <label style="font-size: 12px; color: var(--on-surface-variant); display: block; margin-bottom: 4px;">Última modificación</label>
+                    <p style="font-weight: 600;">${date}</p>
+                </div>
+
+                <div class="detail-info-group" style="margin-bottom: 24px;">
+                    <label style="font-size: 12px; color: var(--on-surface-variant); display: block; margin-bottom: 4px;">Tipo</label>
+                    <p style="font-weight: 600;">Receta personal</p>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                    Abrir receta completa
+                </button>
+                <button class="btn-secondary" style="width: 100%; margin-top: 12px;" onclick="window.location.href='recipe-form.html?id=${recipe.id}'">
+                    Editar receta
+                </button>
+            </div>
+        `;
     }
 
     async toggleFavorite(recipeId, currentStatus) {
