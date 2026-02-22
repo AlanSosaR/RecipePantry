@@ -4,7 +4,8 @@
 class DashboardManager {
     constructor() {
         this.currentFilters = {};
-        this.displayMode = 'list'; // Default view mode
+        this.displayMode = localStorage.getItem('recipehub_display_mode') || 'list';
+        this.currentView = localStorage.getItem('recipehub_current_view') || 'recipes';
         this.currentRecipes = [];
         this.selectedRecipeId = null;
     }
@@ -33,9 +34,10 @@ class DashboardManager {
             // Actualizar datos de usuario en la UI
             this.updateUserUI();
 
-            // 2. Cargar datos iniciales
-            console.log('📦 Cargando recetas...');
-            await this.loadRecipes().catch(e => console.error('Error cargando recetas:', e));
+            // 2. Cargar datos iniciales según la vista guardada
+            console.log(`📦 Cargando vista: ${this.currentView}...`);
+            const activeNavItem = document.querySelector(`.nav-item[data-view="${this.currentView}"]`);
+            this.switchView(this.currentView, activeNavItem);
 
             console.log('✨ Dashboard listo');
 
@@ -147,6 +149,7 @@ class DashboardManager {
 
     switchDisplayMode(mode, element) {
         this.displayMode = mode;
+        localStorage.setItem('recipehub_display_mode', mode);
 
         // Update current view icon in trigger
         const iconSpan = document.getElementById('current-view-icon');
@@ -169,6 +172,9 @@ class DashboardManager {
     }
 
     switchView(view, activeItem) {
+        this.currentView = view;
+        localStorage.setItem('recipehub_current_view', view);
+
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if (activeItem) activeItem.classList.add('active');
 
@@ -249,12 +255,11 @@ class DashboardManager {
 
         return `
             <div class="file-row-m3 ${isSelected ? 'selected' : ''}" 
-                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
-                 ondblclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')">
                 <div class="col-icon">
-                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary-light-on);">description</span>
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
                 </div>
-                <div class="col-name">
+                <div class="col-name text-ellipsis">
                     <span class="recipe-name">${recipe.name_es}</span>
                 </div>
                 <div class="col-category">
@@ -263,16 +268,32 @@ class DashboardManager {
                 <div class="col-access">Solo tú</div>
                 <div class="col-date">${date}</div>
                 <div class="col-actions">
-                    <div class="row-actions">
-                        <button class="btn-action-icon" title="Editar" onclick="event.stopPropagation(); window.location.href='recipe-form.html?id=${recipe.id}'">
+                    <div class="row-actions-dropbox">
+                        <button class="btn-share-highlight" onclick="event.stopPropagation(); window.dashboard.shareRecipe('${recipe.id}')">
+                            Compartir
+                        </button>
+                        <button class="btn-icon-m3" title="Copiar enlace" onclick="event.stopPropagation(); window.dashboard.copyLink('${recipe.id}')">
+                            <span class="material-symbols-outlined">link</span>
+                        </button>
+                        <button class="btn-icon-m3" title="Editar" onclick="event.stopPropagation(); window.location.href='recipe-form.html?id=${recipe.id}'">
                             <span class="material-symbols-outlined">edit</span>
                         </button>
-                        <button class="btn-favorite-m3 ${recipe.is_favorite ? 'active' : ''}" 
+                        <button class="btn-icon-m3 ${recipe.is_favorite ? 'active' : ''}" 
+                            title="Favorito"
                             onclick="event.stopPropagation(); window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
-                            <span class="material-symbols-outlined">${recipe.is_favorite ? 'star' : 'star_border'}</span>
+                            <span class="material-symbols-outlined" style="${recipe.is_favorite ? 'color: #EAB308; font-variation-settings: \'FILL\' 1;' : ''}">
+                                ${recipe.is_favorite ? 'star' : 'star_border'}
+                            </span>
+                        </button>
+                        <button class="btn-icon-m3" title="Más opciones" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}')">
+                            <span class="material-symbols-outlined">more_vert</span>
                         </button>
                     </div>
                 </div>
+                <!-- Mobile Actions -->
+                <button class="btn-icon-m3 mobile-action-btn" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}')">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
             </div>
         `;
     }
@@ -285,8 +306,7 @@ class DashboardManager {
 
         return `
             <div class="recipe-card-m3 ${isSelected ? 'selected' : ''}" 
-                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
-                 ondblclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
+                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')">
                 <div class="recipe-card-image">
                     ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${recipe.name_es}">` : `<span class="material-symbols-outlined">restaurant</span>`}
                 </div>
@@ -302,9 +322,8 @@ class DashboardManager {
     }
 
     handleRecipeClick(recipeId) {
-        this.selectedRecipeId = recipeId;
-        this.updateSelectionUI();
-        this.showRecipeDetails(recipeId);
+        // Navegación directa al detalle según solicitud del usuario
+        window.location.href = `recipe-detail.html?id=${recipeId}`;
     }
 
     updateSelectionUI() {
@@ -329,33 +348,27 @@ class DashboardManager {
 
         detailsContent.innerHTML = `
             <div class="details-preview">
-                <div class="recipe-card-image" style="height: 200px; border-radius: 12px; margin-bottom: 20px;">
-                    ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${recipe.name_es}">` : `<span class="material-symbols-outlined">restaurant</span>`}
-                </div>
-                <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">${recipe.name_es}</h2>
-                <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${recipe.name_es}">` : `<div class="no-image-placeholder"><span class="material-symbols-outlined" style="font-size: 48px;">restaurant</span></div>`}
+            </div>
+            <div class="details-info-list" style="padding: 24px;">
+                <h3 style="margin-bottom: 8px;">${recipe.name_es}</h3>
+                <div class="details-meta-m3">
                     <span class="badge-tag">General</span>
-                    <span class="badge-tag" style="background: #E0F2FE; color: #0369A1;">Solo tú</span>
+                    <span class="badge-tag">Solo tú</span>
                 </div>
-                
-                <div class="detail-info-group" style="margin-bottom: 24px;">
-                    <label style="font-size: 12px; color: var(--on-surface-variant); display: block; margin-bottom: 4px;">Última modificación</label>
-                    <p style="font-weight: 600;">${date}</p>
+                <div class="details-section" style="margin-top: 24px;">
+                    <label style="font-size: 12px; color: var(--on-surface-variant); font-weight: 600;">Última modificación</label>
+                    <p style="font-size: 14px; margin-top: 4px;">${date}</p>
                 </div>
-
-                <div class="detail-info-group" style="margin-bottom: 24px;">
-                    <label style="font-size: 12px; color: var(--on-surface-variant); display: block; margin-bottom: 4px;">Tipo</label>
-                    <p style="font-weight: 600;">Receta personal</p>
+                <div class="details-section" style="margin-top: 16px;">
+                    <label style="font-size: 12px; color: var(--on-surface-variant); font-weight: 600;">Tipo</label>
+                    <p style="font-size: 14px; margin-top: 4px;">Receta personal</p>
                 </div>
-
-                <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                    Abrir receta completa
-                </button>
-                <button class="btn-secondary" style="width: 100%; margin-top: 12px;" onclick="window.location.href='recipe-form.html?id=${recipe.id}'">
-                    Editar receta
-                </button>
             </div>
         `;
+
+        const sidebar = document.getElementById('details-sidebar');
+        if (sidebar) sidebar.classList.add('active');
     }
 
     async toggleFavorite(recipeId, currentStatus) {
@@ -370,6 +383,21 @@ class DashboardManager {
         } else {
             window.utils.showToast('Error al actualizar favoritos', 'error');
         }
+    }
+
+    shareRecipe(recipeId) {
+        window.utils.showToast('Funcionalidad de compartir próximamente', 'info');
+    }
+
+    copyLink(recipeId) {
+        const url = `${window.location.origin}/recipe-detail.html?id=${recipeId}`;
+        navigator.clipboard.writeText(url).then(() => {
+            window.utils.showToast('Enlace copiado al portapapeles', 'success');
+        });
+    }
+
+    showMoreOptions(recipeId) {
+        window.utils.showToast('Más opciones próximamente', 'info');
     }
 }
 

@@ -361,155 +361,154 @@
 
         <!-- Sidebar Desktop & Mobile Drawer -->
         <aside id="main-sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <span class="material-symbols-outlined">menu_book</span>
-                    <span class="logo-text">RecipeHub</span>
-                </div>
-                <!-- Mini Toggle for Slim Sidebar (Desktop Only) -->
-                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
-                    onclick="window.dashboard.toggleSlimSidebar()">
-                    <span class="material-symbols-outlined">side_navigation</span>
-                </button>
+            <div class="sidebar-logo">
+                <span class="material-symbols-outlined logo-icon">menu_book</span>
+                <span class="logo-text">RecipeHub</span>
             </div>
+    </div>
 
-            <div class="sidebar-user-profile">
-                <div class="user-avatar-m3">
-                    <span id="sidebar-user-initials">CH</span>
-                </div>
-                <div class="user-info-m3">
-                    <span id="sidebar-user-greeting" class="user-greeting">Hola, Chef</span>
-                    <span class="user-status">Premium</span>
-                </div>
-            </div>
+    <div class="sidebar-user-profile">
+        <div class="user-avatar-m3">
+            <span id="sidebar-user-initials">CH</span>
+        </div>
+        <div class="user-info-m3">
+            <span id="sidebar-user-greeting" class="user-greeting">Hola, Chef</span>
+            <span class="user-status">Premium</span>
+        </div>
+    </div>
 
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-view="recipes">
-                    <span class="material-symbols-outlined">home</span>
-                    <span>Recetas</span>
-                </a>
-                <a href="#" class="nav-item" data-view="favorites">
-                    <span class="material-symbols-outlined">star</span>
-                    <span>Favoritos</span>
-                </a>
-                <a href="#" class="nav-item" onclick="window.location.href='ocr.html'">
-                    <span class="material-symbols-outlined">document_scanner</span>
-                    <span>Escanear Receta</span>
-                </a>
-                <a href="#" class="nav-item" data-view="shared">
-                    <span class="material-symbols-outlined">share</span>
-                    <span>Compartidas</span>
-                </a>
-            </nav>
+    <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="recipes">
+            <span class="material-symbols-outlined">home</span>
+            <span>Recetas</span>
+        </a>
+        <a href="#" class="nav-item" data-view="favorites">
+            <span class="material-symbols-outlined">star</span>
+            <span>Favoritos</span>
+        </a>
+        <a href="#" class="nav-item" onclick="window.location.href='ocr.html'">
+            <span class="material-symbols-outlined">document_scanner</span>
+            <span>Escanear Receta</span>
+        </a>
+        <a href="#" class="nav-item" data-view="shared">
+            <span class="material-symbols-outlined">share</span>
+            <span>Compartidas</span>
+        </a>
+    </nav>
 
-            <div class="sidebar-footer">
-                <button onclick="window.authManager.signOut()" class="btn-logout-m3">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span class="logout-text">Cerrar Sesión</span>
-                </button>
-            </div>
-        </aside>
+    <div class="sidebar-footer">
+        <button onclick="window.authManager.signOut()" class="btn-logout-m3" style="margin-bottom: 8px;">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="logout-text">Cerrar Sesión</span>
+        </button>
+        <!-- Mini Toggle Moved Here -->
+        <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
+            style="width: 100%; justify-content: flex-start; padding-left: 16px;"
+            onclick="window.dashboard.toggleSlimSidebar()">
+            <span class="material-symbols-outlined">side_navigation</span>
+            <span class="logout-text" style="margin-left: 12px;">Contraer menú</span>
+        </button>
+    </div>
+    </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-bar-m3">
-                <button id="hamburger-menu" class="btn-icon-m3 hamburger-btn"
-                    onclick="window.dashboard.toggleSidebar(true)">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
-
-                <div class="search-container-m3">
-                    <div class="search-wrapper-m3">
-                        <span class="material-symbols-outlined">search</span>
-                        <input type="text" id="searchInput" placeholder="Buscar en mi recetario...">
-                    </div>
-                </div>
-
-                <div class="top-bar-actions-m3">
-                    <button class="btn-icon-m3">
-                        <span class="material-symbols-outlined">notifications</span>
-                    </button>
-                </div>
-            </header>
-            <div class="main-content-scroll">
-
-
-                <div
-                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 0 4px;">
-                    <h3 id="view-title" style="font-size: 20px; font-weight: 700; color: var(--on-surface);">Mis Recetas
-                    </h3>
-
-                    <!-- View Switcher (Dropbox Style Dropdown) -->
-                    <div class="view-switcher-m3">
-                        <button id="view-mode-trigger" class="btn-icon-m3" onclick="window.dashboard.toggleViewMenu()"
-                            title="Diseño">
-                            <span id="current-view-icon" class="material-symbols-outlined">view_list</span>
-                        </button>
-                        <div id="view-mode-menu" class="view-menu-m3 hidden">
-                            <div class="menu-header">Diseño</div>
-                            <button onclick="window.dashboard.switchDisplayMode('grid', this)" class="menu-item-m3">
-                                <span class="material-symbols-outlined">grid_view</span>
-                                <span>Cuadrícula</span>
-                                <span class="check material-symbols-outlined">check</span>
-                            </button>
-                            <button onclick="window.dashboard.switchDisplayMode('grid-large', this)"
-                                class="menu-item-m3">
-                                <span class="material-symbols-outlined">grid_view_large</span>
-                                <span>Cuadrícula grande</span>
-                                <span class="check material-symbols-outlined">check</span>
-                            </button>
-                            <button onclick="window.dashboard.switchDisplayMode('list', this)"
-                                class="menu-item-m3 active">
-                                <span class="material-symbols-outlined">view_list</span>
-                                <span>Lista</span>
-                                <span class="check material-symbols-outlined">check</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grid de Recetas -->
-                <div id="recipesGrid" class="recipes-grid">
-                    <div class="loading-inline">
-                        <div class="spinner-sm"></div>
-                        <p style="margin-left: 12px; color: var(--text-secondary);">Cargando recetas...</p>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
-                    <div style="font-size: 64px; color: #E5E7EB; margin-bottom: 24px;">
-                        <span class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
-                    </div>
-                    <h4 style="font-size: 18px; font-weight: 700; color: var(--on-surface);">Aún no tienes recetas</h4>
-                    <p style="color: var(--on-surface-variant); margin-top: 8px;">Comienza digitalizando tus recetas en
-                        papel o agrega una manualmente.</p>
-                    <button class="btn-primary" style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
-                        <span class="material-symbols-outlined">document_scanner</span>
-                        Escanear Receta
-                    </button>
-                </div>
-            </div> <!-- .main-content-scroll close -->
-
-            <!-- Floating Action Button (FAB) -->
-            <button class="fab-m3" onclick="window.location.href='recipe-form.html'" aria-label="Nueva Receta">
-                <span class="material-symbols-outlined">add</span>
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar-m3">
+            <button id="hamburger-menu" class="btn-icon-m3 hamburger-btn"
+                onclick="window.dashboard.toggleSidebar(true)">
+                <span class="material-symbols-outlined">menu</span>
             </button>
-        </main>
 
-        <!-- Right Sidebar: Details Panel (Dropbox Style) -->
-        <aside id="details-sidebar" class="details-sidebar">
-            <div class="details-sidebar-header">
-                <h3>Información</h3>
-                <!-- Close Button Removed per User Request -->
-            </div>
-            <div id="details-content" class="details-content">
-                <div class="details-empty">
-                    <span class="material-symbols-outlined">info</span>
-                    <p>Selecciona una receta para ver los detalles</p>
+            <div class="search-container-m3">
+                <div class="search-wrapper-m3">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="text" id="searchInput" placeholder="Buscar en mi recetario...">
                 </div>
             </div>
-        </aside>
+
+            <div class="top-bar-actions-m3">
+                <button class="btn-icon-m3">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+            </div>
+        </header>
+        <div class="main-content-scroll">
+
+
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 0 4px;">
+                <h3 id="view-title" style="font-size: 20px; font-weight: 700; color: var(--on-surface);">Mis Recetas
+                </h3>
+
+                <!-- View Switcher (Dropbox Style Dropdown) -->
+                <div class="view-switcher-m3">
+                    <button id="view-mode-trigger" class="btn-icon-m3" onclick="window.dashboard.toggleViewMenu()"
+                        title="Diseño">
+                        <span id="current-view-icon" class="material-symbols-outlined">view_list</span>
+                    </button>
+                    <div id="view-mode-menu" class="view-menu-m3 hidden">
+                        <div class="menu-header">Diseño</div>
+                        <button onclick="window.dashboard.switchDisplayMode('grid', this)" class="menu-item-m3">
+                            <span class="material-symbols-outlined">grid_view</span>
+                            <span>Cuadrícula</span>
+                            <span class="check material-symbols-outlined">check</span>
+                        </button>
+                        <button onclick="window.dashboard.switchDisplayMode('grid-large', this)" class="menu-item-m3">
+                            <span class="material-symbols-outlined">grid_view_large</span>
+                            <span>Cuadrícula grande</span>
+                            <span class="check material-symbols-outlined">check</span>
+                        </button>
+                        <button onclick="window.dashboard.switchDisplayMode('list', this)" class="menu-item-m3 active">
+                            <span class="material-symbols-outlined">view_list</span>
+                            <span>Lista</span>
+                            <span class="check material-symbols-outlined">check</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Recetas -->
+            <div id="recipesGrid" class="recipes-grid">
+                <div class="loading-inline">
+                    <div class="spinner-sm"></div>
+                    <p style="margin-left: 12px; color: var(--text-secondary);">Cargando recetas...</p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
+                <div style="font-size: 64px; color: #E5E7EB; margin-bottom: 24px;">
+                    <span class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
+                </div>
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--on-surface);">Aún no tienes recetas</h4>
+                <p style="color: var(--on-surface-variant); margin-top: 8px;">Comienza digitalizando tus recetas en
+                    papel o agrega una manualmente.</p>
+                <button class="btn-primary" style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
+                    <span class="material-symbols-outlined">document_scanner</span>
+                    Escanear Receta
+                </button>
+            </div>
+        </div> <!-- .main-content-scroll close -->
+
+        <!-- Floating Action Button (FAB) -->
+        <button class="fab-m3" onclick="window.location.href='recipe-form.html'" aria-label="Nueva Receta">
+            <span class="material-symbols-outlined">add</span>
+        </button>
+    </main>
+
+    <!-- Right Sidebar: Details Panel (Dropbox Style) -->
+    <aside id="details-sidebar" class="details-sidebar">
+        <div class="details-sidebar-header">
+            <h3>Información</h3>
+            <!-- Close Button Removed per User Request -->
+        </div>
+        <div id="details-content" class="details-content">
+            <div class="details-empty">
+                <span class="material-symbols-outlined">info</span>
+                <p>Selecciona una receta para ver los detalles</p>
+            </div>
+        </div>
+    </aside>
     </div>
 
     <!-- Scripts -->

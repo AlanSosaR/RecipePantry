@@ -3648,6 +3648,129 @@ select.input-field {
     height: 240px;
 }
 
+/* Dropbox-Style File Row Actions (Hover) */
+.file-row-m3 {
+    position: relative;
+    overflow: hidden;
+}
+
+.col-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 16px;
+}
+
+.row-actions-dropbox {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.2s var(--m3-easing);
+}
+
+.file-row-m3:hover .row-actions-dropbox {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Dropbox Highlight for Share Button on Hover */
+.btn-share-highlight {
+    background: var(--bg);
+    border: 1px solid var(--outline-variant);
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--on-surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.btn-share-highlight:hover {
+    background: var(--surface-container-low);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Action Menu (Three dots for mobile) */
+.mobile-action-btn {
+    display: none;
+}
+
+@media (max-width: 1023px) {
+    .row-actions-dropbox {
+        display: none !important;
+    }
+
+    .mobile-action-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .list-view-m3 {
+        min-width: unset;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .list-header-m3,
+    .file-row-m3 {
+        grid-template-columns: 56px 1fr 48px;
+        /* Simple mobile row: icon, name, menu */
+    }
+
+    .col-category,
+    .col-access,
+    .col-date {
+        display: none !important;
+        /* Hide secondary info on mobile list */
+    }
+}
+
+/* Brand Identity: Restore Orange */
+.sidebar-logo .logo-icon {
+    color: #f97316 !important;
+    /* Brand Orange */
+}
+
+.sidebar-logo .logo-text {
+    color: #f97316 !important;
+    font-weight: 800;
+}
+
+/* Fix Grid View Text Deformation */
+.recipe-card-m3 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.recipe-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--on-surface);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Evita que el texto deforme la tarjeta */
+}
+
+.recipe-card-meta {
+    font-size: 12px;
+    color: var(--on-surface-variant);
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
 @media (max-width: 1023px) {
     .details-sidebar.active {
         position: fixed;
