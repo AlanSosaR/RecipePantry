@@ -68,6 +68,9 @@
             box-shadow:
                 0 24px 48px -12px rgba(0, 0, 0, 0.12),
                 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+            width: 100%;
+            max-width: 400px;
+            /* Force consistent width */
             min-height: 720px;
             border: 1px solid var(--outline-variant);
             display: flex;
@@ -77,34 +80,36 @@
             transition: all var(--m3-duration-long) var(--m3-easing);
         }
 
-        /* Language Toggle */
+        /* Language Toggle - Absolute within the card's green header */
         .language-toggle {
-            position: fixed;
-            top: 32px;
-            right: 32px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            padding: 8px 16px;
-            border-radius: 24px;
-            border: 1.5px solid var(--outline-variant);
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 150;
+            /* Above the icon badge */
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
-            color: var(--secondary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            color: white;
+            transition: all 0.3s var(--m3-easing);
         }
 
         .language-toggle:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.15);
-            border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
         }
+
+        /* Curved Header Landing */
+
+
 
         /* Curved Header Landing */
         .curved-header-bg {
@@ -270,62 +275,61 @@
 </head>
 
 <body>
-    <div class="landing-container">
-        <!-- Language Switcher -->
+    <div class="landing-card-expressive">
+        <!-- Language Switcher INSIDE the card -->
         <div class="language-toggle" onclick="toggleLanguage()">
             <span class="material-symbols-outlined" style="font-size: 16px">language</span>
             <span id="lang-label">EN</span>
         </div>
 
-        <div class="landing-card-expressive">
-            <div class="curved-header-bg"></div>
+        <div class="curved-header-bg"></div>
 
-            <!-- VIEW: LANDING -->
-            <div id="view-landing" class="view-content fade-m3">
-                <div class="landing-icon-badge">
-                    <div class="landing-icon-inner">
-                        <span class="material-symbols-outlined" style="font-size: 64px">menu_book</span>
-                    </div>
-                </div>
-
-                <h1
-                    style="font-family: var(--font-display); font-size: 40px; font-weight: 800; margin: 32px 0 8px 0; color: var(--on-surface);">
-                    RecipeHub<span style="color: var(--secondary);">.</span>
-                </h1>
-                <p id="landing-subtitle"
-                    style="color: var(--on-surface-variant); font-size: 16px; font-weight: 500; text-align: center;">
-                    Your personal digital cookbook.
-                </p>
-
-                <div class="features-grid">
-                    <div class="feature-item">
-                        <div class="feature-icon-box">
-                            <span class="material-symbols-outlined">document_scanner</span>
-                        </div>
-                        <h3 id="feat-ocr-title">OCR Scan</h3>
-                        <p id="feat-ocr-desc">Digitize paper recipes</p>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon-box">
-                            <span class="material-symbols-outlined">restaurant_menu</span>
-                        </div>
-                        <h3 id="feat-plan-title">Meal Plan</h3>
-                        <p id="feat-plan-desc">Organize your week</p>
-                    </div>
-                </div>
-
-                <button class="btn-m3-full" onclick="window.location.href='login.html?mode=register'">
-                    <span id="btn-get-started">Get Started</span>
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                </button>
-
-                <div class="btn-m3-text" style="color: var(--on-surface-variant);">
-                    <span id="txt-login-prompt">Already have an account?</span>
-                    <a href="login.html" style="color: var(--secondary); font-weight: 700; text-decoration: none;"
-                        id="lnk-login">Log In</a>
+        <!-- VIEW: LANDING -->
+        <div id="view-landing" class="view-content fade-m3">
+            <div class="landing-icon-badge">
+                <div class="landing-icon-inner">
+                    <span class="material-symbols-outlined" style="font-size: 64px">menu_book</span>
                 </div>
             </div>
+
+            <h1
+                style="font-family: var(--font-display); font-size: 40px; font-weight: 800; margin: 32px 0 8px 0; color: var(--on-surface);">
+                RecipeHub<span style="color: var(--secondary);">.</span>
+            </h1>
+            <p id="landing-subtitle"
+                style="color: var(--on-surface-variant); font-size: 16px; font-weight: 500; text-align: center;">
+                Your personal digital cookbook.
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <span class="material-symbols-outlined">document_scanner</span>
+                    </div>
+                    <h3 id="feat-ocr-title">OCR Scan</h3>
+                    <p id="feat-ocr-desc">Digitize paper recipes</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <span class="material-symbols-outlined">restaurant_menu</span>
+                    </div>
+                    <h3 id="feat-plan-title">Meal Plan</h3>
+                    <p id="feat-plan-desc">Organize your week</p>
+                </div>
+            </div>
+
+            <button class="btn-m3-full" onclick="window.location.href='login.html?mode=register'">
+                <span id="btn-get-started">Get Started</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+
+            <div class="btn-m3-text" style="color: var(--on-surface-variant);">
+                <span id="txt-login-prompt">Already have an account?</span>
+                <a href="login.html" style="color: var(--secondary); font-weight: 700; text-decoration: none;"
+                    id="lnk-login">Log In</a>
+            </div>
         </div>
+    </div>
     </div>
 
     <!-- Scripts -->
@@ -340,6 +344,7 @@
 
         const i18n = {
             ES: {
+                landingTitle: "RecipeHub",
                 landingSubtitle: "Tu recetario digital personal.",
                 featOcrTitle: "Escaneo OCR",
                 featOcrDesc: "Digitaliza recetas en papel",
@@ -350,6 +355,7 @@
                 lnkLogin: "Inicia sesión"
             },
             EN: {
+                landingTitle: "RecipeHub",
                 landingSubtitle: "Your personal digital cookbook.",
                 featOcrTitle: "OCR Scan",
                 featOcrDesc: "Digitize paper recipes",
@@ -370,14 +376,23 @@
 
         function updateTranslations() {
             const t = i18n[currentLang];
+            // Update every piece of text
             document.getElementById('landing-subtitle').textContent = t.landingSubtitle;
             document.getElementById('feat-ocr-title').textContent = t.featOcrTitle;
             document.getElementById('feat-ocr-desc').textContent = t.featOcrDesc;
             document.getElementById('feat-plan-title').textContent = t.featPlanTitle;
             document.getElementById('feat-plan-desc').textContent = t.featPlanDesc;
             document.getElementById('btn-get-started').textContent = t.btnGetStarted;
-            document.getElementById('txt-login-prompt').firstChild.textContent = t.txtLoginPrompt + " ";
+
+            // Handle the footer text carefully to not break the link
+            const promptSpan = document.getElementById('txt-login-prompt');
+            if (promptSpan) {
+                promptSpan.textContent = t.txtLoginPrompt;
+            }
             document.getElementById('lnk-login').textContent = t.lnkLogin;
+
+            // Update button label
+            document.getElementById('lang-label').textContent = currentLang;
         }
 
         window.addEventListener('load', () => {

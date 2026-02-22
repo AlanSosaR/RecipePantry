@@ -107,33 +107,31 @@
             line-height: 1.6;
         }
 
-        /* Language Toggle */
+        /* Language Toggle - Absolute within the card */
         .language-toggle {
-            position: fixed;
-            top: 32px;
-            right: 32px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            padding: 8px 16px;
-            border-radius: 24px;
-            border: 1.5px solid var(--outline-variant);
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            background: var(--primary-light);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--outline-variant);
             display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 800;
-            color: var(--primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            color: var(--secondary);
+            transition: all 0.3s var(--m3-easing);
+            text-transform: uppercase;
         }
 
         .language-toggle:hover {
             background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.15);
-            border-color: var(--secondary);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
         }
 
         /* M3 Outlined TextFields */
@@ -273,13 +271,13 @@
 
 <body>
     <div class="login-container">
-        <!-- Language Switcher -->
-        <div class="language-toggle" onclick="toggleLanguage()">
-            <span class="material-symbols-outlined" style="font-size: 16px">language</span>
-            <span id="lang-label">EN</span>
-        </div>
-
         <div class="login-card-expressive fade-m3">
+            <!-- Language Switcher INSIDE the card -->
+            <div class="language-toggle" onclick="toggleLanguage()">
+                <span class="material-symbols-outlined" style="font-size: 16px">language</span>
+                <span id="lang-label">EN</span>
+            </div>
+
             <div class="login-header">
                 <div class="login-icon-m3">
                     <span class="material-symbols-outlined" style="font-size: 32px">menu_book</span>
@@ -404,8 +402,8 @@
             document.getElementById('lbl-password').textContent = t.lblPassword;
             document.getElementById('lbl-confirm').textContent = t.lblConfirm;
             document.getElementById('btn-back').textContent = t.btnBack;
+            document.getElementById('lang-label').textContent = currentLang;
 
-            // Update main button and switch text carefully to preserve internal structure if any
             if (isLogin) {
                 document.getElementById('auth-title').textContent = t.authTitleLogin;
                 document.getElementById('auth-subtitle').textContent = t.authSubtitleLogin;
