@@ -3026,11 +3026,24 @@ select.input-field {
 }
 
 @media (min-width: 1024px) {
-    .hidden-desktop-lg {
+
+    .hidden-desktop-lg,
+    .mobile-only {
         display: none !important;
     }
 
-    .visible-desktop-lg {
+    .visible-desktop-lg,
+    .desktop-only {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
         display: flex !important;
     }
 }
@@ -3445,6 +3458,11 @@ select.input-field {
 .sidebar {
     display: flex;
     flex-direction: column;
+    width: 280px;
+    flex-shrink: 0;
+    transition: width 0.3s var(--m3-easing);
+    background: var(--surface-container-low);
+    border-right: 1px solid var(--outline-variant);
 }
 
 .sidebar-footer {
