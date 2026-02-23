@@ -16,890 +16,794 @@
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@700&family=Roboto:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+        rel="stylesheet" />
 
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
 
-    <style>
-        /* ─── M3 Token System ─────────────────────────── */
-        :root {
-            /* Naranja — igual que index y login */
-            --md-primary: #10B981;
-            --md-primary-dim: #059669;
-            --md-on-primary: #FFFFFF;
-            --md-primary-container: #F0FDF4;
-            --md-on-primary-container: #059669;
-
-            --md-surface: #FFFFFF;
-            --md-surface-1: #FFFFFF;
-            --md-surface-2: #F9FAFB;
-            --md-surface-variant: #F9FAFB;
-            --md-on-surface: #1C1B1B;
-            --md-on-surface-var: #444746;
-            --md-outline: #E5E7EB;
-            --md-outline-var: #E5E7EB;
-
-            --md-error: #BA1A1A;
-            --md-error-container: #FFDAD6;
-
-            --md-shape-xs: 4px;
-            --md-shape-sm: 8px;
-            --md-shape-md: 12px;
-            --md-shape-lg: 16px;
-            --md-shape-xl: 28px;
-            --md-shape-full: 9999px;
-
-            --md-elev-1: 0 1px 2px rgba(0, 0, 0, .06), 0 1px 3px rgba(0, 0, 0, .10);
-            --md-elev-2: 0 1px 2px rgba(0, 0, 0, .04), 0 2px 6px rgba(0, 0, 0, .12);
-            --md-elev-3: 0 4px 8px rgba(0, 0, 0, .08), 0 2px 4px rgba(0, 0, 0, .06);
-
-            --font-brand: 'Google Sans Display', 'Google Sans', sans-serif;
-            --font-body: 'Google Sans', 'Roboto', sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background: var(--md-surface);
-            color: var(--md-on-surface);
-            height: 100dvh;
-            overflow: hidden;
-            display: flex;
-        }
-
-        /* ─── Sidebar ─────────────────────────────────── */
-        .m3-sidebar {
-            width: 260px;
-            min-width: 260px;
-            height: 100%;
-            background: var(--md-surface-1);
-            border-right: 1px solid var(--md-outline-var);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 12px;
-            gap: 4px;
-        }
-
-        .m3-sidebar .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px 20px;
-            font-family: var(--font-brand);
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--md-on-surface);
-        }
-
-        .m3-sidebar .brand .material-symbols-outlined {
-            color: var(--md-primary);
-            font-size: 28px;
-        }
-
-        .m3-sidebar .brand .brand-name {
-            color: var(--logo-orange);
-        }
-
-        .m3-nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: var(--md-shape-full);
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--md-on-surface-var);
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            transition: background .15s ease, color .15s ease;
-        }
-
-        .m3-nav-item:hover {
-            background: rgba(16, 185, 129, .08);
-            color: var(--md-primary);
-        }
-
-        .m3-nav-item.active {
-            background: var(--md-primary-container);
-            color: var(--md-on-primary-container);
-        }
-
-        .m3-nav-item .material-symbols-outlined {
-            font-size: 22px;
-        }
-
-        .m3-sidebar .divider {
-            height: 1px;
-            background: var(--md-outline-var);
-            margin: 8px 0;
-            border-radius: 1px;
-        }
-
-        /* ─── Main shell ──────────────────────────────── */
-        .m3-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-            background: var(--md-surface);
-        }
-
-        /* ─── Top App Bar ─────────────────────────────── */
-        .m3-top-bar {
-            height: 72px;
-            min-height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            border-bottom: 1px solid var(--md-outline-var);
-            background: var(--md-surface);
-        }
-
-        .m3-top-bar .left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .m3-icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--md-shape-full);
-            border: none;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--md-on-surface-var);
-            transition: background .15s;
-        }
-
-        .m3-icon-btn:hover {
-            background: rgba(0, 0, 0, .06);
-        }
-
-        .m3-top-bar h1 {
-            font-family: var(--font-brand);
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--md-on-surface);
-        }
-
-        .m3-top-bar .right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* OCR tonal button */
-        .m3-tonal-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 20px;
-            border-radius: var(--md-shape-full);
-            border: none;
-            background: var(--md-primary-container);
-            color: var(--md-on-primary-container);
-            font-family: var(--font-body);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: box-shadow .15s, filter .15s;
-        }
-
-        .m3-tonal-btn:hover {
-            filter: brightness(.93);
-            box-shadow: var(--md-elev-1);
-        }
-
-        .m3-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--md-shape-full);
-            background: var(--md-surface-variant);
-            border: 2px solid var(--md-outline-var);
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .m3-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* ─── Scroll area ─────────────────────────────── */
-        .m3-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 32px 24px;
-            scroll-behavior: smooth;
-        }
-
-        .m3-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .m3-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .m3-scroll::-webkit-scrollbar-thumb {
-            background: var(--md-outline-var);
-            border-radius: 3px;
-        }
-
-        .form-wrapper {
-            max-width: 760px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            /* Aumentado de 0 para separación entre tarjetas */
-            padding-bottom: 80px;
-        }
-
-        /* ─── M3 Section Card ─────────────────────────── */
-        .m3-card {
-            background: var(--md-surface);
-            border: 1px solid var(--md-outline-var);
-            border-radius: var(--md-shape-xl);
-            padding: 32px;
-            /* Aumentado ligeramente */
-            box-shadow: var(--md-elev-1);
-            transition: box-shadow .2s;
-        }
-
-        .m3-card:hover {
-            box-shadow: var(--md-elev-2);
-        }
-
-        .m3-card-title {
-            font-family: var(--font-brand);
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--md-on-surface);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .m3-card-title .material-symbols-outlined {
-            font-size: 20px;
-            color: var(--md-primary);
-        }
-
-        /* ─── Image Upload ────────────────────────────── */
-        .m3-image-upload {
-            width: 100%;
-            aspect-ratio: 16/7;
-            border-radius: var(--md-shape-lg);
-            border: 2px dashed var(--md-outline-var);
-            background: var(--md-surface-1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: border-color .2s, background .2s;
-            margin-bottom: 24px;
-        }
-
-        .m3-image-upload:hover {
-            border-color: var(--md-primary);
-            background: var(--md-primary-container);
-        }
-
-        .m3-image-upload .material-symbols-outlined {
-            font-size: 40px;
-            color: var(--md-outline);
-        }
-
-        .m3-image-upload span.label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--md-on-surface-var);
-        }
-
-        .m3-image-upload:hover .material-symbols-outlined,
-        .m3-image-upload:hover span.label {
-            color: var(--md-primary);
-        }
-
-        #imagePreview {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-
-        #btnRemoveImage {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 36px;
-            height: 36px;
-            border-radius: var(--md-shape-full);
-            background: rgba(255, 255, 255, .9);
-            border: none;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--md-error);
-            box-shadow: var(--md-elev-2);
-        }
-
-        /* ─── M3 Outlined Text Field ──────────────────── */
-        .m3-field {
-            position: relative;
-            margin-bottom: 24px;
-            /* Aumentado para mayor espacio entre campos */
-        }
-
-        .m3-field:last-child {
-            margin-bottom: 0;
-        }
-
-        .m3-field label {
-            position: absolute;
-            top: 50%;
-            left: 12px;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: var(--md-on-surface-var);
-            background: var(--md-surface);
-            padding: 0 6px;
-            pointer-events: none;
-            transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 10;
-            line-height: 1;
-        }
-
-        .m3-field.textarea label {
-            top: 20px;
-            transform: none;
-        }
-
-        .m3-field input,
-        .m3-field select,
-        .m3-field textarea {
-            width: 100%;
-            padding: 16px;
-            padding-right: 16px;
-            /* Default */
-            font-family: var(--font-body);
-            font-size: 16px;
-            color: var(--md-on-surface);
-            background: transparent;
-            border: 1.5px solid var(--md-outline-var);
-            border-radius: var(--md-shape-md);
-            outline: none;
-            transition: border .2s, box-shadow .2s;
-        }
-
-        .m3-field.has-action input,
-        .m3-field.has-action textarea {
-            padding-right: 48px;
-        }
-
-        .m3-field-action {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: transparent;
-            color: var(--md-on-surface-var);
-            cursor: pointer;
-            z-index: 15;
-            transition: background .2s, color .2s;
-        }
-
-        .m3-field.textarea .m3-field-action {
-            top: 12px;
-            transform: none;
-        }
-
-        .m3-field-action:hover {
-            background: var(--md-surface-variant);
-            color: var(--md-error);
-        }
-
-        .m3-field-action .material-symbols-outlined {
-            font-size: 20px;
-        }
-
-        .m3-field input,
-        .m3-field textarea {
-            appearance: none;
-            -webkit-appearance: none;
-        }
-
-        .m3-field select {
-            padding-right: 40px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%23857570'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            cursor: pointer;
-        }
-
-        .m3-field textarea {
-            resize: none;
-            min-height: 100px;
-        }
-
-        /* Suffix for "min" */
-        .m3-field .suffix {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-            color: var(--md-on-surface-var);
-            pointer-events: none;
-        }
-
-        /* Focused / has-value states */
-        .m3-field input:focus,
-        .m3-field select:focus,
-        .m3-field textarea:focus {
-            border-color: var(--md-primary);
-            border-width: 2px;
-        }
-
-        .m3-field input:focus+label,
-        .m3-field input:not(:placeholder-shown)+label,
-        .m3-field select:focus+label,
-        .m3-field select.has-value+label,
-        .m3-field textarea:focus+label,
-        .m3-field textarea:not(:placeholder-shown)+label {
-            top: 0;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--md-primary);
-        }
-
-        /* Select always floats label when value selected */
-        .m3-field select+label {
-            top: 8px;
-            transform: none;
-            font-size: 12px;
-        }
-
-        .m3-field.textarea label {
-            top: 8px;
-            transform: none;
-            font-size: 12px;
-        }
-
-        .m3-field input:not(:focus):not(:placeholder-shown)+label,
-        .m3-field textarea:not(:focus):not(:placeholder-shown)+label {
-            color: var(--md-on-surface-var);
-        }
-
-        .m3-field input:focus~.suffix-label,
-        .m3-field input:not(:placeholder-shown)~.suffix-label {
-            display: flex;
-        }
-
-        .m3-field input::-webkit-inner-spin-button {
-            display: none;
-        }
-
-        /* ─── Grid ────────────────────────────────────── */
-        .m3-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        /* ─── Ingredients / Steps ─────────────────────── */
-        .m3-list-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .m3-list-header h3 {
-            font-family: var(--font-brand);
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--md-on-surface);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .m3-list-header h3 .material-symbols-outlined {
-            font-size: 18px;
-            color: var(--md-primary);
-        }
-
-        .m3-add-btn {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 14px;
-            border-radius: var(--md-shape-full);
-            border: 1.5px solid var(--md-primary);
-            background: transparent;
-            color: var(--md-primary);
-            font-family: var(--font-body);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .15s;
-        }
-
-        .m3-add-btn:hover {
-            background: rgba(16, 185, 129, .08);
-        }
-
-        .m3-add-btn .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        /* Ingredient row */
-        .m3-ingredient-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            animation: slideDown .2s ease;
-        }
-
-        .m3-ingredient-row .drag-handle {
-            color: var(--md-outline-var);
-            cursor: grab;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .m3-ingredient-row input {
-            flex: 1;
-            padding: 12px 14px;
-            font-family: var(--font-body);
-            font-size: 14px;
-            color: var(--md-on-surface);
-            background: var(--md-surface-1);
-            border: 1.5px solid var(--md-outline-var);
-            border-radius: var(--md-shape-md);
-            outline: none;
-            transition: border-color .15s;
-        }
-
-        .m3-ingredient-row input:focus {
-            border-color: var(--md-primary);
-        }
-
-        .m3-ingredient-row input::placeholder {
-            color: var(--md-outline);
-        }
-
-        .m3-ingredient-row .del-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--md-shape-full);
-            border: none;
-            background: transparent;
-            color: var(--md-outline);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: background .15s, color .15s;
-        }
-
-        .m3-ingredient-row .del-btn:hover {
-            background: var(--md-error-container);
-            color: var(--md-error);
-        }
-
-        /* Step row */
-        .m3-step-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 14px;
-            animation: slideDown .2s ease;
-        }
-
-        .m3-step-number {
-            flex-shrink: 0;
-            width: 32px;
-            height: 32px;
-            border-radius: var(--md-shape-full);
-            background: var(--md-primary-container);
-            color: var(--md-on-primary-container);
-            font-weight: 700;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .m3-step-row .step-content {
-            flex: 1;
-        }
-
-        .m3-step-row textarea {
-            width: 100%;
-            padding: 12px 14px;
-            font-family: var(--font-body);
-            font-size: 14px;
-            color: var(--md-on-surface);
-            background: var(--md-surface-1);
-            border: 1.5px solid var(--md-outline-var);
-            border-radius: var(--md-shape-md);
-            outline: none;
-            resize: none;
-            min-height: 72px;
-            transition: border-color .15s;
-        }
-
-        .m3-step-row textarea:focus {
-            border-color: var(--md-primary);
-        }
-
-        .m3-step-row textarea::placeholder {
-            color: var(--md-outline);
-        }
-
-        .m3-step-row .del-btn {
-            flex-shrink: 0;
-            width: 34px;
-            height: 34px;
-            border-radius: var(--md-shape-full);
-            border: none;
-            background: transparent;
-            color: var(--md-outline);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background .15s, color .15s;
-        }
-
-        .m3-step-row .del-btn:hover {
-            background: var(--md-error-container);
-            color: var(--md-error);
-        }
-
-        /* ─── FAB Save Button ─────────────────────────── */
-        .m3-fab-save {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 32px;
-            border-radius: var(--md-shape-xl);
-            border: none;
-            background: var(--md-primary);
-            color: var(--md-on-primary);
-            font-family: var(--font-brand);
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: var(--md-elev-3);
-            transition: background .15s, box-shadow .15s, transform .1s;
-            margin-top: 8px;
-        }
-
-        .m3-fab-save:hover {
-            background: var(--md-primary-dim);
-            box-shadow: 0 6px 16px rgba(234, 88, 12, .35);
-        }
-
-        .m3-fab-save:active {
-            transform: scale(.97);
-        }
-
-        .m3-fab-save .material-symbols-outlined {
-            font-size: 22px;
-        }
-
-        /* ─── OCR Modal ───────────────────────────────── */
-        #ocrModal {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            background: rgba(0, 0, 0, .55);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity .25s, visibility .25s;
-        }
-
-        #ocrModal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        #ocrCameraState,
-        #ocrResultState,
-        #ocrLoading {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #ocrCameraState.hidden,
-        #ocrResultState.hidden,
-        #ocrLoading.hidden {
-            display: none !important;
-        }
-
-        .ocr-modal-content {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .ocr-sheet {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            width: 100%;
-            max-width: 380px;
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, .3);
-        }
-
-        .ocr-sheet-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .ocr-sheet-header h2 {
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        /* ─── Animations ──────────────────────────────── */
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ─── Mobile ──────────────────────────────────── */
-        @media (max-width: 768px) {
-            .m3-sidebar {
-                display: none;
-            }
-
-            .m3-scroll {
-                padding: 16px;
-            }
-
-            .m3-grid-2 {
-                grid-template-columns: 1fr;
-            }
-
-            .m3-card {
-                padding: 20px;
-                border-radius: 20px;
-            }
-
-            .m3-top-bar {
-                padding: 0 16px;
-            }
-
-            .m3-top-bar h1 {
-                font-size: 17px;
-            }
-
-            .ocr-label {
-                display: none;
-            }
-        }
+    body {
+    font-family: var(--font-body);
+    background: #F9FAFB;
+    color: var(--on-surface);
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    }
+
+    /* ─── Main shell ──────────────────────────────── */
+    .m3-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--md-surface);
+    }
+
+    /* ─── Top App Bar ─────────────────────────────── */
+    .m3-top-bar {
+    height: 72px;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--md-outline-var);
+    background: var(--md-surface);
+    }
+
+    .m3-top-bar .left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+    .m3-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-shape-full);
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--md-on-surface-var);
+    transition: background .15s;
+    }
+
+    .m3-icon-btn:hover {
+    background: rgba(0, 0, 0, .06);
+    }
+
+    .m3-top-bar h1 {
+    font-family: var(--font-brand);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    }
+
+    .m3-top-bar .right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+    /* OCR tonal button */
+    .m3-tonal-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: var(--md-shape-full);
+    border: none;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow .15s, filter .15s;
+    }
+
+    .m3-tonal-btn:hover {
+    filter: brightness(.93);
+    box-shadow: var(--md-elev-1);
+    }
+
+    .m3-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--md-shape-full);
+    background: var(--md-surface-variant);
+    border: 2px solid var(--md-outline-var);
+    overflow: hidden;
+    cursor: pointer;
+    }
+
+    .m3-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    }
+
+    /* ─── Scroll area ─────────────────────────────── */
+    .m3-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 32px 24px;
+    scroll-behavior: smooth;
+    }
+
+    .m3-scroll::-webkit-scrollbar {
+    width: 6px;
+    }
+
+    .m3-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    }
+
+    .m3-scroll::-webkit-scrollbar-thumb {
+    background: var(--md-outline-var);
+    border-radius: 3px;
+    }
+
+    .form-wrapper {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Aumentado de 0 para separación entre tarjetas */
+    padding-bottom: 80px;
+    }
+
+    /* ─── M3 Section Card ─────────────────────────── */
+    .m3-card {
+    background: var(--md-surface);
+    border: 1px solid var(--md-outline-var);
+    border-radius: var(--md-shape-xl);
+    padding: 32px;
+    /* Aumentado ligeramente */
+    box-shadow: var(--md-elev-1);
+    transition: box-shadow .2s;
+    }
+
+    .m3-card:hover {
+    box-shadow: var(--md-elev-2);
+    }
+
+    .m3-card-title {
+    font-family: var(--font-brand);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+
+    .m3-card-title .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--md-primary);
+    }
+
+    /* ─── Image Upload ────────────────────────────── */
+    .m3-image-upload {
+    width: 100%;
+    aspect-ratio: 16/7;
+    border-radius: var(--md-shape-lg);
+    border: 2px dashed var(--md-outline-var);
+    background: var(--md-surface-1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, background .2s;
+    margin-bottom: 24px;
+    }
+
+    .m3-image-upload:hover {
+    border-color: var(--md-primary);
+    background: var(--md-primary-container);
+    }
+
+    .m3-image-upload .material-symbols-outlined {
+    font-size: 40px;
+    color: var(--md-outline);
+    }
+
+    .m3-image-upload span.label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--md-on-surface-var);
+    }
+
+    .m3-image-upload:hover .material-symbols-outlined,
+    .m3-image-upload:hover span.label {
+    color: var(--md-primary);
+    }
+
+    #imagePreview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    }
+
+    #btnRemoveImage {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--md-shape-full);
+    background: rgba(255, 255, 255, .9);
+    border: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--md-error);
+    box-shadow: var(--md-elev-2);
+    }
+
+    /* ─── M3 Outlined Text Field ──────────────────── */
+    .m3-field {
+    position: relative;
+    margin-bottom: 24px;
+    /* Aumentado para mayor espacio entre campos */
+    }
+
+    .m3-field:last-child {
+    margin-bottom: 0;
+    }
+
+    .m3-field label {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--md-on-surface-var);
+    background: var(--md-surface);
+    padding: 0 6px;
+    pointer-events: none;
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    line-height: 1;
+    }
+
+    .m3-field.textarea label {
+    top: 20px;
+    transform: none;
+    }
+
+    .m3-field input,
+    .m3-field select,
+    .m3-field textarea {
+    width: 100%;
+    padding: 16px;
+    padding-right: 16px;
+    /* Default */
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--md-on-surface);
+    background: transparent;
+    border: 1.5px solid var(--md-outline-var);
+    border-radius: var(--md-shape-md);
+    outline: none;
+    transition: border .2s, box-shadow .2s;
+    }
+
+    .m3-field.has-action input,
+    .m3-field.has-action textarea {
+    padding-right: 48px;
+    }
+
+    .m3-field-action {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--md-on-surface-var);
+    cursor: pointer;
+    z-index: 15;
+    transition: background .2s, color .2s;
+    }
+
+    .m3-field.textarea .m3-field-action {
+    top: 12px;
+    transform: none;
+    }
+
+    .m3-field-action:hover {
+    background: var(--md-surface-variant);
+    color: var(--md-error);
+    }
+
+    .m3-field-action .material-symbols-outlined {
+    font-size: 20px;
+    }
+
+    .m3-field input,
+    .m3-field textarea {
+    appearance: none;
+    -webkit-appearance: none;
+    }
+
+    .m3-field select {
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'
+    viewBox='0 0 24 24' fill='%23857570'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+    }
+
+    .m3-field textarea {
+    resize: none;
+    min-height: 100px;
+    }
+
+    /* Suffix for "min" */
+    .m3-field .suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--md-on-surface-var);
+    pointer-events: none;
+    }
+
+    /* Focused / has-value states */
+    .m3-field input:focus,
+    .m3-field select:focus,
+    .m3-field textarea:focus {
+    border-color: var(--md-primary);
+    border-width: 2px;
+    }
+
+    .m3-field input:focus+label,
+    .m3-field input:not(:placeholder-shown)+label,
+    .m3-field select:focus+label,
+    .m3-field select.has-value+label,
+    .m3-field textarea:focus+label,
+    .m3-field textarea:not(:placeholder-shown)+label {
+    top: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--md-primary);
+    }
+
+    /* Select always floats label when value selected */
+    .m3-field select+label {
+    top: 8px;
+    transform: none;
+    font-size: 12px;
+    }
+
+    .m3-field.textarea label {
+    top: 8px;
+    transform: none;
+    font-size: 12px;
+    }
+
+    .m3-field input:not(:focus):not(:placeholder-shown)+label,
+    .m3-field textarea:not(:focus):not(:placeholder-shown)+label {
+    color: var(--md-on-surface-var);
+    }
+
+    .m3-field input:focus~.suffix-label,
+    .m3-field input:not(:placeholder-shown)~.suffix-label {
+    display: flex;
+    }
+
+    .m3-field input::-webkit-inner-spin-button {
+    display: none;
+    }
+
+    /* ─── Grid ────────────────────────────────────── */
+    .m3-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    }
+
+    /* ─── Ingredients / Steps ─────────────────────── */
+    .m3-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    }
+
+    .m3-list-header h3 {
+    font-family: var(--font-brand);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    }
+
+    .m3-list-header h3 .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--md-primary);
+    }
+
+    .m3-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border-radius: var(--md-shape-full);
+    border: 1.5px solid var(--md-primary);
+    background: transparent;
+    color: var(--md-primary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    }
+
+    .m3-add-btn:hover {
+    background: rgba(16, 185, 129, .08);
+    }
+
+    .m3-add-btn .material-symbols-outlined {
+    font-size: 16px;
+    }
+
+    /* Ingredient row */
+    .m3-ingredient-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    animation: slideDown .2s ease;
+    }
+
+    .m3-ingredient-row .drag-handle {
+    color: var(--md-outline-var);
+    cursor: grab;
+    font-size: 20px;
+    flex-shrink: 0;
+    }
+
+    .m3-ingredient-row input {
+    flex: 1;
+    padding: 12px 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--md-on-surface);
+    background: var(--md-surface-1);
+    border: 1.5px solid var(--md-outline-var);
+    border-radius: var(--md-shape-md);
+    outline: none;
+    transition: border-color .15s;
+    }
+
+    .m3-ingredient-row input:focus {
+    border-color: var(--md-primary);
+    }
+
+    .m3-ingredient-row input::placeholder {
+    color: var(--md-outline);
+    }
+
+    .m3-ingredient-row .del-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--md-shape-full);
+    border: none;
+    background: transparent;
+    color: var(--md-outline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s, color .15s;
+    }
+
+    .m3-ingredient-row .del-btn:hover {
+    background: var(--md-error-container);
+    color: var(--md-error);
+    }
+
+    /* Step row */
+    .m3-step-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    animation: slideDown .2s ease;
+    }
+
+    .m3-step-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--md-shape-full);
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    }
+
+    .m3-step-row .step-content {
+    flex: 1;
+    }
+
+    .m3-step-row textarea {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--md-on-surface);
+    background: var(--md-surface-1);
+    border: 1.5px solid var(--md-outline-var);
+    border-radius: var(--md-shape-md);
+    outline: none;
+    resize: none;
+    min-height: 72px;
+    transition: border-color .15s;
+    }
+
+    .m3-step-row textarea:focus {
+    border-color: var(--md-primary);
+    }
+
+    .m3-step-row textarea::placeholder {
+    color: var(--md-outline);
+    }
+
+    .m3-step-row .del-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--md-shape-full);
+    border: none;
+    background: transparent;
+    color: var(--md-outline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background .15s, color .15s;
+    }
+
+    .m3-step-row .del-btn:hover {
+    background: var(--md-error-container);
+    color: var(--md-error);
+    }
+
+    /* ─── FAB Save Button ─────────────────────────── */
+    .m3-fab-save {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 32px;
+    border-radius: var(--md-shape-xl);
+    border: none;
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    font-family: var(--font-brand);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--md-elev-3);
+    transition: background .15s, box-shadow .15s, transform .1s;
+    margin-top: 8px;
+    }
+
+    .m3-fab-save:hover {
+    background: var(--md-primary-dim);
+    box-shadow: 0 6px 16px rgba(234, 88, 12, .35);
+    }
+
+    .m3-fab-save:active {
+    transform: scale(.97);
+    }
+
+    .m3-fab-save .material-symbols-outlined {
+    font-size: 22px;
+    }
+
+    /* ─── OCR Modal ───────────────────────────────── */
+    #ocrModal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, .55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s, visibility .25s;
+    }
+
+    #ocrModal.open {
+    opacity: 1;
+    visibility: visible;
+    }
+
+    #ocrCameraState,
+    #ocrResultState,
+    #ocrLoading {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    }
+
+    #ocrCameraState.hidden,
+    #ocrResultState.hidden,
+    #ocrLoading.hidden {
+    display: none !important;
+    }
+
+    .ocr-modal-content {
+    opacity: 1;
+    visibility: visible;
+    }
+
+    .ocr-sheet {
+    background: white;
+    border-radius: 28px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 380px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .3);
+    }
+
+    .ocr-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    }
+
+    .ocr-sheet-header h2 {
+    font-size: 17px;
+    font-weight: 700;
+    }
+
+    /* ─── Animations ──────────────────────────────── */
+    @keyframes slideDown {
+    from {
+    opacity: 0;
+    transform: translateY(-8px);
+    }
+
+    to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+    }
+
+    /* ─── Mobile ──────────────────────────────────── */
+    @media (max-width: 768px) {
+    .m3-sidebar {
+    display: none;
+    }
+
+    .m3-scroll {
+    padding: 16px;
+    }
+
+    .m3-grid-2 {
+    grid-template-columns: 1fr;
+    }
+
+    .m3-card {
+    padding: 20px;
+    border-radius: 20px;
+    }
+
+    .m3-top-bar {
+    padding: 0 16px;
+    }
+
+    .m3-top-bar h1 {
+    font-size: 17px;
+    }
+
+    .ocr-label {
+    display: none;
+    }
+    }
     </style>
 </head>
 
 <body>
 
-    <!-- ── Sidebar ── -->
-    <nav class="m3-sidebar">
-        <div class="brand">
-            <span class="material-symbols-outlined">menu_book</span>
-            <span class="brand-name">RecipeHub</span>
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Sidebar Desktop & Mobile Drawer -->
+    <aside id="main-sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <span class="material-symbols-outlined logo-icon">menu_book</span>
+                <span class="logo-text" style="color: var(--logo-orange);">RecipeHub</span>
+            </div>
         </div>
 
-        <a class="m3-nav-item" href="index.html">
-            <span class="material-symbols-outlined">arrow_back</span>
-            Volver al Dashboard
-        </a>
+        <div class="sidebar-user-profile">
+            <div class="user-avatar-m3">
+                <span id="sidebar-user-initials">CH</span>
+            </div>
+            <div class="user-info-m3">
+                <span id="sidebar-user-greeting" class="user-greeting">Chef</span>
+            </div>
+        </div>
 
-        <div class="divider"></div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item">
+                <span class="material-symbols-outlined">home</span>
+                <span>Recetas</span>
+            </a>
+            <a href="index.html?view=favorites" class="nav-item">
+                <span class="material-symbols-outlined">star</span>
+                <span>Favoritos</span>
+            </a>
+            <a href="ocr.html" class="nav-item">
+                <span class="material-symbols-outlined">document_scanner</span>
+                <span>Escanear Receta</span>
+            </a>
+            <a href="index.html?view=shared" class="nav-item">
+                <span class="material-symbols-outlined">share</span>
+                <span>Compartidas</span>
+            </a>
+            <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
 
-        <a class="m3-nav-item active" href="#">
-            <span class="material-symbols-outlined">add_circle</span>
-            Nueva Receta
-        </a>
-        <a class="m3-nav-item" href="index.html">
-            <span class="material-symbols-outlined">hard_drive</span>
-            Mi Unidad
-        </a>
-        <a class="m3-nav-item" href="#">
-            <span class="material-symbols-outlined">schedule</span>
-            Recientes
-        </a>
-        <a class="m3-nav-item" href="#">
-            <span class="material-symbols-outlined">star</span>
-            Favoritos
-        </a>
-    </nav>
+        <div class="sidebar-footer">
+            <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
+                style="width: 100%; justify-content: flex-start; padding-left: 16px;"
+                onclick="window.toggleSlimSidebar()">
+                <span class="material-symbols-outlined">side_navigation</span>
+            </button>
+        </div>
+    </aside>
 
     <!-- ── Main ── -->
     <main class="m3-main">
@@ -1143,18 +1047,24 @@
     <script src="js/recipe-form.js?v=2"></script>
 
     <script>
-        // ── Auth guard ──────────────────────────────────
         (async () => {
             const ok = await window.authManager.checkAuth();
             if (!ok) { window.location.href = 'index.html'; return; }
 
-            // Show avatar
-            const user = window.authManager.currentUser;
-            if (user) {
-                const el = document.getElementById('userAvatar');
-                const initials = ((user.first_name || '?')[0] + (user.last_name || '')[0]).toUpperCase();
-                el.innerHTML = `<span style="font-family:'Google Sans',sans-serif;font-weight:700;font-size:14px;color:var(--md-on-primary-container)">${initials}</span>`;
-            }
+            // Initialize UI
+            window.initSidebarState();
+            window.setupMobileMenu();
+            window.updateGlobalUserUI();
+
+            // Set app-specific active nav
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if (item.getAttribute('href') === 'recipe-form.html' || (window.location.search.includes('id') && item.textContent.includes('Receta'))) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
         })();
 
         // ── Image upload preview ────────────────────────
