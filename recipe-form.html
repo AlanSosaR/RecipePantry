@@ -27,10 +27,30 @@
     <link rel="stylesheet" href="css/components.css">
 
     <style>
+        :root {
+            --md-surface: #FFFFFF;
+            --md-surface-1: #F9FAFB;
+            --md-on-surface: #1B1B1F;
+            --md-on-surface-var: #444746;
+            --md-primary: #10B981;
+            --md-primary-container: #F0FDF4;
+            --md-on-primary-container: #059669;
+            --md-surface-variant: #F9FAFB;
+            --md-outline-var: #E5E7EB;
+            --md-outline: #C4C7C5;
+            --md-elev-1: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px 1px rgba(0, 0, 0, 0.1);
+            --md-elev-2: 0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 6px 2px rgba(0, 0, 0, 0.1);
+            --md-shape-full: 9999px;
+            --md-shape-xl: 28px;
+            --md-shape-lg: 16px;
+            --md-shape-md: 12px;
+            --md-error: #B3261E;
+        }
+
         body {
             font-family: var(--font-body);
             background: #F9FAFB;
-            color: var(--on-surface);
+            color: var(--md-on-surface);
             height: 100dvh;
             overflow: hidden;
             display: flex;
@@ -68,18 +88,21 @@
             width: 40px;
             height: 40px;
             border-radius: var(--md-shape-full);
-            border: none;
-            background: transparent;
+            border: 1.5px solid var(--md-outline-var);
+            background: #FFFFFF;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            color: var(--md-on-surface-var);
-            transition: background .15s;
+            color: var(--md-primary);
+            transition: all .2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .m3-icon-btn:hover {
-            background: rgba(0, 0, 0, .06);
+            background: var(--md-primary-container);
+            border-color: var(--md-primary);
+            transform: scale(1.05);
         }
 
         .m3-top-bar h1 {
@@ -222,7 +245,7 @@
 
         .m3-image-upload .material-symbols-outlined {
             font-size: 40px;
-            color: var(--md-outline);
+            color: var(--md-primary);
         }
 
         .m3-image-upload span.label {
@@ -834,7 +857,7 @@
                     <!-- ── Unified Recipe Card ── -->
                     <div class="m3-card">
                         <p class="m3-card-title">
-                            <span class="material-symbols-outlined">description</span>
+                            <span class="material-symbols-outlined">menu_book</span>
                             Nueva Receta
                         </p>
 
