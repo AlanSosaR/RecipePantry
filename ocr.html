@@ -384,6 +384,11 @@
             <div style="display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px; overflow-x: auto;">
                 <button class="tab-button active" data-tab="raw" onclick="switchTab('raw')">Texto Crudo</button>
                 <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')">Vista Previa</button>
+                <button class="tab-button" data-tab="ag" onclick="switchTab('ag')" style="color: #6366f1;">
+                    <span class="material-symbols-rounded"
+                        style="font-size: 18px; vertical-align: middle;">psychology</span>
+                    Análisis AG
+                </button>
             </div>
 
             <!-- Tab: Raw Text -->
@@ -413,6 +418,24 @@
                         de Preparación</label>
                     <div id="parsedSteps" style="margin-top: 8px;"></div>
                 </div>
+            </div>
+
+            <!-- Tab: Anti Gravity Exhaustive Analysis -->
+            <div id="tabAg" class="tab-content" style="display: none;">
+                <div
+                    style="background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 20px; padding: 20px; font-family: 'Courier New', Courier, monospace; color: #312E81;">
+                    <div
+                        style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #C7D2FE; padding-bottom: 8px;">
+                        <span class="material-symbols-rounded">analytics</span>
+                        <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">ANÁLISIS
+                            EXHAUSTIVO TOTAL</strong>
+                    </div>
+                    <textarea id="agReportText" readonly
+                        style="width: 100%; min-height: 400px; background: transparent; border: none; font-family: inherit; font-size: 13px; line-height: 1.5; color: inherit; resize: none; outline: none;"></textarea>
+                </div>
+                <p style="font-size: 12px; color: #6B7280; margin-top: 12px; text-align: center;">
+                    Modo Motor de Escaneo Ultra-Preciso v1.0 • Anti Gravity
+                </p>
             </div>
 
             <div style="display: flex; gap: 12px; margin-top: 32px; padding-bottom: 40px;">
@@ -516,6 +539,11 @@
                 const conf = Math.round(results.confidence);
                 badge.textContent = `${conf}%`;
                 badge.className = 'confidence-badge ' + (conf > 80 ? 'confidence-high' : conf > 50 ? 'confidence-medium' : 'confidence-low');
+
+                // Exhaustive AG Analysis
+                const analysis = window.ocrProcessor.performExhaustiveAnalysis(results.text, results.confidence);
+                const report = window.ocrProcessor.generateExhaustiveReport(analysis);
+                document.getElementById('agReportText').value = report;
 
                 // Parse
                 parsedData = window.ocrProcessor.parseRecipeText(results.text);
@@ -628,6 +656,7 @@
             document.querySelectorAll('.tab-button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
             document.getElementById('tabRaw').style.display = tab === 'raw' ? 'block' : 'none';
             document.getElementById('tabParsed').style.display = tab === 'parsed' ? 'block' : 'none';
+            document.getElementById('tabAg').style.display = tab === 'ag' ? 'block' : 'none';
         }
 
         function goToStep(s) {

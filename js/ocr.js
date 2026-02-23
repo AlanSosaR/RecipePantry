@@ -151,6 +151,69 @@ class OCRProcessor {
         }
         return parseFloat(q.replace(',', '.'));
     }
+
+    /**
+     * Realiza un análisis exhaustivo del texto (Modo Anti Gravity)
+     */
+    performExhaustiveAnalysis(text, confidence) {
+        const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+
+        // 1. Detectar Números y Datos
+        const numbersMatch = text.match(/\d+(?:[\.,\/\d\s]*\d+)?/g) || [];
+
+        // 2. Detectar Emojis y Símbolos
+        const emojis = Array.from(text.matchAll(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2B50}\u{2B06}\u{2194}\u{2934}\u{2935}]/gu)).map(m => m[0]);
+        const symbols = Array.from(text.matchAll(/[©®™★♦✓→+\-×÷=≠≈∞]/g)).map(m => m[0]);
+        const allSymbols = [...new Set([...emojis, ...symbols])];
+
+        // 3. Document Type & Language
+        const isRecipe = text.toLowerCase().includes('ingrediente') || text.toLowerCase().includes('preparación');
+        const docType = isRecipe ? 'Receta de Cocina' : 'Documento / Texto General';
+        const language = this.detectLanguage(text);
+
+        // 4. Alertas (Graphed from confidence or formatting issues)
+        const alerts = [];
+        if (confidence < 70) alerts.push('Calidad de lectura media/baja: algunos caracteres pueden ser ambiguos.');
+        if (text.length < 50) alerts.push('Texto muy corto: verifique si la captura está completa.');
+
+        return {
+            raw: text,
+            stats: {
+                hasText: lines.length > 0 ? 'SÍ' : 'NO',
+                language: language,
+                numbersCount: numbersMatch.length,
+                symbols: allSymbols,
+                docType: docType
+            },
+            alerts: alerts
+        };
+    }
+
+    detectLanguage(text) {
+        const commonSpanish = ['de', 'la', 'el', 'los', 'con', 'para', 'una', 'ingredientes', 'preparación'];
+        const lower = text.toLowerCase();
+        const matches = commonSpanish.filter(word => lower.includes(` ${word} `) || lower.startsWith(word)).length;
+        return matches > 2 ? 'Español' : 'Detectado (Auto)';
+    }
+
+    generateExhaustiveReport(analysis) {
+        let report = `---
+📄 CONTENIDO EXTRAÍDO:
+${analysis.raw}
+
+---
+📊 ELEMENTOS DETECTADOS:
+- Texto: ${analysis.stats.hasText} | Idioma: ${analysis.stats.language}
+- Números: ${analysis.stats.numbersCount} encontrados
+- Emojis/Símbolos: ${analysis.stats.symbols.join(' ') || 'Ninguno'}
+- Tipo de documento: ${analysis.stats.docType}
+
+---
+⚠️ ALERTAS:
+${analysis.alerts.length > 0 ? analysis.alerts.map(a => '- ' + a).join('\n') : 'Ninguna: Lectura nominal.'}
+`;
+        return report;
+    }
 }
 
 /**
