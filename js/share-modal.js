@@ -205,10 +205,17 @@ class ShareModalManager {
         try {
             window.setButtonLoading(btnShare, true, 'Compartiendo...');
 
-            // Obtener el ID del perfil del propietario actual
-            const ownerProfileId = await this.getCurrentProfileId(window.authManager.currentUser.id);
+            // Intentar recuperar el perfil si no está disponible (puede ser una sesión expirada o no cargada)
+            if (!window.authManager.currentUser) {
+                console.log('Perfil no encontrado en memoria, intentando checkAuth...');
+                await window.authManager.checkAuth();
+            }
+
+            const ownerProfileId = window.authManager.currentUser?.id;
             if (!ownerProfileId) {
-                window.showSnackbar('No se pudo obtener tu perfil. Intenta recargar la página.', 4000);
+                console.error('No se pudo determinar el ID del propietario');
+                window.showSnackbar('No se pudo obtener tu perfil. Cerramos e intentamos de nuevo...', 4000);
+                setTimeout(() => this.close(), 2000);
                 window.setButtonLoading(btnShare, false);
                 return;
             }

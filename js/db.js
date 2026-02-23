@@ -42,22 +42,33 @@ class DatabaseManager {
                     category:categories(id, name_es, name_en, icon, color),
                     images:recipe_images(id, image_url, is_primary)
                 `)
-                .eq('user_id', window.authManager.currentUser.id)
-                .eq('is_active', true);
+            if (filters.shared) {
+                const { data: sharedData, error: sharedError } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .select('recipe_id')
+                    .eq('recipient_user_id', window.authManager.currentUser.id);
 
-            // Ordenamiento dinámico
+                if (sharedError) throw sharedError;
+
+                const sharedIds = sharedData.map(s => s.recipe_id);
+                if (sharedIds.length === 0) {
+                    return { success: true, recipes: [], fromCache: false };
+                }
+                query = query.in('id', sharedIds);
+            } else {
+                query = query.eq('user_id', window.authManager.currentUser.id);
+            }
+
+            query = query.eq('is_active', true);
+
+            // Filtros adicionales
+            if (filters.favorite) query = query.eq('is_favorite', true);
+            if (filters.categoryId) query = query.eq('category_id', filters.categoryId);
+
+            // Ordenamiento
             const orderBy = filters.orderBy || 'name_es';
             const ascending = filters.ascending !== undefined ? filters.ascending : true;
             query = query.order(orderBy, { ascending });
-
-            // Aplicar filtros
-            if (filters.favorite) {
-                query = query.eq('is_favorite', true);
-            }
-
-            if (filters.categoryId) {
-                query = query.eq('category_id', filters.categoryId);
-            }
 
             if (filters.search) {
                 query = query.or(
@@ -68,314 +79,322 @@ class DatabaseManager {
             }
 
             const { data, error } = await query;
-
-            if (error) throw error;
-
-            // Procesar imágenes
-            const recipes = data.map(recipe => ({
-                ...recipe,
-                primaryImage: recipe.images?.find(img => img.is_primary)?.image_url || null,
-                totalImages: recipe.images?.length || 0
-            }));
-
-            // Guardar en caché solo si no hay filtros activos
-            if (!filters.search && !filters.categoryId && !filters.favorite) {
-                this._saveToCache(DB_CACHE_KEY, recipes);
-            }
-
-            return { success: true, recipes, fromCache: false };
-
-        } catch (error) {
-            console.warn('⚠️ Error de red, intentando caché offline:', error);
-
-            // Fallback a caché local
-            const cached = this._loadFromCache(DB_CACHE_KEY);
-            if (cached) {
-                console.log(`✅ ${cached.length} recetas cargadas desde caché offline`);
-                return { success: true, recipes: cached, fromCache: true };
-            }
-
-            console.error('❌ Sin conexión y sin caché:', error);
-            return { success: false, error: error.message, recipes: [] };
+            query = query.or(
+                `name_es.ilike.%${filters.search}%,` +
+                `name_en.ilike.%${filters.search}%,` +
+                `description_es.ilike.%${filters.search}%`
+            );
         }
+
+            const { data, error } = await query;
+
+        if (error) throw error;
+
+        // Procesar imágenes
+        const recipes = data.map(recipe => ({
+            ...recipe,
+            primaryImage: recipe.images?.find(img => img.is_primary)?.image_url || null,
+            totalImages: recipe.images?.length || 0
+        }));
+
+        // Guardar en caché solo si no hay filtros activos
+        if (!filters.search && !filters.categoryId && !filters.favorite) {
+            this._saveToCache(DB_CACHE_KEY, recipes);
+        }
+
+        return { success: true, recipes, fromCache: false };
+
+    } catch(error) {
+        console.warn('⚠️ Error de red, intentando caché offline:', error);
+
+        // Fallback a caché local
+        const cached = this._loadFromCache(DB_CACHE_KEY);
+        if (cached) {
+            console.log(`✅ ${cached.length} recetas cargadas desde caché offline`);
+            return { success: true, recipes: cached, fromCache: true };
+        }
+
+        console.error('❌ Sin conexión y sin caché:', error);
+        return { success: false, error: error.message, recipes: [] };
     }
+}
 
     async getRecipeById(recipeId) {
-        try {
-            const { data: recipe, error } = await window.supabaseClient
-                .from('recipes')
-                .select(`
+    try {
+        const { data: recipe, error } = await window.supabaseClient
+            .from('recipes')
+            .select(`
                     *,
                     category:categories(*),
                     ingredients(*),
                     steps:preparation_steps(*),
                     images:recipe_images(*)
                 `)
-                .eq('id', recipeId)
-                .single();
+            .eq('id', recipeId)
+            .single();
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Incrementar contador de vistas
-            await window.supabaseClient
-                .from('recipes')
-                .update({
-                    view_count: (recipe.view_count || 0) + 1,
-                    last_viewed_at: new Date().toISOString()
-                })
-                .eq('id', recipeId);
+        // Incrementar contador de vistas
+        await window.supabaseClient
+            .from('recipes')
+            .update({
+                view_count: (recipe.view_count || 0) + 1,
+                last_viewed_at: new Date().toISOString()
+            })
+            .eq('id', recipeId);
 
-            return { success: true, recipe };
+        return { success: true, recipe };
 
-        } catch (error) {
-            // Fallback a caché si está offline
-            const cached = this._loadFromCache(DB_CACHE_KEY);
-            if (cached) {
-                const recipe = cached.find(r => r.id === recipeId);
-                if (recipe) return { success: true, recipe, fromCache: true };
-            }
-
-            console.error('❌ Error obteniendo receta:', error);
-            return { success: false, error: error.message };
+    } catch (error) {
+        // Fallback a caché si está offline
+        const cached = this._loadFromCache(DB_CACHE_KEY);
+        if (cached) {
+            const recipe = cached.find(r => r.id === recipeId);
+            if (recipe) return { success: true, recipe, fromCache: true };
         }
+
+        console.error('❌ Error obteniendo receta:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async createRecipe(recipeData) {
-        try {
-            const { data: recipe, error } = await window.supabaseClient
-                .from('recipes')
-                .insert([{
-                    user_id: window.authManager.currentUser.id,
-                    ...recipeData
-                }])
-                .select()
-                .single();
+    try {
+        const { data: recipe, error } = await window.supabaseClient
+            .from('recipes')
+            .insert([{
+                user_id: window.authManager.currentUser.id,
+                ...recipeData
+            }])
+            .select()
+            .single();
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Invalidar caché
-            localStorage.removeItem(DB_CACHE_KEY);
+        // Invalidar caché
+        localStorage.removeItem(DB_CACHE_KEY);
 
-            return { success: true, recipe };
+        return { success: true, recipe };
 
-        } catch (error) {
-            console.error('❌ Error creando receta:', error);
-            return { success: false, error: error.message };
-        }
+    } catch (error) {
+        console.error('❌ Error creando receta:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async updateRecipe(recipeId, updates) {
-        try {
-            const { data: recipe, error } = await window.supabaseClient
-                .from('recipes')
-                .update(updates)
-                .eq('id', recipeId)
-                .select()
-                .single();
+    try {
+        const { data: recipe, error } = await window.supabaseClient
+            .from('recipes')
+            .update(updates)
+            .eq('id', recipeId)
+            .select()
+            .single();
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Invalidar caché
-            localStorage.removeItem(DB_CACHE_KEY);
+        // Invalidar caché
+        localStorage.removeItem(DB_CACHE_KEY);
 
-            return { success: true, recipe };
+        return { success: true, recipe };
 
-        } catch (error) {
-            console.error('❌ Error actualizando receta:', error);
-            return { success: false, error: error.message };
-        }
+    } catch (error) {
+        console.error('❌ Error actualizando receta:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async deleteRecipe(recipeId) {
-        try {
-            // Soft delete
-            const { error } = await window.supabaseClient
-                .from('recipes')
-                .update({ is_active: false })
-                .eq('id', recipeId);
+    try {
+        // Soft delete
+        const { error } = await window.supabaseClient
+            .from('recipes')
+            .update({ is_active: false })
+            .eq('id', recipeId);
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Invalidar caché
-            localStorage.removeItem(DB_CACHE_KEY);
+        // Invalidar caché
+        localStorage.removeItem(DB_CACHE_KEY);
 
-            return { success: true };
+        return { success: true };
 
-        } catch (error) {
-            console.error('❌ Error eliminando receta:', error);
-            return { success: false, error: error.message };
-        }
+    } catch (error) {
+        console.error('❌ Error eliminando receta:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async toggleFavorite(recipeId, currentStatus) {
-        try {
-            const { error } = await window.supabaseClient
-                .from('recipes')
-                .update({ is_favorite: !currentStatus })
-                .eq('id', recipeId);
+    try {
+        const { error } = await window.supabaseClient
+            .from('recipes')
+            .update({ is_favorite: !currentStatus })
+            .eq('id', recipeId);
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Actualizar caché local
-            const cached = this._loadFromCache(DB_CACHE_KEY);
-            if (cached) {
-                const updated = cached.map(r =>
-                    r.id === recipeId ? { ...r, is_favorite: !currentStatus } : r
-                );
-                this._saveToCache(DB_CACHE_KEY, updated);
-            }
-
-            return { success: true, isFavorite: !currentStatus };
-
-        } catch (error) {
-            console.error('❌ Error toggle favorito:', error);
-            return { success: false, error: error.message };
+        // Actualizar caché local
+        const cached = this._loadFromCache(DB_CACHE_KEY);
+        if (cached) {
+            const updated = cached.map(r =>
+                r.id === recipeId ? { ...r, is_favorite: !currentStatus } : r
+            );
+            this._saveToCache(DB_CACHE_KEY, updated);
         }
+
+        return { success: true, isFavorite: !currentStatus };
+
+    } catch (error) {
+        console.error('❌ Error toggle favorito:', error);
+        return { success: false, error: error.message };
     }
+}
 
     // --- Bulk insertions ---
     async addIngredients(recipeId, ingredients) {
-        try {
-            const items = ingredients.map(ing => ({
-                recipe_id: recipeId,
-                name_es: ing.name_es,
-                unit_es: ing.unit_es || ing.unit || null,
-                quantity: ing.quantity || null
-            }));
+    try {
+        const items = ingredients.map(ing => ({
+            recipe_id: recipeId,
+            name_es: ing.name_es,
+            unit_es: ing.unit_es || ing.unit || null,
+            quantity: ing.quantity || null
+        }));
 
-            const { error } = await window.supabaseClient
-                .from('ingredients')
-                .insert(items);
+        const { error } = await window.supabaseClient
+            .from('ingredients')
+            .insert(items);
 
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error insertando ingredientes:', error);
-            return { success: false, error: error.message };
-        }
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('❌ Error insertando ingredientes:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async addSteps(recipeId, steps) {
-        try {
-            const items = steps.map((step, idx) => ({
-                recipe_id: recipeId,
-                instruction_es: step.instruction_es,
-                step_number: step.step_order || step.step_number || (idx + 1)
-            }));
+    try {
+        const items = steps.map((step, idx) => ({
+            recipe_id: recipeId,
+            instruction_es: step.instruction_es,
+            step_number: step.step_order || step.step_number || (idx + 1)
+        }));
 
-            const { error } = await window.supabaseClient
-                .from('preparation_steps')
-                .insert(items);
+        const { error } = await window.supabaseClient
+            .from('preparation_steps')
+            .insert(items);
 
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error insertando pasos:', error);
-            return { success: false, error: error.message };
-        }
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('❌ Error insertando pasos:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async deleteIngredients(recipeId) {
-        try {
-            const { error } = await window.supabaseClient
-                .from('ingredients')
-                .delete()
-                .eq('recipe_id', recipeId);
+    try {
+        const { error } = await window.supabaseClient
+            .from('ingredients')
+            .delete()
+            .eq('recipe_id', recipeId);
 
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error eliminando ingredientes:', error);
-            return { success: false, error: error.message };
-        }
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('❌ Error eliminando ingredientes:', error);
+        return { success: false, error: error.message };
     }
+}
 
     async deleteSteps(recipeId) {
-        try {
-            const { error } = await window.supabaseClient
-                .from('preparation_steps')
-                .delete()
-                .eq('recipe_id', recipeId);
+    try {
+        const { error } = await window.supabaseClient
+            .from('preparation_steps')
+            .delete()
+            .eq('recipe_id', recipeId);
 
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error eliminando pasos:', error);
-            return { success: false, error: error.message };
-        }
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        console.error('❌ Error eliminando pasos:', error);
+        return { success: false, error: error.message };
     }
+}
 
     // ============================================
     // IMAGES
     // ============================================
 
     async uploadImage(file, recipeId) {
-        try {
-            const userId = window.authManager.currentUser.id;
-            const fileName = `${userId}/${recipeId}/${Date.now()}-${file.name}`;
+    try {
+        const userId = window.authManager.currentUser.id;
+        const fileName = `${userId}/${recipeId}/${Date.now()}-${file.name}`;
 
-            // Subir a Storage
-            const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
-                .from('recipe-images')
-                .upload(fileName, file);
+        // Subir a Storage
+        const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
+            .from('recipe-images')
+            .upload(fileName, file);
 
-            if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-            // Obtener URL pública
-            const { data: { publicUrl } } = window.supabaseClient.storage
-                .from('recipe-images')
-                .getPublicUrl(fileName);
+        // Obtener URL pública
+        const { data: { publicUrl } } = window.supabaseClient.storage
+            .from('recipe-images')
+            .getPublicUrl(fileName);
 
-            // Guardar metadata
-            const { data: imageData, error: dbError } = await window.supabaseClient
-                .from('recipe_images')
-                .insert([{
-                    recipe_id: recipeId,
-                    image_url: publicUrl,
-                    file_size: file.size,
-                    is_primary: false
-                }])
-                .select()
-                .single();
+        // Guardar metadata
+        const { data: imageData, error: dbError } = await window.supabaseClient
+            .from('recipe_images')
+            .insert([{
+                recipe_id: recipeId,
+                image_url: publicUrl,
+                file_size: file.size,
+                is_primary: false
+            }])
+            .select()
+            .single();
 
-            if (dbError) throw dbError;
+        if (dbError) throw dbError;
 
-            return { success: true, image: imageData };
+        return { success: true, image: imageData };
 
-        } catch (error) {
-            console.error('❌ Error subiendo imagen:', error);
-            return { success: false, error: error.message };
-        }
+    } catch (error) {
+        console.error('❌ Error subiendo imagen:', error);
+        return { success: false, error: error.message };
     }
+}
 
     // ============================================
     // CATEGORIES
     // ============================================
 
     async getMyCategories() {
-        try {
-            const { data, error } = await window.supabaseClient
-                .from('categories')
-                .select('*')
-                .order('order_index');
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('categories')
+            .select('*')
+            .order('order_index');
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Guardar categorías en caché
-            this._saveToCache(DB_CATEGORIES_KEY, data);
+        // Guardar categorías en caché
+        this._saveToCache(DB_CATEGORIES_KEY, data);
 
-            return { success: true, categories: data };
+        return { success: true, categories: data };
 
-        } catch (error) {
-            console.warn('⚠️ Error de red en categorías, usando caché:', error);
+    } catch (error) {
+        console.warn('⚠️ Error de red en categorías, usando caché:', error);
 
-            const cached = this._loadFromCache(DB_CATEGORIES_KEY);
-            if (cached) return { success: true, categories: cached, fromCache: true };
+        const cached = this._loadFromCache(DB_CATEGORIES_KEY);
+        if (cached) return { success: true, categories: cached, fromCache: true };
 
-            console.error('❌ Error obteniendo categorías:', error);
-            return { success: false, categories: [] };
-        }
+        console.error('❌ Error obteniendo categorías:', error);
+        return { success: false, categories: [] };
     }
+}
 }
 
 // Instancia global
