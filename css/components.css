@@ -1208,14 +1208,13 @@ select.input-field {
     transition: width 0.25s ease;
 }
 
-/* ─── Slim sidebar (Dropbox-style: icon-only) ─────────── */
+/* ─── Slim sidebar (Dropbox-style: icon + labels) ─────────── */
 .sidebar--slim {
-    width: 72px;
-    min-width: 72px;
+    width: 96px;
+    min-width: 96px;
 }
 
 .sidebar--slim .logo-text,
-.sidebar--slim .nav-item span:not(.material-symbols-outlined),
 .sidebar--slim .user-info-m3,
 .sidebar--slim .sidebar-user-profile .user-greeting,
 .sidebar--slim .sidebar-user-profile .user-status {
@@ -1232,9 +1231,18 @@ select.input-field {
 }
 
 .sidebar--slim .nav-item {
+    flex-direction: column;
     justify-content: center;
-    padding: 12px;
-    gap: 0;
+    padding: 12px 4px;
+    gap: 4px;
+    text-align: center;
+}
+
+.sidebar--slim .nav-item span:not(.material-symbols-outlined) {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 .sidebar--slim .sidebar-user-profile {
@@ -1293,24 +1301,39 @@ select.input-field {
 }
 
 .nav-item.active {
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: transparent;
+    color: var(--primary);
     font-weight: 700;
-}
-
-.nav-item.active .material-symbols-outlined {
-    font-variation-settings: 'FILL' 1;
-}
-
-.nav-item {
-    border-left: 4px solid transparent;
-}
-
-.nav-item.active {
-    border-left: 4px solid #FF7A50;
-    border-radius: 0 16px 16px 0;
-    margin-right: 16px;
+    border-left: 4px solid var(--primary);
+    border-radius: 0;
+    margin-right: 0;
     padding-left: 28px;
+}
+
+/* Remove green pill from user profile */
+.user-avatar-m3 {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.sidebar-user-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    background: transparent;
+    border: none;
 }
 
 /* Main Content Area */

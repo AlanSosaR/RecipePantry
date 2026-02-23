@@ -72,22 +72,30 @@
         grid-template-columns: 1fr;
     }
 
-    /* Sidebar icono-only en tablet */
+    /* Sidebar icono + etiqueta en tablet */
     .sidebar {
-        width: 80px;
-        min-width: 80px;
+        width: 96px;
+        min-width: 96px;
         padding: 24px 0;
         position: sticky;
         top: 0;
         height: 100vh;
         flex-shrink: 0;
+        background: white;
     }
 
-    /* Ocultar textos en sidebar (tablet) */
+    /* Ocultar textos secundarios en sidebar (tablet), pero dejar iconos e iconos de nav */
     .logo-text,
-    .nav-item span:not(.material-symbols-outlined),
     .sidebar-user-profile .user-info-m3 {
         display: none;
+    }
+
+    .nav-item span:not(.material-symbols-outlined) {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        text-align: center;
+        margin-top: 4px;
     }
 
     .sidebar-logo {
@@ -97,8 +105,10 @@
     }
 
     .nav-item {
+        flex-direction: column;
         justify-content: center;
-        padding: 12px;
+        padding: 12px 4px;
+        gap: 0;
     }
 
     .main-content {

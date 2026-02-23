@@ -9,21 +9,21 @@
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
     /* Colores RecipeHub Drive - Esmeralda */
-    --primary: #10B981;
-    --primary-light: #D1FAE5;
-    --primary-dark: #059669;
+    --primary: #EA580C;
+    --primary-light: #FFF7ED;
+    --primary-dark: #C2410C;
     --on-primary: #FFFFFF;
 
-    --secondary: #34D399;
-    --secondary-light: #ECFDF5;
-    --on-secondary: #064E3B;
+    --secondary: #F97316;
+    --secondary-light: #FFF7ED;
+    --on-secondary: #FFFFFF;
 
     /* Superficies */
     --bg: #FFFFFF;
     --surface: #FFFFFF;
-    --surface-variant: #F0FDF4;
+    --surface-variant: #F9FAFB;
     --surface-card: #FFFFFF;
-    --outline: #D1FAE5;
+    --outline: #E5E7EB;
 
     --text-main: #1F2937;
     --text-secondary: #6B7280;
@@ -58,14 +58,14 @@
     --font-body: 'Inter', sans-serif;
 
     /* Material 3 Tokens */
-    --surface-container-low: #F0FDF4;
-    --surface-container: #ECFDF5;
-    --surface-container-high: #D1FAE5;
-    --secondary-container: #D1FAE5;
-    --on-secondary-container: #064E3B;
-    --tertiary-container: #E9EFED;
-    --on-tertiary-container: #064E3B;
-    --outline-variant: #D1FAE5;
+    --surface-container-low: #FFFFFF;
+    --surface-container: #F9FAFB;
+    --surface-container-high: #F3F4F6;
+    --secondary-container: #FFEEE8;
+    --on-secondary-container: #EA580C;
+    --tertiary-container: #F3F4F6;
+    --on-tertiary-container: #1F2937;
+    --outline-variant: #F3F4F6;
     --on-surface-variant: #444746;
     --on-surface: #1B1B1F;
 
