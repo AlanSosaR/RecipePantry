@@ -5,8 +5,8 @@
     "start_url": "/index.html",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#EA580C",
-    "theme_color": "#EA580C",
+    "background_color": "#F9FAFB",
+    "theme_color": "#10B981",
     "lang": "es",
     "categories": [
         "food",
