@@ -1,18 +1,12 @@
 /**
  * ShareModalManager - RecipeHub
- * Maneja la lógica del modal de compartir simplificado
+ * Maneja la lógica del modal de compartir con búsqueda real en BD
  */
 class ShareModalManager {
     constructor() {
         this.recipeId = null;
         this.selectedUsers = [];
-        this.allUsers = [
-            { id: '1', name: 'Wildryn Castellanos', email: 'wildryn@example.com', avatar: 'W' },
-            { id: '2', name: 'Alan Sosa', email: 'alan@example.com', avatar: 'A' },
-            { id: '3', name: 'María García', email: 'maria@example.com', avatar: 'M' },
-            { id: '4', name: 'Juan Pérez', email: 'juan@example.com', avatar: 'J' },
-            { id: '5', name: 'Elena Rodríguez', email: 'elena@example.com', avatar: 'E' }
-        ];
+        this.searchTimeout = null;
 
         this.init();
     }
@@ -27,11 +21,22 @@ class ShareModalManager {
 
         if (!this.modal) return;
 
-        // Búsqueda en tiempo real
+        // Búsqueda en tiempo real con debounce
         if (this.searchInput) {
-            this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+            this.searchInput.addEventListener('input', (e) => {
+                clearTimeout(this.searchTimeout);
+                const value = e.target.value.trim();
+                if (!value) {
+                    this.suggestionsContainer.classList.add('hidden');
+                    return;
+                }
+                // Esperar 300ms antes de buscar
+                this.searchTimeout = setTimeout(() => this.handleSearch(value), 300);
+            });
+
             this.searchInput.addEventListener('focus', () => {
-                if (this.searchInput.value) this.handleSearch(this.searchInput.value);
+                const value = this.searchInput.value.trim();
+                if (value) this.handleSearch(value);
             });
         }
 
@@ -54,62 +59,106 @@ class ShareModalManager {
         this.renderChips();
         this.updateShareButton();
 
-        // Simular obtención de datos de la receta
         const recipe = window.dashboard ? window.dashboard.currentRecipes.find(r => r.id === recipeId) : null;
         if (recipe) {
             document.getElementById('share-modal-title').textContent = `Compartir "${recipe.name_es}"`;
-            // El tamaño es un mock en este caso ya que no está en la DB real
             document.getElementById('share-modal-size').textContent = "1.56 KB";
         }
 
         this.modal.classList.remove('hidden');
-        if (this.searchInput) this.searchInput.focus();
+        if (this.searchInput) {
+            this.searchInput.value = '';
+            this.searchInput.focus();
+        }
+        if (this.suggestionsContainer) this.suggestionsContainer.classList.add('hidden');
     }
 
     close() {
         this.modal.classList.add('hidden');
         if (this.searchInput) this.searchInput.value = '';
         if (this.suggestionsContainer) this.suggestionsContainer.classList.add('hidden');
+        clearTimeout(this.searchTimeout);
     }
 
-    handleSearch(query) {
-        if (!query.trim()) {
-            this.suggestionsContainer.classList.add('hidden');
-            return;
+    async handleSearch(query) {
+        // Mostrar spinner mientras busca
+        this.suggestionsContainer.innerHTML = `
+            <div style="padding: 16px; text-align: center; color: #aaa; font-size: 13px;">
+                Buscando...
+            </div>
+        `;
+        this.suggestionsContainer.classList.remove('hidden');
+
+        try {
+            const currentUser = window.authManager.currentUser;
+            const currentProfileId = await this.getCurrentProfileId(currentUser.id);
+
+            const { data: users, error } = await window.supabaseClient
+                .rpc('search_users', {
+                    query: query,
+                    current_user_id: currentProfileId
+                });
+
+            if (error) throw error;
+
+            // Filtrar ya seleccionados
+            const filtered = (users || []).filter(
+                u => !this.selectedUsers.some(s => s.id === u.id)
+            );
+
+            this.renderSuggestions(filtered);
+
+        } catch (err) {
+            console.error('Error buscando usuarios:', err);
+            this.suggestionsContainer.innerHTML = `
+                <div style="padding: 16px; text-align: center; color: #aaa; font-size: 13px;">
+                    Error al buscar usuarios
+                </div>
+            `;
         }
+    }
 
-        const filteredUsers = this.allUsers.filter(user =>
-            (user.name.toLowerCase().includes(query.toLowerCase()) ||
-                user.email.toLowerCase().includes(query.toLowerCase())) &&
-            !this.selectedUsers.some(selected => selected.id === user.id)
-        ).slice(0, 5);
-
-        this.renderSuggestions(filteredUsers);
+    async getCurrentProfileId(authUserId) {
+        // Obtener el ID del perfil público del usuario actual
+        const { data } = await window.supabaseClient
+            .from('users')
+            .select('id')
+            .eq('auth_user_id', authUserId)
+            .single();
+        return data?.id || authUserId;
     }
 
     renderSuggestions(users) {
         if (users.length === 0) {
-            this.suggestionsContainer.classList.add('hidden');
+            this.suggestionsContainer.innerHTML = `
+                <div style="padding: 16px; text-align: center; color: #aaa; font-size: 13px;">
+                    No se encontraron usuarios
+                </div>
+            `;
+            this.suggestionsContainer.classList.remove('hidden');
             return;
         }
 
-        this.suggestionsContainer.innerHTML = users.map(user => `
-            <div class="suggestion-item" onclick="window.shareModal.addUser('${user.id}')">
-                <div class="suggestion-avatar">${user.avatar}</div>
-                <div class="suggestion-info">
-                    <span class="suggestion-name">${user.name}</span>
-                    <span class="suggestion-email">${user.email}</span>
+        this.suggestionsContainer.innerHTML = users.map(user => {
+            const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Usuario';
+            const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '') || user.email?.[0]?.toUpperCase() || '?';
+            return `
+                <div class="suggestion-item" onclick="window.shareModal.addUser('${user.id}', '${name.replace(/'/g, "\\'")}', '${user.email}', '${initials}')">
+                    <div class="suggestion-avatar">${initials}</div>
+                    <div class="suggestion-info">
+                        <span class="suggestion-name">${name}</span>
+                        <span class="suggestion-email">${user.email || ''}</span>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         this.suggestionsContainer.classList.remove('hidden');
     }
 
-    addUser(userId) {
-        const user = this.allUsers.find(u => u.id === userId);
-        if (user && !this.selectedUsers.some(u => u.id === userId)) {
-            this.selectedUsers.push(user);
+    addUser(userId, name, email, initials) {
+        if (!this.selectedUsers.some(u => u.id === userId)) {
+            this.selectedUsers.push({ id: userId, name, email, avatar: initials });
             this.renderChips();
             this.updateShareButton();
             if (this.searchInput) {
@@ -142,20 +191,45 @@ class ShareModalManager {
         }
     }
 
-    share() {
+    async share() {
         if (this.selectedUsers.length === 0) return;
 
-        const permission = document.getElementById('share-permission').value;
+        const permissionEl = document.getElementById('share-permission');
+        const permissionValue = permissionEl ? permissionEl.value : 'view';
+        // Mapear al valor que acepta la BD
+        const dbPermission = permissionValue === 'add' ? 'view_and_copy' : 'view';
+
         const names = this.selectedUsers.map(u => u.name).join(', ');
 
-        // Obtener datos de la receta
+        // Obtener el ID del perfil del propietario actual
+        const ownerProfileId = await this.getCurrentProfileId(window.authManager.currentUser.id);
+
+        // Guardar en shared_recipes para cada destinatario
+        const insertions = this.selectedUsers.map(user => ({
+            owner_user_id: ownerProfileId,
+            recipe_id: this.recipeId,
+            recipient_user_id: user.id,
+            permission: dbPermission,
+            status: 'pending'
+        }));
+
+        const { error } = await window.supabaseClient
+            .from('shared_recipes')
+            .insert(insertions);
+
+        if (error) {
+            console.error('Error compartiendo:', error);
+            window.utils.showToast('Error al compartir la receta', 'error');
+            return;
+        }
+
+        // Notificación local para demo
         const recipe = window.dashboard
             ? window.dashboard.currentRecipes.find(r => r.id === this.recipeId)
             : null;
 
-        // Enviar notificación simulada al "destinatario" (en este caso el mismo usuario para demo)
         if (recipe && window.notificationManager) {
-            window.notificationManager.simulateNotificationReceived(recipe, permission);
+            window.notificationManager.simulateNotificationReceived(recipe, permissionValue);
         }
 
         window.utils.showToast(`✅ Compartido con ${names}`, 'success');
@@ -181,7 +255,7 @@ class ShareModalManager {
     }
 }
 
-// Inicializar y exponer globalmente
+// Inicializar
 window.addEventListener('DOMContentLoaded', () => {
     window.shareModal = new ShareModalManager();
 });
