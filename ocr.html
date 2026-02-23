@@ -25,6 +25,25 @@
 
     <style>
         :root {
+            --md-surface: #FFFFFF;
+            --md-surface-1: #F9FAFB;
+            --md-on-surface: #1B1B1F;
+            --md-on-surface-var: #444746;
+            --md-primary: #10B981;
+            --md-primary-container: #F0FDF4;
+            --md-on-primary-container: #059669;
+            --md-surface-variant: #F9FAFB;
+            --md-outline-var: #E5E7EB;
+            --md-outline: #C4C7C5;
+            --md-elev-1: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px 1px rgba(0, 0, 0, 0.1);
+            --md-elev-2: 0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 6px 2px rgba(0, 0, 0, 0.1);
+            --md-shape-full: 9999px;
+            --md-shape-xl: 28px;
+            --md-shape-lg: 16px;
+            --md-shape-md: 12px;
+            --md-error: #B3261E;
+
+            /* Legacy support */
             --primary: #10B981;
             --primary-light: #F0FDF4;
             --secondary: #34D399;
@@ -34,12 +53,102 @@
             --on-surface-variant: #444746;
         }
 
+        body {
+            font-family: var(--font-body);
+            background: #F9FAFB;
+            color: var(--md-on-surface);
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            margin: 0;
+        }
+
+        /* ─── Main shell ──────────────────────────────── */
+        .m3-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background: var(--md-surface);
+        }
+
+        /* ─── Top App Bar ─────────────────────────────── */
+        .m3-top-bar {
+            height: 72px;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--md-outline-var);
+            background: var(--md-surface);
+        }
+
+        .m3-top-bar .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .m3-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--md-shape-full);
+            border: 1.5px solid var(--md-outline-var);
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--md-primary);
+            transition: all .2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .m3-icon-btn:hover {
+            background: var(--md-primary-container);
+            border-color: var(--md-primary);
+            transform: scale(1.05);
+        }
+
+        .m3-top-bar h1 {
+            font-family: var(--font-brand);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--md-on-surface);
+            margin: 0;
+        }
+
+        /* ─── Scroll area ─────────────────────────────── */
+        .m3-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 32px 24px;
+            scroll-behavior: smooth;
+        }
+
         .ocr-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 24px;
-            padding-top: 100px;
-            min-height: 100vh;
+            padding: 0;
+            min-height: auto;
+        }
+
+        /* ─── Mobile ──────────────────────────────────── */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .m3-scroll {
+                padding: 16px;
+            }
+
+            .m3-top-bar h1 {
+                font-size: 17px;
+            }
         }
 
         .ocr-step {
@@ -282,176 +391,259 @@
 </head>
 
 <body style="background-color: #FFFFFF;">
-    <!-- Top Bar -->
-    <header class="header-fixed">
-        <button onclick="goBack()" style="background:none; border:none; padding:8px; cursor:pointer; color:#374151;">
-            <span class="material-symbols-rounded">arrow_back</span>
-        </button>
-        <h1 style="font-size: 18px; font-weight: 700; margin-left: 12px;">Escanear Receta</h1>
-    </header>
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <main class="ocr-container">
-        <!-- Step Indicator -->
-        <div class="step-indicator">
-            <div id="dot1" class="step-dot active"></div>
-            <div id="dot2" class="step-dot"></div>
-            <div id="dot3" class="step-dot"></div>
-        </div>
-
-        <!-- PASO 1: Capturar Imagen -->
-        <div id="step1" class="ocr-step active">
-            <div style="margin-bottom: 32px;">
-                <h2 class="brand-font" style="font-size: 32px; color: #111827; margin-bottom: 12px;">Prepara tu escáner
-                </h2>
-                <p style="color: var(--on-surface-variant); font-size: 16px;">Sube una foto clara de tu receta para
-                    digitalizarla al instante.</p>
-            </div>
-
-            <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                <div
-                    style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(234, 88, 12, 0.2);">
-                    <span class="material-symbols-rounded" style="font-size: 32px;">add_a_photo</span>
-                </div>
-                <p style="font-weight: 600; color: #111827; font-size: 18px;">Selecciona o arrastra una imagen</p>
-                <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;">Formatos JPG, PNG
-                    compatibles</p>
-            </div>
-
-            <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;"
-                onchange="handleFileSelect(event)">
-
-            <div style="display: flex; gap: 12px; margin-top: 24px;">
-                <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
-                    onclick="openCamera()">
-                    <span class="material-symbols-rounded">camera</span>
-                    Cámara
-                </button>
-                <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
-                    onclick="openGallery()">
-                    <span class="material-symbols-rounded">image</span>
-                    Galería
-                </button>
-            </div>
-
-            <div
-                style="margin-top: 32px; padding: 20px; background: white; border-radius: 20px; border: 1px solid #F3F4F6;">
-                <p
-                    style="font-size: 14px; color: #374151; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    <span class="material-symbols-rounded" style="font-size: 18px; color: #F59E0B;">lightbulb</span>
-                    Consejos Pro:
-                </p>
-                <ul style="margin-top: 12px; font-size: 14px; color: #6B7280; padding-left: 20px; line-height: 1.6;">
-                    <li>Asegúrate que el texto sea legible.</li>
-                    <li>Usa buena iluminación (evita sombras).</li>
-                    <li>Mantén la cámara paralela al papel.</li>
-                </ul>
+    <!-- Sidebar Desktop & Mobile Drawer -->
+    <aside id="main-sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <span class="material-symbols-outlined logo-icon" style="color: var(--primary);">menu_book</span>
+                <span class="logo-text" style="color: var(--logo-orange);">RecipeHub</span>
             </div>
         </div>
 
-        <!-- PASO 2: Procesando -->
-        <div id="step2" class="ocr-step">
-            <div style="margin-bottom: 32px;">
-                <h2 class="brand-font" style="font-size: 32px; color: #111827; margin-bottom: 12px;">Analizando...</h2>
-                <p style="color: var(--on-surface-variant); font-size: 16px;">Estamos extrayendo los secretos de tu
-                    receta.</p>
+        <div class="sidebar-user-profile">
+            <div class="user-avatar-m3">
+                <span id="sidebar-user-initials">CH</span>
             </div>
+            <div class="user-info-m3">
+                <span id="sidebar-user-greeting" class="user-greeting">Chef</span>
+            </div>
+        </div>
 
-            <div style="text-align: center; position: relative;">
-                <div style="position: relative; display: inline-block;">
-                    <img id="previewImage" class="preview-image" alt="Preview">
-                    <div id="scanningLine" class="scanning-line hidden"></div>
-                </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item">
+                <span class="material-symbols-outlined">home</span>
+                <span>Recetas</span>
+            </a>
+            <a href="index.html?view=favorites" class="nav-item">
+                <span class="material-symbols-outlined">star</span>
+                <span>Favoritos</span>
+            </a>
+            <a href="ocr.html" class="nav-item active">
+                <span class="material-symbols-outlined">document_scanner</span>
+                <span>Escanear Receta</span>
+            </a>
+            <a href="index.html?view=shared" class="nav-item">
+                <span class="material-symbols-outlined">share</span>
+                <span>Compartidas</span>
+            </a>
+            <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
 
-                <div style="display: flex; flex-direction: column; align-items: center; margin: 32px 0;">
-                    <p id="processingStatus"
-                        style="margin-bottom: 16px; font-weight: 600; color: var(--primary); font-size: 18px;">
-                        Iniciando OCR...</p>
-                    <div class="progress-container" style="max-width: 400px;">
-                        <div id="progressBar" class="progress-bar"></div>
+        <div class="sidebar-footer">
+            <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
+                style="width: 100%; justify-content: flex-start; padding-left: 16px;"
+                onclick="window.toggleSlimSidebar()">
+                <span class="material-symbols-outlined">side_navigation</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ── Main ── -->
+    <main class="m3-main">
+
+        <!-- Top App Bar -->
+        <header class="m3-top-bar">
+            <div class="left">
+                <button class="m3-icon-btn" onclick="goBack()" title="Volver">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1>Escanear Receta</h1>
+            </div>
+            <div class="right">
+                <div class="m3-avatar">
+                    <div id="userAvatar"
+                        style="width:100%;height:100%;background:var(--md-primary-container);display:flex;align-items:center;justify-content:center;">
+                        <span class="material-symbols-outlined"
+                            style="font-size:20px;color:var(--md-on-primary-container)">person</span>
                     </div>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- PASO 3: Editar y Guardar -->
-        <div id="step3" class="ocr-step">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                <h2 style="font-size: 24px; margin: 0;">Resultado</h2>
-                <span id="confidenceBadge" class="confidence-badge"></span>
-            </div>
-
-            <!-- Tabs Navigation -->
-            <div style="display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px; overflow-x: auto;">
-                <button class="tab-button active" data-tab="raw" onclick="switchTab('raw')">Texto Crudo</button>
-                <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')">Vista Previa</button>
-                <button class="tab-button" data-tab="ag" onclick="switchTab('ag')" style="color: #6366f1;">
-                    <span class="material-symbols-rounded"
-                        style="font-size: 18px; vertical-align: middle;">psychology</span>
-                    Análisis AG
-                </button>
-            </div>
-
-            <!-- Tab: Raw Text -->
-            <div id="tabRaw" class="tab-content">
-                <textarea id="extractedText" class="extracted-text" placeholder="Edita el texto aquí..."></textarea>
-                <p style="font-size: 12px; color: #6B7280; margin-top: 8px; font-style: italic;">
-                    Puedes corregir cualquier error de detección directamente arriba.
-                </p>
-            </div>
-
-            <!-- Tab: Parsed Preview -->
-            <div id="tabParsed" class="tab-content" style="display: none;">
-                <div class="parsed-section">
-                    <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Nombre
-                        de la Receta</label>
-                    <input type="text" id="parsedName" class="form-input" style="margin-top: 8px; font-weight: 600;">
+        <!-- Scroll area -->
+        <div class="m3-scroll">
+            <div class="ocr-container">
+                <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div id="dot1" class="step-dot active"></div>
+                    <div id="dot2" class="step-dot"></div>
+                    <div id="dot3" class="step-dot"></div>
                 </div>
 
-                <div class="parsed-section">
-                    <label
-                        style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Ingredientes</label>
-                    <div id="parsedIngredients" style="margin-top: 8px;"></div>
-                </div>
+                <!-- PASO 1: Capturar Imagen -->
+                <div id="step1" class="ocr-step active">
+                    <div style="margin-bottom: 32px;">
+                        <h2 class="brand-font" style="font-size: 32px; color: #111827; margin-bottom: 12px;">Prepara tu
+                            escáner
+                        </h2>
+                        <p style="color: var(--on-surface-variant); font-size: 16px;">Sube una foto clara de tu receta
+                            para
+                            digitalizarla al instante.</p>
+                    </div>
 
-                <div class="parsed-section">
-                    <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Pasos
-                        de Preparación</label>
-                    <div id="parsedSteps" style="margin-top: 8px;"></div>
-                </div>
-            </div>
+                    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                        <div
+                            style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(234, 88, 12, 0.2);">
+                            <span class="material-symbols-rounded" style="font-size: 32px;">add_a_photo</span>
+                        </div>
+                        <p style="font-weight: 600; color: #111827; font-size: 18px;">Selecciona o arrastra una imagen
+                        </p>
+                        <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;">Formatos JPG, PNG
+                            compatibles</p>
+                    </div>
 
-            <!-- Tab: Anti Gravity Exhaustive Analysis -->
-            <div id="tabAg" class="tab-content" style="display: none;">
-                <div
-                    style="background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 20px; padding: 20px; font-family: 'Courier New', Courier, monospace; color: #312E81;">
+                    <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;"
+                        onchange="handleFileSelect(event)">
+
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
+                            onclick="openCamera()">
+                            <span class="material-symbols-rounded">camera</span>
+                            Cámara
+                        </button>
+                        <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
+                            onclick="openGallery()">
+                            <span class="material-symbols-rounded">image</span>
+                            Galería
+                        </button>
+                    </div>
+
                     <div
-                        style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #C7D2FE; padding-bottom: 8px;">
-                        <span class="material-symbols-rounded">analytics</span>
-                        <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">ANÁLISIS
-                            EXHAUSTIVO TOTAL</strong>
+                        style="margin-top: 32px; padding: 20px; background: white; border-radius: 20px; border: 1px solid #F3F4F6;">
+                        <p
+                            style="font-size: 14px; color: #374151; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-rounded"
+                                style="font-size: 18px; color: #F59E0B;">lightbulb</span>
+                            Consejos Pro:
+                        </p>
+                        <ul
+                            style="margin-top: 12px; font-size: 14px; color: #6B7280; padding-left: 20px; line-height: 1.6;">
+                            <li>Asegúrate que el texto sea legible.</li>
+                            <li>Usa buena iluminación (evita sombras).</li>
+                            <li>Mantén la cámara paralela al papel.</li>
+                        </ul>
                     </div>
-                    <textarea id="agReportText" readonly
-                        style="width: 100%; min-height: 400px; background: transparent; border: none; font-family: inherit; font-size: 13px; line-height: 1.5; color: inherit; resize: none; outline: none;"></textarea>
                 </div>
-                <p style="font-size: 12px; color: #6B7280; margin-top: 12px; text-align: center;">
-                    Modo Motor de Escaneo Ultra-Preciso v1.0 • Anti Gravity
-                </p>
-            </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 32px; padding-bottom: 40px;">
-                <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
-                    onclick="goToStep(1)">
-                    <span class="material-symbols-rounded">refresh</span>
-                    Reintentar
-                </button>
-                <button id="btnSaveRecipe" class="btn btn-primary"
-                    style="flex: 2; border-radius: 16px; height: 56px; background: var(--primary);"
-                    onclick="saveRecipe()">
-                    <span class="material-symbols-rounded">check_circle</span>
-                    Guardar Receta
-                </button>
-            </div>
-        </div>
+                <!-- PASO 2: Procesando -->
+                <div id="step2" class="ocr-step">
+                    <div style="margin-bottom: 32px;">
+                        <h2 class="brand-font" style="font-size: 32px; color: #111827; margin-bottom: 12px;">
+                            Analizando...</h2>
+                        <p style="color: var(--on-surface-variant); font-size: 16px;">Estamos extrayendo los secretos de
+                            tu
+                            receta.</p>
+                    </div>
+
+                    <div style="text-align: center; position: relative;">
+                        <div style="position: relative; display: inline-block;">
+                            <img id="previewImage" class="preview-image" alt="Preview">
+                            <div id="scanningLine" class="scanning-line hidden"></div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: center; margin: 32px 0;">
+                            <p id="processingStatus"
+                                style="margin-bottom: 16px; font-weight: 600; color: var(--primary); font-size: 18px;">
+                                Iniciando OCR...</p>
+                            <div class="progress-container" style="max-width: 400px;">
+                                <div id="progressBar" class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3: Editar y Guardar -->
+                <div id="step3" class="ocr-step">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h2 style="font-size: 24px; margin: 0;">Resultado</h2>
+                        <span id="confidenceBadge" class="confidence-badge"></span>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div
+                        style="display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px; overflow-x: auto;">
+                        <button class="tab-button active" data-tab="raw" onclick="switchTab('raw')">Texto Crudo</button>
+                        <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')">Vista Previa</button>
+                        <button class="tab-button" data-tab="ag" onclick="switchTab('ag')" style="color: #6366f1;">
+                            <span class="material-symbols-rounded"
+                                style="font-size: 18px; vertical-align: middle;">psychology</span>
+                            Análisis AG
+                        </button>
+                    </div>
+
+                    <!-- Tab: Raw Text -->
+                    <div id="tabRaw" class="tab-content">
+                        <textarea id="extractedText" class="extracted-text"
+                            placeholder="Edita el texto aquí..."></textarea>
+                        <p style="font-size: 12px; color: #6B7280; margin-top: 8px; font-style: italic;">
+                            Puedes corregir cualquier error de detección directamente arriba.
+                        </p>
+                    </div>
+
+                    <!-- Tab: Parsed Preview -->
+                    <div id="tabParsed" class="tab-content" style="display: none;">
+                        <div class="parsed-section">
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Nombre
+                                de la Receta</label>
+                            <input type="text" id="parsedName" class="form-input"
+                                style="margin-top: 8px; font-weight: 600;">
+                        </div>
+
+                        <div class="parsed-section">
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Ingredientes</label>
+                            <div id="parsedIngredients" style="margin-top: 8px;"></div>
+                        </div>
+
+                        <div class="parsed-section">
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Pasos
+                                de Preparación</label>
+                            <div id="parsedSteps" style="margin-top: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Anti Gravity Exhaustive Analysis -->
+                    <div id="tabAg" class="tab-content" style="display: none;">
+                        <div
+                            style="background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 20px; padding: 20px; font-family: 'Courier New', Courier, monospace; color: #312E81;">
+                            <div
+                                style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #C7D2FE; padding-bottom: 8px;">
+                                <span class="material-symbols-rounded">analytics</span>
+                                <strong
+                                    style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">ANÁLISIS
+                                    EXHAUSTIVO TOTAL</strong>
+                            </div>
+                            <textarea id="agReportText" readonly
+                                style="width: 100%; min-height: 400px; background: transparent; border: none; font-family: inherit; font-size: 13px; line-height: 1.5; color: inherit; resize: none; outline: none;"></textarea>
+                        </div>
+                        <p style="font-size: 12px; color: #6B7280; margin-top: 12px; text-align: center;">
+                            Modo Motor de Escaneo Ultra-Preciso v1.0 • Anti Gravity
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 32px; padding-bottom: 40px;">
+                        <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
+                            onclick="goToStep(1)">
+                            <span class="material-symbols-rounded">refresh</span>
+                            Reintentar
+                        </button>
+                        <button id="btnSaveRecipe" class="btn btn-primary"
+                            style="flex: 2; border-radius: 16px; height: 56px; background: var(--primary);"
+                            onclick="saveRecipe()">
+                            <span class="material-symbols-rounded">check_circle</span>
+                            Guardar Receta
+                        </button>
+                    </div>
+                </div>
     </main>
 
     <!-- Scripts -->
@@ -668,8 +860,21 @@
         }
 
         function goBack() {
-            if (confirm('¿Deseas salir? Se perderá el progreso actual.')) history.back();
+            window.location.href = 'index.html';
         }
+    </script>
+    </div> <!-- .ocr-container -->
+    </div> <!-- .m3-scroll -->
+    </main> <!-- .m3-main -->
+
+    <script src="js/ui.js?v=2"></script>
+    <script>
+        // Initialize sidebar
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.utils && window.utils.updateUserUI) {
+                window.utils.updateUserUI();
+            }
+        });
     </script>
 </body>
 
