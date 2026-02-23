@@ -8,23 +8,22 @@
 
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
-    /* Colores RecipeHub Drive - Estética Naranja Vibrante */
-    --primary: #EA580C;
-    --primary-light: #FFEDD5;
-    --primary-dark: #9A3412;
+    /* Colores RecipeHub Drive - Esmeralda */
+    --primary: #10B981;
+    --primary-light: #D1FAE5;
+    --primary-dark: #059669;
     --on-primary: #FFFFFF;
 
-    --secondary: #F59E0B;
-    /* Ámbar Vibrante */
-    --secondary-light: #FEF3C7;
-    --on-secondary: #451A03;
+    --secondary: #34D399;
+    --secondary-light: #ECFDF5;
+    --on-secondary: #064E3B;
 
-    /* Superficies Drive */
+    /* Superficies */
     --bg: #FFFFFF;
     --surface: #FFFFFF;
-    --surface-variant: #FFF7ED;
+    --surface-variant: #F0FDF4;
     --surface-card: #FFFFFF;
-    --outline: #FDE6D2;
+    --outline: #D1FAE5;
 
     --text-main: #1F2937;
     --text-secondary: #6B7280;
@@ -41,7 +40,7 @@
     --space-xl: 32px;
     --space-2xl: 48px;
 
-    /* Border Radius - Premium Mashup */
+    /* Border Radius */
     --radius-sm: 12px;
     --radius-md: 16px;
     --radius-lg: 24px;
@@ -54,19 +53,19 @@
     --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
     --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.08);
 
-    /* Tipografía Premium */
+    /* Tipografía */
     --font-display: 'Epilogue', sans-serif;
     --font-body: 'Inter', sans-serif;
 
-    /* Material 3 Expressive Tokens */
-    --surface-container-low: #FFFBF7;
-    --surface-container: #FFF7ED;
-    --surface-container-high: #FFEDD5;
-    --secondary-container: #FEF3C7;
-    --on-secondary-container: #451A03;
+    /* Material 3 Tokens */
+    --surface-container-low: #F0FDF4;
+    --surface-container: #ECFDF5;
+    --surface-container-high: #D1FAE5;
+    --secondary-container: #D1FAE5;
+    --on-secondary-container: #064E3B;
     --tertiary-container: #E9EFED;
     --on-tertiary-container: #064E3B;
-    --outline-variant: #FDE6D2;
+    --outline-variant: #D1FAE5;
     --on-surface-variant: #444746;
     --on-surface: #1B1B1F;
 

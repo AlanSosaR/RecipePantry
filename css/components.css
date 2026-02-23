@@ -1205,6 +1205,45 @@ select.input-field {
     top: 0;
     height: 100vh;
     flex-shrink: 0;
+    transition: width 0.25s ease;
+}
+
+/* ─── Slim sidebar (Dropbox-style: icon-only) ─────────── */
+.sidebar--slim {
+    width: 72px;
+    min-width: 72px;
+}
+
+.sidebar--slim .logo-text,
+.sidebar--slim .nav-item span:not(.material-symbols-outlined),
+.sidebar--slim .user-info-m3,
+.sidebar--slim .sidebar-user-profile .user-greeting,
+.sidebar--slim .sidebar-user-profile .user-status {
+    display: none;
+}
+
+.sidebar--slim .sidebar-logo {
+    padding: 0;
+    justify-content: center;
+}
+
+.sidebar--slim .sidebar-nav {
+    padding: 0 8px;
+}
+
+.sidebar--slim .nav-item {
+    justify-content: center;
+    padding: 12px;
+    gap: 0;
+}
+
+.sidebar--slim .sidebar-user-profile {
+    justify-content: center;
+}
+
+.sidebar--slim .sidebar-toggle-btn {
+    justify-content: center;
+    padding-left: 0 !important;
 }
 
 .sidebar-logo {
@@ -1221,7 +1260,7 @@ select.input-field {
 
 .sidebar-logo .material-symbols-outlined {
     font-size: 32px;
-    color: var(--primary);
+    color: #FF7A50;
 }
 
 .sidebar-nav {
@@ -1249,13 +1288,13 @@ select.input-field {
 }
 
 .nav-item:hover {
-    background: #FFF5F2;
+    background: var(--primary-light);
     color: var(--primary);
 }
 
 .nav-item.active {
-    background: #FFF0EB;
-    color: #FF7A50;
+    background: var(--primary-light);
+    color: var(--primary-dark);
     font-weight: 700;
 }
 
@@ -3085,7 +3124,6 @@ select.input-field {
 .fab-global:hover {
     transform: scale(1.05);
     background-color: var(--primary-dark);
-    /* Naranja 900 */
 }
 
 .blob-1 {
@@ -3093,7 +3131,7 @@ select.input-field {
     right: -10%;
     width: 300px;
     height: 300px;
-    background: rgba(234, 88, 12, 0.2);
+    background: rgba(16, 185, 129, 0.2);
 }
 
 .blob-2 {
@@ -3101,7 +3139,7 @@ select.input-field {
     left: -10%;
     width: 300px;
     height: 300px;
-    background: rgba(245, 158, 11, 0.15);
+    background: rgba(16, 185, 129, 0.15);
 }
 
 /* ─── List View – "File" Look ─────────────────────────────── */
