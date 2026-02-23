@@ -118,13 +118,14 @@ class ShareModalManager {
     }
 
     async getCurrentProfileId(authUserId) {
-        // Obtener el ID del perfil público del usuario actual
-        const { data } = await window.supabaseClient
+        // Usar maybeSingle() para evitar error 406 si no existe el perfil
+        const { data, error } = await window.supabaseClient
             .from('users')
             .select('id')
             .eq('auth_user_id', authUserId)
-            .single();
-        return data?.id;
+            .maybeSingle();
+        if (error) console.warn('getCurrentProfileId error:', error);
+        return data?.id ?? null;
     }
 
     renderSuggestions(users) {
@@ -202,6 +203,10 @@ class ShareModalManager {
 
         // Obtener el ID del perfil del propietario actual
         const ownerProfileId = await this.getCurrentProfileId(window.authManager.currentUser.id);
+        if (!ownerProfileId) {
+            window.utils.showToast('No se pudo obtener tu perfil. Intenta recargar la página.', 'error');
+            return;
+        }
 
         // Guardar en shared_recipes para cada destinatario
         const insertions = this.selectedUsers.map(user => ({
