@@ -1993,11 +1993,13 @@ select.input-field {
 }
 
 .detail-hero {
+    height: 380px;
     position: relative;
-    height: 400px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .detail-hero.no-image {
@@ -2111,7 +2113,22 @@ select.input-field {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
+    transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.btn-action-circle.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.8);
+    border-color: #ef4444;
+}
+
+.detail-hero.no-image .btn-action-circle.btn-delete:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.btn-action-circle:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .detail-hero.no-image .detail-action-bar {

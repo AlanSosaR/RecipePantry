@@ -55,7 +55,9 @@ class RecipeFormManager {
             if (form.pantry) form.pantry.value = r.pantry_es || '';
 
             // Imagen
-            if (r.images && r.images.length > 0) {
+            if (r.primaryImage) {
+                this.showPreview(r.primaryImage);
+            } else if (r.images && r.images.length > 0) {
                 const primary = r.images.find(img => img.is_primary) || r.images[0];
                 this.showPreview(primary.image_url);
             }
