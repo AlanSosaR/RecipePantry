@@ -156,7 +156,7 @@ class DashboardManager {
         if (iconSpan) {
             if (mode === 'list') iconSpan.textContent = 'view_list';
             else if (mode === 'grid') iconSpan.textContent = 'grid_view';
-            else if (mode === 'grid-large') iconSpan.textContent = 'grid_view_large';
+            else if (mode === 'grid-large') iconSpan.textContent = 'view_module';
         }
 
         // Update active state in menu
