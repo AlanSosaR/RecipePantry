@@ -1,7 +1,34 @@
 // js/db.js
-// Funciones de base de datos (Clase DatabaseManager)
+// Funciones de base de datos con soporte offline (localStorage cache)
+
+const DB_CACHE_KEY = 'recipehub_recipes_cache';
+const DB_CATEGORIES_KEY = 'recipehub_categories_cache';
 
 class DatabaseManager {
+    // ============================================
+    // OFFLINE CACHE HELPERS
+    // ============================================
+
+    _saveToCache(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+        } catch (e) {
+            console.warn('⚠️ No se pudo guardar en caché:', e);
+        }
+    }
+
+    _loadFromCache(key, maxAgeMs = 24 * 60 * 60 * 1000) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return null;
+            const { data, ts } = JSON.parse(raw);
+            if (Date.now() - ts > maxAgeMs) return null; // caché expirada
+            return data;
+        } catch (e) {
+            return null;
+        }
+    }
+
     // ============================================
     // RECIPES - CRUD
     // ============================================
@@ -51,10 +78,24 @@ class DatabaseManager {
                 totalImages: recipe.images?.length || 0
             }));
 
-            return { success: true, recipes };
+            // Guardar en caché solo si no hay filtros activos
+            if (!filters.search && !filters.categoryId && !filters.favorite) {
+                this._saveToCache(DB_CACHE_KEY, recipes);
+            }
+
+            return { success: true, recipes, fromCache: false };
 
         } catch (error) {
-            console.error('❌ Error obteniendo recetas:', error);
+            console.warn('⚠️ Error de red, intentando caché offline:', error);
+
+            // Fallback a caché local
+            const cached = this._loadFromCache(DB_CACHE_KEY);
+            if (cached) {
+                console.log(`✅ ${cached.length} recetas cargadas desde caché offline`);
+                return { success: true, recipes: cached, fromCache: true };
+            }
+
+            console.error('❌ Sin conexión y sin caché:', error);
             return { success: false, error: error.message, recipes: [] };
         }
     }
@@ -87,6 +128,13 @@ class DatabaseManager {
             return { success: true, recipe };
 
         } catch (error) {
+            // Fallback a caché si está offline
+            const cached = this._loadFromCache(DB_CACHE_KEY);
+            if (cached) {
+                const recipe = cached.find(r => r.id === recipeId);
+                if (recipe) return { success: true, recipe, fromCache: true };
+            }
+
             console.error('❌ Error obteniendo receta:', error);
             return { success: false, error: error.message };
         }
@@ -104,6 +152,9 @@ class DatabaseManager {
                 .single();
 
             if (error) throw error;
+
+            // Invalidar caché
+            localStorage.removeItem(DB_CACHE_KEY);
 
             return { success: true, recipe };
 
@@ -124,6 +175,9 @@ class DatabaseManager {
 
             if (error) throw error;
 
+            // Invalidar caché
+            localStorage.removeItem(DB_CACHE_KEY);
+
             return { success: true, recipe };
 
         } catch (error) {
@@ -142,6 +196,9 @@ class DatabaseManager {
 
             if (error) throw error;
 
+            // Invalidar caché
+            localStorage.removeItem(DB_CACHE_KEY);
+
             return { success: true };
 
         } catch (error) {
@@ -158,6 +215,15 @@ class DatabaseManager {
                 .eq('id', recipeId);
 
             if (error) throw error;
+
+            // Actualizar caché local
+            const cached = this._loadFromCache(DB_CACHE_KEY);
+            if (cached) {
+                const updated = cached.map(r =>
+                    r.id === recipeId ? { ...r, is_favorite: !currentStatus } : r
+                );
+                this._saveToCache(DB_CACHE_KEY, updated);
+            }
 
             return { success: true, isFavorite: !currentStatus };
 
@@ -296,9 +362,17 @@ class DatabaseManager {
 
             if (error) throw error;
 
+            // Guardar categorías en caché
+            this._saveToCache(DB_CATEGORIES_KEY, data);
+
             return { success: true, categories: data };
 
         } catch (error) {
+            console.warn('⚠️ Error de red en categorías, usando caché:', error);
+
+            const cached = this._loadFromCache(DB_CATEGORIES_KEY);
+            if (cached) return { success: true, categories: cached, fromCache: true };
+
             console.error('❌ Error obteniendo categorías:', error);
             return { success: false, categories: [] };
         }
@@ -308,4 +382,4 @@ class DatabaseManager {
 // Instancia global
 window.db = new DatabaseManager();
 
-console.log('✅ DatabaseManager inicializado');
+console.log('✅ DatabaseManager inicializado con soporte offline');

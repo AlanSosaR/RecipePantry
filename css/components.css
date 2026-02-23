@@ -3084,8 +3084,8 @@ select.input-field {
 
 .fab-global:hover {
     transform: scale(1.05);
-    background-color: #047857;
-    /* Emerald 700 */
+    background-color: var(--primary-dark);
+    /* Naranja 900 */
 }
 
 .blob-1 {
@@ -3093,7 +3093,7 @@ select.input-field {
     right: -10%;
     width: 300px;
     height: 300px;
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(234, 88, 12, 0.2);
 }
 
 .blob-2 {
@@ -3101,7 +3101,7 @@ select.input-field {
     left: -10%;
     width: 300px;
     height: 300px;
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(245, 158, 11, 0.15);
 }
 
 /* ─── List View – "File" Look ─────────────────────────────── */
@@ -3915,7 +3915,8 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 .snackbar-m3 .icon {
-    color: #10B981;
+    color: var(--success);
+    /* Verde mantenido para icono de éxito — semántico */
     font-size: 24px;
 }
 
