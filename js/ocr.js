@@ -198,7 +198,7 @@ class OCRScanner {
             }
         } catch (err) {
             console.error('Error al acceder a la cámara:', err);
-            window.utils.showToast('No se pudo acceder a la cámara. Revisa los permisos.', 'error');
+            window.showToast('No se pudo acceder a la cámara. Revisa los permisos.', 'error');
         }
     }
 
@@ -249,7 +249,7 @@ class OCRScanner {
 
         } catch (error) {
             console.error('OCR Error:', error);
-            window.utils.showToast('Error al procesar la imagen', 'error');
+            window.showToast('Error al procesar la imagen', 'error');
             // On error, restore camera view
             if (preview) { preview.style.display = 'none'; }
             if (video) { video.style.display = 'block'; }
@@ -282,7 +282,7 @@ class OCRScanner {
             this.showResults(results);
         } catch (error) {
             console.error('OCR Error:', error);
-            window.utils.showToast('Error al procesar archivo', 'error');
+            window.showToast('Error al procesar archivo', 'error');
         } finally {
             loading.style.display = 'none';
         }

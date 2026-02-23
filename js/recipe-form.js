@@ -270,15 +270,15 @@ class RecipeFormManager {
                 await window.db.addSteps(recipeId, stepsData);
             }
 
-            window.utils.showToast('¡Receta guardada con éxito!', 'success');
+            window.showToast('¡Receta guardada con éxito!', 'success');
 
             setTimeout(() => {
                 window.location.href = `recipe-detail.html?id=${recipeId}`;
             }, 1000);
 
-        } catch (error) {
-            console.error('Error salvando receta:', error);
-            window.utils.showToast('Error al guardar la receta', 'error');
+        } catch (err) {
+            console.error(err);
+            window.showToast('Error al guardar la receta', 'error');
             btnSave.disabled = false;
             btnSave.textContent = 'Guardar Receta';
         }
@@ -331,7 +331,7 @@ class RecipeFormManager {
                 if (!stepResult.success) console.warn('Error guardando pasos:', stepResult.error);
             }
 
-            window.utils.showToast('¡Receta creada con éxito!', 'success');
+            window.showToast('¡Receta creada con éxito!', 'success');
 
             if (window.ocr) window.ocr.close();
 
@@ -341,7 +341,7 @@ class RecipeFormManager {
 
         } catch (error) {
             console.error('Error salvando receta desde OCR:', error);
-            window.utils.showToast('Error al crear la receta', 'error');
+            window.showToast('Error al crear la receta', 'error');
             btnSaveOCR.disabled = false;
             btnSaveOCR.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">cloud_upload</span> Crear Receta Ahora';
         }

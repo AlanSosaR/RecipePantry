@@ -37,7 +37,7 @@ class RecipeDetailManager {
 
             if (!result.success) {
                 console.error('Error cargando receta:', result.error);
-                window.utils.showToast('No se pudo encontrar la receta', 'error');
+                window.showToast('Receta no encontrada', 'error');
                 return;
             }
 
@@ -167,7 +167,7 @@ class RecipeDetailManager {
             this.currentRecipe.is_favorite = result.isFavorite;
             this.updateFavoriteButtonUI(result.isFavorite);
         } else {
-            window.utils.showToast('Error al actualizar favoritos', 'error');
+            window.showToast('Error al actualizar favoritos', 'error');
         }
     }
 
