@@ -3231,8 +3231,8 @@ select.input-field {
 }
 
 .hamburger-btn {
-    display: none;
-    /* Desktop hidden */
+    display: none !important;
+    /* Force hide on desktop */
 }
 
 @media (max-width: 1023px) {
@@ -3249,7 +3249,7 @@ select.input-field {
 
 .search-wrapper-m3 {
     width: 100%;
-    max-width: 640px;
+    max-width: 800px;
     height: 48px;
     background: var(--surface-container-high);
     border-radius: 24px;
@@ -3791,7 +3791,7 @@ select.input-field {
     margin: 0;
     font-size: 14px;
     font-weight: 700;
-    color: #fff;
+    text-align: left;
 }
 
 .context-menu-item {
@@ -3826,12 +3826,13 @@ select.input-field {
 
 /* Brand Identity: Restore Orange */
 .sidebar-logo .logo-icon {
-    color: #f97316 !important;
-    /* Brand Orange */
+    color: var(--secondary) !important;
+    /* Green Icon */
 }
 
 .sidebar-logo .logo-text {
     color: #f97316 !important;
+    /* Orange Text */
     font-weight: 800;
 }
 

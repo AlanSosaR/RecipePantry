@@ -395,19 +395,18 @@
                     <span class="material-symbols-outlined">share</span>
                     <span>Compartidas</span>
                 </a>
+                <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Cerrar Sesión</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
-                <button onclick="window.authManager.signOut()" class="btn-logout-m3" style="margin-bottom: 8px;">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span class="logout-text">Cerrar Sesión</span>
-                </button>
-                <!-- Mini Toggle Moved Here -->
+                <!-- Mini Toggle Simplified -->
                 <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
                     style="width: 100%; justify-content: flex-start; padding-left: 16px;"
                     onclick="window.dashboard.toggleSlimSidebar()">
                     <span class="material-symbols-outlined">side_navigation</span>
-                    <span class="logout-text" style="margin-left: 12px;">Contraer menú</span>
                 </button>
             </div>
         </aside>
