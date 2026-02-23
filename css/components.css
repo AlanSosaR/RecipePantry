@@ -4506,6 +4506,17 @@ html[data-auth-likely="true"] #dashboard-app {
 /* ─── Notifications System ─── */
 .notifications-wrapper {
     position: relative;
+    margin-right: 8px;
+    /* Espacio desde la orilla en móvil */
+}
+
+.notifications-wrapper .btn-icon-m3 {
+    color: var(--primary);
+    /* Verde de la app */
+}
+
+.notifications-wrapper .btn-icon-m3 .material-symbols-outlined {
+    color: var(--primary);
 }
 
 .badge-dot {
@@ -4514,9 +4525,9 @@ html[data-auth-likely="true"] #dashboard-app {
     right: 4px;
     width: 10px;
     height: 10px;
-    background: #f97316;
-    /* Color naranja RecipeHub */
-    border: 2px solid #1B1B1F;
+    background: var(--primary);
+    /* Verde de la app */
+    border: 2px solid white;
     border-radius: 50%;
 }
 
