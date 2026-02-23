@@ -41,6 +41,7 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Error verificando auth:', error);
+            document.documentElement.removeAttribute('data-auth-likely');
             return false;
         }
     }
