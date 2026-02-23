@@ -509,84 +509,127 @@
                 </div>
             </div>
         </aside>
-    </div>
+        <div id="share-modal" class="modal-overlay hidden">
+            <div class="modal-container share-modal-container">
+                <div class="modal-header">
+                    <div class="header-info">
+                        <h3 id="share-modal-title">Compartir archivo</h3>
+                        <span id="share-modal-size" class="text-secondary">0 KB</span>
+                    </div>
+                    <button class="btn-close-modal" onclick="window.shareModal.close()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-section">
+                        <div class="chip-input-container">
+                            <div id="selected-users-chips" class="chips-list"></div>
+                            <input type="text" id="user-search-input" placeholder="Buscar por nombre o correo…">
+                        </div>
+                        <div id="search-suggestions" class="search-suggestions hidden"></div>
+                    </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=2"></script>
-    <script src="js/supabase-client.js?v=2"></script>
-    <script src="js/auth.js?v=2"></script>
-    <script src="js/db.js?v=2"></script>
-    <script src="js/utils.js?v=2"></script>
-    <script src="js/dashboard.js?v=2"></script>
+                    <div class="permission-section">
+                        <div class="select-wrapper">
+                            <label for="share-permission" class="select-label">Permiso:</label>
+                            <select id="share-permission" class="custom-select">
+                                <option value="view">Solo ver</option>
+                                <option value="add">Agregar a sus recetas</option>
+                            </select>
+                            <span class="material-symbols-outlined select-arrow">expand_more</span>
+                        </div>
+                    </div>
 
-    <script>
-        let currentLang = 'es';
+                    <button id="btn-share-submit" class="btn-share-main" disabled onclick="window.shareModal.share()">
+                        Compartir
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button id="btn-copy-link" class="btn-copy-link" onclick="window.shareModal.copyLink()">
+                        <span class="material-symbols-outlined">link</span>
+                        <span class="btn-text">Copiar enlace</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-        const pageTranslations = {
-            es: {
-                landingTitle: "RecipeHub",
-                landingSubtitle: "Tu recetario digital personal.",
-                featOcrTitle: "Escaneo OCR",
-                featOcrDesc: "Digitaliza recetas en papel",
-                featPlanTitle: "Plan de Comidas",
-                featPlanDesc: "Organiza tu semana",
-                btnGetStarted: "Comenzar"
-            },
-            en: {
-                landingTitle: "RecipeHub",
-                landingSubtitle: "Your personal digital cookbook.",
-                featOcrTitle: "OCR Scan",
-                featOcrDesc: "Digitize paper recipes",
-                featPlanTitle: "Meal Plan",
-                featPlanDesc: "Organize your week",
-                btnGetStarted: "Get Started"
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="js/config.js?v=2"></script>
+        <script src="js/supabase-client.js?v=2"></script>
+        <script src="js/auth.js?v=2"></script>
+        <script src="js/db.js?v=2"></script>
+        <script src="js/utils.js?v=2"></script>
+        <script src="js/share-modal.js?v=2"></script>
+        <script src="js/dashboard.js?v=2"></script>
+
+        <script>
+            let currentLang = 'es';
+
+            const pageTranslations = {
+                es: {
+                    landingTitle: "RecipeHub",
+                    landingSubtitle: "Tu recetario digital personal.",
+                    featOcrTitle: "Escaneo OCR",
+                    featOcrDesc: "Digitaliza recetas en papel",
+                    featPlanTitle: "Plan de Comidas",
+                    featPlanDesc: "Organiza tu semana",
+                    btnGetStarted: "Comenzar"
+                },
+                en: {
+                    landingTitle: "RecipeHub",
+                    landingSubtitle: "Your personal digital cookbook.",
+                    featOcrTitle: "OCR Scan",
+                    featOcrDesc: "Digitize paper recipes",
+                    featPlanTitle: "Meal Plan",
+                    featPlanDesc: "Organize your week",
+                    btnGetStarted: "Get Started"
+                }
+            };
+
+            function toggleLanguage() {
+                currentLang = currentLang === 'es' ? 'en' : 'es';
+                localStorage.setItem('preferredLang', currentLang);
+                updateTranslations();
             }
-        };
 
-        function toggleLanguage() {
-            currentLang = currentLang === 'es' ? 'en' : 'es';
-            localStorage.setItem('preferredLang', currentLang);
-            updateTranslations();
-        }
+            function updateTranslations() {
+                const t = pageTranslations[currentLang];
+                // Update every piece of text
+                if (document.getElementById('landing-subtitle'))
+                    document.getElementById('landing-subtitle').textContent = t.landingSubtitle;
 
-        function updateTranslations() {
-            const t = pageTranslations[currentLang];
-            // Update every piece of text
-            if (document.getElementById('landing-subtitle'))
-                document.getElementById('landing-subtitle').textContent = t.landingSubtitle;
+                if (document.getElementById('feat-ocr-title'))
+                    document.getElementById('feat-ocr-title').textContent = t.featOcrTitle;
 
-            if (document.getElementById('feat-ocr-title'))
-                document.getElementById('feat-ocr-title').textContent = t.featOcrTitle;
+                if (document.getElementById('feat-ocr-desc'))
+                    document.getElementById('feat-ocr-desc').textContent = t.featOcrDesc;
 
-            if (document.getElementById('feat-ocr-desc'))
-                document.getElementById('feat-ocr-desc').textContent = t.featOcrDesc;
+                if (document.getElementById('feat-plan-title'))
+                    document.getElementById('feat-plan-title').textContent = t.featPlanTitle;
 
-            if (document.getElementById('feat-plan-title'))
-                document.getElementById('feat-plan-title').textContent = t.featPlanTitle;
+                if (document.getElementById('feat-plan-desc'))
+                    document.getElementById('feat-plan-desc').textContent = t.featPlanDesc;
 
-            if (document.getElementById('feat-plan-desc'))
-                document.getElementById('feat-plan-desc').textContent = t.featPlanDesc;
-
-            if (document.getElementById('btn-get-started'))
-                document.getElementById('btn-get-started').textContent = t.btnGetStarted;
+                if (document.getElementById('btn-get-started'))
+                    document.getElementById('btn-get-started').textContent = t.btnGetStarted;
 
 
 
-            const label = document.getElementById('lang-label');
-            if (label) label.textContent = currentLang.toUpperCase();
-        }
-
-        window.addEventListener('load', () => {
-            // Restore preference
-            const savedLang = localStorage.getItem('preferredLang');
-            if (savedLang) {
-                currentLang = savedLang;
+                const label = document.getElementById('lang-label');
+                if (label) label.textContent = currentLang.toUpperCase();
             }
-            updateTranslations();
-            // dashboard.js init() will handle the auth check and view switching
-        });
-    </script>
+
+            window.addEventListener('load', () => {
+                // Restore preference
+                const savedLang = localStorage.getItem('preferredLang');
+                if (savedLang) {
+                    currentLang = savedLang;
+                }
+                updateTranslations();
+                // dashboard.js init() will handle the auth check and view switching
+            });
+        </script>
 </body>
 
 </html>

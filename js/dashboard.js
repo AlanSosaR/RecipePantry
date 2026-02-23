@@ -390,7 +390,11 @@ class DashboardManager {
     }
 
     shareRecipe(recipeId) {
-        window.utils.showToast('Funcionalidad de compartir próximamente', 'info');
+        if (window.shareModal) {
+            window.shareModal.open(recipeId);
+        } else {
+            window.utils.showToast('Funcionalidad de compartir no disponible', 'error');
+        }
     }
 
     copyLink(recipeId) {
