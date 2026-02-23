@@ -54,11 +54,16 @@ class RecipeDetailManager {
 
         // Hero Background
         const heroEl = document.getElementById('recipeHero');
+        const appEl = document.getElementById('app');
+
         if (recipe.primaryImage) {
             heroEl.style.backgroundImage = `url(${recipe.primaryImage})`;
+            heroEl.classList.remove('no-image');
+            if (appEl) appEl.classList.remove('no-image');
         } else {
-            heroEl.style.backgroundImage = `url(${window.DEFAULT_RECIPE_IMAGE})`;
+            heroEl.style.backgroundImage = 'none';
             heroEl.classList.add('no-image');
+            if (appEl) appEl.classList.add('no-image');
         }
 
         // Text data
@@ -160,7 +165,7 @@ class RecipeDetailManager {
         const result = await window.db.toggleFavorite(this.recipeId, isCurrentlyFavorite);
 
         if (result.success) {
-            window.utils.showToast(
+            window.showToast(
                 result.isFavorite ? 'Añadido a favoritos' : 'Eliminado de favoritos',
                 'success'
             );

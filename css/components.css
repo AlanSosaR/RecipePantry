@@ -2001,17 +2001,44 @@ select.input-field {
 }
 
 .detail-hero.no-image {
-    background-color: var(--secondary);
+    height: 100px;
+    background: var(--surface) !important;
     display: flex;
     align-items: center;
-    justify-content: center;
+    border-bottom: 1px solid var(--outline-variant);
 }
 
-.detail-hero.no-image::after {
-    content: 'restaurant';
-    font-family: 'Material Symbols Outlined';
-    font-size: 80px;
-    color: rgba(255, 255, 255, 0.2);
+.detail-hero.no-image .hero-overlay {
+    background: none;
+}
+
+.detail-hero.no-image .btn-back,
+.detail-hero.no-image .btn-action-circle {
+    background: var(--surface-variant);
+    border-color: var(--outline-variant);
+    color: var(--on-surface);
+}
+
+.detail-hero.no-image .hero-content.mobile-only {
+    display: none;
+}
+
+/* Marker icon removed for cleaner look */
+
+.recipe-detail-app.no-image .desktop-only {
+    display: flex !important;
+    margin-top: 0;
+}
+
+.recipe-detail-app.no-image .detail-main {
+    padding-top: 24px;
+}
+
+@media (max-width: 767px) {
+    .recipe-detail-app.no-image .detail-main {
+        margin-top: 0;
+        border-radius: 0;
+    }
 }
 
 .hero-overlay {
