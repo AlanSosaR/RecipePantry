@@ -128,17 +128,28 @@
     /* Sidebar completa en escritorio */
     .sidebar {
         width: 260px;
-        min-width: 260px;
         position: sticky;
         top: 0;
         height: 100vh;
         flex-shrink: 0;
+        transition: width 0.25s ease;
+    }
+
+    /* Override for slim mode on desktop */
+    .sidebar.sidebar--slim {
+        width: 96px;
+        min-width: 96px;
     }
 
     /* Textos visibles en sidebar (escritorio) */
     .logo-text,
     .nav-item span:not(.material-symbols-outlined) {
         display: block;
+    }
+
+    .sidebar--slim .logo-text,
+    .sidebar--slim .nav-item span:not(.material-symbols-outlined) {
+        display: none !important;
     }
 
     .sidebar-logo {

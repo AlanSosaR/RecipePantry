@@ -1299,18 +1299,19 @@ select.input-field {
 }
 
 .nav-item:hover {
-    background: var(--primary-light);
+    background: #F8FAFC;
     color: var(--primary);
 }
 
 .nav-item.active {
-    background: transparent;
+    background: transparent !important;
     color: var(--primary);
     font-weight: 700;
     border-left: 4px solid var(--primary);
     border-radius: 0;
     margin-right: 0;
     padding-left: 28px;
+    box-shadow: none !important;
 }
 
 /* Remove green pill from user profile */
@@ -1335,8 +1336,9 @@ select.input-field {
     text-align: center;
     padding: 16px 24px;
     margin-bottom: 24px;
-    background: transparent;
-    border: none;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* Main Content Area */
