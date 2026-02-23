@@ -47,6 +47,11 @@ window.setupMobileMenu = function () {
     }
 }
 
+window.closeSidebar = function () {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.classList.remove('active');
+}
+
 // Global user UI updater
 window.updateGlobalUserUI = function () {
     if (!window.authManager || !window.authManager.currentUser) return;
