@@ -443,9 +443,15 @@
                         window.showToast(window.i18n ? window.i18n.t('toastLoginSuccess') : "Ha iniciado sesión", "success");
 
                         setTimeout(() => {
-                            const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
-                            sessionStorage.removeItem('redirectAfterLogin');
-                            window.location.replace(redirectUrl);
+                            const hashRedirect = localStorage.getItem('redirect_after_login');
+                            if (hashRedirect) {
+                                localStorage.removeItem('redirect_after_login');
+                                window.location.replace('index.html' + hashRedirect);
+                            } else {
+                                const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                                sessionStorage.removeItem('redirectAfterLogin');
+                                window.location.replace(redirectUrl);
+                            }
                         }, 1500);
                     } else {
                         throw new Error(res.error);

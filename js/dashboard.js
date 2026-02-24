@@ -51,6 +51,9 @@ class DashboardManager {
             console.log('✨ Dashboard listo');
 
             this.setupEventListeners();
+
+            // Check for deep link in hash
+            this.checkDeepLink();
         } catch (error) {
             console.error('❌ Error crítico en Dashboard.init:', error);
             const landingEl = document.getElementById('landing-section');
@@ -445,9 +448,9 @@ class DashboardManager {
     }
 
     copyLink(recipeId) {
-        const url = `${window.location.origin}/recipe-detail.html?id=${recipeId}`;
+        const url = `https://alansosar.github.io/RecipeHub/index.html#/recipe/${recipeId}`;
         navigator.clipboard.writeText(url).then(() => {
-            window.utils.showToast(window.i18n ? window.i18n.t('linkCopied') : 'Enlace copiado al portapapeles', 'success');
+            window.utils.showToast(window.i18n ? '🔗 Enlace copiado' : '🔗 Link copied', 'success');
         });
     }
 
@@ -469,15 +472,6 @@ class DashboardManager {
             <div class="dropbox-menu-header">
                 <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
             </div>
-            <button class="context-menu-item" onclick="window.dashboard.downloadRecipe('${recipe.id}')">
-                <span class="material-symbols-outlined">download</span>
-                ${window.i18n ? window.i18n.t('downloading') : 'Descargar'}
-            </button>
-            <button class="context-menu-item" onclick="window.location.href='recipe-detail.html?id=${recipe.id}'">
-                <span class="material-symbols-outlined">open_in_new</span>
-                ${window.i18n ? window.i18n.t('openIn') : 'Abrir en...'}
-            </button>
-            <div class="context-menu-divider"></div>
             <button class="context-menu-item" onclick="window.dashboard.copyLink('${recipe.id}')">
                 <span class="material-symbols-outlined">link</span>
                 ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
