@@ -33,6 +33,12 @@
     <script>
         // ── Tema: aplicar antes del primer paint ───────────────────────
         (function () {
+            // Solo aplicar tema si hay indicios de sesión para evitar fondo negro en landing
+            const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
+            if (!hasSession && !window.location.pathname.includes('dashboard')) {
+                return;
+            }
+
             const saved = localStorage.getItem('theme') ||
                 (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', saved);
@@ -402,10 +408,10 @@
                     </div>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item" id="lang-menu-item">
                     <button class="nav-link" id="btn-lang-toggle">
                         <span class="material-symbols-outlined">language</span>
-                        <span id="lang-label">Español</span>
+                        <span id="lang-label" class="lang-label">Español</span>
                         <span class="material-symbols-outlined"
                             style="margin-left:auto;font-size:16px">chevron_right</span>
                     </button>

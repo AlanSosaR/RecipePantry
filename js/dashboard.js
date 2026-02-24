@@ -570,20 +570,3 @@ class DashboardManager {
 // Inicializar y exponer
 window.dashboard = new DashboardManager();
 window.addEventListener('DOMContentLoaded', () => window.dashboard.init());
-
-document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
-    const s = document.getElementById('theme-submenu')
-    s.style.display = s.style.display === 'none' ? 'block' : 'none'
-})
-document.getElementById('btn-lang-toggle')?.addEventListener('click', () => {
-    const s = document.getElementById('lang-submenu')
-    s.style.display = s.style.display === 'none' ? 'block' : 'none'
-})
-document.querySelectorAll('.theme-option').forEach(b => b.addEventListener('click', () => {
-    localStorage.setItem('theme', b.dataset.theme)
-    applyTheme(b.dataset.theme)
-}))
-document.querySelectorAll('.lang-option').forEach(b => b.addEventListener('click', () => {
-    localStorage.setItem('lang', b.dataset.lang)
-    applyLanguage(b.dataset.lang)
-}))

@@ -4850,29 +4850,110 @@ html[data-auth-likely="true"] #dashboard-app {
     background: var(--bg);
 }
 
+/* Sidebar Theme/Lang Fixes */
+#theme-menu-item button.nav-link,
+#lang-menu-item button.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    font-size: 14px;
+    color: var(--on-surface);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+#theme-menu-item button.nav-link:hover,
+#lang-menu-item button.nav-link:hover {
+    background: var(--surface-container-high);
+}
+
 #theme-submenu,
 #lang-submenu {
-    background: var(--surface);
+    position: fixed;
+    left: 232px;
+    /* Adjusted based on typical sidebar width */
+    background: #1e1e1e;
     border-radius: 12px;
-    margin: 4px 8px;
-    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 8px;
+    z-index: 9991;
+    min-width: 200px;
+    display: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .theme-option,
 .lang-option {
-    width: 100%;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 16px;
+    width: 100%;
+    padding: 10px 14px;
     background: none;
     border: none;
-    color: var(--on-surface);
-    cursor: pointer;
+    border-radius: 8px;
+    color: #fff;
     font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.2s;
 }
 
 .theme-option:hover,
 .lang-option:hover {
-    background: var(--border);
+    background: #2a2a2a;
+}
+
+.theme-option.active::before,
+.lang-option.active::before {
+    content: '✓';
+    color: #00A676;
+    margin-right: 4px;
+    font-weight: bold;
+}
+
+/* Sidebar structure fix */
+.sidebar li.nav-item {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Adjust for slim sidebar */
+.sidebar.slim #theme-submenu,
+.sidebar.slim #lang-submenu {
+    left: 72px;
+}
+
+/* Fixed Sticky Header Transparency */
+.dashboard-header,
+.list-header-m3,
+.dashboard-header *,
+.list-header-m3 * {
+    background: var(--bg);
+}
+
+.dashboard-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg);
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.list-header-m3 {
+    position: sticky;
+    top: 48px;
+    z-index: 10;
+    background: var(--bg);
+    padding-top: 0;
 }

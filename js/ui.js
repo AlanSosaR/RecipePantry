@@ -94,4 +94,91 @@ window.initSidebarState = function () {
 
     const isSlim = localStorage.getItem('recipehub_sidebar_slim') === 'true';
     if (isSlim) sidebar.classList.add('slim');
+
+    // Setup menus
+    window.setupSidebarMenus();
 }
+
+// Global sidebar menu handlers (Theme/Lang)
+window.setupSidebarMenus = function () {
+    const themeBtn = document.getElementById('btn-theme-toggle');
+    const langBtn = document.getElementById('btn-lang-toggle');
+    const themeSub = document.getElementById('theme-submenu');
+    const langSub = document.getElementById('lang-submenu');
+
+    const toggleSubmenu = (btn, submenu, otherSubmenu) => {
+        if (!btn || !submenu) return;
+
+        // Hide other submenu
+        if (otherSubmenu) otherSubmenu.style.display = 'none';
+
+        const isVisible = submenu.style.display === 'block';
+        if (isVisible) {
+            submenu.style.display = 'none';
+        } else {
+            const rect = btn.getBoundingClientRect();
+            submenu.style.top = rect.top + 'px';
+            submenu.style.display = 'block';
+        }
+    };
+
+    themeBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSubmenu(themeBtn, themeSub, langSub);
+    });
+
+    langBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSubmenu(langBtn, langSub, themeSub);
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (themeSub && !themeBtn?.contains(e.target) && !themeSub.contains(e.target)) {
+            themeSub.style.display = 'none';
+        }
+        if (langSub && !langBtn?.contains(e.target) && !langSub.contains(e.target)) {
+            langSub.style.display = 'none';
+        }
+    });
+
+    // Theme options logic
+    document.querySelectorAll('.theme-option').forEach(b => b.addEventListener('click', () => {
+        const theme = b.dataset.theme;
+        if (theme) {
+            localStorage.setItem('theme', theme);
+            window.applyTheme(theme);
+            // Mark active
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            b.classList.add('active');
+            if (themeSub) themeSub.style.display = 'none';
+        }
+    }));
+
+    // Language options logic
+    document.querySelectorAll('.lang-option').forEach(b => b.addEventListener('click', () => {
+        const lang = b.dataset.lang;
+        if (lang && window.i18n) {
+            localStorage.setItem('lang', lang);
+            window.i18n.applyLanguage(lang);
+            // Mark active
+            document.querySelectorAll('.lang-option').forEach(opt => opt.classList.remove('active'));
+            b.classList.add('active');
+            if (langSub) langSub.style.display = 'none';
+        }
+    }));
+
+    // Initial active state for options
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    const currentLang = localStorage.getItem('lang') || 'es';
+
+    document.querySelector(`.theme-option[data-theme="${currentTheme}"]`)?.classList.add('active');
+    document.querySelector(`.lang-option[data-lang="${currentLang}"]`)?.classList.add('active');
+}
+
+// Initialize on load if sidebar exists
+document.addEventListener('DOMContentLoaded', () => {
+    window.initSidebarState();
+});

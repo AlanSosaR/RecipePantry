@@ -92,7 +92,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 24px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: none;
             background: var(--bg);
         }
 
@@ -136,7 +136,7 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 32px 24px;
+            padding: 0 24px 32px 24px;
             scroll-behavior: smooth;
             background: var(--bg);
         }
@@ -293,11 +293,11 @@
         }
 
         .parsed-section {
-            background: white;
+            background: var(--surface);
             padding: 20px;
             border-radius: 20px;
             margin-bottom: 16px;
-            border: 1px solid #F3F4F6;
+            border: 1px solid var(--border);
             box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
         }
 
@@ -333,10 +333,12 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: var(--primary);
-            box-shadow: 0 0 8px var(--primary);
-            animation: scan 2s linear infinite;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--primary));
+            opacity: 0.4;
+            animation: scan 3s ease-in-out infinite;
+            z-index: 10;
+            pointer-events: none;
         }
 
         @keyframes scan {
@@ -445,6 +447,38 @@
                 <span class="material-symbols-outlined">share</span>
                 <span data-i18n="navShared">Compartidas</span>
             </a>
+
+            <li class="nav-item" id="theme-menu-item">
+                <button class="nav-link" id="btn-theme-toggle">
+                    <span class="material-symbols-outlined">contrast</span>
+                    <span>Tema</span>
+                    <span class="material-symbols-outlined" style="margin-left:auto;font-size:16px">chevron_right</span>
+                </button>
+                <div id="theme-submenu" style="display:none">
+                    <button class="theme-option" data-theme="light">
+                        <span class="material-symbols-outlined">light_mode</span>Modo claro
+                    </button>
+                    <button class="theme-option" data-theme="dark">
+                        <span class="material-symbols-outlined">dark_mode</span>Modo oscuro
+                    </button>
+                    <button class="theme-option" data-theme="system">
+                        <span class="material-symbols-outlined">monitor</span>Sistema operativo
+                    </button>
+                </div>
+            </li>
+
+            <li class="nav-item" id="lang-menu-item">
+                <button class="nav-link" id="btn-lang-toggle">
+                    <span class="material-symbols-outlined">language</span>
+                    <span id="lang-label-sidebar" class="lang-label">Español</span>
+                    <span class="material-symbols-outlined" style="margin-left:auto;font-size:16px">chevron_right</span>
+                </button>
+                <div id="lang-submenu" style="display:none">
+                    <button class="lang-option" data-lang="es">🇪🇸 Español</button>
+                    <button class="lang-option" data-lang="en">🇬🇧 English</button>
+                </div>
+            </li>
+
             <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
                 <span class="material-symbols-outlined">logout</span>
                 <span data-i18n="navLogout">Cerrar Sesión</span>
@@ -541,7 +575,7 @@
                     </div>
 
                     <div
-                        style="margin-top: 32px; padding: 20px; background: white; border-radius: 20px; border: 1px solid #F3F4F6;">
+                        style="margin-top: 32px; padding: 20px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border);">
                         <p
                             style="font-size: 14px; color: #374151; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                             <span class="material-symbols-outlined"
@@ -921,8 +955,8 @@
     <script>
         // Initialize sidebar
         document.addEventListener('DOMContentLoaded', () => {
-            if (window.utils && window.utils.updateUserUI) {
-                window.utils.updateUserUI();
+            if (window.updateGlobalUserUI) {
+                window.updateGlobalUserUI();
             }
         });
     </script>
