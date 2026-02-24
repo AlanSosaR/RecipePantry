@@ -10,29 +10,48 @@ class AuthManager {
     // Verificar si hay sesión activa
     async checkAuth() {
         try {
-            const { data: { session }, error } = await window.supabaseClient.auth.getSession();
+            // 1. Verificar sesión en Supabase (rápido, a menudo local)
+            const { data, error: sessionError } = await window.supabaseClient.auth.getSession();
 
-            if (error) throw error;
+            if (sessionError) throw sessionError;
 
+            const session = data?.session;
             if (!session) {
+                this.currentUser = null;
+                this.session = null;
+                document.documentElement.removeAttribute('data-auth-likely');
                 return false;
             }
 
             this.session = session;
+            document.documentElement.setAttribute('data-auth-likely', 'true');
 
-            // Obtener datos completos del usuario
+            // 2. Intentar obtener el perfil (opcional para considerar "autenticado")
+            // Si ya tenemos el usuario en memoria, no hace falta volver a la DB cada vez
+            if (this.currentUser && this.currentUser.auth_user_id === session.user.id) {
+                return true;
+            }
+
             const { data: userData, error: userError } = await window.supabaseClient
                 .from('users')
                 .select('*')
                 .eq('auth_user_id', session.user.id)
                 .single();
 
-            // Si el perfil no existe en la tabla 'users', lo creamos (esto puede pasar tras el registro)
+            // Si el perfil no existe, lo creamos
             if (userError && userError.code === 'PGRST116') {
                 console.log('Perfil no encontrado, creando uno nuevo...');
                 return await this.createProfile(session.user);
             } else if (userError) {
-                throw userError;
+                console.warn('⚠️ Error al cargar perfil, pero la sesión es válida:', userError.message);
+                // Si hay sesión pero falló la DB, intentamos usar los datos del payload de la sesión como fallback
+                this.currentUser = {
+                    auth_user_id: session.user.id,
+                    email: session.user.email,
+                    first_name: session.user.user_metadata?.first_name || 'Chef',
+                    last_name: session.user.user_metadata?.last_name || ''
+                };
+                return true; // Seguimos autenticados a nivel de sesión
             }
 
             this.currentUser = userData;
@@ -41,8 +60,8 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Error verificando auth:', error);
-            document.documentElement.removeAttribute('data-auth-likely');
-            return false;
+            // Solo devolvemos false si realmente no hay rastro de sesión
+            return !!this.session;
         }
     }
 
@@ -70,7 +89,8 @@ class AuthManager {
             return true;
         } catch (err) {
             console.error('Error creando perfil:', err);
-            return false;
+            // Aún si falla el perfil, si tiene sesión de auth, devolvemos true para no bloquear el acceso
+            return true;
         }
     }
 
@@ -79,14 +99,17 @@ class AuthManager {
         const isAuthenticated = await this.checkAuth();
 
         if (!isAuthenticated) {
+            console.log('🔒 Acceso denegado: Redirigiendo a inicio');
             // Guardar URL actual para redirigir después del login
-            sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-            window.location.href = 'index.html';
+            sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+            // Usar replace para evitar que esta página quede en el historial de atrás
+            window.location.replace('index.html');
             return false;
         }
 
         return true;
     }
+
 
     // Registro
     async signUp(email, password, firstName, lastName) {
@@ -171,7 +194,7 @@ class AuthManager {
             this.session = null;
 
             console.log('✅ Logout exitoso');
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
 
         } catch (error) {
             console.error('❌ Error en logout:', error);

@@ -11,7 +11,7 @@ class RecipeDetailManager {
         this.currentRecipe = null;
 
         if (!this.recipeId) {
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
             return;
         }
 
@@ -22,7 +22,7 @@ class RecipeDetailManager {
         // 1. Verificar autenticación
         const isAuth = await window.authManager.checkAuth();
         if (!isAuth) {
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
             return;
         }
 
@@ -271,7 +271,7 @@ class RecipeDetailManager {
             if (result.success) {
                 window.showToast('Receta eliminada correctamente', 'success');
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.replace('index.html');
                 }, 1000);
             } else {
                 window.showToast('Error al eliminar la receta', 'error');

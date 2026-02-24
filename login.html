@@ -349,6 +349,19 @@
         let isLogin = true;
         let currentLang = 'ES';
 
+        // Auto-redirect if already logged in
+        (async function checkAlreadyLoggedIn() {
+            // Quick check for token in localStorage before calling async auth
+            const hasPossibleToken = Object.keys(localStorage).some(key => key.includes('auth-token'));
+            if (hasPossibleToken) {
+                const { data } = await window.supabaseClient.auth.getSession();
+                if (data?.session) {
+                    console.log('🔄 Usuario ya autenticado, redirigiendo...');
+                    window.location.replace('index.html');
+                }
+            }
+        })();
+
         const pageTranslations = {
             ES: {
                 authTitleLogin: "Bienvenido",
@@ -484,7 +497,9 @@
                         window.showToast("Ha iniciado sesión en RecipeHub", "success");
 
                         setTimeout(() => {
-                            window.location.href = 'index.html';
+                            const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                            sessionStorage.removeItem('redirectAfterLogin');
+                            window.location.replace(redirectUrl);
                         }, 1500);
                     } else {
                         throw new Error(res.error);

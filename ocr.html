@@ -670,7 +670,13 @@
         let ocrResults = { text: '', confidence: 0 };
         let parsedData = { name: '', ingredients: [], steps: [] };
 
-        window.addEventListener('load', () => {
+        window.addEventListener('load', async () => {
+            const ok = await window.authManager.checkAuth();
+            if (!ok) {
+                sessionStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
+                window.location.replace('index.html');
+                return;
+            }
             setupDragAndDrop();
         });
 
