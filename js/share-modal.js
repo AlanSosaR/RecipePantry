@@ -255,9 +255,7 @@ class ShareModalManager {
                 window.dashboard.fetchCompartidas();
             }
 
-            if (this.currentRecipe && window.notificationManager) {
-                window.notificationManager.simulateNotificationReceived(this.currentRecipe, permissionValue);
-            }
+
 
             // Pequeño retraso antes de cerrar para que el usuario lea el mensaje o vea el estado
             setTimeout(() => {
