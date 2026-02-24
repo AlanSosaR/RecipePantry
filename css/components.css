@@ -4574,6 +4574,7 @@ html[data-auth-likely="true"] #dashboard-app {
     margin-top: 12px;
     width: 320px;
     background: #1c1c1e;
+    color: #ffffff;
     border: 1px solid #3a3a3a;
     border-radius: 16px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
@@ -4603,6 +4604,7 @@ html[data-auth-likely="true"] #dashboard-app {
     margin: 0;
     font-size: 15px;
     font-weight: 700;
+    color: #fff !important;
 }
 
 .notifications-list {
@@ -4687,7 +4689,7 @@ html[data-auth-likely="true"] #dashboard-app {
 .notifications-empty {
     padding: 32px 20px;
     text-align: center;
-    color: #aaaaaa;
+    color: #fff !important;
 }
 
 .notifications-empty p {
