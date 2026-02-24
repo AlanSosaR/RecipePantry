@@ -53,165 +53,59 @@ class RecipeDetailManager {
 
     renderRecipe() {
         const recipe = this.currentRecipe;
-
-        // Hero Background
-        const heroEl = document.getElementById('recipeHero');
-        const appEl = document.getElementById('app');
-
-        if (recipe.primaryImage) {
-            heroEl.style.backgroundImage = `url(${recipe.primaryImage})`;
-            heroEl.classList.remove('no-image');
-            if (appEl) appEl.classList.remove('no-image');
-            heroEl.style.display = 'block';
-        } else {
-            heroEl.style.backgroundImage = 'none';
-            heroEl.classList.add('no-image');
-            if (appEl) appEl.classList.add('no-image');
-            heroEl.style.display = 'block';
-        }
-
-        setTimeout(() => {
-            heroEl.style.opacity = '1';
-        }, 50);
-
-        // Text data
-        const titleMobile = document.getElementById('recipeTitleMobile');
-        const titleDesktop = document.getElementById('recipeTitleDesktop');
-
         const isEn = window.i18n && window.i18n.getLang() === 'en';
-        if (titleMobile) titleMobile.textContent = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
-        if (titleDesktop) titleDesktop.textContent = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
 
+        // Title
+        const titleEl = document.getElementById('recipeTitle');
+        if (titleEl) titleEl.textContent = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+
+        // Description
         const desc = isEn ? (recipe.description_en || recipe.description_es) : recipe.description_es;
-        document.getElementById('recipeDescription').textContent = desc || (window.i18n ? window.i18n.t('noDescription') : 'Sin descripción');
+        const descEl = document.getElementById('recipeDescription');
+        if (descEl) descEl.textContent = desc || (window.i18n ? window.i18n.t('noDescription') : 'Sin descripción');
 
-        // Pantry Content
-        const pantrySection = document.getElementById('pantrySection');
-        const pantryEl = document.getElementById('recipePantry');
-        const pantry = isEn ? (recipe.pantry_en || recipe.pantry_es) : recipe.pantry_es;
-        if (pantry) {
-            pantrySection.style.display = 'block';
-            pantryEl.textContent = pantry;
-        } else {
-            pantrySection.style.display = 'none';
-        }
+        // Dates
+        const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+        const createdDate = new Date(recipe.created_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', dateOptions);
+        const updatedDate = new Date(recipe.updated_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', dateOptions);
 
-        // Date
-        const date = new Date(recipe.created_at).toLocaleDateString(window.i18n && window.i18n.getLang() === 'en' ? 'en-US' : 'es-ES');
-        document.getElementById('recipeDate').textContent = date;
+        const createdEl = document.getElementById('createdDate');
+        const updatedEl = document.getElementById('updatedDate');
+        if (createdEl) createdEl.textContent = createdDate;
+        if (updatedEl) updatedEl.textContent = updatedDate;
 
         // Favorite State
         const favBtn = document.getElementById('btnFavorite');
-        if (recipe.is_favorite) {
+        if (recipe.is_favorite && favBtn) {
             favBtn.classList.add('active');
             favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
         }
 
-        // --- Lógica de Permisos UI ---
+        // --- Permission Logic ---
         const btnEdit = document.getElementById('btnEdit');
         const btnDelete = document.getElementById('btnDelete');
-        const permissionContainer = document.getElementById('permissionContainer');
         const currentUserId = window.authManager.currentUser?.id;
         const isOwner = recipe.user_id === currentUserId;
 
-        // Si es el dueño, no aplicamos restricciones de banner ni ocultamos botones
-        if (isOwner) {
-            if (btnEdit) btnEdit.style.display = 'flex';
-            if (btnDelete) btnDelete.style.display = 'flex';
-            if (permissionContainer) permissionContainer.innerHTML = '';
-        } else if (this.permission) {
-            // Si hay permiso de URL y NO es el dueño, aplicamos restricciones
+        if (!isOwner && this.permission) {
             if (btnEdit) btnEdit.style.display = 'none';
             if (btnDelete) btnDelete.style.display = 'none';
-
-            const isCopyable = this.permission === 'view_and_copy' || this.permission === 'copiar';
-
-            if (this.permission === 'view') {
-                permissionContainer.innerHTML = `
-                    <div class="permission-banner">
-                        <div class="permission-info-row">
-                            <span class="material-symbols-outlined">visibility</span>
-                            <span class="text">${window.i18n ? window.i18n.t('canView') : 'Solo puedes ver'}</span>
-                        </div>
-                    </div>
-                `;
-            } else if (isCopyable) {
-                permissionContainer.innerHTML = `
-                    <div class="permission-banner">
-                        <div class="permission-info-row">
-                            <span class="material-symbols-outlined">content_copy</span>
-                            <span class="text">${window.i18n ? window.i18n.t('canCopy') : 'Puedes agregar a tus recetas'}</span>
-                        </div>
-                        <button class="btn-copy-recipe" id="btnCopyRecipe">
-                            <span class="material-symbols-outlined">add_circle</span>
-                            ${window.i18n ? window.i18n.t('permAdd') : 'Añadir a mis recetas'}
-                        </button>
-                    </div>
-                `;
-                // Listener para el nuevo botón
-                setTimeout(() => {
-                    const copyBtn = document.getElementById('btnCopyRecipe');
-                    if (copyBtn) copyBtn.onclick = () => this.copyRecipe();
-                }, 100);
-            }
         }
 
         this.renderIngredients();
         this.renderSteps();
     }
 
-    async copyRecipe() {
-        const recipe = this.currentRecipe;
-        const btn = document.getElementById('btnCopyRecipe');
-
-        try {
-            window.setButtonLoading(btn, true, window.i18n ? window.i18n.t('saving') : 'Guardando...');
-
-            // 1. Crear copia de la receta base (Solo columnas que existen en la DB)
-            const { name_es, description_es, pantry_es, category_id } = recipe;
-            const res = await window.db.createRecipe({
-                name_es,
-                description_es,
-                pantry_es,
-                category_id,
-                is_favorite: false,
-                is_active: true
-            });
-
-            if (!res.success) throw new Error(res.error);
-            const newRecipeId = res.recipe.id;
-
-            // 2. Copiar ingredientes
-            if (recipe.ingredients?.length > 0) {
-                await window.db.addIngredients(newRecipeId, recipe.ingredients);
-            }
-
-            // 3. Copiar pasos
-            if (recipe.steps?.length > 0) {
-                await window.db.addSteps(newRecipeId, recipe.steps);
-            }
-
-            window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada!', 'success');
-
-            // 4. Redirigir a la copia propia
-            setTimeout(() => {
-                window.location.href = `recipe-detail.html?id=${newRecipeId}`;
-            }, 1500);
-
-        } catch (err) {
-            console.error('Error al copiar receta:', err);
-            window.showToast(window.i18n ? window.i18n.t('saveError') : 'Error al guardar la receta', 'error');
-            window.setButtonLoading(btn, false);
-        }
-    }
-
     renderIngredients() {
         const listEl = document.getElementById('ingredientsList');
+        const countEl = document.getElementById('ingredientsCount');
         const ingredients = this.currentRecipe.ingredients || [];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        if (countEl) countEl.textContent = `${ingredients.length} items`;
+
         if (ingredients.length === 0) {
-            listEl.innerHTML = `<p class="empty-text">${window.i18n ? window.i18n.t('ocrNoIngredients') : 'No hay ingredientes registrados.'}</p>`;
+            listEl.innerHTML = `<p class="text-on-surface-variant dark:text-zinc-500 text-sm pl-11 italic">${window.i18n ? window.i18n.t('ocrNoIngredients') : 'No hay ingredientes'}</p>`;
             return;
         }
 
@@ -220,13 +114,10 @@ class RecipeDetailManager {
             const name = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
             const text = `${ing.quantity || ''} ${unit || ''} ${name}`.trim();
             return `
-                <li class="ingredient-item">
-                    <input type="checkbox" id="ing-${ing.id}">
-                    <label for="ing-${ing.id}">
-                        <span class="custom-checkbox"></span>
-                        <span class="ing-text">${text}</span>
-                    </label>
-                </li>
+                <label class="flex items-start gap-4 cursor-pointer group">
+                    <input class="custom-checkbox mt-0.5 shrink-0" type="checkbox" onchange="this.nextElementSibling.classList.toggle('strikethrough', this.checked); this.nextElementSibling.classList.toggle('text-on-surface-variant', this.checked); this.nextElementSibling.classList.toggle('text-on-surface', !this.checked);">
+                    <span class="text-on-surface dark:text-zinc-200 text-[15px] font-medium group-hover:text-primary transition-colors">${text}</span>
+                </label>
             `;
         }).join('');
     }
@@ -237,16 +128,22 @@ class RecipeDetailManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         if (steps.length === 0) {
-            stepsEl.innerHTML = `<p class="empty-text">${window.i18n ? window.i18n.t('ocrNoSteps') : 'No hay pasos registrados.'}</p>`;
+            stepsEl.innerHTML = `<p class="text-on-surface-variant dark:text-zinc-500 text-sm pl-11 italic">${window.i18n ? window.i18n.t('ocrNoSteps') : 'No hay pasos'}</p>`;
             return;
         }
 
         stepsEl.innerHTML = steps.map((step, index) => {
             const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
+            const isLast = index === steps.length - 1;
             return `
-                <div class="step-item">
-                    <div class="step-number">${index + 1}</div>
-                    <div class="step-text">${instruction}</div>
+                <div class="flex gap-4 group">
+                    <div class="flex flex-col items-center">
+                        <div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-sm shadow-md group-hover:scale-110 transition-transform">${index + 1}</div>
+                        ${!isLast ? '<div class="w-0.5 h-full bg-surface-variant/50 dark:bg-zinc-700 my-2 rounded-full min-h-[30px]"></div>' : ''}
+                    </div>
+                    <div class="${!isLast ? 'pb-2' : ''}">
+                        <p class="text-on-surface-variant dark:text-zinc-400 text-sm leading-relaxed">${instruction}</p>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -254,7 +151,7 @@ class RecipeDetailManager {
 
     setupEventListeners() {
         // Favorite Button
-        document.getElementById('btnFavorite').addEventListener('click', (e) => {
+        document.getElementById('btnFavorite')?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleFavorite();
         });
@@ -272,6 +169,14 @@ class RecipeDetailManager {
         if (btnDelete) {
             btnDelete.addEventListener('click', () => {
                 this.confirmDelete();
+            });
+        }
+
+        // Cook Now Button
+        const btnCook = document.getElementById('btnCookNow');
+        if (btnCook) {
+            btnCook.addEventListener('click', () => {
+                window.utils.showToast(window.i18n ? window.i18n.t('startingRecipe') : 'Iniciando receta...', 'success');
             });
         }
     }
@@ -293,21 +198,43 @@ class RecipeDetailManager {
         });
     }
 
-    // switchTab removed - No longer needed for unified view
+    async copyRecipe() {
+        const recipe = this.currentRecipe;
+        try {
+            window.showToast(window.i18n ? window.i18n.t('saving') : 'Guardando copia...', 'info');
+
+            const { name_es, name_en, description_es, description_en, pantry_es, pantry_en, category_id } = recipe;
+            const res = await window.db.createRecipe({
+                name_es, name_en,
+                description_es, description_en,
+                pantry_es, pantry_en,
+                category_id,
+                is_favorite: false,
+                is_active: true
+            });
+
+            if (!res.success) throw new Error(res.error);
+            const newId = res.recipe.id;
+
+            if (recipe.ingredients?.length > 0) await window.db.addIngredients(newId, recipe.ingredients);
+            if (recipe.steps?.length > 0) await window.db.addSteps(newId, recipe.steps);
+
+            window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Copiada a tus recetas!', 'success');
+            setTimeout(() => window.location.href = `recipe-detail.html?id=${newId}`, 1500);
+        } catch (err) {
+            console.error('Error al copiar:', err);
+            window.showToast('Error al copiar receta', 'error');
+        }
+    }
 
     async toggleFavorite() {
-        const favBtn = document.getElementById('btnFavorite');
         const isCurrentlyFavorite = this.currentRecipe.is_favorite;
-
         const result = await window.db.toggleFavorite(this.recipeId, isCurrentlyFavorite);
 
         if (result.success) {
             const addedMsg = window.i18n ? window.i18n.t('favAdded') : 'Añadido a favoritos';
             const removedMsg = window.i18n ? window.i18n.t('favRemoved') : 'Eliminado de favoritos';
-            window.showToast(
-                result.isFavorite ? addedMsg : removedMsg,
-                'success'
-            );
+            window.showToast(result.isFavorite ? addedMsg : removedMsg, 'success');
             this.currentRecipe.is_favorite = result.isFavorite;
             this.updateFavoriteButtonUI(result.isFavorite);
         } else {
@@ -318,13 +245,13 @@ class RecipeDetailManager {
     updateFavoriteButtonUI(isFavorite) {
         const favBtn = document.getElementById('btnFavorite');
         if (!favBtn) return;
-
+        const span = favBtn.querySelector('span');
         if (isFavorite) {
             favBtn.classList.add('active');
-            favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+            if (span) span.style.fontVariationSettings = "'FILL' 1";
         } else {
             favBtn.classList.remove('active');
-            favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+            if (span) span.style.fontVariationSettings = "'FILL' 0";
         }
     }
 }
