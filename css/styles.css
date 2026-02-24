@@ -34,20 +34,20 @@
     --warning: #F59E0B;
     --error: #EF4444;
 
-    /* Espaciado */
-    --space-xs: 8px;
-    --space-sm: 12px;
-    --space-md: 16px;
-    --space-lg: 24px;
-    --space-xl: 32px;
-    --space-2xl: 48px;
+    /* Espaciado Relativo */
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
 
     /* Border Radius */
-    --radius-sm: 12px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
-    --radius-2xl: 40px;
+    --radius-sm: 0.75rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.5rem;
+    --radius-xl: 2rem;
+    --radius-2xl: 2.5rem;
     --radius-full: 9999px;
 
     /* Sombras */
@@ -79,6 +79,7 @@
 /* ─── Base Global ────────────────────────────────────────────────── */
 html {
     font-size: 16px;
+    /* Base para rem */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
 }
@@ -86,14 +87,30 @@ html {
 body {
     margin: 0;
     font-family: var(--font-body);
+    font-size: clamp(14px, 1.2vw, 16px);
+    line-height: 1.5;
     background: var(--surface);
     color: var(--text-main);
     transition: background-color .3s ease, color .3s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior-y: contain;
-    /* Remove blue touch highlight on mobile */
     -webkit-tap-highlight-color: transparent;
+}
+
+h1 {
+    font-size: clamp(22px, 3vw, 36px);
+    line-height: 1.2;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.3;
+}
+
+h3 {
+    font-size: clamp(16px, 1.5vw, 20px);
 }
 
 /* ─── Scrollbar Custom ───────────────────────────────────────────── */
@@ -169,7 +186,7 @@ body {
 }
 
 .aside-drive {
-    width: 260px;
+    width: clamp(180px, 18vw, 260px);
     height: 100%;
     background: white;
     border-right: 1px solid #F1F5F9;
