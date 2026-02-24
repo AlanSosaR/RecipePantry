@@ -108,12 +108,9 @@
             line-height: 1.6;
         }
 
-        /* Language Toggle - Absolute within the card */
+        /* Language Toggle - In-flow inside the card */
         .language-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 200;
+            align-self: flex-end;
             background: var(--primary-light);
             padding: 6px 14px;
             border-radius: 20px;
@@ -127,6 +124,7 @@
             color: var(--secondary);
             transition: all 0.3s var(--m3-easing);
             text-transform: uppercase;
+            margin-bottom: -8px;
         }
 
         .language-toggle:hover {
