@@ -101,54 +101,35 @@ window.initSidebarState = function () {
 
 // Global sidebar menu handlers (Theme/Lang)
 window.setupSidebarMenus = function () {
-    const themeBtn = document.getElementById('btn-theme-toggle');
-    const langBtn = document.getElementById('btn-lang-toggle');
     const themeSub = document.getElementById('theme-submenu');
     const langSub = document.getElementById('lang-submenu');
 
-    const positionSubmenu = (btn, submenu) => {
+    const openSubmenu = (btn, submenu) => {
         if (!btn || !submenu) return;
-        const rect = btn.getBoundingClientRect();
-        const submenuHeight = 160;
-        const spaceBelow = window.innerHeight - rect.bottom;
+        // Close all submenus first
+        document.querySelectorAll('#theme-submenu, #lang-submenu')
+            .forEach(s => s.style.display = 'none');
 
+        const rect = btn.getBoundingClientRect();
         submenu.style.position = 'fixed';
         submenu.style.left = (rect.right + 8) + 'px';
+        submenu.style.bottom = (window.innerHeight - rect.bottom) + 'px';
+        submenu.style.top = 'auto';
         submenu.style.zIndex = '9999';
-
-        if (spaceBelow < submenuHeight) {
-            // Not enough space below → open upward
-            submenu.style.top = 'auto';
-            submenu.style.bottom = (window.innerHeight - rect.bottom) + 'px';
-        } else {
-            submenu.style.top = rect.top + 'px';
-            submenu.style.bottom = 'auto';
-        }
-
         submenu.style.display = 'block';
     }
 
-    themeBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isVisible = themeSub.style.display === 'block';
-        if (isVisible) {
-            themeSub.style.display = 'none';
-        } else {
-            if (langSub) langSub.style.display = 'none';
-            positionSubmenu(e.currentTarget, themeSub);
-        }
-    });
+    document.getElementById('btn-theme-toggle')
+        ?.addEventListener('click', e => {
+            e.stopPropagation();
+            openSubmenu(e.currentTarget, document.getElementById('theme-submenu'));
+        });
 
-    langBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isVisible = langSub.style.display === 'block';
-        if (isVisible) {
-            langSub.style.display = 'none';
-        } else {
-            if (themeSub) themeSub.style.display = 'none';
-            positionSubmenu(e.currentTarget, langSub);
-        }
-    });
+    document.getElementById('btn-lang-toggle')
+        ?.addEventListener('click', e => {
+            e.stopPropagation();
+            openSubmenu(e.currentTarget, document.getElementById('lang-submenu'));
+        });
 
     document.addEventListener('click', () => {
         if (themeSub) themeSub.style.display = 'none';
