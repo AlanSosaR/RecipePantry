@@ -4824,3 +4824,11 @@ html[data-auth-likely="true"] #dashboard-app {
         border: 2px solid white;
     }
 }
+
+.notifications-panel .notifications-title {
+    color: #fff !important;
+}
+
+.notifications-empty {
+    color: #fff !important;
+}
