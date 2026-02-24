@@ -4,8 +4,8 @@
  */
 class NotificationManager {
     constructor() {
-        this.notifications = this.loadNotifications();
-        this.init();
+        this.notifications = [];
+        // No llamamos a init() aquí para evitar colisiones con el DOM
     }
 
     async init() {
@@ -165,8 +165,5 @@ class NotificationManager {
     }
 }
 
-// Inicializar y exponer globalmente
-window.addEventListener('DOMContentLoaded', () => {
-    // Inicializar y exponer globalmente
-    window.notificationManager = new NotificationManager();
-});
+// Inicializar y exponer globalmente de forma inmediata
+window.notificationManager = new NotificationManager();

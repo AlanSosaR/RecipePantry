@@ -193,6 +193,10 @@ class DashboardManager {
         }
     }
 
+    async fetchCompartidas() {
+        return this.loadRecipes({ shared: true });
+    }
+
     async loadRecipes(filters = {}) {
         this.lastFilters = filters;
         const result = await window.db.getMyRecipes(filters);

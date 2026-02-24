@@ -43,20 +43,30 @@ class DatabaseManager {
                     images:recipe_images(id, image_url, is_primary)
                 `)
             if (filters.shared) {
-                // Obtener IDs de recetas compartidas conmigo o por mí
-                const { data: sharedData, error: sharedError } = await window.supabaseClient
+                const userId = window.authManager.currentUser.id;
+
+                // 1. Recetas recibidas (receptor_id = yo)
+                const { data: receivedData, error: err1 } = await window.supabaseClient
                     .from('shared_recipes')
                     .select('recipe_id, owner_user_id, recipient_user_id, permission, status')
-                    .or(`recipient_user_id.eq.${window.authManager.currentUser.id},owner_user_id.eq.${window.authManager.currentUser.id}`);
+                    .eq('recipient_user_id', userId);
 
-                if (sharedError) throw sharedError;
+                // 2. Recetas enviadas (owner_id = yo)
+                const { data: sentData, error: err2 } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .select('recipe_id, owner_user_id, recipient_user_id, permission, status')
+                    .eq('owner_user_id', userId);
 
-                const sharedIds = sharedData.map(s => s.recipe_id);
+                if (err1) throw err1;
+                if (err2) throw err2;
+
+                const sharedData = [...(receivedData || []), ...(sentData || [])];
+                const sharedIds = [...new Set(sharedData.map(s => s.recipe_id))];
+
                 if (sharedIds.length === 0) {
                     return { success: true, recipes: [], fromCache: false };
                 }
 
-                // Mapeo para identificar si es recibida o enviada después
                 this._tempSharedData = sharedData;
                 query = query.in('id', sharedIds);
             } else {

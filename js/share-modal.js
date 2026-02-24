@@ -252,7 +252,7 @@ class ShareModalManager {
 
             // Si estamos en la vista de compartidos, recargar
             if (window.dashboard && window.dashboard.currentView === 'shared') {
-                window.dashboard.loadRecipes({ shared: true });
+                window.dashboard.fetchCompartidas();
             }
 
             if (recipe && window.notificationManager) {
