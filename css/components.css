@@ -4834,3 +4834,5 @@ html[data-auth-likely="true"] #dashboard-app {
 .notifications-empty {
     color: #fff !important;
 }
+.dashboard-header { position: sticky; top: 0; z-index: 20; background: #fff; }
+.list-header-m3 { position: sticky; top: 48px; z-index: 10; background: #fff; }
