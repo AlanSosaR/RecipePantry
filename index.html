@@ -59,21 +59,17 @@
         }
 
         .mode-landing-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            min-height: 100dvh;
             width: 100%;
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: hidden;
             padding: clamp(20px, 4vh, 48px) 0;
         }
 
-        .landing-container {
-            position: relative;
-            width: 90%;
-            max-width: 420px;
-            z-index: 10;
-        }
 
         .landing-card-expressive {
             background: rgba(255, 255, 255, 0.95);
@@ -82,9 +78,8 @@
             box-shadow:
                 0 24px 48px -12px rgba(0, 0, 0, 0.12),
                 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-            width: 100%;
-            max-width: 400px;
-            /* Force consistent width */
+            width: 90%;
+            max-width: 420px;
             min-height: 720px;
             border: 1px solid var(--outline-variant);
             display: flex;
@@ -92,6 +87,7 @@
             overflow: hidden;
             position: relative;
             transition: all var(--m3-duration-long) var(--m3-easing);
+            margin: 0 auto;
         }
 
         /* Language Toggle - Absolute within the card's green header */
