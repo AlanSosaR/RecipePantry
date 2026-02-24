@@ -106,42 +106,53 @@ window.setupSidebarMenus = function () {
     const themeSub = document.getElementById('theme-submenu');
     const langSub = document.getElementById('lang-submenu');
 
-    const toggleSubmenu = (btn, submenu, otherSubmenu) => {
+    const positionSubmenu = (btn, submenu) => {
         if (!btn || !submenu) return;
+        const rect = btn.getBoundingClientRect();
+        const submenuHeight = 160;
+        const spaceBelow = window.innerHeight - rect.bottom;
 
-        // Hide other submenu
-        if (otherSubmenu) otherSubmenu.style.display = 'none';
+        submenu.style.position = 'fixed';
+        submenu.style.left = (rect.right + 8) + 'px';
+        submenu.style.zIndex = '9999';
 
-        const isVisible = submenu.style.display === 'block';
-        if (isVisible) {
-            submenu.style.display = 'none';
+        if (spaceBelow < submenuHeight) {
+            // Not enough space below → open upward
+            submenu.style.top = 'auto';
+            submenu.style.bottom = (window.innerHeight - rect.bottom) + 'px';
         } else {
-            const rect = btn.getBoundingClientRect();
             submenu.style.top = rect.top + 'px';
-            submenu.style.display = 'block';
+            submenu.style.bottom = 'auto';
         }
-    };
+
+        submenu.style.display = 'block';
+    }
 
     themeBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
         e.stopPropagation();
-        toggleSubmenu(themeBtn, themeSub, langSub);
+        const isVisible = themeSub.style.display === 'block';
+        if (isVisible) {
+            themeSub.style.display = 'none';
+        } else {
+            if (langSub) langSub.style.display = 'none';
+            positionSubmenu(e.currentTarget, themeSub);
+        }
     });
 
     langBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
         e.stopPropagation();
-        toggleSubmenu(langBtn, langSub, themeSub);
+        const isVisible = langSub.style.display === 'block';
+        if (isVisible) {
+            langSub.style.display = 'none';
+        } else {
+            if (themeSub) themeSub.style.display = 'none';
+            positionSubmenu(e.currentTarget, langSub);
+        }
     });
 
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-        if (themeSub && !themeBtn?.contains(e.target) && !themeSub.contains(e.target)) {
-            themeSub.style.display = 'none';
-        }
-        if (langSub && !langBtn?.contains(e.target) && !langSub.contains(e.target)) {
-            langSub.style.display = 'none';
-        }
+    document.addEventListener('click', () => {
+        if (themeSub) themeSub.style.display = 'none';
+        if (langSub) langSub.style.display = 'none';
     });
 
     // Theme options logic
