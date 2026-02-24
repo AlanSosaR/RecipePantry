@@ -1,12 +1,13 @@
 /**
  * ShareModalManager - RecipeHub
- * Maneja la lógica del modal de compartir con búsqueda real en BD
+ * Maneja la lógica del modal de compartir y administración de permisos
  */
 class ShareModalManager {
     constructor() {
         this.recipeId = null;
         this.selectedUsers = [];
         this.searchTimeout = null;
+        this.currentShares = [];
 
         this.init();
     }
@@ -17,7 +18,7 @@ class ShareModalManager {
         this.suggestionsContainer = document.getElementById('search-suggestions');
         this.chipsContainer = document.getElementById('selected-users-chips');
         this.btnShare = document.getElementById('btn-share-submit');
-        this.btnCopy = document.getElementById('btn-copy-link');
+        this.sharesList = document.getElementById('shares-list');
 
         if (!this.modal) return;
 
@@ -30,13 +31,7 @@ class ShareModalManager {
                     this.suggestionsContainer.classList.add('hidden');
                     return;
                 }
-                // Esperar 300ms antes de buscar
                 this.searchTimeout = setTimeout(() => this.handleSearch(value), 300);
-            });
-
-            this.searchInput.addEventListener('focus', () => {
-                const value = this.searchInput.value.trim();
-                if (value) this.handleSearch(value);
             });
         }
 
@@ -44,134 +39,186 @@ class ShareModalManager {
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) this.close();
         });
-
-        // Cerrar con Escape
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !this.modal.classList.contains('hidden')) {
-                this.close();
-            }
-        });
     }
 
-    open(recipeId) {
+    async open(recipeId) {
         this.recipeId = recipeId;
         this.selectedUsers = [];
         this.renderChips();
         this.updateShareButton();
+        this.modal.classList.remove('hidden');
+
+        // Reset UI
+        if (this.searchInput) this.searchInput.value = '';
+        if (this.suggestionsContainer) this.suggestionsContainer.classList.add('hidden');
+
+        // Load existing shares
+        await this.loadExistingShares();
 
         this.currentRecipe = window.dashboard ? window.dashboard.currentRecipes.find(r => r.id === recipeId) : null;
         if (this.currentRecipe) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const recipeName = isEn ? (this.currentRecipe.name_en || this.currentRecipe.name_es) : this.currentRecipe.name_es;
-            document.getElementById('share-modal-title').textContent = window.i18n ? window.i18n.t('shareRecipeTitle', { recipe: recipeName }) : `Compartir "${recipeName}"`;
-            document.getElementById('share-modal-size').textContent = "1.56 KB";
+            document.getElementById('share-modal-title').textContent = window.i18n ? window.i18n.t('managePermsTitle', { recipe: recipeName }) : `Administrar permisos — ${recipeName}`;
+            document.getElementById('share-modal-size').textContent = "";
+        }
+    }
+
+    async loadExistingShares() {
+        if (!this.sharesList) return;
+        this.sharesList.innerHTML = '<div style="text-align:center; padding:12px; opacity:0.6;">Cargando personas...</div>';
+
+        try {
+            const { data: shares, error } = await window.supabaseClient
+                .from('shared_recipes')
+                .select(`
+                    id,
+                    permission,
+                    recipient:recipient_user_id (
+                        id,
+                        first_name,
+                        last_name,
+                        email
+                    )
+                `)
+                .eq('recipe_id', this.recipeId);
+
+            if (error) throw error;
+
+            this.currentShares = shares || [];
+            this.renderShares();
+
+        } catch (err) {
+            console.error('Error loading shares:', err);
+            this.sharesList.innerHTML = '<div class="no-shares-msg">Error al cargar personas con acceso.</div>';
+        }
+    }
+
+    renderShares() {
+        if (!this.sharesList) return;
+
+        if (this.currentShares.length === 0) {
+            this.sharesList.innerHTML = '<p class="no-shares-msg">Aún no has compartido esta receta con nadie.</p>';
+            return;
         }
 
-        this.modal.classList.remove('hidden');
-        if (this.searchInput) {
-            this.searchInput.value = '';
-            this.searchInput.focus();
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        this.sharesList.innerHTML = this.currentShares.map(share => {
+            const user = share.recipient;
+            if (!user) return '';
+            const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Usuario';
+            const initials = (user.first_name?.[0] || '') + (fullName.split(' ').pop()?.[0] || '');
+
+            return `
+                <div class="share-row" id="share-row-${share.id}">
+                    <div class="share-avatar">${initials}</div>
+                    <div class="share-info">
+                        <span class="share-name">${fullName}</span>
+                        <span class="share-email">${user.email}</span>
+                    </div>
+                    <select class="share-perm-select" onchange="window.shareModal.changePermission('${share.id}', this.value)">
+                        <option value="view" ${share.permission === 'view' ? 'selected' : ''}>👁️ Solo ver</option>
+                        <option value="view_and_copy" ${share.permission === 'view_and_copy' ? 'selected' : ''}>📋 Puede copiar</option>
+                        <option value="remove">🚫 Eliminar acceso</option>
+                    </select>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async changePermission(shareId, newPermiso) {
+        try {
+            if (newPermiso === 'remove') {
+                const { error } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .delete()
+                    .eq('id', shareId);
+
+                if (error) throw error;
+
+                // Remove from UI
+                this.currentShares = this.currentShares.filter(s => s.id !== shareId);
+                this.renderShares();
+                window.utils.showToast('Acceso eliminado', 'success');
+            } else {
+                const { error } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .update({ permission: newPermiso })
+                    .eq('id', shareId);
+
+                if (error) throw error;
+
+                // Update local state
+                const share = this.currentShares.find(s => s.id === shareId);
+                if (share) share.permission = newPermiso;
+
+                window.utils.showToast('Permiso actualizado', 'success');
+            }
+        } catch (err) {
+            console.error('Error updating permission:', err);
+            window.utils.showToast('Error al actualizar permiso', 'error');
+            this.loadExistingShares(); // Reload to fix UI
         }
-        if (this.suggestionsContainer) this.suggestionsContainer.classList.add('hidden');
     }
 
     close() {
         this.modal.classList.add('hidden');
-        if (this.searchInput) this.searchInput.value = '';
-        if (this.suggestionsContainer) this.suggestionsContainer.classList.add('hidden');
-        clearTimeout(this.searchTimeout);
     }
 
+    // --- Search and Add Logic (Simplified but functional) ---
     async handleSearch(query) {
-        // Mostrar spinner mientras busca
-        const searchingTxt = window.i18n ? window.i18n.t('searching') : 'Buscando...';
-        this.suggestionsContainer.innerHTML = `
-            <div style="padding: 16px; text-align: center; color: #aaa; font-size: 13px;">
-                ${searchingTxt}
-            </div>
-        `;
+        if (!this.suggestionsContainer) return;
         this.suggestionsContainer.classList.remove('hidden');
+        this.suggestionsContainer.innerHTML = '<div style="padding:16px; opacity:0.6; font-size:12px;">Buscando...</div>';
 
         try {
-            const currentAuthUser = window.authManager.currentUser;
-
             const { data: users, error } = await window.supabaseClient
                 .rpc('search_users', {
                     query: query,
-                    current_auth_user_id: currentAuthUser?.id || null
+                    current_auth_user_id: window.authManager.currentUser?.auth_user_id || null
                 });
 
             if (error) throw error;
 
-            // Filtrar ya seleccionados
-            const filtered = (users || []).filter(
-                u => !this.selectedUsers.some(s => s.id === u.id)
+            // Filter already shared or selected
+            const filtered = (users || []).filter(u =>
+                !this.selectedUsers.some(s => s.id === u.id) &&
+                !this.currentShares.some(s => s.recipient?.id === u.id)
             );
 
             this.renderSuggestions(filtered);
-
         } catch (err) {
-            console.error('Error buscando usuarios:', err);
-            const errorTxt = window.i18n ? window.i18n.t('userSearchError') : 'Error al buscar usuarios';
-            this.suggestionsContainer.innerHTML = `
-                <div style="padding: 16px; text-align: center; color: #aaa; font-size: 13px;">
-                    ${errorTxt}
-                </div>
-            `;
+            this.suggestionsContainer.innerHTML = '<div style="padding:16px; color:red; font-size:12px;">Error al buscar</div>';
         }
-    }
-
-    async getCurrentProfileId(authUserId) {
-        // Usar maybeSingle() para evitar error 406 si no existe el perfil
-        const { data, error } = await window.supabaseClient
-            .from('users')
-            .select('id')
-            .eq('auth_user_id', authUserId)
-            .maybeSingle();
-        if (error) console.warn('getCurrentProfileId error:', error);
-        return data?.id ?? null;
     }
 
     renderSuggestions(users) {
         if (users.length === 0) {
-            const noFoundTxt = window.i18n ? window.i18n.t('noUsersFound') : 'No se encontraron usuarios';
-            this.suggestionsContainer.innerHTML = `
-                <div style="padding: 16px; text-align: center; color: #aaa; font-size: 13px;">
-                    ${noFoundTxt}
-                </div>
-            `;
-            this.suggestionsContainer.classList.remove('hidden');
+            this.suggestionsContainer.innerHTML = '<div style="padding:16px; opacity:0.6; font-size:12px;">No se encontraron usuarios</div>';
             return;
         }
 
         this.suggestionsContainer.innerHTML = users.map(user => {
-            const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Usuario';
-            const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '') || user.email?.[0]?.toUpperCase() || '?';
+            const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
             return `
-                <div class="suggestion-item" onclick="window.shareModal.addUser('${user.id}', '${name.replace(/'/g, "\\'")}', '${user.email}', '${initials}')">
-                    <div class="suggestion-avatar">${initials}</div>
+                <div class="suggestion-item" onclick="window.shareModal.addUser('${user.id}', '${name}', '${user.email}')">
+                    <div class="suggestion-avatar">${name[0]}</div>
                     <div class="suggestion-info">
                         <span class="suggestion-name">${name}</span>
-                        <span class="suggestion-email">${user.email || ''}</span>
+                        <span class="suggestion-email">${user.email}</span>
                     </div>
                 </div>
             `;
         }).join('');
-
-        this.suggestionsContainer.classList.remove('hidden');
     }
 
-    addUser(userId, name, email, initials) {
-        if (!this.selectedUsers.some(u => u.id === userId)) {
-            this.selectedUsers.push({ id: userId, name, email, avatar: initials });
-            this.renderChips();
-            this.updateShareButton();
-            if (this.searchInput) {
-                this.searchInput.value = '';
-                this.searchInput.focus();
-            }
-            this.suggestionsContainer.classList.add('hidden');
-        }
+    addUser(userId, name, email) {
+        this.selectedUsers.push({ id: userId, name, email });
+        this.renderChips();
+        this.updateShareButton();
+        this.searchInput.value = '';
+        this.suggestionsContainer.classList.add('hidden');
     }
 
     removeUser(userId) {
@@ -182,120 +229,52 @@ class ShareModalManager {
 
     renderChips() {
         if (!this.chipsContainer) return;
-        this.chipsContainer.innerHTML = this.selectedUsers.map(user => `
+        this.chipsContainer.innerHTML = this.selectedUsers.map(u => `
             <div class="user-chip">
-                <span>${user.name}</span>
-                <span class="material-symbols-outlined remove-chip" onclick="window.shareModal.removeUser('${user.id}')">close</span>
+                <span>${u.name}</span>
+                <span class="material-symbols-outlined remove-chip" onclick="window.shareModal.removeUser('${u.id}')">close</span>
             </div>
         `).join('');
     }
 
     updateShareButton() {
-        if (this.btnShare) {
-            this.btnShare.disabled = this.selectedUsers.length === 0;
-        }
+        if (this.btnShare) this.btnShare.disabled = this.selectedUsers.length === 0;
     }
 
     async share() {
         if (this.selectedUsers.length === 0) return;
-
-        const btnShare = this.btnShare;
-        const permissionEl = document.getElementById('share-permission');
-        const permissionValue = permissionEl ? permissionEl.value : 'view';
-        // Mapear al valor que acepta la BD
-        const dbPermission = permissionValue === 'add' ? 'view_and_copy' : 'view';
-
-        const names = this.selectedUsers.map(u => u.name).join(', ');
+        const permission = document.getElementById('share-permission').value;
+        const dbPerm = permission === 'add' ? 'view_and_copy' : 'view';
 
         try {
-            const sharingTxt = window.i18n ? window.i18n.t('sharing') : 'Compartiendo...';
-            window.setButtonLoading(btnShare, true, sharingTxt);
-
-            // Intentar recuperar el perfil si no está disponible (puede ser una sesión expirada o no cargada)
-            if (!window.authManager.currentUser) {
-                console.log('Perfil no encontrado en memoria, intentando checkAuth...');
-                await window.authManager.checkAuth();
-            }
-
-            const ownerProfileId = window.authManager.currentUser?.id;
-            if (!ownerProfileId) {
-                console.error('No se pudo determinar el ID del propietario');
-                window.showSnackbar('No se pudo obtener tu perfil. Cerramos e intentamos de nuevo...', 4000);
-                setTimeout(() => this.close(), 2000);
-                window.setButtonLoading(btnShare, false);
-                return;
-            }
-
-            // Guardar en shared_recipes para cada destinatario
             const insertions = this.selectedUsers.map(user => ({
-                owner_user_id: ownerProfileId,
                 recipe_id: this.recipeId,
+                owner_user_id: window.authManager.currentUser.id,
                 recipient_user_id: user.id,
-                permission: dbPermission,
-                status: 'pending'
+                permission: dbPerm
             }));
 
-            const { error } = await window.supabaseClient
-                .from('shared_recipes')
-                .insert(insertions);
-
+            const { error } = await window.supabaseClient.from('shared_recipes').insert(insertions);
             if (error) throw error;
 
-            // 2. Crear notificaciones en la BD para cada receptor
-            const notifications = this.selectedUsers.map(user => ({
-                user_id: user.id,
-                type: 'recipe_shared',
-                recipe_id: this.recipeId,
-                from_user_id: ownerProfileId,
-                leido: false
-            }));
+            window.utils.showToast(`✅ Receta compartida con ${this.selectedUsers.length} personas`, 'success');
+            this.selectedUsers = [];
+            this.renderChips();
+            this.updateShareButton();
 
-            await window.supabaseClient
-                .from('notifications')
-                .insert(notifications);
-
-            const sharedMsg = window.i18n ? window.i18n.t('sharedWith', { names }) : `✅ Compartido con ${names}`;
-            window.showSnackbar(sharedMsg, 4000);
-
-            // Si estamos en la vista de compartidos, recargar
-            if (window.dashboard && window.dashboard.currentView === 'shared') {
-                window.dashboard.fetchCompartidas();
-            }
-
-
-
-            // Pequeño retraso antes de cerrar para que el usuario lea el mensaje o vea el estado
-            setTimeout(() => {
-                this.close();
-                window.setButtonLoading(btnShare, false);
-            }, 800);
-
-        } catch (error) {
-            console.error('Error compartiendo:', error);
-            const errorMsg = window.i18n ? window.i18n.t('shareError') : 'Error al compartir la receta';
-            window.showSnackbar(errorMsg, 4000);
-            window.setButtonLoading(btnShare, false);
+            // Reload list
+            await this.loadExistingShares();
+        } catch (err) {
+            console.error('Share error:', err);
+            window.utils.showToast('Error al compartir', 'error');
         }
     }
-
-    copyLink() {
-        if (!this.recipeId) return;
-
-        const url = `${window.location.origin}/recipe-detail.html?id=${this.recipeId}`;
-        const btnText = this.btnCopy.querySelector('.btn-text');
-        const originalText = window.i18n ? window.i18n.t('copyLinkLabel') : "Copiar enlace";
-
-        navigator.clipboard.writeText(url).then(() => {
-            this.btnCopy.classList.add('copied');
-            if (btnText) btnText.textContent = window.i18n ? window.i18n.t('linkCopiedShort') : "✅ Enlace copiado";
-
-            setTimeout(() => {
-                this.btnCopy.classList.remove('copied');
-                if (btnText) btnText.textContent = originalText;
-            }, 2000);
-        });
-    }
 }
+
+// Inicializar
+window.addEventListener('DOMContentLoaded', () => {
+    window.shareModal = new ShareModalManager();
+});
 
 // Inicializar
 window.addEventListener('DOMContentLoaded', () => {

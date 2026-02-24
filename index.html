@@ -566,6 +566,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <!-- New search/invite section -->
                     <div class="search-section">
                         <div class="chip-input-container">
                             <div id="selected-users-chips" class="chips-list"></div>
@@ -581,7 +582,7 @@
                                 data-i18n="permissionLabel">Permiso:</label>
                             <select id="share-permission" class="custom-select">
                                 <option value="view" data-i18n="permView">Solo ver</option>
-                                <option value="add" data-i18n="permAdd">Agregar a sus recetas</option>
+                                <option value="add" data-i18n="permAdd">Puede copiar</option>
                             </select>
                             <span class="material-symbols-outlined select-arrow">expand_more</span>
                         </div>
@@ -591,12 +592,14 @@
                         data-i18n="shareBtn">
                         Compartir
                     </button>
-                </div>
-                <div class="modal-footer">
-                    <button id="btn-copy-link" class="btn-copy-link" onclick="window.shareModal.copyLink()">
-                        <span class="material-symbols-outlined">link</span>
-                        <span class="btn-text" data-i18n="copyLinkLabel">Copiar enlace</span>
-                    </button>
+
+                    <!-- Manage Access Section -->
+                    <div id="manage-access-section" class="manage-access-section-m3">
+                        <h4 class="section-title">Personas con acceso</h4>
+                        <div id="shares-list" class="shares-list">
+                            <!-- Rows loaded via JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
