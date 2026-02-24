@@ -3441,7 +3441,7 @@ select.input-field {
     /* Increased top padding for Dropbox look */
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     position: sticky;
     top: 0;
     z-index: 50;
@@ -4569,7 +4569,8 @@ html[data-auth-likely="true"] #dashboard-app {
 /* ─── Notifications System ─── */
 .notifications-wrapper {
     position: relative;
-    margin-right: 8px;
+    flex-shrink: 0; /* Ensures it doesn't shrink on smaller screens */
+    margin-left: 12px; /* Add margin to separate from search bar */
 }
 
 .notifications-wrapper .btn-icon-m3 {
@@ -4708,4 +4709,56 @@ html[data-auth-likely="true"] #dashboard-app {
     color: #888888;
     font-size: 13px;
     margin: 0;
+}
+
+/* ─── Permission Banner Detail ─── */
+.permission-banner {
+    background: #f8f9fa;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeIn 0.4s ease;
+}
+
+.permission-info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.permission-banner span.material-symbols-outlined {
+    color: #64748b;
+    font-size: 20px;
+}
+
+.permission-banner .text {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+}
+
+.btn-copy-recipe {
+    background: #00A676;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    width: fit-content;
+}
+
+.btn-copy-recipe:hover {
+    background: #008f65;
+    transform: translateY(-1px);
 }

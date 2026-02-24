@@ -338,8 +338,14 @@ class DashboardManager {
     }
 
     handleRecipeClick(recipeId) {
-        // Navegación directa al detalle según solicitud del usuario
-        window.location.href = `recipe-detail.html?id=${recipeId}`;
+        // Navegación directa al detalle pasando permiso si existe (para compartidas)
+        const recipe = this.currentRecipes.find(r => r.id === recipeId);
+        const permission = recipe?.sharedPermission;
+        const url = permission
+            ? `recipe-detail.html?id=${recipeId}&permission=${permission}`
+            : `recipe-detail.html?id=${recipeId}`;
+
+        window.location.href = url;
     }
 
     updateSelectionUI() {

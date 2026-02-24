@@ -5,7 +5,9 @@
  */
 class RecipeDetailManager {
     constructor() {
-        this.recipeId = new URLSearchParams(window.location.search).get('id');
+        const params = new URLSearchParams(window.location.search);
+        this.recipeId = params.get('id');
+        this.permission = params.get('permission'); // 'view' o 'view_and_copy'
         this.currentRecipe = null;
 
         if (!this.recipeId) {
@@ -60,15 +62,14 @@ class RecipeDetailManager {
             heroEl.style.backgroundImage = `url(${recipe.primaryImage})`;
             heroEl.classList.remove('no-image');
             if (appEl) appEl.classList.remove('no-image');
-            heroEl.style.display = 'block'; // Mostrar si hay imagen
+            heroEl.style.display = 'block';
         } else {
             heroEl.style.backgroundImage = 'none';
             heroEl.classList.add('no-image');
             if (appEl) appEl.classList.add('no-image');
-            heroEl.style.display = 'block'; // Mostrar diseño compacto
+            heroEl.style.display = 'block';
         }
 
-        // Finalize render by showing hero
         setTimeout(() => {
             heroEl.style.opacity = '1';
         }, 50);
@@ -91,8 +92,6 @@ class RecipeDetailManager {
             pantrySection.style.display = 'none';
         }
 
-        // Difficulty removed from UI
-
         // Date
         const date = new Date(recipe.created_at).toLocaleDateString();
         document.getElementById('recipeDate').textContent = date;
@@ -104,8 +103,100 @@ class RecipeDetailManager {
             favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
         }
 
+        // --- Lógica de Permisos UI ---
+        const btnEdit = document.getElementById('btnEdit');
+        const btnDelete = document.getElementById('btnDelete');
+        const permissionContainer = document.getElementById('permissionContainer');
+        const currentUserId = window.authManager.currentUser?.id;
+        const isOwner = recipe.user_id === currentUserId;
+
+        // Si es el dueño, no aplicamos restricciones de banner ni ocultamos botones
+        if (isOwner) {
+            if (btnEdit) btnEdit.style.display = 'flex';
+            if (btnDelete) btnDelete.style.display = 'flex';
+            if (permissionContainer) permissionContainer.innerHTML = '';
+        } else if (this.permission) {
+            // Si hay permiso de URL y NO es el dueño, aplicamos restricciones
+            if (btnEdit) btnEdit.style.display = 'none';
+            if (btnDelete) btnDelete.style.display = 'none';
+
+            const isCopyable = this.permission === 'view_and_copy' || this.permission === 'copiar';
+
+            if (this.permission === 'view') {
+                permissionContainer.innerHTML = `
+                    <div class="permission-banner">
+                        <div class="permission-info-row">
+                            <span class="material-symbols-outlined">visibility</span>
+                            <span class="text">👁️ Solo puedes ver · Expira en 7 días</span>
+                        </div>
+                    </div>
+                `;
+            } else if (isCopyable) {
+                permissionContainer.innerHTML = `
+                    <div class="permission-banner">
+                        <div class="permission-info-row">
+                            <span class="material-symbols-outlined">content_copy</span>
+                            <span class="text">📋 Puedes agregar a tus recetas</span>
+                        </div>
+                        <button class="btn-copy-recipe" id="btnCopyRecipe">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            Añadir a mis recetas
+                        </button>
+                    </div>
+                `;
+                // Listener para el nuevo botón
+                setTimeout(() => {
+                    const copyBtn = document.getElementById('btnCopyRecipe');
+                    if (copyBtn) copyBtn.onclick = () => this.copyRecipe();
+                }, 100);
+            }
+        }
+
         this.renderIngredients();
         this.renderSteps();
+    }
+
+    async copyRecipe() {
+        const recipe = this.currentRecipe;
+        const btn = document.getElementById('btnCopyRecipe');
+
+        try {
+            window.setButtonLoading(btn, true, 'Guardando...');
+
+            // 1. Crear copia de la receta base
+            const { name_es, description_es, pantry_es, category_id, calories, servings, difficulty } = recipe;
+            const res = await window.db.createRecipe({
+                name_es, description_es, pantry_es, category_id,
+                calories, servings, difficulty,
+                is_favorite: false,
+                is_active: true
+            });
+
+            if (!res.success) throw new Error(res.error);
+            const newRecipeId = res.recipe.id;
+
+            // 2. Copiar ingredientes
+            if (recipe.ingredients?.length > 0) {
+                await window.db.addIngredients(newRecipeId, recipe.ingredients);
+            }
+
+            // 3. Copiar pasos
+            if (recipe.steps?.length > 0) {
+                await window.db.addSteps(newRecipeId, recipe.steps);
+            }
+
+            window.showToast('✅ ¡Receta guardada en tu recetario!', 'success');
+
+            // 4. Redirigir a la copia propia
+            setTimeout(() => {
+                window.location.href = `recipe-detail.html?id=${newRecipeId}`;
+            }, 1500);
+
+        } catch (err) {
+            console.error('Error al copiar receta:', err);
+            window.showToast('Error al guardar la receta', 'error');
+            window.setButtonLoading(btn, false);
+        }
     }
 
     renderIngredients() {
@@ -149,8 +240,6 @@ class RecipeDetailManager {
     }
 
     setupEventListeners() {
-        // Tabs removed - All content shown at once
-
         // Favorite Button
         document.getElementById('btnFavorite').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -158,14 +247,20 @@ class RecipeDetailManager {
         });
 
         // Edit Button
-        document.getElementById('btnEdit').addEventListener('click', () => {
-            window.location.href = `recipe-form.html?id=${this.recipeId}`;
-        });
+        const btnEdit = document.getElementById('btnEdit');
+        if (btnEdit) {
+            btnEdit.addEventListener('click', () => {
+                window.location.href = `recipe-form.html?id=${this.recipeId}`;
+            });
+        }
 
         // Delete Button
-        document.getElementById('btnDelete').addEventListener('click', () => {
-            this.confirmDelete();
-        });
+        const btnDelete = document.getElementById('btnDelete');
+        if (btnDelete) {
+            btnDelete.addEventListener('click', () => {
+                this.confirmDelete();
+            });
+        }
     }
 
     async confirmDelete() {

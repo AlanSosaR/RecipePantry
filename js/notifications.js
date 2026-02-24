@@ -129,9 +129,10 @@ class NotificationManager {
         }
 
         this.list.innerHTML = this.notifications.map(n => {
-            const permissionText = n.permission === 'view_and_copy'
+            const isCopyable = n.permission === 'view_and_copy';
+            const permissionText = isCopyable
                 ? '📋 Puedes agregar a tus recetas'
-                : '👁️ Solo puedes ver';
+                : '👁️ Solo puedes ver · Expira en 7 días';
 
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" onclick="window.notificationManager.handleNotificationClick('${n.id}')" style="background: transparent !important;">
@@ -167,13 +168,12 @@ class NotificationManager {
             this.updateBadge();
             this.renderMenu();
 
-            // 4. Abrir la receta
-            window.location.href = `recipe-detail.html?id=${n.recipeId}`;
+            // 4. Abrir la receta pasando el permiso
+            window.location.href = `recipe-detail.html?id=${n.recipeId}&permission=${n.permission}`;
             this.menu.classList.add('hidden');
         } catch (err) {
             console.error('Error al procesar click de notificación:', err);
-            // Redirigir de todos modos por UX
-            window.location.href = `recipe-detail.html?id=${n.recipeId}`;
+            window.location.href = `recipe-detail.html?id=${n.recipeId}&permission=${n.permission}`;
         }
     }
 }
