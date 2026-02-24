@@ -656,7 +656,7 @@ ol {
 }
 
 .file-row-m3 {
-    background: var(--surface);
+    background: var(--bg);
     border-bottom: 1px solid var(--outline-variant);
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -665,7 +665,7 @@ ol {
 }
 
 .file-row-m3:hover {
-    background: var(--surface-container-low);
+    background: var(--surface);
     transform: none;
     /* No scaling in list view */
 }
@@ -3898,10 +3898,11 @@ html[data-auth-likely="true"] #dashboard-app {
     border-bottom: 1px solid var(--outline-variant);
     cursor: pointer;
     transition: background 0.2s;
+    background: var(--bg);
 }
 
 .file-row-m3:hover {
-    background: var(--surface-container-low);
+    background: var(--surface);
 }
 
 .file-row-m3.selected {
@@ -3947,7 +3948,7 @@ html[data-auth-likely="true"] #dashboard-app {
     opacity: 0;
     transform: translateX(10px);
     transition: all 0.2s var(--m3-easing);
-    background: var(--surface-container-low);
+    background: var(--bg);
     /* Fondo para que sobresalga */
     padding: 4px 8px;
     border-radius: 8px;
