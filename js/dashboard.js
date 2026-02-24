@@ -276,8 +276,15 @@ class DashboardManager {
                     <span class="badge-tag">General</span>
                 </div>
                 <div class="col-access">
-                    ${recipe.sharingContext === 'received' ? '<span style="color: var(--secondary); font-weight: 600;">Recibida</span>' :
-                recipe.sharingContext === 'sent' ? '<span style="color: var(--primary); font-weight: 600;">Compartida</span>' : 'Solo tú'}
+                    ${recipe.sharingContext === 'received'
+                ? (recipe.sharedPermission === 'view_and_copy'
+                    ? `<span style="color:#c7a44b;display:flex;align-items:center;gap:4px">
+                            <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 400">file_copy</span>
+                            Puede copiar</span>`
+                    : `<span style="color:#00A676;display:flex;align-items:center;gap:4px">
+                            <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 400">visibility</span>
+                            Solo ver</span>`)
+                : recipe.sharingContext === 'sent' ? '<span style="color: var(--primary); font-weight: 600;">Compartida</span>' : 'Solo tú'}
                 </div>
                 <div class="col-date">${date}</div>
                 <div class="col-actions">

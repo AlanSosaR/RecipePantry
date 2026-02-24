@@ -45,30 +45,32 @@ class DatabaseManager {
             if (filters.shared) {
                 const userId = window.authManager.currentUser.id;
 
-                // 1. Recetas recibidas (receptor_id = yo)
-                const { data: receivedData, error: err1 } = await window.supabaseClient
+                // Consulta unificada: recetas donde soy receptor
+                const { data: shared, error: err } = await window.supabaseClient
                     .from('shared_recipes')
-                    .select('recipe_id, owner_user_id, recipient_user_id, permission, status')
+                    .select('*, recipe:recipe_id(*, category:categories(*), images:recipe_images(*)), permission')
                     .eq('recipient_user_id', userId);
 
-                // 2. Recetas enviadas (owner_id = yo)
-                const { data: sentData, error: err2 } = await window.supabaseClient
-                    .from('shared_recipes')
-                    .select('recipe_id, owner_user_id, recipient_user_id, permission, status')
-                    .eq('owner_user_id', userId);
+                if (err) throw err;
 
-                if (err1) throw err1;
-                if (err2) throw err2;
-
-                const sharedData = [...(receivedData || []), ...(sentData || [])];
-                const sharedIds = [...new Set(sharedData.map(s => s.recipe_id))];
-
-                if (sharedIds.length === 0) {
+                if (!shared || shared.length === 0) {
                     return { success: true, recipes: [], fromCache: false };
                 }
 
-                this._tempSharedData = sharedData;
-                query = query.in('id', sharedIds);
+                // Masear a formato de receta con metadata de compartido
+                const recipes = shared.map(s => {
+                    const r = s.recipe;
+                    if (!r) return null;
+                    return {
+                        ...r,
+                        primaryImage: r.images?.find(img => img.is_primary)?.image_url || null,
+                        totalImages: r.images?.length || 0,
+                        sharingContext: 'received',
+                        sharedPermission: s.permission
+                    };
+                }).filter(Boolean);
+
+                return { success: true, recipes, fromCache: false };
             } else {
                 query = query.eq('user_id', window.authManager.currentUser.id);
             }
