@@ -163,11 +163,13 @@ class RecipeDetailManager {
         try {
             window.setButtonLoading(btn, true, 'Guardando...');
 
-            // 1. Crear copia de la receta base
-            const { name_es, description_es, pantry_es, category_id, calories, servings, difficulty } = recipe;
+            // 1. Crear copia de la receta base (Solo columnas que existen en la DB)
+            const { name_es, description_es, pantry_es, category_id } = recipe;
             const res = await window.db.createRecipe({
-                name_es, description_es, pantry_es, category_id,
-                calories, servings, difficulty,
+                name_es,
+                description_es,
+                pantry_es,
+                category_id,
                 is_favorite: false,
                 is_active: true
             });
