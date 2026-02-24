@@ -52,8 +52,9 @@ ol {
 .main-content-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 0 clamp(12px, 2vw, 32px);
-    max-width: min(1100px, 100%);
+    padding: 0 clamp(1rem, 3vw, 3rem);
+    max-width: 1216px;
+    /* 1200 + padding */
     margin: 0 auto;
     width: 100%;
 }
@@ -63,12 +64,8 @@ ol {
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--space-lg);
-    padding: 12px 0.25rem;
+    padding: 0 0.25rem;
     padding-left: clamp(1rem, 4vw, 3.5rem);
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: #fff;
 }
 
 .dashboard-header h3 {
@@ -553,9 +550,8 @@ ol {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: clamp(8px, 1vw, 12px) clamp(14px, 2vw, 24px);
-    height: auto;
-    min-height: 40px;
+    padding: 0 24px;
+    height: 48px;
     border-radius: 24px;
     border: none;
     background: var(--primary);
@@ -647,7 +643,7 @@ ol {
 }
 
 .list-header-m3 {
-    background: #fff;
+    background: transparent;
     border-bottom: 1px solid var(--outline-variant);
     color: var(--on-surface-variant);
     font-size: 11px;
@@ -655,21 +651,8 @@ ol {
     text-transform: uppercase;
     letter-spacing: 0.12em;
     position: sticky;
-    top: 48px;
+    top: 0;
     z-index: 10;
-}
-
-.recipe-list-body {
-    display: block;
-    overflow-y: auto;
-    max-height: calc(100vh - 160px);
-}
-
-/* Maintain grid layout for alignment while applying sticky behavior */
-.list-header-m3,
-.recipe-list-body .file-row-m3 {
-    display: grid;
-    width: 100%;
 }
 
 .file-row-m3 {
@@ -3441,7 +3424,7 @@ select.input-field {
     /* Increased top padding for Dropbox look */
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     position: sticky;
     top: 0;
     z-index: 50;
@@ -3475,7 +3458,6 @@ select.input-field {
 
 .search-container-m3 {
     flex: 1;
-    max-width: 700px; /* Limit its growth as requested */
     display: flex;
     justify-content: center;
 }
@@ -3894,34 +3876,24 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 /* Grid Layout Definition */
-.list-header-m3 {
+.list-header-m3,
+.file-row-m3 {
     display: grid;
     grid-template-columns: 56px 1fr 140px 120px 160px 80px;
     align-items: center;
     padding: 0 16px;
+}
+
+.list-header-m3 {
     height: 48px;
     border-bottom: 1px solid var(--outline-variant);
-    color: #000;
+    color: #000000;
     font-size: 11px;
     font-weight: 900;
     letter-spacing: 0.8px;
-    position: sticky;
-    top: 48px;
-    z-index: 10;
-    background: #fff;
 }
 
-.recipe-list-body {
-    display: block;
-    overflow-y: auto;
-    max-height: calc(100vh - 160px);
-}
-
-.recipe-list-body .file-row-m3 {
-    display: grid;
-    grid-template-columns: 56px 1fr 140px 120px 160px 80px;
-    align-items: center;
-    padding: 0 16px;
+.file-row-m3 {
     height: 56px;
     border-bottom: 1px solid var(--outline-variant);
     cursor: pointer;
@@ -4570,149 +4542,159 @@ html[data-auth-likely="true"] #dashboard-app {
 /* ─── Notifications System ─── */
 .notifications-wrapper {
     position: relative;
-    flex-shrink: 0; /* Ensures it doesn't shrink on smaller screens */
-    margin-left: 12px; /* Add margin to separate from search bar */
+    margin-right: 8px;
+    /* Espacio desde la orilla en móvil */
 }
 
 .notifications-wrapper .btn-icon-m3 {
+    color: var(--primary);
+    /* Verde de la app */
+}
+
+.notifications-wrapper .btn-icon-m3 .material-symbols-outlined {
     color: var(--primary);
 }
 
 .badge-dot {
     position: absolute;
-    top: -4px;
-    right: -4px;
-    background: #ff3b30;
-    color: #ffffff;
+    top: 4px;
+    right: 4px;
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    /* Verde de la app */
+    border: 2px solid white;
     border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    z-index: 2;
 }
 
 .notifications-menu {
     position: absolute;
-    top: 120%;
+    top: 100%;
     right: 0;
-    width: 300px;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 5000;
+    margin-top: 12px;
+    width: 320px;
+    background: #1c1c1e;
+    border: 1px solid #3a3a3a;
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    z-index: 4000;
     overflow: hidden;
-    animation: menuFadeIn 0.2s ease-out forwards;
+    animation: menuFadeIn 200ms ease forwards;
 }
 
 @keyframes menuFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-10px) scale(0.95);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 .notifications-header {
     padding: 16px 20px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #3a3a3a;
 }
 
 .notifications-header h4 {
     margin: 0;
-    color: #ffffff;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
 }
 
 .notifications-list {
-    max-height: 380px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
 .notification-item {
     padding: 16px 20px;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid #3a3a3a;
     cursor: pointer;
-    display: flex;
-    gap: 14px;
-    background: transparent !important;
-    background-image: none !important;
-    position: relative;
     transition: background 0.2s;
+    display: flex;
+    gap: 12px;
 }
 
-.notification-item::before,
-.notification-item::after {
-    display: none !important;
-    content: none !important;
+.notification-item:last-child {
+    border-bottom: none;
 }
 
 .notification-item:hover {
-    background: #222 !important;
+    background: #2a2a2c;
 }
 
-.notification-avatar {
-    width: 38px;
-    height: 38px;
-    background: #00A676;
-    color: #ffffff;
-    border-radius: 50%;
+.notification-icon-container {
+    width: 40px;
+    height: 40px;
+    background: #2a2a2a;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 16px;
     flex-shrink: 0;
+}
+
+.notification-icon-container .material-symbols-outlined {
+    color: #f97316;
 }
 
 .notification-content {
     flex: 1;
+}
+
+.notification-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.notification-desc {
+    font-size: 12px;
+    color: #aaaaaa;
+}
+
+.notification-meta {
+    margin-top: 8px;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    gap: 8px;
 }
 
-.notification-main-text {
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.4;
-}
-
-.notification-recipe-name {
-    color: #00A676;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.notification-time {
-    color: #888888;
+.btn-notif-action {
     font-size: 11px;
-    margin-top: 4px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-notif-primary {
+    background: #f97316;
+    color: white;
+}
+
+.btn-notif-secondary {
+    background: #3a3a3a;
+    color: white;
 }
 
 .notifications-empty {
-    padding: 40px 20px;
+    padding: 32px 20px;
     text-align: center;
+    color: #aaaaaa;
 }
 
 .notifications-empty p {
-    color: #888888;
     font-size: 13px;
     margin: 0;
 }
-
-/* ─── Permission Banner Detail ─── */
+/* ─── Permission Banner & Copy Button ─── */
 .permission-banner {
     background: #f8f9fa;
     border: 1px dashed #cbd5e1;
@@ -4722,26 +4704,21 @@ html[data-auth-likely="true"] #dashboard-app {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    animation: fadeIn 0.4s ease;
 }
-
 .permission-info-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
-
-.permission-banner span.material-symbols-outlined {
+.permission-banner .material-symbols-outlined {
     color: #64748b;
     font-size: 20px;
 }
-
 .permission-banner .text {
     font-size: 13px;
     color: #475569;
     font-weight: 500;
 }
-
 .btn-copy-recipe {
     background: #00A676;
     color: white;
@@ -4758,8 +4735,23 @@ html[data-auth-likely="true"] #dashboard-app {
     transition: all 0.2s;
     width: fit-content;
 }
-
 .btn-copy-recipe:hover {
     background: #008f65;
     transform: translateY(-1px);
+}
+
+/* ─── Notification Bell Mobile Styles ─── */
+@media (max-width: 768px) {
+  .notifications-wrapper .btn-icon-m3 {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: #f0f0f0; border-radius: 50%;
+  }
+  .notifications-wrapper .btn-icon-m3 span {
+    font-size: 20px; color: #00A676;
+  }
+  .notifications-wrapper .badge-dot {
+    width: 16px; height: 16px;
+    font-size: 9px; top: -2px; right: -2px;
+  }
 }
