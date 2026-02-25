@@ -88,112 +88,92 @@
     </style>
 </head>
 
-<body class="dark:bg-[#0c1210] dark:text-white min-h-screen">
+<body class="bg-white dark:bg-[#0c1210] dark:text-zinc-100 min-h-screen selection:bg-primary/20">
+    <!-- Top Bar -->
     <nav
-        class="fixed top-0 left-0 right-0 z-50 bg-surface/40 backdrop-blur-lg dark:bg-zinc-950/40 px-4 h-20 flex items-center justify-between border-b border-transparent">
+        class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl dark:bg-zinc-950/80 px-6 h-24 flex items-center justify-between transition-all duration-300">
         <button onclick="window.location.href='index.html'"
-            class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-900 elevation-2 hover:elevation-3 transition-all active:scale-95">
-            <span class="material-symbols-outlined text-primary">arrow_back</span>
+            class="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-90">
+            <span class="material-symbols-outlined text-primary text-[22px]">arrow_back</span>
         </button>
-        <div class="flex gap-3">
+        <div class="flex gap-4">
             <button id="btnFavorite"
-                class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-900 elevation-2 hover:elevation-3 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-primary">favorite</span>
+                class="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-90group">
+                <span class="material-symbols-outlined text-primary text-[22px]">favorite</span>
             </button>
             <button id="btnEdit"
-                class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-900 elevation-2 hover:elevation-3 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-primary">edit</span>
+                class="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-90">
+                <span class="material-symbols-outlined text-primary text-[22px]">edit</span>
             </button>
             <button id="btnDelete"
-                class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-900 elevation-2 hover:elevation-3 transition-all active:scale-95 text-red-500">
-                <span class="material-symbols-outlined">delete</span>
+                class="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-90 text-red-500">
+                <span class="material-symbols-outlined text-[22px]">delete</span>
             </button>
         </div>
     </nav>
 
-    <main class="relative pt-28 px-6 pb-20 max-w-lg mx-auto">
-        <header class="mb-12">
+    <main class="relative pt-32 px-6 pb-24 max-w-xl mx-auto">
+        <!-- Center Header -->
+        <header class="mb-20 text-center px-4">
             <h1 id="recipeTitle"
-                class="font-serif-expressive text-[34px] font-bold leading-tight text-on-surface dark:text-white tracking-tight">
-                Cargando receta...
+                class="font-serif-expressive text-[44px] sm:text-[52px] font-black leading-[1.1] text-zinc-900 dark:text-white tracking-tightest">
+                Cargando...
             </h1>
         </header>
 
-        <div class="space-y-16">
+        <div class="space-y-24">
             <!-- Story Section -->
-            <section>
-                <div class="flex items-center gap-5 mb-6">
+            <section class="group">
+                <div class="flex items-center gap-6 mb-8">
                     <div
-                        class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 elevation-3 ring-1 ring-black/[0.02] shrink-0">
-                        <span class="material-symbols-outlined text-[24px] text-primary">auto_stories</span>
+                        class="w-14 h-14 flex items-center justify-center rounded-3xl bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 elevation-2 group-hover:elevation-3 transition-all duration-500 shrink-0">
+                        <span class="material-symbols-outlined text-[28px] text-primary">auto_stories</span>
                     </div>
-                    <h2 class="text-xl font-bold text-on-surface dark:text-white tracking-tight"
+                    <h2 class="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight"
                         data-i18n="detailDescription">The Story</h2>
                 </div>
                 <p id="recipeDescription"
-                    class="text-on-surface-variant dark:text-zinc-400 leading-relaxed text-base px-2">
+                    class="text-zinc-600 dark:text-zinc-400 leading-relaxed text-[17px] px-2 font-medium">
                     Aguardando...
                 </p>
             </section>
 
             <!-- Ingredients Section -->
-            <section>
-                <div class="flex items-center gap-5 mb-8">
+            <section class="group">
+                <div class="flex items-center gap-6 mb-10">
                     <div
-                        class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 elevation-3 ring-1 ring-black/[0.02] shrink-0">
-                        <span class="material-symbols-outlined text-[24px] text-primary">shopping_basket</span>
+                        class="w-14 h-14 flex items-center justify-center rounded-3xl bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 elevation-2 group-hover:elevation-3 transition-all duration-500 shrink-0">
+                        <span class="material-symbols-outlined text-[28px] text-primary">shopping_basket</span>
                     </div>
                     <div class="flex flex-col">
-                        <h2 class="text-xl font-bold text-on-surface dark:text-white tracking-tight"
+                        <h2 class="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight"
                             data-i18n="detailIngredients">Ingredients</h2>
                         <span id="ingredientsCount"
-                            class="text-xs text-on-surface-variant dark:text-zinc-500 font-medium">0 items</span>
+                            class="text-sm text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest mt-0.5">0
+                            items</span>
                     </div>
                 </div>
-                <div id="ingredientsList" class="space-y-5 px-2">
+                <div id="ingredientsList" class="space-y-6 px-2">
                     <!-- Loaded via JS -->
                 </div>
             </section>
 
             <!-- Preparation Section -->
-            <section>
-                <div class="flex items-center gap-5 mb-10">
+            <section class="group">
+                <div class="flex items-center gap-6 mb-12">
                     <div
-                        class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 elevation-3 ring-1 ring-black/[0.02] shrink-0">
-                        <span class="material-symbols-outlined text-[24px] text-primary">restaurant_menu</span>
+                        class="w-14 h-14 flex items-center justify-center rounded-3xl bg-slate-50 dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 elevation-2 group-hover:elevation-3 transition-all duration-500 shrink-0">
+                        <span class="material-symbols-outlined text-[28px] text-primary">restaurant_menu</span>
                     </div>
-                    <h2 class="text-xl font-bold text-on-surface dark:text-white tracking-tight"
+                    <h2 class="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight"
                         data-i18n="detailSteps">Preparation Steps</h2>
                 </div>
-                <div id="stepsList" class="space-y-12 relative px-2">
+                <div id="stepsList" class="space-y-16 relative px-2">
                     <!-- Loaded via JS -->
                 </div>
             </section>
-
-            <!-- Footer Dates -->
-            <div class="grid grid-cols-2 gap-4 mt-8 pt-10 border-t border-primary/10">
-                <div class="flex flex-col gap-1">
-                    <span
-                        class="text-[10px] uppercase tracking-widest text-on-surface-variant dark:text-zinc-500 font-bold"
-                        data-i18n="detailCreated">Creada</span>
-                    <p id="createdDate" class="text-sm font-semibold text-on-surface dark:text-zinc-300">--</p>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <span
-                        class="text-[10px] uppercase tracking-widest text-on-surface-variant dark:text-zinc-500 font-bold">Modificada</span>
-                    <p id="updatedDate" class="text-sm font-semibold text-on-surface dark:text-zinc-300">--</p>
-                </div>
-            </div>
         </div>
     </main>
-
-    <div class="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
-        <button id="btnCookNow"
-            class="pointer-events-auto bg-[#00A676] text-white h-14 pl-6 pr-8 rounded-full font-bold flex items-center gap-3 shadow-m3-l3 active:scale-95 transition-all hover:brightness-105 hover:-translate-y-0.5">
-            <span class="material-symbols-outlined text-[24px]">play_arrow</span>
-            <span class="text-[15px] tracking-wide uppercase font-bold" data-i18n="cookNow">Iniciar receta</span>
-        </button>
-    </div>
 
     <!-- Scripts -->
     <script src="js/config.js?v=2"></script>

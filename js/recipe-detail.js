@@ -55,24 +55,9 @@ class RecipeDetailManager {
         const recipe = this.currentRecipe;
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-        // Title
-        const titleEl = document.getElementById('recipeTitle');
-        if (titleEl) titleEl.textContent = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
-
-        // Description
-        const desc = isEn ? (recipe.description_en || recipe.description_es) : recipe.description_es;
-        const descEl = document.getElementById('recipeDescription');
-        if (descEl) descEl.textContent = desc || (window.i18n ? window.i18n.t('noDescription') : 'Sin descripción');
-
-        // Dates
-        const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-        const createdDate = recipe.created_at ? new Date(recipe.created_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', dateOptions) : '--';
-        const updatedDate = recipe.updated_at ? new Date(recipe.updated_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', dateOptions) : (recipe.created_at ? createdDate : '--');
-
-        const createdEl = document.getElementById('createdDate');
-        const updatedEl = document.getElementById('updatedDate');
-        if (createdEl) createdEl.textContent = createdDate;
-        if (updatedEl) updatedEl.textContent = updatedDate;
+        // Update Title and Description
+        document.getElementById('recipeTitle').textContent = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+        document.getElementById('recipeDescription').textContent = isEn ? (recipe.description_en || recipe.description_es) : (recipe.description_es || recipe.description_en);
 
         // Favorite State
         const favBtn = document.getElementById('btnFavorite');
@@ -115,10 +100,10 @@ class RecipeDetailManager {
             const text = `${ing.quantity || ''} ${unit || ''} ${name}`.trim();
 
             return `
-                <div class="flex items-center gap-4 group cursor-pointer" onclick="const cb = this.querySelector('.cb-visual'); const inp = this.querySelector('input'); inp.checked = !inp.checked; this.querySelector('.ing-text').classList.toggle('strikethrough', inp.checked); this.querySelector('.ing-text').classList.toggle('text-on-surface-variant', inp.checked); cb.classList.toggle('bg-primary', inp.checked); cb.classList.toggle('border-primary/30', !inp.checked); cb.innerHTML = inp.checked ? '<span class=&quot;material-symbols-outlined text-white text-[16px] font-bold&quot;>check</span>' : '';">
+                <div class="flex items-center gap-5 group cursor-pointer py-1" onclick="const cb = this.querySelector('.cb-visual'); const inp = this.querySelector('input'); inp.checked = !inp.checked; this.querySelector('.ing-text').classList.toggle('strikethrough', inp.checked); this.querySelector('.ing-text').classList.toggle('text-zinc-400', inp.checked); cb.classList.toggle('bg-primary', inp.checked); cb.classList.toggle('border-primary', inp.checked); cb.classList.toggle('scale-90', inp.checked); cb.innerHTML = inp.checked ? '<span class=&quot;material-symbols-outlined text-white text-[14px] font-black&quot;>check</span>' : '';">
                     <input type="checkbox" class="hidden">
-                    <div class="cb-visual w-6 h-6 rounded-m3-sm border-2 border-primary/30 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm"></div>
-                    <span class="ing-text text-on-surface dark:text-zinc-200 text-base transition-colors">${text}</span>
+                    <div class="cb-visual w-6 h-6 rounded-lg border-2 border-slate-200 dark:border-zinc-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm"></div>
+                    <span class="ing-text text-zinc-700 dark:text-zinc-300 text-[17px] font-medium transition-all duration-300">${text}</span>
                 </div>
             `;
         }).join('');
@@ -134,9 +119,6 @@ class RecipeDetailManager {
             return;
         }
 
-        // Add the vertical connector line
-        const timelineLine = `<div class="absolute left-[19px] top-10 bottom-10 w-[2px] bg-primary/10 dark:bg-primary/20"></div>`;
-
         const stepsHtml = steps.map((step, index) => {
             const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
             // Extract a possible title (first sentence or first few words)
@@ -145,15 +127,15 @@ class RecipeDetailManager {
             const body = parts.length > 1 ? instruction.substring(parts[0].length + 1).trim() : instruction;
 
             return `
-                <div class="flex gap-6 relative group">
-                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-sm z-10 ring-4 ring-surface dark:ring-[#0c1210] shadow-md group-hover:scale-110 transition-transform">
+                <div class="flex gap-8 relative group">
+                    <div class="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shrink-0 font-black text-xl z-10 ring-8 ring-white dark:ring-[#0c1210] shadow-m3-l1 group-hover:scale-110 transition-transform duration-500">
                         ${index + 1}
                     </div>
-                    <div class="pt-1">
-                        <h3 class="font-bold text-lg mb-2 text-on-surface dark:text-white transition-colors group-hover:text-primary leading-tight">
+                    <div class="pt-2">
+                        <h3 class="font-black text-xl mb-3 text-zinc-900 dark:text-white transition-colors group-hover:text-primary leading-tight tracking-tight">
                             ${title}
                         </h3>
-                        <p class="text-on-surface-variant dark:text-zinc-400 text-base leading-relaxed">
+                        <p class="text-zinc-500 dark:text-zinc-400 text-[17px] leading-relaxed font-medium">
                             ${body}
                         </p>
                     </div>
@@ -161,6 +143,8 @@ class RecipeDetailManager {
             `;
         }).join('');
 
+        // Add the vertical connector line (positioned precisely behind the 56px/w-14 circles)
+        const timelineLine = `<div class="absolute left-[26px] top-12 bottom-12 w-[3px] bg-slate-100 dark:bg-zinc-800/50 rounded-full"></div>`;
         stepsEl.innerHTML = timelineLine + stepsHtml;
     }
 
@@ -187,13 +171,7 @@ class RecipeDetailManager {
             });
         }
 
-        // Cook Now Button
-        const btnCook = document.getElementById('btnCookNow');
-        if (btnCook) {
-            btnCook.addEventListener('click', () => {
-                window.utils.showToast(window.i18n ? window.i18n.t('startingRecipe') : 'Iniciando receta...', 'success');
-            });
-        }
+        // Eventos básicos omitidos o simplificados para el nuevo diseño premium
     }
 
     async confirmDelete() {
