@@ -78,7 +78,7 @@
             --surface-container-low: #FFFFFF;
             --outline-variant: #E5E7EB;
             --on-surface-variant: #444746;
-            --logo-orange: #EA580C;
+            --logo-color: #10B981;
         }
 
         body {
@@ -434,7 +434,7 @@
             <div class="sidebar-logo" onclick="window.location.href='index.html'; window.closeSidebar();"
                 style="cursor: pointer;">
                 <span class="material-symbols-outlined logo-icon" style="color: var(--primary);">menu_book</span>
-                <span class="logo-text" style="color: var(--logo-orange);">RecipeHub</span>
+                <span class="logo-text" style="color: var(--logo-color);">RecipeHub</span>
             </div>
         </div>
 
@@ -494,11 +494,10 @@
             </div>
             <div class="right" style="display:flex; gap:8px; align-items:center;">
                 <div class="m3-avatar">
-                    <div id="userAvatar"
-                        style="width:100%;height:100%;background:var(--md-primary-container);display:flex;align-items:center;justify-content:center;">
-                        <span class="material-symbols-outlined"
-                            style="font-size:20px;color:var(--md-on-primary-container)">person</span>
-                    </div>
+                    <button id="btnSaveDirectOCR"
+                        style="margin-top:12px;width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:14px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                        <span class="material-symbols-outlined" style="font-size:20px;color:white;">person</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -620,7 +619,8 @@
                             data-i18n="ocrTabRaw">Texto Crudo</button>
                         <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')"
                             data-i18n="ocrTabParsed">Vista Previa</button>
-                        <button class="tab-button" data-tab="ag" onclick="switchTab('ag')" style="color: #6366f1;">
+                        <button class="tab-button" data-tab="ag" onclick="switchTab('ag')"
+                            style="color: var(--primary);">
                             <span class="material-symbols-outlined"
                                 style="font-size: 18px; vertical-align: middle;">psychology</span>
                             <span data-i18n="ocrTabAg">Análisis AG</span>
@@ -665,10 +665,11 @@
                     <!-- Tab: Anti Gravity Exhaustive Analysis -->
                     <div id="tabAg" class="tab-content" style="display: none;">
                         <div
-                            style="background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 20px; padding: 20px; font-family: 'Courier New', Courier, monospace; color: #312E81;">
+                            style="background: var(--md-primary-container); border: 1px solid var(--md-primary-container); border-radius: 20px; padding: 20px; font-family: 'Courier New', Courier, monospace; color: var(--md-on-primary-container);">
                             <div
-                                style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #C7D2FE; padding-bottom: 8px;">
-                                <span class="material-symbols-outlined">analytics</span>
+                                style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--md-primary); padding-bottom: 8px;">
+                                <span class="material-symbols-outlined"
+                                    style="color: var(--primary); font-size:28px;">document_scanner</span>
                                 <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;"
                                     data-i18n="ocrAgAnalysisTitle">ANÁLISIS
                                     EXHAUSTIVO TOTAL</strong>

@@ -1309,7 +1309,7 @@ select.input-field {
 }
 
 .sidebar-logo .logo-text {
-    color: var(--logo-orange);
+    color: var(--logo-color);
 }
 
 .sidebar-logo .logo-icon {
