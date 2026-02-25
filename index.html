@@ -28,6 +28,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0"
         rel="stylesheet" />
 
+    <!-- Material 3 Expressive Infrastructure -->
+    <script type="importmap">
+        {
+          "imports": {
+            "lit": "https://cdn.jsdelivr.net/npm/lit@3/index.js",
+            "lit/": "https://cdn.jsdelivr.net/npm/lit@3/",
+            "@lit/localize": "https://cdn.jsdelivr.net/npm/@lit/localize/lit-localize.js",
+            "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@1/reactive-element.js",
+            "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@1/",
+            "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4/lit-element.js",
+            "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3/lit-html.js",
+            "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3/",
+            "material/": "https://cdn.jsdelivr.net/gh/material-esm/material@1/"
+          }
+        }
+    </script>
+
     <!-- Core Styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
@@ -489,10 +506,10 @@
                     <p style="color: var(--on-surface-variant); margin-top: 8px;" data-i18n="noRecipesDesc">Comienza
                         digitalizando tus recetas en
                         papel o agrega una manualmente.</p>
-                    <button class="btn-primary" style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
-                        <span class="material-symbols-outlined">document_scanner</span>
+                    <md-filled-button style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
+                        <span slot="icon" class="material-symbols-outlined">document_scanner</span>
                         <span data-i18n="scanRecipeBtn">Escanear Receta</span>
-                    </button>
+                    </md-filled-button>
                 </div>
             </div> <!-- .main-content-scroll close -->
 
@@ -550,10 +567,10 @@
                         </div>
                     </div>
 
-                    <button id="btn-share-submit" class="btn-share-main" disabled onclick="window.shareModal.share()"
-                        data-i18n="shareBtn">
+                    <md-filled-button id="btn-share-submit" style="width: 100%;" disabled
+                        onclick="window.shareModal.share()" data-i18n="shareBtn">
                         Compartir
-                    </button>
+                    </md-filled-button>
 
                     <!-- Manage Access Section -->
                     <div id="manage-access-section" class="manage-access-section-m3">
@@ -584,6 +601,15 @@
             function updateTranslations() {
                 if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
             }
+        </script>
+        <script type="module">
+            import 'material/buttons/button.js'
+            import 'material/buttons/filled-button.js'
+            import 'material/buttons/outlined-button.js'
+            import 'material/text-field/text-field.js'
+
+            // También podemos importar managers globales si es necesario
+            console.log('✨ Material 3 Expressive Modules Loaded');
         </script>
 </body>
 
