@@ -19,10 +19,10 @@ class RecipeDetailManager {
     }
 
     async init() {
-        // 1. Verificar autenticación
+        // 1. Verificar autenticación con redirección inteligente
         const isAuth = await window.authManager.checkAuth();
         if (!isAuth) {
-            window.location.replace('index.html');
+            window.authManager.requireAuth(); // Esto maneja el redirectAfterLogin
             return;
         }
 
@@ -56,19 +56,39 @@ class RecipeDetailManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         // Update Title and Description
-        const fullTitle = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+        const titleEl = document.getElementById('recipeTitle');
+        const descEl = document.getElementById('recipeDescription');
+        const categoryEl = document.getElementById('recipeCategory'); // Assuming this element exists for category
+
+        // Título: Primera palabra en color primario
+        const name = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+        const fullTitle = name || (window.i18n ? window.i18n.t('recipeNotFound') : 'Receta');
         const titleParts = fullTitle.split(' ');
         const firstWord = titleParts[0];
         const restOfTitle = titleParts.slice(1).join(' ');
 
-        const titleEl = document.getElementById('recipeTitle');
         if (titleEl) {
             titleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restOfTitle}`;
         }
 
-        const descEl = document.getElementById('recipeDescription');
         if (descEl) {
-            descEl.textContent = isEn ? (recipe.description_en || recipe.description_es) : (recipe.description_es || recipe.description_en);
+            descEl.textContent = isEn ? (recipe.description_en || recipe.description_es) : recipe.description_es;
+            if (!descEl.textContent) {
+                descEl.textContent = window.i18n ? window.i18n.t('noDescription') : 'No hay descripción disponible.';
+            }
+        }
+
+        if (categoryEl) {
+            const categoryName = isEn ? (recipe.category?.name_en || recipe.category?.name_es) : recipe.category?.name_es;
+            categoryEl.textContent = categoryName || (window.i18n ? window.i18n.t('generalCategory') : 'General');
+        }
+
+        // --- Image Handling ---
+        const imageEl = document.getElementById('recipeImage');
+        if (imageEl) {
+            const primaryImage = recipe.images?.find(img => img.is_primary) || recipe.images?.[0];
+            const imageUrl = primaryImage?.image_url || recipe.image_url || window.DEFAULT_RECIPE_IMAGE;
+            imageEl.src = imageUrl;
         }
 
         // Favorite State
@@ -255,3 +275,6 @@ class RecipeDetailManager {
         }
     }
 }
+
+// Inicializar y exponer instancia global
+window.recipeDetailManager = new RecipeDetailManager();
