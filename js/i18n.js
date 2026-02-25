@@ -110,6 +110,9 @@
             ocrGalleryTooltip: 'Subir imagen desde galería',
             ocrCaptureTooltip: 'Capturar y analizar receta',
             ocrSwitchCameraTooltip: 'Cambiar cámara',
+            ocrAiFallback: 'Error con la IA, intentando escaneo local...',
+            ocrAiError: 'Error en el proceso de OCR con IA',
+            ocrAiProcessing: 'Analizando con IA...',
             navNotificationsTitle: 'Notificaciones',
 
             // ── Recipe form ───────────────────────────────────────────────
@@ -361,6 +364,9 @@
             ocrGalleryTooltip: 'Upload image from gallery',
             ocrCaptureTooltip: 'Capture and analyze recipe',
             ocrSwitchCameraTooltip: 'Switch camera',
+            ocrAiFallback: 'AI Error, trying local scan...',
+            ocrAiError: 'Error in AI OCR process',
+            ocrAiProcessing: 'Analyzing with AI...',
             navNotificationsTitle: 'Notifications',
 
             // ── Recipe form ───────────────────────────────────────────────

@@ -10,33 +10,80 @@ class OCRProcessor {
 
     /**
      * Procesa una imagen y devuelve el texto extraído con su confianza.
+     * Ahora utiliza una Supabase Edge Function con IA para mayor precisión.
      */
     async processImage(imageFile, onProgress) {
-        if (typeof Tesseract === 'undefined' && typeof window.Tesseract === 'undefined') {
-            console.error('Tesseract is not defined');
-            const err = window.i18n ? window.i18n.t('ocrAnalysisError') : 'El sistema de reconocimiento no se ha cargado.';
-            throw new Error(err);
-        }
-
-        const tesseractInstance = typeof Tesseract !== 'undefined' ? Tesseract : window.Tesseract;
+        const loading = document.getElementById('ocrLoading');
+        if (loading) loading.style.display = 'flex';
 
         try {
-            // En v5, Tesseract.recognize es la forma más limpia y robusta 
-            // de manejar el ciclo de vida del worker automáticamente.
-            const { data } = await tesseractInstance.recognize(imageFile, 'spa+eng', {
-                logger: m => {
-                    if (onProgress) onProgress(m);
-                }
+            // El archivo ya viene procesado (recortado) si era necesario
+            const reader = new FileReader();
+            const base64Promise = new Promise((resolve) => {
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.readAsDataURL(imageFile);
             });
+
+            const base64Image = await base64Promise;
+
+            const { data, error } = await window.supabaseClient.functions.invoke('ocr-ai', {
+                body: { image: base64Image }
+            });
+
+            if (error) throw error;
 
             return {
                 text: data.text,
-                confidence: data.confidence
+                confidence: data.confidence || 100
             };
         } catch (error) {
-            console.error('Error en Tesseract.recognize:', error);
-            throw error;
+            console.error('Error en el proceso de OCR con IA:', error);
+
+            // Fallback a Tesseract si la función de IA falla (opcional, pero mejor avisar)
+            window.showToast(window.i18n ? window.i18n.t('ocrAiFallback') : 'Error con la IA, intentando escaneo local...', 'info');
+
+            if (typeof Tesseract === 'undefined' && typeof window.Tesseract === 'undefined') {
+                throw new Error('El sistema de reconocimiento no está disponible.');
+            }
+            const tesseractInstance = typeof Tesseract !== 'undefined' ? Tesseract : window.Tesseract;
+            const { data } = await tesseractInstance.recognize(imageFile, 'spa+eng', {
+                logger: m => { if (onProgress) onProgress(m); }
+            });
+            return { text: data.text, confidence: data.confidence };
+        } finally {
+            if (loading) loading.style.display = 'none';
         }
+    }
+
+    /**
+     * Recorta la barra de estado superior de una imagen si parece ser una captura de móvil.
+     * @param {Blob|File} imageFile - El archivo de imagen original.
+     * @returns {Promise<Blob>} - El blob de la imagen recortada.
+     */
+    async cleanStatusBar(imageFile) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Si la imagen es vertical (móvil) y tiene dimensiones típicas de captura
+                const isProbablyMobile = img.height > img.width;
+                const cropHeight = isProbablyMobile ? 80 : 0;
+
+                canvas.width = img.width;
+                canvas.height = img.height - cropHeight;
+
+                // Dibujar la imagen empezando desde los 80px (o 0) superiores
+                ctx.drawImage(img, 0, cropHeight, img.width, img.height - cropHeight, 0, 0, img.width, img.height - cropHeight);
+
+                canvas.toBlob((blob) => {
+                    resolve(blob || imageFile);
+                }, 'image/jpeg', 0.9);
+            };
+            img.onerror = () => resolve(imageFile);
+            img.src = URL.createObjectURL(imageFile);
+        });
     }
 
     /**
@@ -311,9 +358,9 @@ class OCRScanner {
             // Show loading spinner
             loading.style.display = 'flex';
 
-            // Convert to Blob/File for OCR
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-            const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
+            // Convert back to File for processing
+            const processedBlob = await window.ocrProcessor.cleanStatusBar(blob);
+            const file = new File([processedBlob], 'scan.jpg', { type: 'image/jpeg' });
 
             // Process with OCRProcessor
             const results = await window.ocrProcessor.processImage(file);
@@ -350,7 +397,9 @@ class OCRScanner {
         loading.style.display = 'flex';
 
         try {
-            const results = await window.ocrProcessor.processImage(file);
+            const processedBlob = await window.ocrProcessor.cleanStatusBar(file);
+            const processedFile = new File([processedBlob], file.name, { type: file.type });
+            const results = await window.ocrProcessor.processImage(processedFile);
             this.showResults(results);
         } catch (error) {
             console.error('OCR Error:', error);
