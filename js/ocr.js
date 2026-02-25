@@ -30,7 +30,15 @@ class OCRProcessor {
                 body: { image: base64Image }
             });
 
-            if (error) throw error;
+            if (error) {
+                // Si es un error de la función, intentar obtener el detalle del body
+                if (error.context && error.context.json) {
+                    const detail = await error.context.json();
+                    console.error('Detalle del error de la función:', detail);
+                    throw new Error(detail.error || error.message);
+                }
+                throw error;
+            }
 
             return {
                 text: data.text,
