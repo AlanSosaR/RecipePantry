@@ -260,15 +260,20 @@ class ShareModalManager {
 
             // 2. Crear notificaciones para que aparezcan en tiempo real al destinatario
             const notifications = this.selectedUsers.map(user => ({
-                user_id: user.id,
-                from_user_id: window.authManager.currentUser.id,
+                user_id: user.id, // El destinatario (quien recibe la campana)
+                from_user_id: window.authManager.currentUser.id, // El dueño (tú)
                 recipe_id: this.recipeId,
                 leido: false
             }));
 
+            console.log('✉️ Intentando crear registros en "notifications":', notifications);
+
             const { error: notifError } = await window.supabaseClient.from('notifications').insert(notifications);
             if (notifError) {
                 console.warn('⚠️ Error al crear notificaciones (detalles):', notifError.message, notifError.details, notifError);
+                console.log('💡 Sugerencia: Asegúrate de habilitar la política RLS de INSERT en la tabla notifications.');
+            } else {
+                console.log('🚀 Notificaciones creadas exitosamente');
             }
 
             const namesList = this.selectedUsers.map(u => u.name).join(', ');

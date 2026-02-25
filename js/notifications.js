@@ -35,45 +35,55 @@ class NotificationManager {
             const user = window.authManager.currentUser;
             if (!user) return;
 
-            // Buscamos notificaciones y unimos con shared_recipes a través de recipes para ver el permiso actual
+            console.log('🔔 Buscando notificaciones para el usuario:', user.id);
+
+            // Buscamos notificaciones básicas primero para asegurar que funcionen incluso si los joins fallan
             const { data, error } = await window.supabaseClient
                 .from('notifications')
                 .select(`
-                    *,
+                    id, 
+                    created_at, 
+                    leido, 
+                    from_user_id, 
+                    recipe_id,
                     from_user:users!from_user_id(first_name, last_name, email),
-                    recipe:recipes(
-                        id, 
-                        name_es, 
-                        shared_info:shared_recipes(permission, recipient_user_id)
-                    )
+                    recipe:recipes(id, name_es, name_en)
                 `)
                 .eq('user_id', user.id)
                 .is('leido', false)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('❌ Error Supabase fetchNotifications:', error);
+                throw error;
+            }
+
+            console.log('📬 Notificaciones recibidas:', data.length);
 
             this.notifications = data.map(n => {
-                // El shared_info ahora viene anidado en recipe
-                const shareInfoArray = n.recipe?.shared_info || [];
-                const shareInfo = Array.isArray(shareInfoArray)
-                    ? shareInfoArray.find(s => s.recipient_user_id === user.id)
-                    : shareInfoArray;
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const recipeName = isEn ? (n.recipe?.name_en || n.recipe?.name_es) : n.recipe?.name_es;
+                const senderName = [n.from_user?.first_name, n.from_user?.last_name].filter(Boolean).join(' ')
+                    || n.from_user?.email
+                    || (window.i18n ? window.i18n.t('notifSomebody') : 'Alguien');
 
                 return {
                     id: n.id,
                     recipeId: n.recipe_id,
-                    recipeName: n.recipe?.name_es || (window.i18n ? window.i18n.t('notifSharedRecipe') : 'Receta compartida'),
-                    permission: shareInfo?.permission || 'view',
+                    recipeName: recipeName || (window.i18n ? window.i18n.t('notifSharedRecipe') : 'Receta compartida'),
+                    permission: 'view', // Por defecto view, ya que shared_recipes manejará el permiso real
                     timestamp: n.created_at,
-                    sender: [n.from_user?.first_name, n.from_user?.last_name].filter(Boolean).join(' ') || n.from_user?.email || (window.i18n ? window.i18n.t('notifSomebody') : 'Alguien'),
+                    sender: senderName,
                     leido: n.leido
                 };
             });
 
             this.updateBadge();
+            if (!this.menu?.classList.contains('hidden')) {
+                this.renderMenu();
+            }
         } catch (err) {
-            console.error('Error cargando notificaciones:', err);
+            console.error('⚠️ Detalle del error cargando notificaciones:', err);
         }
     }
 
@@ -81,19 +91,29 @@ class NotificationManager {
         const user = window.authManager.currentUser;
         if (!user) return;
 
-        window.supabaseClient
-            .channel('public:notifications')
+        console.log('📡 Iniciando canal Realtime para notificaciones...');
+
+        const channel = window.supabaseClient
+            .channel(`notifications:${user.id}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
                 table: 'notifications',
                 filter: `user_id=eq.${user.id}`
-            }, payload => {
+            }, (payload) => {
+                console.log('⚡ ¡Nueva notificación recibida por Realtime!', payload);
                 this.fetchNotifications();
-                const newRecipeMsg = window.i18n ? window.i18n.t('notifNewRecipe') : '¡Has recibido una nueva receta!';
+                const newRecipeMsg = (window.i18n && window.i18n.t)
+                    ? window.i18n.t('notifNewRecipe')
+                    : '¡Has recibido una nueva receta!';
                 window.utils.showToast(newRecipeMsg, 'info');
             })
-            .subscribe();
+            .subscribe((status) => {
+                console.log('🔌 Estado suscripción Realtime:', status);
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Escuchando cambios en la tabla notifications...');
+                }
+            });
     }
 
     updateBadge() {
