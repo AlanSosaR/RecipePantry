@@ -100,10 +100,10 @@ class RecipeDetailManager {
             const text = `${ing.quantity || ''} ${unit || ''} ${name}`.trim();
 
             return `
-                <div class="flex items-center gap-5 group cursor-pointer py-1" onclick="const cb = this.querySelector('.cb-visual'); const inp = this.querySelector('input'); inp.checked = !inp.checked; this.querySelector('.ing-text').classList.toggle('strikethrough', inp.checked); this.querySelector('.ing-text').classList.toggle('text-zinc-400', inp.checked); cb.classList.toggle('bg-primary', inp.checked); cb.classList.toggle('border-primary', inp.checked); cb.classList.toggle('scale-90', inp.checked); cb.innerHTML = inp.checked ? '<span class=&quot;material-symbols-outlined text-white text-[14px] font-black&quot;>check</span>' : '';">
+                <div class="flex items-center gap-5 group cursor-pointer py-1" onclick="const cb = this.querySelector('.cb-visual'); const inp = this.querySelector('input'); inp.checked = !inp.checked; this.querySelector('.ing-text').classList.toggle('strikethrough', inp.checked); this.querySelector('.ing-text').classList.toggle('text-zinc-400', inp.checked); cb.classList.toggle('bg-primary', inp.checked); cb.classList.toggle('border-primary', inp.checked); cb.classList.toggle('scale-90', inp.checked); cb.innerHTML = inp.checked ? '<span class=&quot;material-symbols-outlined text-white text-[16px] font-black&quot;>check</span>' : '';">
                     <input type="checkbox" class="hidden">
-                    <div class="cb-visual w-6 h-6 rounded-lg border-2 border-slate-200 dark:border-zinc-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm"></div>
-                    <span class="ing-text text-zinc-700 dark:text-zinc-300 text-[17px] font-medium transition-all duration-300">${text}</span>
+                    <div class="cb-visual w-7 h-7 rounded-lg border-2 border-slate-200 dark:border-zinc-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm"></div>
+                    <span class="ing-text text-zinc-700 dark:text-zinc-300 text-[18px] font-medium transition-all duration-300">${text}</span>
                 </div>
             `;
         }).join('');
@@ -121,21 +121,20 @@ class RecipeDetailManager {
 
         const stepsHtml = steps.map((step, index) => {
             const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
-            // Extract a possible title (first sentence or first few words)
             const parts = instruction.split(/[.:\n]/);
             const title = parts.length > 1 ? parts[0] : `Paso ${index + 1}`;
             const body = parts.length > 1 ? instruction.substring(parts[0].length + 1).trim() : instruction;
 
             return `
                 <div class="flex gap-8 relative group">
-                    <div class="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shrink-0 font-black text-xl z-10 ring-8 ring-white dark:ring-[#0c1210] shadow-m3-l1 group-hover:scale-110 transition-transform duration-500">
+                    <div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-lg z-10 ring-8 ring-white dark:ring-[#0c1210] shadow-md group-hover:scale-110 transition-transform duration-500">
                         ${index + 1}
                     </div>
-                    <div class="pt-2">
-                        <h3 class="font-black text-xl mb-3 text-zinc-900 dark:text-white transition-colors group-hover:text-primary leading-tight tracking-tight">
+                    <div class="pt-1">
+                        <h3 class="font-bold text-xl mb-3 text-zinc-900 dark:text-white transition-colors group-hover:text-primary leading-tight tracking-tight">
                             ${title}
                         </h3>
-                        <p class="text-zinc-500 dark:text-zinc-400 text-[17px] leading-relaxed font-medium">
+                        <p class="text-zinc-500 dark:text-zinc-400 text-[18px] leading-relaxed font-medium">
                             ${body}
                         </p>
                     </div>
@@ -143,8 +142,7 @@ class RecipeDetailManager {
             `;
         }).join('');
 
-        // Add the vertical connector line (positioned precisely behind the 56px/w-14 circles)
-        const timelineLine = `<div class="absolute left-[26px] top-12 bottom-12 w-[3px] bg-slate-100 dark:bg-zinc-800/50 rounded-full"></div>`;
+        const timelineLine = `<div class="absolute left-[23px] top-12 bottom-12 w-[3px] bg-slate-100 dark:bg-zinc-800/50 rounded-full"></div>`;
         stepsEl.innerHTML = timelineLine + stepsHtml;
     }
 
