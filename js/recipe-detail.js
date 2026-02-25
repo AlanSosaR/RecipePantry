@@ -56,8 +56,20 @@ class RecipeDetailManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         // Update Title and Description
-        document.getElementById('recipeTitle').textContent = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
-        document.getElementById('recipeDescription').textContent = isEn ? (recipe.description_en || recipe.description_es) : (recipe.description_es || recipe.description_en);
+        const fullTitle = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+        const titleParts = fullTitle.split(' ');
+        const firstWord = titleParts[0];
+        const restOfTitle = titleParts.slice(1).join(' ');
+
+        const titleEl = document.getElementById('recipeTitle');
+        if (titleEl) {
+            titleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restOfTitle}`;
+        }
+
+        const descEl = document.getElementById('recipeDescription');
+        if (descEl) {
+            descEl.textContent = isEn ? (recipe.description_en || recipe.description_es) : (recipe.description_es || recipe.description_en);
+        }
 
         // Favorite State
         const favBtn = document.getElementById('btnFavorite');
@@ -89,6 +101,8 @@ class RecipeDetailManager {
 
         if (countEl) countEl.textContent = `${ingredients.length} items`;
 
+        if (!listEl) return;
+
         if (ingredients.length === 0) {
             listEl.innerHTML = `<p class="text-on-surface-variant dark:text-zinc-500 text-sm italic pl-2">${window.i18n ? window.i18n.t('ocrNoIngredients') : 'No hay ingredientes'}</p>`;
             return;
@@ -100,11 +114,15 @@ class RecipeDetailManager {
             const text = `${ing.quantity || ''} ${unit || ''} ${name}`.trim();
 
             return `
-                <div class="flex items-center gap-5 group cursor-pointer py-1" onclick="const cb = this.querySelector('.cb-visual'); const inp = this.querySelector('input'); inp.checked = !inp.checked; this.querySelector('.ing-text').classList.toggle('strikethrough', inp.checked); this.querySelector('.ing-text').classList.toggle('text-zinc-400', inp.checked); cb.classList.toggle('bg-primary', inp.checked); cb.classList.toggle('border-primary', inp.checked); cb.classList.toggle('scale-90', inp.checked); cb.innerHTML = inp.checked ? '<span class=&quot;material-symbols-outlined text-white text-[16px] font-black&quot;>check</span>' : '';">
-                    <input type="checkbox" class="hidden">
-                    <div class="cb-visual w-7 h-7 rounded-lg border-2 border-slate-200 dark:border-zinc-800 group-hover:border-primary transition-all duration-300 flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm"></div>
-                    <span class="ing-text text-zinc-700 dark:text-zinc-300 text-[18px] font-medium transition-all duration-300">${text}</span>
-                </div>
+                <label class="flex items-start gap-6 py-5 px-4 rounded-m3-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] cursor-pointer transition-colors group active:bg-black/[0.05] min-h-[72px]">
+                    <input class="hidden peer" type="checkbox" onchange="this.nextElementSibling.nextElementSibling.classList.toggle('opacity-50'); this.nextElementSibling.nextElementSibling.classList.toggle('line-through')"/>
+                    <div class="mt-0.5 w-10 h-10 rounded-full border-[3px] border-primary/40 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-md">
+                        <span class="material-symbols-outlined text-white text-[26px] font-bold opacity-0 peer-checked:opacity-100 transition-opacity scale-75 peer-checked:scale-100 duration-200">check</span>
+                    </div>
+                    <span class="flex-1 text-on-surface dark:text-zinc-200 text-[19px] leading-[1.6] font-medium transition-all pt-1">
+                        ${text}
+                    </span>
+                </label>
             `;
         }).join('');
     }
@@ -114,35 +132,26 @@ class RecipeDetailManager {
         const steps = this.currentRecipe.steps || [];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        if (!stepsEl) return;
+
         if (steps.length === 0) {
             stepsEl.innerHTML = `<p class="text-on-surface-variant dark:text-zinc-500 text-sm italic pl-2">${window.i18n ? window.i18n.t('ocrNoSteps') : 'No hay pasos'}</p>`;
             return;
         }
 
-        const stepsHtml = steps.map((step, index) => {
+        const stepsHtml = steps.map((step, idx) => {
             const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
-            const parts = instruction.split(/[.:\n]/);
-            const title = parts.length > 1 ? parts[0] : `Paso ${index + 1}`;
-            const body = parts.length > 1 ? instruction.substring(parts[0].length + 1).trim() : instruction;
-
             return `
-                <div class="flex gap-8 relative group">
-                    <div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-lg z-10 ring-8 ring-white dark:ring-[#0c1210] shadow-md group-hover:scale-110 transition-transform duration-500">
-                        ${index + 1}
-                    </div>
-                    <div class="pt-1">
-                        <h3 class="font-bold text-xl mb-3 text-zinc-900 dark:text-white transition-colors group-hover:text-primary leading-tight tracking-tight">
-                            ${title}
-                        </h3>
-                        <p class="text-zinc-500 dark:text-zinc-400 text-[18px] leading-relaxed font-medium">
-                            ${body}
-                        </p>
+                <div class="flex gap-6 relative">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-sm z-10 ring-4 ring-surface dark:ring-[#0c1210] shadow-md">${idx + 1}</div>
+                    <div>
+                        <p class="text-on-surface-variant dark:text-zinc-400 text-lg leading-relaxed">${instruction}</p>
                     </div>
                 </div>
             `;
         }).join('');
 
-        const timelineLine = `<div class="absolute left-[23px] top-12 bottom-12 w-[3px] bg-slate-100 dark:bg-zinc-800/50 rounded-full"></div>`;
+        const timelineLine = `<div class="absolute left-[20px] top-10 bottom-10 w-[2px] bg-primary/10 dark:bg-primary/20"></div>`;
         stepsEl.innerHTML = timelineLine + stepsHtml;
     }
 

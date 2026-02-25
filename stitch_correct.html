@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00A676",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#D1FAE5",
+                        "on-primary-container": "#064E3B",
+                        "surface": "#F8F9FA",
+                        "on-surface": "#191C1B",
+                        "on-surface-variant": "#404945",
+                        "outline": "#707974",
+                        "surface-container": "#F0F1F2"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"],
+                        "serif-expressive": ["Fraunces", "serif"]
+                    },
+                    boxShadow: {
+                        'm3-l1': '0 1px 3px 1px rgba(0,0,0,0.15), 0 1px 2px 0 rgba(0,0,0,0.30)',
+                        'm3-l2': '0 2px 6px 2px rgba(0,0,0,0.15), 0 1px 2px 0 rgba(0,0,0,0.30)',
+                        'm3-l3': '0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px 0 rgba(0,0,0,0.30)',
+                    },
+                    borderRadius: {
+                        "m3-xs": "4px",
+                        "m3-sm": "8px",
+                        "m3-md": "12px",
+                        "m3-lg": "16px",
+                        "m3-xl": "28px",
+                        "m3-full": "9999px"
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-surface text-on-surface antialiased font-display;
+            }
+        }
+        .strikethrough { text-decoration: line-through; opacity: 0.5; }
+        .elevation-2 {
+            box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.08), 0px 2px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 5px 0px rgba(0, 0, 0, 0.04);
+        }
+        .elevation-3 {
+            box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.1), 0px 8px 10px 1px rgba(0, 0, 0, 0.06), 0px 3px 14px 2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="dark:bg-[#0c1210] dark:text-white min-h-screen">
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 h-16 flex items-center justify-between px-4 shadow-sm border-b border-zinc-100 dark:border-zinc-800">
+<button class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-800 elevation-2 hover:elevation-3 transition-all active:scale-95 ring-1 ring-black/[0.04]">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex gap-3">
+<button class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-800 elevation-2 hover:elevation-3 transition-all active:scale-95 ring-1 ring-black/[0.04]">
+<span class="material-symbols-outlined text-primary">favorite</span>
+</button>
+<button class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-800 elevation-2 hover:elevation-3 transition-all active:scale-95 ring-1 ring-black/[0.04]">
+<span class="material-symbols-outlined text-primary">edit</span>
+</button>
+<button class="flex items-center justify-center w-11 h-11 rounded-full bg-white dark:bg-zinc-800 elevation-2 hover:elevation-3 transition-all active:scale-95 ring-1 ring-black/[0.04]">
+<span class="material-symbols-outlined text-red-500">delete</span>
+</button>
+</div>
+</nav>
+<main class="relative pt-24 px-6 pb-24 max-w-lg mx-auto">
+<header class="mb-14">
+<h1 class="font-serif-expressive text-[40px] font-bold leading-[1.1] text-on-surface dark:text-white tracking-tight">
+<span class="text-primary">Biscoff</span> Cheesecake
+            </h1>
+</header>
+<div class="space-y-16">
+<section>
+<div class="flex items-center gap-5 mb-6">
+<div class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 elevation-3 ring-1 ring-black/[0.02] shrink-0">
+<span class="material-symbols-outlined text-[24px] text-primary">auto_stories</span>
+</div>
+<h2 class="text-xl font-bold text-on-surface dark:text-white tracking-tight">The Story</h2>
+</div>
+<p class="text-on-surface-variant dark:text-zinc-400 leading-relaxed text-lg px-2">
+                    A heavenly combination of creamy cheesecake filling and crunchy caramelised biscuits. This no-bake recipe is perfect for any occasion.
+                </p>
+</section>
+<section>
+<div class="flex items-center gap-5 mb-8">
+<div class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 elevation-3 ring-1 ring-black/[0.02] shrink-0">
+<span class="material-symbols-outlined text-[24px] text-primary">shopping_basket</span>
+</div>
+<h2 class="text-xl font-bold text-on-surface dark:text-white tracking-tight">Ingredients</h2>
+</div>
+<div class="space-y-4">
+<label class="flex items-start gap-6 py-5 px-4 rounded-m3-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] cursor-pointer transition-colors group active:bg-black/[0.05] min-h-[72px]">
+<input class="hidden peer" type="checkbox"/>
+<div class="mt-0.5 w-10 h-10 rounded-full border-[3px] border-primary/40 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-md">
+<span class="material-symbols-outlined text-white text-[26px] font-bold opacity-0 peer-checked:opacity-100 transition-opacity scale-75 peer-checked:scale-100 duration-200">check</span>
+</div>
+<span class="flex-1 text-on-surface dark:text-zinc-200 text-[19px] leading-[1.6] font-medium peer-checked:opacity-50 peer-checked:line-through decoration-2 decoration-primary/50 transition-all pt-1">
+                            250g Caramel Biscuits (crushed)
+                        </span>
+</label>
+<label class="flex items-start gap-6 py-5 px-4 rounded-m3-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] cursor-pointer transition-colors group active:bg-black/[0.05] min-h-[72px]">
+<input checked="" class="hidden peer" type="checkbox"/>
+<div class="mt-0.5 w-10 h-10 rounded-full border-[3px] border-primary/40 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-md">
+<span class="material-symbols-outlined text-white text-[26px] font-bold opacity-0 peer-checked:opacity-100 transition-opacity scale-75 peer-checked:scale-100 duration-200">check</span>
+</div>
+<span class="flex-1 text-on-surface dark:text-zinc-200 text-[19px] leading-[1.6] font-medium peer-checked:opacity-50 peer-checked:line-through decoration-2 decoration-primary/50 transition-all pt-1">
+                            80g Unsalted Butter (melted)
+                        </span>
+</label>
+<label class="flex items-start gap-6 py-5 px-4 rounded-m3-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] cursor-pointer transition-colors group active:bg-black/[0.05] min-h-[72px]">
+<input class="hidden peer" type="checkbox"/>
+<div class="mt-0.5 w-10 h-10 rounded-full border-[3px] border-primary/40 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-md">
+<span class="material-symbols-outlined text-white text-[26px] font-bold opacity-0 peer-checked:opacity-100 transition-opacity scale-75 peer-checked:scale-100 duration-200">check</span>
+</div>
+<span class="flex-1 text-on-surface dark:text-zinc-200 text-[19px] leading-[1.6] font-medium peer-checked:opacity-50 peer-checked:line-through decoration-2 decoration-primary/50 transition-all pt-1">
+                            400g Full-fat Cream Cheese
+                        </span>
+</label>
+<label class="flex items-start gap-6 py-5 px-4 rounded-m3-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] cursor-pointer transition-colors group active:bg-black/[0.05] min-h-[72px]">
+<input class="hidden peer" type="checkbox"/>
+<div class="mt-0.5 w-10 h-10 rounded-full border-[3px] border-primary/40 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-md">
+<span class="material-symbols-outlined text-white text-[26px] font-bold opacity-0 peer-checked:opacity-100 transition-opacity scale-75 peer-checked:scale-100 duration-200">check</span>
+</div>
+<span class="flex-1 text-on-surface dark:text-zinc-200 text-[19px] leading-[1.6] font-medium peer-checked:opacity-50 peer-checked:line-through decoration-2 decoration-primary/50 transition-all pt-1">
+                            100g Icing Sugar
+                        </span>
+</label>
+</div>
+</section>
+<section>
+<div class="flex items-center gap-5 mb-10">
+<div class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 elevation-3 ring-1 ring-black/[0.02] shrink-0">
+<span class="material-symbols-outlined text-[24px] text-primary">restaurant_menu</span>
+</div>
+<h2 class="text-xl font-bold text-on-surface dark:text-white tracking-tight">Preparation Steps</h2>
+</div>
+<div class="space-y-12 relative px-2">
+<div class="absolute left-[20px] top-10 bottom-10 w-[2px] bg-primary/10 dark:bg-primary/20"></div>
+<div class="flex gap-6 relative">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-sm z-10 ring-4 ring-surface dark:ring-[#0c1210] shadow-md">1</div>
+<div>
+<h3 class="font-bold text-lg mb-2 text-on-surface dark:text-white">Prepare the base</h3>
+<p class="text-on-surface-variant dark:text-zinc-400 text-lg leading-relaxed">Mix the crushed biscuits with melted butter. Press firmly into the pan and chill for 30 minutes.</p>
+</div>
+</div>
+<div class="flex gap-6 relative">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-sm z-10 ring-4 ring-surface dark:ring-[#0c1210] shadow-md">2</div>
+<div>
+<h3 class="font-bold text-lg mb-2 text-on-surface dark:text-white">Cream Cheese Filling</h3>
+<p class="text-on-surface-variant dark:text-zinc-400 text-lg leading-relaxed">Whisk cream cheese and icing sugar until smooth. Fold in 200g of cookie spread.</p>
+</div>
+</div>
+<div class="flex gap-6 relative">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 font-bold text-sm z-10 ring-4 ring-surface dark:ring-[#0c1210] shadow-md">3</div>
+<div>
+<h3 class="font-bold text-lg mb-2 text-on-surface dark:text-white">Assemble &amp; Chill</h3>
+<p class="text-on-surface-variant dark:text-zinc-400 text-lg leading-relaxed">Spread the mixture over the base. Smooth the top and refrigerate for 6 hours.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>
