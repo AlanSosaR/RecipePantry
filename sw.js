@@ -1,5 +1,5 @@
 // RecipeHub Service Worker — v3 (Naranja + Offline)
-const CACHE_NAME = 'recipehub-v4';
+const CACHE_NAME = 'recipehub-v5';
 
 // App shell — archivos core a cachear al instalar
 const APP_SHELL = [

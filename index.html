@@ -40,7 +40,7 @@
             "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4/lit-element.js",
             "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3/lit-html.js",
             "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3/",
-            "material/": "https://cdn.jsdelivr.net/gh/material-esm/material@main/"
+            "@material/web/": "https://cdn.jsdelivr.net/npm/@material/web@1.0.1/"
           }
         }
     </script>
@@ -603,9 +603,9 @@
             }
         </script>
         <script type="module">
-            import 'material/buttons/button.js'
-            import 'material/buttons/outlined-button.js'
-            import 'material/text/text-field.js'
+            import '@material/web/button/filled-button.js'
+            import '@material/web/button/outlined-button.js'
+            import '@material/web/textfield/outlined-text-field.js'
 
             // También podemos importar managers globales si es necesario
             console.log('✨ Material 3 Expressive Modules Loaded');
