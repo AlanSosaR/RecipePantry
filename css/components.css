@@ -4934,35 +4934,6 @@ html[data-auth-likely="true"] #dashboard-app {
         align-items: center;
         justify-content: center;
     }
-
-    .notifications-wrapper .btn-icon-m3 {
-        width: 36px !important;
-        height: 36px !important;
-        background: #e8f7f2 !important;
-        /* Specific brand light background */
-        color: #00A676 !important;
-        /* Icon color */
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        border: none;
-        padding: 0;
-    }
-
-    .notifications-wrapper .btn-icon-m3 span {
-        font-size: 20px !important;
-        color: inherit !important;
-    }
-
-    .notifications-wrapper .badge-dot {
-        width: 10px !important;
-        height: 10px !important;
-        top: 4px !important;
-        right: 4px !important;
-        background: var(--primary);
-        border: 2px solid white;
-    }
 }
 
 .notifications-panel .notifications-title {
