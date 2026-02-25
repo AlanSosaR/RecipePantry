@@ -619,12 +619,6 @@
                             data-i18n="ocrTabRaw">Texto Crudo</button>
                         <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')"
                             data-i18n="ocrTabParsed">Vista Previa</button>
-                        <button class="tab-button" data-tab="ag" onclick="switchTab('ag')"
-                            style="color: var(--primary);">
-                            <span class="material-symbols-outlined"
-                                style="font-size: 18px; vertical-align: middle;">psychology</span>
-                            <span data-i18n="ocrTabAg">Análisis AG</span>
-                        </button>
                     </div>
 
                     <!-- Tab: Raw Text -->
@@ -662,26 +656,6 @@
                         </div>
                     </div>
 
-                    <!-- Tab: Anti Gravity Exhaustive Analysis -->
-                    <div id="tabAg" class="tab-content" style="display: none;">
-                        <div
-                            style="background: var(--md-primary-container); border: 1px solid var(--md-primary-container); border-radius: 20px; padding: 20px; font-family: 'Courier New', Courier, monospace; color: var(--md-on-primary-container);">
-                            <div
-                                style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--md-primary); padding-bottom: 8px;">
-                                <span class="material-symbols-outlined"
-                                    style="color: var(--primary); font-size:28px;">document_scanner</span>
-                                <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;"
-                                    data-i18n="ocrAgAnalysisTitle">ANÁLISIS
-                                    EXHAUSTIVO TOTAL</strong>
-                            </div>
-                            <textarea id="agReportText" readonly
-                                style="width: 100%; min-height: 400px; background: transparent; border: none; font-family: inherit; font-size: 13px; line-height: 1.5; color: inherit; resize: none; outline: none;"></textarea>
-                        </div>
-                        <p style="font-size: 12px; color: #6B7280; margin-top: 12px; text-align: center;"
-                            data-i18n="ocrAgVersion">
-                            Modo Motor de Escaneo Ultra-Preciso v1.0 • Anti Gravity
-                        </p>
-                    </div>
 
                     <div style="display: flex; gap: 12px; margin-top: 32px; padding-bottom: 40px;">
                         <button class="btn btn-secondary" style="flex: 1; border-radius: 16px; height: 56px;"
@@ -793,16 +767,12 @@
                 badge.className = 'confidence-badge ' + (conf > 80 ? 'confidence-high' : conf > 50 ? 'confidence-medium' : 'confidence-low');
 
                 // Exhaustive AG Analysis
-                const analysis = window.ocrProcessor.performExhaustiveAnalysis(results.text, results.confidence);
-                const report = window.ocrProcessor.generateExhaustiveReport(analysis);
-                document.getElementById('agReportText').value = report;
-
                 // Parse
                 parsedData = window.ocrProcessor.parseRecipeText(results.text);
                 renderParsedData();
 
                 if (scanLine) scanLine.classList.add('hidden');
-                setTimeout(() => goToStep(3), 500);
+                goToStep(3);
             } catch (err) {
                 console.error(err);
                 if (scanLine) scanLine.classList.add('hidden');
@@ -916,7 +886,6 @@
             document.querySelectorAll('.tab-button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
             document.getElementById('tabRaw').style.display = tab === 'raw' ? 'block' : 'none';
             document.getElementById('tabParsed').style.display = tab === 'parsed' ? 'block' : 'none';
-            document.getElementById('tabAg').style.display = tab === 'ag' ? 'block' : 'none';
         }
 
         function goToStep(s) {
