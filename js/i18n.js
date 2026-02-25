@@ -134,7 +134,7 @@
             shareFile: 'Compartir archivo',
             searchUserPlaceholder: 'Buscar por nombre o correo...',
             permissionLabel: 'Permiso:',
-            shareBtn: 'Compartir ahora',
+            shareBtn: 'Compartir',
             copyLinkLabel: 'Copiar enlace',
             managePermsTitle: 'Administrar permisos — {recipe}',
 
