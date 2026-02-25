@@ -5,6 +5,7 @@
 class NotificationManager {
     constructor() {
         this.notifications = [];
+        this.lastCount = 0;
         // No llamamos a init() aquí para evitar colisiones con el DOM
     }
 
@@ -119,12 +120,21 @@ class NotificationManager {
     updateBadge() {
         if (!this.badge) return;
         const unreadCount = this.notifications.filter(n => !n.leido).length;
+        const btn = document.getElementById('btn-notifications');
+
         if (unreadCount > 0) {
             this.badge.classList.remove('hidden');
             this.badge.textContent = unreadCount;
+
+            // Si es una nueva notificación (incremento), agitamos la campana
+            if (this.lastCount < unreadCount && btn) {
+                btn.classList.add('bell-shake');
+                setTimeout(() => btn.classList.remove('bell-shake'), 1000);
+            }
         } else {
             this.badge.classList.add('hidden');
         }
+        this.lastCount = unreadCount;
     }
 
     toggleMenu(event) {
