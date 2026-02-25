@@ -135,12 +135,16 @@ class RecipeDetailManager {
 
             return `
                 <label class="flex items-start gap-6 py-5 px-4 rounded-m3-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.05] cursor-pointer transition-colors group active:bg-black/[0.05] min-h-[72px]">
-                    <input class="m3-checkbox" type="checkbox" onchange="this.nextElementSibling.classList.toggle('opacity-50'); this.nextElementSibling.classList.toggle('line-through')"/>
+                    <input class="hidden peer" type="checkbox" onchange="this.nextElementSibling.nextElementSibling.classList.toggle('opacity-50'); this.nextElementSibling.nextElementSibling.classList.toggle('line-through')"/>
+                    <div class="mt-0.5 w-10 h-10 rounded-full border-[3px] border-primary/40 group-hover:border-primary transition-all flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 shadow-sm peer-checked:bg-primary peer-checked:border-primary peer-checked:shadow-md">
+                        <span class="material-symbols-outlined text-white text-[26px] font-bold opacity-0 peer-checked:opacity-100 transition-opacity scale-75 peer-checked:scale-100 duration-200">check</span>
+                    </div>
                     <span class="flex-1 text-on-surface dark:text-zinc-200 text-[19px] leading-[1.6] font-medium transition-all pt-1">
                         ${text}
                     </span>
                 </label>
             `;
+
 
         }).join('');
     }
