@@ -4578,25 +4578,40 @@ html[data-auth-likely="true"] #dashboard-app {
 
 .btn-share-main {
     width: 100%;
-    background: #ffffff;
-    color: #000000;
+    height: 52px;
+    background: var(--primary);
+    color: #ffffff;
     border: none;
-    border-radius: 24px;
-    padding: 14px;
-    font-size: 15px;
+    border-radius: 14px;
+    padding: 0 24px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(255, 122, 80, 0.2);
+    margin: 12px 0;
 }
 
 .btn-share-main:disabled {
-    opacity: 0.4;
+    background: #333333;
+    color: #777777;
     cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
 }
 
 .btn-share-main:not(:disabled):hover {
-    background: #eeeeee;
-    transform: translateY(-1px);
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 122, 80, 0.35);
+}
+
+.btn-share-main:not(:disabled):active {
+    transform: translateY(0);
 }
 
 .modal-footer {

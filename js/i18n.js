@@ -134,8 +134,9 @@
             shareFile: 'Compartir archivo',
             searchUserPlaceholder: 'Buscar por nombre o correo...',
             permissionLabel: 'Permiso:',
-            shareBtn: 'Compartir',
+            shareBtn: 'Compartir ahora',
             copyLinkLabel: 'Copiar enlace',
+            managePermsTitle: 'Administrar permisos — {recipe}',
 
             // ── Detail / Form specific ─────────────────────────────────────
             loadingRecipe: 'Cargando receta...',
@@ -384,8 +385,9 @@
             shareFile: 'Share file',
             searchUserPlaceholder: 'Search by name or email...',
             permissionLabel: 'Permission:',
-            shareBtn: 'Share',
+            shareBtn: 'Share now',
             copyLinkLabel: 'Copy link',
+            managePermsTitle: 'Manage permissions — {recipe}',
 
             // ── Detail / Form specific ─────────────────────────────────────
             loadingRecipe: 'Loading recipe...',
