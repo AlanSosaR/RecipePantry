@@ -681,11 +681,29 @@
                             data-i18n="ocrTabParsed">Vista Previa</button>
                     </div>
 
-                    <!-- Tab: Raw Text -->
+                    <!-- Tab: Raw Text (matching modal design) -->
                     <div id="tabRaw" class="tab-content">
-                        <textarea id="extractedText" class="extracted-text" placeholder="Edita el texto aquí..."
-                            data-i18n-placeholder="ocrTextPlaceholder"></textarea>
-                        <p style="font-size: 12px; color: #6B7280; margin-top: 8px; font-style: italic;"
+                        <!-- Nombre de la Receta -->
+                        <div style="margin-bottom:16px;">
+                            <label
+                                style="font-size:12px; font-weight:700; color:#6B7280; text-transform:uppercase; display:block; margin-bottom:6px;"
+                                data-i18n="formNameLabel">Nombre de la Receta</label>
+                            <input type="text" id="ocrRawName" class="form-input"
+                                style="font-weight:600; font-size:15px; padding:14px 16px; border-radius:12px; border:1px solid #E5E7EB; width:100%; box-sizing:border-box;"
+                                data-i18n-placeholder="placeholderRecipeName" placeholder="Nombre detectado...">
+                        </div>
+
+                        <!-- Texto Crudo -->
+                        <div>
+                            <label
+                                style="font-size:14px; font-weight:700; color:#1B1B1F; display:block; margin-bottom:8px;">Texto
+                                Crudo</label>
+                            <textarea id="extractedText" class="extracted-text" placeholder="Edita el texto aquí..."
+                                data-i18n-placeholder="ocrTextPlaceholder"
+                                style="min-height:250px; font-size:14px; line-height:1.6; padding:16px; border-radius:12px; border:1px solid #E5E7EB; width:100%; box-sizing:border-box; resize:vertical;"></textarea>
+                        </div>
+
+                        <p style="font-size:12px; color:#6B7280; margin-top:8px; font-style:italic;"
                             data-i18n="ocrCorrectionHint">
                             Puedes corregir cualquier error de detección directamente arriba.
                         </p>
@@ -822,6 +840,10 @@
                 ocrResults = results;
                 document.getElementById('extractedText').value = results.text;
 
+                // Set recipe name in Texto Crudo tab
+                const rawNameInput = document.getElementById('ocrRawName');
+                if (rawNameInput) rawNameInput.value = results.name || '';
+
                 // Confidence Badge
                 const badge = document.getElementById('confidenceBadge');
                 const conf = Math.round(results.confidence);
@@ -880,8 +902,10 @@
             btn.innerHTML = `<span class="spinner" style="width:20px; height:20px; border-width:2px; margin-right:8px;"></span>${savingTxt}`;
 
             try {
-                // Sincronizar nombre y texto crudo
-                parsedData.name = document.getElementById('parsedName').value.trim();
+                // Get name from either Texto Crudo tab or Vista Previa tab
+                const rawNameEl = document.getElementById('ocrRawName');
+                const parsedNameEl = document.getElementById('parsedName');
+                parsedData.name = (rawNameEl ? rawNameEl.value.trim() : '') || (parsedNameEl ? parsedNameEl.value.trim() : '');
                 const rawText = document.getElementById('extractedText').value;
 
                 if (!parsedData.name) {
