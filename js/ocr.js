@@ -21,28 +21,32 @@ class OCRProcessor {
         try {
             // NIVEL 1: Intentar con Claude 3.5 Sonnet (mejor calidad)
             console.log('🤖 Intentando extracción con Claude 3.5...');
-            const claudeResult = await this.processWithClaude(imageFile);
-
-            if (claudeResult && claudeResult.success && claudeResult.text && claudeResult.text.length > 10) {
-                console.log('✅ Usando Claude | Precisión esperada: ~97%');
-                return await this.enhanceResult(claudeResult);
+            try {
+                const claudeResult = await this.processWithClaude(imageFile);
+                if (claudeResult && claudeResult.success && claudeResult.text && claudeResult.text.trim().length > 10) {
+                    console.log('✅ Usando Claude | Precisión esperada: ~97%');
+                    return await this.enhanceResult(claudeResult);
+                }
+                console.warn('⚠️ Claude devolvió texto insuficiente o vacío, intentando Tesseract...');
+            } catch (claudeError) {
+                console.warn('⚠️ Claude falló, usando Tesseract...', claudeError.message);
             }
-            console.warn('⚠️ Claude devolvió texto insuficiente o vacío, intentando otro método...');
-        } catch (claudeError) {
-            console.warn('⚠️ Claude falló, usando fallbacks...', claudeError);
-        }
 
-        try {
             // NIVEL 2: Fallback a Tesseract PRO optimizado
+            console.log('🔍 Iniciando Tesseract PRO...');
             const tesseractResult = await this.processWithTesseractPro(imageFile, onProgress);
 
-            if (tesseractResult.success) {
+            if (tesseractResult && tesseractResult.success && tesseractResult.text && tesseractResult.text.trim().length > 5) {
                 console.log('✅ Usando Tesseract PRO | Precisión: ~90%');
                 return await this.enhanceResult(tesseractResult);
             }
-        } catch (tessError) {
-            console.error('❌ Error crítico en ambos métodos de OCR:', tessError);
-            throw new Error('No se pudo procesar la imagen con ningún método.');
+
+            // Si Tesseract también devolvió texto vacío
+            throw new Error('No se pudo extraer texto legible de la imagen. Asegúrate de que el texto sea claro y haya buena iluminación.');
+
+        } catch (err) {
+            console.error('❌ Error en processImage:', err.message);
+            throw err;
         } finally {
             if (loading) loading.style.display = 'none';
         }
@@ -90,7 +94,11 @@ class OCRProcessor {
         const processedImage = await this.preprocessImage(imageFile);
 
         console.log('🔍 Extrayendo texto con Tesseract PRO...');
-        const { data: { text, confidence } } = await this.tesseractWorker.recognize(processedImage);
+        const { data } = await this.tesseractWorker.recognize(processedImage);
+        const text = (data.text || '').trim();
+        const confidence = data.confidence || 0;
+
+        console.log(`📊 Tesseract resultado: ${text.length} chars, confianza: ${confidence}%`);
 
         return {
             text: text,
@@ -452,17 +460,21 @@ class OCRScanner {
 
     showResults(results) {
         this.stopCamera();
-        document.getElementById('ocrCameraState').style.display = 'none';
-        document.getElementById('ocrResultState').style.display = 'flex';
 
-        // Use correct field names from enhanceResult(): .text and .name
+        const cameraState = document.getElementById('ocrCameraState');
+        const resultState = document.getElementById('ocrResultState');
+        if (cameraState) cameraState.style.display = 'none';
+        if (resultState) resultState.style.display = 'flex';
+
+        // Texto extraído - soporta tanto modal como página ocr.html
+        const text = results.text || results.texto || '';
         const textOutput = document.getElementById('extractedText');
-        if (textOutput) textOutput.value = results.text || results.texto || '';
+        if (textOutput) textOutput.value = text;
 
         const nameInput = document.getElementById('ocrRecipeName');
         if (nameInput) nameInput.value = results.name || results.nombre || '';
 
-        // Show a confidence badge if element exists
+        // Confidence badge del modal
         const conf = Math.round(results.confidence || 0);
         const confBadge = document.getElementById('ocrConfBadge');
         if (confBadge) {
@@ -470,9 +482,14 @@ class OCRScanner {
             confBadge.style.background = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
         }
 
-        if (results.needsReview) {
-            if (window.utils) window.utils.showToast('Revisa los datos. Algunos campos pueden ser imprecisos.', 'info');
+        // Feedback al usuario
+        if (!text || text.length < 10) {
+            if (window.utils) window.utils.showToast('La imagen no contenía texto legible. Intenta con mejor iluminación.', 'warning');
+        } else if (results.needsReview) {
+            if (window.utils) window.utils.showToast('Revisa los datos. Algunos campos pueden requerir corrección.', 'info');
         }
+
+        console.log(`✅ showResults: ${text.length} caracteres mostrados, confianza ${conf}%`);
     }
 
     async handleGallery(file) {
