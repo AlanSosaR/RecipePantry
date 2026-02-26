@@ -255,11 +255,22 @@ class DatabaseManager {
 
     async deleteRecipe(recipeId) {
         try {
-            // Soft delete
+            const userId = window.authManager.currentUser?.id;
+            if (!userId) throw new Error("No user logged in");
+
+            // 1. Intentar eliminar de recetas compartidas (si es una receta que me compartieron)
+            await window.supabaseClient
+                .from('shared_recipes')
+                .delete()
+                .eq('recipe_id', recipeId)
+                .eq('recipient_user_id', userId);
+
+            // 2. Soft delete de la receta original (solo funcionará si soy el dueño)
             const { error } = await window.supabaseClient
                 .from('recipes')
                 .update({ is_active: false })
-                .eq('id', recipeId);
+                .eq('id', recipeId)
+                .eq('user_id', userId); // Asegurar que solo el dueño puede borrar
 
             if (error) throw error;
 
@@ -276,23 +287,37 @@ class DatabaseManager {
 
     async toggleFavorite(recipeId, currentStatus) {
         try {
-            const { error } = await window.supabaseClient
+            const userId = window.authManager.currentUser?.id;
+            if (!userId) throw new Error("No user logged in");
+
+            // Asegurar que targetStatus es estrictamente booleano
+            const targetStatus = currentStatus === true || currentStatus === 'true' ? false : true;
+
+            // Solo podemos hacer favorita una receta que sea nuestra
+            const { data, error } = await window.supabaseClient
                 .from('recipes')
-                .update({ is_favorite: !currentStatus })
-                .eq('id', recipeId);
+                .update({ is_favorite: targetStatus })
+                .eq('id', recipeId)
+                .eq('user_id', userId)
+                .select();
 
             if (error) throw error;
+
+            if (!data || data.length === 0) {
+                // Supabase retorna array vacío si RLS bloquea el update o no coincide el eq
+                return { success: false, error: "No tienes permiso para modificar esta receta (¿es compartida?)" };
+            }
 
             // Actualizar caché local
             const cached = this._loadFromCache(DB_CACHE_KEY);
             if (cached) {
                 const updated = cached.map(r =>
-                    r.id === recipeId ? { ...r, is_favorite: !currentStatus } : r
+                    r.id === recipeId ? { ...r, is_favorite: targetStatus } : r
                 );
                 this._saveToCache(DB_CACHE_KEY, updated);
             }
 
-            return { success: true, isFavorite: !currentStatus };
+            return { success: true, isFavorite: targetStatus };
 
         } catch (error) {
             console.error('❌ Error toggle favorito:', error);

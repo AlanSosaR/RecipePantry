@@ -1,5 +1,5 @@
 // Recipe Pantry Service Worker — v3 (Naranja + Offline)
-const CACHE_NAME = 'recipe-pantry-v24';
+const CACHE_NAME = 'recipe-pantry-v25';
 
 // App shell — archivos core a cachear al instalar
 const APP_SHELL = [
