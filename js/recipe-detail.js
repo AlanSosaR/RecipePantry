@@ -83,13 +83,7 @@ class RecipeDetailManager {
             categoryEl.textContent = categoryName || (window.i18n ? window.i18n.t('generalCategory') : 'General');
         }
 
-        // --- Image Handling ---
-        const imageEl = document.getElementById('recipeImage');
-        if (imageEl) {
-            const primaryImage = recipe.images?.find(img => img.is_primary) || recipe.images?.[0];
-            const imageUrl = primaryImage?.image_url || recipe.image_url || window.DEFAULT_RECIPE_IMAGE;
-            imageEl.src = imageUrl;
-        }
+
 
         // Favorite State
         const favBtn = document.getElementById('btnFavorite');
@@ -223,11 +217,10 @@ class RecipeDetailManager {
         try {
             window.showToast(window.i18n ? window.i18n.t('saving') : 'Guardando copia...', 'info');
 
-            const { name_es, name_en, description_es, description_en, pantry_es, pantry_en, category_id } = recipe;
+            const { name_es, name_en, description_es, description_en, category_id } = recipe;
             const res = await window.db.createRecipe({
                 name_es, name_en,
                 description_es, description_en,
-                pantry_es, pantry_en,
                 category_id,
                 is_favorite: false,
                 is_active: true

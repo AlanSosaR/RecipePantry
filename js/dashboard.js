@@ -345,7 +345,7 @@ class DashboardManager {
             <div class="recipe-card-m3 ${isSelected ? 'selected' : ''}" 
                  onclick="window.dashboard.handleRecipeClick('${recipe.id}')">
                 <div class="recipe-card-image">
-                    ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${recipe.name_es}">` : `<span class="material-symbols-outlined">restaurant</span>`}
+                    <span class="material-symbols-outlined">restaurant</span>
                 </div>
                 <div class="recipe-card-content">
                     <h4 class="recipe-card-title">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
@@ -392,7 +392,7 @@ class DashboardManager {
 
         detailsContent.innerHTML = `
             <div class="details-preview">
-                ${recipe.image_url ? `<img src="${recipe.image_url}" alt="${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}">` : `<div class="no-image-placeholder"><span class="material-symbols-outlined" style="font-size: 48px;">restaurant</span></div>`}
+                <div class="no-image-placeholder"><span class="material-symbols-outlined" style="font-size: 48px;">restaurant</span></div>
             </div>
             <div class="details-info-list" style="padding: 24px;">
                 <h3 style="margin-bottom: 8px;">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h3>

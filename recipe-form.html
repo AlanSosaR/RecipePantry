@@ -884,16 +884,7 @@
                             <span data-i18n="formNewRecipe">Nueva Receta</span>
                         </p>
 
-                        <!-- Image upload -->
-                        <div id="imageUploadArea" class="m3-image-upload">
-                            <input type="file" id="imageInput" accept="image/*" hidden>
-                            <span class="material-symbols-outlined">add_a_photo</span>
-                            <span class="label" data-i18n="formImageUpload">Toca para agregar una foto</span>
-                            <img id="imagePreview" src="" alt="">
-                            <button type="button" id="btnRemoveImage">
-                                <span class="material-symbols-outlined" style="font-size:18px">close</span>
-                            </button>
-                        </div>
+
 
                         <!-- Recipe name -->
                         <div class="m3-field">
@@ -909,12 +900,7 @@
                             <label for="description" data-i18n="formDescriptionLabel">Descripción</label>
                         </div>
 
-                        <!-- Pantry Content -->
-                        <div class="m3-field textarea">
-                            <textarea id="pantry" name="pantry_es" placeholder=" " rows="2"
-                                data-i18n-placeholder="placeholderPantry"></textarea>
-                            <label for="pantry" data-i18n="formPantryLabel">Despensa (Notas sobre ingredientes)</label>
-                        </div>
+
 
                         <div class="divider" style="height:1px; background:var(--md-outline-var); margin:32px 0;"></div>
 
@@ -1116,39 +1102,7 @@
             });
         })();
 
-        // ── Image upload preview ────────────────────────
-        const uploadArea = document.getElementById('imageUploadArea');
-        const imageInput = document.getElementById('imageInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const btnRemove = document.getElementById('btnRemoveImage');
-        const placeholder = uploadArea.querySelector('.label');
-        const placeholderIcon = uploadArea.querySelector('.material-symbols-outlined');
 
-        uploadArea.addEventListener('click', e => {
-            if (e.target === btnRemove || btnRemove.contains(e.target)) return;
-            imageInput.click();
-        });
-
-        imageInput.addEventListener('change', () => {
-            const file = imageInput.files[0];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            imagePreview.src = url;
-            imagePreview.style.display = 'block';
-            placeholder.style.display = 'none';
-            placeholderIcon.style.display = 'none';
-            btnRemove.style.display = 'flex';
-        });
-
-        btnRemove.addEventListener('click', e => {
-            e.stopPropagation();
-            imagePreview.src = '';
-            imagePreview.style.display = 'none';
-            placeholder.style.display = '';
-            placeholderIcon.style.display = '';
-            btnRemove.style.display = 'none';
-            imageInput.value = '';
-        });
 
         // ── OCR Modal ───────────────────────────────────
         const btnOCROpen = document.getElementById('btnOCROpen');

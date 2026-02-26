@@ -53,15 +53,7 @@ class RecipeFormManager {
             const form = document.getElementById('recipeForm');
             form.name.value = isEn ? (r.name_en || r.name_es) : r.name_es;
             form.description.value = isEn ? (r.description_en || r.description_es || '') : (r.description_es || '');
-            if (form.pantry) form.pantry.value = isEn ? (r.pantry_en || r.pantry_es || '') : (r.pantry_es || '');
 
-            // Imagen
-            if (r.primaryImage) {
-                this.showPreview(r.primaryImage);
-            } else if (r.images && r.images.length > 0) {
-                const primary = r.images.find(img => img.is_primary) || r.images[0];
-                this.showPreview(primary.image_url);
-            }
 
             // Trigger has-value for all inputs/selects loaded
             form.querySelectorAll('input, select, textarea').forEach(el => {
@@ -79,25 +71,7 @@ class RecipeFormManager {
     }
 
     setupEventListeners() {
-        // Imagen
-        const uploadArea = document.getElementById('imageUploadArea');
-        const imageInput = document.getElementById('imageInput');
 
-        uploadArea.addEventListener('click', () => imageInput.click());
-        imageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                this.selectedImage = file;
-                const reader = new FileReader();
-                reader.onload = (e) => this.showPreview(e.target.result);
-                reader.readAsDataURL(file);
-            }
-        });
-
-        document.getElementById('btnRemoveImage').addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.removeImage();
-        });
 
         // Botones Agregar
         document.getElementById('btnAddIngredient').addEventListener('click', () => this.addIngredient());
@@ -119,26 +93,7 @@ class RecipeFormManager {
     }
 
     // --- Gestión de UI de Imagen ---
-    showPreview(url) {
-        const preview = document.getElementById('imagePreview');
-        const placeholder = document.querySelector('.upload-placeholder');
-        const removeBtn = document.getElementById('btnRemoveImage');
 
-        preview.src = url;
-        preview.classList.remove('hidden');
-        if (placeholder) placeholder.classList.add('hidden');
-        if (removeBtn) removeBtn.classList.remove('hidden');
-    }
-
-    removeImage() {
-        this.selectedImage = null;
-        document.getElementById('imagePreview').classList.add('hidden');
-        const placeholder = document.querySelector('.upload-placeholder');
-        if (placeholder) placeholder.classList.remove('hidden');
-        const removeBtn = document.getElementById('btnRemoveImage');
-        if (removeBtn) removeBtn.classList.add('hidden');
-        document.getElementById('imageInput').value = '';
-    }
 
     // --- Listas Dinámicas ---
     addIngredient(data = null) {
@@ -234,11 +189,9 @@ class RecipeFormManager {
             if (isEn) {
                 recipeData.name_en = form.name.value;
                 recipeData.description_en = form.description.value;
-                if (form.pantry) recipeData.pantry_en = form.pantry.value;
             } else {
                 recipeData.name_es = form.name.value;
                 recipeData.description_es = form.description.value;
-                if (form.pantry) recipeData.pantry_es = form.pantry.value;
             }
             recipeData.category_id = generalCat ? generalCat.id : null;
 
@@ -257,10 +210,7 @@ class RecipeFormManager {
                 throw new Error(result.error);
             }
 
-            // 1. Guardar Imagen si hay una nueva
-            if (this.selectedImage) {
-                await window.db.uploadImage(this.selectedImage, recipeId);
-            }
+
 
             // 2. Recolectar y Guardar Ingredientes
             const ingredientInputs = document.querySelectorAll('.ingredient-input');
