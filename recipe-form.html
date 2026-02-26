@@ -926,19 +926,8 @@
         <header class="m3-top-bar">
             <!-- Left: Avatar (Initials) + Utilities -->
             <div class="left">
-                <div id="btnOpenMenu" class="header-avatar-m3">
+                <div id="btnOpenMenu" class="header-avatar-m3" onclick="window.toggleSidebar(true)">
                     <span class="user-initials-m3">AS</span>
-                </div>
-
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <button class="m3-icon-btn" onclick="window.i18n && window.i18n.toggle()"
-                        data-i18n-title="navToggleLanguage" title="Cambiar idioma">
-                        <span class="material-symbols-outlined">language</span>
-                    </button>
-                    <button id="btnOCROpen" class="m3-tonal-btn">
-                        <span class="material-symbols-outlined" style="font-size:18px">center_focus_strong</span>
-                        <span class="ocr-label" data-i18n="navScan">Escanear</span>
-                    </button>
                 </div>
             </div>
 

@@ -550,35 +550,18 @@
 
         <!-- Top App Bar -->
         <header class="m3-top-bar">
-            <!-- Left: Avatar (Initials) + Utilities -->
             <div class="left">
                 <div id="btnOpenMenu" class="header-avatar-m3" onclick="window.toggleSidebar(true)">
                     <span class="user-initials-m3">AS</span>
                 </div>
-
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <!-- Back Button moved here as a utility icon for mobile/context -->
-                    <button class="m3-icon-btn mobile-only" onclick="goBack()" data-i18n-title="navBack" title="Volver">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                    </button>
-                </div>
             </div>
-
-            <!-- Right: Title -->
             <div class="right">
                 <h1 data-i18n="ocrTitle" style="margin:0; font-size: 18px;">Escanear Receta</h1>
             </div>
         </header>
 
-        <!-- Scroll area -->
         <div class="m3-scroll">
             <div class="ocr-container">
-                <!-- Step Indicator -->
-                <div class="step-indicator">
-                    <div id="dot1" class="step-dot active"></div>
-                    <div id="dot2" class="step-dot"></div>
-                    <div id="dot3" class="step-dot"></div>
-                </div>
 
                 <!-- PASO 1: Capturar Imagen -->
                 <div id="step1" class="ocr-step active">
