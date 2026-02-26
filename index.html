@@ -548,19 +548,23 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- New search/invite section -->
+                    <!-- Search section -->
                     <div class="search-section">
                         <div class="chip-input-container">
-                            <!-- Hidden chips container -->
-                            <div id="selected-users-chips" class="chips-list hidden"></div>
                             <input type="text" id="user-search-input" data-i18n-placeholder="searchUserPlaceholder"
                                 placeholder="Buscar por nombre o correo…">
                         </div>
                         <div id="search-suggestions" class="search-suggestions hidden"></div>
                     </div>
 
-                    <!-- Removed Permission Section and Main Share Button per User Request -->
-                    <!-- Sharing now happens immediately on user selection -->
+                    <!-- Selected users chips -->
+                    <div id="selected-users-chips" style="display:none; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
+
+                    <!-- Share button (hidden until users selected) -->
+                    <button id="btn-share-submit"
+                        style="display:none; width:100%; padding:14px; background:#10B981; color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin:8px 0; align-items:center; justify-content:center; gap:8px; transition:all .2s;">
+                        Compartir
+                    </button>
 
                     <!-- Manage Access Section -->
                     <div id="manage-access-section" class="manage-access-section-m3">

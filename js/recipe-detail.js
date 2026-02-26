@@ -44,6 +44,28 @@ class RecipeDetailManager {
             }
 
             this.currentRecipe = result.recipe;
+
+            // Check if this recipe was shared with the current user
+            this.sharedBy = null;
+            const currentUserId = window.authManager.currentUser?.id;
+            if (currentUserId && this.currentRecipe.user_id !== currentUserId) {
+                try {
+                    const { data: shareData } = await window.supabaseClient
+                        .from('shared_recipes')
+                        .select('owner_user_id, owner:owner_user_id(first_name, last_name)')
+                        .eq('recipe_id', this.recipeId)
+                        .eq('recipient_user_id', currentUserId)
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (shareData?.owner) {
+                        this.sharedBy = [shareData.owner.first_name, shareData.owner.last_name].filter(Boolean).join(' ') || 'Alguien';
+                    }
+                } catch (e) {
+                    console.warn('Could not check share info:', e);
+                }
+            }
+
             this.renderRecipe();
 
         } catch (error) {
@@ -69,6 +91,18 @@ class RecipeDetailManager {
 
         if (titleEl) {
             titleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restOfTitle}`;
+
+            // Show "Compartida por" badge if recipe was shared
+            const existingBadge = document.getElementById('shared-by-badge');
+            if (existingBadge) existingBadge.remove();
+
+            if (this.sharedBy) {
+                const badge = document.createElement('div');
+                badge.id = 'shared-by-badge';
+                badge.style.cssText = 'display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:99px; font-size:13px; font-weight:600; color:#10B981; margin-bottom:8px;';
+                badge.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">share</span> Compartida por ${this.sharedBy}`;
+                titleEl.parentElement.insertBefore(badge, titleEl);
+            }
         }
 
         if (descEl) {
