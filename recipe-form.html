@@ -161,7 +161,7 @@
             transform: scale(0.92);
         }
 
-        /* Responsive Logo */
+        /* Responsive UI Adjustments */
         @media (max-width: 768px) {
             .m3-top-bar .desktop-only-logo {
                 display: none !important;
@@ -181,6 +181,15 @@
 
             .m3-tonal-btn {
                 padding: 8px 12px;
+            }
+        }
+
+        /* En PC (Sidebar visible), ocultamos el avatar de cabecera y el logo duplicado */
+        @media (min-width: 1024px) {
+
+            .header-avatar-m3,
+            .desktop-only-logo {
+                display: none !important;
             }
         }
 
