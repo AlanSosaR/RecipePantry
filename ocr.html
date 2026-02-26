@@ -148,6 +148,34 @@
             margin: 0;
         }
 
+        .header-avatar-m3 {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: var(--on-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 12px oklch(from var(--primary) l c h / 0.2);
+        }
+
+        .header-avatar-m3:active {
+            transform: scale(0.92);
+        }
+
+        /* Responsive Header Adjustment - Same as Nueva Receta */
+        @media (min-width: 1024px) {
+
+            .header-avatar-m3,
+            .desktop-only-logo {
+                display: none !important;
+            }
+        }
+
         /* ─── Scroll area ─────────────────────────────── */
         .m3-scroll {
             flex: 1;
@@ -165,10 +193,44 @@
             min-height: auto;
         }
 
-        /* ─── Mobile ──────────────────────────────────── */
+        /* Responsive Utilities */
+        @media (max-width: 1023px) {
+            .desktop-only {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .mobile-only {
+                display: none !important;
+            }
+
+            /* Hide header avatar and redundant icons on PC since they are in the permanent sidebar */
+            .header-avatar-m3,
+            .m3-top-bar .left .m3-icon-btn,
+            .logo-desktop {
+                display: none !important;
+            }
+        }
+
+        /* ─── Mobile Adjustments ──────────────────────── */
         @media (max-width: 768px) {
             .sidebar {
-                display: none;
+                position: fixed;
+                left: -320px;
+                top: 0;
+                bottom: 0;
+                z-index: 1001;
+                /* Show above overlay */
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .sidebar-overlay {
+                z-index: 1000;
             }
 
             .m3-scroll {
@@ -426,7 +488,7 @@
 
 <body>
     <!-- Sidebar Overlay -->
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
 
     <!-- Sidebar Desktop & Mobile Drawer -->
     <aside id="main-sidebar" class="sidebar">
@@ -486,19 +548,23 @@
 
         <!-- Top App Bar -->
         <header class="m3-top-bar">
+            <!-- Left: Avatar (Initials) + Utilities -->
             <div class="left">
-                <button class="m3-icon-btn" onclick="goBack()" data-i18n-title="navBack" title="Volver">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                </button>
-                <h1 data-i18n="ocrTitle">Escanear Receta</h1>
-            </div>
-            <div class="right" style="display:flex; gap:8px; align-items:center;">
-                <div class="m3-avatar">
-                    <button id="btnSaveDirectOCR"
-                        style="margin-top:12px;width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:14px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-                        <span class="material-symbols-outlined" style="font-size:20px;color:white;">person</span>
+                <div id="btnOpenMenu" class="header-avatar-m3" onclick="window.toggleSidebar(true)">
+                    <span class="user-initials-m3">AS</span>
+                </div>
+
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <!-- Back Button moved here as a utility icon for mobile/context -->
+                    <button class="m3-icon-btn mobile-only" onclick="goBack()" data-i18n-title="navBack" title="Volver">
+                        <span class="material-symbols-outlined">arrow_back</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- Right: Title -->
+            <div class="right">
+                <h1 data-i18n="ocrTitle" style="margin:0; font-size: 18px;">Escanear Receta</h1>
             </div>
         </header>
 
