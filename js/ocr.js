@@ -111,10 +111,10 @@ class OCRProcessor {
         const validated = this.intelligentValidation(parsed);
 
         return {
-            nombre: validated.name,
-            texto: corrected.texto_corregido, // Texto completo para revisión
-            ingredientes: validated.ingredients,
-            pasos: validated.steps,
+            name: validated.name, // Changed from nombre to name
+            text: corrected.texto_corregido, // Changed from texto to text
+            ingredients: validated.ingredients,
+            steps: validated.steps,
             confidence: result.confidence,
             model: result.model,
             success: true,
@@ -231,7 +231,7 @@ class OCRProcessor {
      * Sistema de Post-Procesamiento Inteligente v3.0
      */
     smartCorrectText(rawText) {
-        let texto = rawText;
+        let texto = rawText || ''; // Fallback to empty string
         const lineas = texto.split(/\r?\n/);
         let nombreReceta = '';
 
@@ -273,7 +273,7 @@ class OCRProcessor {
      * Parsea un texto crudo en una estructura de receta.
      */
     parseRecipeText(text) {
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        const lines = (text || '').split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
         const result = { name: '', ingredients: [], steps: [] };
         let currentSection = 'name';
         let stepCounter = 1;
