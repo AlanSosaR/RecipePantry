@@ -386,7 +386,15 @@ class OCRScanner {
             });
             if (this.videoElement) {
                 this.videoElement.srcObject = this.stream;
-                await this.videoElement.play();
+
+                // Manejar error de play() interrumpido por una nueva carga
+                try {
+                    await this.videoElement.play();
+                } catch (playError) {
+                    if (playError.name !== 'AbortError') {
+                        console.error('Error al reproducir video:', playError);
+                    }
+                }
             }
         } catch (err) {
             console.error('Error camera:', err);
