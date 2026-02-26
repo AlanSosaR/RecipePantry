@@ -1,5 +1,5 @@
 /**
- * OCRProcessor - RecipeHub Premium
+ * OCRProcessor - Recipe Pantry Premium
  * Gestiona el reconocimiento de texto con Tesseract.js y el parsing de recetas.
  */
 
@@ -373,7 +373,7 @@ class OCRProcessor {
 }
 
 /**
- * OCRScanner - RecipeHub Premium
+ * OCRScanner - Recipe Pantry Premium
  * Gestiona la interfaz de la cámara, captura de frames y comunicación con OCRProcessor.
  */
 class OCRScanner {

@@ -4,15 +4,15 @@
 class DashboardManager {
     constructor() {
         this.currentFilters = {};
-        this.displayMode = localStorage.getItem('recipehub_display_mode') || 'list';
-        this.currentView = localStorage.getItem('recipehub_current_view') || 'recipes';
+        this.displayMode = localStorage.getItem('recipe_pantry_display_mode') || 'list';
+        this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
         this.currentRecipes = [];
         this.selectedRecipeId = null;
     }
 
     async init() {
         try {
-            console.log('🚀 Inicializando RecipeHub Premium...');
+            console.log('🚀 Inicializando Recipe Pantry Premium...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -161,7 +161,7 @@ class DashboardManager {
 
     switchDisplayMode(mode, element) {
         this.displayMode = mode;
-        localStorage.setItem('recipehub_display_mode', mode);
+        localStorage.setItem('recipe_pantry_display_mode', mode);
 
         // Update current view icon in trigger
         const iconSpan = document.getElementById('current-view-icon');
@@ -185,7 +185,7 @@ class DashboardManager {
 
     switchView(view, activeItem) {
         this.currentView = view;
-        localStorage.setItem('recipehub_current_view', view);
+        localStorage.setItem('recipe_pantry_current_view', view);
 
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if (activeItem) activeItem.classList.add('active');
@@ -440,7 +440,7 @@ class DashboardManager {
     }
 
     copyLink(recipeId) {
-        const url = `https://alansosar.github.io/RecipeHub/index.html#/recipe/${recipeId}`;
+        const url = `https://alansosar.github.io/RecipePantry/index.html#/recipe/${recipeId}`; // Nota: El path en GitHub no cambia a menos que se renombre el repo
         navigator.clipboard.writeText(url).then(() => {
             window.utils.showToast(window.i18n ? '🔗 Enlace copiado' : '🔗 Link copied', 'success');
         });

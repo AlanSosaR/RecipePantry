@@ -63,7 +63,7 @@ window.toggleSlimSidebar = function () {
 
     sidebar.classList.toggle('slim');
     const isSlim = sidebar.classList.contains('slim');
-    localStorage.setItem('recipehub_sidebar_slim', isSlim);
+    localStorage.setItem('recipe_pantry_sidebar_slim', isSlim);
 }
 
 // Global init for sidebar state
@@ -71,7 +71,7 @@ window.initSidebarState = function () {
     const sidebar = document.getElementById('main-sidebar');
     if (!sidebar) return;
 
-    const isSlim = localStorage.getItem('recipehub_sidebar_slim') === 'true';
+    const isSlim = localStorage.getItem('recipe_pantry_sidebar_slim') === 'true';
     if (isSlim) sidebar.classList.add('slim');
 
     // Setup menus

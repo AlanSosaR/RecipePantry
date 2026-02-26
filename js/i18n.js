@@ -1,5 +1,5 @@
 /**
- * RecipeHub – Global i18n System
+ * Recipe Pantry – Global i18n System
  * Usage:
  *   - Add data-i18n="key" to any element whose textContent should be translated.
  *   - Add data-i18n-placeholder="key" to inputs/textareas for placeholder.
@@ -42,7 +42,7 @@
             msgEntering: "Ingresando...",
             msgCreating: "Creando...",
             msgCreatedSuccess: "¡Cuenta creada! Revisa tu email.",
-            toastLoginSuccess: "Ha iniciado sesión en RecipeHub",
+            toastLoginSuccess: "Ha iniciado sesión en Recipe Pantry",
 
             // ── Dashboard headers ─────────────────────────────────────────
             myRecipes: 'Mis Recetas',
@@ -208,7 +208,7 @@
             saveSuccess: '¡Receta guardada con éxito!',
             saveError: 'Error al guardar la receta',
             ocrScanning: 'Receta escaneada con OCR',
-            toastLoginSuccess: "Ha iniciado sesión en RecipeHub",
+            toastLoginSuccess: "Ha iniciado sesión en Recipe Pantry",
 
             // ── Share Modal ───────────────────────────────────────────────
             shareRecipeTitle: 'Compartir "{recipe}"',
@@ -296,7 +296,7 @@
             msgEntering: "Logging in...",
             msgCreating: "Creating...",
             msgCreatedSuccess: "Account created! Please check your email.",
-            toastLoginSuccess: "Welcome to RecipeHub!",
+            toastLoginSuccess: "Welcome to Recipe Pantry!",
 
             // ── Dashboard headers ─────────────────────────────────────────
             myRecipes: 'My Recipes',
@@ -461,7 +461,7 @@
             saveSuccess: 'Recipe saved successfully!',
             saveError: 'Error saving recipe',
             ocrScanning: 'Recipe scanned with OCR',
-            toastLoginSuccess: "Welcome to RecipeHub!",
+            toastLoginSuccess: "Welcome to Recipe Pantry!",
 
             // ── Share Modal ───────────────────────────────────────────────
             shareRecipeTitle: 'Share "{recipe}"',

@@ -1,5 +1,5 @@
 /**
- * NotificationManager - RecipeHub
+ * NotificationManager - Recipe Pantry
  * Maneja las notificaciones de archivos compartidos
  */
 class NotificationManager {

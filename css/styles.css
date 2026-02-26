@@ -1,5 +1,5 @@
 /* =========================================================
-   styles.css  –  RecipeHub Personal
+   styles.css  –  Recipe Pantry Personal
    Design tokens (CSS variables) — Drive Emerald Design
    ========================================================= */
 
@@ -8,7 +8,7 @@
 
 /* ─── Tokens — Light Mode ────────────────────────────────────────── */
 :root {
-    /* Colores RecipeHub Drive - Esmeralda */
+    /* Colores Recipe Pantry Drive - Esmeralda */
     --primary: #10B981;
     --primary-light: #F0FDF4;
     /* Very light green */

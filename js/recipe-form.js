@@ -1,5 +1,5 @@
 /**
- * RecipeFormManager - RecipeHub Personal
+ * RecipeFormManager - Recipe Pantry Personal
  * Maneja la creación y edición de recetas, incluyendo listas dinámicas
  * de ingredientes y pasos, y carga de imágenes.
  */

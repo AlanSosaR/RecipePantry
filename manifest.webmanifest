@@ -1,6 +1,6 @@
 {
-    "name": "RecipeHub",
-    "short_name": "RecipeHub",
+    "name": "Recipe Pantry",
+    "short_name": "Recipe Pantry",
     "description": "Tu recetario personal premium — guarda, organiza y escanea recetas.",
     "start_url": "/index.html",
     "display": "standalone",

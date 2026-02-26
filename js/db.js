@@ -1,8 +1,8 @@
 // js/db.js
 // Funciones de base de datos con soporte offline (localStorage cache)
 
-const DB_CACHE_KEY = 'recipehub_recipes_cache';
-const DB_CATEGORIES_KEY = 'recipehub_categories_cache';
+const DB_CACHE_KEY = 'recipe_pantry_recipes_cache';
+const DB_CATEGORIES_KEY = 'recipe_pantry_categories_cache';
 
 class DatabaseManager {
     // ============================================

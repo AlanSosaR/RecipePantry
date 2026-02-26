@@ -1,4 +1,4 @@
-# RecipeHub - Personal Edition
+# Recipe Pantry - Personal Edition
 
 Una aplicación web progresiva (PWA) moderna para gestionar tus recetas personales, con diseño Material 3 Expressive, soporte OCR y sincronización en la nube vía Supabase.
 
@@ -20,7 +20,7 @@ Una aplicación web progresiva (PWA) moderna para gestionar tus recetas personal
 ## 📂 Estructura del Proyecto
 
 ```
-recipehub/
+recipe-pantry/
 ├── index.html              # Punto de entrada
 ├── css/
 │   ├── styles.css         # Variables globales y reset

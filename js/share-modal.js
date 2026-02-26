@@ -1,5 +1,5 @@
 /**
- * ShareModalManager - RecipeHub
+ * ShareModalManager - Recipe Pantry
  * Maneja la lógica del modal de compartir y administración de permisos
  */
 class ShareModalManager {

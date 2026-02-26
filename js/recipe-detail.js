@@ -1,5 +1,5 @@
 /**
- * RecipeDetailManager - RecipeHub Personal
+ * RecipeDetailManager - Recipe Pantry Personal
  * Maneja la lógica de visualización de detalles de una receta,
  * incluyendo pestañas, carga de datos y acciones (favoritos, editar).
  */

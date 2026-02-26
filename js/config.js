@@ -12,7 +12,7 @@ window.DEFAULT_RECIPE_IMAGE = DEFAULT_RECIPE_IMAGE;
 // Traducciones
 const i18n = {
     es: {
-        appName: 'RecipeHub',
+        appName: 'Recipe Pantry',
         myRecipes: 'Mis Recetas',
         favorites: 'Favoritos',
         shared: 'Compartidas',

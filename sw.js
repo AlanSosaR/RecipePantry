@@ -1,5 +1,5 @@
-// RecipeHub Service Worker — v3 (Naranja + Offline)
-const CACHE_NAME = 'recipehub-v14';
+// Recipe Pantry Service Worker — v3 (Naranja + Offline)
+const CACHE_NAME = 'recipe-pantry-v14';
 
 // App shell — archivos core a cachear al instalar
 const APP_SHELL = [

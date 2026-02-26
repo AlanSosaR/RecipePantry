@@ -69,7 +69,7 @@ function setupLoginScreen() {
     const app = document.getElementById('app');
 
     const renderUnifiedAuth = (isRegister = false) => {
-        const title = isRegister ? 'Únete a RecipeHub' : 'Bienvenido a tu Recetario';
+        const title = isRegister ? 'Únete a Recipe Pantry' : 'Bienvenido a tu Recetario';
         const primaryAction = isRegister ? 'Registrarse' : 'Ingresar';
         const switchText = isRegister ? 'Ya tengo cuenta, ingresar' : 'Crear cuenta con email';
 
