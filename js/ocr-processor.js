@@ -34,6 +34,7 @@ class OCRProcessor {
         // Configuración de motor
         await this.worker.setParameters({
             tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+            user_defined_dpi: '300', // Evita el log "Estimating resolution" que sale como error
             preserve_interword_spaces: '1',
             tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúñÁÉÍÓÚÑüÜ0123456789 .,;:()[]{}°•✓→★½¼¾-/+@#$%&\'\"',
         });
