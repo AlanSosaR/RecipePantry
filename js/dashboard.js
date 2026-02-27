@@ -251,17 +251,24 @@ class DashboardManager {
                     if (btn) btn.classList.add('hidden');
                 } else {
                     // Estado por defecto (Mis Recetas / Favoritos)
-                    if (imgGroup) imgGroup.innerHTML = '<span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>';
+                    if (imgGroup) imgGroup.innerHTML = '<img src="assets/recipe.svg" style="width: 120px; height: auto; opacity: 0.9; margin: 0 auto; display: block;" alt="Recipes">';
                     if (title) {
-                        title.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'Aún no tienes recetas';
-                        title.style.color = ''; // Reset to default
+                        title.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'Tu despensa de recetas está vacía';
+                        title.style.color = '#10B981';
                     }
                     if (desc) {
-                        desc.textContent = window.i18n ? window.i18n.t('noRecipesDesc') : 'Comienza digitalizando tus recetas en papel o agrega una manualmente.';
-                        desc.style.color = ''; // Reset to default
-                        desc.style.opacity = '';
+                        desc.textContent = window.i18n ? window.i18n.t('noRecipesDesc') : 'Digitaliza o agrega tus preparaciones favoritas para que nunca se pierdan.';
+                        desc.style.color = '#000000';
+                        desc.style.opacity = '1';
                     }
-                    if (btn) btn.classList.remove('hidden');
+                    if (btn) {
+                        btn.classList.remove('hidden');
+                        // M3 Expressive Green Button styling
+                        btn.style.setProperty('--md-filled-button-container-color', '#10B981');
+                        btn.style.setProperty('--md-filled-button-label-text-color', 'white');
+                        btn.style.setProperty('--md-filled-button-icon-color', 'white');
+                        btn.style.marginTop = '24px';
+                    }
                 }
 
                 emptyState.classList.remove('hidden');

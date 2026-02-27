@@ -64,8 +64,8 @@
             permAdd: 'Agregar a sus recetas',
 
             // ── Empty state ───────────────────────────────────────────────
-            noRecipesTitle: 'Aún no tienes recetas',
-            noRecipesDesc: 'Comienza digitalizando tus recetas en papel o agrega una manualmente.',
+            noRecipesTitle: 'Tu despensa de recetas está vacía',
+            noRecipesDesc: 'Digitaliza o agrega tus preparaciones favoritas para que nunca se pierdan.',
             noSharedRecipesTitle: 'Tu despensa compartida está vacía',
             noSharedRecipesDesc: 'En Recipe Pantry, cocinar es mejor en compañía. Aquí aparecerán todos los secretos de cocina que otras personas compartan contigo.',
             scanRecipeBtn: 'Escanear Receta',
@@ -317,8 +317,8 @@
             permAdd: 'Add to their recipes',
 
             // ── Empty state ───────────────────────────────────────────────
-            noRecipesTitle: "You don't have any recipes yet",
-            noRecipesDesc: 'Start by scanning a paper recipe or add one manually.',
+            noRecipesTitle: 'Your recipe pantry is empty',
+            noRecipesDesc: 'Digitize or add your favorite preparations so they never get lost.',
             noSharedRecipesTitle: 'Your shared pantry is empty',
             noSharedRecipesDesc: 'In Recipe Pantry, cooking is better together. All the cooking secrets others share with you will appear here.',
             scanRecipeBtn: 'Scan Recipe',
