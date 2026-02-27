@@ -1,5 +1,6 @@
-// Recipe Pantry Service Worker — v3 (Naranja + Offline)
-const CACHE_NAME = 'recipe-pantry-v25';
+// Recipe Pantry Service Worker — v4 (Soporte Imágenes Offline + IndexedDB Sync)
+const CACHE_NAME = 'recipe-pantry-v26';
+const IMAGE_CACHE = 'recipe-pantry-images-v1';
 
 // App shell — archivos core a cachear al instalar
 const APP_SHELL = [
@@ -15,6 +16,8 @@ const APP_SHELL = [
     './js/config.js',
     './js/supabase-client.js',
     './js/auth.js',
+    './js/localdb.js',
+    './js/sync-manager.js',
     './js/db.js',
     './js/utils.js',
     './js/app.js',
@@ -32,7 +35,6 @@ const APP_SHELL = [
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
-            // addAll falla silenciosamente si algún archivo no existe
             return Promise.allSettled(
                 APP_SHELL.map(url =>
                     cache.add(url).catch(err => console.warn(`⚠️ No se pudo cachear ${url}:`, err))
@@ -47,7 +49,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
-            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+            Promise.all(keys.filter(k => k !== CACHE_NAME && k !== IMAGE_CACHE).map(k => caches.delete(k)))
         )
     );
     self.clients.claim();
@@ -58,36 +60,50 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Ignorar requests no-GET y llamadas a Supabase (datos siempre de red)
-    if (request.method !== 'GET' || url.hostname.includes('supabase.co')) {
+    // API Supabase (datos JSON). Dejamos pasar libremente, será manejada por `db.js` + `IndexedDB`
+    if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/v1/')) {
         return;
     }
 
-    // Ignorar extensiones de Chrome y datos
-    if (url.protocol === 'chrome-extension:' || url.protocol === 'data:') {
+    // Imágenes de Supabase Storage. Usaremos Cache-First para mostrarlas offline al instante
+    if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/public/')) {
+        event.respondWith(
+            caches.match(request).then(cached => {
+                const networkFetch = fetch(request).then(response => {
+                    if (response && response.status === 200 && response.type !== 'opaque') {
+                        const clone = response.clone();
+                        caches.open(IMAGE_CACHE).then(cache => cache.put(request, clone));
+                    }
+                    return response;
+                }).catch(() => { /* offline fails silently */ });
+
+                return cached || networkFetch;
+            })
+        );
         return;
     }
 
+    // Ignorar extensiones y requests no-GET
+    if (request.method !== 'GET' || url.protocol === 'chrome-extension:' || url.protocol === 'data:') {
+        return;
+    }
+
+    // Resto del shell (CSS, HTML, JS) -> Cache-first clásico
     event.respondWith(
         caches.match(request).then(cached => {
             const network = fetch(request).then(response => {
-                // Cachear respuestas exitosas de assets estáticos
                 if (response && response.status === 200 && response.type !== 'opaque') {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
                 }
                 return response;
             }).catch(() => {
-                // Sin red: devolver caché si existe
                 if (cached) return cached;
-                // Fallback para páginas HTML
                 if (request.destination === 'document') {
                     return caches.match('/index.html');
                 }
                 return new Response('Sin conexión', { status: 503 });
             });
-
-            // Devolver caché inmediatamente si está disponible, sino esperar red
             return cached || network;
         })
     );

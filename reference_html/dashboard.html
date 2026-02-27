@@ -86,9 +86,16 @@
                     <h1 class="text-white text-2xl font-bold font-display">Hola, María</h1>
                 </div>
             </div>
-            <button class="text-white p-2 rounded-full hover:bg-white/20 transition-colors">
-                <span class="material-icons-round">notifications_none</span>
-            </button>
+            <div class="flex items-center gap-2">
+                <div id="offline-indicator"
+                    class="hidden bg-orange-800 bg-opacity-30 border border-orange-300 px-2 py-1 rounded-full flex items-center gap-1 text-white text-xs shadow-sm">
+                    <span class="material-symbols-outlined text-[14px]">cloud_off</span> <span>Offline</span>
+                </div>
+                <button id="btn-logout" class="text-white p-2 rounded-full hover:bg-white/20 transition-colors"
+                    title="Cerrar Sessión">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </div>>
         </div>
         <div class="absolute -bottom-7 left-6 right-6">
             <div
