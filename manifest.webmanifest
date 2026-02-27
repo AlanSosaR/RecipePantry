@@ -1,9 +1,9 @@
 {
-  "id": "/",
+  "id": "recipe-pantry-app-v1",
   "name": "Recipe Pantry",
   "short_name": "Recipe Pantry",
   "description": "Tu recetario personal premium — guarda, organiza y escanea recetas.",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
