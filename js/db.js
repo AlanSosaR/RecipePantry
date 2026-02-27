@@ -30,39 +30,43 @@ class DatabaseManager {
         let fromCache = true;
 
         // Apply local filters if we have cached data
+        let filteredRecipes = [...recipes];
         if (recipes && recipes.length > 0) {
             if (filters.shared) {
-                recipes = recipes.filter(r => r.sharingContext === 'received');
+                filteredRecipes = filteredRecipes.filter(r => r.sharingContext === 'received');
             } else {
-                recipes = recipes.filter(r => r.sharingContext !== 'received');
+                filteredRecipes = filteredRecipes.filter(r => r.sharingContext !== 'received');
             }
-            if (filters.favorite) recipes = recipes.filter(r => r.is_favorite);
-            if (filters.categoryId) recipes = recipes.filter(r => r.category_id === filters.categoryId);
+            if (filters.favorite) filteredRecipes = filteredRecipes.filter(r => r.is_favorite);
+            if (filters.categoryId) filteredRecipes = filteredRecipes.filter(r => r.category_id === filters.categoryId);
             if (filters.search) {
                 const s = filters.search.toLowerCase();
-                recipes = recipes.filter(r =>
+                filteredRecipes = filteredRecipes.filter(r =>
                     (r.name_es && r.name_es.toLowerCase().includes(s)) ||
                     (r.description_es && r.description_es.toLowerCase().includes(s))
                 );
             }
 
-            // Ordenar locally
-            const orderCol = filters.orderBy || 'name_es';
-            const asc = filters.ascending !== undefined ? filters.ascending : true;
-            recipes.sort((a, b) => {
-                if (a[orderCol] < b[orderCol]) return asc ? -1 : 1;
-                if (a[orderCol] > b[orderCol]) return asc ? 1 : -1;
-                return 0;
-            });
+            // Si después de filtrar tenemos resultados, los mostramos
+            if (filteredRecipes.length > 0 || !this._isOnline) {
+                // Ordenar locally
+                const orderCol = filters.orderBy || 'name_es';
+                const asc = filters.ascending !== undefined ? filters.ascending : true;
+                filteredRecipes.sort((a, b) => {
+                    if (a[orderCol] < b[orderCol]) return asc ? -1 : 1;
+                    if (a[orderCol] > b[orderCol]) return asc ? 1 : -1;
+                    return 0;
+                });
 
-            console.log(`⚡ ${recipes.length} recetas desde Instancia Local (IndexedDB)`);
+                console.log(`⚡ ${filteredRecipes.length} recetas desde Instancia Local (IndexedDB)`);
 
-            // Si hay red, iniciar refresco silencioso en background
-            if (this._isOnline && isUnfiltered) {
-                this._refreshRecipesInBackground(filters);
+                // Si hay red e iniciamos vista general, refresco silencioso
+                if (this._isOnline && isUnfiltered) {
+                    this._refreshRecipesInBackground(filters);
+                }
+
+                return { success: true, recipes: filteredRecipes, fromCache: true };
             }
-
-            return { success: true, recipes, fromCache: true };
         }
 
         // Si no hay local, forzar red
@@ -148,9 +152,16 @@ class DatabaseManager {
                 };
             });
 
-            // Reemplazar la colección local entera si no hay filtros activos
-            if (!filters.search && !filters.categoryId && !filters.favorite) {
-                await window.localDB.clear('recipes'); // limpia obsoletas
+            // Reemplazar la colección local propia si no hay filtros activos
+            if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared) {
+                // Conservar las recibidas (shared) antes de limpiar
+                const allLocal = await window.localDB.getAll('recipes');
+                const received = allLocal.filter(r => r.sharingContext === 'received');
+
+                await window.localDB.clear('recipes');
+
+                // Reinsertar las nuevas (propias) y las recibidas por separado
+                if (received.length > 0) await window.localDB.putAll('recipes', received);
                 await window.localDB.putAll('recipes', recipes);
             }
 
@@ -457,6 +468,19 @@ class DatabaseManager {
 
             // Purge sharing link 
             await this.deleteSharedRecipe(window.authManager.currentUser.id, recipeId);
+
+            // ACTUALIZACIÓN DE LOCALDB (Crucial para respuesta inmediata)
+            await this._checkLocalDB();
+            // 1. Borrar la versión compartida del cache
+            await window.localDB.delete('recipes', recipeId);
+            // 2. Insertar la nueva versión propia en el cache
+            await window.localDB.put('recipes', {
+                ...newRecipe,
+                sharingContext: null,
+                category: recipe.category,
+                images: recipe.images,
+                primaryImage: recipe.primaryImage
+            });
 
             return { success: true, newRecipeId: newRecipe.id };
         } catch (error) {
