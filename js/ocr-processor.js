@@ -210,6 +210,18 @@ class OCRProcessor {
         return corrected.trim();
     }
 
+    /**
+     * Parsea texto crudo para extraer estructura (usado por recipe-form.html)
+     */
+    parseRecipeText(text) {
+        const corrected = this.applyAllCorrections(text);
+        return {
+            name: this.extractRecipeName(corrected),
+            ingredients: this.extractIngredients(corrected),
+            steps: this.extractSteps(corrected)
+        };
+    }
+
     extractRecipeName(text) {
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         if (lines.length > 0) {
