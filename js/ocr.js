@@ -176,47 +176,36 @@ class OCRScanner {
         if (resultState) resultState.style.display = 'flex';
 
         // Set Recipe Name
-        const nameInput = document.getElementById('ocrRecipeName') || document.getElementById('ocrRawName');
+        const nameInput = document.getElementById('ocrRecipeName');
         if (nameInput) nameInput.value = results.nombre || '';
 
-        // Set Main Text / JSON Output
-        const textOutput = document.getElementById('extractedText');
-        if (textOutput) {
-            // En ocr.html mostramos el texto corregido para editar
-            textOutput.value = results.texto;
+        // Set Ingredients (as line-separated text)
+        const ingredientsTextarea = document.getElementById('ocrIngredients');
+        if (ingredientsTextarea && results.ingredientes) {
+            ingredientsTextarea.value = results.ingredientes.join('\n');
         }
 
-        // Si estamos en ocr.html, también actualizamos la tab de "Vista Previa"
-        const parsedName = document.getElementById('parsedName');
-        if (parsedName) parsedName.value = results.nombre || '';
-
-        const parsedIngredients = document.getElementById('parsedIngredients');
-        if (parsedIngredients && results.ingredientes) {
-            parsedIngredients.innerHTML = results.ingredientes.map(ing => `
-                <div class="parsed-item">
-                    <span class="material-symbols-outlined" style="color: var(--primary); font-size: 18px;">check_circle</span>
-                    <span>${ing}</span>
-                </div>
-            `).join('');
+        // Set Steps (as line-separated text)
+        const stepsTextarea = document.getElementById('ocrSteps');
+        if (stepsTextarea && results.pasos) {
+            stepsTextarea.value = results.pasos.join('\n');
         }
 
-        const parsedSteps = document.getElementById('parsedSteps');
-        if (parsedSteps && results.pasos) {
-            parsedSteps.innerHTML = results.pasos.map((step, i) => `
-                <div class="parsed-item" style="align-items: flex-start;">
-                    <span style="font-weight: 700; color: var(--primary); min-width: 20px;">${i + 1}.</span>
-                    <span>${step}</span>
-                </div>
-            `).join('');
+        // Set Full Text
+        const fullTextInput = document.getElementById('extractedText');
+        if (fullTextInput) {
+            fullTextInput.value = results.texto;
         }
 
         // Confidence badge
         const conf = Math.round(results.confidence || 0);
         const confBadge = document.getElementById('confidenceBadge');
         if (confBadge) {
-            confBadge.textContent = `Precisión: ${conf}%`;
-            confBadge.style.color = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
+            confBadge.textContent = `${conf}%`;
             confBadge.className = 'confidence-badge ' + (conf >= 85 ? 'confidence-high' : conf >= 60 ? 'confidence-medium' : 'confidence-low');
+
+            // Apply dynamic background based on confidence
+            confBadge.style.background = conf >= 90 ? '#10B981' : conf >= 70 ? '#F59E0B' : '#EF4444';
         }
 
         // Auto-scroll para que se vea el texto

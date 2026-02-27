@@ -531,6 +531,54 @@
             box-shadow: var(--md-elev-1);
         }
 
+        /* --- OCR Results UI --- */
+        .confidence-badge {
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            background: var(--md-surface-variant);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .confidence-high {
+            background-color: #10B981;
+        }
+
+        .confidence-medium {
+            background-color: #F59E0B;
+        }
+
+        .confidence-low {
+            background-color: #EF4444;
+        }
+
+        .ocr-step {
+            display: none;
+            opacity: 0;
+        }
+
+        .ocr-step.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .m3-expressive-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--md-elev-2);
@@ -732,84 +780,78 @@
                 <!-- PASO 3: Editar y Guardar -->
                 <div id="step3" class="ocr-step">
                     <div
-                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                        <h2 style="font-size: 24px; margin: 0;" data-i18n="ocrStep3Title">Resultado</h2>
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                        <h2 class="brand-font" style="font-size: 28px; margin: 0;" data-i18n="ocrStep3Title">Receta
+                            Digitalizada</h2>
                         <span id="confidenceBadge" class="confidence-badge"></span>
                     </div>
 
-                    <!-- Tabs Navigation -->
-                    <div
-                        style="display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px; overflow-x: auto;">
-                        <button class="tab-button active" data-tab="raw" onclick="switchTab('raw')"
-                            data-i18n="ocrTabRaw">Texto Crudo</button>
-                        <button class="tab-button" data-tab="parsed" onclick="switchTab('parsed')"
-                            data-i18n="ocrTabParsed">Vista Previa</button>
-                    </div>
-
-                    <!-- Tab: Raw Text (matching modal design) -->
-                    <div id="tabRaw" class="tab-content">
+                    <div id="scanResultsForm" style="display: flex; flex-direction: column; gap: 20px;">
                         <!-- Nombre de la Receta -->
-                        <div style="margin-bottom:16px;">
+                        <div class="form-field">
                             <label
-                                style="font-size:12px; font-weight:700; color:#6B7280; text-transform:uppercase; display:block; margin-bottom:6px;"
-                                data-i18n="formNameLabel">Nombre de la Receta</label>
-                            <input type="text" id="ocrRawName" class="form-input"
-                                style="font-weight:600; font-size:15px; padding:14px 16px; border-radius:12px; border:1px solid #E5E7EB; width:100%; box-sizing:border-box;"
-                                data-i18n-placeholder="placeholderRecipeName" placeholder="Nombre detectado...">
+                                style="font-size:12px; font-weight:700; color:var(--md-on-surface-var); text-transform:uppercase; display:block; margin-bottom:8px;">
+                                <span class="material-symbols-outlined"
+                                    style="font-size: 16px; vertical-align: middle; margin-right: 4px;">title</span>
+                                <span data-i18n="formNameLabel">Nombre de la Receta</span>
+                            </label>
+                            <input type="text" id="ocrRecipeName" class="form-input"
+                                style="font-weight:600; font-size:16px; padding:16px; border-radius:16px; border:1px solid var(--md-outline-var); width:100%; box-sizing:border-box;"
+                                data-i18n-placeholder="placeholderRecipeName" placeholder="Nombre de la receta...">
                         </div>
 
-                        <!-- JSON Output Editor -->
-                        <div>
+                        <!-- Ingredientes -->
+                        <div class="form-field">
                             <label
-                                style="font-size:14px; font-weight:700; color:#1B1B1F; display:block; margin-bottom:8px;">JSON
-                                Estructurado (Debug Mode)</label>
-                            <textarea id="extractedText" class="extracted-text"
-                                style="font-family: monospace; white-space: pre; min-height:400px; font-size:13px; line-height:1.4; padding:16px; border-radius:12px; border:1px solid #E5E7EB; width:100%; box-sizing:border-box; resize:vertical; background-color: #1e1e1e; color: #d4d4d4;"></textarea>
+                                style="font-size:12px; font-weight:700; color:var(--md-on-surface-var); text-transform:uppercase; display:block; margin-bottom:8px;">
+                                <span class="material-symbols-outlined"
+                                    style="font-size: 16px; vertical-align: middle; margin-right: 4px;">format_list_bulleted</span>
+                                <span data-i18n="formIngredientsLabel">Ingredientes</span>
+                            </label>
+                            <textarea id="ocrIngredients" class="form-input"
+                                style="min-height:180px; font-size:15px; line-height:1.6; padding:16px; border-radius:16px; border:1px solid var(--md-outline-var); width:100%; box-sizing:border-box; resize:vertical;"
+                                placeholder="Los ingredientes aparecerán aquí..."></textarea>
                         </div>
 
-                        <p style="font-size:12px; color:#6B7280; margin-top:8px; font-style:italic;">
-                            Edita el JSON directamente. Los cambios serán asimilados por el perfil Adaptativo.
-                        </p>
+                        <!-- Pasos de Preparación -->
+                        <div class="form-field">
+                            <label
+                                style="font-size:12px; font-weight:700; color:var(--md-on-surface-var); text-transform:uppercase; display:block; margin-bottom:8px;">
+                                <span class="material-symbols-outlined"
+                                    style="font-size: 16px; vertical-align: middle; margin-right: 4px;">cooking</span>
+                                <span data-i18n="formStepsLabel">Pasos de Preparación</span>
+                            </label>
+                            <textarea id="ocrSteps" class="form-input"
+                                style="min-height:180px; font-size:15px; line-height:1.6; padding:16px; border-radius:16px; border:1px solid var(--md-outline-var); width:100%; box-sizing:border-box; resize:vertical;"
+                                placeholder="Los pasos aparecerán aquí..."></textarea>
+                        </div>
+
+                        <!-- Texto Completo (Colapsable) -->
+                        <details style="margin-top: 8px;">
+                            <summary id="summaryFullText"
+                                style="cursor: pointer; color: var(--md-on-surface-var); font-size: 14px; font-weight: 600; padding: 8px 0; display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined">description</span>
+                                <span data-i18n="ocrSeeFullText">Ver texto completo extraído</span>
+                            </summary>
+                            <div style="margin-top: 12px;">
+                                <textarea id="extractedText" class="extracted-text" readonly
+                                    style="min-height:300px; font-size:13px; line-height:1.5; padding:16px; border-radius:16px; border:none; width:100%; box-sizing:border-box; background-color: var(--md-surface-variant); color: var(--md-on-surface-var); font-family: monospace;"></textarea>
+                            </div>
+                        </details>
                     </div>
 
-                    <!-- Tab: Parsed Preview -->
-                    <div id="tabParsed" class="tab-content" style="display: none;">
-                        <div class="parsed-section">
-                            <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;"
-                                data-i18n="formNameLabel">Nombre
-                                de la Receta</label>
-                            <input type="text" id="parsedName" class="form-input"
-                                style="margin-top: 8px; font-weight: 600;"
-                                data-i18n-placeholder="placeholderRecipeName">
-                        </div>
-
-                        <div class="parsed-section">
-                            <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;"
-                                data-i18n="formIngredientsLabel">Ingredientes</label>
-                            <div id="parsedIngredients" style="margin-top: 8px;"></div>
-                        </div>
-
-                        <div class="parsed-section">
-                            <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase;"
-                                data-i18n="formStepsLabel">Pasos
-                                de Preparación</label>
-                            <div id="parsedSteps" style="margin-top: 8px;"></div>
-                        </div>
-                    </div>
-
-
-                    <div style="display: flex; gap: 12px; margin-top: 32px; padding-bottom: 40px;">
-                        <button class="btn btn-secondary"
-                            style="flex: 1; border-radius: 16px; height: 56px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                    <div style="display: flex; gap: 16px; margin-top: 36px; padding-bottom: 48px;">
+                        <button class="m3-expressive-card secondary"
+                            style="flex: 1; padding: 24px; min-height: 80px; border-radius: 24px; background: var(--md-surface-container-high); color: var(--md-on-surface); border: 1px solid var(--md-outline-variant); flex-direction: row; gap: 12px;"
                             onclick="goToStep(1)">
-                            <span class="material-symbols-outlined">refresh</span>
-                            <span data-i18n="ocrRetry">Reintentar</span>
+                            <span class="material-symbols-outlined" style="font-size: 24px;">refresh</span>
+                            <span style="font-size: 16px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
                         </button>
-                        <button id="btnSaveRecipe" class="btn btn-primary"
-                            style="flex: 2; border-radius: 16px; height: 56px; background: var(--primary); display: flex; align-items: center; justify-content: center; gap: 8px;"
-                            onclick="if(window.ocr) window.ocr.learnCorrections(); saveRecipe();">
-                            <span class="material-symbols-outlined">check_circle</span>
-                            <span data-i18n="ocrSave">Guardar Receta</span>
+                        <button id="btnSaveRecipe" class="m3-expressive-card"
+                            style="flex: 2; padding: 24px; min-height: 80px; border-radius: 24px; background: var(--primary); color: white; flex-direction: row; gap: 12px; box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);"
+                            onclick="saveRecipe();">
+                            <span class="material-symbols-outlined" style="font-size: 24px;">check_circle</span>
+                            <span style="font-size: 18px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
                         </button>
                     </div>
                 </div>
@@ -911,28 +953,18 @@
                 if (!results.success) throw new Error(results.error);
 
                 ocrResults = results;
+                window.currentOCRResults = results;
 
-                // Mostrar texto corregido en la tab de Crudo
-                document.getElementById('extractedText').value = results.texto;
-
-                // Nombre en tab Crudo
-                const rawNameInput = document.getElementById('ocrRawName');
-                if (rawNameInput) rawNameInput.value = results.nombre || '';
-
-                // Confidence Badge
-                const badge = document.getElementById('confidenceBadge');
-                const conf = Math.round(results.confidence || 0);
-                badge.textContent = `${conf}%`;
-                badge.className = 'confidence-badge ' + (conf > 80 ? 'confidence-high' : conf > 50 ? 'confidence-medium' : 'confidence-low');
-
-                // Asignar los datos para Vista Previa
-                parsedData = {
-                    name: results.nombre || '',
-                    ingredients: results.ingredientes || [],
-                    steps: results.pasos || []
-                };
-
-                renderParsedData();
+                // Usar la función centralizada de ocr.js que ya tiene los IDs nuevos
+                if (window.ocr) {
+                    window.ocr.showResults(results);
+                } else {
+                    // Fallback si por alguna razón window.ocr no está listo
+                    document.getElementById('ocrRecipeName').value = results.nombre || '';
+                    document.getElementById('ocrIngredients').value = results.ingredientes.join('\n');
+                    document.getElementById('ocrSteps').value = results.pasos.join('\n');
+                    document.getElementById('extractedText').value = results.texto;
+                }
 
                 if (scanLine) scanLine.classList.add('hidden');
                 goToStep(3);
@@ -947,25 +979,6 @@
             }
         }
 
-        function renderParsedData() {
-            document.getElementById('parsedName').value = parsedData.name || '';
-
-            const ingContainer = document.getElementById('parsedIngredients');
-            ingContainer.innerHTML = (parsedData.ingredients || []).map((ing, i) => `
-                <div class="parsed-item">
-                    <input type="text" class="form-input" value="${ing}"
-                           onchange="updateIng(${i}, this.value)">
-                </div>
-            `).join('') || `<p style="color:#9CA3AF; font-size:14px;">${window.i18n ? window.i18n.t('ocrNoIngredients') : 'No se detectaron ingredientes'}</p>`;
-
-            const stepContainer = document.getElementById('parsedSteps');
-            stepContainer.innerHTML = (parsedData.steps || []).map((s, i) => `
-                <div class="parsed-item" style="align-items: flex-start;">
-                    <span style="font-weight:700; color:var(--primary); margin-top:8px;">${i + 1}.</span>
-                    <textarea class="form-input" style="min-height:60px;" onchange="updateStep(${i}, this.value)">${s}</textarea>
-                </div>
-            `).join('') || `<p style="color:#9CA3AF; font-size:14px;">${window.i18n ? window.i18n.t('ocrNoSteps') : 'No se detectaron pasos'}</p>`;
-        }
 
         function updateIng(i, val) {
             parsedData.ingredients[i] = val;
@@ -977,53 +990,51 @@
 
         async function saveRecipe() {
             const btn = document.getElementById('btnSaveRecipe');
+            if (!btn || btn.disabled) return;
+
             btn.disabled = true;
             const savingTxt = window.i18n ? window.i18n.t('saving') : 'Guardando...';
             btn.innerHTML = `<span class="spinner" style="width:20px; height:20px; border-width:2px; margin-right:8px;"></span>${savingTxt}`;
 
             try {
-                // Get name from either Texto Crudo tab or Vista Previa tab
-                const rawNameEl = document.getElementById('ocrRawName');
-                const parsedNameEl = document.getElementById('parsedName');
-                parsedData.name = (rawNameEl ? rawNameEl.value.trim() : '') || (parsedNameEl ? parsedNameEl.value.trim() : '');
-                const rawText = document.getElementById('extractedText').value;
+                const name = document.getElementById('ocrRecipeName').value.trim();
+                const ingredientsRaw = document.getElementById('ocrIngredients').value;
+                const stepsRaw = document.getElementById('ocrSteps').value;
+                const fullText = document.getElementById('extractedText').value;
 
-                if (!parsedData.name) {
+                if (!name) {
                     const nameReq = window.i18n ? window.i18n.t('ocrNameRequired') : 'La receta necesita un nombre';
                     throw new Error(nameReq);
                 }
 
                 // 1. Crear Receta
                 const recipeRes = await window.db.createRecipe({
-                    name_es: parsedData.name,
+                    name_es: name,
                     category_id: '463d1444-c8e1-42ac-86ed-1fac331cd821', // Categoría General por defecto
-                    ocr_raw_text: rawText,
-                    ocr_confidence: Math.round(ocrResults.confidence || 0),
+                    ocr_raw_text: fullText,
+                    ocr_confidence: Math.round(window.currentOCRResults ? window.currentOCRResults.confidence : 0),
                     created_from_ocr: true,
                     pantry_es: ''
                 });
 
-                if (!recipeRes.success) {
-                    console.error('❌ Error OCR createRecipe:', recipeRes.error);
-                    throw new Error(recipeRes.error);
-                }
+                if (!recipeRes.success) throw new Error(recipeRes.error);
                 const recipeId = recipeRes.recipe.id;
 
-                // 2. Ingredientes
-                if (parsedData.ingredients.length > 0) {
-                    const ings = parsedData.ingredients.map(ing => ({
-                        name_es: ing.name,
-                        quantity: ing.quantity,
-                        unit_es: ing.unit,
-                        raw_text: `${ing.quantity || ''} ${ing.unit || ''} ${ing.name}`.trim()
+                // 2. Ingredientes (Parse simplified: each line is an ingredient)
+                const ingredientLines = ingredientsRaw.split('\n').filter(line => line.trim() !== '');
+                if (ingredientLines.length > 0) {
+                    const ings = ingredientLines.map(line => ({
+                        name_es: line.trim(),
+                        raw_text: line.trim()
                     }));
                     await window.db.addIngredients(recipeId, ings);
                 }
 
-                // 3. Pasos
-                if (parsedData.steps.length > 0) {
-                    const steps = parsedData.steps.map((s, idx) => ({
-                        instruction_es: s.instruction,
+                // 3. Pasos (Parse simplified: each line is a step)
+                const stepLines = stepsRaw.split('\n').filter(line => line.trim() !== '');
+                if (stepLines.length > 0) {
+                    const steps = stepLines.map((line, idx) => ({
+                        instruction_es: line.trim(),
                         step_order: idx + 1
                     }));
                     await window.db.addSteps(recipeId, steps);
@@ -1039,23 +1050,22 @@
                 setTimeout(() => window.location.href = `recipe-detail.html?id=${recipeId}`, 1000);
 
             } catch (err) {
-                console.error(err);
-                const nameRequiredMsg = window.i18n ? window.i18n.t('ocrNameRequired') : 'Asigna un nombre a la receta';
-                window.showToast(nameRequiredMsg, 'error');
+                console.error('Error saving recipe:', err);
+                window.showToast(err.message || 'Error al guardar', 'error');
                 btn.disabled = false;
                 const saveBtnTxt = window.i18n ? window.i18n.t('ocrSave') : 'Guardar Receta';
                 btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ${saveBtnTxt}`;
             }
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-            document.getElementById('tabRaw').style.display = tab === 'raw' ? 'block' : 'none';
-            document.getElementById('tabParsed').style.display = tab === 'parsed' ? 'block' : 'none';
-        }
 
         function goToStep(s) {
             document.querySelectorAll('.ocr-step').forEach((el, i) => el.classList.toggle('active', i === (s - 1)));
+
+            // Scroll to top to ensure visibility
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            const scrollContainer = document.querySelector('.main-content-scroll');
+            if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'instant' });
 
             // Si volvemos al paso 1, resetear estado e inputs
             if (s === 1) {
