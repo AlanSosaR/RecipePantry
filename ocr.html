@@ -885,30 +885,38 @@
             if (scanLine) scanLine.classList.remove('hidden');
 
             try {
-                const results = await window.ocrProcessor.processImage(file, m => {
+                // Usar el nuevo OCRManager V2.0 Profesional
+                const results = await window.ocrManager.processImage(file, m => {
                     if (m.status === 'recognizing text') {
                         const p = Math.round(m.progress * 100);
                         status.textContent = window.i18n ? window.i18n.t('ocrReading', { progress: p }) : `Leyendo... ${p}%`;
                         bar.style.width = p + '%';
                     }
-                });
+                }, { mode: 'contextual', returnJSON: true });
 
                 ocrResults = results;
-                document.getElementById('extractedText').value = results.text;
+
+                // Mostrar resultados extraídos (JSON stringificado para la tab Crudo)
+                const jsonText = JSON.stringify(results.data, null, 2);
+                document.getElementById('extractedText').value = jsonText;
 
                 // Set recipe name in Texto Crudo tab
                 const rawNameInput = document.getElementById('ocrRawName');
-                if (rawNameInput) rawNameInput.value = results.name || '';
+                if (rawNameInput) rawNameInput.value = results.data?.title || '';
 
                 // Confidence Badge
                 const badge = document.getElementById('confidenceBadge');
-                const conf = Math.round(results.confidence);
+                const conf = Math.round(results.confidence || 0);
                 badge.textContent = `${conf}%`;
                 badge.className = 'confidence-badge ' + (conf > 80 ? 'confidence-high' : conf > 50 ? 'confidence-medium' : 'confidence-low');
 
-                // Exhaustive AG Analysis
-                // Parse
-                parsedData = window.ocrProcessor.parseRecipeText(results.text);
+                // Asignar los datos procesados por JSONBuilder y CulinaryValidator
+                parsedData = {
+                    name: results.data?.title || '',
+                    ingredients: results.data?.ingredients || [],
+                    steps: results.data?.instructions || []
+                };
+
                 renderParsedData();
 
                 if (scanLine) scanLine.classList.add('hidden');
@@ -947,12 +955,15 @@
         }
 
         function updateIng(i, val) {
-            const p = window.ocrProcessor.parseIngredient(val);
-            if (p) parsedData.ingredients[i] = p;
+            // En la V2.0, los ingredientes se manejan vía NLP. Por ahora, forzamos la cadena entera si el usario edita.
+            if (parsedData.ingredients[i]) {
+                parsedData.ingredients[i].name = val; // Placeholder, una edición compleja requeriría re-parsear
+            }
         }
 
         function updateStep(i, val) {
             parsedData.steps[i].instruction = val;
+            parsedData.steps[i].text = val;
         }
 
         async function saveRecipe() {

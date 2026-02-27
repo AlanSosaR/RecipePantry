@@ -30,7 +30,7 @@ class HybridOCR {
             });
             await this.tesseractWorker.setParameters({
                 tessedit_pageseg_mode: tesseractInstance.PSM.AUTO,
-                tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ¼½¾°CFmlgxtazasdecm%+-./:;★⚠💡⏱',
+                tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúÁÉÍÓÚñÑüÜ¼½¾°CFmlgxtazasdecm%+-./:;,★⚠💡⏱ ',
                 preserve_interword_spaces: '1'
             });
         }
@@ -48,6 +48,9 @@ class HybridOCR {
         // Nivel 1: Tesseract Fast Execution
         const tsResult = await this.tesseractWorker.recognize(canvas);
         const { text, confidence, words } = tsResult.data;
+
+        console.log(`[HybridOCR] Tesseract Raw Output:`, text);
+        console.log(`[HybridOCR] Tesseract Confidence: ${confidence}%`);
 
         // Métrica: Calcula Media Numérica de Confianza
         let numericConf = confidence;

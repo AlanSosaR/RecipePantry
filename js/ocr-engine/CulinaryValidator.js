@@ -105,7 +105,8 @@ class CulinaryValidator {
     parseIngredient(line) {
         let clean = line.replace(/^[-•*◦▪▫+—–]\s*/, '').trim();
         // Regex para capturar cantidad (num o fracción), unidad (opcional) e ingrediente
-        const pattern = /^(\d+[\.\/\d\s¼½¾]*)\s*([a-zA-ZáéíóúÁÉÍÓÚñÑ]+)?\s*(?:de\s+)?(.+)$/;
+        // Mejorado para capturar caracteres españoles y ser más flexible con espacios
+        const pattern = /^([\d\.\/\s¼½¾]+)?\s*([a-zA-ZáéíóúÁÉÍÓÚñÑ]{1,10})?\s*(?:de\s+)?(.+)$/;
         const match = clean.match(pattern);
 
         let quantity = null;
