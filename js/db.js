@@ -21,7 +21,12 @@ class DatabaseManager {
         const isUnfiltered = !filters.search && !filters.categoryId && !filters.favorite && !filters.shared;
 
         // 1. Mostrar instantáneamente de la copia local IndexedDB
-        let recipes = await window.localDB.getAll('recipes');
+        let recipes = [];
+        if (window.localDB) {
+            recipes = await window.localDB.getAll('recipes');
+        } else {
+            console.warn("LocalDB ignore: window.localDB is not defined yet.");
+        }
         let fromCache = true;
 
         // Apply local filters if we have cached data
