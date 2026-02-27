@@ -1,10 +1,10 @@
 {
-  "id": "/RecipePantry/",
+  "id": "/",
   "name": "Recipe Pantry",
   "short_name": "Recipe Pantry",
   "description": "Tu recetario personal premium — guarda, organiza y escanea recetas.",
-  "start_url": "/RecipePantry/index.html",
-  "scope": "/RecipePantry/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f0f2f5",
@@ -37,7 +37,7 @@
     {
       "name": "Nueva Receta",
       "short_name": "Nueva",
-      "url": "/RecipePantry/recipe-form.html",
+      "url": "/recipe-form.html",
       "icons": [
         {
           "src": "assets/icons/manifest-icon-192.maskable.png",
