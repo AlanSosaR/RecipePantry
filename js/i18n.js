@@ -90,7 +90,7 @@
             ocrGallery: 'Galería',
             ocrRetry: 'Reintentar',
             ocrSave: 'Guardar Receta',
-            ocrSelectImage: 'Selecciona o arrastra una imagen',
+            ocrSelectImage: 'Tomar foto o subir',
             ocrFormats: 'Formatos JPG, PNG compatibles',
             ocrTipsTitle: 'Consejos Pro:',
             ocrTip1: 'Asegúrate que el texto sea legible.',
