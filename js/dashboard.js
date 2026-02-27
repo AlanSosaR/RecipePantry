@@ -229,7 +229,29 @@ class DashboardManager {
 
         if (recipes.length === 0) {
             container.innerHTML = '';
-            if (emptyState) emptyState.classList.remove('hidden');
+            if (emptyState) {
+                // Actualizar contenido del empty state según la vista
+                const imgGroup = document.getElementById('emptyStateImgGroup');
+                const icon = document.getElementById('emptyStateIcon');
+                const title = document.getElementById('emptyStateTitle');
+                const desc = document.getElementById('emptyStateDesc');
+                const btn = document.getElementById('emptyStateBtn');
+
+                if (this.currentView === 'shared') {
+                    if (imgGroup) imgGroup.innerHTML = '<img src="assets/compartir.svg" style="width: 120px; height: auto; opacity: 0.8;" alt="Shared">';
+                    if (title) title.textContent = window.i18n ? window.i18n.t('noSharedRecipesTitle') : 'Tu despensa compartida está vacía';
+                    if (desc) desc.textContent = window.i18n ? window.i18n.t('noSharedRecipesDesc') : 'En Recipe Pantry, cocinar es mejor en compañía...';
+                    if (btn) btn.classList.add('hidden');
+                } else {
+                    // Estado por defecto (Mis Recetas / Favoritos)
+                    if (imgGroup) imgGroup.innerHTML = '<span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>';
+                    if (title) title.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'Aún no tienes recetas';
+                    if (desc) desc.textContent = window.i18n ? window.i18n.t('noRecipesDesc') : 'Comienza digitalizando tus recetas...';
+                    if (btn) btn.classList.remove('hidden');
+                }
+
+                emptyState.classList.remove('hidden');
+            }
             return;
         }
         if (emptyState) emptyState.classList.add('hidden');

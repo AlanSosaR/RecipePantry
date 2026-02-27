@@ -485,15 +485,17 @@
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
-          <div style="font-size: 64px; color: #E5E7EB; margin-bottom: 24px;">
-            <span class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
+          <div id="emptyStateImgGroup" style="color: #E5E7EB; margin-bottom: 24px;">
+            <span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
           </div>
-          <h4 style="font-size: 18px; font-weight: 700; color: var(--on-surface);" data-i18n="noRecipesTitle">
+          <h4 id="emptyStateTitle" style="font-size: 18px; font-weight: 700; color: var(--on-surface);"
+            data-i18n="noRecipesTitle">
             Aún no tienes recetas</h4>
-          <p style="color: var(--on-surface-variant); margin-top: 8px;" data-i18n="noRecipesDesc">Comienza
+          <p id="emptyStateDesc" style="color: var(--on-surface-variant); margin-top: 8px;" data-i18n="noRecipesDesc">
+            Comienza
             digitalizando tus recetas en
             papel o agrega una manualmente.</p>
-          <md-filled-button style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
+          <md-filled-button id="emptyStateBtn" style="margin-top: 24px;" onclick="window.location.href='ocr.html'">
             <span slot="icon" class="material-symbols-outlined">document_scanner</span>
             <span data-i18n="scanRecipeBtn">Escanear Receta</span>
           </md-filled-button>

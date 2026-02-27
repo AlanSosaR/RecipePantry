@@ -66,6 +66,8 @@
             // ── Empty state ───────────────────────────────────────────────
             noRecipesTitle: 'Aún no tienes recetas',
             noRecipesDesc: 'Comienza digitalizando tus recetas en papel o agrega una manualmente.',
+            noSharedRecipesTitle: 'Tu despensa compartida está vacía',
+            noSharedRecipesDesc: 'En Recipe Pantry, cocinar es mejor en compañía. Aquí aparecerán todos los secretos de cocina que otras personas compartan contigo.',
             scanRecipeBtn: 'Escanear Receta',
 
             // ── Landing page ──────────────────────────────────────────────
@@ -317,6 +319,8 @@
             // ── Empty state ───────────────────────────────────────────────
             noRecipesTitle: "You don't have any recipes yet",
             noRecipesDesc: 'Start by scanning a paper recipe or add one manually.',
+            noSharedRecipesTitle: 'Your shared pantry is empty',
+            noSharedRecipesDesc: 'In Recipe Pantry, cooking is better together. All the cooking secrets others share with you will appear here.',
             scanRecipeBtn: 'Scan Recipe',
 
             // ── Landing page ──────────────────────────────────────────────
