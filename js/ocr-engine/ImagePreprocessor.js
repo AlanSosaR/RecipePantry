@@ -77,19 +77,22 @@ class ImagePreprocessor {
         try {
             // 1. Escala de Grises
             cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+            console.log("[Preprocessor] Grayscale applied");
 
-            // 2. Contraste adaptativo (CLAHE - Contrast Limited Adaptive Histogram Equalization)
-            // Excelente para eliminar sombras proyectadas por el celular
+            // 2. Contraste adaptativo (CLAHE)
             let tileGridSize = new cv.Size(8, 8);
             let clahe = new cv.CLAHE(2.0, tileGridSize);
             clahe.apply(src, src);
             clahe.delete();
+            console.log("[Preprocessor] CLAHE (Contrast) applied");
 
-            // 3. Auto Deskew (Calcula el ángulo de las líneas de texto y rota el mat)
+            // 3. Auto Deskew
             this.deskew(src);
+            console.log("[Preprocessor] Deskew phase completed");
 
             // 4. Binarización Adaptativa de Otsu
             cv.threshold(src, dst, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+            console.log("[Preprocessor] Otsu Threshold applied");
 
             // Dibuja el resultado de vuelta en el Canvas original
             cv.imshow(canvas, dst);
@@ -111,7 +114,8 @@ class ImagePreprocessor {
         cv.Canny(srcMat, edges, 50, 150, 3);
 
         // Transformada de Hough Lineal
-        cv.HoughLines(edges, lines, 1, Math.PI / 180, 200, 0, 0, 0, cv.CV_PI);
+        // Se usa Math.PI porque cv.CV_PI puede ser undefined en algunas versiones de opencv.js
+        cv.HoughLines(edges, lines, 1, Math.PI / 180, 200, 0, 0, 0, Math.PI);
 
         let angle = 0;
         let validLines = 0;
