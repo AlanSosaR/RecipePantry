@@ -324,17 +324,6 @@ class DashboardManager {
 
                 <div class="col-name text-ellipsis">
                     <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
-                    ${recipe.sharingContext === 'received' ? `
-                        <div class="shared-by-label" style="font-size: 11px; color: var(--on-surface-variant); opacity: 0.8; margin-top: 2px;">
-                            <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">person</span>
-                            ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
-                        </div>
-                    ` : recipe.sharingContext === 'sent' && recipe.sharedWith ? `
-                        <div class="shared-by-label" style="font-size: 11px; color: var(--primary); opacity: 0.85; margin-top: 2px;">
-                            <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">group</span>
-                            ${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: ${recipe.sharedWith}
-                        </div>
-                    ` : ''}
                 </div>
                 <div class="col-category">
                     <span class="badge-tag">General</span>
@@ -400,17 +389,6 @@ class DashboardManager {
                 </div>
                 <div class="recipe-card-content">
                     <h4 class="recipe-card-title">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
-                    ${recipe.sharingContext === 'received' ? `
-                        <div class="shared-by-label" style="font-size: 10px; color: var(--on-surface-variant); margin-bottom: 4px;">
-                            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">person</span>
-                            ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
-                        </div>
-                    ` : recipe.sharingContext === 'sent' && recipe.sharedWith ? `
-                        <div class="shared-by-label" style="font-size: 10px; color: var(--primary); margin-bottom: 4px;">
-                            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">group</span>
-                            ${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: ${recipe.sharedWith}
-                        </div>
-                    ` : ''}
                     <div class="recipe-card-meta">
                         <span>General</span>
                         <span>${date}</span>
@@ -549,11 +527,24 @@ class DashboardManager {
         const isShared = recipe.sharingContext === 'received';
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        const sharedLabelHTML = recipe.sharingContext === 'received' ? `
+            <div style="font-size: 12px; color: var(--on-surface-variant); padding: 0 16px 8px 16px; margin-top: -4px;">
+                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">person</span>
+                ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
+            </div>
+        ` : recipe.sharingContext === 'sent' && recipe.sharedWith ? `
+            <div style="font-size: 12px; color: var(--primary); padding: 0 16px 8px 16px; margin-top: -4px;">
+                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">group</span>
+                ${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: ${recipe.sharedWith}
+            </div>
+        ` : '';
+
         if (isShared) {
             menu.innerHTML = `
                 <div class="dropbox-menu-header">
                     <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
                 </div>
+                ${sharedLabelHTML}
                 <button class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}')">
                     <span class="material-symbols-outlined">library_add</span>
                     ${window.i18n ? window.i18n.t('addToMyRecipes') : 'Agregar a mis recetas'}
@@ -574,6 +565,7 @@ class DashboardManager {
                 <div class="dropbox-menu-header">
                     <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
                 </div>
+                ${sharedLabelHTML}
                 <button class="context-menu-item" onclick="window.dashboard.copyLink('${recipe.id}')">
                     <span class="material-symbols-outlined">link</span>
                     ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
@@ -740,7 +732,7 @@ class DashboardManager {
                 const isAuthenticated = await window.authManager.checkAuth();
                 if (!isAuthenticated) {
                     localStorage.setItem('redirect_after_login', hash);
-                    window.location.href='/login';
+                    window.location.href = '/login';
                 } else {
                     window.location.href = `recipe-detail.html?id=${recipeId}`;
                 }
