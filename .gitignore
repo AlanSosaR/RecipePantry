@@ -1,1 +1,11 @@
 .vercel
+# Cloudflare
+.wrangler/
+wrangler.toml.bak
+
+# General
+node_modules/
+.env
+.env.local
+dist/
+.DS_Store
