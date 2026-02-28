@@ -22,8 +22,28 @@
           }
         }
     </script>
-    <title>Escanear Receta - Recipe Pantry</title>
+    <title>Scanner OCR - Recipe Pantry</title>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+
+    <!-- EMERGENCY SW CACHE CLEAR -->
+    <script>
+        if (!localStorage.getItem('sw_nuke_v1')) {
+            localStorage.setItem('sw_nuke_v1', 'true');
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+            if ('caches' in window) {
+                caches.keys().then(function (names) {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+            setTimeout(() => window.location.reload(true), 500);
+        }
+    </script>
 
     <!-- Fuentes e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
