@@ -1,6 +1,6 @@
-// Recipe Pantry Service Worker — v5 (Soporte Imágenes Offline + IndexedDB Sync)
-const CACHE_NAME = 'recipe-hub-cache-v59';
-const IMAGE_CACHE = 'recipe-pantry-images-v5';
+// Recipe Pantry Service Worker — v6 (Soporte Imágenes Offline + IndexedDB Sync)
+const CACHE_NAME = 'recipe-hub-cache-v60';
+const IMAGE_CACHE = 'recipe-pantry-images-v6';
 
 // App shell — archivos core a cachear al instalar
 const APP_SHELL = [
@@ -92,10 +92,11 @@ self.addEventListener('fetch', event => {
     // Resto del shell (CSS, HTML, JS) -> Cache-first clásico
     event.respondWith(
         caches.match(request).then(cached => {
-            // Fix para el error: "redirected response was used for a request whose redirect mode is not follow"
+            // Fix para el error de redirección en Cloudflare Pages
             const cleanResponse = (res) => {
                 if (!res) return res;
-                if (request.mode === 'navigate' && res.redirected) {
+                // Si la respuesta fue redirigida y no es opaca, la clonamos limpia
+                if (res.redirected && res.type !== 'opaque') {
                     const cloned = res.clone();
                     return new Response(cloned.body, {
                         headers: cloned.headers,
