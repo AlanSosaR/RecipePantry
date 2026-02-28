@@ -6,7 +6,7 @@
 class ShareModalManager {
     constructor() {
         this.recipeId = null;
-        this.selectedUsers = []; // {id, name, email}
+        this.selectedUsers = []; / {id, name, email}
         this.searchTimeout = null;
         this.currentShares = [];
 
@@ -51,6 +51,12 @@ class ShareModalManager {
         this.recipeId = recipeId;
         this.selectedUsers = [];
         this.modal.classList.remove('hidden');
+
+        // Reset UI
+        if (this.searchInput) this.searchInput.value = '';
+        if (this.suggestionsContainer) this.suggestionsContainer.classList.add('hidden');
+        this.renderChips();
+        this.updateShareButton();
 
         // Reset UI
         if (this.searchInput) this.searchInput.value = '';
@@ -345,6 +351,19 @@ class ShareModalManager {
             const names = this.selectedUsers.map(u => `Chef ${u.name}`).join(', ');
             const successMsg = window.i18n ? window.i18n.t('sharedWith', { names }) : `✅ Compartido con ${names}`;
             window.utils.showToast(successMsg, 'success');
+
+            // Update local memory in dashboard to show the new status immediately
+            if (window.dashboard && window.dashboard.currentRecipes) {
+                const recipe = window.dashboard.currentRecipes.find(r => r.id === this.recipeId);
+                if (recipe) {
+                    recipe.sharingContext = 'sent';
+                    // Combine with existing shared names if any
+                    const existing = recipe.sharedWith ? recipe.sharedWith.split(', ') : [];
+                    const newNames = this.selectedUsers.map(u => `Chef ${u.name}`);
+                    const combined = [...new Set([...existing, ...newNames])];
+                    recipe.sharedWith = combined.join(', ');
+                }
+            }
 
             // Reset chips and refresh shares list
             this.selectedUsers = [];

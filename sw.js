@@ -64,7 +64,7 @@ self.addEventListener('fetch', event => {
 
     // Ignorar requests que no son del mismo origen (API Supabase de datos JSON)
     if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/v1/')) {
-        return; // Deja pasar libremente, manejada por db.js
+        return; / Deja pasar libremente, manejada por db.js
     }
 
     // Imágenes de Supabase (Origen distinto, Cache-First)
@@ -120,8 +120,8 @@ async function handleRequest(request) {
             const cached = await caches.match(request);
             if (cached) return cached;
 
-            // Fallback final a index.html o barra espaciadora
-            const indexCache = await caches.match('/index.html') || await caches.match('/');
+            // Fallback final a / o barra espaciadora
+            const indexCache = await caches.match('/') || await caches.match('/');
             if (indexCache) return indexCache;
 
             return new Response('Offline - Page not cached', {

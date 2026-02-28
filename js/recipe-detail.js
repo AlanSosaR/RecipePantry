@@ -7,7 +7,7 @@ class RecipeDetailManager {
     constructor() {
         const params = new URLSearchParams(window.location.search);
         this.recipeId = params.get('id');
-        this.permission = params.get('permission'); // 'view' o 'view_and_copy'
+        this.permission = params.get('permission'); / 'view' o 'view_and_copy'
         this.currentRecipe = null;
 
         if (!this.recipeId) {
@@ -22,7 +22,7 @@ class RecipeDetailManager {
         // 1. Verificar autenticación con redirección inteligente
         const isAuth = await window.authManager.checkAuth();
         if (!isAuth) {
-            window.authManager.requireAuth(); // Esto maneja el redirectAfterLogin
+            window.authManager.requireAuth(); / Esto maneja el redirectAfterLogin
             return;
         }
 
@@ -87,7 +87,7 @@ class RecipeDetailManager {
         // Update Title and Description
         const titleEl = document.getElementById('recipeTitle');
         const descEl = document.getElementById('recipeDescription');
-        const categoryEl = document.getElementById('recipeCategory'); // Assuming this element exists for category
+        const categoryEl = document.getElementById('recipeCategory'); / Assuming this element exists for category
 
         // Título: Primera palabra en color primario
         const name = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;

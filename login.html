@@ -397,9 +397,9 @@
         let isLogin = true;
         let currentLang = 'ES';
 
-        // Auto-redirect if already logged in
+        / Auto-redirect if already logged in
         (async function checkAlreadyLoggedIn() {
-            // Quick check for token in localStorage before calling async auth
+            / Quick check for token in localStorage before calling async auth
             const hasPossibleToken = Object.keys(localStorage).some(key => key.includes('auth-token'));
             if (hasPossibleToken) {
                 const { data } = await window.supabaseClient.auth.getSession();
@@ -415,7 +415,7 @@
                 window.i18n.applyLanguage(window.i18n.getLang());
             }
 
-            // Handle toggleable texts
+            / Handle toggleable texts
             if (isLogin) {
                 document.getElementById('auth-title').style.display = 'none';
                 document.getElementById('auth-title').textContent = '';
@@ -465,7 +465,7 @@
             }, 300);
         });
 
-        // Helper para mostrar/ocultar el error inline
+        / Helper para mostrar/ocultar el error inline
         function setError(groupId, msgId, message, show) {
             const group = document.getElementById(groupId);
             const errorSpan = document.getElementById(msgId);
@@ -477,7 +477,7 @@
             }
         }
 
-        // Limpiar errores cuando se escribe
+        / Limpiar errores cuando se escribe
         document.querySelectorAll('.m3-field-input').forEach(input => {
             input.addEventListener('input', (e) => {
                 const group = e.target.closest('.m3-field-container');
@@ -490,7 +490,7 @@
         document.getElementById('unified-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Limpiar errores previos
+            / Limpiar errores previos
             setError('name-group', 'name-error', null, false);
             setError('email-group', 'email-error', null, false);
             setError('password-group', 'password-error', null, false);

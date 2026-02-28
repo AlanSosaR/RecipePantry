@@ -182,9 +182,9 @@ class OCRScanner {
         if (nameInputModal) nameInputModal.value = results.nombre || '';
 
         // Set Full Text (Page and Modal)
-        // ocrFullText: Para la vista de Step 3 en ocr.html
-        // extractedText: Para el modal en recipe-form.html
-        // extractedTextModal: Para el modal en ocr.html
+        // ocrFullText: Para la vista de Step 3 en /ocr
+        // extractedText: Para el modal en /recipe-form
+        // extractedTextModal: Para el modal en /ocr
         const pageFullText = document.getElementById('ocrFullText');
         if (pageFullText) pageFullText.value = results.texto;
 
@@ -213,7 +213,7 @@ class OCRScanner {
 
         console.log(`✅ showResults: ${results.texto.length} chars, confianza ${conf}% | Método: ${results.method}`);
 
-        // Guardar para uso global por otros botones (como saveRecipe en ocr.html)
+        // Guardar para uso global por otros botones (como saveRecipe en /ocr)
         window.currentOCRResults = results;
     }
 

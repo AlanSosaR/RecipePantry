@@ -572,7 +572,7 @@
     function toggle() {
         const next = getLang() === 'es' ? 'en' : 'es';
         localStorage.setItem('lang', next);
-        // Also keep legacy key in sync (login.html used 'preferredLang')
+        // Also keep legacy key in sync (/login used 'preferredLang')
         localStorage.setItem('preferredLang', next.toUpperCase());
         applyLanguage(next);
     }

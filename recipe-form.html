@@ -1240,17 +1240,17 @@
             const ok = await window.authManager.checkAuth();
             if (!ok) { window.location.replace('/'); return; }
 
-            // Initialize UI
+            / Initialize UI
             window.initSidebarState();
             window.setupMobileMenu();
             window.updateGlobalUserUI();
 
-            // Menu is handled by inline onclick on #btnOpenMenu (same as ocr.html)
+            / Menu is handled by inline onclick on #btnOpenMenu (same as /ocr)
 
-            // Set app-specific active nav
+            / Set app-specific active nav
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(item => {
-                if (item.getAttribute('href') === 'recipe-form.html' || (window.location.search.includes('id') && item.textContent.includes('Receta'))) {
+                if (item.getAttribute('href') === '/recipe-form' || (window.location.search.includes('id') && item.textContent.includes('Receta'))) {
                     item.classList.add('active');
                 } else {
                     item.classList.remove('active');
@@ -1260,7 +1260,7 @@
 
 
 
-        // ── OCR Modal ───────────────────────────────────
+        / ── OCR Modal ───────────────────────────────────
         const btnOCROpen = document.getElementById('btnOCROpen');
         const btnCloseOCR = document.getElementById('btnCloseOCR');
         const btnCapture = document.getElementById('btnCapture');
@@ -1304,7 +1304,7 @@
             });
         }
 
-        // --- Result Actions ---
+        / --- Result Actions ---
         const btnSaveDirectOCR = document.getElementById('btnSaveDirectOCR');
         if (btnSaveDirectOCR) {
             btnSaveDirectOCR.addEventListener('click', async () => {

@@ -123,10 +123,10 @@ class LocalDBManager {
         const uuid = crypto.randomUUID();
         const syncItem = {
             uuid,
-            operation,    // 'create', 'update', 'delete', 'toggle_favorite', 'add_ingredients', etc
-            table,        // 'recipes', 'ingredients', 'preparation_steps'
-            payload,      // Object with data
-            recipeId,     // Foreign key reference if applicable to group operations
+            operation,    / 'create', 'update', 'delete', 'toggle_favorite', 'add_ingredients', etc
+            table,        / 'recipes', 'ingredients', 'preparation_steps'
+            payload,      / Object with data
+            recipeId,     / Foreign key reference if applicable to group operations
             timestamp: Date.now()
         };
         await this.put('sync_queue', syncItem);
