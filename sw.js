@@ -1,5 +1,5 @@
-// Recipe Pantry Service Worker — v69
-const CACHE_NAME = 'recipe-hub-cache-v69';
+// Recipe Pantry Service Worker — v70
+const CACHE_NAME = 'recipe-hub-cache-v70';
 const IMAGE_CACHE = 'recipe-pantry-images-v11';
 
 // App shell — archivos core a cachear al instalar
@@ -32,7 +32,7 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', event => {
-    console.log('SW: Installing v67...');
+    console.log('SW: Installing v70...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(APP_SHELL))
@@ -41,7 +41,7 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-    console.log('SW: v67 Activated');
+    console.log('SW: v70 Activated');
     event.waitUntil(
         caches.keys()
             .then(cacheNames => {

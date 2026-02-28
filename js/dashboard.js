@@ -506,7 +506,7 @@ class DashboardManager {
     }
 
     copyLink(recipeId) {
-        const url = `https://recipe-pantry.pages.dev/recipe-detail?id=${recipeId}`; // Nota: El path en GitHub no cambia a menos que se renombre el repo
+        const url = `${window.location.origin}/recipe-detail?id=${recipeId}`;
         navigator.clipboard.writeText(url).then(() => {
             window.utils.showToast(window.i18n ? '🔗 Enlace copiado' : '🔗 Link copied', 'success');
         });

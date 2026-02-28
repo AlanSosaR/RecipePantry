@@ -27,8 +27,8 @@
 
     <!-- EMERGENCY SW CACHE CLEAR -->
     <script>
-        if (!localStorage.getItem('sw_nuke_v4')) {
-            localStorage.setItem('sw_nuke_v4', 'true');
+        if (!localStorage.getItem('sw_nuke_v5')) {
+            localStorage.setItem('sw_nuke_v5', 'true');
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function (registrations) {
                     for (let registration of registrations) {
@@ -909,18 +909,18 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=4"></script>
-    <script src="js/supabase-client.js?v=4"></script>
-    <script src="js/auth.js?v=4"></script>
-    <script src="js/localdb.js?v=4"></script>
-    <script src="js/sync-manager.js?v=4"></script>
-    <script src="js/db.js?v=4"></script>
-    <script src="js/utils.js?v=4"></script>
-    <script src="js/i18n.js?v=4"></script>
+    <script src="js/config.js?v=5"></script>
+    <script src="js/supabase-client.js?v=5"></script>
+    <script src="js/auth.js?v=5"></script>
+    <script src="js/localdb.js?v=5"></script>
+    <script src="js/sync-manager.js?v=5"></script>
+    <script src="js/db.js?v=5"></script>
+    <script src="js/utils.js?v=5"></script>
+    <script src="js/i18n.js?v=5"></script>
 
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
     <script src="js/ocr-processor.js"></script>
-    <script src="js/ocr.js?v=7"></script>
+    <script src="js/ocr.js?v=5"></script>
 
     <script>
         // Variables de estado
@@ -1333,7 +1333,7 @@
         </div>
     </div>
 
-    <script src="js/ui.js?v=2"></script>
+    <script src="js/ui.js?v=5"></script>
     <script>
         // Initialize sidebar
         document.addEventListener('DOMContentLoaded', () => {
