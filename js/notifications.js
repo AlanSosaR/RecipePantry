@@ -188,7 +188,7 @@ class NotificationManager {
 
             // 2. Create a copy under the current user's ID
             const copy = { ...original };
-            delete copy.id; / Let DB generate new ID
+            delete copy.id; // Let DB generate new ID
             copy.user_id = user.id;
             copy.created_at = new Date().toISOString();
             copy.updated_at = new Date().toISOString();

@@ -60,7 +60,7 @@ class SyncManager {
 
             // Refresh cache by making a transparent call
             if (window.db && window.authManager && window.authManager.currentUser) {
-                window.db.getMyRecipes(); / Refreshes IndexedDB snapshot automatically if online
+                window.db.getMyRecipes(); // Refreshes IndexedDB snapshot automatically if online
             }
 
             if (window.utils && window.utils.showToast) {
@@ -99,7 +99,7 @@ class SyncManager {
             if (error) throw error;
 
             if (data && table === 'recipes') {
-                idMap.set(tempId, data.id); / Guardamos la conversión ID_FALSO -> UUID_REAL
+                idMap.set(tempId, data.id); // Guardamos la conversión ID_FALSO -> UUID_REAL
             }
         }
         else if (operation === 'update') {
@@ -110,7 +110,7 @@ class SyncManager {
             if (!realId) throw new Error("Could not map temp ID to real ID for update");
 
             const updatePayload = { ...payload };
-            delete updatePayload.id; / no actualizamos el PK
+            delete updatePayload.id; // no actualizamos el PK
 
             const { error } = await sb.from(table).update(updatePayload).eq('id', realId);
             if (error) throw error;
@@ -127,9 +127,9 @@ class SyncManager {
         else if (operation === 'delete') {
             const targetId = payload.id;
             const realId = String(targetId).startsWith('temp_') ? idMap.get(targetId) : targetId;
-            if (!realId) return; / Si era temporal y nunca subió, ignoramos borrar en nube
+            if (!realId) return; // Si era temporal y nunca subió, ignoramos borrar en nube
 
-            const { error } = await sb.from(table).update({ is_active: false }).eq('id', realId); / Soft delete en DB
+            const { error } = await sb.from(table).update({ is_active: false }).eq('id', realId); // Soft delete en DB
             if (error) throw error;
         }
         else if (operation === 'delete_permanent') {

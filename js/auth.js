@@ -51,7 +51,7 @@ class AuthManager {
                     first_name: session.user.user_metadata?.first_name || 'Chef',
                     last_name: session.user.user_metadata?.last_name || ''
                 };
-                return true; / Seguimos autenticados a nivel de sesión
+                return true; // Seguimos autenticados a nivel de sesión
             }
 
             this.currentUser = userData;

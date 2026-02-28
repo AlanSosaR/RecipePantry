@@ -34,7 +34,7 @@ class OCRProcessor {
         // Configuración de motor
         await this.worker.setParameters({
             tessedit_pageseg_mode: Tesseract.PSM.AUTO,
-            user_defined_dpi: '300', / Evita el log "Estimating resolution" que sale como error
+            user_defined_dpi: '300', // Evita el log "Estimating resolution" que sale como error
             preserve_interword_spaces: '1',
             tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúñÁÉÍÓÚÑüÜ0123456789 .,;:()[]{}°•✓→★½¼¾-/+@#$%&\'\"',
         });
@@ -111,14 +111,14 @@ class OCRProcessor {
 
                 const targetHeight = 2400;
                 let scale = 1;
-                if (sourceHeight < targetHeight * 0.4)      scale = 3.0;
+                if (sourceHeight < targetHeight * 0.4) scale = 3.0;
                 else if (sourceHeight < targetHeight * 0.7) scale = 2.0;
-                else if (sourceHeight < targetHeight)        scale = targetHeight / sourceHeight;
-                else if (sourceHeight > targetHeight * 2)   scale = 0.6;
+                else if (sourceHeight < targetHeight) scale = targetHeight / sourceHeight;
+                else if (sourceHeight > targetHeight * 2) scale = 0.6;
 
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width  = Math.round(img.width * scale);
+                canvas.width = Math.round(img.width * scale);
                 canvas.height = Math.round(sourceHeight * scale);
 
                 ctx.imageSmoothingEnabled = true;
@@ -129,11 +129,11 @@ class OCRProcessor {
                 // 2. PIPELINE DE FILTROS (pixel-level)
                 // ─────────────────────────────────────────────────────
                 let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                imageData = this.toGrayscale(imageData);         / a) Escala de grises
-                imageData = this.normalizeContrast(imageData);   / b) Estiramiento de histograma
-                imageData = this.adaptiveThreshold(imageData);   / c) Umbral local por bloque
-                imageData = this.sharpen(imageData);             / d) Nitidez (unsharp mask)
-                imageData = this.denoise(imageData);             / e) Mediana 3x3
+                imageData = this.toGrayscale(imageData);         // a) Escala de grises
+                imageData = this.normalizeContrast(imageData);   // b) Estiramiento de histograma
+                imageData = this.adaptiveThreshold(imageData);   // c) Umbral local por bloque
+                imageData = this.sharpen(imageData);             // d) Nitidez (unsharp mask)
+                imageData = this.denoise(imageData);             // e) Mediana 3x3
 
                 ctx.putImageData(imageData, 0, 0);
                 resolve(canvas);
@@ -183,8 +183,8 @@ class OCRProcessor {
      */
     adaptiveThreshold(imageData) {
         const { data, width, height } = imageData;
-        const blockSize = 32;  / Tamano del bloque para umbral local
-        const k = 0.12;        / Sensibilidad (0 = umbral global, 0.5 = muy sensible)
+        const blockSize = 32;  // Tamano del bloque para umbral local
+        const k = 0.12;        // Sensibilidad (0 = umbral global, 0.5 = muy sensible)
         const output = new Uint8ClampedArray(data);
 
         for (let by = 0; by < height; by += blockSize) {
@@ -237,9 +237,9 @@ class OCRProcessor {
         const { data, width, height } = imageData;
         // Kernel de nitidez (Laplaciano de Gaussiana)
         const kernel = [
-             0, -1,  0,
-            -1,  5, -1,
-             0, -1,  0
+            0, -1, 0,
+            -1, 5, -1,
+            0, -1, 0
         ];
         const output = new Uint8ClampedArray(data);
 
@@ -280,7 +280,7 @@ class OCRProcessor {
                     }
                 }
                 neighbors.sort((a, b) => a - b);
-                const median = neighbors[4]; / Elemento central (mediana de 9)
+                const median = neighbors[4]; // Elemento central (mediana de 9)
                 const idx = (y * width + x) * 4;
                 output[idx] = output[idx + 1] = output[idx + 2] = median;
             }
@@ -300,9 +300,9 @@ class OCRProcessor {
 
         // PROBLEMA 1: Números + 'g' escaneados como '9'
         // Ejemplo: 150g → 1509, 300g → 3009, 90g → 909
-        corrected = corrected.replace(/\b(\d)09\b/g, '$10g');           / 1509 → 150g
-        corrected = corrected.replace(/\b(\d{2})09\b/g, '$10g');        / 3009 → 300g
-        corrected = corrected.replace(/\b(\d)0(\d)9\b/g, '$1$20g');     / Para casos mixtos
+        corrected = corrected.replace(/\b(\d)09\b/g, '$10g');           // 1509 → 150g
+        corrected = corrected.replace(/\b(\d{2})09\b/g, '$10g');        // 3009 → 300g
+        corrected = corrected.replace(/\b(\d)0(\d)9\b/g, '$1$20g');     // Para casos mixtos
 
         // Casos específicos que aparecieron:
         corrected = corrected.replace(/\b1509\b/g, '150g');
@@ -310,8 +310,8 @@ class OCRProcessor {
         corrected = corrected.replace(/\b909\b/g, '90g');
 
         // PROBLEMA 2: Unidades 'ml' escaneadas como 'm' o 'mi'
-        corrected = corrected.replace(/(\d+)\s*m\b(?!\w)/g, '$1ml');    / 5m → 5ml
-        corrected = corrected.replace(/(\d+)\s*mi\b/g, '$1ml');         / 5mi → 5ml
+        corrected = corrected.replace(/(\d+)\s*m\b(?!\w)/g, '$1ml');    // 5m → 5ml
+        corrected = corrected.replace(/(\d+)\s*mi\b/g, '$1ml');         // 5mi → 5ml
 
         // PROBLEMA 3: Fracción ¼ escaneada como '%'
         corrected = corrected.replace(/\s%\s*de\s*cucharadita/gi, ' ¼ de cucharadita');
@@ -324,7 +324,7 @@ class OCRProcessor {
         corrected = corrected.replace(/\s*taza\s*de\s*nueces\s*al\s*final/gi, ' ½ taza de nueces al final');
 
         // PROBLEMA 5: Símbolo %/ escaneado como fracción
-        corrected = corrected.replace(/%\/g, '½');
+        corrected = corrected.replace(/%\//g, '½');
         corrected = corrected.replace(/%\\/g, '½');
 
         // PROBLEMA 6: Temperatura con comillas en lugar de grados
@@ -332,7 +332,7 @@ class OCRProcessor {
         corrected = corrected.replace(/(\d+)["']C/g, '$1°C');
 
         // PROBLEMA 7: Temperatura negativa mal escaneada
-        corrected = corrected.replace(/\(15°C\)/g, '(-18°C)');           / Específico
+        corrected = corrected.replace(/\(15°C\)/g, '(-18°C)');           // Específico
         corrected = corrected.replace(/\b15°C\)$/gm, '-18°C)');
 
         // PROBLEMA 8: Información nutricional incorrecta
@@ -400,7 +400,7 @@ class OCRProcessor {
 
         // Viñetas
         corrected = corrected.replace(/^[«+*]\s+/gm, '• ');
-        corrected = corrected.replace(/^-\s+(?=\d)/gm, '• ');  / Solo si no es parte de rango
+        corrected = corrected.replace(/^-\s+(?=\d)/gm, '• ');  // Solo si no es parte de rango
 
         // Flechas (que desaparecen o se convierten en guiones)
         corrected = corrected.replace(/^—\s+/gm, '→ ');
@@ -419,14 +419,14 @@ class OCRProcessor {
         corrected = corrected.replace(/^A\s*IMPORTANTE:/gm, '⚠️ IMPORTANTE:');
         corrected = corrected.replace(/^Q\s*TIPS:/gm, '💡 TIPS:');
         corrected = corrected.replace(/^\(E\)\s*VARIANTES:/gm, '🔄 VARIANTES:');
-        corrected = corrected.replace(/^⏱️\s*ALMACENAMIENTO:/gm, '⏱️ ALMACENAMIENTO:'); / Mantener si está bien
+        corrected = corrected.replace(/^⏱️\s*ALMACENAMIENTO:/gm, '⏱️ ALMACENAMIENTO:'); // Mantener si está bien
 
         // ═══════════════════════════════════════════════════
         // FASE 4: CORRECCIONES DE CARACTERES SIMILARES
         // ═══════════════════════════════════════════════════
 
         // l vs 1
-        corrected = corrected.replace(/\b1(\d+)\s*mi\b/g, 'l$1ml');  / Si aparece 15mi → 15ml
+        corrected = corrected.replace(/\b1(\d+)\s*mi\b/g, 'l$1ml');  // Si aparece 15mi → 15ml
 
         // rn vs m (mantequilla, horno, etc.)
         corrected = corrected.replace(/\bhomo\b/gi, 'horno');

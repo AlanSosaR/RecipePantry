@@ -101,7 +101,7 @@ window.showSnackbar = (message, duration = 4000) => {
  * Muestra un Snackbar con un botón de acción
  */
 window.showActionSnackbar = (message, actionText, onAction) => {
-    window.showSnackbar(message, 0); / duration 0 means it stays until action or manual close
+    window.showSnackbar(message, 0); // duration 0 means it stays until action or manual close
     const snackbar = document.getElementById('global-snackbar');
     const actionsEl = snackbar.querySelector('.snackbar-actions');
 

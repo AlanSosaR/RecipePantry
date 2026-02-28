@@ -6,7 +6,7 @@
 class ShareModalManager {
     constructor() {
         this.recipeId = null;
-        this.selectedUsers = []; / {id, name, email}
+        this.selectedUsers = []; // {id, name, email}
         this.searchTimeout = null;
         this.currentShares = [];
 

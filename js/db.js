@@ -237,7 +237,7 @@ class DatabaseManager {
                 if (error) throw error;
 
                 recipe.primaryImage = recipe.images?.find(img => img.is_primary)?.image_url || null;
-                await window.localDB.put('recipes', recipe); / Refresh cache
+                await window.localDB.put('recipes', recipe); // Refresh cache
 
                 window.supabaseClient.from('recipes').update({
                     view_count: (recipe.view_count || 0) + 1,
@@ -294,7 +294,7 @@ class DatabaseManager {
             try {
                 const { data: recipe, error } = await window.supabaseClient.from('recipes').update(updates).eq('id', recipeId).select().single();
                 if (error) throw error;
-                await window.localDB.put('recipes', recipe); / Update with server truth
+                await window.localDB.put('recipes', recipe); // Update with server truth
                 return { success: true, recipe };
             } catch (err) {
                 return { success: false, error: err.message };
@@ -312,7 +312,7 @@ class DatabaseManager {
         const cached = await window.localDB.get('recipes', recipeId);
         if (cached) {
             cached.is_active = false;
-            await window.localDB.delete('recipes', recipeId); / Lo borramos del cache local explícitamente para no verlo
+            await window.localDB.delete('recipes', recipeId); // Lo borramos del cache local explícitamente para no verlo
         }
 
         if (this._isOnline) {
