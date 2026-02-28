@@ -1,15 +1,14 @@
-// Recipe Pantry Service Worker — v7 (Soporte Imágenes Offline + IndexedDB Sync)
-const CACHE_NAME = 'recipe-hub-cache-v61';
-const IMAGE_CACHE = 'recipe-pantry-images-v7';
+// Recipe Pantry Service Worker — v8 (Cloudflare Native Routing)
+const CACHE_NAME = 'recipe-hub-cache-v62';
+const IMAGE_CACHE = 'recipe-pantry-images-v8';
 
-// App shell — archivos core a cachear al instalar
+// App shell — archivos core a cachear al instalar (sin .html)
 const APP_SHELL = [
     './',
-    './index.html',
-    './login.html',
-    './ocr.html',
-    './recipe-form.html',
-    './recipe-detail.html',
+    './login',
+    './ocr',
+    './recipe-form',
+    './recipe-detail',
     './css/styles.css',
     './css/components.css',
     './css/responsive.css',
@@ -91,40 +90,45 @@ self.addEventListener('fetch', event => {
 
     // Resto del shell (CSS, HTML, JS) -> Cache-first clásico
     event.respondWith(
-        caches.match(request).then(async cached => {
-            // Fix V2 definitivo para el error de redirección en Chrome/Cloudflare Pages
-            // Chrome guarda rastros de la redirección en el ReadableStream original.
-            // Para "sanearlo" por completo, hay que convertir el cuerpo a un Blob.
-            const cleanResponse = async (res) => {
-                if (!res) return res;
-                if (res.redirected && res.type !== 'opaque') {
-                    const cloned = res.clone();
-                    const bodyBlob = await cloned.blob();
-                    return new Response(bodyBlob, {
-                        headers: cloned.headers,
-                        status: cloned.status,
-                        statusText: cloned.statusText
-                    });
-                }
-                return res;
-            };
+        (async () => {
+            try {
+                // NORMALIZAR RUTAS HTML PARA CLOUDFLARE PAGES
+                // Cloudflare redirige *.html a * (ej. /login.html -> /login)
+                // Hacemos que el SW evalúe y descargue siempre la ruta limpia para evitar el error de redirección 308.
+                let fetchUrl = request.url;
+                let cacheKey = request;
 
-            const network = fetch(request).then(response => {
-                if (response && response.status === 200 && response.type !== 'opaque') {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-                }
-                return cleanResponse(response);
-            }).catch(async () => {
-                if (cached) return await cleanResponse(cached);
-                if (request.destination === 'document') {
-                    const fallback = await caches.match('/index.html');
-                    return await cleanResponse(fallback);
-                }
-                return new Response('Sin conexión', { status: 503 });
-            });
+                if (url.origin === location.origin && url.pathname.endsWith('.html')) {
+                    let cleanUrl = new URL(request.url);
+                    cleanUrl.pathname = cleanUrl.pathname.replace(/\.html$/, '');
+                    if (cleanUrl.pathname === '/index') cleanUrl.pathname = '/';
 
-            return cached ? await cleanResponse(cached) : await network;
-        })
+                    fetchUrl = cleanUrl.href;
+                    cacheKey = cleanUrl.href;
+                }
+
+                const cached = await caches.match(cacheKey);
+
+                const network = fetch(fetchUrl).then(response => {
+                    // Solo cachear respuestas exitosas reales
+                    if (response && response.status === 200 && response.type !== 'opaque') {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(cacheKey, clone));
+                    }
+                    return response;
+                }).catch(async () => {
+                    if (cached) return cached;
+                    if (request.destination === 'document') {
+                        return await caches.match('/');
+                    }
+                    return new Response('Sin conexión', { status: 503 });
+                });
+
+                return cached ? cached : await network;
+            } catch (err) {
+                console.error("SW Fetch Error:", err);
+                return new Response('Error interno offline', { status: 500 });
+            }
+        })()
     );
 });
