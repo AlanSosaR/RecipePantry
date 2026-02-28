@@ -49,8 +49,8 @@
 
     <!-- EMERGENCY SW CACHE CLEAR -->
     <script>
-        if (!localStorage.getItem('sw_nuke_v2')) {
-            localStorage.setItem('sw_nuke_v2', 'true');
+        if (!localStorage.getItem('sw_nuke_v4')) {
+            localStorage.setItem('sw_nuke_v4', 'true');
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function (registrations) {
                     for (let registration of registrations) {

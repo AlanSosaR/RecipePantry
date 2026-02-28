@@ -231,7 +231,7 @@ async function setupDashboardScreen() {
         }
     };
 
-    toggleOfflineUI(); / Set initial state
+    toggleOfflineUI(); // Set initial state
     window.addEventListener('online', toggleOfflineUI);
     window.addEventListener('offline', toggleOfflineUI);
 

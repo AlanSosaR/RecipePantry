@@ -1,5 +1,5 @@
-// Recipe Pantry Service Worker — v66
-const CACHE_NAME = 'recipe-hub-cache-v67';
+// Recipe Pantry Service Worker — v69
+const CACHE_NAME = 'recipe-hub-cache-v69';
 const IMAGE_CACHE = 'recipe-pantry-images-v11';
 
 // App shell — archivos core a cachear al instalar
