@@ -909,14 +909,14 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/localdb.js"></script>
-    <script src="js/sync-manager.js"></script>
-    <script src="js/db.js?v=2"></script>
-    <script src="js/utils.js?v=2"></script>
-    <script src="js/i18n.js?v=2"></script>
+    <script src="js/config.js?v=3"></script>
+    <script src="js/supabase-client.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/localdb.js?v=3"></script>
+    <script src="js/sync-manager.js?v=3"></script>
+    <script src="js/db.js?v=3"></script>
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/i18n.js?v=3"></script>
 
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
     <script src="js/ocr-processor.js"></script>
@@ -1106,55 +1106,55 @@
                     pantry_es: ''
                 });
 
-                if (!recipeRes.success) throw new Error(recipeRes.error);
-                const recipeId = recipeRes.recipe.id;
+            if (!recipeRes.success) throw new Error(recipeRes.error);
+            const recipeId = recipeRes.recipe.id;
 
-                / Re-procesar el texto para asegurar que los cambios manuales se reflejen en la lista de ingredientes/pasos
-                const reParsed = window.ocrProcessor.parseRecipeText(fullText);
-                const currentIngs = reParsed.ingredients.map(i => {
-                    if (typeof i === 'string') return i;
-                    return `${i.quantity || ''} ${i.unit || ''} ${i.name}`.trim();
-                }).filter(Boolean);
+            / Re-procesar el texto para asegurar que los cambios manuales se reflejen en la lista de ingredientes/pasos
+            const reParsed = window.ocrProcessor.parseRecipeText(fullText);
+            const currentIngs = reParsed.ingredients.map(i => {
+                if (typeof i === 'string') return i;
+                return `${i.quantity || ''} ${i.unit || ''} ${i.name}`.trim();
+            }).filter(Boolean);
 
-                const currentSteps = reParsed.steps.map(s => {
-                    if (typeof s === 'string') return s;
-                    return s.instruction;
-                }).filter(Boolean);
+            const currentSteps = reParsed.steps.map(s => {
+                if (typeof s === 'string') return s;
+                return s.instruction;
+            }).filter(Boolean);
 
                 / 2. Ingredientes
-                if (currentIngs.length > 0) {
-                    const ings = currentIngs.map(line => ({
-                        name_es: line.trim(),
-                        raw_text: line.trim()
-                    }));
-                    await window.db.addIngredients(recipeId, ings);
-                }
+            if (currentIngs.length > 0) {
+                const ings = currentIngs.map(line => ({
+                    name_es: line.trim(),
+                    raw_text: line.trim()
+                }));
+                await window.db.addIngredients(recipeId, ings);
+            }
 
                 / 3. Pasos
-                if (currentSteps.length > 0) {
-                    const steps = currentSteps.map((line, idx) => ({
-                        instruction_es: line.trim(),
-                        step_order: idx + 1
-                    }));
-                    await window.db.addSteps(recipeId, steps);
-                }
+            if (currentSteps.length > 0) {
+                const steps = currentSteps.map((line, idx) => ({
+                    instruction_es: line.trim(),
+                    step_order: idx + 1
+                }));
+                await window.db.addSteps(recipeId, steps);
+            }
 
                 / 4. Imagen
-                if (currentImageFile) {
-                    await window.db.uploadImage(currentImageFile, recipeId);
-                }
-
-                const saveSuccessMsg = window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada!';
-                window.showToast(saveSuccessMsg, 'success');
-                setTimeout(() => window.location.href = `/recipe-detail?id=${recipeId}`, 1000);
-
-            } catch (err) {
-                console.error('Error saving recipe:', err);
-                window.showToast(err.message || 'Error al guardar', 'error');
-                btn.disabled = false;
-                const saveBtnTxt = window.i18n ? window.i18n.t('ocrSave') : 'Guardar Receta';
-                btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ${saveBtnTxt}`;
+            if (currentImageFile) {
+                await window.db.uploadImage(currentImageFile, recipeId);
             }
+
+            const saveSuccessMsg = window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada!';
+            window.showToast(saveSuccessMsg, 'success');
+            setTimeout(() => window.location.href = `/recipe-detail?id=${recipeId}`, 1000);
+
+        } catch (err) {
+            console.error('Error saving recipe:', err);
+            window.showToast(err.message || 'Error al guardar', 'error');
+            btn.disabled = false;
+            const saveBtnTxt = window.i18n ? window.i18n.t('ocrSave') : 'Guardar Receta';
+            btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ${saveBtnTxt}`;
+        }
         }
 
 
@@ -1191,7 +1191,7 @@
         }
 
         function goBack() {
-            window.location.href='/';
+            window.location.href = '/';
         }
     </script>
     </div> <!-- .ocr-container -->

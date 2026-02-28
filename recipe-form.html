@@ -1222,32 +1222,32 @@
     <!-- Scripts (classic, NO type=module) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js"></script>
-    <script src="js/config.js?v=2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/localdb.js"></script>
-    <script src="js/sync-manager.js"></script>
-    <script src="js/db.js?v=2"></script>
-    <script src="js/utils.js?v=2"></script>
-    <script src="js/ocr-processor.js"></script>
-    <script src="js/ocr.js?v=7"></script>
-    <script src="js/ui.js?v=2"></script>
-    <script src="js/i18n.js?v=2"></script>
-    <script src="js/recipe-form.js?v=2"></script>
+    <script src="js/config.js?v=3"></script>
+    <script src="js/supabase-client.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/localdb.js?v=3"></script>
+    <script src="js/sync-manager.js?v=3"></script>
+    <script src="js/db.js?v=3"></script>
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/ocr-processor.js?v=3"></script>
+    <script src="js/ocr.js?v=3"></script>
+    <script src="js/ui.js?v=3"></script>
+    <script src="js/i18n.js?v=3"></script>
+    <script src="js/recipe-form.js?v=3"></script>
 
     <script>
         (async () => {
             const ok = await window.authManager.checkAuth();
             if (!ok) { window.location.replace('/'); return; }
 
-            / Initialize UI
+            // Initialize UI
             window.initSidebarState();
             window.setupMobileMenu();
             window.updateGlobalUserUI();
 
-            / Menu is handled by inline onclick on #btnOpenMenu (same as /ocr)
+            // Menu is handled by inline onclick on #btnOpenMenu (same as /ocr)
 
-            / Set app-specific active nav
+            // Set app-specific active nav
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(item => {
                 if (item.getAttribute('href') === '/recipe-form' || (window.location.search.includes('id') && item.textContent.includes('Receta'))) {
@@ -1260,7 +1260,7 @@
 
 
 
-        / ── OCR Modal ───────────────────────────────────
+        // ── OCR Modal ───────────────────────────────────
         const btnOCROpen = document.getElementById('btnOCROpen');
         const btnCloseOCR = document.getElementById('btnCloseOCR');
         const btnCapture = document.getElementById('btnCapture');
@@ -1304,7 +1304,7 @@
             });
         }
 
-        / --- Result Actions ---
+        // --- Result Actions ---
         const btnSaveDirectOCR = document.getElementById('btnSaveDirectOCR');
         if (btnSaveDirectOCR) {
             btnSaveDirectOCR.addEventListener('click', async () => {

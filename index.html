@@ -46,8 +46,8 @@
 
   <!-- EMERGENCY SW CACHE CLEAR -->
   <script>
-    if (!localStorage.getItem('sw_nuke_v1')) {
-      localStorage.setItem('sw_nuke_v1', 'true');
+    if (!localStorage.getItem('sw_nuke_v2')) {
+      localStorage.setItem('sw_nuke_v2', 'true');
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function (registrations) {
           for (let registration of registrations) {
@@ -69,12 +69,12 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
   <script>
-    / Anti-flicker: Improved logic to prevent landing page flicker
+    // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
       document.documentElement.setAttribute('data-auth-likely', 'true');
     }
-    / Force light mode
+    // Force light mode
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
   </script>
@@ -383,8 +383,7 @@
     <!-- Sidebar Desktop & Mobile Drawer -->
     <aside id="main-sidebar" class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();"
-          style="cursor: pointer;">
+        <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();" style="cursor: pointer;">
           <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
           <span class="logo-text" style="color: var(--logo-color);">Recipe Pantry</span>
         </div>
@@ -589,20 +588,20 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=2"></script>
-    <script src="js/supabase-client.js?v=2"></script>
-    <script src="js/auth.js?v=2"></script>
-    <script src="js/localdb.js?v=2"></script>
-    <script src="js/sync-manager.js?v=2"></script>
-    <script src="js/db.js?v=2"></script>
-    <script src="js/utils.js?v=2"></script>
-    <script src="js/i18n.js?v=2"></script>
-    <script src="js/ui.js?v=2"></script>
-    <script src="js/share-modal.js?v=2"></script>
-    <script src="js/notifications.js?v=2"></script>
-    <script src="js/dashboard.js?v=2"></script>
+    <script src="js/config.js?v=3"></script>
+    <script src="js/supabase-client.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/localdb.js?v=3"></script>
+    <script src="js/sync-manager.js?v=3"></script>
+    <script src="js/db.js?v=3"></script>
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/i18n.js?v=3"></script>
+    <script src="js/ui.js?v=3"></script>
+    <script src="js/share-modal.js?v=3"></script>
+    <script src="js/notifications.js?v=3"></script>
+    <script src="js/dashboard.js?v=3"></script>
     <script>
-      / Kept for backward compatibility – i18n.js handles the heavy lifting.
+      // Kept for backward compatibility – i18n.js handles the heavy lifting.
       function updateTranslations() {
         if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
       }
@@ -611,7 +610,7 @@
       import '@material/web/button/filled-button.js'
       import '@material/web/button/outlined-button.js'
       import '@material/web/textfield/outlined-text-field.js'
-      / También podemos importar managers globales si es necesario
+      // También podemos importar managers globales si es necesario
       console.log('✨ Material 3 Expressive Modules Loaded');
     </script>
 
