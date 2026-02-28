@@ -555,9 +555,9 @@
                             const hashRedirect = localStorage.getItem('redirect_after_login');
                             if (hashRedirect) {
                                 localStorage.removeItem('redirect_after_login');
-                                window.location.replace('index.html' + hashRedirect);
+                                window.location.replace('/' + (hashRedirect ? hashRedirect : ''));
                             } else {
-                                const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || 'index.html';
+                                const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || '/';
                                 sessionStorage.removeItem('redirectAfterLogin');
                                 window.location.replace(redirectUrl);
                             }

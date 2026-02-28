@@ -311,7 +311,7 @@ class RecipeFormManager {
             window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada con éxito!', 'success');
 
             setTimeout(() => {
-                window.location.href = `recipe-detail.html?id=${recipeId}`;
+                window.location.href = `/recipe-detail?id=${recipeId}`;
             }, 1000);
 
         } catch (err) {
@@ -409,7 +409,7 @@ class RecipeFormManager {
             if (window.ocr) window.ocr.close();
 
             setTimeout(() => {
-                window.location.href = `recipe-detail.html?id=${recipeId}`;
+                window.location.href = `/recipe-detail?id=${recipeId}`;
             }, 800);
 
         } catch (error) {

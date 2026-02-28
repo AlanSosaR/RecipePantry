@@ -279,11 +279,11 @@ class NotificationManager {
             this.updateBadge();
             this.renderMenu();
 
-            window.location.href = `recipe-detail.html?id=${n.recipeId}`;
+            window.location.href = `/recipe-detail?id=${n.recipeId}`;
             this.menu.classList.add('hidden');
         } catch (err) {
             console.error('Error:', err);
-            window.location.href = `recipe-detail.html?id=${n.recipeId}`;
+            window.location.href = `/recipe-detail?id=${n.recipeId}`;
         }
     }
 }

@@ -230,7 +230,7 @@ class RecipeDetailManager {
         const btnEdit = document.getElementById('btnEdit');
         if (btnEdit) {
             btnEdit.addEventListener('click', () => {
-                window.location.href = `recipe-form.html?id=${this.recipeId}`;
+                window.location.href = `/recipe-form?id=${this.recipeId}`;
             });
         }
 
@@ -283,7 +283,7 @@ class RecipeDetailManager {
             if (recipe.steps?.length > 0) await window.db.addSteps(newId, recipe.steps);
 
             window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Copiada a tus recetas!', 'success');
-            setTimeout(() => window.location.href = `recipe-detail.html?id=${newId}`, 1500);
+            setTimeout(() => window.location.href = `/recipe-detail?id=${newId}`, 1500);
         } catch (err) {
             console.error('Error al copiar:', err);
             window.showToast('Error al copiar receta', 'error');

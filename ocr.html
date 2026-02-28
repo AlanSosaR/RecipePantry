@@ -1146,7 +1146,7 @@
 
                 const saveSuccessMsg = window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada!';
                 window.showToast(saveSuccessMsg, 'success');
-                setTimeout(() => window.location.href = `recipe-detail.html?id=${recipeId}`, 1000);
+                setTimeout(() => window.location.href = `/recipe-detail?id=${recipeId}`, 1000);
 
             } catch (err) {
                 console.error('Error saving recipe:', err);

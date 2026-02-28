@@ -403,8 +403,8 @@ class DashboardManager {
         const recipe = this.currentRecipes.find(r => r.id === recipeId);
         const permission = recipe?.sharedPermission;
         const url = permission
-            ? `recipe-detail.html?id=${recipeId}&permission=${permission}`
-            : `recipe-detail.html?id=${recipeId}`;
+            ? `/recipe-detail?id=${recipeId}&permission=${permission}`
+            : `/recipe-detail?id=${recipeId}`;
 
         window.location.href = url;
     }
@@ -506,7 +506,7 @@ class DashboardManager {
     }
 
     copyLink(recipeId) {
-        const url = `https://alansosar.github.io/RecipePantry/index.html#/recipe/${recipeId}`; // Nota: El path en GitHub no cambia a menos que se renombre el repo
+        const url = `https://recipe-pantry.pages.dev/recipe-detail?id=${recipeId}`; // Nota: El path en GitHub no cambia a menos que se renombre el repo
         navigator.clipboard.writeText(url).then(() => {
             window.utils.showToast(window.i18n ? '🔗 Enlace copiado' : '🔗 Link copied', 'success');
         });
@@ -734,7 +734,7 @@ class DashboardManager {
                     localStorage.setItem('redirect_after_login', hash);
                     window.location.href = '/login';
                 } else {
-                    window.location.href = `recipe-detail.html?id=${recipeId}`;
+                    window.location.href = `/recipe-detail?id=${recipeId}`;
                 }
             }
         }
