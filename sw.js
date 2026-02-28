@@ -91,14 +91,16 @@ self.addEventListener('fetch', event => {
 
     // Resto del shell (CSS, HTML, JS) -> Cache-first clásico
     event.respondWith(
-        caches.match(request).then(cached => {
-            // Fix para el error de redirección en Cloudflare Pages
-            const cleanResponse = (res) => {
+        caches.match(request).then(async cached => {
+            // Fix V2 definitivo para el error de redirección en Chrome/Cloudflare Pages
+            // Chrome guarda rastros de la redirección en el ReadableStream original.
+            // Para "sanearlo" por completo, hay que convertir el cuerpo a un Blob.
+            const cleanResponse = async (res) => {
                 if (!res) return res;
-                // Si la respuesta fue redirigida y no es opaca, la clonamos limpia
                 if (res.redirected && res.type !== 'opaque') {
                     const cloned = res.clone();
-                    return new Response(cloned.body, {
+                    const bodyBlob = await cloned.blob();
+                    return new Response(bodyBlob, {
                         headers: cloned.headers,
                         status: cloned.status,
                         statusText: cloned.statusText
@@ -113,15 +115,16 @@ self.addEventListener('fetch', event => {
                     caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
                 }
                 return cleanResponse(response);
-            }).catch(() => {
-                if (cached) return cleanResponse(cached);
+            }).catch(async () => {
+                if (cached) return await cleanResponse(cached);
                 if (request.destination === 'document') {
-                    return caches.match('/index.html').then(idx => cleanResponse(idx));
+                    const fallback = await caches.match('/index.html');
+                    return await cleanResponse(fallback);
                 }
                 return new Response('Sin conexión', { status: 503 });
             });
 
-            return cached ? cleanResponse(cached) : network;
+            return cached ? await cleanResponse(cached) : await network;
         })
     );
 });
