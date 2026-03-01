@@ -1,14 +1,16 @@
-// Recipe Pantry Service Worker — v72
-const CACHE_NAME = 'recipe-hub-cache-v72';
-const IMAGE_CACHE = 'recipe-pantry-images-v11';
+// --- 1. CONFIG ---
+const BUILD_ID = "2026-03-01-a1";
 
-// App shell — archivos core a cachear al instalar
+const STATIC_CACHE = `static-${BUILD_ID}`;
+const DYNAMIC_CACHE = `dynamic-${BUILD_ID}`;
+const IMAGE_CACHE = `images-${BUILD_ID}`;
+
+const MAX_IMAGE_ITEMS = 50;
+
+// --- 3. App Shell Minimalista ---
+// Solo precargamos recursos estáticos críticos, omitimos rutas dinámicas
 const APP_SHELL = [
     './',
-    './login',
-    './ocr',
-    './recipe-form',
-    './recipe-detail',
     './css/styles.css',
     './css/components.css',
     './css/responsive.css',
@@ -25,156 +27,125 @@ const APP_SHELL = [
     './js/ocr.js',
     './js/recipe-form.js',
     './js/recipe-detail.js',
+    './js/share-modal.js',
+    './js/notifications.js',
+    './js/i18n.js',
+    './js/ui.js',
     './manifest.webmanifest',
-    './assets/icons/manifest-icon-192.maskable.png',
-    './assets/icons/manifest-icon-512.maskable.png',
     './assets/placeholder-recipe.svg'
 ];
 
+// --- 4. Evento INSTALL ---
+// Abrir STATIC_CACHE, pre-cachear el App Shell y hacer skipWaiting()
 self.addEventListener('install', event => {
-    console.log('SW: Installing v73 (NUKE MODE)...');
-    self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
-    console.log('SW: v73 Activated - NUKING ALL CACHES');
     event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    console.log('[SW] FORCING DELETE of old cache:', cacheName);
-                    return caches.delete(cacheName);
-                })
-            );
-        }).then(() => {
-            console.log('[SW] Unregistering self to break cache loop');
-            return self.registration.unregister();
-        }).then(() => {
-            return self.clients.claim();
-        })
+        caches.open(STATIC_CACHE)
+            .then(cache => cache.addAll(APP_SHELL))
+            .then(() => self.skipWaiting())
     );
 });
 
+// --- 5. Evento ACTIVATE ---
+// Eliminar únicamente las caches cuyo nombre NO incluya el BUILD_ID actual
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(
+                keys
+                    .filter(key => !key.includes(BUILD_ID))
+                    .map(key => caches.delete(key))
+            )
+        ).then(() => self.clients.claim())
+    );
+});
+
+// --- Helper Functions ---
+// Función recursiva para limitar el tamaño de una caché específica
+async function limitCacheSize(cacheName, maxItems) {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    if (keys.length > maxItems) {
+        await cache.delete(keys[0]);
+        limitCacheSize(cacheName, maxItems);
+    }
+}
+
+// --- 6. Estrategias de FETCH ---
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Ignorar requests que no son del mismo origen (API Supabase de datos JSON)
-    if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/v1/')) {
-        return; // Deja pasar libremente, manejada por db.js
+    // Evitar interceptar requests que no son GET (v.g. POST a base de datos o Auth)
+    if (request.method !== 'GET') return;
+
+    // 📄 HTML → Network First
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request)
+                .then(networkResponse => {
+                    const responseClone = networkResponse.clone();
+                    caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone));
+                    return networkResponse;
+                })
+                .catch(() => caches.match(request))
+        );
+        return;
     }
 
-    // Imágenes de Supabase (Origen distinto, Cache-First)
-    if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/v1/object/public/')) {
+    // 📦 JS / CSS → Stale While Revalidate
+    if (request.destination === 'script' || request.destination === 'style') {
         event.respondWith(
-            caches.match(request).then(cached => {
-                const networkFetch = fetch(request, {
-                    redirect: 'follow',
-                    mode: 'cors'
-                }).then(response => {
-                    if (response && response.status === 200 && response.type !== 'opaque') {
-                        const clone = response.clone();
-                        caches.open(IMAGE_CACHE).then(cache => cache.put(request, clone));
-                    }
-                    return response;
-                }).catch(() => { /* silent fallback offline */ });
-
-                return cached || networkFetch;
+            caches.match(request).then(cachedResponse => {
+                const networkFetch = fetch(request).then(networkResponse => {
+                    const responseClone = networkResponse.clone();
+                    caches.open(STATIC_CACHE).then(cache => cache.put(request, responseClone));
+                    return networkResponse;
+                });
+                return cachedResponse || networkFetch; // Retornar caché inmediatamente si existe, pero actualizar en background
             })
         );
         return;
     }
 
-    // Ignorar otras extensiones (Chrome)
-    if (request.method !== 'GET' || url.protocol === 'chrome-extension:' || url.protocol === 'data:') {
+    // 🖼 Imágenes → Cache First con Límite
+    if (request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|svg|gif)$/i) || url.pathname.includes('/storage/v1/object/public/recipe-images/')) {
+        event.respondWith(
+            caches.match(request).then(cachedResponse => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                return fetch(request).then(networkResponse => {
+                    // Validar respuesta sana antes de put
+                    if (!networkResponse || networkResponse.status !== 200 || (networkResponse.type !== 'basic' && networkResponse.type !== 'cors')) {
+                        return networkResponse;
+                    }
+
+                    const responseClone = networkResponse.clone();
+                    caches.open(IMAGE_CACHE).then(cache => {
+                        cache.put(request, responseClone);
+                        limitCacheSize(IMAGE_CACHE, MAX_IMAGE_ITEMS);
+                    });
+                    return networkResponse;
+                }).catch(() => {
+                    // Fallback local si falla descarga de cualquier imagen
+                    if (request.url.match(/\.(png|jpg|jpeg|svg|gif)$/i)) {
+                        return caches.match('./assets/placeholder-recipe.svg');
+                    }
+                });
+            })
+        );
         return;
     }
 
-    // Para requests del mismo origen
-    event.respondWith(handleRequest(request));
+    // 🌐 Default → Network First (APIs, recursos misceláneos)
+    event.respondWith(
+        fetch(request)
+            .then(networkResponse => {
+                const responseClone = networkResponse.clone();
+                caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone));
+                return networkResponse;
+            })
+            .catch(() => caches.match(request))
+    );
 });
-
-async function handleRequest(request) {
-    const url = new URL(request.url);
-
-    // Estrategia 1: Network First para HTML (SPA)
-    if (request.destination === 'document' || request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
-        try {
-            const response = await fetch(request.url, {
-                redirect: 'follow'
-            });
-
-            if (response.ok && response.type !== 'opaque') {
-                const cache = await caches.open(CACHE_NAME);
-                cache.put(request, response.clone());
-            }
-
-            return response;
-        } catch (error) {
-            console.log('[SW] Network failed for HTML, checking cache');
-
-            // Fallback a cache directo
-            const cached = await caches.match(request);
-            if (cached) return cached;
-
-            // Fallback final a / o barra espaciadora
-            const indexCache = await caches.match('/') || await caches.match('/');
-            if (indexCache) return indexCache;
-
-            return new Response('Offline - Page not cached', {
-                status: 503,
-                statusText: 'Service Unavailable',
-                headers: { 'Content-Type': 'text/plain' }
-            });
-        }
-    }
-
-    // Estrategia 2: Cache First para assets estáticos
-    if (request.destination === 'script' ||
-        request.destination === 'style' ||
-        request.destination === 'image' ||
-        request.destination === 'font' ||
-        url.pathname.endsWith('.js') ||
-        url.pathname.endsWith('.css')) {
-
-        const cached = await caches.match(request);
-        if (cached) {
-            return cached;
-        }
-
-        try {
-            const response = await fetch(request.url, {
-                redirect: 'follow'
-            });
-
-            if (response.ok && response.type !== 'opaque') {
-                const cache = await caches.open(CACHE_NAME);
-                cache.put(request, response.clone());
-            }
-
-            return response;
-        } catch (error) {
-            console.error('[SW] Asset fetch failed:', error);
-            return new Response('Network error', { status: 503 });
-        }
-    }
-
-    // Default: Cache First fallando a Network
-    try {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-
-        const response = await fetch(request.url, {
-            redirect: 'follow'
-        });
-
-        if (response.ok && response.type !== 'opaque') {
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(request, response.clone());
-        }
-
-        return response;
-    } catch (error) {
-        return new Response('Offline', { status: 503 });
-    }
-}

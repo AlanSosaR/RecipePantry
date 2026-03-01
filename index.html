@@ -629,12 +629,10 @@
 
     <!-- Register Service Worker (PWA) -->
     <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js", {
-          scope: "./"
-        })
-          .then(r => console.log("SW registered:", r.scope))
-          .catch(e => console.warn("SW registration failed:", e));
+      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+        navigator.serviceWorker.register('./sw.js')
+          .then(r => console.log('SW registered:', r.scope))
+          .catch(e => console.warn('SW registration failed:', e));
       }
     </script>
   </div>
