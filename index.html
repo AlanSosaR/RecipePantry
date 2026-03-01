@@ -58,6 +58,38 @@
     // Force light mode
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
+
+    // EMERGENCY CACHE CLEAR FOR v6
+    (function forceUpdate() {
+      // Usaremos localStorage para asegurarnos de que solo corra una vez y no haya un bucle de recarga infinito
+      if (!localStorage.getItem('force_cache_clear_v6')) {
+        console.warn('⚠️ Ejecutando limpieza forzada de caché (v6)...');
+        localStorage.setItem('force_cache_clear_v6', 'true');
+
+        // 1. Desregistrar Service Workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+
+        // 2. Limpiar todas las cachés
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            for (let name of names) {
+              caches.delete(name);
+            }
+          });
+        }
+
+        // 3. Forzar recarga completa después de dar tiempo a que se borre
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 800);
+      }
+    })();
   </script>
   <style>
     /* ─── Recipe Pantry Glassmorphism Landing ─── */
