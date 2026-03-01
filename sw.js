@@ -32,29 +32,26 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', event => {
-    console.log('SW: Installing v72...');
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(APP_SHELL))
-            .then(() => self.skipWaiting())
-    );
+    console.log('SW: Installing v73 (NUKE MODE)...');
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-    console.log('SW: v72 Activated');
+    console.log('SW: v73 Activated - NUKING ALL CACHES');
     event.waitUntil(
-        caches.keys()
-            .then(cacheNames => {
-                return Promise.all(
-                    cacheNames.map(cacheName => {
-                        if (cacheName !== CACHE_NAME && cacheName !== IMAGE_CACHE) {
-                            console.log('[SW] Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            })
-            .then(() => self.clients.claim())
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    console.log('[SW] FORCING DELETE of old cache:', cacheName);
+                    return caches.delete(cacheName);
+                })
+            );
+        }).then(() => {
+            console.log('[SW] Unregistering self to break cache loop');
+            return self.registration.unregister();
+        }).then(() => {
+            return self.clients.claim();
+        })
     );
 });
 
