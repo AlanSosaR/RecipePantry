@@ -1,5 +1,5 @@
 // --- 1. CONFIG ---
-const BUILD_ID = "2026-03-01-a1";
+const BUILD_ID = "2026-03-01-a2";
 
 const STATIC_CACHE = `static-${BUILD_ID}`;
 const DYNAMIC_CACHE = `dynamic-${BUILD_ID}`;
