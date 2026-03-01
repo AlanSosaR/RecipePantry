@@ -484,53 +484,81 @@ class DatabaseManager {
     async duplicateRecipe(recipeId, targetUserId) {
         if (!this._isOnline) return { success: false, error: 'Debes tener conexión para duplicar una receta compartida.' };
         try {
-            const { success, recipe, error } = await this.getRecipeById(recipeId);
-            if (!success) throw new Error(error);
+            const { success, recipe, error: fetchError } = await this.getRecipeDetailed(recipeId);
+            if (!success) throw new Error(fetchError);
 
-            // Append explicitly 
-            const newName = recipe.name_es;
-
-            const { data: newRecipe, error: recipeError } = await window.supabaseClient.from('recipes')
-                .insert([{ user_id: targetUserId, name_es: newName, name_en: recipe.name_en ? recipe.name_en : null, description_es: recipe.description_es, description_en: recipe.description_en, category_id: recipe.category_id, is_active: true, is_favorite: false }])
+            // 1. Insertar la receta principal
+            const { data: newRecipeData, error: recipeError } = await window.supabaseClient.from('recipes')
+                .insert([{
+                    user_id: targetUserId,
+                    name_es: recipe.name_es,
+                    name_en: recipe.name_en || null,
+                    description_es: recipe.description_es,
+                    description_en: recipe.description_en,
+                    category_id: recipe.category_id,
+                    is_active: true,
+                    is_favorite: false
+                }])
                 .select().single();
+
             if (recipeError) throw recipeError;
+            const newRecipeId = newRecipeData.id;
 
-            const { data: ingredientsData } = await window.supabaseClient.from('ingredients').select('*').eq('recipe_id', recipeId);
-            if (ingredientsData && ingredientsData.length > 0) {
-                const ingredients = ingredientsData.map(i => ({ recipe_id: newRecipe.id, name_es: i.name_es, name_en: i.name_en, quantity: i.quantity, unit_es: i.unit_es, unit_en: i.unit_en, raw_text: i.raw_text }));
-                await window.supabaseClient.from('ingredients').insert(ingredients);
+            // 2. Insertar ingredientes
+            if (recipe.ingredients && recipe.ingredients.length > 0) {
+                const ingredientsToInsert = recipe.ingredients.map(i => ({
+                    recipe_id: newRecipeId,
+                    name_es: i.name_es,
+                    name_en: i.name_en,
+                    quantity: i.quantity,
+                    unit_es: i.unit_es,
+                    unit_en: i.unit_en,
+                    raw_text: i.raw_text
+                }));
+                await window.supabaseClient.from('ingredients').insert(ingredientsToInsert);
             }
 
-            const { data: stepsData } = await window.supabaseClient.from('preparation_steps').select('*').eq('recipe_id', recipeId);
-            if (stepsData && stepsData.length > 0) {
-                const steps = stepsData.map(s => ({ recipe_id: newRecipe.id, instruction_es: s.instruction_es, instruction_en: s.instruction_en, step_number: s.step_number }));
-                await window.supabaseClient.from('preparation_steps').insert(steps);
+            // 3. Insertar pasos
+            if (recipe.preparation_steps && recipe.preparation_steps.length > 0) {
+                const stepsToInsert = recipe.preparation_steps.map(s => ({
+                    recipe_id: newRecipeId,
+                    instruction_es: s.instruction_es,
+                    instruction_en: s.instruction_en,
+                    step_number: s.step_number
+                }));
+                await window.supabaseClient.from('preparation_steps').insert(stepsToInsert);
             }
 
-            const { data: imagesData } = await window.supabaseClient.from('recipe_images').select('*').eq('recipe_id', recipeId);
-            if (imagesData && imagesData.length > 0) {
-                const images = imagesData.map(i => ({ recipe_id: newRecipe.id, image_url: i.image_url, is_primary: i.is_primary, file_size: i.file_size }));
-                await window.supabaseClient.from('recipe_images').insert(images);
+            // 4. Insertar imágenes
+            if (recipe.images && recipe.images.length > 0) {
+                const imagesToInsert = recipe.images.map(i => ({
+                    recipe_id: newRecipeId,
+                    image_url: i.image_url,
+                    is_primary: i.is_primary,
+                    file_size: i.file_size
+                }));
+                await window.supabaseClient.from('recipe_images').insert(imagesToInsert);
             }
 
-            // Purge sharing link 
+            // 5. Eliminar el enlace de compartición (opcional, basado en el diseño original)
             await this.deleteSharedRecipe(window.authManager.currentUser.id, recipeId);
 
-            // ACTUALIZACIÓN DE LOCALDB (Crucial para respuesta inmediata)
+            // 6. Actualizar LocalDB con la receta completa para renderizado inmediato
             await this._checkLocalDB();
-            // 1. Borrar la versión compartida del cache
-            await window.localDB.delete('recipes', recipeId);
-            // 2. Insertar la nueva versión propia en el cache
-            await window.localDB.put('recipes', {
-                ...newRecipe,
+            await window.localDB.delete('recipes', recipeId); // Quitar la compartida
+
+            const completelyDuplicatedRecipe = {
+                ...newRecipeData,
                 sharingContext: null,
                 category: recipe.category,
                 images: recipe.images,
                 primaryImage: recipe.primaryImage
-            });
+            };
+            await window.localDB.put('recipes', completelyDuplicatedRecipe);
 
-            return { success: true, newRecipeId: newRecipe.id };
+            return { success: true, newRecipeId: newRecipeId };
         } catch (error) {
+            console.error('Error duplicando receta:', error);
             return { success: false, error: error.message };
         }
     }
