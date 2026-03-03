@@ -30,8 +30,7 @@ export async function getRecipes() {
         .select(`
             id, name_es, description_es, prep_time_minutes, cook_time_minutes,
             servings, difficulty, is_favorite, created_at,
-            categories (id, name_es, icon),
-            recipe_images (id, image_url, is_primary)
+            categories (id, name_es, icon)
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
@@ -48,8 +47,7 @@ export async function getRecipesByCategory(categoryId) {
         .select(`
             id, name_es, prep_time_minutes, cook_time_minutes,
             is_favorite, difficulty,
-            categories (id, name_es, icon),
-            recipe_images (id, image_url, is_primary)
+            categories (id, name_es, icon)
         `)
         .eq('category_id', categoryId)
         .eq('is_active', true)
@@ -67,7 +65,6 @@ export async function getRecipeById(id) {
         .select(`
             *,
             categories (id, name_es, icon),
-            recipe_images (id, image_url, is_primary, order_index),
             ingredients (id, name_es, quantity, unit_es, order_index),
             preparation_steps (id, step_number, instruction_es, time_minutes)
         `)

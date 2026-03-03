@@ -272,7 +272,7 @@ class DatabaseManager {
                             recipe.ingredients = rpcRecipe.ingredients || [];
                             recipe.steps = rpcRecipe.steps || [];
                         } else {
-                            console.warn('⚠️ Fallback RPC failed or returned null', rpcError);
+                            console.warn('⚠️ Fallback RPC failed (possibly due to old image table references in the SQL function) or returned null', rpcError);
                         }
                     } catch (e) {
                         console.warn('Fallback RPC falló', e);

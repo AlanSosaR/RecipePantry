@@ -304,7 +304,7 @@ async function renderRecipeGrid() {
 }
 
 function createRecipeCard(recipe) {
-    const imageUrl = recipe.recipe_images?.[0]?.image_url || null;
+    const imageUrl = null; // Removed recipe_images check
     const categoryName = recipe.categories?.name_es || 'General';
     const time = (recipe.cook_time_minutes || 0) + (recipe.prep_time_minutes || 0);
     const isFav = recipe.is_favorite;
@@ -673,7 +673,7 @@ async function setupRecipeDetailsScreen() {
     }
 
     // Rellenar datos en la pantalla
-    const image = recipe.recipe_images?.[0]?.image_url;
+    const image = null; // Removed recipe_images check
     const imgEl = document.getElementById('detail-img');
     if (imgEl) {
         if (image) { imgEl.src = image; }
