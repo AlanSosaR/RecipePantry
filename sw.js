@@ -3,9 +3,7 @@ const BUILD_ID = "2026-03-01-a2";
 
 const STATIC_CACHE = `static-${BUILD_ID}`;
 const DYNAMIC_CACHE = `dynamic-${BUILD_ID}`;
-const IMAGE_CACHE = `images-${BUILD_ID}`;
 
-const MAX_IMAGE_ITEMS = 50;
 
 // --- 3. App Shell Minimalista ---
 // Solo precargamos recursos estáticos críticos, omitimos rutas dinámicas
@@ -31,8 +29,7 @@ const APP_SHELL = [
     './js/notifications.js',
     './js/i18n.js',
     './js/ui.js',
-    './manifest.webmanifest',
-    './assets/placeholder-recipe.svg'
+    './manifest.webmanifest'
 ];
 
 // --- 4. Evento INSTALL ---
@@ -59,16 +56,7 @@ self.addEventListener('activate', event => {
     );
 });
 
-// --- Helper Functions ---
-// Función recursiva para limitar el tamaño de una caché específica
-async function limitCacheSize(cacheName, maxItems) {
-    const cache = await caches.open(cacheName);
-    const keys = await cache.keys();
-    if (keys.length > maxItems) {
-        await cache.delete(keys[0]);
-        limitCacheSize(cacheName, maxItems);
-    }
-}
+
 
 // --- 6. Estrategias de FETCH ---
 self.addEventListener('fetch', event => {
@@ -114,38 +102,6 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 🖼 Imágenes → Cache First con Límite
-    if (request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|svg|gif)$/i) || url.pathname.includes('/storage/v1/object/public/recipe-images/')) {
-        event.respondWith(
-            caches.match(request).then(cachedResponse => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-
-                return fetch(request).then(networkResponse => {
-                    // Validar respuesta sana antes de put
-                    if (!networkResponse || networkResponse.status !== 200 || (networkResponse.type !== 'basic' && networkResponse.type !== 'cors')) {
-                        return networkResponse;
-                    }
-
-                    const responseClone = networkResponse.clone();
-                    if (request.url.startsWith('http')) {
-                        caches.open(IMAGE_CACHE).then(cache => {
-                            cache.put(request, responseClone);
-                            limitCacheSize(IMAGE_CACHE, MAX_IMAGE_ITEMS);
-                        });
-                    }
-                    return networkResponse;
-                }).catch(() => {
-                    // Fallback local si falla descarga de cualquier imagen
-                    if (request.url.match(/\.(png|jpg|jpeg|svg|gif)$/i)) {
-                        return caches.match('./assets/placeholder-recipe.svg');
-                    }
-                });
-            })
-        );
-        return;
-    }
 
     // 🌐 Default → Network First (APIs, recursos misceláneos)
     event.respondWith(

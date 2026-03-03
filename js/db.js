@@ -94,15 +94,14 @@ class DatabaseManager {
                 .from('recipes')
                 .select(`
                     *,
-                    category:categories(id, name_es, name_en, icon, color),
-                    images:recipe_images(id, image_url, is_primary)
+                    category:categories(id, name_es, name_en, icon, color)
                 `);
 
             if (filters.shared) {
                 const userId = window.authManager.currentUser.id;
                 const { data: shared, error: err } = await window.supabaseClient
                     .from('shared_recipes')
-                    .select('*, recipe:recipe_id(*, category:categories(*), images:recipe_images(*)), permission, owner_user_id')
+                    .select('*, recipe:recipe_id(*, category:categories(*)), permission, owner_user_id')
                     .eq('recipient_user_id', userId);
 
                 if (err) throw err;
@@ -129,8 +128,6 @@ class DatabaseManager {
                     if (!r) return null;
                     return {
                         ...r,
-                        primaryImage: r.images?.find(img => img.is_primary)?.image_url || null,
-                        totalImages: r.images?.length || 0,
                         sharingContext: 'received',
                         sharedPermission: s.permission,
                         senderName: senderMap[s.owner_user_id] || 'Chef'
@@ -192,8 +189,6 @@ class DatabaseManager {
 
                 return {
                     ...recipe,
-                    primaryImage: recipe.images?.find(img => img.is_primary)?.image_url || null,
-                    totalImages: recipe.images?.length || 0,
                     sharingContext: recipients.length > 0 ? 'sent' : null,
                     sharedWith: recipients.join(', ')
                 };
@@ -231,7 +226,7 @@ class DatabaseManager {
                 // 1) Intentar fetch normal
                 let { data: recipe, error } = await window.supabaseClient
                     .from('recipes')
-                    .select(`*, category:categories(*), ingredients(*), steps:preparation_steps(*), images:recipe_images(*)`)
+                    .select(`*, category:categories(*), ingredients(*), steps:preparation_steps(*)`)
                     .eq('id', recipeId)
                     .single();
 
@@ -247,7 +242,6 @@ class DatabaseManager {
                             console.log('✅ Fallback RPC Data loaded:', rpcRecipe);
                             recipe.ingredients = rpcRecipe.ingredients || [];
                             recipe.steps = rpcRecipe.steps || [];
-                            recipe.images = rpcRecipe.images || [];
                         } else {
                             console.warn('⚠️ Fallback RPC failed or returned null', rpcError);
                         }
@@ -256,7 +250,6 @@ class DatabaseManager {
                     }
                 }
 
-                recipe.primaryImage = recipe.images?.find(img => img.is_primary)?.image_url || null;
                 await window.localDB.put('recipes', recipe); // Refresh cache
 
                 window.supabaseClient.from('recipes').update({
@@ -445,36 +438,7 @@ class DatabaseManager {
         } catch (e) { return { success: false, error: e.message }; }
     }
 
-    // ============================================
-    // IMAGES
-    // ============================================
-    async uploadImage(file, recipeId) {
-        if (!this._isOnline) {
-            // In offline mode we can't upload directly to bucket easily via syncQueue because it's a file.
-            // We return a fake success. The user won't get the image synced until they edit it online later.
-            // (Para guardar la vida completa habría que almacenar el BLOB en localDB y subirlo).
-            if (window.utils) window.utils.showToast("La foto se guardará de forma local por ahora.", "info");
-            return { success: true, offline: true, image: { image_url: URL.createObjectURL(file) } };
-        }
 
-        try {
-            const userId = window.authManager.currentUser.id;
-            const fileName = `${userId}/${recipeId}/${Date.now()}-${file.name}`;
-            const { data: uploadData, error: uploadError } = await window.supabaseClient.storage.from('recipe-images').upload(fileName, file);
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = window.supabaseClient.storage.from('recipe-images').getPublicUrl(fileName);
-            const { data: imageData, error: dbError } = await window.supabaseClient.from('recipe_images').insert([{
-                recipe_id: recipeId, image_url: publicUrl, file_size: file.size, is_primary: false
-            }]).select().single();
-
-            if (dbError) throw dbError;
-            return { success: true, image: imageData };
-        } catch (error) {
-            console.error('❌ Error subiendo imagen:', error);
-            return { success: false, error: error.message };
-        }
-    }
 
     // ============================================
     // CATEGORIES
@@ -549,16 +513,7 @@ class DatabaseManager {
                 await window.supabaseClient.from('preparation_steps').insert(stepsToInsert);
             }
 
-            // 4. Insertar imágenes
-            if (recipe.images && recipe.images.length > 0) {
-                const imagesToInsert = recipe.images.map(i => ({
-                    recipe_id: newRecipeId,
-                    image_url: i.image_url,
-                    is_primary: i.is_primary,
-                    file_size: i.file_size
-                }));
-                await window.supabaseClient.from('recipe_images').insert(imagesToInsert);
-            }
+
 
             // 5. Eliminar el enlace de compartición (opcional, basado en el diseño original)
             await this.deleteSharedRecipe(window.authManager.currentUser.id, recipeId);
@@ -570,9 +525,7 @@ class DatabaseManager {
             const completelyDuplicatedRecipe = {
                 ...newRecipeData,
                 sharingContext: null,
-                category: recipe.category,
-                images: recipe.images,
-                primaryImage: recipe.primaryImage
+                category: recipe.category
             };
             await window.localDB.put('recipes', completelyDuplicatedRecipe);
 
