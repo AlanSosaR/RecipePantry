@@ -78,23 +78,6 @@ CREATE TABLE public.preparation_steps (
     is_completed BOOLEAN DEFAULT FALSE
 );
 
--- 5. Recipe Images Table
-CREATE TABLE public.recipe_images (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    recipe_id UUID REFERENCES public.recipes(id) ON DELETE CASCADE,
-    image_url TEXT,
-    order_index INTEGER,
-    is_primary BOOLEAN DEFAULT FALSE,
-    caption_es TEXT,
-    caption_en TEXT,
-    step_id UUID REFERENCES public.preparation_steps(id),
-    ocr_text TEXT,
-    ocr_confidence DECIMAL(5,2),
-    file_size INTEGER,
-    width INTEGER,
-    height INTEGER,
-    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
 
 -- 6. Shared Recipes Table
 CREATE TABLE public.shared_recipes (
@@ -148,7 +131,6 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ingredients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.preparation_steps ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recipe_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shared_recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ocr_queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_searches ENABLE ROW LEVEL SECURITY;

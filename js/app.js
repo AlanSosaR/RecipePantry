@@ -304,7 +304,6 @@ async function renderRecipeGrid() {
 }
 
 function createRecipeCard(recipe) {
-    const imageUrl = null; // Removed recipe_images check
     const categoryName = recipe.categories?.name_es || 'General';
     const time = (recipe.cook_time_minutes || 0) + (recipe.prep_time_minutes || 0);
     const isFav = recipe.is_favorite;
@@ -312,10 +311,7 @@ function createRecipeCard(recipe) {
     return `
         <div class="recipe-card" data-recipe-id="${recipe.id}">
             <div class="recipe-card__img-wrap">
-                ${imageUrl
-            ? `<img src="${imageUrl}" alt="${escapeHtml(recipe.name_es)}" class="recipe-card__img">`
-            : `<div class="recipe-card__img-placeholder"><span class="material-symbols-outlined">restaurant</span></div>`
-        }
+                <div class="recipe-card__img-placeholder"><span class="material-symbols-outlined">restaurant</span></div>
             </div>
             <h3 class="recipe-card__name">${escapeHtml(recipe.name_es || 'Sin nombre')}</h3>
             <p class="recipe-card__category">${escapeHtml(categoryName)}</p>
@@ -673,11 +669,9 @@ async function setupRecipeDetailsScreen() {
     }
 
     // Rellenar datos en la pantalla
-    const image = null; // Removed recipe_images check
     const imgEl = document.getElementById('detail-img');
     if (imgEl) {
-        if (image) { imgEl.src = image; }
-        else { imgEl.parentElement?.classList.add('no-img'); }
+        imgEl.parentElement?.classList.add('no-img');
     }
 
     const setEl = (id, val) => {
