@@ -1,13 +1,12 @@
 {
     "version": 2,
+    "outputDirectory": ".",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "routes": [
         {
             "src": "/api/(.*)",
             "dest": "/api/$1"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/$1"
         }
     ],
     "headers": [
@@ -42,7 +41,7 @@
             ]
         },
         {
-            "source": "/(.*\\.(js|css|woff2?))",
+            "source": "/(.*)\\.(js|css|woff2?)",
             "headers": [
                 {
                     "key": "Cache-Control",
@@ -51,7 +50,7 @@
             ]
         },
         {
-            "source": "/(.*\\.(jpg|jpeg|png|gif|webp|svg|ico))",
+            "source": "/(.*)\\.(jpg|jpeg|png|gif|webp|svg|ico)",
             "headers": [
                 {
                     "key": "Cache-Control",
@@ -60,7 +59,7 @@
             ]
         },
         {
-            "source": "/(.*\\.html?)",
+            "source": "/(.*)\\.html",
             "headers": [
                 {
                     "key": "Cache-Control",
