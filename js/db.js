@@ -90,25 +90,58 @@ class DatabaseManager {
         }
 
         try {
-            let query = window.supabaseClient
-                .from('recipes')
-                .select(`
-                    *,
-                    category:categories(id, name_es, name_en, icon, color)
-                `);
+            // Construir URL con parámetros para Vercel Edge Cache API
+            const url = new URL('/api/recipes', window.location.origin);
+            const userId = window.authManager?.currentUser?.id;
 
+            // Añadir filtros como query params
+            if (userId) {
+                // If checking shared recipes, we need the user to retrieve their received sharing table mapping
+                // Otherwise we filter by our own user
+                url.searchParams.set('user_id', userId);
+            }
+            if (filters.search) {
+                url.searchParams.set('search', filters.search);
+            }
+            if (filters.categoryId) {
+                url.searchParams.set('category_id', filters.categoryId);
+            }
+            if (filters.favorite) {
+                url.searchParams.set('favorite', 'true');
+            }
             if (filters.shared) {
-                const userId = window.authManager.currentUser.id;
-                const { data: shared, error: err } = await window.supabaseClient
-                    .from('shared_recipes')
-                    .select('*, recipe:recipe_id(*, category:categories(*)), permission, owner_user_id')
-                    .eq('recipient_user_id', userId);
+                url.searchParams.set('shared', 'true');
+            }
+            if (filters.orderBy) {
+                url.searchParams.set('sort_by', filters.orderBy);
+            }
+            if (filters.ascending !== undefined) {
+                url.searchParams.set('sort_order', filters.ascending.toString());
+            }
 
-                if (err) throw err;
+            // Fetch a la Edge API
+            const response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                if (!shared || shared.length === 0) return { success: true, recipes: [], fromCache: false };
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
-                // Fetch sender names separately to avoid ambiguous FK resolution
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to fetch recipes from API');
+            }
+
+            // Mapeo lógico para cuando cargamos compartidas
+            let recipes = [];
+            if (result.isSharedFormat) {
+                const shared = result.data;
+                // Fetch sender names separatelly (can't easily do it in API right now due to complex mappings relying safely in client context)
                 const senderIds = [...new Set(shared.map(s => s.owner_user_id).filter(Boolean))];
                 let senderMap = {};
                 if (senderIds.length > 0) {
@@ -122,8 +155,7 @@ class DatabaseManager {
                         });
                     }
                 }
-
-                let recipes = shared.map(s => {
+                recipes = shared.map(s => {
                     const r = s.recipe;
                     if (!r) return null;
                     return {
@@ -133,76 +165,57 @@ class DatabaseManager {
                         senderName: senderMap[s.owner_user_id] || 'Chef'
                     };
                 }).filter(Boolean);
-
                 await window.localDB.putAll('recipes', recipes);
-                return { success: true, recipes, fromCache: false };
             } else {
-                query = query.eq('user_id', window.authManager.currentUser.id);
-            }
+                recipes = result.data;
 
-            query = query.eq('is_active', true);
+                // Extraer a quién hemos compartido nuestras recetas para renderizarlas
+                // Esto podemos dejarlo directo al cliente ya que es info que no se cachea en la API pública de Edge para todos
+                const { data: sentShared } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .select('recipe_id, recipient_user_id')
+                    .eq('owner_user_id', userId);
 
-            if (filters.favorite) query = query.eq('is_favorite', true);
-            if (filters.categoryId) query = query.eq('category_id', filters.categoryId);
-
-            const orderBy = filters.orderBy || 'name_es';
-            const ascending = filters.ascending !== undefined ? filters.ascending : true;
-            query = query.order(orderBy, { ascending });
-
-            if (filters.search) {
-                query = query.or(`name_es.ilike.%${filters.search}%,name_en.ilike.%${filters.search}%,description_es.ilike.%${filters.search}%`);
-            }
-
-            const { data, error } = await query;
-            if (error) throw error;
-
-            // Fetch sharing info for current user's recipes (sent) — split query to avoid FK ambiguity
-            const { data: sentShared } = await window.supabaseClient
-                .from('shared_recipes')
-                .select('recipe_id, recipient_user_id')
-                .eq('owner_user_id', window.authManager.currentUser.id);
-
-            // Fetch recipient names
-            let recipientMap = {};
-            if (sentShared && sentShared.length > 0) {
-                const recipientIds = [...new Set(sentShared.map(s => s.recipient_user_id).filter(Boolean))];
-                if (recipientIds.length > 0) {
-                    const { data: recipientUsers } = await window.supabaseClient
-                        .from('users')
-                        .select('id, first_name, last_name')
-                        .in('id', recipientIds);
-                    if (recipientUsers) {
-                        recipientUsers.forEach(u => {
-                            recipientMap[u.id] = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Chef';
-                        });
+                let recipientMap = {};
+                if (sentShared && sentShared.length > 0) {
+                    const recipientIds = [...new Set(sentShared.map(s => s.recipient_user_id).filter(Boolean))];
+                    if (recipientIds.length > 0) {
+                        const { data: recipientUsers } = await window.supabaseClient
+                            .from('users')
+                            .select('id, first_name, last_name')
+                            .in('id', recipientIds);
+                        if (recipientUsers) {
+                            recipientUsers.forEach(u => {
+                                recipientMap[u.id] = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Chef';
+                            });
+                        }
                     }
                 }
+
+                recipes = recipes.map(recipe => {
+                    const recipients = sentShared
+                        ? sentShared
+                            .filter(s => s.recipe_id === recipe.id)
+                            .map(s => `Chef ${recipientMap[s.recipient_user_id] || ''}`.trim())
+                            .filter(Boolean)
+                        : [];
+
+                    return {
+                        ...recipe,
+                        sharingContext: recipients.length > 0 ? 'sent' : null,
+                        sharedWith: recipients.join(', ')
+                    };
+                });
             }
 
-            let recipes = data.map(recipe => {
-                const recipients = sentShared
-                    ? sentShared
-                        .filter(s => s.recipe_id === recipe.id)
-                        .map(s => `Chef ${recipientMap[s.recipient_user_id] || ''}`.trim())
-                        .filter(Boolean)
-                    : [];
-
-                return {
-                    ...recipe,
-                    sharingContext: recipients.length > 0 ? 'sent' : null,
-                    sharedWith: recipients.join(', ')
-                };
-            });
+            console.log(`📦 Recipes loaded from Edge API (cached: ${result.cached}, cache time: ${result.cacheTime}s)`);
 
             // Reemplazar la colección local propia si no hay filtros activos
-            if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared) {
-                // Conservar las recibidas (shared) antes de limpiar
+            if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared && !result.isSharedFormat) {
                 const allLocal = await window.localDB.getAll('recipes');
                 const received = allLocal.filter(r => r.sharingContext === 'received');
 
                 await window.localDB.clear('recipes');
-
-                // Reinsertar las nuevas (propias) y las recibidas por separado
                 if (received.length > 0) await window.localDB.putAll('recipes', received);
                 await window.localDB.putAll('recipes', recipes);
             }
@@ -210,8 +223,10 @@ class DatabaseManager {
             return { success: true, recipes, fromCache: false };
 
         } catch (error) {
-            console.error('❌ Error _fetchRecipesFromServer:', error);
-            return { success: false, error: error.message, recipes: [] };
+            console.error('❌ Edge API Error _fetchRecipesFromServer:', error);
+            // Fallback
+            const localRecipes = await window.localDB?.getAll('recipes') || [];
+            return { success: true, recipes: localRecipes, fromCache: true };
         }
     }
 
@@ -223,18 +238,32 @@ class DatabaseManager {
 
         if (this._isOnline) {
             try {
-                // 1) Intentar fetch normal
-                let { data: recipe, error } = await window.supabaseClient
-                    .from('recipes')
-                    .select(`*, category:categories(*), ingredients(*), steps:preparation_steps(*)`)
-                    .eq('id', recipeId)
-                    .single();
+                // 1) Intentar fetch API Edge Cache
+                const response = await fetch(`/api/recipe/${recipeId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
 
-                if (error) throw error;
+                if (response.status === 404) {
+                    throw new Error('Recipe not found');
+                }
 
-                // Si no es el dueño, los policies restrictivos pueden ocultar ingredientes/pasos.
-                // Usar RPC para bypassear RLS de relaciones compartidas de forma segura.
-                if (recipe && (!recipe.ingredients || recipe.ingredients.length === 0) && recipe.user_id !== window.authManager.currentUser.id) {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                let recipe = result.data;
+                console.log('📦 Recipe detail loaded from Edge API');
+
+                // Si no es el dueño, los policies restrictivos pueden haber ocultado ingredientes/pasos en el API si no usamos service_role
+                // Fallback RPC para relaciones seguras...
+                if (recipe && (!recipe.ingredients || recipe.ingredients.length === 0) && recipe.user_id !== window.authManager?.currentUser?.id) {
                     try {
                         const { data: rpcRecipe, error: rpcError } = await window.supabaseClient
                             .rpc('get_shared_recipe_details', { p_recipe_id: recipeId });

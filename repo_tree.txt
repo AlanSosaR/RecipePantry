@@ -1,0 +1,1268 @@
+Listado de rutas de carpetas
+El número de serie del volumen es 566C-B2DB
+C:.
+|   .gitignore
+|   bulk_import.py
+|   download_images.py
+|   download_stitch.py
+|   import_data.sql
+|   index.html
+|   login.html
+|   manifest.webmanifest
+|   ocr.html
+|   package-lock.json
+|   package.json
+|   processed_recipes.json
+|   README.md
+|   recipe-detail.html
+|   recipe-form.html
+|   repo_tree.txt
+|   schema-personal-only.sql
+|   stitch_correct.html
+|   stitch_design.html
+|   stitch_raw.html
+|   sw.js
+|   tail.css
+|   temp.css
+|   test_db2.js
+|   test_rpc.js
+|   vercel.json
+|   
++---.gemini
+|   \---skills
+|       \---material_3_expressive
+|               SKILL.md
+|               
++---.vercel
+|   |   .env.preview.local
+|   |   project.json
+|   |   README.txt
+|   |   
+|   \---output
+|       |   builds.json
+|       |   config.json
+|       |   
+|       +---diagnostics
+|       |       cli_traces.json
+|       |       
+|       \---static
+|           |   bulk_import.py
+|           |   download_images.py
+|           |   download_stitch.py
+|           |   import_data.sql
+|           |   index.html
+|           |   login.html
+|           |   manifest.webmanifest
+|           |   ocr.html
+|           |   package-lock.json
+|           |   package.json
+|           |   processed_recipes.json
+|           |   README.md
+|           |   recipe-detail.html
+|           |   recipe-form.html
+|           |   schema-personal-only.sql
+|           |   stitch_correct.html
+|           |   stitch_design.html
+|           |   stitch_raw.html
+|           |   sw.js
+|           |   tail.css
+|           |   temp.css
+|           |   
+|           +---.gemini
+|           |   \---skills
+|           |       \---material_3_expressive
+|           |               SKILL.md
+|           |               
+|           +---assets
+|           |   |   compartir.svg
+|           |   |   placeholder-recipe.jpg
+|           |   |   placeholder-recipe.svg
+|           |   |   recipe.svg
+|           |   |   
+|           |   \---icons
+|           |           apple-icon-180.png
+|           |           favicon-196.png
+|           |           icon.svg
+|           |           manifest-icon-192.maskable.png
+|           |           manifest-icon-512.maskable.png
+|           |           maskable-icon.svg
+|           |           
+|           +---css
+|           |       components.css
+|           |       responsive.css
+|           |       styles.css
+|           |       
+|           +---js
+|           |       app.js
+|           |       auth.js
+|           |       config.js
+|           |       cooking.js
+|           |       dashboard.js
+|           |       db.js
+|           |       i18n.js
+|           |       localdb.js
+|           |       notifications.js
+|           |       ocr-processor.js
+|           |       ocr.js
+|           |       profile.js
+|           |       recipe-detail.js
+|           |       recipe-form.js
+|           |       recipes.js
+|           |       share-modal.js
+|           |       supabase-client.js
+|           |       sync-manager.js
+|           |       ui.js
+|           |       utils.js
+|           |       
+|           +---recetas_import
+|           |       Apple crumble copy.rtf
+|           |       Bechemal Recipes copy.odt
+|           |       Beer batter.rtf
+|           |       Biscoff Crumble.rtf
+|           |       Blue Cheese Sauce.odt
+|           |       Bread and butter pudding byatt style.rtf
+|           |       Brine.rtf
+|           |       Brownie.rtf
+|           |       Buffalo chicken and flour.rtf
+|           |       Buffalo Sauce copy.odt
+|           |       Buger Sauce.rtf
+|           |       Cauliflower Cheese copy 2.rtf
+|           |       Cauliflower gratin.rtf
+|           |       Cesar Dressing.rtf
+|           |       Choco Delice.rtf
+|           |       citronette.rtf
+|           |       Creme Brulee.rtf
+|           |       crumble.rtf
+|           |       Crushed Peas copy.rtf
+|           |       Curry powder copy.rtf
+|           |       Curry Sauce.rtf
+|           |       Custard.rtf
+|           |       Fish Pie.rtf
+|           |       Fish Sauce Caramel copy.rtf
+|           |       Gravy.rtf
+|           |       Green Peppercorn Sauce.rtf
+|           |       Guacamole.rtf
+|           |       Gyoza Dipping Sauce.odt
+|           |       Harissa Ketchup.rtf
+|           |       Harisso Mayo.rtf
+|           |       House Mayo copy.rtf
+|           |       Jing toffee sauce.rtf
+|           |       KEVIN FRIED CHICKEN copy.rtf
+|           |       KEVIN FRIED CHICKEN HANNAH copy.rtf
+|           |       Korean BBQ sauce.rtf
+|           |       Lemon aioli.rtf
+|           |       Mac and cheese Stanleys.rtf
+|           |       Mango Salsa.rtf
+|           |       Mashed potatoes copy.rtf
+|           |       Meringue swiss.rtf
+|           |       Miso Aioli copy.rtf
+|           |       Nut Roast 3 copy.rtf
+|           |       Onion Rings.rtf
+|           |       Pesto Aioli.rtf
+|           |       Piccalilly.rtf
+|           |       Pizza sauce.rtf
+|           |       Pork belly braise  copy.rtf
+|           |       Ranch.rtf
+|           |       Red onion Chutney copy.odt
+|           |       Rib Stock copy.odt
+|           |       Roast Pork Belly copy 2.rtf
+|           |       Salsa Nachos.rtf
+|           |       Sheperds pie copy 2.rtf
+|           |       Sherry vinneigrette  copy.rtf
+|           |       Sriracha Ketchup.rtf
+|           |       Stanleys hot fried chicken.rtf
+|           |       Steak, onion and Stilton pie.rtf
+|           |       Sticky toffe pudding copy.pdf
+|           |       Suet  Pastry.rtf
+|           |       Sunday Carrots.rtf
+|           |       Taramasalata.rtf
+|           |       Tartare Sauce copy.rtf
+|           |       Triple cooked chips.rtf
+|           |       Vegetable Curry.rtf
+|           |       Vegetarian Masala.rtf
+|           |       YORKIE MIX copy.txt
+|           |       
+|           +---reference_html
+|           |       add_recipe.html
+|           |       cooking-mode.html
+|           |       dashboard.html
+|           |       landing.html
+|           |       login.html
+|           |       new_dashboard_1.html
+|           |       new_dashboard_2.html
+|           |       ocr-scanner.html
+|           |       ocr_scanner.html
+|           |       profile.html
+|           |       recipe_details.html
+|           |       
+|           +---stitch_downloads
+|           |       cooking_steps.html
+|           |       dashboard.html
+|           |       landing_page.html
+|           |       login.html
+|           |       ocr_scanner.html
+|           |       profile.html
+|           |       recipe_details.html
+|           |       sharing_modal.html
+|           |       
+|           \---supabase
+|               +---.temp
+|               |       cli-latest
+|               |       
+|               \---functions
+|                   \---ocr-claude
+|                           index.ts
+|                           
++---.wrangler
+|   \---tmp
++---assets
+|   |   compartir.svg
+|   |   placeholder-recipe.jpg
+|   |   placeholder-recipe.svg
+|   |   recipe.svg
+|   |   
+|   +---icons
+|   |       apple-icon-180.png
+|   |       favicon-196.png
+|   |       icon.svg
+|   |       manifest-icon-192.maskable.png
+|   |       manifest-icon-512.maskable.png
+|   |       maskable-icon.svg
+|   |       
+|   \---images
++---css
+|       components.css
+|       responsive.css
+|       styles.css
+|       
++---js
+|       app.js
+|       auth.js
+|       config.js
+|       cooking.js
+|       dashboard.js
+|       db.js
+|       i18n.js
+|       localdb.js
+|       notifications.js
+|       ocr-processor.js
+|       ocr.js
+|       profile.js
+|       recipe-detail.js
+|       recipe-form.js
+|       recipes.js
+|       share-modal.js
+|       supabase-client.js
+|       sync-manager.js
+|       ui.js
+|       utils.js
+|       
++---node_modules
+|   |   .package-lock.json
+|   |   
+|   +---.bin
+|   |       semver
+|   |       semver.cmd
+|   |       semver.ps1
+|   |       
+|   +---.cache
+|   |   \---wrangler
+|   |           pages.json
+|   |           wrangler-account.json
+|   |           
+|   +---@img
+|   |   +---colour
+|   |   |       color.cjs
+|   |   |       index.cjs
+|   |   |       LICENSE.md
+|   |   |       package.json
+|   |   |       README.md
+|   |   |       
+|   |   \---sharp-win32-x64
+|   |       |   LICENSE
+|   |       |   package.json
+|   |       |   README.md
+|   |       |   versions.json
+|   |       |   
+|   |       \---lib
+|   |               libvips-42.dll
+|   |               libvips-cpp-8.17.3.dll
+|   |               sharp-win32-x64.node
+|   |               
+|   +---@supabase
+|   |   +---auth-js
+|   |   |   |   LICENSE
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   tsconfig.module.tsbuildinfo
+|   |   |   |   |   tsconfig.tsbuildinfo
+|   |   |   |   |   
+|   |   |   |   +---main
+|   |   |   |   |   |   AuthAdminApi.d.ts
+|   |   |   |   |   |   AuthAdminApi.d.ts.map
+|   |   |   |   |   |   AuthAdminApi.js
+|   |   |   |   |   |   AuthAdminApi.js.map
+|   |   |   |   |   |   AuthClient.d.ts
+|   |   |   |   |   |   AuthClient.d.ts.map
+|   |   |   |   |   |   AuthClient.js
+|   |   |   |   |   |   AuthClient.js.map
+|   |   |   |   |   |   GoTrueAdminApi.d.ts
+|   |   |   |   |   |   GoTrueAdminApi.d.ts.map
+|   |   |   |   |   |   GoTrueAdminApi.js
+|   |   |   |   |   |   GoTrueAdminApi.js.map
+|   |   |   |   |   |   GoTrueClient.d.ts
+|   |   |   |   |   |   GoTrueClient.d.ts.map
+|   |   |   |   |   |   GoTrueClient.js
+|   |   |   |   |   |   GoTrueClient.js.map
+|   |   |   |   |   |   index.d.ts
+|   |   |   |   |   |   index.d.ts.map
+|   |   |   |   |   |   index.js
+|   |   |   |   |   |   index.js.map
+|   |   |   |   |   |   
+|   |   |   |   |   \---lib
+|   |   |   |   |       |   base64url.d.ts
+|   |   |   |   |       |   base64url.d.ts.map
+|   |   |   |   |       |   base64url.js
+|   |   |   |   |       |   base64url.js.map
+|   |   |   |   |       |   constants.d.ts
+|   |   |   |   |       |   constants.d.ts.map
+|   |   |   |   |       |   constants.js
+|   |   |   |   |       |   constants.js.map
+|   |   |   |   |       |   error-codes.d.ts
+|   |   |   |   |       |   error-codes.d.ts.map
+|   |   |   |   |       |   error-codes.js
+|   |   |   |   |       |   error-codes.js.map
+|   |   |   |   |       |   errors.d.ts
+|   |   |   |   |       |   errors.d.ts.map
+|   |   |   |   |       |   errors.js
+|   |   |   |   |       |   errors.js.map
+|   |   |   |   |       |   fetch.d.ts
+|   |   |   |   |       |   fetch.d.ts.map
+|   |   |   |   |       |   fetch.js
+|   |   |   |   |       |   fetch.js.map
+|   |   |   |   |       |   helpers.d.ts
+|   |   |   |   |       |   helpers.d.ts.map
+|   |   |   |   |       |   helpers.js
+|   |   |   |   |       |   helpers.js.map
+|   |   |   |   |       |   local-storage.d.ts
+|   |   |   |   |       |   local-storage.d.ts.map
+|   |   |   |   |       |   local-storage.js
+|   |   |   |   |       |   local-storage.js.map
+|   |   |   |   |       |   locks.d.ts
+|   |   |   |   |       |   locks.d.ts.map
+|   |   |   |   |       |   locks.js
+|   |   |   |   |       |   locks.js.map
+|   |   |   |   |       |   polyfills.d.ts
+|   |   |   |   |       |   polyfills.d.ts.map
+|   |   |   |   |       |   polyfills.js
+|   |   |   |   |       |   polyfills.js.map
+|   |   |   |   |       |   types.d.ts
+|   |   |   |   |       |   types.d.ts.map
+|   |   |   |   |       |   types.js
+|   |   |   |   |       |   types.js.map
+|   |   |   |   |       |   version.d.ts
+|   |   |   |   |       |   version.d.ts.map
+|   |   |   |   |       |   version.js
+|   |   |   |   |       |   version.js.map
+|   |   |   |   |       |   webauthn.d.ts
+|   |   |   |   |       |   webauthn.d.ts.map
+|   |   |   |   |       |   webauthn.dom.d.ts
+|   |   |   |   |       |   webauthn.dom.d.ts.map
+|   |   |   |   |       |   webauthn.dom.js
+|   |   |   |   |       |   webauthn.dom.js.map
+|   |   |   |   |       |   webauthn.errors.d.ts
+|   |   |   |   |       |   webauthn.errors.d.ts.map
+|   |   |   |   |       |   webauthn.errors.js
+|   |   |   |   |       |   webauthn.errors.js.map
+|   |   |   |   |       |   webauthn.js
+|   |   |   |   |       |   webauthn.js.map
+|   |   |   |   |       |   
+|   |   |   |   |       \---web3
+|   |   |   |   |               ethereum.d.ts
+|   |   |   |   |               ethereum.d.ts.map
+|   |   |   |   |               ethereum.js
+|   |   |   |   |               ethereum.js.map
+|   |   |   |   |               solana.d.ts
+|   |   |   |   |               solana.d.ts.map
+|   |   |   |   |               solana.js
+|   |   |   |   |               solana.js.map
+|   |   |   |   |               
+|   |   |   |   \---module
+|   |   |   |       |   AuthAdminApi.d.ts
+|   |   |   |       |   AuthAdminApi.d.ts.map
+|   |   |   |       |   AuthAdminApi.js
+|   |   |   |       |   AuthAdminApi.js.map
+|   |   |   |       |   AuthClient.d.ts
+|   |   |   |       |   AuthClient.d.ts.map
+|   |   |   |       |   AuthClient.js
+|   |   |   |       |   AuthClient.js.map
+|   |   |   |       |   GoTrueAdminApi.d.ts
+|   |   |   |       |   GoTrueAdminApi.d.ts.map
+|   |   |   |       |   GoTrueAdminApi.js
+|   |   |   |       |   GoTrueAdminApi.js.map
+|   |   |   |       |   GoTrueClient.d.ts
+|   |   |   |       |   GoTrueClient.d.ts.map
+|   |   |   |       |   GoTrueClient.js
+|   |   |   |       |   GoTrueClient.js.map
+|   |   |   |       |   index.d.ts
+|   |   |   |       |   index.d.ts.map
+|   |   |   |       |   index.js
+|   |   |   |       |   index.js.map
+|   |   |   |       |   
+|   |   |   |       \---lib
+|   |   |   |           |   base64url.d.ts
+|   |   |   |           |   base64url.d.ts.map
+|   |   |   |           |   base64url.js
+|   |   |   |           |   base64url.js.map
+|   |   |   |           |   constants.d.ts
+|   |   |   |           |   constants.d.ts.map
+|   |   |   |           |   constants.js
+|   |   |   |           |   constants.js.map
+|   |   |   |           |   error-codes.d.ts
+|   |   |   |           |   error-codes.d.ts.map
+|   |   |   |           |   error-codes.js
+|   |   |   |           |   error-codes.js.map
+|   |   |   |           |   errors.d.ts
+|   |   |   |           |   errors.d.ts.map
+|   |   |   |           |   errors.js
+|   |   |   |           |   errors.js.map
+|   |   |   |           |   fetch.d.ts
+|   |   |   |           |   fetch.d.ts.map
+|   |   |   |           |   fetch.js
+|   |   |   |           |   fetch.js.map
+|   |   |   |           |   helpers.d.ts
+|   |   |   |           |   helpers.d.ts.map
+|   |   |   |           |   helpers.js
+|   |   |   |           |   helpers.js.map
+|   |   |   |           |   local-storage.d.ts
+|   |   |   |           |   local-storage.d.ts.map
+|   |   |   |           |   local-storage.js
+|   |   |   |           |   local-storage.js.map
+|   |   |   |           |   locks.d.ts
+|   |   |   |           |   locks.d.ts.map
+|   |   |   |           |   locks.js
+|   |   |   |           |   locks.js.map
+|   |   |   |           |   polyfills.d.ts
+|   |   |   |           |   polyfills.d.ts.map
+|   |   |   |           |   polyfills.js
+|   |   |   |           |   polyfills.js.map
+|   |   |   |           |   types.d.ts
+|   |   |   |           |   types.d.ts.map
+|   |   |   |           |   types.js
+|   |   |   |           |   types.js.map
+|   |   |   |           |   version.d.ts
+|   |   |   |           |   version.d.ts.map
+|   |   |   |           |   version.js
+|   |   |   |           |   version.js.map
+|   |   |   |           |   webauthn.d.ts
+|   |   |   |           |   webauthn.d.ts.map
+|   |   |   |           |   webauthn.dom.d.ts
+|   |   |   |           |   webauthn.dom.d.ts.map
+|   |   |   |           |   webauthn.dom.js
+|   |   |   |           |   webauthn.dom.js.map
+|   |   |   |           |   webauthn.errors.d.ts
+|   |   |   |           |   webauthn.errors.d.ts.map
+|   |   |   |           |   webauthn.errors.js
+|   |   |   |           |   webauthn.errors.js.map
+|   |   |   |           |   webauthn.js
+|   |   |   |           |   webauthn.js.map
+|   |   |   |           |   
+|   |   |   |           \---web3
+|   |   |   |                   ethereum.d.ts
+|   |   |   |                   ethereum.d.ts.map
+|   |   |   |                   ethereum.js
+|   |   |   |                   ethereum.js.map
+|   |   |   |                   solana.d.ts
+|   |   |   |                   solana.d.ts.map
+|   |   |   |                   solana.js
+|   |   |   |                   solana.js.map
+|   |   |   |                   
+|   |   |   \---src
+|   |   |       |   AuthAdminApi.ts
+|   |   |       |   AuthClient.ts
+|   |   |       |   GoTrueAdminApi.ts
+|   |   |       |   GoTrueClient.ts
+|   |   |       |   index.ts
+|   |   |       |   
+|   |   |       \---lib
+|   |   |           |   base64url.ts
+|   |   |           |   constants.ts
+|   |   |           |   error-codes.ts
+|   |   |           |   errors.ts
+|   |   |           |   fetch.ts
+|   |   |           |   helpers.ts
+|   |   |           |   local-storage.ts
+|   |   |           |   locks.ts
+|   |   |           |   polyfills.ts
+|   |   |           |   types.ts
+|   |   |           |   version.ts
+|   |   |           |   webauthn.dom.ts
+|   |   |           |   webauthn.errors.ts
+|   |   |           |   webauthn.ts
+|   |   |           |   
+|   |   |           \---web3
+|   |   |                   ethereum.ts
+|   |   |                   solana.ts
+|   |   |                   
+|   |   +---functions-js
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   tsconfig.module.tsbuildinfo
+|   |   |   |   |   tsconfig.tsbuildinfo
+|   |   |   |   |   
+|   |   |   |   +---main
+|   |   |   |   |       FunctionsClient.d.ts
+|   |   |   |   |       FunctionsClient.d.ts.map
+|   |   |   |   |       FunctionsClient.js
+|   |   |   |   |       FunctionsClient.js.map
+|   |   |   |   |       helper.d.ts
+|   |   |   |   |       helper.d.ts.map
+|   |   |   |   |       helper.js
+|   |   |   |   |       helper.js.map
+|   |   |   |   |       index.d.ts
+|   |   |   |   |       index.d.ts.map
+|   |   |   |   |       index.js
+|   |   |   |   |       index.js.map
+|   |   |   |   |       types.d.ts
+|   |   |   |   |       types.d.ts.map
+|   |   |   |   |       types.js
+|   |   |   |   |       types.js.map
+|   |   |   |   |       version.d.ts
+|   |   |   |   |       version.d.ts.map
+|   |   |   |   |       version.js
+|   |   |   |   |       version.js.map
+|   |   |   |   |       
+|   |   |   |   \---module
+|   |   |   |           FunctionsClient.d.ts
+|   |   |   |           FunctionsClient.d.ts.map
+|   |   |   |           FunctionsClient.js
+|   |   |   |           FunctionsClient.js.map
+|   |   |   |           helper.d.ts
+|   |   |   |           helper.d.ts.map
+|   |   |   |           helper.js
+|   |   |   |           helper.js.map
+|   |   |   |           index.d.ts
+|   |   |   |           index.d.ts.map
+|   |   |   |           index.js
+|   |   |   |           index.js.map
+|   |   |   |           types.d.ts
+|   |   |   |           types.d.ts.map
+|   |   |   |           types.js
+|   |   |   |           types.js.map
+|   |   |   |           version.d.ts
+|   |   |   |           version.d.ts.map
+|   |   |   |           version.js
+|   |   |   |           version.js.map
+|   |   |   |           
+|   |   |   \---src
+|   |   |           edge-runtime.d.ts
+|   |   |           FunctionsClient.ts
+|   |   |           helper.ts
+|   |   |           index.ts
+|   |   |           types.ts
+|   |   |           version.ts
+|   |   |           
+|   |   +---postgrest-js
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |       index.cjs
+|   |   |   |       index.cjs.map
+|   |   |   |       index.d.cts
+|   |   |   |       index.d.cts.map
+|   |   |   |       index.d.mts
+|   |   |   |       index.d.mts.map
+|   |   |   |       index.mjs
+|   |   |   |       index.mjs.map
+|   |   |   |       
+|   |   |   \---src
+|   |   |       |   constants.ts
+|   |   |       |   index.ts
+|   |   |       |   PostgrestBuilder.ts
+|   |   |       |   PostgrestClient.ts
+|   |   |       |   PostgrestError.ts
+|   |   |       |   PostgrestFilterBuilder.ts
+|   |   |       |   PostgrestQueryBuilder.ts
+|   |   |       |   PostgrestTransformBuilder.ts
+|   |   |       |   version.ts
+|   |   |       |   
+|   |   |       +---select-query-parser
+|   |   |       |       parser.ts
+|   |   |       |       result.ts
+|   |   |       |       types.ts
+|   |   |       |       utils.ts
+|   |   |       |       
+|   |   |       \---types
+|   |   |           |   feature-flags.ts
+|   |   |           |   types.ts
+|   |   |           |   
+|   |   |           \---common
+|   |   |                   common.ts
+|   |   |                   rpc.ts
+|   |   |                   
+|   |   +---realtime-js
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   tsconfig.module.tsbuildinfo
+|   |   |   |   |   tsconfig.tsbuildinfo
+|   |   |   |   |   
+|   |   |   |   +---main
+|   |   |   |   |   |   index.d.ts
+|   |   |   |   |   |   index.d.ts.map
+|   |   |   |   |   |   index.js
+|   |   |   |   |   |   index.js.map
+|   |   |   |   |   |   RealtimeChannel.d.ts
+|   |   |   |   |   |   RealtimeChannel.d.ts.map
+|   |   |   |   |   |   RealtimeChannel.js
+|   |   |   |   |   |   RealtimeChannel.js.map
+|   |   |   |   |   |   RealtimeClient.d.ts
+|   |   |   |   |   |   RealtimeClient.d.ts.map
+|   |   |   |   |   |   RealtimeClient.js
+|   |   |   |   |   |   RealtimeClient.js.map
+|   |   |   |   |   |   RealtimePresence.d.ts
+|   |   |   |   |   |   RealtimePresence.d.ts.map
+|   |   |   |   |   |   RealtimePresence.js
+|   |   |   |   |   |   RealtimePresence.js.map
+|   |   |   |   |   |   
+|   |   |   |   |   \---lib
+|   |   |   |   |           constants.d.ts
+|   |   |   |   |           constants.d.ts.map
+|   |   |   |   |           constants.js
+|   |   |   |   |           constants.js.map
+|   |   |   |   |           push.d.ts
+|   |   |   |   |           push.d.ts.map
+|   |   |   |   |           push.js
+|   |   |   |   |           push.js.map
+|   |   |   |   |           serializer.d.ts
+|   |   |   |   |           serializer.d.ts.map
+|   |   |   |   |           serializer.js
+|   |   |   |   |           serializer.js.map
+|   |   |   |   |           timer.d.ts
+|   |   |   |   |           timer.d.ts.map
+|   |   |   |   |           timer.js
+|   |   |   |   |           timer.js.map
+|   |   |   |   |           transformers.d.ts
+|   |   |   |   |           transformers.d.ts.map
+|   |   |   |   |           transformers.js
+|   |   |   |   |           transformers.js.map
+|   |   |   |   |           version.d.ts
+|   |   |   |   |           version.d.ts.map
+|   |   |   |   |           version.js
+|   |   |   |   |           version.js.map
+|   |   |   |   |           websocket-factory.d.ts
+|   |   |   |   |           websocket-factory.d.ts.map
+|   |   |   |   |           websocket-factory.js
+|   |   |   |   |           websocket-factory.js.map
+|   |   |   |   |           
+|   |   |   |   \---module
+|   |   |   |       |   index.d.ts
+|   |   |   |       |   index.d.ts.map
+|   |   |   |       |   index.js
+|   |   |   |       |   index.js.map
+|   |   |   |       |   RealtimeChannel.d.ts
+|   |   |   |       |   RealtimeChannel.d.ts.map
+|   |   |   |       |   RealtimeChannel.js
+|   |   |   |       |   RealtimeChannel.js.map
+|   |   |   |       |   RealtimeClient.d.ts
+|   |   |   |       |   RealtimeClient.d.ts.map
+|   |   |   |       |   RealtimeClient.js
+|   |   |   |       |   RealtimeClient.js.map
+|   |   |   |       |   RealtimePresence.d.ts
+|   |   |   |       |   RealtimePresence.d.ts.map
+|   |   |   |       |   RealtimePresence.js
+|   |   |   |       |   RealtimePresence.js.map
+|   |   |   |       |   
+|   |   |   |       \---lib
+|   |   |   |               constants.d.ts
+|   |   |   |               constants.d.ts.map
+|   |   |   |               constants.js
+|   |   |   |               constants.js.map
+|   |   |   |               push.d.ts
+|   |   |   |               push.d.ts.map
+|   |   |   |               push.js
+|   |   |   |               push.js.map
+|   |   |   |               serializer.d.ts
+|   |   |   |               serializer.d.ts.map
+|   |   |   |               serializer.js
+|   |   |   |               serializer.js.map
+|   |   |   |               timer.d.ts
+|   |   |   |               timer.d.ts.map
+|   |   |   |               timer.js
+|   |   |   |               timer.js.map
+|   |   |   |               transformers.d.ts
+|   |   |   |               transformers.d.ts.map
+|   |   |   |               transformers.js
+|   |   |   |               transformers.js.map
+|   |   |   |               version.d.ts
+|   |   |   |               version.d.ts.map
+|   |   |   |               version.js
+|   |   |   |               version.js.map
+|   |   |   |               websocket-factory.d.ts
+|   |   |   |               websocket-factory.d.ts.map
+|   |   |   |               websocket-factory.js
+|   |   |   |               websocket-factory.js.map
+|   |   |   |               
+|   |   |   \---src
+|   |   |       |   index.ts
+|   |   |       |   RealtimeChannel.ts
+|   |   |       |   RealtimeClient.ts
+|   |   |       |   RealtimePresence.ts
+|   |   |       |   
+|   |   |       \---lib
+|   |   |               constants.ts
+|   |   |               push.ts
+|   |   |               serializer.ts
+|   |   |               timer.ts
+|   |   |               transformers.ts
+|   |   |               version.ts
+|   |   |               websocket-factory.ts
+|   |   |               
+|   |   +---storage-js
+|   |   |   |   package.json
+|   |   |   |   README.md
+|   |   |   |   
+|   |   |   +---dist
+|   |   |   |   |   index.cjs
+|   |   |   |   |   index.cjs.map
+|   |   |   |   |   index.d.cts
+|   |   |   |   |   index.d.cts.map
+|   |   |   |   |   index.d.mts
+|   |   |   |   |   index.d.mts.map
+|   |   |   |   |   index.mjs
+|   |   |   |   |   index.mjs.map
+|   |   |   |   |   
+|   |   |   |   \---umd
+|   |   |   |           supabase.js
+|   |   |   |           
+|   |   |   \---src
+|   |   |       |   index.ts
+|   |   |       |   StorageClient.ts
+|   |   |       |   
+|   |   |       +---lib
+|   |   |       |   |   constants.ts
+|   |   |       |   |   types.ts
+|   |   |       |   |   version.ts
+|   |   |       |   |   
+|   |   |       |   \---common
+|   |   |       |           BaseApiClient.ts
+|   |   |       |           errors.ts
+|   |   |       |           fetch.ts
+|   |   |       |           helpers.ts
+|   |   |       |           
+|   |   |       \---packages
+|   |   |               BlobDownloadBuilder.ts
+|   |   |               StorageAnalyticsClient.ts
+|   |   |               StorageBucketApi.ts
+|   |   |               StorageFileApi.ts
+|   |   |               StorageVectorsClient.ts
+|   |   |               StreamDownloadBuilder.ts
+|   |   |               VectorBucketApi.ts
+|   |   |               VectorDataApi.ts
+|   |   |               VectorIndexApi.ts
+|   |   |               
+|   |   \---supabase-js
+|   |       |   package.json
+|   |       |   README.md
+|   |       |   
+|   |       +---dist
+|   |       |   |   cors.cjs
+|   |       |   |   cors.cjs.map
+|   |       |   |   cors.d.cts
+|   |       |   |   cors.d.cts.map
+|   |       |   |   cors.d.mts
+|   |       |   |   cors.d.mts.map
+|   |       |   |   cors.mjs
+|   |       |   |   cors.mjs.map
+|   |       |   |   index.cjs
+|   |       |   |   index.cjs.map
+|   |       |   |   index.d.cts
+|   |       |   |   index.d.cts.map
+|   |       |   |   index.d.mts
+|   |       |   |   index.d.mts.map
+|   |       |   |   index.mjs
+|   |       |   |   index.mjs.map
+|   |       |   |   
+|   |       |   \---umd
+|   |       |           supabase.js
+|   |       |           
+|   |       \---src
+|   |           |   cors.ts
+|   |           |   index.ts
+|   |           |   SupabaseClient.ts
+|   |           |   
+|   |           \---lib
+|   |               |   constants.ts
+|   |               |   fetch.ts
+|   |               |   helpers.ts
+|   |               |   SupabaseAuthClient.ts
+|   |               |   types.ts
+|   |               |   version.ts
+|   |               |   
+|   |               \---rest
+|   |                   \---types
+|   |                       \---common
+|   |                               common.ts
+|   |                               rpc.ts
+|   |                               
+|   +---@types
+|   |   +---node
+|   |   |   |   assert.d.ts
+|   |   |   |   async_hooks.d.ts
+|   |   |   |   buffer.buffer.d.ts
+|   |   |   |   buffer.d.ts
+|   |   |   |   child_process.d.ts
+|   |   |   |   cluster.d.ts
+|   |   |   |   console.d.ts
+|   |   |   |   constants.d.ts
+|   |   |   |   crypto.d.ts
+|   |   |   |   dgram.d.ts
+|   |   |   |   diagnostics_channel.d.ts
+|   |   |   |   dns.d.ts
+|   |   |   |   domain.d.ts
+|   |   |   |   events.d.ts
+|   |   |   |   fs.d.ts
+|   |   |   |   globals.d.ts
+|   |   |   |   globals.typedarray.d.ts
+|   |   |   |   http.d.ts
+|   |   |   |   http2.d.ts
+|   |   |   |   https.d.ts
+|   |   |   |   index.d.ts
+|   |   |   |   inspector.d.ts
+|   |   |   |   inspector.generated.d.ts
+|   |   |   |   LICENSE
+|   |   |   |   module.d.ts
+|   |   |   |   net.d.ts
+|   |   |   |   os.d.ts
+|   |   |   |   package.json
+|   |   |   |   path.d.ts
+|   |   |   |   perf_hooks.d.ts
+|   |   |   |   process.d.ts
+|   |   |   |   punycode.d.ts
+|   |   |   |   querystring.d.ts
+|   |   |   |   quic.d.ts
+|   |   |   |   readline.d.ts
+|   |   |   |   README.md
+|   |   |   |   repl.d.ts
+|   |   |   |   sea.d.ts
+|   |   |   |   sqlite.d.ts
+|   |   |   |   stream.d.ts
+|   |   |   |   string_decoder.d.ts
+|   |   |   |   test.d.ts
+|   |   |   |   timers.d.ts
+|   |   |   |   tls.d.ts
+|   |   |   |   trace_events.d.ts
+|   |   |   |   tty.d.ts
+|   |   |   |   url.d.ts
+|   |   |   |   util.d.ts
+|   |   |   |   v8.d.ts
+|   |   |   |   vm.d.ts
+|   |   |   |   wasi.d.ts
+|   |   |   |   worker_threads.d.ts
+|   |   |   |   zlib.d.ts
+|   |   |   |   
+|   |   |   +---assert
+|   |   |   |       strict.d.ts
+|   |   |   |       
+|   |   |   +---compatibility
+|   |   |   |       iterators.d.ts
+|   |   |   |       
+|   |   |   +---dns
+|   |   |   |       promises.d.ts
+|   |   |   |       
+|   |   |   +---fs
+|   |   |   |       promises.d.ts
+|   |   |   |       
+|   |   |   +---inspector
+|   |   |   |       promises.d.ts
+|   |   |   |       
+|   |   |   +---path
+|   |   |   |       posix.d.ts
+|   |   |   |       win32.d.ts
+|   |   |   |       
+|   |   |   +---readline
+|   |   |   |       promises.d.ts
+|   |   |   |       
+|   |   |   +---stream
+|   |   |   |       consumers.d.ts
+|   |   |   |       promises.d.ts
+|   |   |   |       web.d.ts
+|   |   |   |       
+|   |   |   +---test
+|   |   |   |       reporters.d.ts
+|   |   |   |       
+|   |   |   +---timers
+|   |   |   |       promises.d.ts
+|   |   |   |       
+|   |   |   +---ts5.6
+|   |   |   |   |   buffer.buffer.d.ts
+|   |   |   |   |   globals.typedarray.d.ts
+|   |   |   |   |   index.d.ts
+|   |   |   |   |   
+|   |   |   |   \---compatibility
+|   |   |   |           float16array.d.ts
+|   |   |   |           
+|   |   |   +---ts5.7
+|   |   |   |   |   index.d.ts
+|   |   |   |   |   
+|   |   |   |   \---compatibility
+|   |   |   |           float16array.d.ts
+|   |   |   |           
+|   |   |   +---util
+|   |   |   |       types.d.ts
+|   |   |   |       
+|   |   |   \---web-globals
+|   |   |           abortcontroller.d.ts
+|   |   |           blob.d.ts
+|   |   |           console.d.ts
+|   |   |           crypto.d.ts
+|   |   |           domexception.d.ts
+|   |   |           encoding.d.ts
+|   |   |           events.d.ts
+|   |   |           fetch.d.ts
+|   |   |           importmeta.d.ts
+|   |   |           messaging.d.ts
+|   |   |           navigator.d.ts
+|   |   |           performance.d.ts
+|   |   |           storage.d.ts
+|   |   |           streams.d.ts
+|   |   |           timers.d.ts
+|   |   |           url.d.ts
+|   |   |           
+|   |   +---phoenix
+|   |   |       index.d.ts
+|   |   |       LICENSE
+|   |   |       package.json
+|   |   |       README.md
+|   |   |       
+|   |   \---ws
+|   |           index.d.mts
+|   |           index.d.ts
+|   |           LICENSE
+|   |           package.json
+|   |           README.md
+|   |           
+|   +---detect-libc
+|   |   |   index.d.ts
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---lib
+|   |           detect-libc.js
+|   |           elf.js
+|   |           filesystem.js
+|   |           process.js
+|   |           
+|   +---iceberg-js
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---dist
+|   |           index.cjs
+|   |           index.cjs.map
+|   |           index.d.cts
+|   |           index.d.ts
+|   |           index.mjs
+|   |           index.mjs.map
+|   |           
+|   +---semver
+|   |   |   index.js
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   preload.js
+|   |   |   range.bnf
+|   |   |   README.md
+|   |   |   
+|   |   +---bin
+|   |   |       semver.js
+|   |   |       
+|   |   +---classes
+|   |   |       comparator.js
+|   |   |       index.js
+|   |   |       range.js
+|   |   |       semver.js
+|   |   |       
+|   |   +---functions
+|   |   |       clean.js
+|   |   |       cmp.js
+|   |   |       coerce.js
+|   |   |       compare-build.js
+|   |   |       compare-loose.js
+|   |   |       compare.js
+|   |   |       diff.js
+|   |   |       eq.js
+|   |   |       gt.js
+|   |   |       gte.js
+|   |   |       inc.js
+|   |   |       lt.js
+|   |   |       lte.js
+|   |   |       major.js
+|   |   |       minor.js
+|   |   |       neq.js
+|   |   |       parse.js
+|   |   |       patch.js
+|   |   |       prerelease.js
+|   |   |       rcompare.js
+|   |   |       rsort.js
+|   |   |       satisfies.js
+|   |   |       sort.js
+|   |   |       valid.js
+|   |   |       
+|   |   +---internal
+|   |   |       constants.js
+|   |   |       debug.js
+|   |   |       identifiers.js
+|   |   |       lrucache.js
+|   |   |       parse-options.js
+|   |   |       re.js
+|   |   |       
+|   |   \---ranges
+|   |           gtr.js
+|   |           intersects.js
+|   |           ltr.js
+|   |           max-satisfying.js
+|   |           min-satisfying.js
+|   |           min-version.js
+|   |           outside.js
+|   |           simplify.js
+|   |           subset.js
+|   |           to-comparators.js
+|   |           valid.js
+|   |           
+|   +---sharp
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   +---install
+|   |   |       build.js
+|   |   |       check.js
+|   |   |       
+|   |   +---lib
+|   |   |       channel.js
+|   |   |       colour.js
+|   |   |       composite.js
+|   |   |       constructor.js
+|   |   |       index.d.ts
+|   |   |       index.js
+|   |   |       input.js
+|   |   |       is.js
+|   |   |       libvips.js
+|   |   |       operation.js
+|   |   |       output.js
+|   |   |       resize.js
+|   |   |       sharp.js
+|   |   |       utility.js
+|   |   |       
+|   |   \---src
+|   |           binding.gyp
+|   |           common.cc
+|   |           common.h
+|   |           metadata.cc
+|   |           metadata.h
+|   |           operations.cc
+|   |           operations.h
+|   |           pipeline.cc
+|   |           pipeline.h
+|   |           sharp.cc
+|   |           stats.cc
+|   |           stats.h
+|   |           utilities.cc
+|   |           utilities.h
+|   |           
+|   +---tslib
+|   |   |   CopyrightNotice.txt
+|   |   |   LICENSE.txt
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   SECURITY.md
+|   |   |   tslib.d.ts
+|   |   |   tslib.es6.html
+|   |   |   tslib.es6.js
+|   |   |   tslib.es6.mjs
+|   |   |   tslib.html
+|   |   |   tslib.js
+|   |   |   
+|   |   \---modules
+|   |           index.d.ts
+|   |           index.js
+|   |           package.json
+|   |           
+|   +---undici-types
+|   |       agent.d.ts
+|   |       api.d.ts
+|   |       balanced-pool.d.ts
+|   |       cache-interceptor.d.ts
+|   |       cache.d.ts
+|   |       client-stats.d.ts
+|   |       client.d.ts
+|   |       connector.d.ts
+|   |       content-type.d.ts
+|   |       cookies.d.ts
+|   |       diagnostics-channel.d.ts
+|   |       dispatcher.d.ts
+|   |       env-http-proxy-agent.d.ts
+|   |       errors.d.ts
+|   |       eventsource.d.ts
+|   |       fetch.d.ts
+|   |       formdata.d.ts
+|   |       global-dispatcher.d.ts
+|   |       global-origin.d.ts
+|   |       h2c-client.d.ts
+|   |       handlers.d.ts
+|   |       header.d.ts
+|   |       index.d.ts
+|   |       interceptors.d.ts
+|   |       LICENSE
+|   |       mock-agent.d.ts
+|   |       mock-call-history.d.ts
+|   |       mock-client.d.ts
+|   |       mock-errors.d.ts
+|   |       mock-interceptor.d.ts
+|   |       mock-pool.d.ts
+|   |       package.json
+|   |       patch.d.ts
+|   |       pool-stats.d.ts
+|   |       pool.d.ts
+|   |       proxy-agent.d.ts
+|   |       readable.d.ts
+|   |       README.md
+|   |       retry-agent.d.ts
+|   |       retry-handler.d.ts
+|   |       round-robin-pool.d.ts
+|   |       snapshot-agent.d.ts
+|   |       util.d.ts
+|   |       utility.d.ts
+|   |       webidl.d.ts
+|   |       websocket.d.ts
+|   |       
+|   \---ws
+|       |   browser.js
+|       |   index.js
+|       |   LICENSE
+|       |   package.json
+|       |   README.md
+|       |   wrapper.mjs
+|       |   
+|       \---lib
+|               buffer-util.js
+|               constants.js
+|               event-target.js
+|               extension.js
+|               limiter.js
+|               permessage-deflate.js
+|               receiver.js
+|               sender.js
+|               stream.js
+|               subprotocol.js
+|               validation.js
+|               websocket-server.js
+|               websocket.js
+|               
++---recetas_import
+|       Apple crumble copy.rtf
+|       Bechemal Recipes copy.odt
+|       Beer batter.rtf
+|       Biscoff Crumble.rtf
+|       Blue Cheese Sauce.odt
+|       Bread and butter pudding byatt style.rtf
+|       Brine.rtf
+|       Brownie.rtf
+|       Buffalo chicken and flour.rtf
+|       Buffalo Sauce copy.odt
+|       Buger Sauce.rtf
+|       Cauliflower Cheese copy 2.rtf
+|       Cauliflower gratin.rtf
+|       Cesar Dressing.rtf
+|       Choco Delice.rtf
+|       citronette.rtf
+|       Creme Brulee.rtf
+|       crumble.rtf
+|       Crushed Peas copy.rtf
+|       Curry powder copy.rtf
+|       Curry Sauce.rtf
+|       Custard.rtf
+|       Fish Pie.rtf
+|       Fish Sauce Caramel copy.rtf
+|       Gravy.rtf
+|       Green Peppercorn Sauce.rtf
+|       Guacamole.rtf
+|       Gyoza Dipping Sauce.odt
+|       Harissa Ketchup.rtf
+|       Harisso Mayo.rtf
+|       House Mayo copy.rtf
+|       Jing toffee sauce.rtf
+|       KEVIN FRIED CHICKEN copy.rtf
+|       KEVIN FRIED CHICKEN HANNAH copy.rtf
+|       Korean BBQ sauce.rtf
+|       Lemon aioli.rtf
+|       Mac and cheese Stanleys.rtf
+|       Mango Salsa.rtf
+|       Mashed potatoes copy.rtf
+|       Meringue swiss.rtf
+|       Miso Aioli copy.rtf
+|       Nut Roast 3 copy.rtf
+|       Onion Rings.rtf
+|       Pesto Aioli.rtf
+|       Piccalilly.rtf
+|       Pizza sauce.rtf
+|       Pork belly braise  copy.rtf
+|       Ranch.rtf
+|       Red onion Chutney copy.odt
+|       Rib Stock copy.odt
+|       Roast Pork Belly copy 2.rtf
+|       Salsa Nachos.rtf
+|       Sheperds pie copy 2.rtf
+|       Sherry vinneigrette  copy.rtf
+|       Sriracha Ketchup.rtf
+|       Stanleys hot fried chicken.rtf
+|       Steak, onion and Stilton pie.rtf
+|       Sticky toffe pudding copy.pdf
+|       Suet  Pastry.rtf
+|       Sunday Carrots.rtf
+|       Taramasalata.rtf
+|       Tartare Sauce copy.rtf
+|       Triple cooked chips.rtf
+|       Vegetable Curry.rtf
+|       Vegetarian Masala.rtf
+|       YORKIE MIX copy.txt
+|       
++---reference_html
+|       add_recipe.html
+|       cooking-mode.html
+|       dashboard.html
+|       landing.html
+|       login.html
+|       new_dashboard_1.html
+|       new_dashboard_2.html
+|       ocr-scanner.html
+|       ocr_scanner.html
+|       profile.html
+|       recipe_details.html
+|       
++---stitch_downloads
+|       cooking_steps.html
+|       dashboard.html
+|       landing_page.html
+|       login.html
+|       ocr_scanner.html
+|       profile.html
+|       recipe_details.html
+|       sharing_modal.html
+|       
+\---supabase
+    +---.temp
+    |       cli-latest
+    |       
+    \---functions
+        \---ocr-claude
+                index.ts
+                
