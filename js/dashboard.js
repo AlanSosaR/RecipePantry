@@ -319,12 +319,17 @@ class DashboardManager {
     updateActionBar() {
         const actionBar = document.getElementById('selectionActionBar');
         const countText = document.getElementById('selectionCount');
+        const dashboardHeader = document.querySelector('.dashboard-header');
         const listHeader = document.querySelector('.list-header-m3');
         if (!actionBar) return;
 
         if (this.selectedRecipes.size > 0) {
             actionBar.classList.remove('hidden');
-            if (listHeader) listHeader.classList.add('hidden');
+            // Hide Title area (Dropbox: action bar REPLACES the view title)
+            if (dashboardHeader) dashboardHeader.classList.add('hidden');
+            // Keep column labels (Dropbox: labels are below the action bar)
+            if (listHeader) listHeader.classList.remove('hidden');
+
             const count = this.selectedRecipes.size;
             const text = window.i18n && window.i18n.getLang() === 'en'
                 ? `${count} selected`
@@ -332,10 +337,13 @@ class DashboardManager {
             if (countText) countText.textContent = text;
         } else {
             actionBar.classList.add('hidden');
+            if (dashboardHeader) dashboardHeader.classList.remove('hidden');
             if (listHeader) listHeader.classList.remove('hidden');
         }
         this.updateSelectAllCheckbox();
     }
+
+
 
 
     toggleSelectionMenu(event) {
@@ -437,7 +445,6 @@ class DashboardManager {
 
     updateSelectAllCheckbox() {
         const selectAllCb = document.getElementById('selectAllCheckbox');
-        const selectAllCbAction = document.getElementById('selectAllCheckboxAction');
 
         if (this.currentRecipes.length > 0) {
             const allSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
@@ -448,12 +455,9 @@ class DashboardManager {
                 selectAllCb.checked = allSelected && isAnySelected;
                 selectAllCb.indeterminate = isIndeterminate;
             }
-            if (selectAllCbAction) {
-                selectAllCbAction.checked = allSelected && isAnySelected;
-                selectAllCbAction.indeterminate = isIndeterminate;
-            }
         }
     }
+
 
 
     async deleteSelected() {

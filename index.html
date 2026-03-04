@@ -62,12 +62,12 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v12.1
+    v12.2.1
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=12.1"></script>
+  <script src="js/sw-register.js?v=12.2.1"></script>
 
 
 
@@ -465,103 +465,50 @@
       </header>
       <div class="main-content-scroll">
 
-        <!-- Dropbox-style Selection Action Bar -->
+        <!-- Dropbox-style Selection Action Bar (Inline & Transparent) -->
         <div id="selectionActionBar" class="selection-action-bar hidden">
           <div class="selection-bar-left">
-            <button class="selection-btn" onclick="window.dashboard.clearSelection()" title="Cerrar">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-
-            <!-- Select All Checkbox inside Action Bar -->
-            <div class="col-checkbox" style="margin-left: 8px;">
-              <label class="m3-checkbox-wrapper" style="opacity: 1; pointer-events: auto; transform: scale(1);">
-                <input type="checkbox" id="selectAllCheckboxAction" class="m3-checkbox-input"
-                  onchange="window.dashboard.toggleSelectAll(event)">
-                <span class="m3-checkbox-visual"></span>
-              </label>
-            </div>
-
-
-            <!-- Dropbox Style Buttons -->
-            <button class="selection-btn primary-btn" onclick="window.dashboard.shareSelected()">
-              <span class="material-symbols-outlined">share</span>
-              <span>Comparte la selección</span>
-              <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
-            </button>
-
-            <!-- Download button (added as requested in screenshot) -->
-            <button class="selection-btn" onclick="window.dashboard.downloadSelected()">
-              <span class="material-symbols-outlined">download</span>
-              <span>Descargar</span>
-            </button>
-
-            <button class="selection-btn" onclick="window.dashboard.deleteSelected()">
-              <span class="material-symbols-outlined">delete</span>
-              <span>Eliminar</span>
-            </button>
-
-            <button class="selection-btn icon-only" id="selectionMoreBtn"
-              onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
-              <span class="material-symbols-outlined">more_horiz</span>
-            </button>
-          </div>
-
-          <div class="selection-bar-right">
+            <!-- Count (Dropbox Style: Number first) -->
             <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
-            <button class="selection-btn icon-only" style="background:transparent !important; border:none !important;">
-              <span class="material-symbols-outlined">grid_view</span>
-            </button>
+
+            <div class="selection-actions-group">
+              <button class="selection-btn" onclick="window.dashboard.shareSelected()">
+                <span class="material-symbols-outlined">share</span>
+                <span data-i18n="shareSelection">Comparte la selección</span>
+              </button>
+
+              <button class="selection-btn icon-only" id="selectionMoreBtn"
+                onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
+                <span class="material-symbols-outlined">more_horiz</span>
+              </button>
+            </div>
           </div>
 
-
-          <!-- Dropbox-style Detailed Overflow Menu -->
+          <!-- Overflow Menu -->
           <div id="selectionOverflowMenu" class="selection-overflow-menu detailed-menu">
-            <div id="selectionMenuHeader" class="menu-header-detailed" style="display:none;">
-              <div class="menu-title-recipe" id="menuRecipeTitle">Nombre de Receta</div>
-              <div class="menu-subtitle-shared" id="menuRecipeSubtitle">
-                <span class="material-symbols-outlined" style="font-size:14px;">groups</span>
-                Compartida con...
-              </div>
-            </div>
-
+            <button class="selection-menu-item" onclick="window.dashboard.downloadSelected()">
+              <span class="material-symbols-outlined">download</span>
+              <span data-i18n="download">Descargar</span>
+            </button>
+            <div class="context-menu-divider"></div>
             <button class="selection-menu-item" onclick="window.dashboard.copyLinkSelected()">
               <span class="material-symbols-outlined">link</span>
               <span>Copiar enlace</span>
             </button>
-
-            <button class="selection-menu-item" onclick="window.dashboard.shareSelected()">
-              <span class="material-symbols-outlined">share</span>
-              <span>Compartir</span>
-            </button>
-
-            <div class="context-menu-divider"></div>
-
             <button class="selection-menu-item" onclick="window.dashboard.editSelected()">
               <span class="material-symbols-outlined">edit</span>
-              <span>Editar Receta</span>
+              <span>Editar</span>
             </button>
-
-            <button class="selection-menu-item" onclick="window.dashboard.renameSelected()">
-              <span class="material-symbols-outlined">drive_file_rename_outline</span>
-              <span>Renombrar</span>
-            </button>
-
-            <button class="selection-menu-item" onclick="window.dashboard.favoriteSelected()">
-              <span class="material-symbols-outlined">star</span>
-              <span>Añadir a favoritos</span>
-            </button>
-
             <div class="context-menu-divider"></div>
-
             <button class="selection-menu-item danger" onclick="window.dashboard.deleteSelected()">
               <span class="material-symbols-outlined">delete</span>
-              <span style="text-transform: uppercase; font-weight:700;">ELIMINAR</span>
+              <span>Eliminar</span>
             </button>
           </div>
-
         </div>
 
         <div class="dashboard-header">
+
           <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
 
           <!-- View Switcher (Dropbox Style Dropdown) -->
@@ -686,18 +633,19 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=12.1"></script>
-    <script src="js/supabase-client.js?v=12.1"></script>
-    <script src="js/auth.js?v=12.1"></script>
-    <script src="js/localdb.js?v=12.1"></script>
-    <script src="js/sync-manager.js?v=12.1"></script>
-    <script src="js/db.js?v=12.1"></script>
-    <script src="js/utils.js?v=12.1"></script>
-    <script src="js/i18n.js?v=12.1"></script>
-    <script src="js/ui.js?v=12.1"></script>
-    <script src="js/share-modal.js?v=12.1"></script>
-    <script src="js/notifications.js?v=12.1"></script>
-    <script src="js/dashboard.js?v=12.1"></script>
+    <script src="js/config.js?v=12.2.1"></script>
+    <script src="js/supabase-client.js?v=12.2.1"></script>
+    <script src="js/auth.js?v=12.2.1"></script>
+    <script src="js/localdb.js?v=12.2.1"></script>
+    <script src="js/sync-manager.js?v=12.2.1"></script>
+    <script src="js/db.js?v=12.2.1"></script>
+    <script src="js/utils.js?v=12.2.1"></script>
+    <script src="js/i18n.js?v=12.2.1"></script>
+    <script src="js/ui.js?v=12.2.1"></script>
+    <script src="js/share-modal.js?v=12.2.1"></script>
+    <script src="js/notification-manager.js?v=12.2.1"></script>
+    <script src="js/dashboard.js?v=12.2.1"></script>
+
 
     <script>
       // Kept for backward compatibility – i18n.js handles the heavy lifting.
