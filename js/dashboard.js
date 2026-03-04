@@ -283,7 +283,7 @@ class DashboardManager {
     }
 
     updateSelectionModeClass() {
-        const container = document.querySelector('.recipe-list-body');
+        const container = document.getElementById('recipesGrid');
         if (container) {
             if (this.isSelectionMode) {
                 container.classList.add('selection-mode-active');
@@ -302,6 +302,7 @@ class DashboardManager {
             this.selectedRecipes.clear();
         }
         this.isSelectionMode = this.selectedRecipes.size > 0;
+        this.updateSelectionModeClass();
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
     }
