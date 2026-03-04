@@ -5562,19 +5562,20 @@ input:checked~.m3-ingredient-text {
     left: 0;
     right: 0;
     z-index: 3000;
-    height: 72px;
-    background: #00A676 !important;
-    /* Force Emerald Green */
+    height: 64px;
+    background: #1e1f21 !important;
+    /* Dropbox Dark */
     color: white !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 24px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border-radius: 0 0 24px 24px;
+    padding: 0 16px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-radius: 0 !important;
+    /* No rounding at bottom like Dropbox */
     transform: translateY(-100%);
-    transition: transform 0.4s cubic-bezier(0.05, 0.7, 0.1, 1);
+    transition: transform 0.25s ease-out;
     width: 100vw;
 }
 
@@ -5587,8 +5588,10 @@ input:checked~.m3-ingredient-text {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 16px !important;
+    gap: 8px !important;
+    /* Tighter gap like Dropbox */
 }
+
 
 
 
@@ -5605,29 +5608,41 @@ input:checked~.m3-ingredient-text {
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    background: #333 !important;
+    /* Darker button base */
+    border: none !important;
     color: white !important;
-    padding: 8px 20px !important;
-    border-radius: 28px !important;
-    font-weight: 600 !important;
-    font-size: 15px !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    /* Slight rounding like Dropbox */
+    font-weight: 500 !important;
+    font-size: 14px !important;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s;
     white-space: nowrap;
 }
 
 .selection-btn:hover {
-    background: rgba(255, 255, 255, 0.35) !important;
-    transform: scale(1.02);
+    background: #444 !important;
+    transform: none !important;
 }
 
 .selection-btn.icon-only {
-    width: 48px !important;
-    height: 48px !important;
+    width: 40px !important;
+    height: 40px !important;
     padding: 0 !important;
-    border-radius: 50% !important;
+    border-radius: 6px !important;
 }
+
+.selection-btn.primary-btn {
+    background: white !important;
+    color: #1e1f21 !important;
+}
+
+.selection-btn.primary-btn:hover {
+    background: #f0f0f0 !important;
+}
+
 
 
 
@@ -5766,48 +5781,72 @@ input:checked~.m3-ingredient-text {
     background-color: var(--primary-green-light);
 }
 
-/* Overflow Menu */
-.selection-overflow-menu {
-    position: fixed;
-    top: 64px;
-    right: 16px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: var(--shadow-3);
-    padding: 8px 0;
-    min-width: 200px;
-    z-index: 3000;
-    display: none;
-    flex-direction: column;
+/* Dropbox-style Detailed Overflow Menu */
+.selection-overflow-menu.detailed-menu {
+    background: #1e1f21 !important;
+    color: white !important;
+    border-radius: 8px;
+    padding: 0;
+    /* Let items handle padding */
+    min-width: 280px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid #333;
 }
 
-.selection-overflow-menu.show {
+.menu-header-detailed {
+    padding: 16px;
+    border-bottom: 1px solid #333;
+}
+
+.menu-title-recipe {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.menu-subtitle-shared {
+    font-size: 12px;
+    color: #00A676;
+    /* Emerald for shared status */
     display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .selection-menu-item {
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
+    padding: 10px 16px !important;
     gap: 12px;
-    color: var(--on-surface);
+    color: #eee !important;
     font-size: 14px;
     font-weight: 500;
-    cursor: pointer;
     transition: background 0.2s;
-    border: none;
-    background: transparent;
-    width: 100%;
-    text-align: left;
 }
 
 .selection-menu-item:hover {
-    background: var(--surface-variant);
+    background: #333 !important;
+}
+
+.selection-menu-item .material-symbols-outlined {
+    font-size: 20px;
+    color: #aaa;
 }
 
 .selection-menu-item.danger {
-    color: var(--md-error);
+    color: white !important;
+    background: transparent !important;
 }
+
+.selection-menu-item.danger:hover {
+    background: #8b0000 !important;
+    /* Dark red on hover */
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: #333;
+    margin: 4px 0;
+}
+
 
 .selection-btn.icon-only {
     width: 44px !important;

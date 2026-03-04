@@ -462,41 +462,90 @@
       </header>
       <div class="main-content-scroll">
 
-        <!-- Selection Action Bar (Multi-Select) -->
+        <!-- Dropbox-style Selection Action Bar -->
         <div id="selectionActionBar" class="selection-action-bar hidden">
           <div class="selection-bar-left">
             <button class="selection-btn" onclick="window.dashboard.clearSelection()" title="Cerrar">
               <span class="material-symbols-outlined">close</span>
             </button>
-            <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
-          </div>
-          <div class="selection-bar-right">
-            <button class="selection-btn" onclick="window.dashboard.shareSelected()" title="Compartir">
+
+            <!-- Dropbox Style Buttons -->
+            <button class="selection-btn primary-btn" onclick="window.dashboard.shareSelected()">
               <span class="material-symbols-outlined">share</span>
-              <span data-i18n="share">Compartir</span>
+              <span>Comparte la selección</span>
+              <span class="material-symbols-outlined" style="font-size: 18px;">expand_more</span>
             </button>
+
+            <!-- Download button (added as requested in screenshot) -->
+            <button class="selection-btn" onclick="window.dashboard.downloadSelected()">
+              <span class="material-symbols-outlined">download</span>
+              <span>Descargar</span>
+            </button>
+
+            <button class="selection-btn" onclick="window.dashboard.deleteSelected()">
+              <span class="material-symbols-outlined">delete</span>
+              <span>Eliminar</span>
+            </button>
+
             <button class="selection-btn icon-only" id="selectionMoreBtn"
               onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
-              <span class="material-symbols-outlined">more_vert</span>
+              <span class="material-symbols-outlined">more_horiz</span>
             </button>
           </div>
 
-          <!-- Overflow Menu for Multi-Selection -->
-          <div id="selectionOverflowMenu" class="selection-overflow-menu">
-            <button class="selection-menu-item" onclick="window.dashboard.favoriteSelected()">
-              <span class="material-symbols-outlined">star</span>
-              <span data-i18n="favorite">Favorito</span>
-            </button>
-            <button class="selection-menu-item" onclick="window.dashboard.moveSelected()">
-              <span class="material-symbols-outlined">drive_file_move</span>
-              <span data-i18n="move">Mover</span>
-            </button>
-            <div class="context-menu-divider"></div>
-            <button class="selection-menu-item danger" onclick="window.dashboard.deleteSelected()">
-              <span class="material-symbols-outlined">delete</span>
-              <span data-i18n="delete">Eliminar</span>
+          <div class="selection-bar-right">
+            <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
+            <button class="selection-btn icon-only" style="background:transparent !important; border:none !important;">
+              <span class="material-symbols-outlined">grid_view</span>
             </button>
           </div>
+
+
+          <!-- Dropbox-style Detailed Overflow Menu -->
+          <div id="selectionOverflowMenu" class="selection-overflow-menu detailed-menu">
+            <div id="selectionMenuHeader" class="menu-header-detailed" style="display:none;">
+              <div class="menu-title-recipe" id="menuRecipeTitle">Nombre de Receta</div>
+              <div class="menu-subtitle-shared" id="menuRecipeSubtitle">
+                <span class="material-symbols-outlined" style="font-size:14px;">groups</span>
+                Compartida con...
+              </div>
+            </div>
+
+            <button class="selection-menu-item" onclick="window.dashboard.copyLinkSelected()">
+              <span class="material-symbols-outlined">link</span>
+              <span>Copiar enlace</span>
+            </button>
+
+            <button class="selection-menu-item" onclick="window.dashboard.shareSelected()">
+              <span class="material-symbols-outlined">share</span>
+              <span>Compartir</span>
+            </button>
+
+            <div class="context-menu-divider"></div>
+
+            <button class="selection-menu-item" onclick="window.dashboard.editSelected()">
+              <span class="material-symbols-outlined">edit</span>
+              <span>Editar Receta</span>
+            </button>
+
+            <button class="selection-menu-item" onclick="window.dashboard.renameSelected()">
+              <span class="material-symbols-outlined">drive_file_rename_outline</span>
+              <span>Renombrar</span>
+            </button>
+
+            <button class="selection-menu-item" onclick="window.dashboard.favoriteSelected()">
+              <span class="material-symbols-outlined">star</span>
+              <span>Añadir a favoritos</span>
+            </button>
+
+            <div class="context-menu-divider"></div>
+
+            <button class="selection-menu-item danger" onclick="window.dashboard.deleteSelected()">
+              <span class="material-symbols-outlined">delete</span>
+              <span style="text-transform: uppercase; font-weight:700;">ELIMINAR</span>
+            </button>
+          </div>
+
         </div>
 
         <div class="dashboard-header">

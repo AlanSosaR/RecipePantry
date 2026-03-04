@@ -297,13 +297,67 @@ class DashboardManager {
     toggleSelectionMenu(event) {
         if (event) event.stopPropagation();
         const menu = document.getElementById('selectionOverflowMenu');
-        if (menu) menu.classList.toggle('show');
+        const header = document.getElementById('selectionMenuHeader');
+        const titleEl = document.getElementById('menuRecipeTitle');
+        const subtitleEl = document.getElementById('menuRecipeSubtitle');
+
+        if (!menu) return;
+
+        if (this.selectedRecipes.size === 1) {
+            const recipeId = Array.from(this.selectedRecipes)[0];
+            const recipe = this.currentRecipes.find(r => r.id === recipeId);
+            if (recipe) {
+                if (header) header.style.display = 'block';
+                if (titleEl) titleEl.textContent = recipe.name;
+                if (subtitleEl) {
+                    const isShared = recipe.sharingContext === 'sent' || recipe.sharingContext === 'received';
+                    subtitleEl.innerHTML = `
+                        <span class="material-symbols-outlined" style="font-size:14px;">${isShared ? 'groups' : 'person'}</span>
+                        ${isShared ? 'Compartida con...' : 'Solo tú'}
+                    `;
+                    subtitleEl.style.color = isShared ? '#00A676' : '#aaa';
+                }
+            }
+        } else {
+            if (header) header.style.display = 'none';
+        }
+
+        menu.classList.toggle('show');
     }
 
     hideSelectionMenu() {
         const menu = document.getElementById('selectionOverflowMenu');
         if (menu) menu.classList.remove('show');
     }
+
+    // --- Dropbox Selection Bridge Methods ---
+    downloadSelected() {
+        alert('Funcionalidad de descarga en desarrollo...');
+    }
+
+    copyLinkSelected() {
+        if (this.selectedRecipes.size === 0) return;
+        const recipeId = Array.from(this.selectedRecipes).sort()[0];
+        this.copyLink(recipeId);
+    }
+
+    editSelected() {
+        if (this.selectedRecipes.size === 0) return;
+        const recipeId = Array.from(this.selectedRecipes).sort()[0];
+        window.location.href = `/recipe-form?id=${recipeId}`;
+    }
+
+    renameSelected() {
+        if (this.selectedRecipes.size === 0) return;
+        const recipeId = Array.from(this.selectedRecipes).sort()[0];
+        const recipe = this.currentRecipes.find(r => r.id === recipeId);
+        const newName = prompt('Ingrese el nuevo nombre:', recipe ? recipe.name : '');
+        if (newName && newName.trim()) {
+            // Implementation for rename can be added here
+            alert('Cambiando nombre a: ' + newName);
+        }
+    }
+
 
     updateSelectAllCheckbox() {
         const selectAllCb = document.getElementById('selectAllCheckbox');
