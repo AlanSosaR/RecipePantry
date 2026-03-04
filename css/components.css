@@ -6011,13 +6011,18 @@ input:checked~.m3-ingredient-text {
         display: grid !important;
         background: var(--surface, #ffffff) !important;
         border-bottom: 1px solid var(--outline-variant, #CAC4D0) !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 16px !important;
+        /* Huge space to detach from first recipe */
+        padding: 16px 12px !important;
+        /* Fat padding to make it a distinct block */
+        border-radius: 12px;
         height: auto !important;
         opacity: 1 !important;
         /* Override the 0.8 opacity from desktop */
         position: relative;
         z-index: 10;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        /* Distinct shadow to lift it */
     }
 
     #recipesGrid.selection-mode-active .list-header-m3 .col-checkbox {
