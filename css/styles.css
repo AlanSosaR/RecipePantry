@@ -104,18 +104,26 @@ body,
 *::before,
 *::after {
     -webkit-tap-highlight-color: transparent !important;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+    -webkit-touch-callout: none !important;
+    /* Previene menú contextual indeseado en iOS */
 }
 
-button,
 a,
+button,
 input,
 textarea,
 select,
 [role="button"],
 [onclick],
-[tabindex] {
+[tabindex],
+.file-row-m3,
+.recipe-card-m3,
+.btn-icon-m3,
+.menu-item-m3,
+.selection-btn {
     -webkit-tap-highlight-color: transparent !important;
+    outline: none;
+    /* Asegurar base sin outline */
 }
 
 /* Quita el outline del clic con mouse o touch, PERO lo preserva para navegación por teclado */
@@ -125,7 +133,8 @@ select,
 
 *:focus-visible {
     /* Focus ring premium M3 accesible */
-    outline: 3px solid var(--primary-green) !important;
+    outline: 3px solid var(--primary) !important;
+    /* Fix: Variable era --primary-green y fallaba, causando outline azul nativo */
     outline-offset: 2px !important;
     border-radius: 4px;
     /* Soft rounding en el focus */
