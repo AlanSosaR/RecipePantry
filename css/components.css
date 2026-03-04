@@ -5947,6 +5947,22 @@ input:checked~.m3-ingredient-text {
     display: none !important;
 }
 
+@media (max-width: 800px) {
+
+    .file-row-m3,
+    .list-header-m3 {
+        grid-template-columns: 48px 40px 1fr !important;
+        padding: 12px !important;
+    }
+
+    /* Hide non-essential columns on mobile: Category, Shared, Date, etc. */
+    .file-row-m3>div:nth-child(n+4),
+    .list-header-m3>div:nth-child(n+4) {
+        display: none !important;
+    }
+}
+
+
 @media (max-width: 600px) {
     .mobile-action-btn {
         display: flex !important;
