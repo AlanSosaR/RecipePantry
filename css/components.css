@@ -742,6 +742,15 @@ ol {
         display: none;
     }
 
+    /* Hide checkboxes by default on mobile */
+    .col-checkbox {
+        display: none !important;
+    }
+
+    .selection-mode-active .col-checkbox {
+        display: flex !important;
+    }
+
     .file-row {
         display: flex;
         gap: 16px;
@@ -6022,6 +6031,23 @@ input:checked~.m3-ingredient-text {
         font-size: 14px !important;
     }
 }
+
 /* Final Mobile Overrides */
-.mobile-action-btn { display: none; background: transparent; border: none; color: var(--on-surface-variant); width: 40px; height: 40px; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
-@media (max-width: 800px) { .mobile-action-btn { display: flex !important; } }
+.mobile-action-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--on-surface-variant);
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+@media (max-width: 800px) {
+    .mobile-action-btn {
+        display: flex !important;
+    }
+}

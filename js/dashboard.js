@@ -12,6 +12,7 @@ class DashboardManager {
         this.isSelectionMode = false;
 
         this.longPressTimer = null;
+        this.ignoreNextClick = false;
         this.lastSelectedIndex = undefined;
 
         // Cierre de selección al hacer click fuera
@@ -490,6 +491,12 @@ class DashboardManager {
         // Ignorar si se hizo clic directamente en el checkbox o su wrapper
         if (event.target.closest('.col-checkbox')) return;
 
+        // Si acabamos de activar selección por long press, ignorar este click
+        if (this.ignoreNextClick) {
+            this.ignoreNextClick = false;
+            return;
+        }
+
         if (this.isSelectionMode) {
             // En modo selección, cualquier clic alterna el estado
             event.preventDefault();
@@ -501,13 +508,13 @@ class DashboardManager {
     }
 
     handleRowTouchStart(event, recipeId) {
-        // Iniciar temporizador para long press
         this.longPressTimer = setTimeout(() => {
             if (!this.isSelectionMode) {
+                this.ignoreNextClick = true; // Ignorar el click que seguirá al touch
                 this.toggleSelection(recipeId);
                 if (navigator.vibrate) navigator.vibrate(50);
             }
-        }, 500);
+        }, 600); // 600ms para asegurar que es intencional
     }
 
     handleRowTouchEnd() {
