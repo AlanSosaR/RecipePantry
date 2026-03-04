@@ -630,8 +630,8 @@ ol {
 .list-header-m3,
 .file-row-m3 {
     display: grid;
-    /* icon | name | category | access | updated | actions */
-    grid-template-columns: 40px 1fr 140px 120px 160px 100px;
+    /* checkbox | icon | name | category | access | updated | actions */
+    grid-template-columns: 40px 40px 1fr 140px 120px 160px 100px;
     /* icon reduced from 56px */
     gap: 1rem;
     align-items: center;
@@ -666,6 +666,101 @@ ol {
     /* Slightly taller for items */
 }
 
+/* --- Multi-Select CSS --- */
+.selection-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--on-surface);
+    /* Similar to Drive's dark bar */
+    color: var(--bg);
+    padding: 8px 16px;
+    border-radius: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top;
+}
+
+.selection-action-bar.hidden {
+    display: none !important;
+}
+
+.selection-bar-left,
+.selection-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.selection-bar-left .btn-icon-m3,
+.selection-bar-left .selection-count-text {
+    color: var(--bg);
+}
+
+.selection-count-text {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.selection-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--bg);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.selection-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.selection-btn.btn-danger {
+    color: #ff8a80;
+}
+
+.selection-btn.btn-danger:hover {
+    background: rgba(255, 138, 128, 0.15);
+}
+
+@media (max-width: 600px) {
+    .selection-action-bar {
+        border-radius: 0;
+        margin: -16px -16px 16px -16px;
+    }
+
+    .hidden-mobile-sm {
+        display: none;
+    }
+
+    .selection-btn {
+        padding: 8px;
+    }
+}
+
+.col-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.m3-checkbox-input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+/* -------------------- */
+
+
 .file-row-m3:hover {
     background: var(--surface);
     transform: none;
@@ -676,7 +771,7 @@ ol {
 
     .list-header-m3,
     .file-row-m3 {
-        grid-template-columns: 48px 1fr 40px;
+        grid-template-columns: 40px 48px 1fr 40px;
     }
 
     .col-category,
@@ -5408,6 +5503,7 @@ input:checked~.m3-ingredient-text {
     font-size: 12px;
     color: var(--on-surface-variant);
 }
+
 /* ─── Material 3 Outlined Field (Expressive) ───────────────────── */
 .m3-field-container {
     margin-bottom: 32px;
@@ -5447,8 +5543,8 @@ input:checked~.m3-ingredient-text {
     box-shadow: 0 0 0 1px var(--md-primary);
 }
 
-.m3-field-input:focus + .m3-field-label,
-.m3-field-input:not(:placeholder-shown) + .m3-field-label {
+.m3-field-input:focus+.m3-field-label,
+.m3-field-input:not(:placeholder-shown)+.m3-field-label {
     top: 0;
     font-size: 12px;
     font-weight: 700;

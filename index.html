@@ -62,11 +62,11 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v10.3
+    v10.4
   </div>
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=10.3"></script>
+  <script src="js/sw-register.js?v=10.4"></script>
   <style>
     /* ─── Recipe Pantry Glassmorphism Landing ─── */
     :root {
@@ -452,6 +452,27 @@
         </div>
       </header>
       <div class="main-content-scroll">
+
+        <!-- Selection Action Bar (Multi-Select) -->
+        <div id="selectionActionBar" class="selection-action-bar hidden">
+          <div class="selection-bar-left">
+            <button class="btn-icon-m3" onclick="window.dashboard.clearSelection()" title="Cerrar">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
+          </div>
+          <div class="selection-bar-right">
+            <button class="selection-btn" onclick="window.dashboard.shareSelected()">
+              <span class="material-symbols-outlined">share</span>
+              <span class="hidden-mobile-sm">Compartir la selección</span>
+            </button>
+            <button class="selection-btn btn-danger" onclick="window.dashboard.deleteSelected()">
+              <span class="material-symbols-outlined">delete</span>
+              <span class="hidden-mobile-sm">Eliminar</span>
+            </button>
+          </div>
+        </div>
+
         <div class="dashboard-header">
           <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
 
@@ -577,18 +598,18 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=10.3"></script>
-    <script src="js/supabase-client.js?v=10.3"></script>
-    <script src="js/auth.js?v=10.3"></script>
-    <script src="js/localdb.js?v=10.3"></script>
-    <script src="js/sync-manager.js?v=10.3"></script>
-    <script src="js/db.js?v=10.3"></script>
-    <script src="js/utils.js?v=10.3"></script>
-    <script src="js/i18n.js?v=10.3"></script>
-    <script src="js/ui.js?v=10.3"></script>
-    <script src="js/share-modal.js?v=10.3"></script>
-    <script src="js/notifications.js?v=10.3"></script>
-    <script src="js/dashboard.js?v=10.3"></script>
+    <script src="js/config.js?v=10.4"></script>
+    <script src="js/supabase-client.js?v=10.4"></script>
+    <script src="js/auth.js?v=10.4"></script>
+    <script src="js/localdb.js?v=10.4"></script>
+    <script src="js/sync-manager.js?v=10.4"></script>
+    <script src="js/db.js?v=10.4"></script>
+    <script src="js/utils.js?v=10.4"></script>
+    <script src="js/i18n.js?v=10.4"></script>
+    <script src="js/ui.js?v=10.4"></script>
+    <script src="js/share-modal.js?v=10.4"></script>
+    <script src="js/notifications.js?v=10.4"></script>
+    <script src="js/dashboard.js?v=10.4"></script>
     <script>
       // Kept for backward compatibility – i18n.js handles the heavy lifting.
       function updateTranslations() {
