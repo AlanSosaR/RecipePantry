@@ -1,5 +1,7 @@
 {
     "version": 2,
+    "cleanUrls": true,
+    "trailingSlash": false,
     "headers": [
         {
             "source": "/(.*)\\.(js|css|png|jpg|svg|ico|webp|gif|woff2?)",
@@ -46,6 +48,10 @@
         {
             "source": "/api/:path*",
             "destination": "/api/:path*"
+        },
+        {
+            "source": "/((?!api|assets|js|css|sw\\.js|favicon\\.ico|manifest\\.webmanifest).*)",
+            "destination": "/index.html"
         }
     ]
 }
