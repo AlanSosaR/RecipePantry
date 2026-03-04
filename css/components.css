@@ -5888,17 +5888,13 @@ input:checked~.m3-ingredient-text {
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: opacity 0.2s var(--md-sys-motion-easing-standard),
-        transform 0.2s var(--md-sys-motion-easing-standard);
-    pointer-events: none;
+    opacity: 1;
+    /* Container always visible, wrapper handles hide/show */
+    pointer-events: auto;
 }
 
 #recipesGrid.selection-mode-active .col-checkbox {
     opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
 }
 
 /* 3. Tonal Container State */
@@ -5981,27 +5977,28 @@ input:checked~.m3-ingredient-text {
     }
 
     /* Column Reordering for consistency */
-    .file-row-m3 .col-icon {
+    .file-row-m3 .col-icon,
+    .list-header-m3 .col-icon {
         order: 1;
     }
 
-    .file-row-m3 .col-name {
+    .file-row-m3 .col-name,
+    .list-header-m3 .col-name {
         order: 2;
         flex: 1;
     }
 
     /* MOBILE: RIGHT SIDE */
-    .file-row-m3 .col-checkbox {
+    .file-row-m3 .col-checkbox,
+    .list-header-m3 .col-checkbox {
         order: 3 !important;
         display: flex !important;
         width: 48px;
         justify-content: center;
-        opacity: 0;
-        transform: scale(0.8);
-        pointer-events: none;
     }
 
-    .file-row-m3 .col-actions {
+    .file-row-m3 .col-actions,
+    .list-header-m3 .col-actions {
         order: 4;
         display: flex !important;
         width: 48px;
