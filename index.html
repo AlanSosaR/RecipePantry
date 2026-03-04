@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=12.3.0">
-  <link rel="stylesheet" href="css/components.css?v=12.3.0">
-  <link rel="stylesheet" href="css/responsive.css?v=12.3.0">
+  <link rel="stylesheet" href="css/styles.css?v=12.3.1">
+  <link rel="stylesheet" href="css/components.css?v=12.3.1">
+  <link rel="stylesheet" href="css/responsive.css?v=12.3.1">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -62,12 +62,12 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v12.3.0
+    v12.3.1
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=12.3.0"></script>
+  <script src="js/sw-register.js?v=12.3.1"></script>
 
 
 
@@ -479,7 +479,7 @@
 
               <button class="selection-btn icon-only m3-btn-icon" id="selectionMoreBtn"
                 onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
-                <span class="material-symbols-outlined">more_horiz</span>
+                <span class="material-symbols-outlined">more_vert</span>
               </button>
             </div>
           </div>
