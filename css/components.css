@@ -5563,13 +5563,13 @@ input:checked~.m3-ingredient-text {
     right: 0;
     z-index: 110;
     height: 72px;
-    /* Slightly taller for M3 Expressive */
     background: transparent !important;
     backdrop-filter: none !important;
     color: var(--on-surface) !important;
     display: flex !important;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     padding: 0 24px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -5577,11 +5577,31 @@ input:checked~.m3-ingredient-text {
     margin: 0 !important;
 }
 
+.selection-bar-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 24px !important;
+    flex: 1;
+}
+
+.selection-actions-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.selection-count-text {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--on-surface);
+    white-space: nowrap;
+}
+
 .selection-btn {
     display: flex !important;
     align-items: center !important;
     gap: 12px !important;
-    padding: 10px 24px !important;
+    padding: 10px 20px !important;
     border-radius: 12px !important;
     font-weight: 600 !important;
     font-size: 14px !important;
@@ -5590,6 +5610,7 @@ input:checked~.m3-ingredient-text {
     border: 1.5px solid var(--md-outline-variant) !important;
     background: white !important;
     color: var(--on-surface) !important;
+    white-space: nowrap;
 }
 
 .selection-btn:hover {
@@ -5597,15 +5618,16 @@ input:checked~.m3-ingredient-text {
     border-color: var(--md-primary) !important;
 }
 
+/* Removal of "Píldora Verde Sólida" -> Switching to M3 Outlined Premium */
 .selection-btn.primary-m3 {
-    background: var(--primary) !important;
-    color: white !important;
-    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--primary) !important;
+    border: 2px solid var(--primary) !important;
 }
 
 .selection-btn.primary-m3:hover {
-    background: var(--primary-dark) !important;
-    filter: brightness(1.1);
+    background: rgba(16, 185, 129, 0.05) !important;
+    border-color: var(--primary-dark) !important;
 }
 
 .selection-btn.icon-only {
@@ -5613,6 +5635,7 @@ input:checked~.m3-ingredient-text {
     height: 44px !important;
     padding: 0 !important;
     justify-content: center !important;
+    border-radius: 50% !important;
 }
 
 
