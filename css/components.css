@@ -4193,6 +4193,16 @@ html[data-auth-likely="true"] #dashboard-app {
     }
 }
 
+@media (max-width: 800px) {
+
+    .file-row .row-actions-dropbox,
+    .folder-row .row-actions-dropbox,
+    .file-row-m3 .row-actions-dropbox,
+    .recipe-card-m3 .recipe-card-actions>.btn-icon-m3:not(.mobile-action-btn) {
+        display: none !important;
+    }
+}
+
 @media (max-width: 1023px) {
     .row-actions-dropbox {
         display: none !important;
@@ -5801,24 +5811,31 @@ input:checked~.m3-ingredient-text {
     }
 }
 
-/* Restore Hover Actions for M3 Rows */
+/* Restore Hover Actions for M3 Rows (Desktop Only) */
+@media (min-width: 801px) {
+    .file-row-m3 .row-actions-dropbox {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s;
+        pointer-events: none;
+    }
 
-.file-row-m3 .row-actions-dropbox {
-    display: flex !important;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s;
-    pointer-events: none;
+    .file-row-m3:hover .row-actions-dropbox {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
 }
 
-
-.file-row-m3:hover .row-actions-dropbox {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
+/* Force hide on mobile to be absolutely sure */
+@media (max-width: 800px) {
+    .file-row-m3 .row-actions-dropbox {
+        display: none !important;
+    }
 }
 
 
