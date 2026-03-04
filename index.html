@@ -62,12 +62,13 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v12.0
+    v12.1
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=12.0"></script>
+  <script src="js/sw-register.js?v=12.1"></script>
+
 
 
   <style>
@@ -470,6 +471,16 @@
             <button class="selection-btn" onclick="window.dashboard.clearSelection()" title="Cerrar">
               <span class="material-symbols-outlined">close</span>
             </button>
+
+            <!-- Select All Checkbox inside Action Bar -->
+            <div class="col-checkbox" style="margin-left: 8px;">
+              <label class="m3-checkbox-wrapper" style="opacity: 1; pointer-events: auto; transform: scale(1);">
+                <input type="checkbox" id="selectAllCheckboxAction" class="m3-checkbox-input"
+                  onchange="window.dashboard.toggleSelectAll(event)">
+                <span class="m3-checkbox-visual"></span>
+              </label>
+            </div>
+
 
             <!-- Dropbox Style Buttons -->
             <button class="selection-btn primary-btn" onclick="window.dashboard.shareSelected()">
