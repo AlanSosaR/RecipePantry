@@ -5891,6 +5891,11 @@ input:checked~.m3-ingredient-text {
         justify-content: center;
     }
 
+    /* FORCE HEADER VISIBILITY ON MOBILE DURING SELECTION */
+    #recipesGrid.selection-mode-active .list-header-m3.hidden-mobile-lg {
+        display: grid !important;
+    }
+
     .recipe-name {
         font-size: 15px !important;
         white-space: normal !important;

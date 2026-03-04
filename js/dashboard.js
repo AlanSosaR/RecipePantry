@@ -455,10 +455,23 @@ class DashboardManager {
 
         document.body.appendChild(menu);
 
-        // Position menu below the "3 dots" button
+        // Position menu
         const rect = event.target.getBoundingClientRect();
-        menu.style.top = `${rect.bottom + 8}px`;
-        menu.style.right = `${window.innerWidth - rect.right}px`;
+        const menuWidth = 220; // Default approximation
+
+        if (window.innerWidth < 600) {
+            // CENTERED ON MOBILE
+            menu.style.top = '50%';
+            menu.style.left = '50%';
+            menu.style.transform = 'translate(-50%, -50%)';
+            menu.style.position = 'fixed';
+            menu.style.zIndex = '3000';
+            menu.style.width = '90%';
+            menu.style.maxWidth = '320px';
+        } else {
+            menu.style.top = `${rect.bottom + 8}px`;
+            menu.style.right = `${window.innerWidth - rect.right}px`;
+        }
 
         // Close menu on outside click
         const closeMenu = (e) => {
@@ -1060,8 +1073,19 @@ class DashboardManager {
         }
         if (left < 0) left = 8;
 
-        menu.style.top = `${top}px`;
-        menu.style.left = `${left}px`;
+        if (window.innerWidth < 600) {
+            // CENTERED ON MOBILE
+            menu.style.top = '50%';
+            menu.style.left = '50%';
+            menu.style.transform = 'translate(-50%, -50%)';
+            menu.style.position = 'fixed';
+            menu.style.zIndex = '3000';
+            menu.style.width = '90%';
+            menu.style.maxWidth = '320px';
+        } else {
+            menu.style.top = `${top}px`;
+            menu.style.left = `${left}px`;
+        }
 
         const closeMenu = (e) => {
             if (!menu.contains(e.target)) {
