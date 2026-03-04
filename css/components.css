@@ -5563,21 +5563,22 @@ input:checked~.m3-ingredient-text {
     right: 0;
     z-index: 3000;
     height: 64px;
-    background: #1e1f21 !important;
-    /* Dropbox Dark */
+    background: rgba(16, 185, 129, 0.9) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     color: white !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 16px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border-radius: 0 !important;
-    /* No rounding at bottom like Dropbox */
+    padding: 0 24px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transform: translateY(-100%);
-    transition: transform 0.25s ease-out;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100vw;
 }
+
 
 .selection-action-bar:not(.hidden) {
     transform: translateY(0);
@@ -5608,24 +5609,23 @@ input:checked~.m3-ingredient-text {
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
-    background: #333 !important;
-    /* Darker button base */
-    border: none !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: white !important;
     padding: 8px 16px !important;
-    border-radius: 6px !important;
-    /* Slight rounding like Dropbox */
+    border-radius: 8px !important;
     font-weight: 500 !important;
     font-size: 14px !important;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
     white-space: nowrap;
 }
 
 .selection-btn:hover {
-    background: #444 !important;
-    transform: none !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px);
 }
+
 
 .selection-btn.icon-only {
     width: 40px !important;
@@ -5735,16 +5735,45 @@ input:checked~.m3-ingredient-text {
 }
 
 
-/* Alignment Fixes for Mobile List View (7 columns total) */
+/* ─── Dropbox Layout Refinement ─── */
+.list-view-m3 {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 16px 0;
+}
+
 .file-row-m3,
 .list-header-m3 {
     display: grid !important;
     grid-template-columns: 48px 48px 1fr 140px 100px 120px 160px !important;
     align-items: center !important;
     gap: 12px !important;
-    padding: 8px 16px !important;
+    padding: 12px 24px !important;
     width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
+
+.list-header-m3 {
+    background: rgba(255, 255, 255, 0.02) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--on-surface-variant);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+}
+
+.file-row-m3 {
+    transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.file-row-m3:hover {
+    background: rgba(16, 185, 129, 0.06) !important;
+}
+
 
 @media (max-width: 1200px) {
 
@@ -5800,9 +5829,29 @@ input:checked~.m3-ingredient-text {
 }
 
 .file-row-m3.selected {
-    background-color: var(--primary-green-light) !important;
+    background-color: rgba(16, 185, 129, 0.12) !important;
     box-shadow: inset 4px 0 0 var(--primary);
 }
+
+/* Custom Thin Scrollbar */
+.recipes-grid::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.recipes-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.recipes-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.recipes-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 
 .recipe-card-m3.selected {
     outline: 3px solid var(--primary);
