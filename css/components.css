@@ -5954,10 +5954,11 @@ input:checked~.m3-ingredient-text {
 
 .m3-checkbox-input:indeterminate+.m3-checkbox-visual::after {
     content: 'remove';
-    /* Horizontal line for indeterminate */
     font-family: 'Material Symbols Outlined';
     font-size: 16px;
     color: white;
+    opacity: 1;
+    /* Fix invisible indeterminate icon */
     position: absolute;
     top: 50%;
     left: 50%;
@@ -6008,6 +6009,20 @@ input:checked~.m3-ingredient-text {
     /* Show list header on mobile ONLY during selection mode */
     #recipesGrid.selection-mode-active .list-header-m3.hidden-mobile-lg {
         display: grid !important;
+        background: var(--surface, #ffffff) !important;
+        border-bottom: 1px solid var(--outline-variant, #CAC4D0) !important;
+        margin-bottom: 8px !important;
+        height: auto !important;
+        opacity: 1 !important;
+        /* Override the 0.8 opacity from desktop */
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    #recipesGrid.selection-mode-active .list-header-m3 .col-checkbox {
+        opacity: 1 !important;
+        /* Ensure the checkbox is fully visible and not faint */
     }
 
     /* Show checkbox in selection mode WITHOUT layout shift */
