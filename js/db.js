@@ -119,12 +119,17 @@ class DatabaseManager {
                 url.searchParams.set('sort_order', filters.ascending.toString());
             }
 
+            // Preparar cabeceras con Auth
+            const headers = { 'Content-Type': 'application/json' };
+            const { data: sessionData } = await window.supabaseClient.auth.getSession();
+            if (sessionData?.session?.access_token) {
+                headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
+            }
+
             // Fetch a la Edge API
             const response = await fetch(url.toString(), {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
 
             if (!response.ok) {
@@ -238,10 +243,17 @@ class DatabaseManager {
 
         if (this._isOnline) {
             try {
+                // Preparar cabeceras con Auth
+                const headers = { 'Content-Type': 'application/json' };
+                const { data: sessionData } = await window.supabaseClient.auth.getSession();
+                if (sessionData?.session?.access_token) {
+                    headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
+                }
+
                 // 1) Intentar fetch API Edge Cache
                 const response = await fetch(`/api/recipe/${recipeId}`, {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: headers
                 });
 
                 if (response.status === 404) {

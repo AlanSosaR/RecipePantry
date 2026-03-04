@@ -21,9 +21,19 @@ export default async function handler(req) {
         }), { status: 500, headers });
     }
 
+    // Extraer header de autenticación si existe
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+
     const supabase = createClient(
         process.env.SUPABASE_URL,
-        process.env.SUPABASE_ANON_KEY
+        process.env.SUPABASE_ANON_KEY,
+        {
+            global: {
+                headers: {
+                    Authorization: authHeader
+                }
+            }
+        }
     );
 
     if (req.method === 'OPTIONS') {
