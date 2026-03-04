@@ -931,7 +931,11 @@ ol {
         opacity: 1;
         /* Always visible on mobile if we decide to show actions */
         display: none;
-        /* Hide default actions to keep clean, maybe show just one? */
+        /* individual mobile action hidden by default, shown in media query */
+    }
+
+    .mobile-action-btn {
+        display: none !important;
     }
 
     .file-row .mobile-action {
@@ -4168,7 +4172,16 @@ html[data-auth-likely="true"] #dashboard-app {
 
 /* Responsive Action Menu (Three dots for mobile) */
 .mobile-action-btn {
-    display: none;
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .mobile-action-btn {
+        display: flex !important;
+        background: transparent;
+        border: none;
+        color: var(--on-surface-variant);
+    }
 }
 
 @media (max-width: 1023px) {
@@ -5548,19 +5561,21 @@ input:checked~.m3-ingredient-text {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 2000;
+    z-index: 3000;
     height: 72px;
-    background: var(--primary);
-    /* Emerald M3 */
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    box-shadow: var(--shadow-3);
+    background: #00A676 !important;
+    /* Force Emerald Green */
+    color: white !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 24px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border-radius: 0 0 24px 24px;
     transform: translateY(-100%);
-    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+    transition: transform 0.4s cubic-bezier(0.05, 0.7, 0.1, 1);
+    width: 100vw;
 }
 
 .selection-action-bar:not(.hidden) {
@@ -5569,10 +5584,13 @@ input:checked~.m3-ingredient-text {
 
 .selection-bar-left,
 .selection-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 16px !important;
 }
+
+
 
 .selection-count-text {
     font-weight: 700;
@@ -5582,23 +5600,36 @@ input:checked~.m3-ingredient-text {
 }
 
 .selection-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    border-radius: 50%;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    padding: 8px 20px !important;
+    border-radius: 28px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .selection-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.35) !important;
+    transform: scale(1.02);
 }
+
+.selection-btn.icon-only {
+    width: 48px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+}
+
+
 
 .selection-btn .material-symbols-outlined {
     font-size: 24px;
@@ -5661,13 +5692,51 @@ input:checked~.m3-ingredient-text {
     transform: scale(1);
 }
 
-/* Alignment Fixes for Mobile List View */
+/* Alignment Fixes for Mobile List View (7 columns total) */
 .file-row-m3,
 .list-header-m3 {
-    grid-template-columns: 48px 48px 1fr 120px 80px 48px !important;
+    display: grid !important;
+    grid-template-columns: 48px 48px 1fr 140px 100px 120px 160px !important;
     align-items: center !important;
     gap: 12px !important;
+    padding: 8px 16px !important;
+    width: 100%;
 }
+
+@media (max-width: 1200px) {
+
+    .file-row-m3,
+    .list-header-m3 {
+        grid-template-columns: 48px 48px 1fr 0 0 0 60px !important;
+    }
+
+    .col-category,
+    .col-access,
+    .col-date {
+        display: none !important;
+    }
+}
+
+
+/* Restore Hover Actions for M3 Rows */
+.file-row-m3 .row-actions-dropbox {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s;
+    pointer-events: none;
+}
+
+.file-row-m3:hover .row-actions-dropbox {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+
 
 @media (max-width: 600px) {
 
@@ -5740,6 +5809,29 @@ input:checked~.m3-ingredient-text {
     color: var(--md-error);
 }
 
-.selection-menu-item .material-symbols-outlined {
-    font-size: 20px;
+.selection-btn.icon-only {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.mobile-action-btn {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .mobile-action-btn {
+        display: flex !important;
+        background: transparent;
+        border: none;
+        color: var(--on-surface-variant);
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+    }
 }

@@ -60,11 +60,14 @@
     localStorage.removeItem('theme');
   </script>
   <!-- Dynamic Version Display -->
-  v10.7
+  <div id="version-badge"
+    style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
+    v10.8
   </div>
 
+
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=10.7"></script>
+  <script src="js/sw-register.js?v=10.8"></script>
   <style>
     /* ─── Recipe Pantry Glassmorphism Landing ─── */
     :root {
@@ -470,9 +473,10 @@
           <div class="selection-bar-right">
             <button class="selection-btn" onclick="window.dashboard.shareSelected()" title="Compartir">
               <span class="material-symbols-outlined">share</span>
+              <span data-i18n="share">Compartir</span>
             </button>
-            <button class="selection-btn" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
-              title="Más opciones">
+            <button class="selection-btn icon-only" id="selectionMoreBtn"
+              onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
               <span class="material-symbols-outlined">more_vert</span>
             </button>
           </div>

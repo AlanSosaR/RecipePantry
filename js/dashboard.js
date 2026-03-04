@@ -549,11 +549,11 @@ class DashboardManager {
                             <span class="material-symbols-outlined">more_vert</span>
                         </button>
                     </div>
+                    <!-- Mobile Actions (only visible in mobile media query) -->
+                    <button class="btn-icon-m3 mobile-action-btn" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}', event)">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
                 </div>
-                <!-- Mobile Actions -->
-                <button class="btn-icon-m3 mobile-action-btn" onclick="window.dashboard.showMoreOptions('${recipe.id}', event)">
-                    <span class="material-symbols-outlined">more_vert</span>
-                </button>
             </div>
         `;
     }
