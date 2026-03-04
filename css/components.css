@@ -182,7 +182,7 @@ ol {
 
 .toast {
     background: var(--on-surface);
-    color: var(--bg);
+    color: var(--on-surface);
     padding: 14px var(--space-lg);
     border-radius: var(--radius-full);
     font-size: 1rem;
@@ -673,7 +673,7 @@ ol {
     justify-content: space-between;
     background: transparent;
     /* Similar to Drive's dark bar */
-    color: var(--bg);
+    color: var(--on-surface);
     padding: 8px 16px;
     border-radius: 0;
     margin-bottom: 16px;
@@ -695,7 +695,7 @@ ol {
 
 .selection-bar-left .btn-icon-m3,
 .selection-bar-left .selection-count-text {
-    color: var(--bg);
+    color: var(--on-surface);
 }
 
 .selection-count-text {
@@ -709,7 +709,7 @@ ol {
     gap: 8px;
     background: rgba(255, 255, 255, 0.1);
     border: none;
-    color: var(--bg);
+    color: var(--on-surface);
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 13px;
