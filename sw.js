@@ -3,7 +3,7 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const BUILD_ID = "2026-03-04-v9.2";
+const BUILD_ID = "2026-03-04-v9.3";
 const CACHE_NAME = `recipe-pantry-v${BUILD_ID}`;
 
 // Recursos esenciales para la App Shell
@@ -55,6 +55,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
+
+    // 0. Ignorar esquemas no soportados (ej: chrome-extension)
+    if (!request.url.startsWith('http')) return;
 
     // No interceptar peticiones a la API o Supabase para evitar datos estancados
     if (url.origin.includes('supabase.co') || url.pathname.startsWith('/api/')) {
