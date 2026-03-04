@@ -5862,12 +5862,12 @@ input:checked~.m3-ingredient-text {
     font-weight: 500;
 }
 
-/* 2. Trailing Checkbox (Mobile First) */
+/* 2. Trailing Checkbox (Positioning) */
 .col-checkbox {
-    order: 99 !important;
-    /* Always trailing */
-    width: 48px !important;
-    height: 48px !important;
+    /* DEFAULT (PC/Desktop): LEFT SIDE */
+    order: -1;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5919,8 +5919,8 @@ input:checked~.m3-ingredient-text {
 }
 
 .m3-checkbox-input:checked+.m3-checkbox-visual {
-    background-color: var(--primary);
-    border-color: var(--primary);
+    background-color: #6750A4;
+    border-color: #6750A4;
 }
 
 .m3-checkbox-input:checked+.m3-checkbox-visual::after {
@@ -5935,8 +5935,8 @@ input:checked~.m3-ingredient-text {
 }
 
 .m3-checkbox-input:indeterminate+.m3-checkbox-visual {
-    background-color: var(--primary);
-    border-color: var(--primary);
+    background-color: #6750A4;
+    border-color: #6750A4;
 }
 
 .m3-checkbox-input:indeterminate+.m3-checkbox-visual::after {
@@ -5973,8 +5973,9 @@ input:checked~.m3-ingredient-text {
         flex: 1;
     }
 
+    /* MOBILE: RIGHT SIDE */
     .file-row-m3 .col-checkbox {
-        order: 3;
+        order: 3 !important;
         display: flex !important;
         width: 48px;
         justify-content: center;
@@ -5997,10 +5998,17 @@ input:checked~.m3-ingredient-text {
         pointer-events: auto;
     }
 
-    /* Keep 3 dots visible but slightly dimmer to prioritize checkbox? No, user said KEEP. */
-    #recipesGrid.selection-mode-active .file-row-m3 .col-actions {
-        opacity: 1;
-        visibility: visible;
+    /* Mobile Cleanup: Hide ANY desktop action menus strictly during selection to avoid visual clutter */
+    #recipesGrid.selection-mode-active .file-row-m3 .row-actions-dropbox,
+    #recipesGrid.selection-mode-active .file-row-m3 .btn-share-highlight {
+        display: none !important;
+    }
+
+    /* Keep individual 3 dots visible */
+    #recipesGrid.selection-mode-active .file-row-m3 .mobile-action-btn,
+    #recipesGrid.selection-mode-active .file-row-m3 .col-actions>.btn-icon-m3:last-child {
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 }
 
@@ -6026,7 +6034,7 @@ input:checked~.m3-ingredient-text {
 
 .recipe-card-m3.selected {
     outline: 3px solid var(--primary);
-    background-color: var(--primary-green-light);
+    background-color: var(--md-sys-color-secondary-container, rgba(16, 185, 129, 0.12));
 }
 
 /* ─── Material 3 Expressive Context Menu (Dark) ─── */

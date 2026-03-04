@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry Premium v13.6.0...');
+            console.log('🚀 Inicializando Recipe Pantry v13.9.0 (M3 Selection)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
