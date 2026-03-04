@@ -5618,7 +5618,7 @@ input:checked~.m3-ingredient-text {
     border-color: var(--md-primary) !important;
 }
 
-/* Removal of "Píldora Verde Sólida" -> Switching to M3 Outlined Premium */
+/* Pivoting from solid green pill to outlined M3 Premium style */
 .selection-btn.primary-m3 {
     background: transparent !important;
     color: var(--primary) !important;
