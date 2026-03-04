@@ -5827,17 +5827,51 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        grid-template-columns: 48px 40px 1fr 40px !important;
-        gap: 8px !important;
-        padding: 12px 4px !important;
+        /* Order: Icon (1), Name (2), Actions/Dots (3), Checkbox (4) */
+        grid-template-columns: 32px 1fr 40px 40px !important;
+        gap: 12px !important;
+        padding: 12px 16px !important;
+        align-items: center;
+    }
+
+    .file-row-m3 .col-icon {
+        order: 1;
+        width: 32px;
+    }
+
+    .file-row-m3 .col-name {
+        order: 2;
+        flex: 1;
+    }
+
+    .file-row-m3 .col-actions {
+        order: 3;
+        display: flex !important;
+        width: 40px;
+        justify-content: center;
+    }
+
+    .file-row-m3 .col-checkbox {
+        order: 4;
+        width: 40px;
+        display: none !important;
+        margin: 0;
+    }
+
+    /* Show checkbox only in selection mode */
+    .selection-mode-active .file-row-m3 .col-checkbox {
+        display: flex !important;
     }
 
     .recipe-name {
         font-size: 15px !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 140px;
+        white-space: normal !important;
+        /* Allow wrapping */
+        overflow: visible !important;
+        text-overflow: clip !important;
+        max-width: none !important;
+        line-height: 1.4;
+        display: block;
     }
 }
 
@@ -5974,9 +6008,33 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        grid-template-columns: 48px 40px 1fr 48px !important;
-        padding: 12px !important;
+        grid-template-columns: 32px 1fr 40px 40px !important;
+        padding: 12px 8px !important;
     }
+
+    /* Column mapping for the reordered layout */
+    .file-row-m3>div:nth-child(2) {
+        order: 1;
+    }
+
+    /* Icon */
+    .file-row-m3>div:nth-child(3) {
+        order: 2;
+    }
+
+    /* Name */
+    .file-row-m3>div:nth-child(7) {
+        order: 3;
+    }
+
+    /* Actions */
+    .file-row-m3>div:nth-child(1) {
+        order: 4;
+    }
+
+    /* Checkbox */
+
+    /* Same for header if needed, but we mostly care about the label "NOMBRE" link to the name column */
 
     /* Hide non-essential columns on mobile: Category, Shared, Date */
     .file-row-m3>div:nth-child(4),
@@ -6012,6 +6070,15 @@ input:checked~.m3-ingredient-text {
 
     .selection-bar-left {
         gap: 12px !important;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .selection-actions-group {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        flex-shrink: 0;
     }
 
     .selection-btn span[data-i18n] {
