@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=13.6.0">
-  <link rel="stylesheet" href="css/components.css?v=13.6.0">
-  <link rel="stylesheet" href="css/responsive.css?v=13.6.0">
+  <link rel="stylesheet" href="css/styles.css?v=13.7.0">
+  <link rel="stylesheet" href="css/components.css?v=13.7.0">
+  <link rel="stylesheet" href="css/responsive.css?v=13.7.0">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -62,12 +62,12 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v13.6.0
+    v13.7.0
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=13.6.0"></script>
+  <script src="js/sw-register.js?v=13.7.0"></script>
 
 
 
@@ -465,26 +465,34 @@
       </header>
       <div class="main-content-scroll">
 
-        <!-- Dropbox-style Selection Action Bar (Inline & Transparent) -->
+        <!-- Material 3 Expressive Contextual Top App Bar -->
         <div id="selectionActionBar" class="selection-action-bar hidden">
-          <div class="selection-bar-left">
-            <!-- Count (Dropbox Style: Number first) -->
+          <div class="selection-bar-content">
+            <button class="btn-icon-m3" onclick="window.dashboard.clearSelection()" title="Cancelar">
+              <span class="material-symbols-outlined">close</span>
+            </button>
             <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
 
             <div class="selection-actions-group">
-              <button class="selection-btn primary-m3" onclick="window.dashboard.shareSelected()">
-                <span class="material-symbols-outlined">share</span>
-                <span data-i18n="shareSelection">Comparte la selección</span>
+              <label class="m3-checkbox-wrapper" title="Seleccionar todo">
+                <input type="checkbox" id="selectAllCheckbox" class="m3-checkbox-input"
+                  onchange="window.dashboard.handleSelectAll(event)">
+                <span class="m3-checkbox-visual"></span>
+              </label>
+
+              <button class="btn-icon-m3" onclick="window.dashboard.confirmDeleteSelected()"
+                title="Eliminar seleccionadas" style="color: var(--md-error);">
+                <span class="material-symbols-outlined">delete</span>
               </button>
 
-              <button class="selection-btn icon-only m3-btn-icon" id="selectionMoreBtn"
-                onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
+              <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
+                title="Más opciones">
                 <span class="material-symbols-outlined">more_vert</span>
               </button>
             </div>
           </div>
 
-          <!-- Overflow Menu (Now dynamically populated to match row menu) -->
+          <!-- Overflow Menu -->
           <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden"></div>
         </div>
 
@@ -614,18 +622,18 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=13.6.0"></script>
-    <script src="js/supabase-client.js?v=13.6.0"></script>
-    <script src="js/auth.js?v=13.6.0"></script>
-    <script src="js/localdb.js?v=13.6.0"></script>
-    <script src="js/sync-manager.js?v=13.6.0"></script>
-    <script src="js/db.js?v=13.6.0"></script>
-    <script src="js/utils.js?v=13.6.0"></script>
-    <script src="js/i18n.js?v=13.6.0"></script>
-    <script src="js/ui.js?v=13.6.0"></script>
-    <script src="js/share-modal.js?v=13.6.0"></script>
-    <script src="js/notifications.js?v=13.6.0"></script>
-    <script src="js/dashboard.js?v=13.6.0"></script>
+    <script src="js/config.js?v=13.7.0"></script>
+    <script src="js/supabase-client.js?v=13.7.0"></script>
+    <script src="js/auth.js?v=13.7.0"></script>
+    <script src="js/localdb.js?v=13.7.0"></script>
+    <script src="js/sync-manager.js?v=13.7.0"></script>
+    <script src="js/db.js?v=13.7.0"></script>
+    <script src="js/utils.js?v=13.7.0"></script>
+    <script src="js/i18n.js?v=13.7.0"></script>
+    <script src="js/ui.js?v=13.7.0"></script>
+    <script src="js/share-modal.js?v=13.7.0"></script>
+    <script src="js/notifications.js?v=13.7.0"></script>
+    <script src="js/dashboard.js?v=13.7.0"></script>
 
 
     <script>

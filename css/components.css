@@ -5823,90 +5823,151 @@ input:checked~.m3-ingredient-text {
 
 
 
+/* ─── Material 3 Expressive Selection System (v13.7.0) ─── */
+
+/* 1. Contextual Top App Bar (Tonal) */
+.selection-action-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background-color: var(--md-sys-color-primary-container, #E1F5FE);
+    color: var(--md-sys-color-on-primary-container, #01579B);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 3000;
+    box-shadow: var(--md-sys-elevation-2);
+    transition: transform 0.2s cubic-bezier(0, 0, 0.2, 1), opacity 0.2s;
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.selection-action-bar:not(.hidden) {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.selection-bar-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+}
+
+.selection-count-text {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* 2. Trailing Checkbox (Mobile First) */
+.col-checkbox {
+    order: 99 !important;
+    /* Always trailing */
+    width: 48px !important;
+    height: 48px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.2s var(--md-sys-motion-easing-standard),
+        transform 0.2s var(--md-sys-motion-easing-standard);
+    pointer-events: none;
+}
+
+#recipesGrid.selection-mode-active .col-checkbox {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+/* 3. Tonal Container State */
+.file-row-m3 {
+    transition: background-color 0.2s var(--md-sys-motion-easing-standard),
+        transform 0.1s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.file-row-m3.selected {
+    background-color: var(--md-sys-color-secondary-container, rgba(16, 185, 129, 0.12)) !important;
+}
+
+.file-row-m3.selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 4px;
+    background-color: var(--primary);
+    border-radius: 0 4px 4px 0;
+}
+
+/* 4. M3 Checkbox Visuals */
+.m3-checkbox-visual {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--outline);
+    border-radius: 2px;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.m3-checkbox-input:checked+.m3-checkbox-visual {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.m3-checkbox-input:checked+.m3-checkbox-visual::after {
+    content: 'check';
+    font-family: 'Material Symbols Outlined';
+    font-size: 16px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.m3-checkbox-input:indeterminate+.m3-checkbox-visual {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.m3-checkbox-input:indeterminate+.m3-checkbox-visual::after {
+    content: 'remove';
+    /* Horizontal line for indeterminate */
+    font-family: 'Material Symbols Outlined';
+    font-size: 16px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 @media (max-width: 700px) {
 
     .file-row-m3,
     .list-header-m3 {
-        /* FIXED MOBILE LAYOUT: Icon (32px), Name (flexible), Actions (40px), Checkbox (40px) */
-        grid-template-columns: 32px 1fr 40px 40px !important;
-        gap: 8px !important;
-        padding: 12px 12px !important;
-        align-items: center;
+        grid-template-columns: 32px 1fr 48px !important;
+        /* Simplified for mobile: Icon | Name | Checkbox */
+        padding: 16px 12px !important;
     }
 
-    /* Column Reordering for consistency */
-    .file-row-m3 .col-icon,
-    .list-header-m3>div:nth-child(2) {
-        order: 1;
-        width: 32px;
+    .file-row-m3 .col-actions {
+        display: none !important;
+        /* Hide 3 dots during selection if needed, or keep? Google Drive hides them. */
     }
 
-    .file-row-m3 .col-name,
-    .list-header-m3>div:nth-child(3) {
-        order: 2;
-        flex: 1;
-    }
-
-    .file-row-m3 .col-actions,
-    .list-header-m3>div:nth-child(7) {
-        order: 3;
-        display: flex !important;
-        width: 40px;
-        justify-content: center;
-    }
-
-    .file-row-m3 .col-checkbox,
-    .list-header-m3 .col-checkbox {
-        order: 4;
-        width: 40px;
-        margin: 0;
+    #recipesGrid.selection-mode-active .file-row-m3 .col-actions {
         display: none !important;
     }
-
-    /* HIDE PC-STYLE ACTIONS ON MOBILE */
-    .file-row-m3 .row-actions-dropbox {
-        display: none !important;
-    }
-
-    .file-row-m3 .mobile-action-btn {
-        display: flex !important;
-        order: 3;
-    }
-
-    /* Hide non-essential columns on mobile */
-    .file-row-m3>div:nth-child(4),
-    .file-row-m3>div:nth-child(5),
-    .file-row-m3>div:nth-child(6),
-    .list-header-m3>div:nth-child(4),
-    .list-header-m3>div:nth-child(5),
-    .list-header-m3>div:nth-child(6) {
-        display: none !important;
-    }
-
-    /* Selection Mode Specifics */
-    #recipesGrid.selection-mode-active .file-row-m3 .col-checkbox,
-    #recipesGrid.selection-mode-active .list-header-m3 .col-checkbox {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* FORCE HEADER VISIBILITY ON MOBILE DURING SELECTION */
-    #recipesGrid.selection-mode-active .list-header-m3.hidden-mobile-lg {
-        display: grid !important;
-    }
-
-    .recipe-name {
-        font-size: 15px !important;
-        white-space: normal !important;
-        line-height: 1.3;
-        overflow: visible !important;
-    }
-}
-
-.file-row-m3.selected {
-    background-color: rgba(16, 185, 129, 0.12) !important;
-    box-shadow: inset 4px 0 0 var(--primary);
 }
 
 /* Custom Thin Scrollbar */

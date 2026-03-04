@@ -257,7 +257,7 @@ class DashboardManager {
         this.renderRecipesGrid(this.currentRecipes);
     }
 
-    // --- Multi-Selection Logic ---
+    // --- Multi-Selection Logic (v13.7.0) ---
     toggleSelection(recipeId, isShift = false) {
         if (isShift && this.lastSelectedIndex !== undefined && this.currentRecipes) {
             const currentIndex = this.currentRecipes.findIndex(r => r.id === recipeId);
@@ -294,7 +294,7 @@ class DashboardManager {
     }
 
 
-    toggleSelectAll(e) {
+    handleSelectAll(e) {
         const isChecked = e.target.checked;
         if (isChecked) {
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
@@ -322,15 +322,13 @@ class DashboardManager {
         const actionBar = document.getElementById('selectionActionBar');
         const countText = document.getElementById('selectionCount');
         const dashboardHeader = document.querySelector('.dashboard-header');
-        const listHeader = document.querySelector('.list-header-m3');
+
         if (!actionBar) return;
 
         if (this.selectedRecipes.size > 0) {
             actionBar.classList.remove('hidden');
-            // Hide Title area (Dropbox: action bar REPLACES the view title)
-            if (dashboardHeader) dashboardHeader.classList.add('hidden');
-            // Keep column labels (Dropbox: labels are below the action bar)
-            if (listHeader) listHeader.classList.remove('hidden');
+            // M3 Contextual Bar covers the header
+            if (dashboardHeader) dashboardHeader.style.visibility = 'hidden';
 
             const count = this.selectedRecipes.size;
             const text = window.i18n && window.i18n.getLang() === 'en'
@@ -339,8 +337,9 @@ class DashboardManager {
             if (countText) countText.textContent = text;
         } else {
             actionBar.classList.add('hidden');
-            if (dashboardHeader) dashboardHeader.classList.remove('hidden');
-            if (listHeader) listHeader.classList.remove('hidden');
+            if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
+            this.isSelectionMode = false;
+            this.updateSelectionModeClass();
         }
         this.updateSelectAllCheckbox();
     }
@@ -577,6 +576,10 @@ class DashboardManager {
 
 
 
+    async confirmDeleteSelected() {
+        await this.deleteSelected();
+    }
+
     async deleteSelected() {
         if (this.selectedRecipes.size === 0) return;
         const confirmMsg = window.i18n && window.i18n.getLang() === 'en'
@@ -757,6 +760,10 @@ class DashboardManager {
 
         return `
             <div class="file-row-m3 ${isSelected ? 'selected' : ''}" 
+                 id="recipe-${recipe.id}"
+                 role="option"
+                 aria-selected="${isSelected}"
+                 tabindex="0"
                  onclick="window.dashboard.handleRowClick(event, '${recipe.id}')"
                  onmousedown="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
                  onmouseup="window.dashboard.handleRowTouchEnd(event)"
@@ -835,6 +842,10 @@ class DashboardManager {
 
         return `
             <div class="recipe-card-m3 ${isSelected ? 'selected' : ''}" 
+                 id="recipe-card-${recipe.id}"
+                 role="option"
+                 aria-selected="${isSelected}"
+                 tabindex="0"
                  onclick="window.dashboard.handleRowClick(event, '${recipe.id}')"
                  onmousedown="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
                  onmouseup="window.dashboard.handleRowTouchEnd(event)"
