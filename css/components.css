@@ -552,7 +552,7 @@ ol {
     gap: 8px;
     padding: 0 24px;
     height: 48px;
-    border-radius: 24px;
+    border-radius: 0;
     border: none;
     background: var(--primary);
     color: var(--on-primary);
@@ -671,13 +671,13 @@ ol {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--on-surface);
+    background: transparent;
     /* Similar to Drive's dark bar */
     color: var(--bg);
     padding: 8px 16px;
-    border-radius: 24px;
+    border-radius: 0;
     margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: top;
 }
@@ -898,7 +898,7 @@ ol {
 /* M3 Expressive Card Grid */
 .card-recipe {
     background: var(--surface-container-low);
-    border-radius: 24px;
+    border-radius: 0;
     /* M3 extra large */
     border: 1px solid transparent;
     padding: 8px;
@@ -3276,7 +3276,7 @@ select.input-field {
     height: 48px;
     /* Reduced from 52px */
     border: 1px solid #E5E7EB;
-    border-radius: 24px;
+    border-radius: 0;
     background: white;
     color: #1A1A1A;
     font-size: 1.4rem;
@@ -3302,7 +3302,7 @@ select.input-field {
     background: var(--secondary, #FF6B35);
     color: white;
     border: none;
-    border-radius: 24px;
+    border-radius: 0;
     font-size: 1.5rem;
     font-weight: 700;
     cursor: pointer;
@@ -3637,7 +3637,7 @@ select.input-field {
     max-width: 800px;
     height: 48px;
     background: var(--surface-container-high);
-    border-radius: 24px;
+    border-radius: 0;
     padding: 0 20px;
     display: flex;
     align-items: center;
@@ -3747,7 +3747,7 @@ select.input-field {
 .btn-logout-m3 {
     width: 100%;
     height: 48px;
-    border-radius: 24px;
+    border-radius: 0;
     border: none;
     background: #FEE2E2;
     color: #991B1B;
@@ -5608,7 +5608,7 @@ input:checked~.m3-ingredient-text {
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1.5px solid var(--md-outline-variant) !important;
-    background: white !important;
+    background: transparent !important;
     color: var(--on-surface) !important;
     white-space: nowrap;
 }

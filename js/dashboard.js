@@ -388,6 +388,9 @@ class DashboardManager {
                 </div>
             `;
 
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const isFavorite = recipe.is_favorite;
+
             menu.innerHTML = `
                 <div class="dropbox-menu-header">
                     <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
@@ -406,7 +409,21 @@ class DashboardManager {
                     <span class="material-symbols-outlined">edit</span>
                     ${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar receta'}
                 </button>
+                <button class="context-menu-item" onclick="window.dashboard.startRename('${recipe.id}', event)">
+                    <span class="material-symbols-outlined">edit_square</span>
+                    ${window.i18n ? window.i18n.t('rename') : 'Renombrar'}
+                </button>
+                <button class="context-menu-item" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
+                    <span class="material-symbols-outlined">${isFavorite ? 'star' : 'star_border'}</span>
+                    ${isFavorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}
+                </button>
                 <div class="context-menu-divider"></div>
+                ${isReceived ? `
+                    <button class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}')">
+                        <span class="material-symbols-outlined">library_add</span>
+                        ${window.i18n ? window.i18n.t('addToMyRecipes') : 'Agregar a mis recetas'}
+                    </button>
+                ` : ''}
                 <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
                     <span class="material-symbols-outlined">delete</span>
                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
