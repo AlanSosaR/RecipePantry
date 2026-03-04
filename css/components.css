@@ -5965,28 +5965,32 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        grid-template-columns: 48px 40px 1fr !important;
+        grid-template-columns: 48px 40px 1fr 48px !important;
         padding: 12px !important;
     }
 
-    /* Hide non-essential columns on mobile: Category, Shared, Date, etc. */
-    .file-row-m3>div:nth-child(n+4),
-    .list-header-m3>div:nth-child(n+4) {
+    /* Hide non-essential columns on mobile: Category, Shared, Date */
+    .file-row-m3>div:nth-child(4),
+    .file-row-m3>div:nth-child(5),
+    .file-row-m3>div:nth-child(6),
+    .list-header-m3>div:nth-child(4),
+    .list-header-m3>div:nth-child(5),
+    .list-header-m3>div:nth-child(6) {
         display: none !important;
+    }
+
+    .mobile-action-btn {
+        display: flex !important;
     }
 }
 
 
 @media (max-width: 600px) {
-    .mobile-action-btn {
-        display: flex !important;
-        background: transparent;
-        border: none;
-        color: var(--on-surface-variant);
-        width: 40px;
-        height: 40px;
-        align-items: center;
-        justify-content: center;
+
+    .file-row-m3,
+    .list-header-m3 {
+        padding: 8px 4px !important;
+        gap: 4px !important;
     }
 }
 
@@ -6002,15 +6006,16 @@ input:checked~.m3-ingredient-text {
     }
 
     .selection-btn span[data-i18n] {
-        display: none !important;
+        display: inline-block !important;
+        /* Keep text visible */
     }
 
     .selection-btn:not(.icon-only) {
-        padding: 0 !important;
-        width: 44px !important;
-        height: 44px !important;
-        justify-content: center !important;
-        border-radius: 50% !important;
+        /* Remove the circular pill look, keep name and icon */
+        padding: 8px 16px !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: 12px !important;
     }
 
     .selection-count-text {
