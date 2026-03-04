@@ -3,16 +3,17 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const BUILD_ID = "2026-03-04-v9";
+const BUILD_ID = "2026-03-04-v9.2";
 const CACHE_NAME = `recipe-pantry-v${BUILD_ID}`;
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
     '/index.html',
-    '/manifest.json',
-    '/assets/icon-192.png',
-    '/assets/icon-512.png',
+    '/manifest.webmanifest',
+    '/assets/icons/manifest-icon-192.maskable.png',
+    '/assets/icons/manifest-icon-512.maskable.png',
+    '/assets/icons/icon.svg',
     'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
     'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
