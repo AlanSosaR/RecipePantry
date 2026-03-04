@@ -5681,10 +5681,37 @@ input:checked~.m3-ingredient-text {
     border: 2px solid var(--on-surface-variant);
     border-radius: 4px;
     background: transparent;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.m3-checkbox-wrapper {
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: scale(0.9);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Show checkbox on hover (Desktop) */
+@media (hover: hover) {
+    .file-row-m3:hover .m3-checkbox-wrapper {
+        opacity: 0.7;
+        transform: scale(1);
+        pointer-events: auto;
+    }
+}
+
+/* Show checkbox if row is selected or in selection mode */
+.file-row-m3.selected .m3-checkbox-wrapper,
+.selection-mode-active .m3-checkbox-wrapper {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    pointer-events: auto !important;
 }
 
 .m3-checkbox-input:checked+.m3-checkbox-visual {
@@ -5699,13 +5726,14 @@ input:checked~.m3-ingredient-text {
     color: white;
     opacity: 0;
     transform: scale(0.5);
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .m3-checkbox-input:checked+.m3-checkbox-visual::after {
     opacity: 1;
     transform: scale(1);
 }
+
 
 /* Alignment Fixes for Mobile List View (7 columns total) */
 .file-row-m3,

@@ -11,10 +11,21 @@ class DashboardManager {
         this.selectedRecipes = new Set();
         this.isSelectionMode = false;
 
-        // Cierre de menús al hacer click fuera
+        this.longPressTimer = null;
+        this.lastSelectedIndex = undefined;
+
+        // Cierre de selección al hacer click fuera
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('#selectionActionBar') && !e.target.closest('#selectionMoreBtn')) {
-                this.hideSelectionMenu();
+            if (!this.isSelectionMode) return;
+
+            // Si el click es fuera de cualquier fila de receta y fuera de la barra de acciones
+            const isClickInsideRow = e.target.closest('.file-row-m3');
+            const isClickInsideBar = e.target.closest('.selection-action-bar');
+            const isClickInsideMenu = e.target.closest('.selection-overflow-menu');
+            const isClickInsideFab = e.target.closest('#fab-container');
+
+            if (!isClickInsideRow && !isClickInsideBar && !isClickInsideMenu && !isClickInsideFab) {
+                this.clearSelection();
             }
         });
     }
@@ -246,16 +257,41 @@ class DashboardManager {
     }
 
     // --- Multi-Selection Logic ---
-    toggleSelection(recipeId) {
-        if (this.selectedRecipes.has(recipeId)) {
-            this.selectedRecipes.delete(recipeId);
+    toggleSelection(recipeId, isShift = false) {
+        if (isShift && this.lastSelectedIndex !== undefined && this.currentRecipes) {
+            const currentIndex = this.currentRecipes.findIndex(r => r.id === recipeId);
+            const start = Math.min(this.lastSelectedIndex, currentIndex);
+            const end = Math.max(this.lastSelectedIndex, currentIndex);
+
+            for (let i = start; i <= end; i++) {
+                this.selectedRecipes.add(this.currentRecipes[i].id);
+            }
         } else {
-            this.selectedRecipes.add(recipeId);
+            if (this.selectedRecipes.has(recipeId)) {
+                this.selectedRecipes.delete(recipeId);
+            } else {
+                this.selectedRecipes.add(recipeId);
+            }
+            this.lastSelectedIndex = this.currentRecipes.findIndex(r => r.id === recipeId);
         }
+
         this.isSelectionMode = this.selectedRecipes.size > 0;
+        this.updateSelectionModeClass();
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
     }
+
+    updateSelectionModeClass() {
+        const container = document.querySelector('.recipe-list-body');
+        if (container) {
+            if (this.isSelectionMode) {
+                container.classList.add('selection-mode-active');
+            } else {
+                container.classList.remove('selection-mode-active');
+            }
+        }
+    }
+
 
     toggleSelectAll(e) {
         const isChecked = e.target.checked;
@@ -272,10 +308,13 @@ class DashboardManager {
     clearSelection() {
         this.selectedRecipes.clear();
         this.isSelectionMode = false;
+        this.lastSelectedIndex = undefined;
         this.hideSelectionMenu();
+        this.updateSelectionModeClass();
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
     }
+
 
     updateActionBar() {
         const actionBar = document.getElementById('selectionActionBar');
@@ -339,6 +378,38 @@ class DashboardManager {
         if (this.selectedRecipes.size === 0) return;
         const recipeId = Array.from(this.selectedRecipes).sort()[0];
         this.copyLink(recipeId);
+    }
+
+    // --- Device-Specific Interaction Handlers (v11.0) ---
+    handleRowClick(event, recipeId) {
+        // Ignorar si se hizo clic directamente en el checkbox o su wrapper
+        if (event.target.closest('.col-checkbox')) return;
+
+        if (this.isSelectionMode) {
+            // En modo selección, cualquier clic alterna el estado
+            event.preventDefault();
+            this.toggleSelection(recipeId, event.shiftKey);
+        } else {
+            // Modo normal, abrir receta
+            this.handleRecipeClick(recipeId);
+        }
+    }
+
+    handleRowTouchStart(event, recipeId) {
+        // Iniciar temporizador para long press
+        this.longPressTimer = setTimeout(() => {
+            if (!this.isSelectionMode) {
+                this.toggleSelection(recipeId);
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+        }, 500);
+    }
+
+    handleRowTouchEnd() {
+        if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+        }
     }
 
     editSelected() {
@@ -549,13 +620,19 @@ class DashboardManager {
 
         return `
             <div class="file-row-m3 ${isSelected ? 'selected' : ''}" 
-                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')">
+                 onclick="window.dashboard.handleRowClick(event, '${recipe.id}')"
+                 onmousedown="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
+                 onmouseup="window.dashboard.handleRowTouchEnd(event)"
+                 onmouseleave="window.dashboard.handleRowTouchEnd(event)"
+                 ontouchstart="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
+                 ontouchend="window.dashboard.handleRowTouchEnd(event)">
                 <div class="col-checkbox" onclick="event.stopPropagation()">
                     <label class="m3-checkbox-wrapper">
                         <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
                         <span class="m3-checkbox-visual"></span>
                     </label>
                 </div>
+
                 <div class="col-icon">
                     <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
                 </div>
@@ -621,7 +698,12 @@ class DashboardManager {
 
         return `
             <div class="recipe-card-m3 ${isSelected ? 'selected' : ''}" 
-                 onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
+                 onclick="window.dashboard.handleRowClick(event, '${recipe.id}')"
+                 onmousedown="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
+                 onmouseup="window.dashboard.handleRowTouchEnd(event)"
+                 onmouseleave="window.dashboard.handleRowTouchEnd(event)"
+                 ontouchstart="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
+                 ontouchend="window.dashboard.handleRowTouchEnd(event)"
                  style="position:relative;">
                 <div class="col-checkbox" onclick="event.stopPropagation()" style="position: absolute; top: 8px; left: 8px; z-index: 2;">
                     <label class="m3-checkbox-wrapper">
@@ -629,6 +711,7 @@ class DashboardManager {
                         <span class="m3-checkbox-visual"></span>
                     </label>
                 </div>
+
                 <div class="recipe-card-image">
                     <span class="material-symbols-outlined">restaurant</span>
                 </div>
@@ -644,11 +727,8 @@ class DashboardManager {
     }
 
     handleRecipeClick(recipeId) {
-        // En modo selección, el click en la fila togglea la selección
-        if (this.selectedRecipes.size > 0) {
-            this.toggleSelection(recipeId);
-            return;
-        }
+        // Redirección directa al detalle (v11.0: modo puro)
+
 
         // Navegación directa al detalle pasando permiso si existe (para compartidas)
         const recipe = this.currentRecipes.find(r => r.id === recipeId);
