@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry Premium...');
+            console.log('🚀 Inicializando Recipe Pantry Premium v13.6.0...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -526,7 +526,11 @@ class DashboardManager {
             if (!this.isSelectionMode) {
                 this.ignoreNextClick = true; // Ignorar el click que seguirá al touch
                 this.toggleSelection(recipeId);
-                if (navigator.vibrate) navigator.vibrate(50);
+                try {
+                    if (navigator.vibrate) navigator.vibrate(50);
+                } catch (e) {
+                    console.warn('Vibration blocked by browser intervention');
+                }
             }
         }, 600); // 600ms para asegurar que es intencional
     }
