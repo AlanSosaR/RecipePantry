@@ -60,13 +60,11 @@
     localStorage.removeItem('theme');
   </script>
   <!-- Dynamic Version Display -->
-  <div id="version-badge"
-    style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v10.6
+  v10.7
   </div>
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=10.6"></script>
+  <script src="js/sw-register.js?v=10.7"></script>
   <style>
     /* ─── Recipe Pantry Glassmorphism Landing ─── */
     :root {
@@ -464,19 +462,35 @@
         <!-- Selection Action Bar (Multi-Select) -->
         <div id="selectionActionBar" class="selection-action-bar hidden">
           <div class="selection-bar-left">
-            <button class="btn-icon-m3" onclick="window.dashboard.clearSelection()" title="Cerrar">
+            <button class="selection-btn" onclick="window.dashboard.clearSelection()" title="Cerrar">
               <span class="material-symbols-outlined">close</span>
             </button>
             <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
           </div>
           <div class="selection-bar-right">
-            <button class="selection-btn" onclick="window.dashboard.shareSelected()">
+            <button class="selection-btn" onclick="window.dashboard.shareSelected()" title="Compartir">
               <span class="material-symbols-outlined">share</span>
-              <span class="hidden-mobile-sm">Compartir la selección</span>
             </button>
-            <button class="selection-btn btn-danger" onclick="window.dashboard.deleteSelected()">
+            <button class="selection-btn" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
+              title="Más opciones">
+              <span class="material-symbols-outlined">more_vert</span>
+            </button>
+          </div>
+
+          <!-- Overflow Menu for Multi-Selection -->
+          <div id="selectionOverflowMenu" class="selection-overflow-menu">
+            <button class="selection-menu-item" onclick="window.dashboard.favoriteSelected()">
+              <span class="material-symbols-outlined">star</span>
+              <span data-i18n="favorite">Favorito</span>
+            </button>
+            <button class="selection-menu-item" onclick="window.dashboard.moveSelected()">
+              <span class="material-symbols-outlined">drive_file_move</span>
+              <span data-i18n="move">Mover</span>
+            </button>
+            <div class="context-menu-divider"></div>
+            <button class="selection-menu-item danger" onclick="window.dashboard.deleteSelected()">
               <span class="material-symbols-outlined">delete</span>
-              <span class="hidden-mobile-sm">Eliminar</span>
+              <span data-i18n="delete">Eliminar</span>
             </button>
           </div>
         </div>

@@ -5,10 +5,18 @@ class DashboardManager {
     constructor() {
         this.currentFilters = {};
         this.displayMode = localStorage.getItem('recipe_pantry_display_mode') || 'list';
-        // Inicia en la vista anterior para que al usar el botón 'Atrás' del navegador no se pierda la pestaña Compartidas
         this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
         this.currentRecipes = [];
         this.selectedRecipeId = null;
+        this.selectedRecipes = new Set();
+        this.isSelectionMode = false;
+
+        // Cierre de menús al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#selectionActionBar') && !e.target.closest('#selectionMoreBtn')) {
+                this.hideSelectionMenu();
+            }
+        });
     }
 
     async init() {
@@ -49,7 +57,8 @@ class DashboardManager {
                 this.currentView = viewParam;
             }
             this.currentOffset = 0;
-            this.selectedRecipes = new Set(); // Multi-selection state
+            if (!this.selectedRecipes) this.selectedRecipes = new Set();
+            this.isSelectionMode = false;
 
             console.log(`📦 Cargando vista: ${this.currentView}...`);
             const activeNavItem = document.querySelector(`.nav-item[data-view="${this.currentView}"]`);
@@ -243,8 +252,9 @@ class DashboardManager {
         } else {
             this.selectedRecipes.add(recipeId);
         }
+        this.isSelectionMode = this.selectedRecipes.size > 0;
         this.updateActionBar();
-        this.renderRecipesGrid(this.currentRecipes); // Re-render para actualizar checks/clases
+        this.renderRecipesGrid(this.currentRecipes);
     }
 
     toggleSelectAll(e) {
@@ -254,12 +264,15 @@ class DashboardManager {
         } else {
             this.selectedRecipes.clear();
         }
+        this.isSelectionMode = this.selectedRecipes.size > 0;
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
     }
 
     clearSelection() {
         this.selectedRecipes.clear();
+        this.isSelectionMode = false;
+        this.hideSelectionMenu();
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
     }
@@ -271,10 +284,25 @@ class DashboardManager {
 
         if (this.selectedRecipes.size > 0) {
             actionBar.classList.remove('hidden');
-            countText.textContent = `${this.selectedRecipes.size} ${window.i18n && window.i18n.getLang() === 'en' ? 'selected' : 'seleccionado(s)'}`;
+            const count = this.selectedRecipes.size;
+            const text = window.i18n && window.i18n.getLang() === 'en'
+                ? `${count} selected`
+                : `${count} seleccionado${count > 1 ? 's' : ''}`;
+            if (countText) countText.textContent = text;
         } else {
             actionBar.classList.add('hidden');
         }
+    }
+
+    toggleSelectionMenu(event) {
+        if (event) event.stopPropagation();
+        const menu = document.getElementById('selectionOverflowMenu');
+        if (menu) menu.classList.toggle('show');
+    }
+
+    hideSelectionMenu() {
+        const menu = document.getElementById('selectionOverflowMenu');
+        if (menu) menu.classList.remove('show');
     }
 
     updateSelectAllCheckbox() {
@@ -307,6 +335,50 @@ class DashboardManager {
             this.loadRecipes({ forceRefresh: true }); // Reload
             window.showToast(`${successCount} recetas eliminadas`, 'success');
         });
+    }
+
+    async favoriteSelected() {
+        if (this.selectedRecipes.size === 0) return;
+        const ids = Array.from(this.selectedRecipes);
+
+        // Determinar si vamos a marcar o desmarcar (si el primero es fav, desmarcamos todos?)
+        // Drive style: Si hay mezcla, usualmente se marcan todos.
+        const firstId = ids[0];
+        const firstRecipe = this.currentRecipes.find(r => r.id === firstId);
+        const newStatus = firstRecipe ? !firstRecipe.is_favorite : true;
+
+        window.showToast(newStatus ? 'Marcando como favoritos...' : 'Quitando de favoritos...', 'info');
+
+        for (const id of ids) {
+            await window.db.toggleFavorite(id, !newStatus); // toggleFavorite espera el estado ACTUAL
+        }
+
+        this.clearSelection();
+        this.loadRecipes({ forceRefresh: true });
+    }
+
+    async moveSelected() {
+        if (this.selectedRecipes.size === 0) return;
+
+        const categories = [...new Set(this.currentRecipes.map(r => r.category).filter(Boolean))];
+        const categoriesStr = categories.join(', ') || 'Principal';
+
+        const newCategory = prompt(
+            window.i18n && window.i18n.getLang() === 'en'
+                ? `Enter new category (Existing: ${categoriesStr}):`
+                : `Ingrese la nueva categoría (Existentes: ${categoriesStr}):`
+        );
+
+        if (newCategory) {
+            window.showToast('Moviendo recetas...', 'info');
+            const ids = Array.from(this.selectedRecipes);
+            for (const id of ids) {
+                await window.db.updateRecipe(id, { category: newCategory });
+            }
+            this.clearSelection();
+            this.loadRecipes({ forceRefresh: true });
+            window.showToast('Recetas movidas con éxito', 'success');
+        }
     }
 
     shareSelected() {
@@ -395,7 +467,10 @@ class DashboardManager {
             const header = `
                 <div class="list-header-m3 hidden-mobile-lg">
                     <div class="col-checkbox">
-                        <input type="checkbox" id="selectAllCheckbox" class="m3-checkbox-input" onchange="window.dashboard.toggleSelectAll(event)">
+                        <label class="m3-checkbox-wrapper">
+                            <input type="checkbox" id="selectAllCheckbox" class="m3-checkbox-input" onchange="window.dashboard.toggleSelectAll(event)">
+                            <span class="m3-checkbox-visual"></span>
+                        </label>
                     </div>
                     <div class="col-icon"></div>
                     <div class="col-name">${colName}</div>
@@ -422,7 +497,10 @@ class DashboardManager {
             <div class="file-row-m3 ${isSelected ? 'selected' : ''}" 
                  onclick="window.dashboard.handleRecipeClick('${recipe.id}')">
                 <div class="col-checkbox" onclick="event.stopPropagation()">
-                    <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
                 </div>
                 <div class="col-icon">
                     <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
@@ -492,7 +570,10 @@ class DashboardManager {
                  onclick="window.dashboard.handleRecipeClick('${recipe.id}')"
                  style="position:relative;">
                 <div class="col-checkbox" onclick="event.stopPropagation()" style="position: absolute; top: 8px; left: 8px; z-index: 2;">
-                    <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
                 </div>
                 <div class="recipe-card-image">
                     <span class="material-symbols-outlined">restaurant</span>
@@ -509,6 +590,12 @@ class DashboardManager {
     }
 
     handleRecipeClick(recipeId) {
+        // En modo selección, el click en la fila togglea la selección
+        if (this.selectedRecipes.size > 0) {
+            this.toggleSelection(recipeId);
+            return;
+        }
+
         // Navegación directa al detalle pasando permiso si existe (para compartidas)
         const recipe = this.currentRecipes.find(r => r.id === recipeId);
         const permission = recipe?.sharedPermission;
