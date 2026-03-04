@@ -5863,6 +5863,16 @@ input:checked~.m3-ingredient-text {
         display: none !important;
     }
 
+    /* HIDE PC-STYLE ACTIONS ON MOBILE */
+    .file-row-m3 .row-actions-dropbox {
+        display: none !important;
+    }
+
+    .file-row-m3 .mobile-action-btn {
+        display: flex !important;
+        order: 3;
+    }
+
     /* Hide non-essential columns on mobile */
     .file-row-m3>div:nth-child(4),
     .file-row-m3>div:nth-child(5),
@@ -6061,15 +6071,15 @@ input:checked~.m3-ingredient-text {
         flex-shrink: 0;
     }
 
-    .selection-btn span[data-i18n] {
+    /* ONLY 3-DOTS ON MOBILE SELECTION BAR */
+    .selection-btn:not(.icon-only) {
         display: none !important;
-        /* Hide long text on small mobile */
     }
 
-    .selection-btn:not(.icon-only) {
-        padding: 8px !important;
-        min-width: 40px;
+    #selectionMoreBtn {
+        display: flex !important;
         border-radius: 50% !important;
+        padding: 8px !important;
     }
 }
 
