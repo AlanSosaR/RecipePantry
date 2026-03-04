@@ -81,7 +81,6 @@
 /* ─── Base Global ────────────────────────────────────────────────── */
 html {
     font-size: 62.5%;
-    /* 1rem = 10px */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
 }
@@ -90,17 +89,46 @@ body {
     margin: 0;
     font-family: var(--font-body);
     font-size: 1.4rem;
-    /* 14px default */
     line-height: 1.5;
     background: var(--bg);
     color: var(--on-surface);
     transition: background-color 0.2s ease, color 0.2s ease;
     -webkit-font-smoothing: antialiased;
-    -webkit-tap-highlight-color: transparent;
 }
 
-* {
-    -webkit-tap-highlight-color: transparent;
+/* ─── Eliminación Global de Tap Highlight (Mobile) y Accesibilidad ─── */
+/* Asegura que no aparezca el overlay azul en mobile en elementos interactivos */
+html,
+body,
+*,
+*::before,
+*::after {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+}
+
+button,
+a,
+input,
+textarea,
+select,
+[role="button"],
+[onclick],
+[tabindex] {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Quita el outline del clic con mouse o touch, PERO lo preserva para navegación por teclado */
+*:focus:not(:focus-visible) {
+    outline: none !important;
+}
+
+*:focus-visible {
+    /* Focus ring premium M3 accesible */
+    outline: 3px solid var(--primary-green) !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+    /* Soft rounding en el focus */
 }
 
 h1 {
