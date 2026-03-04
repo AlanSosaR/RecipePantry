@@ -51,8 +51,6 @@ class DashboardManager {
             this.currentOffset = 0;
             this.selectedRecipes = new Set(); // Multi-selection state
 
-            // Binding methods
-            this.handleScroll = this.handleScroll.bind(this);
             console.log(`📦 Cargando vista: ${this.currentView}...`);
             const activeNavItem = document.querySelector(`.nav-item[data-view="${this.currentView}"]`);
             this.switchView(this.currentView, activeNavItem);
