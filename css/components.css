@@ -5989,20 +5989,25 @@ input:checked~.m3-ingredient-text {
     }
 
     /* MOBILE: RIGHT SIDE */
-    .file-row-m3 .col-checkbox,
-    .list-header-m3 .col-checkbox {
-        order: 3 !important;
+    .file-row-m3 .col-actions,
+    .list-header-m3 .col-actions {
+        order: 3;
         display: flex !important;
         width: 48px;
         justify-content: center;
     }
 
-    .file-row-m3 .col-actions,
-    .list-header-m3 .col-actions {
-        order: 4;
+    .file-row-m3 .col-checkbox,
+    .list-header-m3 .col-checkbox {
+        order: 4 !important;
         display: flex !important;
         width: 48px;
         justify-content: center;
+    }
+
+    /* Show list header on mobile ONLY during selection mode */
+    #recipesGrid.selection-mode-active .list-header-m3.hidden-mobile-lg {
+        display: grid !important;
     }
 
     /* Show checkbox in selection mode WITHOUT layout shift */
