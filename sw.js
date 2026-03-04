@@ -4,7 +4,7 @@
  */
 
 const BUILD_ID = "2026-03-04-v12.1.1";
-const CACHE_NAME = 'recipe-app-v12.2.2';
+const CACHE_NAME = 'recipe-app-v12.3.0';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
