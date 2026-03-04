@@ -170,60 +170,46 @@ class NotificationManager {
     }
 
     /**
-     * Accept: Copy recipe to user's own recipes, mark shared_recipes.copied = true
+     * Accept: Convierte la receta en propia usando lógica centralizada (duplica ingredientes/pasos y actualiza caché local)
      */
     async handleAcceptRecipe(notificationId, recipeId) {
         try {
             const user = window.authManager.currentUser;
             if (!user) return;
 
-            // 1. Fetch the original recipe data
-            const { data: original, error: fetchErr } = await window.supabaseClient
-                .from('recipes')
-                .select('*')
-                .eq('id', recipeId)
-                .single();
+            window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
 
-            if (fetchErr) throw fetchErr;
+            // 1. Usar la robusta API de db.js que acabamos de parchear
+            const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id);
+            if (!duplicateResult.success) {
+                throw new Error(duplicateResult.error);
+            }
 
-            // 2. Create a copy under the current user's ID
-            const copy = { ...original };
-            delete copy.id; // Let DB generate new ID
-            copy.user_id = user.id;
-            copy.created_at = new Date().toISOString();
-            copy.updated_at = new Date().toISOString();
-            copy.is_favorite = false;
-            copy.view_count = 0;
-            copy.times_cooked = 0;
-
-            const { error: insertErr } = await window.supabaseClient
-                .from('recipes')
-                .insert([copy]);
-
-            if (insertErr) throw insertErr;
-
-            // 3. Mark shared_recipes as copied
+            // 2. Mark shared_recipes as copied and accepted
             await window.supabaseClient
                 .from('shared_recipes')
                 .update({ copied: true, copied_at: new Date().toISOString(), status: 'accepted' })
                 .eq('recipe_id', recipeId)
                 .eq('recipient_user_id', user.id);
 
-            // 4. Mark notification as read
+            // 3. Mark notification as read
             await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
                 .eq('id', notificationId);
 
-            // 5. Remove from local list and update UI
+            // 4. Remove from local list and update UI
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
             this.updateBadge();
             this.renderMenu();
 
             window.utils.showToast('✅ ¡Receta agregada a tu colección!', 'success');
 
-            // Reload recipes if on dashboard
-            if (window.dashboard) window.dashboard.loadRecipes();
+            // Reload recipes if on dashboard to ensure UI consistency
+            if (window.dashboard) {
+                // Forzar recarga desde red para actualizar despensas limpia
+                await window.dashboard.loadRecipes(window.dashboard.lastFilters || {});
+            }
 
         } catch (err) {
             console.error('Error aceptando receta:', err);
@@ -238,10 +224,10 @@ class NotificationManager {
         try {
             const user = window.authManager.currentUser;
 
-            // 1. Update shared_recipes status
+            // 1. Update shared_recipes status (MUST be 'accepted' to pass constraints, it means accepted into shared despensa)
             await window.supabaseClient
                 .from('shared_recipes')
-                .update({ status: 'shared' })
+                .update({ status: 'accepted' })
                 .eq('recipe_id', recipeId)
                 .eq('recipient_user_id', user.id);
 
@@ -257,6 +243,11 @@ class NotificationManager {
             this.renderMenu();
 
             window.utils.showToast('Receta guardada en compartidas', 'info');
+
+            // Reload shared recipes logic to ensure UI is completely synchronized
+            if (window.dashboard) {
+                await window.dashboard.loadRecipes({ shared: true });
+            }
 
         } catch (err) {
             console.error('Error procesando receta:', err);
