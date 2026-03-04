@@ -349,7 +349,7 @@ class ShareModalManager {
             await window.supabaseClient.from('notifications').insert(notifications);
 
             const names = this.selectedUsers.map(u => `Chef ${u.name}`).join(', ');
-            const successMsg = window.i18n ? window.i18n.t('sharedWith', { names }) : `✅ Compartido con ${names}`;
+            const successMsg = window.i18n ? window.i18n.t('sharedWithSuccess', { names }) : `✅ Compartido con ${names}`;
             window.utils.showToast(successMsg, 'success');
 
             // Update local memory in dashboard to show the new status immediately

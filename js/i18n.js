@@ -221,7 +221,7 @@
             userSearchError: 'Error al buscar usuarios',
             sharing: 'Compartiendo...',
             linkCopiedShort: '✅ Enlace copiado',
-            sharedWith: '✅ Compartido con {names}',
+            sharedWithSuccess: '✅ Compartido con {names}',
             shareError: 'Error al compartir la receta',
 
             // ── Notifications ─────────────────────────────────────────────
@@ -478,7 +478,7 @@
             userSearchError: 'Error searching users',
             sharing: 'Sharing...',
             linkCopiedShort: '✅ Link copied',
-            sharedWith: '✅ Shared with {names}',
+            sharedWithSuccess: '✅ Shared with {names}',
             shareError: 'Error sharing recipe',
 
             // ── Notifications ─────────────────────────────────────────────
