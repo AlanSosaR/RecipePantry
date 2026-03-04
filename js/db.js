@@ -497,7 +497,7 @@ class DatabaseManager {
     async duplicateRecipe(recipeId, targetUserId) {
         if (!this._isOnline) return { success: false, error: 'Debes tener conexión para duplicar una receta compartida.' };
         try {
-            const { success, recipe, error: fetchError } = await this.getRecipeDetailed(recipeId);
+            const { success, recipe, error: fetchError } = await this.getRecipeById(recipeId);
             if (!success) throw new Error(fetchError);
 
             // 1. Insertar la receta principal
@@ -532,11 +532,12 @@ class DatabaseManager {
             }
 
             // 3. Insertar pasos
-            if (recipe.preparation_steps && recipe.preparation_steps.length > 0) {
-                const stepsToInsert = recipe.preparation_steps.map(s => ({
+            const steps = recipe.preparation_steps || recipe.steps;
+            if (steps && steps.length > 0) {
+                const stepsToInsert = steps.map(s => ({
                     recipe_id: newRecipeId,
                     instruction_es: s.instruction_es,
-                    instruction_en: s.instruction_en,
+                    instruction_en: s.instruction_en || null,
                     step_number: s.step_number
                 }));
                 await window.supabaseClient.from('preparation_steps').insert(stepsToInsert);
