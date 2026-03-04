@@ -5,8 +5,8 @@ class DashboardManager {
     constructor() {
         this.currentFilters = {};
         this.displayMode = localStorage.getItem('recipe_pantry_display_mode') || 'list';
-        // Siempre inicia en recetas de primera (ignora localStorage para la vista inicial)
-        this.currentView = 'recipes';
+        // Inicia en la vista anterior para que al usar el botón 'Atrás' del navegador no se pierda la pestaña Compartidas
+        this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
         this.currentRecipes = [];
         this.selectedRecipeId = null;
     }

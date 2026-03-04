@@ -13,7 +13,7 @@ async function registerSW() {
         console.log('[SW-Register] Registrado correctamente:', registration.scope);
 
         // Definir la versión en window para debugging
-        window.APP_VERSION = "2026-03-04-v10.0";
+        window.APP_VERSION = "2026-03-04-v10.2";
 
         // Detectar si ya hay un SW esperando (updatefound ya ocurrió)
         if (registration.waiting) {
