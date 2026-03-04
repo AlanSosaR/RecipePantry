@@ -733,7 +733,7 @@ class DashboardManager {
                 <div class="list-header-m3 hidden-mobile-lg">
                     <div class="col-checkbox">
                         <label class="m3-checkbox-wrapper">
-                            <input type="checkbox" id="selectAllCheckbox" class="m3-checkbox-input" onchange="window.dashboard.toggleSelectAll(event)">
+                            <input type="checkbox" id="selectAllCheckbox" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
                             <span class="m3-checkbox-visual"></span>
                         </label>
                     </div>
@@ -770,13 +770,7 @@ class DashboardManager {
                  onmouseleave="window.dashboard.handleRowTouchEnd(event)"
                  ontouchstart="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
                  ontouchend="window.dashboard.handleRowTouchEnd(event)">
-                <div class="col-checkbox" onclick="event.stopPropagation()">
-                    <label class="m3-checkbox-wrapper">
-                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
-                        <span class="m3-checkbox-visual"></span>
-                    </label>
-                </div>
-
+                
                 <div class="col-icon">
                     <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
                 </div>
@@ -784,9 +778,11 @@ class DashboardManager {
                 <div class="col-name text-ellipsis">
                     <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
                 </div>
+
                 <div class="col-category">
                     <span class="badge-tag">General</span>
                 </div>
+
                 <div class="col-access">
                     ${recipe.sharingContext === 'received'
                 ? (recipe.sharedPermission === 'view_and_copy'
@@ -798,7 +794,16 @@ class DashboardManager {
                             ${window.i18n ? window.i18n.t('canView') : 'Solo ver'}</span>`)
                 : recipe.sharingContext === 'sent' ? `<span style="color: var(--primary); font-weight: 600;">${window.i18n ? window.i18n.t('accessShared') : 'Compartida'}</span>` : (window.i18n ? window.i18n.t('accessPrivate') : 'Solo tú')}
                 </div>
+
                 <div class="col-date">${date}</div>
+
+                <div class="col-checkbox" onclick="event.stopPropagation()">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
+                </div>
+
                 <div class="col-actions">
                     <div class="row-actions-dropbox">
                         <button class="btn-share-highlight" onclick="event.stopPropagation(); window.dashboard.shareRecipe('${recipe.id}')">
@@ -853,13 +858,7 @@ class DashboardManager {
                  ontouchstart="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
                  ontouchend="window.dashboard.handleRowTouchEnd(event)"
                  style="position:relative;">
-                <div class="col-checkbox" onclick="event.stopPropagation()" style="position: absolute; top: 8px; left: 8px; z-index: 2;">
-                    <label class="m3-checkbox-wrapper">
-                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
-                        <span class="m3-checkbox-visual"></span>
-                    </label>
-                </div>
-
+                <!-- Image/Icon first -->
                 <div class="recipe-card-image">
                     <span class="material-symbols-outlined">restaurant</span>
                 </div>
@@ -869,6 +868,19 @@ class DashboardManager {
                         <span>General</span>
                         <span>${date}</span>
                     </div>
+                </div>
+
+                <!-- Trailing elements (Right) -->
+                <div class="recipe-card-actions">
+                    <div class="col-checkbox" onclick="event.stopPropagation()">
+                        <label class="m3-checkbox-wrapper">
+                            <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                            <span class="m3-checkbox-visual"></span>
+                        </label>
+                    </div>
+                    <button class="btn-icon-m3" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}', event)">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
                 </div>
             </div>
         `;

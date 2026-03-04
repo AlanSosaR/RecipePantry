@@ -5955,18 +5955,52 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        grid-template-columns: 32px 1fr 48px !important;
-        /* Simplified for mobile: Icon | Name | Checkbox */
-        padding: 16px 12px !important;
+        /* Stable Mobile Layout: [32px Icon] [Name] [48px Checkbox] [48px Actions] */
+        grid-template-columns: 32px 1fr 48px 48px !important;
+        gap: 8px !important;
+        padding: 12px 8px !important;
+        align-items: center;
+        width: 100% !important;
+    }
+
+    /* Column Reordering for consistency */
+    .file-row-m3 .col-icon {
+        order: 1;
+    }
+
+    .file-row-m3 .col-name {
+        order: 2;
+        flex: 1;
+    }
+
+    .file-row-m3 .col-checkbox {
+        order: 3;
+        display: flex !important;
+        width: 48px;
+        justify-content: center;
+        opacity: 0;
+        transform: scale(0.8);
+        pointer-events: none;
     }
 
     .file-row-m3 .col-actions {
-        display: none !important;
-        /* Hide 3 dots during selection if needed, or keep? Google Drive hides them. */
+        order: 4;
+        display: flex !important;
+        width: 48px;
+        justify-content: center;
     }
 
+    /* Show checkbox in selection mode WITHOUT layout shift */
+    #recipesGrid.selection-mode-active .file-row-m3 .col-checkbox {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: auto;
+    }
+
+    /* Keep 3 dots visible but slightly dimmer to prioritize checkbox? No, user said KEEP. */
     #recipesGrid.selection-mode-active .file-row-m3 .col-actions {
-        display: none !important;
+        opacity: 1;
+        visibility: visible;
     }
 }
 
