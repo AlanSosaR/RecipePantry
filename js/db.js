@@ -545,12 +545,15 @@ class DatabaseManager {
 
 
 
-            // 5. Eliminar el enlace de compartición (opcional, basado en el diseño original)
-            await this.deleteSharedRecipe(window.authManager.currentUser.id, recipeId);
+            // 5. Mantenemos el enlace de compartición intacto a petición del usuario
+            // (Se elimina si queremos que pase de compartida a propia exclusivamente)
+            // await this.deleteSharedRecipe(window.authManager.currentUser.id, recipeId);
 
-            // 6. Actualizar LocalDB con la receta completa para renderizado inmediato
+            // 6. Actualizar LocalDB con la receta completa para renderizado inmediato en "Mis Recetas"
             await this._checkLocalDB();
-            await window.localDB.delete('recipes', recipeId); // Quitar la compartida
+
+            // Opcional: Podríamos no borrarla del caché local como compartida, pero para evitar duplicados visuales en "Todas",
+            // mantenemos ambas en caché (la compartida y la nueva propia)
 
             const completelyDuplicatedRecipe = {
                 ...newRecipeData,
