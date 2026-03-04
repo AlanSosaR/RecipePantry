@@ -603,14 +603,7 @@
       console.log('✨ Material 3 Expressive Modules Loaded');
     </script>
 
-    <!-- Register Service Worker (PWA) -->
-    <script>
-      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
-        navigator.serviceWorker.register('./sw.js')
-          .then(r => console.log('SW registered:', r.scope))
-          .catch(e => console.warn('SW registration failed:', e));
-      }
-    </script>
+    <!-- El Service Worker se gestiona mediante js/sw-register.js -->
   </div>
 </body>
 
