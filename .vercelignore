@@ -1,0 +1,15 @@
+package.json
+node_modules
+.git
+.gemini
+bulk_import.py
+download_images.py
+download_stitch.py
+import_data.sql
+processed_recipes.json
+recetas_import/
+reference_html/
+repo_tree.txt
+schema-personal-only.sql
+v7.txt
+build.txt

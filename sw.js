@@ -1,118 +1,99 @@
-// --- 1. CONFIG ---
-const BUILD_ID = "2026-03-04-v8";
+/**
+ * Recipe Pantry - Service Worker Profesional (v9)
+ * Implementa estrategias de invalidación de caché robustas para producción.
+ */
 
-const STATIC_CACHE = `static-${BUILD_ID}`;
-const DYNAMIC_CACHE = `dynamic-${BUILD_ID}`;
+const BUILD_ID = "2026-03-04-v9";
+const CACHE_NAME = `recipe-pantry-v${BUILD_ID}`;
 
-
-// --- 3. App Shell Minimalista ---
-// Solo precargamos recursos estáticos críticos, omitimos rutas dinámicas
-const APP_SHELL = [
-    './',
-    './css/styles.css',
-    './css/components.css',
-    './css/responsive.css',
-    './js/config.js',
-    './js/supabase-client.js',
-    './js/auth.js',
-    './js/localdb.js',
-    './js/sync-manager.js',
-    './js/db.js',
-    './js/utils.js',
-    './js/ocr-processor.js',
-    './js/app.js',
-    './js/dashboard.js',
-    './js/ocr.js',
-    './js/recipe-form.js',
-    './js/recipe-detail.js',
-    './js/share-modal.js',
-    './js/notifications.js',
-    './js/i18n.js',
-    './js/ui.js',
-    './manifest.webmanifest'
+// Recursos esenciales para la App Shell
+const STATIC_RESOURCES = [
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/assets/icon-192.png',
+    '/assets/icon-512.png',
+    'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
+    'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+    'https://fonts.googleapis.com/icon?family=Material+Icons',
+    'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined'
 ];
 
-// --- 4. Evento INSTALL ---
-// Abrir STATIC_CACHE, pre-cachear el App Shell y hacer skipWaiting()
-self.addEventListener('install', event => {
+// 1. Instalación: Pre-caché de recursos críticos y saltar espera
+self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Forzar activación del nuevo SW
     event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then(cache => cache.addAll(APP_SHELL))
-            .then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log('[SW] Pre-cacheando recursos críticos...');
+            return cache.addAll(STATIC_RESOURCES);
+        })
     );
 });
 
-// --- 5. Evento ACTIVATE ---
-// Eliminar únicamente las caches cuyo nombre NO incluya el BUILD_ID actual
-self.addEventListener('activate', event => {
+// 2. Activación: Limpieza profunda de caches antiguos
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(
-                keys
-                    .filter(key => !key.includes(BUILD_ID))
-                    .map(key => caches.delete(key))
-            )
-        ).then(() => self.clients.claim())
+        Promise.all([
+            caches.keys().then((cacheNames) => {
+                return Promise.all(
+                    cacheNames.map((name) => {
+                        if (name !== CACHE_NAME) {
+                            console.log('[SW] Eliminando caché antigua:', name);
+                            return caches.delete(name);
+                        }
+                    })
+                );
+            }),
+            self.clients.claim() // Tomar control de todas las pestañas abiertas inmediatamente
+        ])
     );
 });
 
-
-
-// --- 6. Estrategias de FETCH ---
-self.addEventListener('fetch', event => {
+// 3. Estrategia de Fetch Inteligente
+self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Evitar interceptar requests que no son GET (v.g. POST a base de datos o Auth)
-    if (request.method !== 'GET') return;
+    // No interceptar peticiones a la API o Supabase para evitar datos estancados
+    if (url.origin.includes('supabase.co') || url.pathname.startsWith('/api/')) {
+        return;
+    }
 
-    // Ignorar esquemas no soportados por la caché (e.g. extensiones de Chrome)
-    if (!url.protocol.startsWith('http')) return;
-
-    // 📄 HTML → Network First
+    // Estrategia para HTML: Network First (Prioridad a la frescura)
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)
-                .then(networkResponse => {
-                    const responseClone = networkResponse.clone();
-                    if (request.url.startsWith('http')) {
-                        caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone));
-                    }
-                    return networkResponse;
+                .then((response) => {
+                    // Guardar copia fresca en caché
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    return response;
                 })
-                .catch(() => caches.match(request))
+                .catch(() => caches.match(request)) // Si falla red, usar caché
         );
         return;
     }
 
-    // 📦 JS / CSS → Stale While Revalidate
-    if (request.destination === 'script' || request.destination === 'style') {
-        event.respondWith(
-            caches.match(request).then(cachedResponse => {
-                const networkFetch = fetch(request).then(networkResponse => {
-                    const responseClone = networkResponse.clone();
-                    if (request.url.startsWith('http')) {
-                        caches.open(STATIC_CACHE).then(cache => cache.put(request, responseClone));
-                    }
-                    return networkResponse;
-                });
-                return cachedResponse || networkFetch; // Retornar caché inmediatamente si existe, pero actualizar en background
-            })
-        );
-        return;
-    }
-
-
-    // 🌐 Default → Network First (APIs, recursos misceláneos)
+    // Estrategia para Assets (JS, CSS, Imágenes): Stale-While-Revalidate
     event.respondWith(
-        fetch(request)
-            .then(networkResponse => {
-                const responseClone = networkResponse.clone();
-                if (request.url.startsWith('http')) {
-                    caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone));
+        caches.match(request).then((response) => {
+            const fetchPromise = fetch(request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const copy = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                 }
                 return networkResponse;
-            })
-            .catch(() => caches.match(request))
+            }).catch(() => null);
+
+            return response || fetchPromise;
+        })
     );
+});
+
+// 4. Mecanismo de Mensajería para Forzar Actualización
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });

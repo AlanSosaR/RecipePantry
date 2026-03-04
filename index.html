@@ -58,39 +58,15 @@
     // Force light mode
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
-
-    // EMERGENCY CACHE CLEAR FOR v8
-    (function forceUpdate() {
-      // Usaremos localStorage para asegurarnos de que solo corra una vez y no haya un bucle de recarga infinito
-      if (!localStorage.getItem('force_cache_clear_v8')) {
-        console.warn('⚠️ Ejecutando limpieza forzada de caché (v8)...');
-        localStorage.setItem('force_cache_clear_v8', 'true');
-
-        // 1. Desregistrar Service Workers
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let registration of registrations) {
-              registration.unregister();
-            }
-          });
-        }
-
-        // 2. Limpiar todas las cachés
-        if ('caches' in window) {
-          caches.keys().then(names => {
-            for (let name of names) {
-              caches.delete(name);
-            }
-          });
-        }
-
-        // 3. Forzar recarga completa después de dar tiempo a que se borre
-        setTimeout(() => {
-          window.location.reload(true);
-        }, 800);
-      }
-    })();
   </script>
+  <!-- Dynamic Version Display -->
+  <div id="version-badge"
+    style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
+    v9
+  </div>
+
+  <!-- Script de Registro de Service Worker -->
+  <script src="js/sw-register.js?v=9"></script>
   <style>
     /* ─── Recipe Pantry Glassmorphism Landing ─── */
     :root {
@@ -601,18 +577,18 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=8"></script>
-    <script src="js/supabase-client.js?v=8"></script>
-    <script src="js/auth.js?v=8"></script>
-    <script src="js/localdb.js?v=8"></script>
-    <script src="js/sync-manager.js?v=8"></script>
-    <script src="js/db.js?v=8"></script>
-    <script src="js/utils.js?v=8"></script>
-    <script src="js/i18n.js?v=8"></script>
-    <script src="js/ui.js?v=8"></script>
-    <script src="js/share-modal.js?v=8"></script>
-    <script src="js/notifications.js?v=8"></script>
-    <script src="js/dashboard.js?v=8"></script>
+    <script src="js/config.js?v=9"></script>
+    <script src="js/supabase-client.js?v=9"></script>
+    <script src="js/auth.js?v=9"></script>
+    <script src="js/localdb.js?v=9"></script>
+    <script src="js/sync-manager.js?v=9"></script>
+    <script src="js/db.js?v=9"></script>
+    <script src="js/utils.js?v=9"></script>
+    <script src="js/i18n.js?v=9"></script>
+    <script src="js/ui.js?v=9"></script>
+    <script src="js/share-modal.js?v=9"></script>
+    <script src="js/notifications.js?v=9"></script>
+    <script src="js/dashboard.js?v=9"></script>
     <script>
       // Kept for backward compatibility – i18n.js handles the heavy lifting.
       function updateTranslations() {
