@@ -5989,3 +5989,31 @@ input:checked~.m3-ingredient-text {
         justify-content: center;
     }
 }
+
+/* Selection bar single-line on mobile */
+@media (max-width: 650px) {
+    .selection-action-bar {
+        padding: 0 12px !important;
+        height: 64px !important;
+    }
+
+    .selection-bar-left {
+        gap: 12px !important;
+    }
+
+    .selection-btn span[data-i18n] {
+        display: none !important;
+    }
+
+    .selection-btn:not(.icon-only) {
+        padding: 0 !important;
+        width: 44px !important;
+        height: 44px !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+    }
+
+    .selection-count-text {
+        font-size: 14px !important;
+    }
+}
