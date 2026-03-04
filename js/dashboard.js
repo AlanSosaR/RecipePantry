@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v13.9.3 (List Header Spacing Fix)...');
+            console.log('🚀 Inicializando Recipe Pantry v13.9.4 (Select All Checkbox Sync Fix)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -560,16 +560,21 @@ class DashboardManager {
 
 
     updateSelectAllCheckbox() {
-        const selectAllCb = document.getElementById('selectAllCheckbox');
+        const selectAllTop = document.getElementById('selectAllCheckboxTop');
+        const selectAllList = document.getElementById('selectAllCheckboxList');
 
         if (this.currentRecipes.length > 0) {
             const allSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
             const isAnySelected = this.selectedRecipes.size > 0;
             const isIndeterminate = isAnySelected && !allSelected;
 
-            if (selectAllCb) {
-                selectAllCb.checked = allSelected && isAnySelected;
-                selectAllCb.indeterminate = isIndeterminate;
+            if (selectAllTop) {
+                selectAllTop.checked = allSelected && isAnySelected;
+                selectAllTop.indeterminate = isIndeterminate;
+            }
+            if (selectAllList) {
+                selectAllList.checked = allSelected && isAnySelected;
+                selectAllList.indeterminate = isIndeterminate;
             }
         }
     }
@@ -733,7 +738,7 @@ class DashboardManager {
                 <div class="list-header-m3 hidden-mobile-lg">
                     <div class="col-checkbox">
                         <label class="m3-checkbox-wrapper">
-                            <input type="checkbox" id="selectAllCheckbox" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
+                            <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
                             <span class="m3-checkbox-visual"></span>
                         </label>
                     </div>
