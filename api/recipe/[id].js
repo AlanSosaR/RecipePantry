@@ -5,11 +5,6 @@ export const config = {
     runtime: 'edge',
 };
 
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-);
-
 export default async function handler(req) {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -17,6 +12,18 @@ export default async function handler(req) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
     };
+
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+        return new Response(JSON.stringify({
+            success: false,
+            error: 'Database configuration missing'
+        }), { status: 500, headers });
+    }
+
+    const supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_ANON_KEY
+    );
 
     if (req.method === 'OPTIONS') {
         return new Response(null, { status: 200, headers });
