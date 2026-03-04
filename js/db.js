@@ -291,6 +291,14 @@ class DatabaseManager {
                     }
                 }
 
+                // Preservar atributos vitales de la vista local (como el estado de "Compartida")
+                if (cached) {
+                    if (cached.sharingContext) recipe.sharingContext = cached.sharingContext;
+                    if (cached.sharedPermission) recipe.sharedPermission = cached.sharedPermission;
+                    if (cached.sharedWith) recipe.sharedWith = cached.sharedWith;
+                    if (cached.senderName) recipe.senderName = cached.senderName;
+                }
+
                 await window.localDB.put('recipes', recipe); // Refresh cache
 
                 window.supabaseClient.from('recipes').update({
