@@ -5562,90 +5562,59 @@ input:checked~.m3-ingredient-text {
     left: 0;
     right: 0;
     z-index: 110;
-    height: 64px;
+    height: 72px;
+    /* Slightly taller for M3 Expressive */
     background: transparent !important;
     backdrop-filter: none !important;
     color: var(--on-surface) !important;
     display: flex !important;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0 24px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100% !important;
     margin: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
-
-
-.selection-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    /* More spacing like Dropbox */
-}
-
-.selection-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-
-.selection-action-bar.hidden {
-    display: none !important;
-    pointer-events: none;
-}
-
-
-.selection-bar-left,
-.selection-bar-right {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 8px !important;
-    /* Tighter gap like Dropbox */
-}
-
-
-
-
-.selection-count-text {
-    font-weight: 500;
-    font-size: 15px;
-    color: var(--on-surface);
 }
 
 .selection-btn {
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    background: transparent !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    color: var(--on-surface) !important;
-    padding: 6px 16px !important;
-    border-radius: 6px !important;
-    font-weight: 500 !important;
+    gap: 12px !important;
+    padding: 10px 24px !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
     font-size: 14px !important;
     cursor: pointer;
     transition: all 0.2s ease;
+    border: 1.5px solid var(--md-outline-variant) !important;
+    background: white !important;
+    color: var(--on-surface) !important;
 }
 
 .selection-btn:hover {
-    background: rgba(0, 0, 0, 0.05) !important;
+    background: var(--md-surface-variant) !important;
+    border-color: var(--md-primary) !important;
 }
 
-.selection-btn .material-symbols-outlined {
-    font-size: 20px;
+.selection-btn.primary-m3 {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.selection-btn.primary-m3:hover {
+    background: var(--primary-dark) !important;
+    filter: brightness(1.1);
 }
 
 .selection-btn.icon-only {
-    width: 36px !important;
-    height: 36px !important;
+    width: 44px !important;
+    height: 44px !important;
     padding: 0 !important;
+    justify-content: center !important;
 }
+
 
 
 .selection-btn.primary-btn:hover {
@@ -5870,71 +5839,89 @@ input:checked~.m3-ingredient-text {
     background-color: var(--primary-green-light);
 }
 
-/* Dropbox-style Detailed Overflow Menu */
-.selection-overflow-menu.detailed-menu {
+/* ─── Material 3 Expressive Context Menu (Dark) ─── */
+.dropbox-menu-m3 {
+    position: fixed;
     background: #1e1f21 !important;
     color: white !important;
-    border-radius: 8px;
-    padding: 0;
-    /* Let items handle padding */
     min-width: 280px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
     border: 1px solid #333;
-}
-
-.menu-header-detailed {
-    padding: 16px;
-    border-bottom: 1px solid #333;
-}
-
-.menu-title-recipe {
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-
-.menu-subtitle-shared {
-    font-size: 12px;
-    color: #00A676;
-    /* Emerald for shared status */
+    z-index: 2000;
+    padding: 12px 0;
     display: flex;
-    align-items: center;
-    gap: 4px;
+    flex-direction: column;
+    animation: m3-menu-appear 0.2s cubic-bezier(0, 0, 0.2, 1);
 }
 
-.selection-menu-item {
-    padding: 10px 16px !important;
-    gap: 12px;
+@keyframes m3-menu-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.dropbox-menu-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 8px;
+}
+
+.dropbox-menu-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.context-menu-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    width: 100% !important;
+    padding: 12px 20px !important;
+    background: transparent !important;
+    border: none !important;
     color: #eee !important;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background 0.2s;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-align: left !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
 }
 
-.selection-menu-item:hover {
+.context-menu-item:hover {
     background: #333 !important;
 }
 
-.selection-menu-item .material-symbols-outlined {
-    font-size: 20px;
-    color: #aaa;
+.context-menu-item .material-symbols-outlined {
+    font-size: 20px !important;
+    color: #aaa !important;
 }
 
-.selection-menu-item.danger {
-    color: white !important;
-    background: transparent !important;
+.context-menu-item.danger {
+    color: #ff5252 !important;
 }
 
-.selection-menu-item.danger:hover {
-    background: #8b0000 !important;
-    /* Dark red on hover */
+.context-menu-item.danger .material-symbols-outlined {
+    color: #ff5252 !important;
 }
 
 .context-menu-divider {
     height: 1px;
     background: #333;
-    margin: 4px 0;
+    margin: 8px 0;
 }
+
 
 
 .selection-btn.icon-only {

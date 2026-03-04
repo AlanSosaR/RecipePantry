@@ -472,39 +472,20 @@
             <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
 
             <div class="selection-actions-group">
-              <button class="selection-btn" onclick="window.dashboard.shareSelected()">
+              <button class="selection-btn primary-m3" onclick="window.dashboard.shareSelected()">
                 <span class="material-symbols-outlined">share</span>
                 <span data-i18n="shareSelection">Comparte la selección</span>
               </button>
 
-              <button class="selection-btn icon-only" id="selectionMoreBtn"
+              <button class="selection-btn icon-only m3-btn-icon" id="selectionMoreBtn"
                 onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
                 <span class="material-symbols-outlined">more_horiz</span>
               </button>
             </div>
           </div>
 
-          <!-- Overflow Menu -->
-          <div id="selectionOverflowMenu" class="selection-overflow-menu detailed-menu">
-            <button class="selection-menu-item" onclick="window.dashboard.downloadSelected()">
-              <span class="material-symbols-outlined">download</span>
-              <span data-i18n="download">Descargar</span>
-            </button>
-            <div class="context-menu-divider"></div>
-            <button class="selection-menu-item" onclick="window.dashboard.copyLinkSelected()">
-              <span class="material-symbols-outlined">link</span>
-              <span>Copiar enlace</span>
-            </button>
-            <button class="selection-menu-item" onclick="window.dashboard.editSelected()">
-              <span class="material-symbols-outlined">edit</span>
-              <span>Editar</span>
-            </button>
-            <div class="context-menu-divider"></div>
-            <button class="selection-menu-item danger" onclick="window.dashboard.deleteSelected()">
-              <span class="material-symbols-outlined">delete</span>
-              <span>Eliminar</span>
-            </button>
-          </div>
+          <!-- Overflow Menu (Now dynamically populated to match row menu) -->
+          <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden"></div>
         </div>
 
         <div class="dashboard-header">

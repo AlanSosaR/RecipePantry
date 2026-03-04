@@ -348,34 +348,109 @@ class DashboardManager {
 
     toggleSelectionMenu(event) {
         if (event) event.stopPropagation();
-        const menu = document.getElementById('selectionOverflowMenu');
-        const header = document.getElementById('selectionMenuHeader');
-        const titleEl = document.getElementById('menuRecipeTitle');
-        const subtitleEl = document.getElementById('menuRecipeSubtitle');
 
-        if (!menu) return;
-
-        if (this.selectedRecipes.size === 1) {
-            const recipeId = Array.from(this.selectedRecipes)[0];
-            const recipe = this.currentRecipes.find(r => r.id === recipeId);
-            if (recipe) {
-                if (header) header.style.display = 'block';
-                if (titleEl) titleEl.textContent = recipe.name;
-                if (subtitleEl) {
-                    const isShared = recipe.sharingContext === 'sent' || recipe.sharingContext === 'received';
-                    subtitleEl.innerHTML = `
-                        <span class="material-symbols-outlined" style="font-size:14px;">${isShared ? 'groups' : 'person'}</span>
-                        ${isShared ? 'Compartida con...' : 'Solo tú'}
-                    `;
-                    subtitleEl.style.color = isShared ? '#00A676' : '#aaa';
-                }
-            }
-        } else {
-            if (header) header.style.display = 'none';
+        const existingMenu = document.querySelector('.dropbox-menu-m3');
+        if (existingMenu) {
+            existingMenu.remove();
+            return;
         }
 
-        menu.classList.toggle('show');
+        if (this.selectedRecipes.size === 0) return;
+
+        const menu = document.createElement('div');
+        menu.className = 'dropbox-menu-m3';
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        if (this.selectedRecipes.size === 1) {
+            // SINGLE SELECTION: Match row menu exactly
+            const recipeId = Array.from(this.selectedRecipes)[0];
+            const recipe = this.currentRecipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+
+            const isReceived = recipe.sharingContext === 'received';
+            const isSent = recipe.sharingContext === 'sent';
+
+            const sharedLabelHTML = isReceived ? `
+                <div style="font-size: 12px; color: #00A676; padding: 0 16px 8px 16px; margin-top: -4px;">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">groups</span>
+                    ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
+                </div>
+            ` : isSent && recipe.sharedWith ? `
+                <div style="font-size: 12px; color: var(--primary); padding: 0 16px 8px 16px; margin-top: -4px;">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">group</span>
+                    ${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: ${recipe.sharedWith}
+                </div>
+            ` : `
+                <div style="font-size: 12px; color: #aaa; padding: 0 16px 8px 16px; margin-top: -4px;">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">person</span>
+                    Solo tú
+                </div>
+            `;
+
+            menu.innerHTML = `
+                <div class="dropbox-menu-header">
+                    <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
+                </div>
+                ${sharedLabelHTML}
+                <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected()">
+                    <span class="material-symbols-outlined">link</span>
+                    ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
+                </button>
+                <button class="context-menu-item" onclick="window.dashboard.shareSelected()">
+                    <span class="material-symbols-outlined">share</span>
+                    ${window.i18n ? window.i18n.t('shareSelection') : 'Compartir'}
+                </button>
+                <div class="context-menu-divider"></div>
+                <button class="context-menu-item" onclick="window.dashboard.editSelected()">
+                    <span class="material-symbols-outlined">edit</span>
+                    ${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar receta'}
+                </button>
+                <div class="context-menu-divider"></div>
+                <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
+                    <span class="material-symbols-outlined">delete</span>
+                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
+                </button>
+            `;
+        } else {
+            // MULTIPLE SELECTION: Batch actions
+            menu.innerHTML = `
+                <div class="dropbox-menu-header">
+                    <h4>${this.selectedRecipes.size} ${window.i18n ? window.i18n.t('selected') : 'seleccionados'}</h4>
+                </div>
+                <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected()">
+                    <span class="material-symbols-outlined">link</span>
+                    Copiar enlaces
+                </button>
+                <button class="context-menu-item" onclick="window.dashboard.shareSelected()">
+                    <span class="material-symbols-outlined">share</span>
+                    Compartir selección
+                </button>
+                <div class="context-menu-divider"></div>
+                <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
+                    <span class="material-symbols-outlined">delete</span>
+                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar seleccón'}
+                </button>
+            `;
+        }
+
+        document.body.appendChild(menu);
+
+        // Position menu below the "3 dots" button
+        const rect = event.target.getBoundingClientRect();
+        menu.style.top = `${rect.bottom + 8}px`;
+        menu.style.right = `${window.innerWidth - rect.right}px`;
+
+        // Close menu on outside click
+        const closeMenu = (e) => {
+            if (!menu.contains(e.target) && e.target !== event.target) {
+                menu.remove();
+                document.removeEventListener('mousedown', closeMenu);
+            }
+        };
+        setTimeout(() => document.addEventListener('mousedown', closeMenu), 10);
     }
+
 
     hideSelectionMenu() {
         const menu = document.getElementById('selectionOverflowMenu');
