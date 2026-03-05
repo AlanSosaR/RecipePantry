@@ -1,9 +1,7 @@
 // api/recipes.js - Edge Function con filtros completos
 import { createClient } from '@supabase/supabase-js';
 
-export const config = {
-    runtime: 'edge',
-};
+
 
 export default async function handler(req) {
     // CORS headers

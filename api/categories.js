@@ -1,9 +1,7 @@
 // api/categories.js - Lista de categorías (cache largo)
 import { createClient } from '@supabase/supabase-js';
 
-export const config = {
-    runtime: 'edge',
-};
+
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
