@@ -267,6 +267,10 @@
             ocrReportTpl: '- Texto: {hasText} | Idioma: {language}\n- Números: {numCount} encontrados\n- Emojis/Símbolos: {symbols}\n- Tipo de documento: {docType}',
             ocrCameraError: 'No se pudo acceder a la cámara. Revisa los permisos.',
             ocrProcessError: 'Error al procesar la imagen',
+
+            // ── Selection (v19.4.0) ──────────────────────────────────────
+            oneItemSelected: '1 receta',
+            itemsSelected: '{count} recetas',
         },
 
         en: {
@@ -526,6 +530,10 @@
             ocrReportTpl: '- Text: {hasText} | Language: {language}\n- Numbers: {numCount} found\n- Emojis/Symbols: {symbols}\n- Document Type: {docType}',
             ocrCameraError: 'Could not access the camera. Check permissions.',
             ocrProcessError: 'Error processing image',
+
+            // ── Selection (v19.4.0) ──────────────────────────────────────
+            oneItemSelected: '1 recipe',
+            itemsSelected: '{count} recipes',
         }
     };
 
