@@ -169,22 +169,22 @@ class RecipeFormManager {
 
     /**
      * Intenta separar cantidad, unidad y nombre de un string de ingrediente.
-     * Soporta formatos como: "500g harina", "1 taza de leche", "sal al gusto"
+     * Soporta formatos como: "500g harina", "1/2 taza de leche", "sal al gusto"
      */
     parseIngredient(text) {
         const input = text.trim();
         if (!input) return null;
 
-        // Regex para detectar número inicial (incluye fracciones comunes)
-        // Ejemplo: 500, 1/2, 1.5, 1,5
-        const quantityRegex = /^(\d+[\/\.,]\d+|\d+)\s*/;
+        // Regex para detectar número inicial (incluye fracciones comunes y números con decimales)
+        // Ejemplo: 500, 1/2, 1.5, 1,5, 1 1/2
+        const quantityRegex = /^(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\/\.,]\d+|\d+)\s*/;
         const qMatch = input.match(quantityRegex);
 
         let quantity = '';
         let remaining = input;
 
         if (qMatch) {
-            quantity = qMatch[1];
+            quantity = this.fractionToDecimal(qMatch[1]);
             remaining = input.substring(qMatch[0].length).trim();
         }
 
@@ -214,6 +214,35 @@ class RecipeFormManager {
         }
 
         return { quantity, unit, name };
+    }
+
+    /**
+     * Convierte una cadena de cantidad (puede ser fracción "1/2", decimal "1.5" o mixta "1 1/2")
+     * a un número flotante puro para la base de datos.
+     */
+    fractionToDecimal(str) {
+        if (!str) return null;
+
+        // Limpiar comas por puntos (ej: 1,5 -> 1.5)
+        let cleanStr = str.replace(',', '.');
+
+        // Caso fracción simple: "1/2"
+        if (cleanStr.includes('/') && !cleanStr.includes(' ')) {
+            const [num, den] = cleanStr.split('/');
+            return (parseFloat(num) / parseFloat(den)).toFixed(2);
+        }
+
+        // Caso número mixto: "1 1/2"
+        if (cleanStr.includes(' ') && cleanStr.includes('/')) {
+            const parts = cleanStr.split(/\s+/);
+            const integerPart = parseFloat(parts[0]);
+            const [num, den] = parts[1].split('/');
+            return (integerPart + (parseFloat(num) / parseFloat(den))).toFixed(2);
+        }
+
+        // Caso decimal o entero normal
+        const val = parseFloat(cleanStr);
+        return isNaN(val) ? null : val;
     }
 
     addStep(data = null) {
@@ -371,7 +400,11 @@ class RecipeFormManager {
                 await window.db.deleteIngredients(recipeId);
             }
             if (ingredientsData.length > 0) {
-                await window.db.addIngredients(recipeId, ingredientsData);
+                const ingResult = await window.db.addIngredients(recipeId, ingredientsData);
+                if (!ingResult.success) {
+                    console.error('❌ Error guardando ingredientes:', ingResult.error);
+                    throw new Error(`Error ingredientes: ${ingResult.error}`);
+                }
             }
 
             // 3. Recolectar y Guardar Pasos
@@ -389,7 +422,11 @@ class RecipeFormManager {
                 await window.db.deleteSteps(recipeId);
             }
             if (stepsData.length > 0) {
-                await window.db.addSteps(recipeId, stepsData);
+                const stepResult = await window.db.addSteps(recipeId, stepsData);
+                if (!stepResult.success) {
+                    console.error('❌ Error guardando pasos:', stepResult.error);
+                    throw new Error(`Error pasos: ${stepResult.error}`);
+                }
             }
 
             window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada con éxito!', 'success');
