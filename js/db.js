@@ -380,9 +380,15 @@ class DatabaseManager {
         if (this._isOnline) {
             try {
                 const { error } = await window.supabaseClient.from('ingredients').insert(items);
-                if (error) throw error;
+                if (error) {
+                    console.error('❌ Error Supabase insert ingredientes:', error);
+                    throw error;
+                }
                 return { success: true };
-            } catch (e) { return { success: false, error: e.message }; }
+            } catch (e) {
+                console.error('❌ Excepción en addIngredients:', e);
+                return { success: false, error: e.message };
+            }
         } else {
             for (let item of items) await window.localDB.enqueueSync('insert', 'ingredients', item, recipeId);
             return { success: true, offline: true };
@@ -416,9 +422,15 @@ class DatabaseManager {
         }
         try {
             const { error } = await window.supabaseClient.from('ingredients').delete().eq('recipe_id', recipeId);
-            if (error) throw error;
+            if (error) {
+                console.error('❌ Error Supabase delete ingredientes:', error);
+                throw error;
+            }
             return { success: true };
-        } catch (e) { return { success: false, error: e.message }; }
+        } catch (e) {
+            console.error('❌ Excepción en deleteIngredients:', e);
+            return { success: false, error: e.message };
+        }
     }
 
     async deleteSteps(recipeId) {

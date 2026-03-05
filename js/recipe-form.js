@@ -336,27 +336,31 @@ class RecipeFormManager {
 
 
 
-            // 2. Recolectar y Guardar Ingredientes
-            const finalIngredientItems = document.querySelectorAll('#ingredientsList .group');
-            const ingredientsData = Array.from(finalIngredientItems)
-                .map(item => {
-                    const val = item.querySelector('.ingredient-input').value.trim();
+            // 2. Recolectar y Guardar Ingredientes (Selector más robusto por clase de input)
+            const ingredientInputs = document.querySelectorAll('#ingredientsList .ingredient-input');
+            console.log(`🔍 Encontrados ${ingredientInputs.length} campos de ingredientes`);
+
+            const ingredientsData = Array.from(ingredientInputs)
+                .map(input => {
+                    const val = input.value.trim();
                     if (!val) return null;
 
                     const parsed = this.parseIngredient(val);
                     if (!parsed) return null;
 
-                    const data = { quantity: parsed.quantity };
+                    const data = { quantity: parsed.quantity || null };
                     if (isEn) {
                         data.name_en = parsed.name;
-                        data.unit_en = parsed.unit;
+                        data.unit_en = parsed.unit || null;
                     } else {
                         data.name_es = parsed.name;
-                        data.unit_es = parsed.unit;
+                        data.unit_es = parsed.unit || null;
                     }
                     return data;
                 })
                 .filter(Boolean);
+
+            console.log('📦 Datos de ingredientes a guardar:', ingredientsData);
 
             if (this.isEditing) {
                 await window.db.deleteIngredients(recipeId);
