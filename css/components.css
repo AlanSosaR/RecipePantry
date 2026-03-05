@@ -5565,6 +5565,29 @@ input:checked~.m3-ingredient-text {
     text-decoration-color: rgba(0, 0, 0, 0.35);
 }
 
+/* Badge inner: número visible por defecto, check oculto */
+.m3-step-badge .step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.m3-step-badge .step-check {
+    display: none;
+    font-size: 18px;
+}
+
+/* Al marcar: ocultar número, mostrar check */
+.m3-step-checkable.step-done .m3-step-badge .step-num {
+    display: none;
+}
+
+.m3-step-checkable.step-done .m3-step-badge .step-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .m3-step-badge {
     width: 40px;
     height: 40px;

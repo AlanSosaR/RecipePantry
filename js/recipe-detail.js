@@ -191,17 +191,11 @@ class RecipeDetailManager {
             const num = idx + 1;
             return `
                 <label class="m3-step-item m3-step-checkable">
-                    <input class="hidden" type="checkbox"
-                        onchange="
-                            const item = this.closest('.m3-step-checkable');
-                            item.classList.toggle('step-done', this.checked);
-                            const badge = item.querySelector('.m3-step-badge');
-                            badge.innerHTML = this.checked
-                                ? '<span class=\\'material-symbols-outlined\\' style=\\'font-size:16px;\\'>check</span>'
-                                : '${num}';
-                        "
-                    />
-                    <div class="m3-step-badge">${num}</div>
+                    <input class="hidden" type="checkbox" onchange="this.closest('.m3-step-checkable').classList.toggle('step-done',this.checked)"/>
+                    <div class="m3-step-badge">
+                        <span class="step-num">${num}</span>
+                        <span class="step-check material-symbols-outlined">check</span>
+                    </div>
                     <p class="m3-step-text">${instruction}</p>
                 </label>
             `;
