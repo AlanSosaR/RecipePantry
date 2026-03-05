@@ -90,6 +90,13 @@ ol {
     gap: 8px;
 }
 
+/* Hide select-all checkbox on PC header as requested (v19.7.0) */
+@media (min-width: 768px) {
+    #selectionActionsGroup .m3-checkbox-wrapper {
+        display: none !important;
+    }
+}
+
 /* Integrated Selection Text (v19.5.0) */
 .selection-count-text {
     font-size: clamp(1.1rem, 2vw, 1.35rem);
@@ -708,10 +715,7 @@ ol {
     display: none !important;
 }
 
-/* Global Selection Header Hide (v19.5.0) */
-/* This ensures 'NOMBRE' and other headers disappear on PC and Mobile when selecting */
-body.selection-mode-active .list-header-m3,
-#recipesGrid.selection-mode-active .list-header-m3 {
+.selection-action-bar.hidden {
     display: none !important;
 }
 
@@ -772,7 +776,9 @@ body.selection-mode-active .list-header-m3,
     /* EXCEPT .dashboard-header which now contains the selection controls */
     body:not(.selection-mode-active) .dashboard-header,
     body .list-header-m3,
-    #recipesGrid.list-view .list-header-m3 {
+    #recipesGrid.list-view .list-header-m3,
+    /* PCheaders now hidden ONLY on mobile during selection (v19.7.0) */
+    body.selection-mode-active .list-header-m3 {
         display: none !important;
         height: 0 !important;
         margin: 0 !important;

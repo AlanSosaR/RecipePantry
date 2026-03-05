@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v19.6.0 (Perfected Mobile & Unified PC)...');
+            console.log('🚀 Inicializando Recipe Pantry v19.7.0 (PC Refined & Mobile Frozen)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
