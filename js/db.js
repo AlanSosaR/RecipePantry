@@ -20,16 +20,18 @@ class DatabaseManager {
         await this._checkLocalDB();
         const isUnfiltered = !filters.search && !filters.categoryId && !filters.favorite && !filters.shared;
 
-        // 1. Mostrar instantáneamente de la copia local IndexedDB
+        // 1. Mostrar instantáneamente de la copia local (Índice Optimizado)
         let recipes = [];
         if (window.localDB) {
-            recipes = await window.localDB.getAll('recipes');
-        } else {
-            console.warn("LocalDB ignore: window.localDB is not defined yet.");
+            recipes = await window.localDB.getAll('recipes_index');
+            // Si está vacío pero existe recipes (v1), intentar leer de ahí como fallback temporal
+            if (recipes.length === 0) {
+                const legacy = await window.localDB.getAll('recipes');
+                if (legacy.length > 0) recipes = legacy;
+            }
         }
-        let fromCache = true;
 
-        // Apply local filters if we have cached data
+        // Aplicar filtros locales sobre el índice
         let filteredRecipes = [...recipes];
         if (recipes && recipes.length > 0) {
             if (filters.shared) {
@@ -43,33 +45,32 @@ class DatabaseManager {
                 const s = filters.search.toLowerCase();
                 filteredRecipes = filteredRecipes.filter(r =>
                     (r.name_es && r.name_es.toLowerCase().includes(s)) ||
-                    (r.description_es && r.description_es.toLowerCase().includes(s))
+                    (r.name_en && r.name_en.toLowerCase().includes(s))
                 );
             }
 
-            // Si después de filtrar tenemos resultados, los mostramos
-            if (filteredRecipes.length > 0 || !this._isOnline) {
-                // Ordenar locally
-                const orderCol = filters.orderBy || 'name_es';
-                const asc = filters.ascending !== undefined ? filters.ascending : true;
-                filteredRecipes.sort((a, b) => {
-                    if (a[orderCol] < b[orderCol]) return asc ? -1 : 1;
-                    if (a[orderCol] > b[orderCol]) return asc ? 1 : -1;
-                    return 0;
-                });
+            // Ordenar locally (siempre para asegurar consistencia inmediata)
+            const orderCol = filters.orderBy || 'updated_at';
+            const asc = filters.ascending !== undefined ? filters.ascending : false; // Default desc for recipes
+            filteredRecipes.sort((a, b) => {
+                const valA = a[orderCol];
+                const valB = b[orderCol];
+                if (valA < valB) return asc ? -1 : 1;
+                if (valA > valB) return asc ? 1 : -1;
+                return 0;
+            });
 
-                console.log(`⚡ ${filteredRecipes.length} recetas desde Instancia Local (IndexedDB)`);
+            console.log(`⚡ ${filteredRecipes.length} recetas desde caché (recipes_index)`);
 
-                // Si hay red e iniciamos vista general, refresco silencioso
-                if (this._isOnline && isUnfiltered) {
-                    this._refreshRecipesInBackground(filters);
-                }
-
-                return { success: true, recipes: filteredRecipes, fromCache: true };
+            // 2. Refresco silencioso en segundo plano si hay red
+            if (this._isOnline) {
+                this._refreshRecipesInBackground(filters);
             }
+
+            return { success: true, recipes: filteredRecipes, fromCache: true };
         }
 
-        // Si no hay local, forzar red
+        // Si no hay nada en caché, esperar a la red
         return this._fetchRecipesFromServer(filters);
     }
 
@@ -77,9 +78,9 @@ class DatabaseManager {
         if (!this._isOnline) return;
         try {
             const result = await this._fetchRecipesFromServer(filters);
-            if (result.success && !result.fromCache && window.dashboard) {
-                // Notificará si hubo cambios fuertes, el componente dashboard podrá escuchar
-                window.dispatchEvent(new CustomEvent('recipes-updated-background', { detail: result.recipes }));
+            if (result.success && !result.fromCache) {
+                // Notificar al dashboard que el índice se ha actualizado
+                window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: result.recipes }));
             }
         } catch (e) { /* silent */ }
     }
@@ -213,16 +214,19 @@ class DatabaseManager {
                 });
             }
 
-            console.log(`📦 Recipes loaded from Edge API (cached: ${result.cached}, cache time: ${result.cacheTime}s)`);
+            console.log(`📦 Recipes loaded from API (Index Mode)`);
 
-            // Reemplazar la colección local propia si no hay filtros activos
+            // Reemplazar la colección local propia en recipes_index
             if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared && !result.isSharedFormat) {
-                const allLocal = await window.localDB.getAll('recipes');
-                const received = allLocal.filter(r => r.sharingContext === 'received');
+                const allLocalIndex = await window.localDB.getAll('recipes_index');
+                const received = allLocalIndex.filter(r => r.sharingContext === 'received');
 
-                await window.localDB.clear('recipes');
-                if (received.length > 0) await window.localDB.putAll('recipes', received);
-                await window.localDB.putAll('recipes', recipes);
+                await window.localDB.clear('recipes_index');
+                if (received.length > 0) await window.localDB.putAll('recipes_index', received);
+                await window.localDB.putAll('recipes_index', recipes);
+            } else {
+                // Si es una búsqueda o filtro, simplemente mezclamos o guardamos estos específicos
+                await window.localDB.putAll('recipes_index', recipes);
             }
 
             return { success: true, recipes, fromCache: false };
@@ -238,82 +242,86 @@ class DatabaseManager {
     async getRecipeById(recipeId) {
         await this._checkLocalDB();
 
-        // Intentar leer de local primero para máxima velocidad offline/online
-        const cached = await window.localDB.get('recipes', recipeId);
+        // 1. RETORNO INMEDIATO DESDE CACHÉ ( recipes_full )
+        const cached = await window.localDB.get('recipes_full', recipeId);
 
-        if (this._isOnline) {
-            try {
-                // Preparar cabeceras con Auth
-                const headers = { 'Content-Type': 'application/json' };
-                const { data: sessionData } = await window.supabaseClient.auth.getSession();
-                if (sessionData?.session?.access_token) {
-                    headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
-                }
-
-                // 1) Intentar fetch API Edge Cache
-                const response = await fetch(`/api/recipe/${recipeId}`, {
-                    method: 'GET',
-                    headers: headers
-                });
-
-                if (response.status === 404) {
-                    throw new Error('Recipe not found');
-                }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.error);
-                }
-
-                let recipe = result.data;
-                console.log('📦 Recipe detail loaded from Edge API');
-
-                // Si no es el dueño, los policies restrictivos pueden haber ocultado ingredientes/pasos en el API si no usamos service_role
-                // Fallback RPC para relaciones seguras...
-                if (recipe && (!recipe.ingredients || recipe.ingredients.length === 0) && recipe.user_id !== window.authManager?.currentUser?.id) {
-                    try {
-                        const { data: rpcRecipe, error: rpcError } = await window.supabaseClient
-                            .rpc('get_shared_recipe_details', { p_recipe_id: recipeId });
-                        if (!rpcError && rpcRecipe) {
-                            console.log('✅ Fallback RPC Data loaded:', rpcRecipe);
-                            recipe.ingredients = rpcRecipe.ingredients || [];
-                            recipe.steps = rpcRecipe.steps || [];
-                        } else {
-                            console.warn('⚠️ Fallback RPC failed (possibly due to old image table references in the SQL function) or returned null', rpcError);
-                        }
-                    } catch (e) {
-                        console.warn('Fallback RPC falló', e);
-                    }
-                }
-
-                // Preservar atributos vitales de la vista local (como el estado de "Compartida")
-                if (cached) {
-                    if (cached.sharingContext) recipe.sharingContext = cached.sharingContext;
-                    if (cached.sharedPermission) recipe.sharedPermission = cached.sharedPermission;
-                    if (cached.sharedWith) recipe.sharedWith = cached.sharedWith;
-                    if (cached.senderName) recipe.senderName = cached.senderName;
-                }
-
-                await window.localDB.put('recipes', recipe); // Refresh cache
-
-                window.supabaseClient.from('recipes').update({
-                    view_count: (recipe.view_count || 0) + 1,
-                    last_viewed_at: new Date().toISOString()
-                }).eq('id', recipeId).then(() => { }).catch(() => { });
-
-                return { success: true, recipe };
-            } catch (error) {
-                if (cached) return { success: true, recipe: cached, fromCache: true };
-                return { success: false, error: error.message };
+        // Si tenemos caché, la devolvemos de inmediato pero disparamos revalidación
+        if (cached) {
+            console.log(`⚡ Receta ${recipeId} desde caché (recipes_full)`);
+            if (this._isOnline) {
+                this._revalidateRecipeInBackground(recipeId, cached.updated_at);
             }
-        } else {
-            if (cached) return { success: true, recipe: cached, fromCache: true };
-            return { success: false, error: "Offline y receta no cacheada" };
+            return { success: true, recipe: cached, fromCache: true };
+        }
+
+        // 2. Si NO hay caché, esperar a la red
+        if (!this._isOnline) {
+            return { success: false, error: "Sin conexión y no hay copia local" };
+        }
+
+        return this._fetchFullRecipeFromServer(recipeId);
+    }
+
+    async _revalidateRecipeInBackground(recipeId, lastUpdated) {
+        try {
+            const result = await this._fetchFullRecipeFromServer(recipeId);
+            if (result.success) {
+                const newRecipe = result.data;
+                // Si la fecha de actualización es diferente, notificar cambios silenciosos
+                if (newRecipe.updated_at !== lastUpdated) {
+                    console.log('🔄 Receta actualizada en segundo plano');
+                    window.dispatchEvent(new CustomEvent('recipe-detail-updated', { detail: newRecipe }));
+                }
+            }
+        } catch (e) { /* silent */ }
+    }
+
+    async _fetchFullRecipeFromServer(recipeId) {
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            const { data: sessionData } = await window.supabaseClient.auth.getSession();
+            if (sessionData?.session?.access_token) {
+                headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
+            }
+
+            const response = await fetch(`/api/recipe/${recipeId}`, {
+                method: 'GET',
+                headers: headers
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error);
+
+            let recipe = result.data;
+
+            // Conservar metadatos locales si existen
+            const localMeta = await window.localDB.get('recipes_index', recipeId);
+            if (localMeta) {
+                if (localMeta.sharingContext) recipe.sharingContext = localMeta.sharingContext;
+                if (localMeta.senderName) recipe.senderName = localMeta.senderName;
+            }
+
+            // Guardar en ambos almacenes
+            await window.localDB.put('recipes_full', recipe);
+
+            // Actualizar también el índice si es necesario (mantener sincronía)
+            const indexData = {
+                id: recipe.id,
+                name_es: recipe.name_es,
+                name_en: recipe.name_en,
+                image_url: recipe.image_url,
+                updated_at: recipe.updated_at,
+                category_id: recipe.category_id,
+                is_favorite: recipe.is_favorite,
+                sharingContext: recipe.sharingContext || null
+            };
+            await window.localDB.put('recipes_index', indexData);
+
+            return { success: true, recipe, data: recipe };
+        } catch (error) {
+            console.error('Error fetching full recipe:', error);
+            return { success: false, error: error.message };
         }
     }
 
@@ -325,16 +333,36 @@ class DatabaseManager {
             try {
                 const { data: recipe, error } = await window.supabaseClient.from('recipes').insert([payload]).select().single();
                 if (error) throw error;
-                await window.localDB.put('recipes', recipe);
+
+                // Guardar en FULL y en INDEX
+                await window.localDB.put('recipes_full', recipe);
+                await window.localDB.put('recipes_index', {
+                    id: recipe.id,
+                    name_es: recipe.name_es,
+                    name_en: recipe.name_en,
+                    image_url: recipe.image_url,
+                    updated_at: recipe.updated_at,
+                    category_id: recipe.category_id,
+                    is_favorite: recipe.is_favorite
+                });
                 return { success: true, recipe };
             } catch (err) {
                 return { success: false, error: err.message };
             }
         } else {
-            // OFFLINE MODO: Generar ID temporal, guardar en IndexedDB y Queue
             const tempId = 'temp_' + crypto.randomUUID();
-            const tempRecipe = { ...payload, id: tempId, is_active: true, created_at: new Date().toISOString() };
-            await window.localDB.put('recipes', tempRecipe);
+            const tempRecipe = { ...payload, id: tempId, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+
+            await window.localDB.put('recipes_full', tempRecipe);
+            await window.localDB.put('recipes_index', {
+                id: tempId,
+                name_es: tempRecipe.name_es,
+                name_en: tempRecipe.name_en,
+                image_url: tempRecipe.image_url,
+                updated_at: tempRecipe.updated_at,
+                category_id: tempRecipe.category_id,
+                is_favorite: tempRecipe.is_favorite
+            });
             await window.localDB.enqueueSync('insert', 'recipes', tempRecipe, null);
 
             if (window.utils) window.utils.showToast("Receta guardada localmente (Modo sin conexión)");
@@ -345,37 +373,51 @@ class DatabaseManager {
     async updateRecipe(recipeId, updates) {
         await this._checkLocalDB();
 
-        // Aplica el cambio en local de inmediato para el UI
-        const cached = await window.localDB.get('recipes', recipeId);
-        if (cached) {
-            Object.assign(cached, updates);
-            await window.localDB.put('recipes', cached);
+        // Actualizar local de inmediato (FULL e INDEX)
+        const cachedFull = await window.localDB.get('recipes_full', recipeId);
+        const cachedIndex = await window.localDB.get('recipes_index', recipeId);
+
+        if (cachedFull) {
+            Object.assign(cachedFull, updates);
+            await window.localDB.put('recipes_full', cachedFull);
+        }
+        if (cachedIndex) {
+            Object.assign(cachedIndex, updates);
+            await window.localDB.put('recipes_index', cachedIndex);
         }
 
         if (this._isOnline) {
             try {
                 const { data: recipe, error } = await window.supabaseClient.from('recipes').update(updates).eq('id', recipeId).select().single();
                 if (error) throw error;
-                await window.localDB.put('recipes', recipe); // Update with server truth
+
+                // Sincronizar con verdad del servidor
+                await window.localDB.put('recipes_full', recipe);
+                await window.localDB.put('recipes_index', {
+                    id: recipe.id,
+                    name_es: recipe.name_es,
+                    name_en: recipe.name_en,
+                    image_url: recipe.image_url,
+                    updated_at: recipe.updated_at,
+                    category_id: recipe.category_id,
+                    is_favorite: recipe.is_favorite
+                });
                 return { success: true, recipe };
             } catch (err) {
                 return { success: false, error: err.message };
             }
         } else {
             await window.localDB.enqueueSync('update', 'recipes', { id: recipeId, ...updates }, recipeId);
-            return { success: true, recipe: cached, offline: true };
+            return { success: true, offline: true };
         }
     }
 
     async deleteRecipe(recipeId) {
         await this._checkLocalDB();
 
-        // Soft delete local
-        const cached = await window.localDB.get('recipes', recipeId);
-        if (cached) {
-            cached.is_active = false;
-            await window.localDB.delete('recipes', recipeId); // Lo borramos del cache local explícitamente para no verlo
-        }
+        // Borrado local (INDEX y FULL)
+        await window.localDB.delete('recipes_index', recipeId);
+        await window.localDB.delete('recipes_full', recipeId);
 
         if (this._isOnline) {
             try {
@@ -397,10 +439,17 @@ class DatabaseManager {
         await this._checkLocalDB();
         const targetStatus = currentStatus === true || currentStatus === 'true' ? false : true;
 
-        let cached = await window.localDB.get('recipes', recipeId);
-        if (cached) {
-            cached.is_favorite = targetStatus;
-            await window.localDB.put('recipes', cached);
+        // Actualizar localmente INDEX y FULL
+        const cachedFull = await window.localDB.get('recipes_full', recipeId);
+        const cachedIndex = await window.localDB.get('recipes_index', recipeId);
+
+        if (cachedFull) {
+            cachedFull.is_favorite = targetStatus;
+            await window.localDB.put('recipes_full', cachedFull);
+        }
+        if (cachedIndex) {
+            cachedIndex.is_favorite = targetStatus;
+            await window.localDB.put('recipes_index', cachedIndex);
         }
 
         if (this._isOnline) {
@@ -578,9 +627,22 @@ class DatabaseManager {
             const completelyDuplicatedRecipe = {
                 ...newRecipeData,
                 sharingContext: null,
-                category: recipe.category
+                category: recipe.category,
+                ingredients: recipe.ingredients,
+                steps: recipe.steps
             };
-            await window.localDB.put('recipes', completelyDuplicatedRecipe);
+
+            await window.localDB.put('recipes_full', completelyDuplicatedRecipe);
+            await window.localDB.put('recipes_index', {
+                id: newRecipeData.id,
+                name_es: newRecipeData.name_es,
+                name_en: newRecipeData.name_en,
+                image_url: newRecipeData.image_url,
+                updated_at: newRecipeData.updated_at,
+                category_id: newRecipeData.category_id,
+                is_favorite: newRecipeData.is_favorite,
+                sharingContext: null
+            });
 
             return { success: true, newRecipeId: newRecipeId };
         } catch (error) {

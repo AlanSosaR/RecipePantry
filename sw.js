@@ -3,16 +3,21 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const BUILD_ID = "2026-03-05-v19.0.0";
-const CACHE_NAME = 'recipe-app-v19.0.0';
+const BUILD_ID = "2026-03-05-v20.0.0-offline-first";
+const CACHE_NAME = 'recipe-app-v20.0.0';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
     '/index.html',
     '/manifest.webmanifest',
-    '/assets/icons/manifest-icon-192.maskable.png',
-    '/assets/icons/manifest-icon-512.maskable.png',
+    '/js/auth.js',
+    '/js/db.js',
+    '/js/localdb.js',
+    '/js/dashboard.js',
+    '/js/sw-register.js',
+    '/css/styles.css',
+    '/css/components.css',
     '/assets/icons/icon.svg',
     'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
     'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap',
@@ -21,18 +26,18 @@ const STATIC_RESOURCES = [
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined'
 ];
 
-// 1. Instalación: Pre-caché de recursos críticos y saltar espera
+// 1. Instalación: Pre-caché de recursos críticos
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Forzar activación del nuevo SW
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('[SW] Pre-cacheando recursos críticos...');
+            console.log('[SW] Pre-cacheando App Shell...');
             return cache.addAll(STATIC_RESOURCES);
         })
     );
 });
 
-// 2. Activación: Limpieza profunda de caches antiguos
+// 2. Activación: Limpieza de caches antiguos
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         Promise.all([
@@ -46,58 +51,61 @@ self.addEventListener('activate', (event) => {
                     })
                 );
             }),
-            self.clients.claim() // Tomar control de todas las pestañas abiertas inmediatamente
+            self.clients.claim()
         ])
     );
 });
 
-// 3. Estrategia de Fetch Inteligente
+// 3. Estrategia de Fetch (Stale-While-Revalidate)
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // 0. Ignorar esquemas no soportados (ej: chrome-extension)
     if (!request.url.startsWith('http')) return;
 
-    // No interceptar peticiones a la API o Supabase para evitar datos estancados
-    if (url.origin.includes('supabase.co') || url.pathname.startsWith('/api/')) {
+    // Bypassear Supabase directo (Auth/PostgREST directo), pero cachear nuestra API
+    if (url.origin.includes('supabase.co') && request.method !== 'GET') {
         return;
     }
 
-    // Estrategia para HTML: Network First (Prioridad a la frescura)
+    // Estrategia para Navegación (HTML): Network First
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    // Guardar copia fresca en caché
                     const copy = response.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                     return response;
                 })
-                .catch(() => caches.match(request)) // Si falla red, usar caché
+                .catch(() => caches.match(request))
         );
         return;
     }
 
-    // Estrategia para Assets (JS, CSS, Imágenes): Stale-While-Revalidate
+    // Estrategia General: Stale-While-Revalidate (Assets & API GET)
     event.respondWith(
-        caches.match(request).then((response) => {
+        caches.match(request).then((cachedResponse) => {
             const fetchPromise = fetch(request).then((networkResponse) => {
-                if (networkResponse && networkResponse.status === 200) {
+                // Solo cachear respuestas exitosas de GET
+                if (networkResponse && networkResponse.status === 200 && request.method === 'GET') {
                     const copy = networkResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                 }
                 return networkResponse;
-            }).catch(() => null);
+            }).catch(() => {
+                // Si falla la red y no hay caché, retornar error silencioso o fallback
+                return null;
+            });
 
-            return response || fetchPromise;
+            return cachedResponse || fetchPromise;
         })
     );
 });
 
-// 4. Mecanismo de Mensajería para Forzar Actualización
+// 4. Mensajería
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
 });
+

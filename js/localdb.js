@@ -2,7 +2,7 @@
 // IndexedDB Wrapper for RecipeHub Offline First Architecture
 
 const DB_NAME = 'RecipeHubDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 class LocalDBManager {
     constructor() {
@@ -27,13 +27,58 @@ class LocalDBManager {
 
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
+                const oldVersion = event.oldVersion;
+                const transaction = event.target.transaction;
 
-                // Recipes Store (Primary storage for offline viewing)
+                // 1. Recipes Index Store (Optimized for list view)
+                if (!db.objectStoreNames.contains('recipes_index')) {
+                    const indexStore = db.createObjectStore('recipes_index', { keyPath: 'id' });
+                    indexStore.createIndex('category_id', 'category_id', { unique: false });
+                    indexStore.createIndex('is_favorite', 'is_favorite', { unique: false });
+                    indexStore.createIndex('updated_at', 'updated_at', { unique: false });
+                }
+
+                // 2. Recipes Full Store (Complete JSON data)
+                if (!db.objectStoreNames.contains('recipes_full')) {
+                    db.createObjectStore('recipes_full', { keyPath: 'id' });
+                }
+
+                // Legacy Recipes Store (v1)
                 if (!db.objectStoreNames.contains('recipes')) {
                     const recipeStore = db.createObjectStore('recipes', { keyPath: 'id' });
-                    // Indexing to easily query by category or favorite status if needed later
                     recipeStore.createIndex('category_id', 'category_id', { unique: false });
                     recipeStore.createIndex('is_favorite', 'is_favorite', { unique: false });
+                }
+
+                // Data Migration from v1 to v2
+                if (oldVersion < 2 && db.objectStoreNames.contains('recipes')) {
+                    const oldStore = transaction.objectStore('recipes');
+                    const indexStore = transaction.objectStore('recipes_index');
+                    const fullStore = transaction.objectStore('recipes_full');
+
+                    // Note: Cursor migration is async but the transaction will stay alive until it's done or errors.
+                    oldStore.openCursor().onsuccess = (e) => {
+                        const cursor = e.target.result;
+                        if (cursor) {
+                            const recipe = cursor.value;
+                            // Minimal data for index
+                            const indexData = {
+                                id: recipe.id,
+                                name_es: recipe.name_es,
+                                name_en: recipe.name_en,
+                                image_url: recipe.image_url || null,
+                                updated_at: recipe.updated_at,
+                                category_id: recipe.category_id || null,
+                                is_favorite: recipe.is_favorite || false,
+                                sharingContext: recipe.sharingContext || null,
+                                sharedPermission: recipe.sharedPermission || null,
+                                isLegacy: true
+                            };
+                            indexStore.put(indexData);
+                            fullStore.put(recipe);
+                            cursor.continue();
+                        }
+                    };
                 }
 
                 // Categories Store
@@ -41,7 +86,7 @@ class LocalDBManager {
                     db.createObjectStore('categories', { keyPath: 'id' });
                 }
 
-                // Sync Queue Store (Holds offline mutations: create, update, delete)
+                // Sync Queue Store
                 if (!db.objectStoreNames.contains('sync_queue')) {
                     const syncStore = db.createObjectStore('sync_queue', { keyPath: 'uuid' });
                     syncStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -49,6 +94,7 @@ class LocalDBManager {
             };
         });
     }
+
 
     async _getTransaction(storeName, mode) {
         if (!this.db) await this.init();

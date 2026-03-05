@@ -224,6 +224,17 @@ class RecipeDetailManager {
         }
 
         // Eventos básicos omitidos o simplificados para el nuevo diseño premium
+
+        // Listener para actualizaciones en segundo plano (Cache-First Revalidation)
+        window.addEventListener('recipe-detail-updated', (e) => {
+            const freshRecipe = e.detail;
+            if (freshRecipe && freshRecipe.id === this.recipeId) {
+                console.log('🔄 Detalle de receta actualizado en segundo plano');
+                this.currentRecipe = freshRecipe;
+                this.renderRecipe();
+                window.showToast(window.i18n ? window.i18n.t('recipeUpdated') : 'Receta actualizada', 'info');
+            }
+        });
     }
 
     async confirmDelete() {

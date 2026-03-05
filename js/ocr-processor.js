@@ -8,6 +8,7 @@ class OCRProcessor {
         this.worker = null;
         this.isInitialized = false;
         this.MAX_IMAGE_DIMENSION = 1800;
+        this.TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js';
     }
 
     /**
@@ -15,6 +16,11 @@ class OCRProcessor {
      */
     async initialize(onProgress) {
         if (this.isInitialized) return;
+
+        console.log('🚀 Cargando dependencias de OCR...');
+        if (typeof Tesseract === 'undefined') {
+            await this.loadDependencies();
+        }
 
         console.log('🚀 Inicializando Tesseract.js v7.0.0...');
 
@@ -55,8 +61,12 @@ class OCRProcessor {
 
             if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: '🔍 Extrayendo texto con Tesseract v7...' });
 
+            const startTime = performance.now();
             const { data: { text, confidence } } = await this.worker.recognize(processedCanvas);
+            const endTime = performance.now();
+            const elapsedTimeMs = (endTime - startTime).toFixed(2);
 
+            console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
             console.log(`📝 Texto extraído | Confianza: ${confidence.toFixed(1)}%`);
             if (onProgress) onProgress({ status: 'finalizando', progress: 0.7, message: '⚙️ Aplicando correcciones inteligentes...' });
 
@@ -85,6 +95,27 @@ class OCRProcessor {
             console.error('❌ Error en OCRProcessor:', error);
             return { error: error.message, success: false };
         }
+    }
+
+    /**
+     * Carga dinámica de Tesseract.js v7
+     */
+    async loadDependencies() {
+        return new Promise((resolve, reject) => {
+            if (typeof Tesseract !== 'undefined') return resolve();
+
+            const script = document.createElement('script');
+            script.src = this.TESSERACT_URL;
+            script.async = true;
+            script.onload = () => {
+                console.log('📦 Tesseract.js cargado dinámicamente');
+                resolve();
+            };
+            script.onerror = () => {
+                reject(new Error('No se pudo cargar Tesseract.js. Verifica tu conexión.'));
+            };
+            document.head.appendChild(script);
+        });
     }
 
     /**

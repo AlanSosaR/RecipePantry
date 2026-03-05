@@ -59,27 +59,28 @@ export default async function handler(req, res) {
                     return res.status(400).json({ success: false, error: 'User ID is required' });
                 }
 
+                // Optimization: Select only index fields for shared recipes too
                 let { data, error } = await supabase
                     .from('shared_recipes')
-                    .select('*, recipe:recipe_id(*, category:categories(*)), permission, owner_user_id')
+                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, image_url, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color))')
                     .eq('recipient_user_id', userId);
 
                 if (error) throw error;
 
-                res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+                // Cloudflare optimized cache
+                res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=600');
                 return res.status(200).json({
                     success: true,
                     data: data || [],
                     isSharedFormat: true,
-                    filters: { shared: isShared },
-                    cached: true
+                    filters: { shared: isShared }
                 });
             }
 
-            // Normal Query
+            // Normal Query - Optimized for Indexing
             let query = supabase
                 .from('recipes')
-                .select(`*, category:categories(id, name_es, name_en, icon, color)`, { count: 'exact' })
+                .select(`id, name_es, name_en, image_url, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color)`, { count: 'exact' })
                 .eq('is_active', true);
 
             if (userId) query = query.eq('user_id', userId);
@@ -96,17 +97,18 @@ export default async function handler(req, res) {
             const { data, error, count } = await query;
             if (error) throw error;
 
-            let cacheTime = search ? 30 : (categoryId || isFavorite ? 120 : 60);
-            res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=${cacheTime * 2}`);
+            // Cloudflare optimized cache
+            const cdTtl = search ? 30 : 60;
+            res.setHeader('Cache-Control', `public, s-maxage=${cdTtl}, stale-while-revalidate=600`);
 
             return res.status(200).json({
                 success: true,
                 data: data || [],
                 pagination: { total: count, limit: limitNum, offset: offsetNum, hasMore: count > offsetNum + limitNum },
-                filters: { search, categoryId, favorite: isFavorite, shared: isShared, sortBy, sortOrder },
-                cached: true
+                filters: { search, categoryId, favorite: isFavorite, shared: isShared, sortBy, sortOrder }
             });
         }
+
 
         if (req.method === 'POST') {
             const body = req.body;

@@ -82,6 +82,12 @@ class DashboardManager {
 
             // Check for deep link in hash
             this.checkDeepLink();
+
+            // 3. Persistencia de almacenamiento (Evitar que el navegador limpie caches)
+            this.requestPersistence();
+
+            // 4. Indicador de modo offline
+            this.setupOfflineIndicator();
         } catch (error) {
             console.error('❌ Error crítico en Dashboard.init:', error);
             const landingEl = document.getElementById('landing-section');
@@ -165,6 +171,12 @@ class DashboardManager {
             overlay.addEventListener('click', () => this.toggleSidebar(false));
         }
 
+        // Listener para actualizaciones en segundo plano (Cache-First Revalidation)
+        window.addEventListener('recipes-index-updated', (e) => {
+            console.log('🔄 Índice de recetas actualizado en segundo plano');
+            this.currentRecipes = e.detail;
+            this.renderRecipesGrid(this.currentRecipes);
+        });
     }
 
     toggleSidebar(forceState = null) {
@@ -295,6 +307,15 @@ class DashboardManager {
         }
 
         this.renderRecipesGrid(this.currentRecipes);
+
+        // Prefetch inteligente: Pre-cargar las primeras 5 recetas completas para uso offline
+        if (navigator.onLine && (!filters.search)) {
+            const toPrefetch = this.currentRecipes.slice(0, 5);
+            toPrefetch.forEach(recipe => {
+                // Pequeño delay para no saturar la red al inicio
+                setTimeout(() => this.prefetchRecipe(recipe.id), 1000);
+            });
+        }
     }
 
     // --- Multi-Selection Logic (v13.7.0) ---
@@ -975,12 +996,80 @@ class DashboardManager {
         window.location.href = url;
     }
 
+    /**
+     * Prefetch inteligente: Carga la receta en caché antes de que el usuario haga clic.
+     * Se dispara al hacer hover sobre la tarjeta o fila.
+     */
+    prefetchRecipe(recipeId) {
+        if (!recipeId || !window.db) return;
+
+        // Evitar múltiples peticiones si ya estamos cargando o si es offline
+        if (this._prefetching === recipeId || !navigator.onLine) return;
+
+        this._prefetching = recipeId;
+        console.log(`🔍 Prefetching receta: ${recipeId}`);
+
+        // Llamada fire-and-forget a db.js que ya maneja IndexedDB
+        window.db.getRecipeById(recipeId).finally(() => {
+            setTimeout(() => { this._prefetching = null; }, 2000);
+        });
+    }
+
     updateSelectionUI() {
         document.querySelectorAll('.file-row, .recipe-card-m3').forEach(el => {
             el.classList.remove('selected');
         });
         const activeItem = document.querySelector(`[onclick*="${this.selectedRecipeId}"]`);
         if (activeItem) activeItem.classList.add('selected');
+    }
+
+    async requestPersistence() {
+        if (navigator.storage && navigator.storage.persist) {
+            const isPersisted = await navigator.storage.persist();
+            console.log(`💾 Persistencia de almacenamiento: ${isPersisted ? 'Concedida' : 'Denegada'}`);
+        }
+    }
+
+    setupOfflineIndicator() {
+        const updateStatus = () => {
+            const isOnline = navigator.onLine;
+            let indicator = document.getElementById('offline-indicator');
+
+            if (!isOnline) {
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'offline-indicator';
+                    indicator.style.cssText = `
+                        position: fixed;
+                        bottom: 80px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: #323232;
+                        color: white;
+                        padding: 8px 16px;
+                        border-radius: 20px;
+                        font-size: 13px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        z-index: 9999;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                        animation: slideUp 0.3s ease;
+                    `;
+                    indicator.innerHTML = `
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #FFB74D;">cloud_off</span>
+                        <span>Modo sin conexión</span>
+                    `;
+                    document.body.appendChild(indicator);
+                }
+            } else {
+                if (indicator) indicator.remove();
+            }
+        };
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus(); // Estado inicial
     }
 
     async showRecipeDetails(recipeId) {

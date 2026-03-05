@@ -37,8 +37,15 @@ export default async function handler(req, res) {
         if (req.method === 'GET') {
             const { data, error } = await supabase
                 .from('recipes')
-                .select(`*, category:categories(*), ingredients(*), steps:preparation_steps(*)`)
+                .select(`
+                    *,
+                    category:categories(*),
+                    ingredients:ingredients(*),
+                    steps:preparation_steps(*)
+                `)
                 .eq('id', id)
+                .order('order_index', { foreignTable: 'ingredients', ascending: true })
+                .order('step_number', { foreignTable: 'preparation_steps', ascending: true })
                 .single();
 
             if (error) {
@@ -46,9 +53,11 @@ export default async function handler(req, res) {
                 throw error;
             }
 
+            // Cloudflare & Browser Cache Strategy
             res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
             return res.status(200).json({ success: true, data });
         }
+
 
         if (req.method === 'PUT') {
             const body = req.body;
