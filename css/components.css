@@ -3734,9 +3734,8 @@ select.input-field {
 
 .search-wrapper-m3:focus-within {
     background: var(--bg);
-    box-shadow: 0 0 0 2px var(--primary);
-    /* Rounded focus ring matching pills */
-    border-color: transparent;
+    /* Removed default square box-shadow, using border for clean pill shape */
+    border: 2px solid var(--primary);
 }
 
 .search-wrapper-m3 input {
@@ -3778,7 +3777,7 @@ select.input-field {
 }
 
 .suggestion-item:hover {
-    background: var(--surface-container-high);
+    background: var(--surface-container);
 }
 
 .suggestion-item .material-symbols-outlined {
