@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v17.0.0 (Hybrid Header & Selection Facelift)...');
+            console.log('🚀 Inicializando Recipe Pantry v18.0.0 (Stable Node API & Hybrid Grid Header)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
