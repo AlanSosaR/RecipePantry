@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v19.9.0 (Search Tooltip Fix)...');
+            console.log('🚀 Inicializando Recipe Pantry v20.2.1 (Search Tooltip Fix)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -53,7 +53,7 @@ class DashboardManager {
                 return;
             }
 
-            console.log('Recipe Pantry Dashboard init - v20.2.0 - fixed broken scripts');
+            console.log('Recipe Pantry Dashboard init - v20.2.1 - fixed broken scripts');
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');

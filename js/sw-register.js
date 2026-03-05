@@ -13,18 +13,22 @@ async function registerSW() {
         console.log('[SW-Register] Registrado correctamente:', registration.scope);
 
         // Definir la versión en window para debugging
-        window.APP_VERSION = "2026-03-05-v20.2.0";
+        window.APP_VERSION = "2026-03-05-v20.2.1";
 
-        // Detectar si ya hay un SW esperando (updatefound ya ocurrió)
+        // 1. Detectar si ya hay un SW esperando (updatefound ya ocurrió antes de esta carga)
         if (registration.waiting) {
+            console.log('[SW-Register] Nueva versión esperando...');
             updateReady(registration.waiting);
         }
 
-        // Detectar si aparece un nuevo SW
+        // 2. Detectar si aparece un nuevo SW mientras la página está abierta
         registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
+            console.log('[SW-Register] Instalando nueva versión...');
+
             newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[SW-Register] Nueva versión instalada y lista.');
                     updateReady(newWorker);
                 }
             });
@@ -34,12 +38,12 @@ async function registerSW() {
         console.error('[SW-Register] Error en el registro:', error);
     }
 
-    // Escuchar el evento controllerchange para recargar cuando el nuevo SW tome el control
+    // 3. Recarga automática cuando el nuevo SW tome el control
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
         refreshing = true;
-        console.log('[SW-Register] Nuevo Service Worker activado. Recargando...');
+        console.warn('[SW-Register] Detectado cambio de controlador. Recargando para aplicar cambios...');
         window.location.reload();
     });
 }

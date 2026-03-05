@@ -3,8 +3,8 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const BUILD_ID = "2026-03-05-v20.0.0-offline-first";
-const CACHE_NAME = 'recipe-app-v20.0.0';
+const CACHE_NAME = 'recipehub-v20.2.1';
+const BUILD_ID = '2026-03-05-v20.2.1';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -26,31 +26,35 @@ const STATIC_RESOURCES = [
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined'
 ];
 
-// 1. Instalación: Pre-caché de recursos críticos
+// 1. Instalación: Pre-caché y activación inmediata
 self.addEventListener('install', (event) => {
+    // Tomar control inmediatamente sin esperar a que el usuario cierre todas las pestañas
     self.skipWaiting();
+
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('[SW] Pre-cacheando App Shell...');
+            console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
             return cache.addAll(STATIC_RESOURCES);
         })
     );
 });
 
-// 2. Activación: Limpieza de caches antiguos
+// 2. Activación: Limpieza agresiva de caches antiguos
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         Promise.all([
+            // Eliminar cualquier cache que no sea el actual
             caches.keys().then((cacheNames) => {
                 return Promise.all(
                     cacheNames.map((name) => {
                         if (name !== CACHE_NAME) {
-                            console.log('[SW] Eliminando caché antigua:', name);
+                            console.log('[SW] Purgando caché obsoleta:', name);
                             return caches.delete(name);
                         }
                     })
                 );
             }),
+            // Tomar control de todos los clientes (pestañas) inmediatamente
             self.clients.claim()
         ])
     );
