@@ -205,38 +205,36 @@ class RecipeFormManager {
         try {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-            // 1. Validaciones previas
-            let hasError = false;
+            // ─── Validación en cadena ────────────────────────────
+            // 1) Nombre obligatorio
             const nameGroup = document.getElementById('recipe-name-group');
-
             const recipeName = form.name.value.trim();
             if (!recipeName) {
                 if (nameGroup) nameGroup.classList.add('has-error');
-                hasError = true;
-            } else {
-                if (nameGroup) nameGroup.classList.remove('has-error');
+                form.name.focus();
+                return; // Para aquí, NO sigue validando
             }
+            if (nameGroup) nameGroup.classList.remove('has-error');
 
+            // 2) Primer ingrediente vacío
             const ingredientInputs = document.querySelectorAll('.ingredient-input');
-            let hasValidIngredient = false;
-            ingredientInputs.forEach(input => {
+            if (ingredientInputs.length === 0) {
+                const msg = isEn ? 'At least one ingredient is required' : 'Debes agregar al menos un ingrediente';
+                window.showToast(msg, 'error');
+                return;
+            }
+            for (const input of ingredientInputs) {
                 const group = input.closest('.m3-field-container');
                 if (input.value.trim() === '') {
                     if (group) group.classList.add('has-error');
-                    hasError = true;
+                    input.focus();
+                    return; // Para aquí, corrígelo primero
                 } else {
                     if (group) group.classList.remove('has-error');
-                    hasValidIngredient = true;
                 }
-            });
-
-            if (ingredientInputs.length === 0) {
-                const msg = isEn ? "At least one ingredient is required" : "Debes agregar al menos un ingrediente";
-                window.showToast(msg, 'error');
-                hasError = true;
             }
+            // ─────────────────────────────────────────────────────
 
-            if (hasError) return;
 
             btnSave.disabled = true;
             const savingTxt = window.i18n ? window.i18n.t('saving') : 'Guardando...';
