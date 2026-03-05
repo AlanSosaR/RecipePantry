@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=19.4.0">
-  <link rel="stylesheet" href="css/components.css?v=19.4.0">
-  <link rel="stylesheet" href="css/responsive.css?v=19.4.0">
+  <link rel="stylesheet" href="css/styles.css?v=19.5.0">
+  <link rel="stylesheet" href="css/components.css?v=19.5.0">
+  <link rel="stylesheet" href="css/responsive.css?v=19.5.0">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -62,12 +62,12 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v19.4.0
+    v19.5.0
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=19.4.0"></script>
+  <script src="js/sw-register.js?v=19.5.0"></script>
 
 
 
@@ -468,41 +468,31 @@
         </div>
       </header>
 
-      <div class="main-content-scroll">
+      <!-- Selection bar removed from here, integrated into dashboard-header below (v19.5.0) -->
 
-
-
-
-        <!-- Material 3 Expressive Contextual Top App Bar -->
-        <div id="selectionActionBar" class="selection-action-bar hidden">
-          <div class="selection-bar-content">
-            <div class="selection-bar-left">
-              <span id="selectionCountText" class="selection-count-text"></span>
-            </div>
-            <div class="selection-actions-group">
-              <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
-                title="Más opciones">
-                <span class="material-symbols-outlined">more_vert</span>
-              </button>
-
-              <label class="m3-checkbox-wrapper" title="Seleccionar todo" style="margin-left: 8px;">
-                <input type="checkbox" id="selectAllCheckboxTop" class="m3-checkbox-input"
-                  onchange="window.dashboard.handleSelectAll(event)">
-                <span class="m3-checkbox-visual"></span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Overflow Menu -->
-          <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden"></div>
+      <div class="dashboard-header">
+        <div class="header-main-group">
+          <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
+          <span id="selectionCountText" class="selection-count-text hidden"></span>
         </div>
 
-        <div class="dashboard-header">
+        <div class="header-actions-group">
+          <!-- Integrated Selection Actions (v19.5.0) -->
+          <div id="selectionActionsGroup" class="selection-actions-group hidden">
+            <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
+              title="Más opciones">
+              <span class="material-symbols-outlined">more_vert</span>
+            </button>
 
-          <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
+            <label class="m3-checkbox-wrapper" title="Seleccionar todo">
+              <input type="checkbox" id="selectAllCheckboxTop" class="m3-checkbox-input"
+                onchange="window.dashboard.handleSelectAll(event)">
+              <span class="m3-checkbox-visual"></span>
+            </label>
+          </div>
 
-          <!-- View Switcher (Dropbox Style Dropdown) -->
-          <div class="view-switcher-m3">
+          <!-- Dashboard View Switcher -->
+          <div id="view-switcher-m3" class="view-switcher-m3">
             <button id="view-mode-trigger" class="btn-icon-m3" onclick="window.dashboard.toggleViewMenu()"
               title="Diseño">
               <span id="current-view-icon" class="material-symbols-outlined">view_list</span>
@@ -528,130 +518,134 @@
           </div>
         </div>
 
-        <!-- Grid de Recetas -->
-        <div id="recipesGrid" class="recipes-grid">
-          <div class="loading-inline">
-            <div class="spinner-sm"></div>
-            <p style="margin-left: 12px; color: var(--text-secondary);" data-i18n="loadingRecipes">Cargando
-              recetas...</p>
-          </div>
-        </div>
+        <!-- Selection Overflow Menu Anchor -->
+        <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden" style="top: 48px; right: 0;"></div>
+      </div>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
-          <div id="emptyStateImgGroup" style="color: #E5E7EB; margin-bottom: 24px;">
-            <span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
-          </div>
-          <h4 id="emptyStateTitle" style="font-size: 18px; font-weight: 700; color: var(--on-surface);"
-            data-i18n="noRecipesTitle">
-            Aún no tienes recetas</h4>
-          <p id="emptyStateDesc" style="color: var(--on-surface-variant); margin-top: 8px;" data-i18n="noRecipesDesc">
-            Comienza
-            digitalizando tus recetas en
-            papel o agrega una manualmente.</p>
-          <md-filled-button id="emptyStateBtn" style="margin-top: 24px;" onclick="window.location.href='/ocr'">
-            <span slot="icon" class="material-symbols-outlined">document_scanner</span>
-            <span data-i18n="scanRecipeBtn">Escanear Receta</span>
-          </md-filled-button>
+      <!-- Grid de Recetas -->
+      <div id="recipesGrid" class="recipes-grid">
+        <div class="loading-inline">
+          <div class="spinner-sm"></div>
+          <p style="margin-left: 12px; color: var(--text-secondary);" data-i18n="loadingRecipes">Cargando
+            recetas...</p>
         </div>
       </div>
-      <!-- .main-content-scroll close -->
 
-      <!-- Floating Action Button (FAB) -->
-      <button class="fab-m3" onclick="window.location.href='/recipe-form'" data-i18n-aria-label="formNewRecipe"
-        aria-label="Nueva Receta">
-        <span class="material-symbols-outlined">add</span>
-      </button>
-    </main>
-
-    <!-- Right Sidebar: Details Panel (Dropbox Style) -->
-    <aside id="details-sidebar" class="details-sidebar">
-      <div class="details-sidebar-header">
-        <h3 data-i18n="infoTitle">Información</h3>
-
-        <!-- Close Button Removed per User Request -->
-      </div>
-      <div id="details-content" class="details-content">
-        <div class="details-empty">
-          <span class="material-symbols-outlined">info</span>
-          <p data-i18n="selectRecipeHint">Selecciona una receta para ver los detalles</p>
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
+        <div id="emptyStateImgGroup" style="color: #E5E7EB; margin-bottom: 24px;">
+          <span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
         </div>
+        <h4 id="emptyStateTitle" style="font-size: 18px; font-weight: 700; color: var(--on-surface);"
+          data-i18n="noRecipesTitle">
+          Aún no tienes recetas</h4>
+        <p id="emptyStateDesc" style="color: var(--on-surface-variant); margin-top: 8px;" data-i18n="noRecipesDesc">
+          Comienza
+          digitalizando tus recetas en
+          papel o agrega una manualmente.</p>
+        <md-filled-button id="emptyStateBtn" style="margin-top: 24px;" onclick="window.location.href='/ocr'">
+          <span slot="icon" class="material-symbols-outlined">document_scanner</span>
+          <span data-i18n="scanRecipeBtn">Escanear Receta</span>
+        </md-filled-button>
       </div>
-    </aside>
-    <div id="share-modal" class="modal-overlay hidden">
-      <div class="modal-container share-modal-container">
-        <div class="modal-header">
-          <div class="header-info">
-            <h3 id="share-modal-title" data-i18n="shareFile">Compartir archivo</h3>
-            <span id="share-modal-size" class="text-secondary">0 KB</span>
-          </div>
-          <button class="btn-close-modal" onclick="window.shareModal.close()">
-            <span class="material-symbols-outlined">close</span>
-          </button>
+  </div>
+  <!-- .main-content-scroll close -->
+
+  <!-- Floating Action Button (FAB) -->
+  <button class="fab-m3" onclick="window.location.href='/recipe-form'" data-i18n-aria-label="formNewRecipe"
+    aria-label="Nueva Receta">
+    <span class="material-symbols-outlined">add</span>
+  </button>
+  </main>
+
+  <!-- Right Sidebar: Details Panel (Dropbox Style) -->
+  <aside id="details-sidebar" class="details-sidebar">
+    <div class="details-sidebar-header">
+      <h3 data-i18n="infoTitle">Información</h3>
+
+      <!-- Close Button Removed per User Request -->
+    </div>
+    <div id="details-content" class="details-content">
+      <div class="details-empty">
+        <span class="material-symbols-outlined">info</span>
+        <p data-i18n="selectRecipeHint">Selecciona una receta para ver los detalles</p>
+      </div>
+    </div>
+  </aside>
+  <div id="share-modal" class="modal-overlay hidden">
+    <div class="modal-container share-modal-container">
+      <div class="modal-header">
+        <div class="header-info">
+          <h3 id="share-modal-title" data-i18n="shareFile">Compartir archivo</h3>
+          <span id="share-modal-size" class="text-secondary">0 KB</span>
         </div>
-        <div class="modal-body">
+        <button class="btn-close-modal" onclick="window.shareModal.close()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
 
-          <!-- Search section -->
-          <div class="search-section">
-            <div class="chip-input-container">
-              <input type="text" id="user-search-input" data-i18n-placeholder="searchUserPlaceholder"
-                placeholder="Buscar por nombre o correo…">
-            </div>
-            <div id="search-suggestions" class="search-suggestions hidden"></div>
+        <!-- Search section -->
+        <div class="search-section">
+          <div class="chip-input-container">
+            <input type="text" id="user-search-input" data-i18n-placeholder="searchUserPlaceholder"
+              placeholder="Buscar por nombre o correo…">
           </div>
+          <div id="search-suggestions" class="search-suggestions hidden"></div>
+        </div>
 
-          <!-- Selected users chips -->
-          <div id="selected-users-chips" style="display:none; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
+        <!-- Selected users chips -->
+        <div id="selected-users-chips" style="display:none; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
 
-          <!-- Share button (hidden until users selected) -->
-          <button id="btn-share-submit"
-            style="display:none; width:100%; padding:14px; background:#10B981; color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin:8px 0; align-items:center; justify-content:center; gap:8px; transition:all .2s;">
-            Compartir
-          </button>
+        <!-- Share button (hidden until users selected) -->
+        <button id="btn-share-submit"
+          style="display:none; width:100%; padding:14px; background:#10B981; color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin:8px 0; align-items:center; justify-content:center; gap:8px; transition:all .2s;">
+          Compartir
+        </button>
 
-          <!-- Manage Access Section -->
-          <div id="manage-access-section" class="manage-access-section-m3">
-            <h4 class="section-title">Personas con acceso</h4>
-            <div id="shares-list" class="shares-list">
+        <!-- Manage Access Section -->
+        <div id="manage-access-section" class="manage-access-section-m3">
+          <h4 class="section-title">Personas con acceso</h4>
+          <div id="shares-list" class="shares-list">
 
-              <!-- Rows loaded via JS -->
-            </div>
+            <!-- Rows loaded via JS -->
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=19.4.0"></script>
-    <script src="js/supabase-client.js?v=19.4.0"></script>
-    <script src="js/auth.js?v=19.4.0"></script>
-    <script src="js/localdb.js?v=19.4.0"></script>
-    <script src="js/sync-manager.js?v=19.4.0"></script>
-    <script src="js/db.js?v=19.4.0"></script>
-    <script src="js/utils.js?v=19.4.0"></script>
-    <script src="js/i18n.js?v=19.4.0"></script>
-    <script src="js/ui.js?v=19.4.0"></script>
-    <script src="js/share-modal.js?v=19.4.0"></script>
-    <script src="js/notifications.js?v=19.4.0"></script>
-    <script src="js/dashboard.js?v=19.4.0"></script>
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=19.5.0"></script>
+  <script src="js/supabase-client.js?v=19.5.0"></script>
+  <script src="js/auth.js?v=19.5.0"></script>
+  <script src="js/localdb.js?v=19.5.0"></script>
+  <script src="js/sync-manager.js?v=19.5.0"></script>
+  <script src="js/db.js?v=19.5.0"></script>
+  <script src="js/utils.js?v=19.5.0"></script>
+  <script src="js/i18n.js?v=19.5.0"></script>
+  <script src="js/ui.js?v=19.5.0"></script>
+  <script src="js/share-modal.js?v=19.5.0"></script>
+  <script src="js/notifications.js?v=19.5.0"></script>
+  <script src="js/dashboard.js?v=19.5.0"></script>
 
 
-    <script>
-      // Kept for backward compatibility – i18n.js handles the heavy lifting.
-      function updateTranslations() {
-        if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
-      }
-    </script>
-    <script type="module">
-      import '@material/web/button/filled-button.js'
-      import '@material/web/button/outlined-button.js'
-      import '@material/web/textfield/outlined-text-field.js'
-      // También podemos importar managers globales si es necesario
-      console.log('✨ Material 3 Expressive Modules Loaded');
-    </script>
+  <script>
+    // Kept for backward compatibility – i18n.js handles the heavy lifting.
+    function updateTranslations() {
+      if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
+    }
+  </script>
+  <script type="module">
+    import '@material/web/button/filled-button.js'
+    import '@material/web/button/outlined-button.js'
+    import '@material/web/textfield/outlined-text-field.js'
+    // También podemos importar managers globales si es necesario
+    console.log('✨ Material 3 Expressive Modules Loaded');
+  </script>
 
-    <!-- El Service Worker se gestiona mediante js/sw-register.js -->
+  <!-- El Service Worker se gestiona mediante js/sw-register.js -->
   </div>
 </body>
 

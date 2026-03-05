@@ -75,6 +75,27 @@ ol {
     color: var(--on-surface);
     letter-spacing: -0.5px;
     margin: 0;
+    transition: opacity 0.2s ease;
+}
+
+.dashboard-header .header-main-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dashboard-header .header-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Integrated Selection Text (v19.5.0) */
+.selection-count-text {
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    font-weight: 700;
+    color: var(--primary);
+    animation: m3-fade-up 0.3s var(--m3-easing);
 }
 
 .screen-wrapper {
@@ -684,6 +705,13 @@ ol {
 }
 
 .selection-action-bar.hidden {
+    display: none !important;
+}
+
+/* Global Selection Header Hide (v19.5.0) */
+/* This ensures 'NOMBRE' and other headers disappear on PC and Mobile when selecting */
+body.selection-mode-active .list-header-m3,
+#recipesGrid.selection-mode-active .list-header-m3 {
     display: none !important;
 }
 

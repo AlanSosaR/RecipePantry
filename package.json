@@ -1,6 +1,6 @@
 {
   "name": "recipehub",
-  "version": "19.4.0",
+  "version": "19.5.0",
   "description": "Recipe Scanner with Edge API and CDN Caching",
   "type": "module",
   "scripts": {
