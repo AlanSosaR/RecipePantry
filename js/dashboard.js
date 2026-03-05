@@ -323,9 +323,16 @@ class DashboardManager {
     }
 
     updateSelectionModeClass() {
+        const body = document.body;
+        if (this.selectedRecipes.size > 0 || this.isSelectionMode) {
+            body.classList.add('selection-mode-active');
+        } else {
+            body.classList.remove('selection-mode-active');
+        }
+
         const container = document.getElementById('recipesGrid');
         if (container) {
-            if (this.isSelectionMode) {
+            if (this.selectedRecipes.size > 0 || this.isSelectionMode) {
                 container.classList.add('selection-mode-active');
             } else {
                 container.classList.remove('selection-mode-active');
@@ -366,21 +373,6 @@ class DashboardManager {
         const dashboardHeader = document.querySelector('.dashboard-header');
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-        const mobileHeaderCheckbox = document.getElementById('mobileHeaderCheckbox');
-        const mobileHeaderActions = document.getElementById('mobileHeaderActions');
-        const isListView = !this.displayMode.startsWith('grid');
-
-        // Manage Mobile Header visibility (only in list view)
-        if (mobileHeader) {
-            if (isListView) {
-                mobileHeader.style.display = 'flex';
-                mobileHeader.classList.remove('hidden');
-            } else {
-                mobileHeader.style.display = 'none';
-                mobileHeader.classList.add('hidden');
-            }
-        }
-
         if (this.selectedRecipes.size > 0) {
             // Desktop Bar
             if (actionBar) {
@@ -390,20 +382,12 @@ class DashboardManager {
                 const text = isEn ? `${count} selected` : `${count} seleccionado${count > 1 ? 's' : ''}`;
                 if (countText) countText.textContent = text;
             }
-
-            // Mobile Selection Controls (Conditional)
-            if (mobileHeaderCheckbox) mobileHeaderCheckbox.style.visibility = 'visible';
-            if (mobileHeaderActions) mobileHeaderActions.style.display = 'flex';
         } else {
             // Hide Desktop Bar
             if (actionBar) {
                 actionBar.classList.add('hidden');
                 if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
             }
-
-            // Hide Mobile Selection Controls
-            if (mobileHeaderCheckbox) mobileHeaderCheckbox.style.visibility = 'hidden';
-            if (mobileHeaderActions) mobileHeaderActions.style.display = 'none';
 
             this.isSelectionMode = false;
             this.updateSelectionModeClass();
@@ -801,7 +785,7 @@ class DashboardManager {
             const colDate = window.i18n ? window.i18n.t('colLastModified') : 'ÚLTIMA MODIFICACIÓN';
 
             const header = `
-                <div class="list-header-m3 hidden-mobile-lg">
+                <div class="list-header-m3">
                     <div class="col-checkbox">
                         <label class="m3-checkbox-wrapper">
                             <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">

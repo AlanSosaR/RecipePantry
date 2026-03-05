@@ -1,26 +1,26 @@
-// api/recipes.js - Edge Function con filtros completos
+// api/recipes.js - Vercel Serverless Function (Node.js)
 import { createClient } from '@supabase/supabase-js';
 
-
-
-export default async function handler(req) {
+export default async function handler(req, res) {
     // CORS headers
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Content-Type': 'application/json',
-    };
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Content-Type', 'application/json');
 
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-        return new Response(JSON.stringify({
-            success: false,
-            error: 'Database configuration missing (SUPABASE_URL or SUPABASE_ANON_KEY)'
-        }), { status: 500, headers });
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
-    // Extraer header de autenticación si existe
-    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+        return res.status(500).json({
+            success: false,
+            error: 'Database configuration missing'
+        });
+    }
+
+    // Extraer header de autenticación
+    const authHeader = req.headers['authorization'] || '';
 
     const supabase = createClient(
         process.env.SUPABASE_URL,
@@ -34,29 +34,29 @@ export default async function handler(req) {
         }
     );
 
-    if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 200, headers });
-    }
-
     try {
-        const url = new URL(req.url);
+        // Extraer TODOS los parámetros de filtrado desde req.query (Node.js)
+        const {
+            user_id: userId,
+            search,
+            category_id: categoryId,
+            favorite,
+            shared,
+            sort_by: sortBy = 'created_at',
+            sort_order: sortOrder = 'desc',
+            limit = '50',
+            offset = '0'
+        } = req.query;
 
-        // Extraer TODOS los parámetros de filtrado
-        const userId = url.searchParams.get('user_id');
-        const search = url.searchParams.get('search');
-        const categoryId = url.searchParams.get('category_id');
-        const favorite = url.searchParams.get('favorite') === 'true';
-        const shared = url.searchParams.get('shared') === 'true';
-        const sortBy = url.searchParams.get('sort_by') || 'created_at';
-        const sortOrder = url.searchParams.get('sort_order') || 'desc';
-        const limit = parseInt(url.searchParams.get('limit') || '50');
-        const offset = parseInt(url.searchParams.get('offset') || '0');
+        const isFavorite = favorite === 'true';
+        const isShared = shared === 'true';
+        const limitNum = parseInt(limit);
+        const offsetNum = parseInt(offset);
 
         if (req.method === 'GET') {
-            // Mapeo especial para tabla compartidas si aplica (simplified for proxy pattern based on db.js existing complex logic)
-            if (shared) {
+            if (isShared) {
                 if (!userId) {
-                    return new Response(JSON.stringify({ success: false, error: 'User ID is required when filtering by shared recipes' }), { status: 400, headers });
+                    return res.status(400).json({ success: false, error: 'User ID is required' });
                 }
 
                 let { data, error } = await supabase
@@ -66,90 +66,50 @@ export default async function handler(req) {
 
                 if (error) throw error;
 
-                if (!data || data.length === 0) {
-                    return new Response(JSON.stringify({ success: true, data: [], cached: false }), { status: 200, headers });
-                }
-
-                // We return the raw data with the recipes nested to allow frontend to format as before
-                let cacheTime = 60;
-                headers['Cache-Control'] = `public, s-maxage=${cacheTime}, stale-while-revalidate=${cacheTime * 2}`;
-                headers['CDN-Cache-Control'] = `public, s-maxage=${cacheTime}`;
-
-                return new Response(JSON.stringify({
+                res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+                return res.status(200).json({
                     success: true,
-                    data: data,
+                    data: data || [],
                     isSharedFormat: true,
-                    filters: { shared },
+                    filters: { shared: isShared },
                     cached: true
-                }), { status: 200, headers });
+                });
             }
 
-            // Normal Query execution (Not shared)
+            // Normal Query
             let query = supabase
                 .from('recipes')
                 .select(`*, category:categories(id, name_es, name_en, icon, color)`, { count: 'exact' })
                 .eq('is_active', true);
 
-            // FILTRO: Usuario específico
-            if (userId) {
-                query = query.eq('user_id', userId);
-            }
-
-            // FILTRO: Búsqueda por texto
+            if (userId) query = query.eq('user_id', userId);
             if (search && search.trim()) {
                 query = query.or(`name_es.ilike.%${search}%,name_en.ilike.%${search}%,description_es.ilike.%${search}%`);
             }
+            if (categoryId) query = query.eq('category_id', categoryId);
+            if (isFavorite) query = query.eq('is_favorite', true);
 
-            // FILTRO: Categoría
-            if (categoryId) {
-                query = query.eq('category_id', categoryId);
-            }
-
-            // FILTRO: Favoritos
-            if (favorite) {
-                query = query.eq('is_favorite', true);
-            }
-
-            // ORDENAMIENTO
-            const ascending = sortOrder === 'asc' || sortOrder === 'true'; // db.js default passing bool
+            const ascending = sortOrder === 'asc' || sortOrder === 'true';
             query = query.order(sortBy, { ascending });
+            query = query.range(offsetNum, offsetNum + limitNum - 1);
 
-            // PAGINACIÓN
-            query = query.range(offset, offset + limit - 1);
-
-            // Ejecutar query
             const { data, error, count } = await query;
-
             if (error) throw error;
 
-            // Calcular tiempo de cache basado en filtros
-            let cacheTime = 60; // Default: 1 minuto
+            let cacheTime = search ? 30 : (categoryId || isFavorite ? 120 : 60);
+            res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=${cacheTime * 2}`);
 
-            if (search) {
-                cacheTime = 30; // Búsquedas: 30 segundos
-            } else if (categoryId || favorite) {
-                cacheTime = 120; // Filtros: 2 minutos
-            } else {
-                cacheTime = 60; // Lista general: 1 minuto
-            }
-
-            // Headers de cache
-            headers['Cache-Control'] = `public, s-maxage=${cacheTime}, stale-while-revalidate=${cacheTime * 2}`;
-            headers['CDN-Cache-Control'] = `public, s-maxage=${cacheTime}`;
-
-            return new Response(JSON.stringify({
+            return res.status(200).json({
                 success: true,
                 data: data || [],
-                pagination: { total: count, limit, offset, hasMore: count > offset + limit },
-                filters: { search, categoryId, favorite, shared, sortBy, sortOrder },
-                cached: true,
-                cacheTime
-            }), { status: 200, headers });
+                pagination: { total: count, limit: limitNum, offset: offsetNum, hasMore: count > offsetNum + limitNum },
+                filters: { search, categoryId, favorite: isFavorite, shared: isShared, sortBy, sortOrder },
+                cached: true
+            });
         }
 
         if (req.method === 'POST') {
-            const body = await req.json();
-
+            const body = req.body;
             const { data, error } = await supabase
                 .from('recipes')
                 .insert([body])
@@ -157,24 +117,18 @@ export default async function handler(req) {
 
             if (error) throw error;
 
-            headers['Cache-Control'] = 'no-store';
-
-            return new Response(JSON.stringify({
+            return res.status(201).json({
                 success: true,
                 data: data[0]
-            }), { status: 201, headers });
+            });
         }
 
-        return new Response(JSON.stringify({
-            error: 'Method not allowed'
-        }), { status: 405, headers });
+        return res.status(405).json({ error: 'Method not allowed' });
 
     } catch (error) {
-        console.error('Edge API Error:', error);
-        return new Response(JSON.stringify({
+        return res.status(500).json({
             success: false,
-            error: error.message,
-            details: error.details || null
-        }), { status: 500, headers });
+            error: error.message
+        });
     }
 }

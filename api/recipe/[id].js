@@ -1,80 +1,57 @@
-// api/recipe/[id].js - Detalle, actualizar, eliminar
+// api/recipe/[id].js - Vercel Serverless Function (Node.js)
 import { createClient } from '@supabase/supabase-js';
 
-
-
-export default async function handler(req) {
+export default async function handler(req, res) {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Content-Type': 'application/json',
     };
 
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-        return new Response(JSON.stringify({
-            success: false,
-            error: 'Database configuration missing'
-        }), { status: 500, headers });
+    // Aplicar headers básicos
+    Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
-    // Extraer header de autenticación si existe
-    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+        return res.status(500).json({ success: false, error: 'Database configuration missing' });
+    }
+
+    const authHeader = req.headers['authorization'] || '';
 
     const supabase = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_ANON_KEY,
-        {
-            global: {
-                headers: {
-                    Authorization: authHeader
-                }
-            }
-        }
+        { global: { headers: { Authorization: authHeader } } }
     );
 
-    if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 200, headers });
-    }
-
     try {
-        const url = new URL(req.url);
-        const pathParts = url.pathname.split('/');
-        const id = pathParts[pathParts.length - 1];
+        const { id } = req.query;
 
-        if (!id || id === '[id]') {
-            return new Response(JSON.stringify({ error: 'Recipe ID is required' }), { status: 400, headers });
+        if (!id) {
+            return res.status(400).json({ error: 'Recipe ID is required' });
         }
 
         if (req.method === 'GET') {
-            // GET - Detalle completo con joins as defined originally in db.js
             const { data, error } = await supabase
                 .from('recipes')
-                .select(`
-          *,
-          category:categories(*),
-          ingredients(*),
-          steps:preparation_steps(*)
-        `)
+                .select(`*, category:categories(*), ingredients(*), steps:preparation_steps(*)`)
                 .eq('id', id)
                 .single();
 
             if (error) {
-                if (error.code === 'PGRST116') {
-                    return new Response(JSON.stringify({ error: 'Recipe not found', id }), { status: 404, headers });
-                }
+                if (error.code === 'PGRST116') return res.status(404).json({ error: 'Recipe not found' });
                 throw error;
             }
 
-            headers['Cache-Control'] = 'public, s-maxage=300, stale-while-revalidate=600';
-            headers['CDN-Cache-Control'] = 'public, s-maxage=300';
-
-            return new Response(JSON.stringify({ success: true, data }), { status: 200, headers });
+            res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+            return res.status(200).json({ success: true, data });
         }
 
         if (req.method === 'PUT') {
-            const body = await req.json();
-
+            const body = req.body;
             const { data, error } = await supabase
                 .from('recipes')
                 .update(body)
@@ -82,9 +59,7 @@ export default async function handler(req) {
                 .select(`*, category:categories(*)`);
 
             if (error) throw error;
-            headers['Cache-Control'] = 'no-store';
-
-            return new Response(JSON.stringify({ success: true, data: data[0] }), { status: 200, headers });
+            return res.status(200).json({ success: true, data: data[0] });
         }
 
         if (req.method === 'DELETE') {
@@ -94,17 +69,12 @@ export default async function handler(req) {
                 .eq('id', id);
 
             if (error) throw error;
-            headers['Cache-Control'] = 'no-store';
-
-            return new Response(JSON.stringify({
-                success: true, message: 'Recipe deleted successfully', id
-            }), { status: 200, headers });
+            return res.status(200).json({ success: true, message: 'Recipe deleted successfully', id });
         }
 
-        return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers });
+        return res.status(405).json({ error: 'Method not allowed' });
 
     } catch (error) {
-        console.error('Edge API Error:', error);
-        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers });
+        return res.status(500).json({ success: false, error: error.message });
     }
 }
