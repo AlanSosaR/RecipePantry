@@ -53,7 +53,7 @@ class DashboardManager {
                 return;
             }
 
-            console.log('Recipe Pantry Dashboard init - v20.1.0 - fixed share menu persistence');
+            console.log('Recipe Pantry Dashboard init - v20.2.0 - fixed broken scripts');
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
