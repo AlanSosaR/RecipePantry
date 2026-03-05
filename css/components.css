@@ -738,21 +738,10 @@ ol {
 }
 
 @media (max-width: 767px) {
-    .list-header-m3 {
-        display: none;
-    }
 
-    /* Hide checkboxes by default on mobile */
-    .col-checkbox {
-        display: none !important;
-    }
-
-    .selection-mode-active .col-checkbox {
-        display: flex !important;
-    }
-
-    .selection-mode-active .list-header-m3,
-    .selection-mode-active .dashboard-header {
+    /* Always hide headers on mobile for maximum space and clean look */
+    .list-header-m3,
+    .dashboard-header {
         display: none !important;
     }
 
@@ -6345,69 +6334,8 @@ input:checked~.m3-ingredient-text {
     }
 }
 
-/* ─── List Header M3 (Hybrid Desktop/Mobile) ─── */
-.list-header-m3 {
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    display: grid;
-    grid-template-columns: 48px 48px 1fr 120px 100px 140px 48px;
-    align-items: center;
-    padding: 0 1rem;
-    height: 48px;
-    border-bottom: 1px solid var(--outline-variant);
-    z-index: 100;
-    margin: 0 -1rem 4px -1rem;
-}
 
-@media (max-width: 800px) {
-    .list-header-m3 {
-        grid-template-columns: 0 0 1fr 0 0 0 0;
-        /* Default: Only name */
-        transition: grid-template-columns 0.2s ease;
-        padding-left: 0.5rem;
-    }
-
-    .list-header-m3 .col-icon,
-    .list-header-m3 .col-category,
-    .list-header-m3 .col-access,
-    .list-header-m3 .col-date,
-    .list-header-m3 .col-actions {
-        display: none !important;
-    }
-
-    .list-header-m3 .col-checkbox {
-        visibility: hidden;
-        width: 0;
-        overflow: hidden;
-        transition: width 0.2s ease, visibility 0.2s;
-    }
-
-    /* When selection mode is active, show checkbox */
-    body.selection-mode-active .list-header-m3 {
-        grid-template-columns: 48px 0 1fr 0 0 0 0;
-        padding-left: 1rem;
-    }
-
-    body.selection-mode-active .list-header-m3 .col-checkbox {
-        visibility: visible;
-        width: 48px;
-    }
-}
-
-.list-header-m3 .col-name {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--on-surface-variant);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-}
-
-.list-header-m3 .col-checkbox {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+/* --- Keyframes --- */
 
 @keyframes slideDownM3 {
     from {
