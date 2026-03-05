@@ -1,9 +1,33 @@
-/**
- * Recipe Pantry - Registro Profesional de Service Worker
- * Gestiona el ciclo de vida y la recarga automática ante actualizaciones.
- */
-
 const SW_PATH = '/sw.js';
+const APP_VERSION_ID = '28';
+
+// AUTO-SYNCHRONIZER: Forzar actualización si el HTML y el JS no coinciden
+(function () {
+    const htmlVer = document.documentElement.getAttribute('data-app-version');
+    if (htmlVer && htmlVer !== APP_VERSION_ID) {
+        console.warn(`🚀 [Sync] Desincronización: HTML v${htmlVer} vs JS v${APP_VERSION_ID}. Forzando actualización...`);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                for (let reg of regs) reg.unregister();
+            });
+        }
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                for (let name of names) caches.delete(name);
+            });
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+
+        const reloadCount = parseInt(sessionStorage.getItem('reload_count_v28') || '0');
+        if (reloadCount < 2) {
+            sessionStorage.setItem('reload_count_v28', (reloadCount + 1).toString());
+            window.location.reload(true);
+        }
+    } else {
+        sessionStorage.removeItem('reload_count_v28');
+    }
+})();
 
 async function registerSW() {
     if (!('serviceWorker' in navigator)) return;
@@ -13,7 +37,7 @@ async function registerSW() {
         console.log('[SW-Register] Registrado correctamente:', registration.scope);
 
         // Definir la versión en window para debugging
-        window.APP_VERSION = "2026-03-05-v20.2.1";
+        window.APP_VERSION = "2026-03-05-v28";
 
         // 1. Detectar si ya hay un SW esperando (updatefound ya ocurrió antes de esta carga)
         if (registration.waiting) {
