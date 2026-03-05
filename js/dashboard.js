@@ -53,7 +53,7 @@ class DashboardManager {
                 return;
             }
 
-            console.log('✅ Modo Dashboard: Usuario detectado:', window.authManager.currentUser);
+            console.log('Recipe Pantry Dashboard init - v20.1.0 - fixed share menu persistence');
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
@@ -544,6 +544,14 @@ class DashboardManager {
             }
         };
         setTimeout(() => document.addEventListener('mousedown', closeMenu), 10);
+
+        // Ensure menu closes when an action button is clicked
+        menu.addEventListener('click', (e) => {
+            if (e.target.closest('button')) {
+                menu.remove();
+                document.removeEventListener('mousedown', closeMenu);
+            }
+        });
     }
 
 

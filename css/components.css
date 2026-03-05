@@ -3747,8 +3747,9 @@ select.input-field {
     color: var(--on-surface);
 }
 
-.search-wrapper-m3 input:focus {
-    outline: none;
+.search-wrapper-m3 input:focus,
+.search-wrapper-m3 input:focus-visible {
+    outline: none !important;
 }
 
 /* Search Suggestions Dropdown */
@@ -4736,7 +4737,7 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 .suggestion-item:hover {
-    background: #333;
+    background: var(--surface-container, #f5f5f5);
 }
 
 .suggestion-avatar {

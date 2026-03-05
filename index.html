@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=20.0.0">
-  <link rel="stylesheet" href="css/components.css?v=20.0.0">
-  <link rel="stylesheet" href="css/responsive.css?v=20.0.0">
+  <link rel="stylesheet" href="css/styles.css?v=20.1.0">
+  <link rel="stylesheet" href="css/animations.css?v=20.1.0">
+  <link rel="stylesheet" href="css/components.css?v=20.1.0">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -59,10 +59,10 @@
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
   </script>
-  <!-- Dynamic Version Display -->
+  <!-- M3 Expressive Version Badge (Bottom Left) -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v20.0.0
+    v20.1.0
   </div>
 
 
@@ -548,104 +548,110 @@
           <span data-i18n="scanRecipeBtn">Escanear Receta</span>
         </md-filled-button>
       </div>
-  </div>
-  <!-- .main-content-scroll close -->
 
-  <!-- Floating Action Button (FAB) -->
-  <button class="fab-m3" onclick="window.location.href='/recipe-form'" data-i18n-aria-label="formNewRecipe"
-    aria-label="Nueva Receta">
-    <span class="material-symbols-outlined">add</span>
-  </button>
-  </main>
+      <!-- Floating Action Button (FAB) -->
+      <button class="fab-m3" onclick="window.location.href='/recipe-form'" data-i18n-aria-label="formNewRecipe"
+        aria-label="Nueva Receta">
+        <span class="material-symbols-outlined">add</span>
+      </button>
 
-  <!-- Right Sidebar: Details Panel (Dropbox Style) -->
-  <aside id="details-sidebar" class="details-sidebar">
-    <div class="details-sidebar-header">
-      <h3 data-i18n="infoTitle">Información</h3>
+    </main>
 
-      <!-- Close Button Removed per User Request -->
-    </div>
-    <div id="details-content" class="details-content">
-      <div class="details-empty">
-        <span class="material-symbols-outlined">info</span>
-        <p data-i18n="selectRecipeHint">Selecciona una receta para ver los detalles</p>
+    <!-- Right Sidebar: Details Panel (Dropbox Style) -->
+    <aside id="details-sidebar" class="details-sidebar">
+      <div class="details-sidebar-header">
+        <h3 data-i18n="infoTitle">Información</h3>
+
+        <!-- Close Button Removed per User Request -->
       </div>
-    </div>
-  </aside>
-  <div id="share-modal" class="modal-overlay hidden">
-    <div class="modal-container share-modal-container">
-      <div class="modal-header">
-        <div class="header-info">
-          <h3 id="share-modal-title" data-i18n="shareFile">Compartir archivo</h3>
-          <span id="share-modal-size" class="text-secondary">0 KB</span>
+      <div id="details-content" class="details-content">
+        <div class="details-empty">
+          <span class="material-symbols-outlined">info</span>
+          <p data-i18n="selectRecipeHint">Selecciona una receta para ver los detalles</p>
         </div>
-        <button class="btn-close-modal" onclick="window.shareModal.close()">
-          <span class="material-symbols-outlined">close</span>
-        </button>
       </div>
-      <div class="modal-body">
-
-        <!-- Search section -->
-        <div class="search-section">
-          <div class="chip-input-container">
-            <input type="text" id="user-search-input" data-i18n-placeholder="searchUserPlaceholder"
-              placeholder="Buscar por nombre o correo…">
+    </aside>
+    <div id="share-modal" class="modal-overlay hidden">
+      <div class="modal-container share-modal-container">
+        <div class="modal-header">
+          <div class="header-info">
+            <h3 id="share-modal-title" data-i18n="shareFile">Compartir archivo</h3>
+            <span id="share-modal-size" class="text-secondary">0 KB</span>
           </div>
-          <div id="search-suggestions" class="search-suggestions hidden"></div>
+          <button class="btn-close-modal" onclick="window.shareModal.close()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
+        <div class="modal-body">
 
-        <!-- Selected users chips -->
-        <div id="selected-users-chips" style="display:none; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
+          <!-- Search section -->
+          <div class="search-section">
+            <div class="chip-input-container">
+              <input type="text" id="user-search-input" data-i18n-placeholder="searchUserPlaceholder"
+                placeholder="Buscar por nombre o correo…">
+            </div>
+            <div id="search-suggestions" class="search-suggestions hidden"></div>
+          </div>
 
-        <!-- Share button (hidden until users selected) -->
-        <button id="btn-share-submit"
-          style="display:none; width:100%; padding:14px; background:#10B981; color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin:8px 0; align-items:center; justify-content:center; gap:8px; transition:all .2s;">
-          Compartir
-        </button>
+          <!-- Selected users chips -->
+          <div id="selected-users-chips" style="display:none; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
 
-        <!-- Manage Access Section -->
-        <div id="manage-access-section" class="manage-access-section-m3">
-          <h4 class="section-title">Personas con acceso</h4>
-          <div id="shares-list" class="shares-list">
+          <!-- Share button (hidden until users selected) -->
+          <button id="btn-share-submit"
+            style="display:none; width:100%; padding:14px; background:#10B981; color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin:8px 0; align-items:center; justify-content:center; gap:8px; transition:all .2s;">
+            Compartir
+          </button>
 
-            <!-- Rows loaded via JS -->
+          <!-- Manage Access Section -->
+          <div id="manage-access-section" class="manage-access-section-m3">
+            <h4 class="section-title">Personas con acceso</h4>
+            <div id="shares-list" class="shares-list">
+
+              <!-- Rows loaded via JS -->
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=20.0.0"></script>
-  <script src="js/supabase-client.js?v=20.0.0"></script>
-  <script src="js/auth.js?v=20.0.0"></script>
-  <script src="js/localdb.js?v=20.0.0"></script>
-  <script src="js/sync-manager.js?v=20.0.0"></script>
-  <script src="js/db.js?v=20.0.0"></script>
-  <script src="js/utils.js?v=20.0.0"></script>
-  <script src="js/i18n.js?v=20.0.0"></script>
-  <script src="js/ui.js?v=20.0.0"></script>
-  <script src="js/share-modal.js?v=20.0.0"></script>
-  <script src="js/notifications.js?v=20.0.0"></script>
-  <script src="js/dashboard.js?v=20.0.0"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js?v=20.1.0"></script>
+    <script src="js/supabase-client.js?v=20.1.0"></script>
+    <script src="js/localdb.js?v=20.1.0"></script>
+    <script src="js/sync-manager.js?v=20.1.0"></script>
+
+    <!-- Scripts (Versión Cache Buster) -->
+    <script src="js/db.js?v=20.1.0"></script>
+    <script src="js/auth.js?v=20.1.0"></script>
+    <script src="js/dashboard.js?v=20.1.0"></script>
+    <script src="js/share-modal.js?v=20.1.0"></script>
+    <script src="js/notifications.js?v=20.1.0"></script>
+    <script src="js/ui.js?v=20.1.0"></script>
+
+    <!-- Initialisation -->
+    <script src="js/init.js?v=20.1.0"></script>
+    <!-- Service Worker Registration -->
+    <script src="js/sw-register.js?v=20.1.0"></script>
+    <!-- Multi-language support -->
+    <script src="js/i18n.js?v=20.1.0"></script>
 
 
-  <script>
-    // Kept for backward compatibility – i18n.js handles the heavy lifting.
-    function updateTranslations() {
-      if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
-    }
-  </script>
-  <script type="module">
-    import '@material/web/button/filled-button.js'
-    import '@material/web/button/outlined-button.js'
-    import '@material/web/textfield/outlined-text-field.js'
-    // También podemos importar managers globales si es necesario
-    console.log('✨ Material 3 Expressive Modules Loaded');
-  </script>
+    <script>
+      // Kept for backward compatibility – i18n.js handles the heavy lifting.
+      function updateTranslations() {
+        if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
+      }
+    </script>
+    <script type="module">
+      import '@material/web/button/filled-button.js'
+      import '@material/web/button/outlined-button.js'
+      import '@material/web/textfield/outlined-text-field.js'
+      // También podemos importar managers globales si es necesario
+      console.log('✨ Material 3 Expressive Modules Loaded');
+    </script>
 
-  <!-- El Service Worker se gestiona mediante js/sw-register.js -->
+    <!-- El Service Worker se gestiona mediante js/sw-register.js -->
   </div>
 </body>
 
