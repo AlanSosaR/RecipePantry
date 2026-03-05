@@ -4467,21 +4467,22 @@ html[data-auth-likely="true"] #dashboard-app {
     bottom: 32px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: #1B1B1F;
-    color: #E3E2E6;
+    background: #ffffff;
+    color: #10B981;
     padding: 18px 28px;
     border-radius: 16px;
     font-size: 15px;
     display: flex;
     align-items: center;
     gap: 14px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
     z-index: 6000;
     transition: all 0.4s var(--m3-easing);
     min-width: 360px;
     max-width: 92vw;
     justify-content: flex-start;
     pointer-events: auto;
+    border: 1.5px solid rgba(16, 185, 129, 0.2);
 }
 
 .snackbar-m3.active {
@@ -4489,7 +4490,7 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 .snackbar-m3 .icon {
-    color: var(--success);
+    color: #10B981;
     font-size: 26px;
 }
 
@@ -4538,7 +4539,7 @@ html[data-auth-likely="true"] #dashboard-app {
 .snackbar-btn {
     background: transparent;
     border: none;
-    color: #34D399;
+    color: #10B981;
     font-weight: 700;
     font-size: 15px;
     cursor: pointer;
@@ -6482,4 +6483,25 @@ input:checked~.m3-ingredient-text {
         opacity: 0;
         transform: translateY(-100%);
     }
+}
+
+@media (max-width: 600px) {
+    .ingredient-row-fields {
+        flex-wrap: wrap;
+    }
+
+    .ingredient-row-fields .m3-field-container.w-20,
+    .ingredient-row-fields .m3-field-container.w-24 {
+        width: calc(50% - 4px);
+        flex-grow: 1;
+    }
+}
+
+.ingredient-row-fields {
+    align-items: flex-start;
+}
+
+.ingredient-quantity,
+.ingredient-unit {
+    text-align: center;
 }

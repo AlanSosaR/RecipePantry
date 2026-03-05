@@ -120,36 +120,46 @@ class RecipeFormManager {
         const container = document.getElementById('ingredientsList');
         // Usar clases del nuevo diseño (components.css form components)
 
-        const item = document.createElement('div');
-        item.className = 'flex items-center gap-3 group animate-fade-in mb-4';
-        const labelTxt = window.i18n ? window.i18n.t('formIngredientsLabel') : 'Ingrediente';
-        const delBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar';
-        const msgError = window.i18n && window.i18n.getLang() === 'en' ? 'Ingredient cannot be empty' : 'El ingrediente no puede estar vacío';
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const qVal = data ? (data.quantity || '') : '';
+        const uVal = data ? (isEn ? (data.unit_en || data.unit_es || '') : (data.unit_es || '')) : '';
+        const iVal = data ? (isEn ? (data.name_en || data.name_es || '') : (data.name_es || '')) : '';
 
         item.innerHTML = `
-            <span class="material-symbols-outlined text-gray-300 cursor-move">drag_indicator</span>
-            <div class="m3-field m3-field-container flex-1 mb-0 has-action" style="margin-bottom:24px">
-                <input type="text" class="ingredient-input m3-field-input" placeholder=" " value="${data ? (isEn ? (data.name_en || data.name_es) : data.name_es) : ''}">
-                <label class="m3-field-label">${labelTxt}</label>
-                <button type="button" class="m3-field-action del-btn" title="${delBtnTxt}">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-                <span class="m3-field-error">${msgError}</span>
+            <span class="material-symbols-outlined text-gray-300 cursor-move mt-3">drag_indicator</span>
+            <div class="ingredient-row-fields flex-1 flex gap-2 flex-wrap sm:flex-nowrap">
+                <div class="m3-field m3-field-container w-20 flex-shrink-0 mb-0">
+                    <input type="text" class="ingredient-quantity m3-field-input" placeholder=" " value="${qVal}">
+                    <label class="m3-field-label">${isEn ? 'Qty' : 'Cant'}</label>
+                </div>
+                <div class="m3-field m3-field-container w-24 flex-shrink-0 mb-0">
+                    <input type="text" class="ingredient-unit m3-field-input" placeholder=" " value="${uVal}">
+                    <label class="m3-field-label">${isEn ? 'Unit' : 'Unid'}</label>
+                </div>
+                <div class="m3-field m3-field-container flex-1 mb-0 has-action">
+                    <input type="text" class="ingredient-name m3-field-input" placeholder=" " value="${iVal}">
+                    <label class="m3-field-label">${labelTxt}</label>
+                    <button type="button" class="m3-field-action del-btn" title="${delBtnTxt}">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                    <span class="m3-field-error">${msgError}</span>
+                </div>
             </div>
         `;
 
-        const input = item.querySelector('input');
-        input.addEventListener('input', (e) => {
-            if (input.value) input.classList.add('has-value');
-            else input.classList.remove('has-value');
+        const inputs = item.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                if (input.value) input.classList.add('has-value');
+                else input.classList.remove('has-value');
 
-            const group = e.target.closest('.m3-field-container');
-            if (group && group.classList.contains('has-error')) {
-                group.classList.remove('has-error');
-            }
+                const group = e.target.closest('.m3-field-container');
+                if (group && group.classList.contains('has-error')) {
+                    group.classList.remove('has-error');
+                }
+            });
+            if (input.value) input.classList.add('has-value');
         });
-        if (data) input.classList.add('has-value');
 
         item.querySelector('.del-btn').addEventListener('click', () => item.remove());
         container.appendChild(item);
@@ -216,23 +226,27 @@ class RecipeFormManager {
             }
             if (nameGroup) nameGroup.classList.remove('has-error');
 
-            // 2) Primer ingrediente vacío
-            const ingredientInputs = document.querySelectorAll('.ingredient-input');
-            if (ingredientInputs.length === 0) {
+            // 2) Primer ingrediente vacío (Validar solo el nombre, cantidad y unidad son opcionales)
+            const initialIngredientItems = document.querySelectorAll('#ingredientsList .group');
+            if (initialIngredientItems.length === 0) {
                 const msg = isEn ? 'At least one ingredient is required' : 'Debes agregar al menos un ingrediente';
                 window.showToast(msg, 'error');
                 return;
             }
-            for (const input of ingredientInputs) {
-                const group = input.closest('.m3-field-container');
-                if (input.value.trim() === '') {
+
+            let firstErrorFound = false;
+            initialIngredientItems.forEach(item => {
+                const nameInput = item.querySelector('.ingredient-name');
+                if (nameInput.value.trim() === '') {
+                    const group = nameInput.closest('.m3-field-container');
                     if (group) group.classList.add('has-error');
-                    input.focus();
-                    return; // Para aquí, corrígelo primero
-                } else {
-                    if (group) group.classList.remove('has-error');
+                    if (!firstErrorFound) {
+                        nameInput.focus();
+                        firstErrorFound = true;
+                    }
                 }
-            }
+            });
+            if (firstErrorFound) return;
             // ─────────────────────────────────────────────────────
 
 
@@ -272,14 +286,26 @@ class RecipeFormManager {
 
 
             // 2. Recolectar y Guardar Ingredientes
-            const ingredientsData = Array.from(ingredientInputs)
-                .map(input => {
-                    const data = {};
-                    if (isEn) data.name_en = input.value.trim();
-                    else data.name_es = input.value.trim();
+            const finalIngredientItems = document.querySelectorAll('#ingredientsList .group');
+            const ingredientsData = Array.from(finalIngredientItems)
+                .map(item => {
+                    const q = item.querySelector('.ingredient-quantity').value.trim();
+                    const u = item.querySelector('.ingredient-unit').value.trim();
+                    const n = item.querySelector('.ingredient-name').value.trim();
+
+                    if (!n) return null;
+
+                    const data = { quantity: q };
+                    if (isEn) {
+                        data.name_en = n;
+                        data.unit_en = u;
+                    } else {
+                        data.name_es = n;
+                        data.unit_es = u;
+                    }
                     return data;
                 })
-                .filter(ing => (isEn ? ing.name_en : ing.name_es) !== '');
+                .filter(Boolean);
 
             if (this.isEditing) {
                 await window.db.deleteIngredients(recipeId);
