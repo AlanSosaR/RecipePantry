@@ -196,7 +196,8 @@ class DatabaseManager {
 
     async _revalidateRecipeInBackground(recipeId, lastUpdated) {
         try {
-            const result = await this._fetchFullRecipeFromServer(recipeId);
+            // Usar cache-busting para el revalidador también
+            const result = await this._fetchFullRecipeFromServer(recipeId, true);
             if (result.success) {
                 const newRecipe = result.data;
                 if (newRecipe.updated_at !== lastUpdated) {
@@ -207,14 +208,16 @@ class DatabaseManager {
         } catch (e) { /* silent */ }
     }
 
-    async _fetchFullRecipeFromServer(recipeId) {
+    async _fetchFullRecipeFromServer(recipeId, forceRefresh = false) {
         try {
             const headers = { 'Content-Type': 'application/json' };
             const { data: sessionData } = await window.supabaseClient.auth.getSession();
             if (sessionData?.session?.access_token) {
                 headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
             }
-            const response = await fetch(`/api/recipe/${recipeId}`, { method: 'GET', headers: headers });
+            // Cache-busting con timestamp para saltar cachés de red/edge intermedios
+            const url = `/api/recipe/${recipeId}${forceRefresh ? '?t=' + Date.now() : ''}`;
+            const response = await fetch(url, { method: 'GET', headers: headers });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const result = await response.json();
             if (!result.success) throw new Error(result.error);
@@ -284,10 +287,11 @@ class DatabaseManager {
                 const { data: recipe, error } = await window.supabaseClient.from('recipes').update(updates).eq('id', recipeId).select().single();
                 if (error) throw error;
 
-                // Forzar recarga completa borrando caché
+                // Forzar recarga completa borrando TODO rastro de caché para este ID
                 if (window.localDB) {
                     await window.localDB.delete('recipes_full', recipeId);
                     await window.localDB.delete('recipes_index', recipeId);
+                    await window.localDB.delete('recipes', recipeId); // Legacy fallback
                 }
                 return { success: true, recipe };
             } catch (err) { return { success: false, error: err.message }; }

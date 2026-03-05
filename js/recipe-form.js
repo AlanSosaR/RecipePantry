@@ -341,8 +341,11 @@ class RecipeFormManager {
 
             // Invalidar caché local para que recipe-detail cargue datos frescos con ingredientes y pasos
             try {
-                if (window.localDB) await window.localDB.delete('recipes_full', recipeId);
-                if (window.localDB) await window.localDB.delete('recipes', recipeId);
+                if (window.localDB) {
+                    await window.localDB.delete('recipes_full', recipeId);
+                    await window.localDB.delete('recipes_index', recipeId);
+                    await window.localDB.delete('recipes', recipeId);
+                }
             } catch (e) { /* ignorar errores de caché */ }
 
             setTimeout(() => {
