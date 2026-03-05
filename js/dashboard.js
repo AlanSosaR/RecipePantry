@@ -376,13 +376,10 @@ class DashboardManager {
                 if (countText) countText.textContent = text;
             }
 
-            // Mobile Header
+            // Mobile Header (Pure visibility toggle, no counter)
             if (mobileHeader) {
                 mobileHeader.style.display = 'flex';
-                mobileHeader.classList.remove('hidden', 'hiding');
-                const count = this.selectedRecipes.size;
-                const text = isEn ? `${count} selected` : `${count} seleccionado${count > 1 ? 's' : ''}`;
-                if (mobileCountText) mobileCountText.textContent = text;
+                mobileHeader.classList.remove('hidden');
             }
         } else {
             // Hide Desktop Bar
@@ -391,16 +388,10 @@ class DashboardManager {
                 if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
             }
 
-            // Hide Mobile Header (with animation)
-            if (mobileHeader && !mobileHeader.classList.contains('hidden')) {
-                mobileHeader.classList.add('hiding');
-                setTimeout(() => {
-                    if (this.selectedRecipes.size === 0) {
-                        mobileHeader.classList.add('hidden');
-                        mobileHeader.classList.remove('hiding');
-                        mobileHeader.style.display = 'none';
-                    }
-                }, 300);
+            // Hide Mobile Header
+            if (mobileHeader) {
+                mobileHeader.classList.add('hidden');
+                mobileHeader.style.display = 'none';
             }
 
             this.isSelectionMode = false;

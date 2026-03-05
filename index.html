@@ -470,14 +470,17 @@
 
       <div class="main-content-scroll">
 
-        <!-- Header de selección flotante (Mobile) -->
         <div id="mobileSelectionHeader" class="header-seleccion hidden" style="display: none;">
-          <label class="m3-checkbox-wrapper">
-            <input type="checkbox" id="selectAllMobile" class="m3-checkbox-input"
-              onchange="window.dashboard.handleSelectAll(event)">
-            <span class="m3-checkbox-visual"></span>
-          </label>
-          <span id="mobileSelectionCount" class="contador">0 seleccionados</span>
+          <div class="col-checkbox">
+            <label class="m3-checkbox-wrapper">
+              <input type="checkbox" id="selectAllMobile" class="m3-checkbox-input"
+                onchange="window.dashboard.handleSelectAll(event)">
+              <span class="m3-checkbox-visual"></span>
+            </label>
+          </div>
+          <div class="col-name"
+            style="font-size: 0.75rem; letter-spacing: 0.1em; font-weight: 700; color: var(--on-surface-variant); opacity: 0.8;">
+            NOMBRE</div>
         </div>
 
 
