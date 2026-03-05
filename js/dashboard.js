@@ -369,28 +369,26 @@ class DashboardManager {
         const actionBar = document.getElementById('selectionActionBar');
         const dashboardHeader = document.querySelector('.dashboard-header');
         const listHeaders = document.querySelectorAll('.list-header-m3');
-        const isMobile = window.innerWidth <= 800;
 
         if (this.selectedRecipes.size > 0) {
             // Show Selection Bar
             if (actionBar) {
                 actionBar.classList.remove('hidden');
-                if (dashboardHeader) dashboardHeader.style.visibility = 'hidden';
+                // Use .hidden class to collapse space instead of visibility: hidden
+                if (dashboardHeader) dashboardHeader.classList.add('hidden');
             }
 
-            // Mobile: Hide the "NOMBRE" header to avoid duplicate headers
-            if (isMobile) {
-                listHeaders.forEach(lh => lh.style.display = 'none');
-            }
+            // Hide the "NOMBRE" header to avoid duplicate headers and reduce space
+            listHeaders.forEach(lh => lh.classList.add('hidden'));
         } else {
             // Hide Selection Bar
             if (actionBar) {
                 actionBar.classList.add('hidden');
-                if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
+                if (dashboardHeader) dashboardHeader.classList.remove('hidden');
             }
 
             // Restore "NOMBRE" header
-            listHeaders.forEach(lh => lh.style.display = '');
+            listHeaders.forEach(lh => lh.classList.remove('hidden'));
 
             this.isSelectionMode = false;
             this.updateSelectionModeClass();

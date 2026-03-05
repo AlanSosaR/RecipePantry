@@ -676,7 +676,7 @@ ol {
     color: var(--on-surface);
     padding: 8px 16px;
     border-radius: 0;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: top;
