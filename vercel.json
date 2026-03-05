@@ -22,7 +22,7 @@
             ]
         },
         {
-            "source": "/index.html",
+            "source": "/((?!api|assets|js|css|sw\\.js|favicon\\.ico|manifest\\.webmanifest).*)",
             "headers": [
                 {
                     "key": "Cache-Control",
