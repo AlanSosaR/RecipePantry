@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v20.2.1 (Search Tooltip Fix)...');
+            console.log('🚀 Inicializando Recipe Pantry v20.2.2 (Selection Fix)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -295,15 +295,20 @@ class DashboardManager {
 
         const titleEl = document.getElementById('view-title');
         if (titleEl) {
+            const count = this.currentRecipes.length;
+            let baseTitle = '';
+
             if (filters.search) {
-                titleEl.textContent = window.i18n ? window.i18n.t('searchResults', { search: filters.search }) : `Resultados para "${filters.search}"`;
+                baseTitle = filters.search;
             } else if (filters.favorite) {
-                titleEl.textContent = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
+                baseTitle = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
             } else if (filters.shared) {
-                titleEl.textContent = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
+                baseTitle = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
             } else {
-                titleEl.textContent = window.i18n ? window.i18n.t('myRecipes') : 'Mis Recetas';
+                baseTitle = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
             }
+
+            titleEl.textContent = `${baseTitle} (${count})`;
         }
 
         this.renderRecipesGrid(this.currentRecipes);
@@ -368,12 +373,12 @@ class DashboardManager {
         const total = this.currentRecipes.length;
         const currentlySelected = this.currentRecipes.filter(r => this.selectedRecipes.has(r.id)).length;
 
-        if (currentlySelected < total) {
-            // Seleccionar todo
-            this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
-        } else {
+        if (currentlySelected === total && total > 0) {
             // Deseleccionar todo
             this.selectedRecipes.clear();
+        } else {
+            // Seleccionar todo
+            this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
 
         this.isSelectionMode = this.selectedRecipes.size > 0;
@@ -401,35 +406,37 @@ class DashboardManager {
         const recipesGrid = document.getElementById('recipesGrid');
 
         if (this.selectedRecipes.size > 0) {
-            // Enter Selection Mode (v19.5.0 Integrated Header)
+            // Enter Selection Mode (v20.2.2 Refined)
             this.isSelectionMode = true;
             document.body.classList.add('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.add('selection-mode-active');
-
-            if (title) title.classList.add('hidden');
-            if (viewSwitcher) viewSwitcher.classList.add('hidden');
+            if (viewSwitcher) viewSwitcher.classList.add('hidden'); // Clean look on mobile
 
             if (countText) {
                 countText.classList.remove('hidden');
                 const count = this.selectedRecipes.size;
-                const text = window.i18n
-                    ? (count === 1 ? window.i18n.t('oneItemSelected') : window.i18n.t('itemsSelected', { count }))
-                    : (count === 1 ? '1 receta seleccionada' : `${count} recetas seleccionadas`);
-                countText.textContent = text;
+                // Subtle selection count since total is already in title
+                countText.textContent = `(${count})`;
+                countText.style.color = 'var(--primary)';
             }
 
             if (countGroup) countGroup.classList.remove('hidden');
+            const moreBtn = document.getElementById('selectionMoreBtn');
+            if (moreBtn) moreBtn.style.display = 'flex'; // Only show if recipes selected
 
         } else {
             // Exit Selection Mode
             this.isSelectionMode = false;
             document.body.classList.remove('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.remove('selection-mode-active');
-
-            if (title) title.classList.remove('hidden');
             if (viewSwitcher) viewSwitcher.classList.remove('hidden');
+
             if (countText) countText.classList.add('hidden');
-            if (countGroup) countGroup.classList.add('hidden');
+            // Keep Select All group visible on mobile so it's always available in the fixed header area
+            if (countGroup) countGroup.classList.remove('hidden');
+
+            const moreBtn = document.getElementById('selectionMoreBtn');
+            if (moreBtn) moreBtn.style.display = 'none'; // Only show if selection > 0
         }
 
         this.updateSelectionModeClass();
@@ -850,8 +857,8 @@ class DashboardManager {
             `;
             const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
             container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
-            this.updateSelectAllCheckbox();
         }
+        this.updateSelectAllCheckbox();
     }
 
     renderRecipeRow(recipe) {

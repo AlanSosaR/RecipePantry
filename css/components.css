@@ -772,12 +772,9 @@ ol {
 
 @media (max-width: 767px) {
 
-    /* Aggressively hide headers on mobile for maximum space and clean look (v19.5.0+) */
-    /* EXCEPT .dashboard-header which now contains the selection controls */
-    body:not(.selection-mode-active) .dashboard-header,
+    /* Only hide list headers, KEEP dashboard-header visible (v20.2.2 Refined) */
     body .list-header-m3,
     #recipesGrid.list-view .list-header-m3,
-    /* PCheaders now hidden ONLY on mobile during selection (v19.7.0) */
     body.selection-mode-active .list-header-m3 {
         display: none !important;
         height: 0 !important;
@@ -787,18 +784,24 @@ ol {
         border: none !important;
     }
 
-    /* Restore dashboard-header on mobile ONLY when selecting (v19.6.0) */
-    body.selection-mode-active .dashboard-header {
+    .dashboard-header {
+        position: sticky !important;
+        top: 64px !important;
+        /* Below top-bar-m3 */
+        z-index: 40 !important;
+        background: var(--bg) !important;
         display: flex !important;
         height: 56px !important;
-        /* Standardized height */
         padding: 0 16px !important;
-        /* Perfect mobile padding restored */
         margin-bottom: 8px !important;
         border-bottom: 1px solid var(--outline-variant);
-        animation: m3-fade-up 0.2s ease;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Selection mode styling for title/dots handled via JS visibility now */
+    body.selection-mode-active .dashboard-header {
+        background: var(--secondary-light) !important;
     }
 
     .main-content-scroll {
