@@ -118,12 +118,17 @@ class RecipeFormManager {
     // --- Listas Dinámicas ---
     addIngredient(data = null) {
         const container = document.getElementById('ingredientsList');
-        // Usar clases del nuevo diseño (components.css form components)
+        const item = document.createElement('div');
+        item.className = 'flex gap-4 group animate-fade-in mb-4';
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         const qVal = data ? (data.quantity || '') : '';
         const uVal = data ? (isEn ? (data.unit_en || data.unit_es || '') : (data.unit_es || '')) : '';
         const iVal = data ? (isEn ? (data.name_en || data.name_es || '') : (data.name_es || '')) : '';
+
+        const labelTxt = window.i18n ? window.i18n.t('formIngredientsLabel') : 'Nombre del ingrediente';
+        const delBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar';
+        const msgError = isEn ? 'Required' : 'Obligatorio';
 
         item.innerHTML = `
             <span class="material-symbols-outlined text-gray-300 cursor-move mt-3">drag_indicator</span>
