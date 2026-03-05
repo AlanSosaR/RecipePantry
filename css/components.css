@@ -738,7 +738,7 @@ ol {
 }
 
 @media (max-width: 767px) {
-    .list-header {
+    .list-header-m3 {
         display: none;
     }
 
