@@ -348,12 +348,17 @@ class RecipeFormManager {
                     const parsed = this.parseIngredient(val);
                     if (!parsed) return null;
 
+                    // Asegurar que siempre haya un nombre no vacío
+                    const ingredientName = parsed.name || val;
                     const data = { quantity: parsed.quantity || null };
+
                     if (isEn) {
-                        data.name_en = parsed.name;
+                        data.name_en = ingredientName;
+                        data.name_es = ingredientName; // Fallback
                         data.unit_en = parsed.unit || null;
                     } else {
-                        data.name_es = parsed.name;
+                        data.name_es = ingredientName;
+                        data.name_en = ingredientName; // Fallback
                         data.unit_es = parsed.unit || null;
                     }
                     return data;
