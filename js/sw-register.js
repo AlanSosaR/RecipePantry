@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '29';
+const APP_VERSION_ID = '30';
 
 // AUTO-SYNCHRONIZER: Forzar actualización si el HTML y el JS no coinciden
 (function () {
