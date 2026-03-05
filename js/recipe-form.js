@@ -395,7 +395,7 @@ class RecipeFormManager {
             } catch (e) { /* ignorar errores de caché */ }
 
             setTimeout(() => {
-                window.location.href = `/recipe-detail?id=${recipeId}`;
+                window.location.href = `/recipe-detail?id=${recipeId}&f=1`;
             }, 1000);
 
         } catch (err) {

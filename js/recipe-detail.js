@@ -35,12 +35,21 @@ class RecipeDetailManager {
 
     async loadRecipeData() {
         try {
-            const result = await window.db.getRecipeById(this.recipeId);
+            const params = new URLSearchParams(window.location.search);
+            const forceRefresh = params.get('f') === '1';
+
+            const result = await window.db.getRecipeById(this.recipeId, forceRefresh);
 
             if (!result.success) {
                 console.error('Error cargando receta:', result.error);
                 window.showToast(window.i18n ? window.i18n.t('noRecipesTitle') : 'Receta no encontrada', 'error');
                 return;
+            }
+
+            // Si fue forzado, limpiar la URL de forma silenciosa para que un refresh posterior use caché
+            if (forceRefresh) {
+                const newUrl = window.location.pathname + '?id=' + this.recipeId + (this.permission ? '&permission=' + this.permission : '');
+                window.history.replaceState({}, '', newUrl);
             }
 
             this.currentRecipe = result.recipe;

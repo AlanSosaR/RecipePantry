@@ -182,16 +182,23 @@ class DatabaseManager {
         }
     }
 
-    async getRecipeById(recipeId) {
+    async getRecipeById(recipeId, forceRefresh = false) {
         await this._checkLocalDB();
-        const cached = await window.localDB.get('recipes_full', recipeId);
-        if (cached) {
-            console.log(`⚡ Receta ${recipeId} desde caché (recipes_full)`);
-            if (this._isOnline) this._revalidateRecipeInBackground(recipeId, cached.updated_at);
-            return { success: true, recipe: cached, fromCache: true };
+
+        // Si no se fuerza el refresco, intentar cargar de caché primero
+        if (!forceRefresh) {
+            const cached = await window.localDB.get('recipes_full', recipeId);
+            if (cached) {
+                console.log(`⚡ Receta ${recipeId} desde caché (recipes_full)`);
+                if (this._isOnline) this._revalidateRecipeInBackground(recipeId, cached.updated_at);
+                return { success: true, recipe: cached, fromCache: true };
+            }
+        } else {
+            console.log(`🚀 Forzando carga de red para receta ${recipeId}...`);
         }
+
         if (!this._isOnline) return { success: false, error: "Sin conexión y no hay copia local" };
-        return this._fetchFullRecipeFromServer(recipeId);
+        return this._fetchFullRecipeFromServer(recipeId, forceRefresh);
     }
 
     async _revalidateRecipeInBackground(recipeId, lastUpdated) {
@@ -215,8 +222,10 @@ class DatabaseManager {
             if (sessionData?.session?.access_token) {
                 headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
             }
-            // Cache-busting con timestamp para saltar cachés de red/edge intermedios
-            const url = `/api/recipe/${recipeId}${forceRefresh ? '?t=' + Date.now() : ''}`;
+            // Cache-busting con timestamp para saltar cachés de red/edge intermedios Y el Service Worker
+            const connector = recipeId.includes('?') ? '&' : '?';
+            const url = `/api/recipe/${recipeId}${connector}t=${Date.now()}`;
+
             const response = await fetch(url, { method: 'GET', headers: headers });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const result = await response.json();
