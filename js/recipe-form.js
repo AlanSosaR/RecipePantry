@@ -308,6 +308,12 @@ class RecipeFormManager {
 
             window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada con éxito!', 'success');
 
+            // Invalidar caché local para que recipe-detail cargue datos frescos con ingredientes y pasos
+            try {
+                if (window.localDB) await window.localDB.delete('recipes_full', recipeId);
+                if (window.localDB) await window.localDB.delete('recipes', recipeId);
+            } catch (e) { /* ignorar errores de caché */ }
+
             setTimeout(() => {
                 window.location.href = `/recipe-detail?id=${recipeId}`;
             }, 1000);
