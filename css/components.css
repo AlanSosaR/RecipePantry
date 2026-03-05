@@ -5722,7 +5722,7 @@ input:checked~.m3-ingredient-text {
 
 .m3-field-input:focus {
     border-color: var(--md-primary);
-    box-shadow: 0 0 0 1px var(--md-primary);
+    border-width: 2px;
 }
 
 .m3-field-input:focus+.m3-field-label,
