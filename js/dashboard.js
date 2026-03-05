@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v19.1.0 (Refined Selection Header)...');
+            console.log('🚀 Inicializando Recipe Pantry v19.2.0 (Refined Selection Header)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -367,6 +367,7 @@ class DashboardManager {
 
     updateActionBar() {
         const actionBar = document.getElementById('selectionActionBar');
+        const countText = document.getElementById('selectionCountText');
         const dashboardHeader = document.querySelector('.dashboard-header');
         const listHeaders = document.querySelectorAll('.list-header-m3');
 
@@ -374,21 +375,20 @@ class DashboardManager {
             // Show Selection Bar
             if (actionBar) {
                 actionBar.classList.remove('hidden');
-                // Use .hidden class to collapse space instead of visibility: hidden
-                if (dashboardHeader) dashboardHeader.classList.add('hidden');
-            }
 
-            // Hide the "NOMBRE" header to avoid duplicate headers and reduce space
-            listHeaders.forEach(lh => lh.classList.add('hidden'));
+                if (countText) {
+                    const count = this.selectedRecipes.size;
+                    const text = window.i18n
+                        ? (count === 1 ? window.i18n.t('oneItemSelected') : window.i18n.t('itemsSelected', { count }))
+                        : (count === 1 ? '1 receta seleccionada' : `${count} recetas seleccionadas`);
+                    countText.textContent = text;
+                }
+            }
         } else {
             // Hide Selection Bar
             if (actionBar) {
                 actionBar.classList.add('hidden');
-                if (dashboardHeader) dashboardHeader.classList.remove('hidden');
             }
-
-            // Restore "NOMBRE" header
-            listHeaders.forEach(lh => lh.classList.remove('hidden'));
 
             this.isSelectionMode = false;
             this.updateSelectionModeClass();
@@ -786,18 +786,18 @@ class DashboardManager {
 
             const header = `
                 <div class="list-header-m3">
-                    <div class="col-checkbox">
-                        <label class="m3-checkbox-wrapper">
-                            <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
-                            <span class="m3-checkbox-visual"></span>
-                        </label>
-                    </div>
                     <div class="col-icon"></div>
                     <div class="col-name">${colName}</div>
                     <div class="col-category">${colCategory}</div>
                     <div class="col-access">${colAccess}</div>
                     <div class="col-date">${colDate}</div>
                     <div class="col-actions"></div>
+                    <div class="col-checkbox">
+                        <label class="m3-checkbox-wrapper">
+                            <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
+                            <span class="m3-checkbox-visual"></span>
+                        </label>
+                    </div>
                 </div>
             `;
             const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
@@ -852,13 +852,6 @@ class DashboardManager {
 
                 <div class="col-date">${date}</div>
 
-                <div class="col-checkbox" onclick="event.stopPropagation()">
-                    <label class="m3-checkbox-wrapper">
-                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
-                        <span class="m3-checkbox-visual"></span>
-                    </label>
-                </div>
-
                 <div class="col-actions">
                     <div class="row-actions-dropbox">
                         <button class="btn-share-highlight" onclick="event.stopPropagation(); window.dashboard.shareRecipe('${recipe.id}')">
@@ -888,6 +881,13 @@ class DashboardManager {
                     <button class="btn-icon-m3 mobile-action-btn" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}', event)">
                         <span class="material-symbols-outlined">more_vert</span>
                     </button>
+                </div>
+
+                <div class="col-checkbox" onclick="event.stopPropagation()">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
                 </div>
             </div>
         `;

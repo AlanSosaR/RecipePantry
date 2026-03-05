@@ -630,8 +630,8 @@ ol {
 .list-header-m3,
 .file-row-m3 {
     display: grid;
-    /* checkbox | icon | name | category | access | updated | actions */
-    grid-template-columns: 40px 40px 1fr 140px 120px 160px 100px;
+    /* icon | name | category | access | updated | actions | checkbox */
+    grid-template-columns: 40px 1fr 140px 120px 160px 100px 40px;
     /* icon reduced from 56px */
     gap: 1rem;
     align-items: center;
@@ -749,6 +749,32 @@ ol {
 
     .selection-mode-active .col-checkbox {
         display: flex !important;
+    }
+
+    .selection-mode-active .list-header-m3,
+    .selection-mode-active .dashboard-header {
+        display: none !important;
+    }
+
+    .file-row-m3 {
+        display: flex !important;
+        grid-template-columns: none !important;
+        gap: 12px;
+        padding: 12px 16px;
+        height: auto;
+        min-height: 64px;
+        align-items: center;
+    }
+
+    .file-row-m3 .col-category,
+    .file-row-m3 .col-access,
+    .file-row-m3 .col-date {
+        display: none !important;
+    }
+
+    .file-row-m3 .col-name {
+        flex: 1;
+        min-width: 0;
     }
 
     .file-row {

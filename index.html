@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=19.1.0">
-  <link rel="stylesheet" href="css/components.css?v=19.1.0">
-  <link rel="stylesheet" href="css/responsive.css?v=19.1.0">
+  <link rel="stylesheet" href="css/styles.css?v=19.2.0">
+  <link rel="stylesheet" href="css/components.css?v=19.2.0">
+  <link rel="stylesheet" href="css/responsive.css?v=19.2.0">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -62,12 +62,12 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v19.1.0
+    v19.2.0
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=19.1.0"></script>
+  <script src="js/sw-register.js?v=19.2.0"></script>
 
 
 
@@ -476,12 +476,10 @@
         <!-- Material 3 Expressive Contextual Top App Bar -->
         <div id="selectionActionBar" class="selection-action-bar hidden">
           <div class="selection-bar-content">
+            <div class="selection-bar-left">
+              <span id="selectionCountText" class="selection-count-text"></span>
+            </div>
             <div class="selection-actions-group">
-              <button class="btn-icon-m3" onclick="window.dashboard.confirmDeleteSelected()"
-                title="Eliminar seleccionadas" style="color: var(--md-error);">
-                <span class="material-symbols-outlined">delete</span>
-              </button>
-
               <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
                 title="Más opciones">
                 <span class="material-symbols-outlined">more_vert</span>
@@ -625,18 +623,18 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=19.1.0"></script>
-    <script src="js/supabase-client.js?v=19.1.0"></script>
-    <script src="js/auth.js?v=19.1.0"></script>
-    <script src="js/localdb.js?v=19.1.0"></script>
-    <script src="js/sync-manager.js?v=19.1.0"></script>
-    <script src="js/db.js?v=19.1.0"></script>
-    <script src="js/utils.js?v=19.1.0"></script>
-    <script src="js/i18n.js?v=19.1.0"></script>
-    <script src="js/ui.js?v=19.1.0"></script>
-    <script src="js/share-modal.js?v=19.1.0"></script>
-    <script src="js/notifications.js?v=19.1.0"></script>
-    <script src="js/dashboard.js?v=19.1.0"></script>
+    <script src="js/config.js?v=19.2.0"></script>
+    <script src="js/supabase-client.js?v=19.2.0"></script>
+    <script src="js/auth.js?v=19.2.0"></script>
+    <script src="js/localdb.js?v=19.2.0"></script>
+    <script src="js/sync-manager.js?v=19.2.0"></script>
+    <script src="js/db.js?v=19.2.0"></script>
+    <script src="js/utils.js?v=19.2.0"></script>
+    <script src="js/i18n.js?v=19.2.0"></script>
+    <script src="js/ui.js?v=19.2.0"></script>
+    <script src="js/share-modal.js?v=19.2.0"></script>
+    <script src="js/notifications.js?v=19.2.0"></script>
+    <script src="js/dashboard.js?v=19.2.0"></script>
 
 
     <script>
