@@ -62,7 +62,7 @@ export default async function handler(req, res) {
                 // Optimization: Select only index fields for shared recipes too
                 let { data, error } = await supabase
                     .from('shared_recipes')
-                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, image_url, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color))')
+                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color))')
                     .eq('recipient_user_id', userId);
 
                 if (error) throw error;
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
             // Normal Query - Optimized for Indexing
             let query = supabase
                 .from('recipes')
-                .select(`id, name_es, name_en, image_url, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color)`, { count: 'exact' })
+                .select(`id, name_es, name_en, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color)`, { count: 'exact' })
                 .eq('is_active', true);
 
             if (userId) query = query.eq('user_id', userId);
