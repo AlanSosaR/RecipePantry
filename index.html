@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=15.0.0">
-  <link rel="stylesheet" href="css/components.css?v=15.0.0">
-  <link rel="stylesheet" href="css/responsive.css?v=15.0.0">
+  <link rel="stylesheet" href="css/styles.css?v=17.0.0">
+  <link rel="stylesheet" href="css/components.css?v=17.0.0">
+  <link rel="stylesheet" href="css/responsive.css?v=17.0.0">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -62,12 +62,12 @@
   <!-- Dynamic Version Display -->
   <div id="version-badge"
     style="position: fixed; bottom: 8px; right: 8px; font-size: 10px; color: var(--on-surface-variant); opacity: 0.5; z-index: 9999; pointer-events: none;">
-    v15.0.0
+    v17.0.0
   </div>
 
 
   <!-- Script de Registro de Service Worker -->
-  <script src="js/sw-register.js?v=15.0.0"></script>
+  <script src="js/sw-register.js?v=17.0.0"></script>
 
 
 
@@ -471,16 +471,23 @@
       <div class="main-content-scroll">
 
         <div id="mobileSelectionHeader" class="header-seleccion hidden" style="display: none;">
-          <div class="col-checkbox">
+          <div class="col-checkbox" id="mobileHeaderCheckbox" style="visibility: hidden;">
             <label class="m3-checkbox-wrapper">
               <input type="checkbox" id="selectAllMobile" class="m3-checkbox-input"
                 onchange="window.dashboard.handleSelectAll(event)">
               <span class="m3-checkbox-visual"></span>
             </label>
           </div>
-          <div class="col-name"
-            style="font-size: 0.75rem; letter-spacing: 0.1em; font-weight: 700; color: var(--on-surface-variant); opacity: 0.8;">
-            NOMBRE</div>
+          <div class="col-name">NOMBRE</div>
+          <div class="header-actions" id="mobileHeaderActions" style="margin-left: auto; display: none; gap: 8px;">
+            <button class="btn-icon-m3" onclick="window.dashboard.confirmDeleteSelected()"
+              style="color: var(--md-error);" title="Eliminar">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+            <button class="btn-icon-m3" onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
+              <span class="material-symbols-outlined">more_vert</span>
+            </button>
+          </div>
         </div>
 
 
@@ -641,18 +648,18 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=15.0.0"></script>
-    <script src="js/supabase-client.js?v=15.0.0"></script>
-    <script src="js/auth.js?v=15.0.0"></script>
-    <script src="js/localdb.js?v=15.0.0"></script>
-    <script src="js/sync-manager.js?v=15.0.0"></script>
-    <script src="js/db.js?v=15.0.0"></script>
-    <script src="js/utils.js?v=15.0.0"></script>
-    <script src="js/i18n.js?v=15.0.0"></script>
-    <script src="js/ui.js?v=15.0.0"></script>
-    <script src="js/share-modal.js?v=15.0.0"></script>
-    <script src="js/notifications.js?v=15.0.0"></script>
-    <script src="js/dashboard.js?v=15.0.0"></script>
+    <script src="js/config.js?v=17.0.0"></script>
+    <script src="js/supabase-client.js?v=17.0.0"></script>
+    <script src="js/auth.js?v=17.0.0"></script>
+    <script src="js/localdb.js?v=17.0.0"></script>
+    <script src="js/sync-manager.js?v=17.0.0"></script>
+    <script src="js/db.js?v=17.0.0"></script>
+    <script src="js/utils.js?v=17.0.0"></script>
+    <script src="js/i18n.js?v=17.0.0"></script>
+    <script src="js/ui.js?v=17.0.0"></script>
+    <script src="js/share-modal.js?v=17.0.0"></script>
+    <script src="js/notifications.js?v=17.0.0"></script>
+    <script src="js/dashboard.js?v=17.0.0"></script>
 
 
     <script>

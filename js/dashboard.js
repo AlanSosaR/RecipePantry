@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v15.0.0 (Refined Mobile Header & Clean UI)...');
+            console.log('🚀 Inicializando Recipe Pantry v17.0.0 (Hybrid Header & Selection Facelift)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -366,6 +366,21 @@ class DashboardManager {
         const dashboardHeader = document.querySelector('.dashboard-header');
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        const mobileHeaderCheckbox = document.getElementById('mobileHeaderCheckbox');
+        const mobileHeaderActions = document.getElementById('mobileHeaderActions');
+        const isListView = !this.displayMode.startsWith('grid');
+
+        // Manage Mobile Header visibility (only in list view)
+        if (mobileHeader) {
+            if (isListView) {
+                mobileHeader.style.display = 'flex';
+                mobileHeader.classList.remove('hidden');
+            } else {
+                mobileHeader.style.display = 'none';
+                mobileHeader.classList.add('hidden');
+            }
+        }
+
         if (this.selectedRecipes.size > 0) {
             // Desktop Bar
             if (actionBar) {
@@ -376,11 +391,9 @@ class DashboardManager {
                 if (countText) countText.textContent = text;
             }
 
-            // Mobile Header (Pure visibility toggle, no counter)
-            if (mobileHeader) {
-                mobileHeader.style.display = 'flex';
-                mobileHeader.classList.remove('hidden');
-            }
+            // Mobile Selection Controls (Conditional)
+            if (mobileHeaderCheckbox) mobileHeaderCheckbox.style.visibility = 'visible';
+            if (mobileHeaderActions) mobileHeaderActions.style.display = 'flex';
         } else {
             // Hide Desktop Bar
             if (actionBar) {
@@ -388,11 +401,9 @@ class DashboardManager {
                 if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
             }
 
-            // Hide Mobile Header
-            if (mobileHeader) {
-                mobileHeader.classList.add('hidden');
-                mobileHeader.style.display = 'none';
-            }
+            // Hide Mobile Selection Controls
+            if (mobileHeaderCheckbox) mobileHeaderCheckbox.style.visibility = 'hidden';
+            if (mobileHeaderActions) mobileHeaderActions.style.display = 'none';
 
             this.isSelectionMode = false;
             this.updateSelectionModeClass();
