@@ -768,9 +768,10 @@ body.selection-mode-active .list-header-m3,
 
 @media (max-width: 767px) {
 
-    /* Aggressively hide headers on mobile for maximum space and clean look (v19.4.0) */
+    /* Aggressively hide headers on mobile for maximum space and clean look (v19.5.0+) */
+    /* EXCEPT .dashboard-header which now contains the selection controls */
+    body:not(.selection-mode-active) .dashboard-header,
     body .list-header-m3,
-    body .dashboard-header,
     #recipesGrid.list-view .list-header-m3 {
         display: none !important;
         height: 0 !important;
@@ -778,6 +779,20 @@ body.selection-mode-active .list-header-m3,
         padding: 0 !important;
         overflow: hidden !important;
         border: none !important;
+    }
+
+    /* Restore dashboard-header on mobile ONLY when selecting (v19.6.0) */
+    body.selection-mode-active .dashboard-header {
+        display: flex !important;
+        height: 56px !important;
+        /* Standardized height */
+        padding: 0 16px !important;
+        /* Perfect mobile padding restored */
+        margin-bottom: 8px !important;
+        border-bottom: 1px solid var(--outline-variant);
+        animation: m3-fade-up 0.2s ease;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .main-content-scroll {
