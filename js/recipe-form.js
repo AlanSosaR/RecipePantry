@@ -396,7 +396,7 @@ class RecipeFormManager {
 
             setTimeout(() => {
                 window.location.href = `/recipe-detail?id=${recipeId}&f=1`;
-            }, 1000);
+            }, 300);
 
         } catch (err) {
             console.error(err);

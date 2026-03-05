@@ -48,6 +48,7 @@ class RecipeDetailManager {
 
             // Si fue forzado, limpiar la URL de forma silenciosa para que un refresh posterior use caché
             if (forceRefresh) {
+                console.log('✅ Sincronización instantánea activada. Cargando datos frescos...');
                 const newUrl = window.location.pathname + '?id=' + this.recipeId + (this.permission ? '&permission=' + this.permission : '');
                 window.history.replaceState({}, '', newUrl);
             }

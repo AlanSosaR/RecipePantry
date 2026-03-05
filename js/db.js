@@ -189,7 +189,8 @@ class DatabaseManager {
         if (!forceRefresh) {
             const cached = await window.localDB.get('recipes_full', recipeId);
             if (cached) {
-                console.log(`⚡ Receta ${recipeId} desde caché (recipes_full)`);
+                // Log más discreto para no confundir al usuario
+                console.log(`ℹ️ Cargando receta ${recipeId} (Modo Offline-Ready)`);
                 if (this._isOnline) this._revalidateRecipeInBackground(recipeId, cached.updated_at);
                 return { success: true, recipe: cached, fromCache: true };
             }
@@ -300,7 +301,18 @@ class DatabaseManager {
                 if (window.localDB) {
                     await window.localDB.delete('recipes_full', recipeId);
                     await window.localDB.delete('recipes_index', recipeId);
-                    await window.localDB.delete('recipes', recipeId); // Legacy fallback
+                    await window.localDB.delete('recipes', recipeId);
+                }
+
+                // NUEVO: Invalidar también la Cache API física del Service Worker
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const name of cacheNames) {
+                        const cache = await caches.open(name);
+                        // Intentar borrar la URL exacta de la API
+                        await cache.delete(`/api/recipe/${recipeId}`);
+                        console.log(`🗑️ Caché de API eliminada para ${recipeId}`);
+                    }
                 }
                 return { success: true, recipe };
             } catch (err) { return { success: false, error: err.message }; }
