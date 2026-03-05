@@ -46,9 +46,9 @@
 
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=18.0.0">
-  <link rel="stylesheet" href="css/components.css?v=18.0.0">
-  <link rel="stylesheet" href="css/responsive.css?v=18.0.0">
+  <link rel="stylesheet" href="css/styles.css?v=19.0.0">
+  <link rel="stylesheet" href="css/components.css?v=19.0.0">
+  <link rel="stylesheet" href="css/responsive.css?v=19.0.0">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -476,18 +476,7 @@
         <!-- Material 3 Expressive Contextual Top App Bar -->
         <div id="selectionActionBar" class="selection-action-bar hidden">
           <div class="selection-bar-content">
-            <button class="btn-icon-m3" onclick="window.dashboard.clearSelection()" title="Cancelar">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-            <span id="selectionCount" class="selection-count-text">0 seleccionados</span>
-
             <div class="selection-actions-group">
-              <label class="m3-checkbox-wrapper" title="Seleccionar todo">
-                <input type="checkbox" id="selectAllCheckboxTop" class="m3-checkbox-input"
-                  onchange="window.dashboard.handleSelectAll(event)">
-                <span class="m3-checkbox-visual"></span>
-              </label>
-
               <button class="btn-icon-m3" onclick="window.dashboard.confirmDeleteSelected()"
                 title="Eliminar seleccionadas" style="color: var(--md-error);">
                 <span class="material-symbols-outlined">delete</span>
@@ -497,6 +486,12 @@
                 title="Más opciones">
                 <span class="material-symbols-outlined">more_vert</span>
               </button>
+
+              <label class="m3-checkbox-wrapper" title="Seleccionar todo" style="margin-left: 8px;">
+                <input type="checkbox" id="selectAllCheckboxTop" class="m3-checkbox-input"
+                  onchange="window.dashboard.handleSelectAll(event)">
+                <span class="m3-checkbox-visual"></span>
+              </label>
             </div>
           </div>
 

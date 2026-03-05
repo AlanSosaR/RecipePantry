@@ -5912,16 +5912,26 @@ input:checked~.m3-ingredient-text {
     left: 0;
     right: 0;
     height: 64px;
-    background-color: var(--md-sys-color-primary-container, #E1F5FE);
-    color: var(--md-sys-color-on-primary-container, #01579B);
+    background-color: var(--bg);
+    /* Flat background as requested */
+    color: var(--on-surface);
     display: flex;
     align-items: center;
-    padding: 0 16px;
+    padding: 0 1rem;
     z-index: 3000;
-    box-shadow: var(--md-sys-elevation-2);
+    box-shadow: none;
+    /* No shadow for flat look */
+    border-bottom: 1px solid var(--outline-variant);
     transition: transform 0.2s cubic-bezier(0, 0, 0.2, 1), opacity 0.2s;
     transform: translateY(-100%);
     opacity: 0;
+}
+
+@media (max-width: 800px) {
+    .selection-action-bar {
+        height: 48px;
+        /* Match list header height */
+    }
 }
 
 .selection-action-bar:not(.hidden) {
@@ -5933,13 +5943,15 @@ input:checked~.m3-ingredient-text {
     display: flex;
     align-items: center;
     width: 100%;
-    gap: 12px;
+    height: 100%;
+    justify-content: flex-end;
+    /* Align all actions to the right */
 }
 
-.selection-count-text {
-    flex: 1;
-    font-size: 18px;
-    font-weight: 500;
+.selection-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 /* 2. Trailing Checkbox (Positioning) */

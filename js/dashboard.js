@@ -33,7 +33,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Inicializando Recipe Pantry v18.0.0 (Stable Node API & Hybrid Grid Header)...');
+            console.log('🚀 Inicializando Recipe Pantry v19.0.0 (Refined Selection Header)...');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -367,27 +367,30 @@ class DashboardManager {
 
     updateActionBar() {
         const actionBar = document.getElementById('selectionActionBar');
-        const countText = document.getElementById('selectionCount');
-        const mobileHeader = document.getElementById('mobileSelectionHeader');
-        const mobileCountText = document.getElementById('mobileSelectionCount');
         const dashboardHeader = document.querySelector('.dashboard-header');
-        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const listHeaders = document.querySelectorAll('.list-header-m3');
+        const isMobile = window.innerWidth <= 800;
 
         if (this.selectedRecipes.size > 0) {
-            // Desktop Bar
+            // Show Selection Bar
             if (actionBar) {
                 actionBar.classList.remove('hidden');
                 if (dashboardHeader) dashboardHeader.style.visibility = 'hidden';
-                const count = this.selectedRecipes.size;
-                const text = isEn ? `${count} selected` : `${count} seleccionado${count > 1 ? 's' : ''}`;
-                if (countText) countText.textContent = text;
+            }
+
+            // Mobile: Hide the "NOMBRE" header to avoid duplicate headers
+            if (isMobile) {
+                listHeaders.forEach(lh => lh.style.display = 'none');
             }
         } else {
-            // Hide Desktop Bar
+            // Hide Selection Bar
             if (actionBar) {
                 actionBar.classList.add('hidden');
                 if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
             }
+
+            // Restore "NOMBRE" header
+            listHeaders.forEach(lh => lh.style.display = '');
 
             this.isSelectionMode = false;
             this.updateSelectionModeClass();
@@ -613,14 +616,13 @@ class DashboardManager {
     updateSelectAllCheckbox() {
         const selectAllTop = document.getElementById('selectAllCheckboxTop');
         const selectAllList = document.getElementById('selectAllCheckboxList');
-        const selectAllMobile = document.getElementById('selectAllMobile');
 
         if (this.currentRecipes && this.currentRecipes.length > 0) {
             const allSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
             const isAnySelected = this.selectedRecipes.size > 0;
             const isIndeterminate = isAnySelected && !allSelected;
 
-            [selectAllTop, selectAllList, selectAllMobile].forEach(cb => {
+            [selectAllTop, selectAllList].forEach(cb => {
                 if (cb) {
                     cb.checked = allSelected && isAnySelected;
                     cb.indeterminate = isIndeterminate;
