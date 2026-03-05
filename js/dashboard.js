@@ -98,12 +98,52 @@ class DashboardManager {
     setupEventListeners() {
         // Buscador
         const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        const searchWrapper = document.getElementById('searchWrapper');
+
         if (searchInput) {
+            this.searchHistory = new SearchHistory(this);
+
             let timeout;
             searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+
+                // Toggle clear button visibility
+                if (clearBtn) {
+                    clearBtn.classList.toggle('hidden', query.length === 0);
+                }
+
                 clearTimeout(timeout);
-                timeout = setTimeout(() => this.loadRecipes({ search: e.target.value }), 300);
+                timeout = setTimeout(() => {
+                    this.loadRecipes({ search: query });
+                    if (query.length > 2) {
+                        this.searchHistory.save(query);
+                    }
+                }, 300);
+
+                // Update suggestions
+                this.searchHistory.showSuggestions(query);
             });
+
+            searchInput.addEventListener('focus', () => {
+                this.searchHistory.showSuggestions(searchInput.value.trim());
+            });
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (searchWrapper && !searchWrapper.contains(e.target)) {
+                    this.searchHistory.hideSuggestions();
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    clearBtn.classList.add('hidden');
+                    this.loadRecipes({ search: '' });
+                    searchInput.focus();
+                });
+            }
         }
 
         // Navegación Sidebar Desktop
@@ -1277,6 +1317,97 @@ class DashboardManager {
             console.error('Save shared recipe error:', err);
             window.utils.showToast(window.i18n ? window.i18n.t('saveError') : 'Error al guardar la receta', 'error');
         }
+    }
+}
+
+class SearchHistory {
+    constructor(dashboard) {
+        this.dashboard = dashboard;
+        this.storageKey = 'recipe_pantry_search_history';
+        this.history = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+        this.suggestionsEl = document.getElementById('searchSuggestions');
+        this.inputEl = document.getElementById('searchInput');
+    }
+
+    save(query) {
+        if (!query || query.length < 2) return;
+
+        // Remove existing and add to front
+        this.history = this.history.filter(h => h.toLowerCase() !== query.toLowerCase());
+        this.history.unshift(query);
+
+        // Keep only top 10
+        this.history = this.history.slice(0, 10);
+        localStorage.setItem(this.storageKey, JSON.stringify(this.history));
+    }
+
+    remove(query) {
+        this.history = this.history.filter(h => h !== query);
+        localStorage.setItem(this.storageKey, JSON.stringify(this.history));
+        this.showSuggestions(this.inputEl.value.trim());
+    }
+
+    showSuggestions(query) {
+        if (!this.suggestionsEl) return;
+
+        let suggestions = [];
+        let headerText = '';
+
+        if (!query) {
+            // Show recent history
+            suggestions = this.history;
+            headerText = window.i18n ? window.i18n.t('recentSearches') : 'Búsquedas recientes';
+        } else {
+            // Filter history or suggest from current recipes
+            suggestions = this.history.filter(h => h.toLowerCase().includes(query.toLowerCase()));
+            headerText = window.i18n ? window.i18n.t('suggestions') : 'Sugerencias';
+        }
+
+        if (suggestions.length === 0) {
+            this.hideSuggestions();
+            return;
+        }
+
+        this.renderSuggestions(suggestions, headerText);
+        this.suggestionsEl.classList.remove('hidden');
+    }
+
+    hideSuggestions() {
+        if (this.suggestionsEl) {
+            this.suggestionsEl.classList.add('hidden');
+        }
+    }
+
+    renderSuggestions(items, header) {
+        this.suggestionsEl.innerHTML = `
+            <div class="suggestions-header">${header}</div>
+            ${items.map(item => `
+                <div class="suggestion-item" data-value="${item}">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="suggestion-text">${item}</span>
+                    <span class="material-symbols-outlined suggestion-remove" data-remove="${item}">close</span>
+                </div>
+            `).join('')}
+        `;
+
+        // Event listeners for suggestion items
+        this.suggestionsEl.querySelectorAll('.suggestion-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                if (e.target.dataset.remove) {
+                    e.stopPropagation();
+                    this.remove(e.target.dataset.remove);
+                    return;
+                }
+                const value = el.dataset.value;
+                this.inputEl.value = value;
+                this.hideSuggestions();
+                this.dashboard.loadRecipes({ search: value });
+
+                // Show clear button
+                const clearBtn = document.getElementById('clearSearch');
+                if (clearBtn) clearBtn.classList.remove('hidden');
+            });
+        });
     }
 }
 

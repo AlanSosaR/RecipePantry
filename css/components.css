@@ -3643,20 +3643,22 @@ select.input-field {
 
 .search-wrapper-m3 {
     width: 100%;
-    max-width: 800px;
+    max-width: 720px;
     height: 48px;
     background: var(--surface-container-high);
-    border-radius: 0;
-    padding: 0 20px;
+    border-radius: 24px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     gap: 12px;
     transition: all var(--transition-base);
+    position: relative;
+    /* For suggestions dropdown */
 }
 
 .search-wrapper-m3:focus-within {
     background: var(--bg);
-    box-shadow: 0 0 0 2px var(--secondary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-wrapper-m3 input {
@@ -3670,6 +3672,67 @@ select.input-field {
 
 .search-wrapper-m3 input:focus {
     outline: none;
+}
+
+/* Search Suggestions Dropdown */
+.search-suggestions-m3 {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+    padding: 8px 0;
+    border: 1px solid var(--outline-variant);
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: var(--on-surface);
+}
+
+.suggestion-item:hover {
+    background: var(--surface-container-high);
+}
+
+.suggestion-item .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--on-surface-variant);
+}
+
+.suggestion-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.suggestion-remove {
+    padding: 4px;
+    border-radius: 50%;
+    color: var(--on-surface-variant);
+    opacity: 0.6;
+}
+
+.suggestion-remove:hover {
+    background: var(--surface-container-highest);
+    opacity: 1;
+}
+
+.suggestions-header {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-icon-m3 {

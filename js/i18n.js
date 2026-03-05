@@ -26,6 +26,8 @@
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Buscar en mi recetario...',
+            recentSearches: 'Búsquedas recientes',
+            suggestions: 'Sugerencias',
 
             // ── Auth / Login ──────────────────────────────────────────────
             authTitleLogin: "",
@@ -284,6 +286,8 @@
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Search my cookbook...',
+            recentSearches: 'Recent searches',
+            suggestions: 'Suggestions',
 
             // ── Auth / Login ──────────────────────────────────────────────
             authTitleLogin: "Welcome Back",

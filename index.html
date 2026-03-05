@@ -437,10 +437,14 @@
           <span class="material-symbols-outlined">menu</span>
         </button>
         <div class="search-container-m3">
-          <div class="search-wrapper-m3">
+          <div class="search-wrapper-m3" id="searchWrapper">
             <span class="material-symbols-outlined">search</span>
             <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder"
               placeholder="Buscar en mi recetario...">
+            <button id="clearSearch" class="btn-icon-m3 hidden" title="Limpiar búsqueda">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <div id="searchSuggestions" class="search-suggestions-m3 hidden"></div>
           </div>
         </div>
         <div class="top-bar-actions-m3">
