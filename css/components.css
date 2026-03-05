@@ -5965,16 +5965,23 @@ input:checked~.m3-ingredient-text {
     transform: translate(-50%, -50%);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
 
     .file-row-m3,
     .list-header-m3 {
         /* Stable Mobile Layout: [32px Icon] [Name] [48px Checkbox] [48px Actions] */
         grid-template-columns: 32px 1fr 48px 48px !important;
         gap: 8px !important;
-        padding: 12px 8px !important;
+        padding: 12px 16px !important;
         align-items: center;
         width: 100% !important;
+    }
+
+    /* Force columns to hide in BOTH rows and headers to prevent misalignment */
+    .col-category,
+    .col-access,
+    .col-date {
+        display: none !important;
     }
 
     /* Column Reordering for consistency */
@@ -5989,7 +5996,7 @@ input:checked~.m3-ingredient-text {
         flex: 1;
     }
 
-    /* MOBILE: RIGHT SIDE */
+    /* MOBILE: ACTION BUTTONS BEFORE CHECKBOX */
     .file-row-m3 .col-actions,
     .list-header-m3 .col-actions {
         order: 3;
@@ -5998,6 +6005,7 @@ input:checked~.m3-ingredient-text {
         justify-content: center;
     }
 
+    /* MOBILE: CHECKBOX ON THE FAR RIGHT */
     .file-row-m3 .col-checkbox,
     .list-header-m3 .col-checkbox {
         order: 4 !important;
@@ -6010,19 +6018,24 @@ input:checked~.m3-ingredient-text {
     #recipesGrid.selection-mode-active .list-header-m3.hidden-mobile-lg {
         display: grid !important;
         background: var(--surface, #ffffff) !important;
-        border-bottom: 1px solid var(--outline-variant, #CAC4D0) !important;
-        margin-bottom: 16px !important;
-        /* Huge space to detach from first recipe */
-        padding: 16px 12px !important;
-        /* Fat padding to make it a distinct block */
-        border-radius: 12px;
-        height: auto !important;
+        /* Solid background to prevent overlap transparency */
+        border-bottom: 2px solid var(--outline-variant, #CAC4D0) !important;
+        /* Thicker distinct border */
+        margin-bottom: 0 !important;
+        /* Removed massive margin */
+        padding: 12px 16px !important;
+        /* Match the rows EXACTLY so columns align */
+        border-radius: 0;
+        height: 48px !important;
         opacity: 1 !important;
         /* Override the 0.8 opacity from desktop */
-        position: relative;
+        position: sticky !important;
+        /* Maintain pure sticky behavior */
+        top: 48px !important;
+        /* Just below main header */
         z-index: 10;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        /* Distinct shadow to lift it */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        /* Very subtle shadow for separation when scrolling */
     }
 
     #recipesGrid.selection-mode-active .list-header-m3 .col-checkbox {
@@ -6030,7 +6043,7 @@ input:checked~.m3-ingredient-text {
         /* Ensure the checkbox is fully visible and not faint */
     }
 
-    /* Show checkbox in selection mode WITHOUT layout shift */
+    /* Show checkbox correctly aligned WITHOUT layout shift */
     #recipesGrid.selection-mode-active .file-row-m3 .col-checkbox {
         opacity: 1;
         transform: scale(1);
