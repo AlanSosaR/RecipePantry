@@ -6279,42 +6279,23 @@ input:checked~.m3-ingredient-text {
     }
 }
 
-/* Selection bar single-line on mobile */
+/* Selection bar single-line on mobile (v19.0.0) */
 @media (max-width: 600px) {
     .selection-action-bar {
-        padding: 0 8px !important;
-        height: 64px !important;
-        gap: 4px !important;
+        padding: 0 1rem !important;
+        height: 48px !important;
+        display: flex !important;
     }
 
-    .selection-bar-left {
-        gap: 8px !important;
-        flex: 1;
-        overflow: hidden;
-        min-width: 0;
-    }
-
-    .selection-count-text {
-        font-size: 13px !important;
-        white-space: nowrap;
+    .selection-bar-content {
+        justify-content: flex-end !important;
     }
 
     .selection-actions-group {
-        display: flex;
-        gap: 2px;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    /* ONLY 3-DOTS ON MOBILE SELECTION BAR */
-    .selection-btn:not(.icon-only) {
-        display: none !important;
-    }
-
-    #selectionMoreBtn {
         display: flex !important;
-        border-radius: 50% !important;
-        padding: 8px !important;
+        gap: 8px !important;
+        align-items: center !important;
+        width: auto !important;
     }
 }
 
