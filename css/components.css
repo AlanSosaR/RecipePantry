@@ -3734,7 +3734,9 @@ select.input-field {
 
 .search-wrapper-m3:focus-within {
     background: var(--bg);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 2px var(--primary);
+    /* Rounded focus ring matching pills */
+    border-color: transparent;
 }
 
 .search-wrapper-m3 input {
