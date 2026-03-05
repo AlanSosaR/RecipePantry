@@ -1,9 +1,7 @@
 // api/recipe/[id].js - Detalle, actualizar, eliminar
 import { createClient } from '@supabase/supabase-js';
 
-export const config = {
-    runtime: 'edge',
-};
+
 
 export default async function handler(req) {
     const headers = {
