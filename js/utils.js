@@ -1,6 +1,79 @@
 // js/utils.js
 // Funciones helper y de UI
 
+// ─── Estilos globales del Toast (inyectados una vez) ──────────────────
+(function injectToastCSS() {
+    if (document.getElementById('__toast-global-styles')) return;
+    const style = document.createElement('style');
+    style.id = '__toast-global-styles';
+    style.textContent = `
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffffff;
+            color: #10B981;
+            border-radius: 14px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
+            min-width: 220px;
+            max-width: 360px;
+            border: 1.5px solid rgba(16, 185, 129, 0.18);
+            pointer-events: auto;
+            animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        .toast .material-symbols-outlined {
+            font-size: 20px;
+            flex-shrink: 0;
+            color: #10B981;
+        }
+        .toast-error .material-symbols-outlined {
+            color: #EF4444;
+        }
+        .toast-error {
+            color: #EF4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .toast-info .material-symbols-outlined {
+            color: #6B7280;
+        }
+        .toast-info {
+            color: #374151;
+        }
+        .toast-message {
+            flex: 1;
+            line-height: 1.4;
+        }
+        .slide-out {
+            animation: toastOut 0.3s ease forwards !important;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0)   scale(1);    }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0)   scale(1);    }
+            to   { opacity: 0; transform: translateY(8px)  scale(0.95); }
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
 /**
  * Muestra una notificación toast
  */
@@ -14,7 +87,7 @@ window.showToast = (message, type = 'info') => {
     }
 
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type} slide-in`;
+    toast.className = `toast toast-${type}`;
     toast.innerHTML = `
         <span class="material-symbols-outlined">
             ${type === 'error' ? 'error' : type === 'success' ? 'check_circle' : 'info'}
@@ -26,9 +99,10 @@ window.showToast = (message, type = 'info') => {
 
     setTimeout(() => {
         toast.classList.add('slide-out');
-        setTimeout(() => toast.remove(), 500);
+        setTimeout(() => toast.remove(), 400);
     }, 3000);
 };
+
 
 /**
  * Maneja el estado de carga de un botón
