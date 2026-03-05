@@ -45,9 +45,28 @@
     rel="stylesheet">
 
 
-  <!-- Core Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=26">
-  <link rel="stylesheet" href="css/components.css?v=26">
+  <link rel="stylesheet" href="css/styles.css?v=27">
+  <link rel="stylesheet" href="css/components.css?v=27">
+  <script>
+    // NUCLEAR CACHE BUSTER (v27)
+    // Si la versión cargada no es 27, forzar limpieza de caches y hard reload
+    (async () => {
+      const CURRENT_VERSION = '27';
+      if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION) {
+        console.warn('⚠️ Versión obsoleta detectada. Forzando limpieza de caché...');
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (let reg of regs) await reg.unregister();
+        }
+        if ('caches' in window) {
+          const names = await caches.keys();
+          for (let name of names) await caches.delete(name);
+        }
+        localStorage.setItem('recipe_app_version', CURRENT_VERSION);
+        window.location.reload(true);
+      }
+    })();
+  </script>
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
