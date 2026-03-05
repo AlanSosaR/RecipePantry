@@ -363,12 +363,19 @@ class DashboardManager {
 
 
     handleSelectAll(e) {
-        const isChecked = e.target.checked;
-        if (isChecked) {
+        // Mejorado para móvil: Si hay algunos seleccionados, el primer click selecciona TODO.
+        // Solo si YA están todos seleccionados, el click deselecciona todo.
+        const total = this.currentRecipes.length;
+        const currentlySelected = this.currentRecipes.filter(r => this.selectedRecipes.has(r.id)).length;
+
+        if (currentlySelected < total) {
+            // Seleccionar todo
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         } else {
+            // Deseleccionar todo
             this.selectedRecipes.clear();
         }
+
         this.isSelectionMode = this.selectedRecipes.size > 0;
         this.updateSelectionModeClass();
         this.updateActionBar();
@@ -832,13 +839,13 @@ class DashboardManager {
                     <div class="col-category">${colCategory}</div>
                     <div class="col-access">${colAccess}</div>
                     <div class="col-date">${colDate}</div>
-                    <div class="col-actions"></div>
                     <div class="col-checkbox">
                         <label class="m3-checkbox-wrapper">
                             <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
                             <span class="m3-checkbox-visual"></span>
                         </label>
                     </div>
+                    <div class="col-actions"></div>
                 </div>
             `;
             const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
@@ -893,6 +900,13 @@ class DashboardManager {
 
                 <div class="col-date">${date}</div>
 
+                <div class="col-checkbox" onclick="event.stopPropagation()">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
+                </div>
+
                 <div class="col-actions">
                     <div class="row-actions-dropbox">
                         <button class="btn-share-highlight" onclick="event.stopPropagation(); window.dashboard.shareRecipe('${recipe.id}')">
@@ -922,13 +936,6 @@ class DashboardManager {
                     <button class="btn-icon-m3 mobile-action-btn" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}', event)">
                         <span class="material-symbols-outlined">more_vert</span>
                     </button>
-                </div>
-
-                <div class="col-checkbox" onclick="event.stopPropagation()">
-                    <label class="m3-checkbox-wrapper">
-                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
-                        <span class="m3-checkbox-visual"></span>
-                    </label>
                 </div>
             </div>
         `;

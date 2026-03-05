@@ -659,8 +659,8 @@ ol {
 .list-header-m3,
 .file-row-m3 {
     display: grid;
-    /* icon | name | category | access | updated | actions | checkbox */
-    grid-template-columns: 40px 1fr 140px 120px 160px 100px 40px;
+    /* icon | name | category | access | updated | checkbox | actions */
+    grid-template-columns: 40px 1fr 140px 120px 160px 48px 48px;
     /* icon reduced from 56px */
     gap: 1rem;
     align-items: center;
@@ -6206,19 +6206,19 @@ input:checked~.m3-ingredient-text {
         flex: 1;
     }
 
-    /* MOBILE: ACTION BUTTONS BEFORE CHECKBOX */
-    .file-row-m3 .col-actions,
-    .list-header-m3 .col-actions {
-        order: 3;
+    /* MOBILE: CHECKBOX BEFORE ACTIONS */
+    .file-row-m3 .col-checkbox,
+    .list-header-m3 .col-checkbox {
+        order: 3 !important;
         display: flex !important;
         width: 48px;
         justify-content: center;
     }
 
-    /* MOBILE: CHECKBOX ON THE FAR RIGHT */
-    .file-row-m3 .col-checkbox,
-    .list-header-m3 .col-checkbox {
-        order: 4 !important;
+    /* MOBILE: ACTION BUTTONS ON THE FAR RIGHT (to the edge) */
+    .file-row-m3 .col-actions,
+    .list-header-m3 .col-actions {
+        order: 4;
         display: flex !important;
         width: 48px;
         justify-content: center;
