@@ -186,18 +186,26 @@ class RecipeDetailManager {
             return;
         }
 
-        const stepsHtml = steps.map((step, idx) => {
+        stepsEl.innerHTML = steps.map((step, idx) => {
             const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
+            const num = idx + 1;
             return `
-                <div class="m3-step-item">
-                    <div class="m3-step-badge">${idx + 1}</div>
+                <label class="m3-step-item m3-step-checkable">
+                    <input class="hidden" type="checkbox"
+                        onchange="
+                            const item = this.closest('.m3-step-checkable');
+                            item.classList.toggle('step-done', this.checked);
+                            const badge = item.querySelector('.m3-step-badge');
+                            badge.innerHTML = this.checked
+                                ? '<span class=\\'material-symbols-outlined\\' style=\\'font-size:16px;\\'>check</span>'
+                                : '${num}';
+                        "
+                    />
+                    <div class="m3-step-badge">${num}</div>
                     <p class="m3-step-text">${instruction}</p>
-                </div>
+                </label>
             `;
         }).join('');
-
-        const timelineLine = `<div class="m3-steps-timeline"></div>`;
-        stepsEl.innerHTML = timelineLine + stepsHtml;
     }
 
     setupEventListeners() {
