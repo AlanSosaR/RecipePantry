@@ -467,7 +467,19 @@
           </div>
         </div>
       </header>
+
       <div class="main-content-scroll">
+
+        <!-- Header de selección flotante (Mobile) -->
+        <div id="mobileSelectionHeader" class="header-seleccion hidden" style="display: none;">
+          <label class="m3-checkbox-wrapper">
+            <input type="checkbox" id="selectAllMobile" class="m3-checkbox-input"
+              onchange="window.dashboard.handleSelectAll(event)">
+            <span class="m3-checkbox-visual"></span>
+          </label>
+          <span id="mobileSelectionCount" class="contador">0 seleccionados</span>
+        </div>
+
 
         <!-- Material 3 Expressive Contextual Top App Bar -->
         <div id="selectionActionBar" class="selection-action-bar hidden">

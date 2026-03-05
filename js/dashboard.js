@@ -361,23 +361,48 @@ class DashboardManager {
     updateActionBar() {
         const actionBar = document.getElementById('selectionActionBar');
         const countText = document.getElementById('selectionCount');
+        const mobileHeader = document.getElementById('mobileSelectionHeader');
+        const mobileCountText = document.getElementById('mobileSelectionCount');
         const dashboardHeader = document.querySelector('.dashboard-header');
-
-        if (!actionBar) return;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         if (this.selectedRecipes.size > 0) {
-            actionBar.classList.remove('hidden');
-            // M3 Contextual Bar covers the header
-            if (dashboardHeader) dashboardHeader.style.visibility = 'hidden';
+            // Desktop Bar
+            if (actionBar) {
+                actionBar.classList.remove('hidden');
+                if (dashboardHeader) dashboardHeader.style.visibility = 'hidden';
+                const count = this.selectedRecipes.size;
+                const text = isEn ? `${count} selected` : `${count} seleccionado${count > 1 ? 's' : ''}`;
+                if (countText) countText.textContent = text;
+            }
 
-            const count = this.selectedRecipes.size;
-            const text = window.i18n && window.i18n.getLang() === 'en'
-                ? `${count} selected`
-                : `${count} seleccionado${count > 1 ? 's' : ''}`;
-            if (countText) countText.textContent = text;
+            // Mobile Header
+            if (mobileHeader) {
+                mobileHeader.style.display = 'flex';
+                mobileHeader.classList.remove('hidden', 'hiding');
+                const count = this.selectedRecipes.size;
+                const text = isEn ? `${count} selected` : `${count} seleccionado${count > 1 ? 's' : ''}`;
+                if (mobileCountText) mobileCountText.textContent = text;
+            }
         } else {
-            actionBar.classList.add('hidden');
-            if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
+            // Hide Desktop Bar
+            if (actionBar) {
+                actionBar.classList.add('hidden');
+                if (dashboardHeader) dashboardHeader.style.visibility = 'visible';
+            }
+
+            // Hide Mobile Header (with animation)
+            if (mobileHeader && !mobileHeader.classList.contains('hidden')) {
+                mobileHeader.classList.add('hiding');
+                setTimeout(() => {
+                    if (this.selectedRecipes.size === 0) {
+                        mobileHeader.classList.add('hidden');
+                        mobileHeader.classList.remove('hiding');
+                        mobileHeader.style.display = 'none';
+                    }
+                }, 300);
+            }
+
             this.isSelectionMode = false;
             this.updateSelectionModeClass();
         }
@@ -602,20 +627,19 @@ class DashboardManager {
     updateSelectAllCheckbox() {
         const selectAllTop = document.getElementById('selectAllCheckboxTop');
         const selectAllList = document.getElementById('selectAllCheckboxList');
+        const selectAllMobile = document.getElementById('selectAllMobile');
 
-        if (this.currentRecipes.length > 0) {
+        if (this.currentRecipes && this.currentRecipes.length > 0) {
             const allSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
             const isAnySelected = this.selectedRecipes.size > 0;
             const isIndeterminate = isAnySelected && !allSelected;
 
-            if (selectAllTop) {
-                selectAllTop.checked = allSelected && isAnySelected;
-                selectAllTop.indeterminate = isIndeterminate;
-            }
-            if (selectAllList) {
-                selectAllList.checked = allSelected && isAnySelected;
-                selectAllList.indeterminate = isIndeterminate;
-            }
+            [selectAllTop, selectAllList, selectAllMobile].forEach(cb => {
+                if (cb) {
+                    cb.checked = allSelected && isAnySelected;
+                    cb.indeterminate = isIndeterminate;
+                }
+            });
         }
     }
 
