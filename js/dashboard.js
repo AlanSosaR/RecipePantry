@@ -156,6 +156,7 @@ class DashboardManager {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const view = item.dataset.view;
+                console.log(`🖱️ Click en nav-item: ${view}`);
                 if (view) {
                     e.preventDefault();
                     this.switchView(view, item);
@@ -230,6 +231,7 @@ class DashboardManager {
 
 
     switchView(view, activeItem) {
+        console.log(`🔄 Cambiando vista a: ${view}`);
         this.currentView = view;
 
         // Limpiar selección actual si cambia de pestaña
