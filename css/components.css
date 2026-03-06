@@ -6545,37 +6545,217 @@ input:checked~.m3-ingredient-text {
     text-align: center;
 }
 
-/* ─── Installation Guide Styling ─── */
-.help-section {
-    line-height: 1.6;
+/* ─── Premium Stitch Installation Guide ─── */
+.stitch-help-container {
+    background: #F8FAF9;
+    color: #1B1B1F;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-.help-section h4 {
-    font-weight: 700 !important;
-    margin-bottom: 12px !important;
+.stitch-modal-header-premium {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #F8FAF9;
 }
 
-.help-section ul li {
+.stitch-back-btn {
+    background: none;
+    border: none;
+    color: #1B1B1F;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.stitch-back-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.stitch-title-premium {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.stitch-content-wrapper {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.stitch-main-headline {
+    font-family: 'Epilogue', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 12px 0;
+    color: #1B1B1F;
+}
+
+.stitch-sub-headline {
+    color: #5E5E62;
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+/* Tabs */
+.stitch-tab-selector {
+    display: flex;
+    background: #E8F1EC;
+    padding: 6px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+}
+
+.stitch-tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px;
+    border-radius: 100px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
+    color: #5E5E62;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stitch-tab-btn.active {
+    background: #FFFFFF;
+    color: #00A676;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Android Cards */
+.stitch-card-premium {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.stitch-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stitch-card-icon.android {
+    background: #E8F7F2;
+    color: #00A676;
+}
+
+.stitch-card-icon .material-symbols-outlined {
+    font-size: 24px;
+}
+
+.stitch-card-text h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1B1B1F;
+}
+
+.stitch-card-text p {
+    margin: 0;
+    font-size: 13px;
+    color: #5E5E62;
     line-height: 1.4;
 }
 
-.help-section ul li span:nth-child(2) {
-    margin-top: 2px;
+/* iPhone Stepper */
+.stitch-steps-label {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 24px;
+}
+
+.stitch-stepper-vertical {
+    border-left: 2px solid #E8F1EC;
+    margin-left: 24px;
+    padding-left: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.stitch-step {
+    position: relative;
+}
+
+.stitch-step-circle {
+    position: absolute;
+    left: -56px;
+    top: -4px;
+    width: 44px;
+    height: 44px;
+    background: #FFFFFF;
+    border: 2px solid #E8F1EC;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00A676;
+    z-index: 1;
+}
+
+.stitch-step-content .step-num {
+    font-size: 11px;
+    font-weight: 800;
+    color: #00A676;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.stitch-step-content p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1B1B1F;
+    line-height: 1.4;
+}
+
+/* Footer Action */
+.stitch-footer-premium {
+    padding: 24px;
+}
+
+.stitch-btn-primary-m3 {
+    width: 100%;
+    background: #00A676;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 100px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0, 166, 118, 0.25);
 }
 
 @media (max-width: 480px) {
-    #help-modal .modal-container {
-        width: 95% !important;
-        margin: 10px;
+    .stitch-main-headline {
+        font-size: 24px;
     }
 
-    .help-section h4 {
-        font-size: 16px !important;
-    }
-
-    .help-section ul li {
-        font-size: 13px;
+    .stitch-content-wrapper {
+        padding: 20px;
     }
 }

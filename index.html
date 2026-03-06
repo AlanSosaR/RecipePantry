@@ -600,58 +600,53 @@
           </div>
         </div>
         <div id="help-modal" class="modal-overlay hidden">
-          <div class="modal-container" style="max-width: 500px;">
-            <div class="modal-header">
-              <h3 id="help-modal-title" data-i18n="helpModalTitle">Guía de Instalación</h3>
-              <button class="btn-close-modal" onclick="window.helpModal.close()">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div class="modal-body" id="help-modal-body" style="padding: 24px;">
-              <!-- Content populated via help-modal.js -->
+          <div class="modal-container" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 32px;">
+            <div id="help-modal-body" style="height: 600px; max-height: 90vh;">
+              <!-- Content populated via help-modal.js with Stitch designs -->
             </div>
           </div>
         </div>
-
-        <!-- Scripts -->
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js/config.js?v=34"></script>
-        <script src="js/supabase-client.js?v=34"></script>
-        <script src="js/localdb.js?v=34"></script>
-        <script src="js/sync-manager.js?v=34"></script>
-        <script src="js/utils.js?v=34"></script>
-
-        <!-- Scripts (Versión Cache Buster) -->
-        <script src="js/db.js?v=34"></script>
-        <script src="js/auth.js?v=34"></script>
-        <script src="js/dashboard.js?v=34"></script>
-        <script src="js/share-modal.js?v=34"></script>
-        <script src="js/help-modal.js?v=34"></script>
-        <script src="js/notifications.js?v=34"></script>
-        <script src="js/ui.js?v=34"></script>
-
-        <!-- Service Worker Registration -->
-        <script src="js/sw-register.js?v=34"></script>
-        <!-- Multi-language support -->
-        <script src="js/i18n.js?v=34"></script>
-
-
-        <script>
-          // Kept for backward compatibility – i18n.js handles the heavy lifting.
-          function updateTranslations() {
-            if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
-          }
-        </script>
-        <script type="module">
-          import '@material/web/button/filled-button.js'
-          import '@material/web/button/outlined-button.js'
-          import '@material/web/textfield/outlined-text-field.js'
-          // También podemos importar managers globales si es necesario
-          console.log('✨ Material 3 Expressive Modules Loaded');
-        </script>
-
-        <!-- El Service Worker se gestiona mediante js/sw-register.js -->
       </div>
+
+      <!-- Scripts -->
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+      <script src="js/config.js?v=34"></script>
+      <script src="js/supabase-client.js?v=34"></script>
+      <script src="js/localdb.js?v=34"></script>
+      <script src="js/sync-manager.js?v=34"></script>
+      <script src="js/utils.js?v=34"></script>
+
+      <!-- Scripts (Versión Cache Buster) -->
+      <script src="js/db.js?v=34"></script>
+      <script src="js/auth.js?v=34"></script>
+      <script src="js/dashboard.js?v=34"></script>
+      <script src="js/share-modal.js?v=34"></script>
+      <script src="js/help-modal.js?v=34"></script>
+      <script src="js/notifications.js?v=34"></script>
+      <script src="js/ui.js?v=34"></script>
+
+      <!-- Service Worker Registration -->
+      <script src="js/sw-register.js?v=34"></script>
+      <!-- Multi-language support -->
+      <script src="js/i18n.js?v=34"></script>
+
+
+      <script>
+        // Kept for backward compatibility – i18n.js handles the heavy lifting.
+        function updateTranslations() {
+          if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
+        }
+      </script>
+      <script type="module">
+        import '@material/web/button/filled-button.js'
+        import '@material/web/button/outlined-button.js'
+        import '@material/web/textfield/outlined-text-field.js'
+        // También podemos importar managers globales si es necesario
+        console.log('✨ Material 3 Expressive Modules Loaded');
+      </script>
+
+      <!-- El Service Worker se gestiona mediante js/sw-register.js -->
+    </div>
 </body>
 
 </html>
