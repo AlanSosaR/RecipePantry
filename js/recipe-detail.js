@@ -9,6 +9,8 @@ class RecipeDetailManager {
         this.recipeId = params.get('id');
         this.permission = params.get('permission'); // 'view' o 'view_and_copy'
         this.currentRecipe = null;
+        this.currentScale = 1;
+        this.baseServings = 1;
 
         if (!this.recipeId) {
             window.location.replace('/');
@@ -54,6 +56,8 @@ class RecipeDetailManager {
             }
 
             this.currentRecipe = result.recipe;
+            this.baseServings = this.currentRecipe.servings || 1;
+            this.currentScale = 1;
 
             // Check if this recipe was shared with the current user
             this.sharedBy = null;
@@ -146,6 +150,34 @@ class RecipeDetailManager {
 
         this.renderIngredients();
         this.renderSteps();
+        this.updateScalingUI();
+    }
+
+    updateScalingUI() {
+        const selector = document.getElementById('servingSelector');
+        const displayServings = document.getElementById('displayServings');
+        const portionText = document.getElementById('recipePortionText');
+
+        if (selector) selector.classList.remove('hidden');
+        if (displayServings) {
+            const scaledServings = Math.round(this.baseServings * this.currentScale);
+            displayServings.textContent = scaledServings;
+        }
+        if (portionText) {
+            portionText.textContent = `Receta por ${this.currentScale}x`;
+        }
+
+        // Update active button state
+        document.querySelectorAll('.scale-btn').forEach(btn => {
+            const scale = parseFloat(btn.dataset.scale);
+            btn.classList.toggle('active', Math.abs(scale - this.currentScale) < 0.01);
+        });
+    }
+
+    updateScale(newScale) {
+        this.currentScale = parseFloat(newScale) || 1;
+        this.renderIngredients();
+        this.updateScalingUI();
     }
 
     renderIngredients() {
@@ -248,6 +280,28 @@ class RecipeDetailManager {
                 window.showToast(window.i18n ? window.i18n.t('recipeUpdated') : 'Receta actualizada', 'info');
             }
         });
+
+        // Eventos de Escala (Portions)
+        document.querySelectorAll('.scale-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const scale = parseFloat(btn.dataset.scale);
+                this.updateScale(scale);
+
+                // Clear custom input when clicking quick buttons
+                const customInput = document.getElementById('customScale');
+                if (customInput) customInput.value = '';
+            });
+        });
+
+        const customInput = document.getElementById('customScale');
+        if (customInput) {
+            customInput.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                if (val > 0) {
+                    this.updateScale(val);
+                }
+            });
+        }
     }
 
     async confirmDelete() {
