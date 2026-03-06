@@ -231,13 +231,13 @@ class DashboardManager {
 
 
     switchView(view, activeItem) {
-        console.log(`🔄 Cambiando vista a: ${view}`);
+        console.log(`[Dashboard] switchView triggered: ${view}`);
         this.currentView = view;
 
         // Limpiar selección actual si cambia de pestaña
         if (this.selectedRecipes) {
             this.selectedRecipes.clear();
-            this.updateActionBar();
+            if (this.updateActionBar) this.updateActionBar();
         }
         localStorage.setItem('recipe_pantry_current_view', view);
 
@@ -256,6 +256,7 @@ class DashboardManager {
     }
 
     showHelpView() {
+        console.log('[Dashboard] Executing showHelpView');
         const grid = document.getElementById('recipesGrid');
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
@@ -263,13 +264,23 @@ class DashboardManager {
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
+
         if (help) {
+            console.log('[Dashboard] Showing helpView container');
             help.classList.remove('hidden');
-            if (window.helpModal) window.helpModal.render(); // Reuse manager to render content
+            if (window.helpModal) {
+                console.log('[Dashboard] Calling helpModal.render()');
+                window.helpModal.render();
+            } else {
+                console.error('[Dashboard] window.helpModal is NOT defined!');
+                help.innerHTML = '<div style="padding:40px;text-align:center;">Cargando ayuda...</div>';
+            }
+        } else {
+            console.error('[Dashboard] #helpView element NOT found in DOM!');
         }
 
-        if (titleEl && window.i18n) {
-            titleEl.textContent = window.i18n.t('navHelp');
+        if (titleEl) {
+            titleEl.textContent = (window.i18n && window.i18n.t) ? window.i18n.t('navHelp') : 'Ayuda';
         }
     }
 
@@ -289,7 +300,11 @@ class DashboardManager {
         this.currentRecipes = result.recipes;
 
         const isRecipeView = ['recipes', 'favorites', 'shared'].includes(this.currentView);
-        if (!isRecipeView) return; // Background loading should not override Help or other views
+        console.log(`[Dashboard] loadRecipes result: view=${this.currentView}, isRecipeView=${isRecipeView}`);
+        if (!isRecipeView) {
+            console.log('[Dashboard] Aborting loadRecipes UI update - current view is not recipes');
+            return;
+        }
 
         const titleEl = document.getElementById('view-title');
         if (titleEl) {
@@ -316,6 +331,7 @@ class DashboardManager {
         const recipesGrid = document.getElementById('recipesGrid');
         if (recipesGrid) recipesGrid.classList.remove('hidden');
 
+        console.log('[Dashboard] Rendering recipes grid');
         this.renderRecipesGrid(this.currentRecipes);
 
         // Prefetch inteligente: Pre-cargar las primeras 5 recetas completas para uso offline
