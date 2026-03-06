@@ -201,6 +201,12 @@ class RecipeFormManager {
 
         if (units.includes(cleanWord)) {
             unit = firstWord;
+            // Normalización de litros a "L"
+            const lowerUnit = unit.toLowerCase().replace(/\.$/, '');
+            if (['l', 'litro', 'litros', 'liter', 'liters', 'litre', 'litres'].includes(lowerUnit)) {
+                unit = 'L';
+            }
+
             name = remaining.substring(firstWord.length).trim();
             // Eliminar conectores como "de" (ej: "1 taza DE harina")
             if (name.toLowerCase().startsWith('de ')) {
