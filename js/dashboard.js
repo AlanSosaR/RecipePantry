@@ -4,7 +4,7 @@
 class DashboardManager {
     constructor() {
         this.currentFilters = {};
-        this.displayMode = localStorage.getItem('recipe_pantry_display_mode') || 'list';
+        this.displayMode = 'list'; // Forzado a lista por solicitud de diseño
         this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
         this.currentRecipes = [];
         this.selectedRecipeId = null;
@@ -209,12 +209,6 @@ class DashboardManager {
         }
     }
 
-    toggleViewMenu() {
-        const menu = document.getElementById('view-mode-menu');
-        if (menu) {
-            menu.classList.toggle('hidden');
-        }
-    }
 
     toggleDetailsSidebar(forceState = null) {
         const sidebar = document.getElementById('details-sidebar');
@@ -232,29 +226,6 @@ class DashboardManager {
         }
     }
 
-    switchDisplayMode(mode, element) {
-        this.displayMode = mode;
-        localStorage.setItem('recipe_pantry_display_mode', mode);
-
-        // Update current view icon in trigger
-        const iconSpan = document.getElementById('current-view-icon');
-        if (iconSpan) {
-            if (mode === 'list') iconSpan.textContent = 'view_list';
-            else if (mode === 'grid') iconSpan.textContent = 'grid_view';
-            else if (mode === 'grid-large') iconSpan.textContent = 'view_module';
-        }
-
-        // Update active state in menu
-        document.querySelectorAll('.menu-item-m3').forEach(item => {
-            item.classList.remove('active');
-        });
-        if (element) element.classList.add('active');
-
-        // Close menu
-        this.toggleViewMenu();
-
-        this.renderRecipesGrid(this.currentRecipes);
-    }
 
     switchView(view, activeItem) {
         this.currentView = view;
@@ -402,7 +373,6 @@ class DashboardManager {
         const title = document.getElementById('view-title');
         const countText = document.getElementById('selectionCountText');
         const countGroup = document.getElementById('selectionActionsGroup');
-        const viewSwitcher = document.getElementById('view-switcher-m3');
         const recipesGrid = document.getElementById('recipesGrid');
 
         if (this.selectedRecipes.size > 0) {
@@ -410,7 +380,6 @@ class DashboardManager {
             this.isSelectionMode = true;
             document.body.classList.add('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.add('selection-mode-active');
-            if (viewSwitcher) viewSwitcher.classList.add('hidden'); // Clean look on mobile
 
             if (countText) {
                 countText.classList.remove('hidden');
@@ -429,7 +398,6 @@ class DashboardManager {
             this.isSelectionMode = false;
             document.body.classList.remove('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.remove('selection-mode-active');
-            if (viewSwitcher) viewSwitcher.classList.remove('hidden');
 
             if (countText) countText.classList.add('hidden');
             // Keep Select All group visible on mobile so it's always available in the fixed header area
@@ -829,35 +797,31 @@ class DashboardManager {
         }
         if (emptyState) emptyState.classList.add('hidden');
 
-        if (this.displayMode.startsWith('grid')) {
-            container.className = `recipes-grid ${this.displayMode === 'grid-large' ? 'grid-view--large' : 'grid-view'}`;
-            container.innerHTML = recipes.map(recipe => this.renderRecipeCard(recipe)).join('');
-        } else {
-            container.className = 'recipes-grid list-view-m3';
-            const colName = window.i18n ? window.i18n.t('colName') : 'NOMBRE';
-            const colCategory = window.i18n ? window.i18n.t('colCategory') : 'CATEGORÍA';
-            const colAccess = window.i18n ? window.i18n.t('colAccess') : 'ACCESO';
-            const colDate = window.i18n ? window.i18n.t('colLastModified') : 'ÚLTIMA MODIFICACIÓN';
+        // Solo renderizamos en modo lista (v34)
+        container.className = 'recipes-grid list-view-m3';
+        const colName = window.i18n ? window.i18n.t('colName') : 'NOMBRE';
+        const colCategory = window.i18n ? window.i18n.t('colCategory') : 'CATEGORÍA';
+        const colAccess = window.i18n ? window.i18n.t('colAccess') : 'ACCESO';
+        const colDate = window.i18n ? window.i18n.t('colLastModified') : 'ÚLTIMA MODIFICACIÓN';
 
-            const header = `
-                <div class="list-header-m3">
-                    <div class="col-icon"></div>
-                    <div class="col-name">${colName}</div>
-                    <div class="col-category">${colCategory}</div>
-                    <div class="col-access">${colAccess}</div>
-                    <div class="col-date">${colDate}</div>
-                    <div class="col-checkbox">
-                        <label class="m3-checkbox-wrapper">
-                            <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
-                            <span class="m3-checkbox-visual"></span>
-                        </label>
-                    </div>
-                    <div class="col-actions"></div>
+        const header = `
+            <div class="list-header-m3">
+                <div class="col-icon"></div>
+                <div class="col-name">${colName}</div>
+                <div class="col-category">${colCategory}</div>
+                <div class="col-access">${colAccess}</div>
+                <div class="col-date">${colDate}</div>
+                <div class="col-checkbox">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
                 </div>
-            `;
-            const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
-            container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
-        }
+                <div class="col-actions"></div>
+            </div>
+        `;
+        const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
+        container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
         this.updateSelectAllCheckbox();
     }
 

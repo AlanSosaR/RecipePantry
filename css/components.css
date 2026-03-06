@@ -6455,6 +6455,42 @@ input:checked~.m3-ingredient-text {
     border-radius: 50%;
 }
 
+/* ─── Installation Guide Styling ─── */
+.help-section {
+    line-height: 1.6;
+}
+
+.help-section h4 {
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px !important;
+}
+
+.help-section ul li {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.help-section ul li span:nth-child(2) {
+    margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+    #help-modal .modal-container {
+        width: 95% !important;
+        margin: 10px;
+    }
+
+    .help-section h4 {
+        font-size: 16px !important;
+    }
+
+    .help-section ul li {
+        font-size: 13px;
+    }
+}
+
 @media (max-width: 800px) {
     .mobile-action-btn {
         display: flex !important;
@@ -6507,4 +6543,39 @@ input:checked~.m3-ingredient-text {
 .ingredient-quantity,
 .ingredient-unit {
     text-align: center;
+}
+
+/* ─── Installation Guide Styling ─── */
+.help-section {
+    line-height: 1.6;
+}
+
+.help-section h4 {
+    font-weight: 700 !important;
+    margin-bottom: 12px !important;
+}
+
+.help-section ul li {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.help-section ul li span:nth-child(2) {
+    margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+    #help-modal .modal-container {
+        width: 95% !important;
+        margin: 10px;
+    }
+
+    .help-section h4 {
+        font-size: 16px !important;
+    }
+
+    .help-section ul li {
+        font-size: 13px;
+    }
 }
