@@ -6811,3 +6811,100 @@ input:checked~.m3-ingredient-text {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── Stepper Portion Selector M3 Premium (v36.7.0) ─── */
+.m3-stepper-selector {
+    margin: 32px 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: m3FadeUp 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.stepper-fieldset {
+    position: relative;
+    border: 2px solid #00A676;
+    border-radius: 40px;
+    padding: 16px 24px;
+    background: #f0faf7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: min(100%, 340px);
+}
+
+.stepper-legend {
+    position: absolute;
+    top: -12px;
+    background: #FFFFFF;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #00A676;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+}
+
+.stepper-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+}
+
+.stepper-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #1B1B1F;
+}
+
+.stepper-icon {
+    color: #00A676;
+    font-size: 24px;
+}
+
+.stepper-label {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.stepper-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #00A676;
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 166, 118, 0.2);
+}
+
+.stepper-btn:hover {
+    background: #008f65;
+    transform: scale(1.05);
+}
+
+.stepper-btn:active {
+    transform: scale(0.95);
+}
+
+.portion-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1B1B1F;
+    min-width: 24px;
+    text-align: center;
+}

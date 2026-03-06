@@ -200,13 +200,25 @@
                 Cargando...
             </h1>
 
-            <!-- Serving Scale Selector (v36.6.0) -->
-            <div id="servingSelector" class="m3-serving-selector hidden">
-                <div class="scale-buttons">
-                    <button class="scale-btn" data-scale="0.5">0.5x</button>
-                    <button class="scale-btn active" data-scale="1">1x</button>
-                    <button class="scale-btn" data-scale="2">2x</button>
-                    <button class="scale-btn" data-scale="4">4x</button>
+            <!-- Stepper Serving Selector (v36.7.0) -->
+            <div id="servingSelector" class="m3-stepper-selector hidden">
+                <div class="stepper-fieldset">
+                    <span class="stepper-legend">SELECCIONAR PORCIONES</span>
+                    <div class="stepper-content">
+                        <div class="stepper-info">
+                            <span class="material-symbols-outlined stepper-icon">restaurant</span>
+                            <span class="stepper-label"><span id="displayServings">2</span> Raciones</span>
+                        </div>
+                        <div class="stepper-controls">
+                            <button id="btnDecrease" class="stepper-btn">
+                                <span class="material-symbols-outlined">remove</span>
+                            </button>
+                            <span id="currentPortionDisplay" class="portion-value">2</span>
+                            <button id="btnIncrease" class="stepper-btn">
+                                <span class="material-symbols-outlined">add</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <span id="recipePortionText" class="recipe-portion-text"></span>
             </div>

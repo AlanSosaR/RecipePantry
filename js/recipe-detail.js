@@ -11,6 +11,7 @@ class RecipeDetailManager {
         this.currentRecipe = null;
         this.currentScale = 1;
         this.baseServings = 1;
+        this.currentPortions = 1;
 
         if (!this.recipeId) {
             window.location.replace('/');
@@ -56,7 +57,8 @@ class RecipeDetailManager {
             }
 
             this.currentRecipe = result.recipe;
-            this.baseServings = this.currentRecipe.servings || 1;
+            this.baseServings = this.currentRecipe.servings || 2;
+            this.currentPortions = this.baseServings;
             this.currentScale = 1;
 
             // Check if this recipe was shared with the current user
@@ -156,26 +158,24 @@ class RecipeDetailManager {
     updateScalingUI() {
         const selector = document.getElementById('servingSelector');
         const displayServings = document.getElementById('displayServings');
+        const portionDisplay = document.getElementById('currentPortionDisplay');
         const portionText = document.getElementById('recipePortionText');
 
         if (selector) selector.classList.remove('hidden');
-        if (displayServings) {
-            const scaledServings = Math.round(this.baseServings * this.currentScale);
-            displayServings.textContent = scaledServings;
-        }
-        if (portionText) {
-            portionText.textContent = `Receta por ${this.currentScale}x`;
-        }
+        if (displayServings) displayServings.textContent = this.currentPortions;
+        if (portionDisplay) portionDisplay.textContent = this.currentPortions;
 
-        // Update active button state
-        document.querySelectorAll('.scale-btn').forEach(btn => {
-            const scale = parseFloat(btn.dataset.scale);
-            btn.classList.toggle('active', Math.abs(scale - this.currentScale) < 0.01);
-        });
+        if (portionText) {
+            // Mostrar escala actual, ej: "Receta por 1.5x"
+            const scaleText = this.currentScale % 1 === 0 ? this.currentScale : this.currentScale.toFixed(1);
+            portionText.textContent = `Receta por ${scaleText}x`;
+        }
     }
 
-    updateScale(newScale) {
-        this.currentScale = parseFloat(newScale) || 1;
+    updateScale(newPortions) {
+        if (newPortions < 1) return;
+        this.currentPortions = parseInt(newPortions);
+        this.currentScale = this.currentPortions / this.baseServings;
         this.renderIngredients();
         this.updateScalingUI();
     }
@@ -287,26 +287,22 @@ class RecipeDetailManager {
             }
         });
 
-        // Eventos de Escala (Portions)
-        document.querySelectorAll('.scale-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const scale = parseFloat(btn.dataset.scale);
-                this.updateScale(scale);
+        // Eventos de Escala (Portions Stepper v36.7.0)
+        const btnInc = document.getElementById('btnIncrease');
+        const btnDec = document.getElementById('btnDecrease');
 
-                // Clear custom input when clicking quick buttons
-                const customInput = document.getElementById('customScale');
-                if (customInput) customInput.value = '';
-            });
-        });
+        if (btnInc) {
+            btnInc.onclick = () => {
+                this.updateScale(this.currentPortions + 1);
+            };
+        }
 
-        const customInput = document.getElementById('customScale');
-        if (customInput) {
-            customInput.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value);
-                if (val > 0) {
-                    this.updateScale(val);
+        if (btnDec) {
+            btnDec.onclick = () => {
+                if (this.currentPortions > 1) {
+                    this.updateScale(this.currentPortions - 1);
                 }
-            });
+            };
         }
     }
 
