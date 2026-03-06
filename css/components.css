@@ -6747,3 +6747,67 @@ input:checked~.m3-ingredient-text {
         padding: 20px;
     }
 }
+/* ─── Serving Selector M3 Expressive Premium (v36.6.0) ─── */
+.m3-serving-selector {
+    margin: 24px 0 32px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: m3FadeUp 0.6s cubic-bezier(0.2, 0, 0, 1);
+    text-align: center;
+    width: 100%;
+}
+
+.m3-serving-selector .scale-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 4px;
+}
+
+.scale-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #d0e8df;
+    color: #00a676;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: none;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+}
+
+.scale-btn:hover {
+    background: #f0faf7;
+    border-color: #00a676;
+}
+
+.scale-btn.active {
+    background: #00a676;
+    color: #FFFFFF;
+    border-color: #00a676 !important;
+    box-shadow: 0 4px 12px rgba(0, 166, 118, 0.22);
+}
+
+.recipe-portion-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #00a676;
+    margin-top: 8px;
+    letter-spacing: 0.1px;
+    display: block;
+}
+
+@keyframes m3FadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
