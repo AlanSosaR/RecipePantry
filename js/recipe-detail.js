@@ -157,27 +157,41 @@ class RecipeDetailManager {
 
     updateScalingUI() {
         const selector = document.getElementById('servingSelector');
-        const displayServings = document.getElementById('displayServings');
         const portionDisplay = document.getElementById('currentPortionDisplay');
         const portionText = document.getElementById('recipePortionText');
 
-        if (selector) selector.classList.remove('hidden');
-        if (displayServings) displayServings.textContent = this.currentPortions;
-        if (portionDisplay) portionDisplay.textContent = this.currentPortions;
+        if (!selector) return;
+        selector.classList.remove('hidden');
+
+        // Calcular porciones finales basándose en baseServings * escala
+        const totalPortions = Math.max(0.1, this.baseServings * this.currentScale);
+
+        // El número grande en el centro es el total de porciones/raciones
+        // Si es decimal (ej: 0.5 porciones), mostrar con un decimal
+        if (portionDisplay) {
+            portionDisplay.textContent = totalPortions % 1 === 0 ? totalPortions : totalPortions.toFixed(2).replace(/\.?0+$/, '');
+        }
 
         if (portionText) {
-            // Mostrar escala actual, ej: "Receta por 1.5x"
-            const scaleText = this.currentScale % 1 === 0 ? this.currentScale : this.currentScale.toFixed(1);
-            portionText.textContent = `Receta por ${scaleText}x`;
+            // El texto abajo indica el factor de escala: "Receta por 0.5x"
+            let scaleLabel = '';
+            if (this.currentScale === 0.125) scaleLabel = '1/8';
+            else if (this.currentScale === 0.25) scaleLabel = '1/4';
+            else if (this.currentScale === 0.5) scaleLabel = '1/2';
+            else if (this.currentScale === 0.75) scaleLabel = '3/4';
+            else scaleLabel = this.currentScale % 1 === 0 ? this.currentScale : this.currentScale.toFixed(2).replace(/\.?0+$/, '');
+
+            portionText.textContent = `Receta por ${scaleLabel}x`;
         }
     }
 
-    updateScale(newPortions) {
-        if (newPortions < 1) return;
-        this.currentPortions = parseInt(newPortions);
-        this.currentScale = this.currentPortions / this.baseServings;
-        this.renderIngredients();
+    updateScale(newScale) {
+        if (newScale < 0.125) return;
+        this.currentScale = newScale;
+
+        // Forzar actualización de la UI y re-renderizado de ingredientes
         this.updateScalingUI();
+        this.renderIngredients();
     }
 
     renderIngredients() {
@@ -287,21 +301,37 @@ class RecipeDetailManager {
             }
         });
 
-        // Eventos de Escala (Portions Stepper v36.7.0)
+        // Eventos de Escala (Portions Stepper v36.9.1)
         const btnInc = document.getElementById('btnIncrease');
         const btnDec = document.getElementById('btnDecrease');
 
+        const fractionalSteps = [0.125, 0.25, 0.5, 0.75, 1];
+
         if (btnInc) {
             btnInc.onclick = () => {
-                this.updateScale(this.currentPortions + 1);
+                let nextScale;
+                if (this.currentScale < 1) {
+                    // Buscar siguiente paso fraccional
+                    nextScale = fractionalSteps.find(s => s > this.currentScale + 0.001) || 2;
+                } else {
+                    // Incrementar de 1 en 1
+                    nextScale = Math.floor(this.currentScale) + 1;
+                }
+                this.updateScale(nextScale);
             };
         }
 
         if (btnDec) {
             btnDec.onclick = () => {
-                if (this.currentPortions > 1) {
-                    this.updateScale(this.currentPortions - 1);
+                let prevScale;
+                if (this.currentScale <= 1) {
+                    // Buscar paso fraccional anterior
+                    prevScale = [...fractionalSteps].reverse().find(s => s < this.currentScale - 0.001) || 0.125;
+                } else {
+                    // Decrementar de 1 en 1
+                    prevScale = Math.ceil(this.currentScale) - 1;
                 }
+                this.updateScale(prevScale);
             };
         }
     }
