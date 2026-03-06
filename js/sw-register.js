@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '35';
+const APP_VERSION_ID = '36';
 
 // AUTO-SYNCHRONIZER: Forzar actualización si el HTML y el JS no coinciden
 (function () {
@@ -19,13 +19,13 @@ const APP_VERSION_ID = '35';
         localStorage.clear();
         sessionStorage.clear();
 
-        const reloadCount = parseInt(sessionStorage.getItem('reload_count_v28') || '0');
+        const reloadCount = parseInt(sessionStorage.getItem('reload_count_v36') || '0');
         if (reloadCount < 2) {
-            sessionStorage.setItem('reload_count_v28', (reloadCount + 1).toString());
+            sessionStorage.setItem('reload_count_v36', (reloadCount + 1).toString());
             window.location.reload(true);
         }
     } else {
-        sessionStorage.removeItem('reload_count_v28');
+        sessionStorage.removeItem('reload_count_v36');
     }
 })();
 
@@ -37,7 +37,7 @@ async function registerSW() {
         console.log('[SW-Register] Registrado correctamente:', registration.scope);
 
         // Definir la versión en window para debugging
-        window.APP_VERSION = "2026-03-06-v35";
+        window.APP_VERSION = "2026-03-06-v36";
 
         // 1. Detectar si ya hay un SW esperando (updatefound ya ocurrió antes de esta carga)
         if (registration.waiting) {
