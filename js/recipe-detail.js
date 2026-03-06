@@ -198,7 +198,13 @@ class RecipeDetailManager {
         listEl.innerHTML = ingredients.map(ing => {
             const unit = isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es;
             const name = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
-            const formattedQty = window.utils && window.utils.formatQuantity ? window.utils.formatQuantity(ing.quantity) : (ing.quantity || '');
+
+            // Scaling logic (v36.5.0)
+            const scaledQty = ing.quantity ? (ing.quantity * this.currentScale) : null;
+            const formattedQty = window.utils && window.utils.formatQuantity
+                ? window.utils.formatQuantity(scaledQty, unit)
+                : (scaledQty || '');
+
             const text = `${formattedQty} ${unit || ''} ${name}`.trim();
 
             return `
