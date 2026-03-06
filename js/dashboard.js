@@ -246,6 +246,26 @@ class DashboardManager {
             this.loadRecipes({ orderBy: 'name_es', ascending: true });
         } else if (view === 'shared') {
             this.loadRecipes({ shared: true });
+        } else if (view === 'help') {
+            this.showHelpView();
+        }
+    }
+
+    showHelpView() {
+        const grid = document.getElementById('recipesGrid');
+        const empty = document.getElementById('emptyState');
+        const help = document.getElementById('helpView');
+        const titleEl = document.getElementById('view-title');
+
+        if (grid) grid.classList.add('hidden');
+        if (empty) empty.classList.add('hidden');
+        if (help) {
+            help.classList.remove('hidden');
+            if (window.helpModal) window.helpModal.render(); // Reuse manager to render content
+        }
+
+        if (titleEl && window.i18n) {
+            titleEl.textContent = window.i18n.t('navHelp');
         }
     }
 
@@ -281,6 +301,13 @@ class DashboardManager {
 
             titleEl.textContent = `${baseTitle} (${count})`;
         }
+
+        // Hide help view if we are loading recipes
+        const helpView = document.getElementById('helpView');
+        if (helpView) helpView.classList.add('hidden');
+
+        const recipesGrid = document.getElementById('recipesGrid');
+        if (recipesGrid) recipesGrid.classList.remove('hidden');
 
         this.renderRecipesGrid(this.currentRecipes);
 

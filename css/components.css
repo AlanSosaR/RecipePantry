@@ -6554,33 +6554,21 @@ input:checked~.m3-ingredient-text {
     flex-direction: column;
 }
 
-.stitch-modal-header-premium {
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: #F8FAF9;
+.stitch-help-container.view-mode {
+    border-radius: 24px;
+    margin: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: white;
+    max-width: 800px;
+    align-self: flex-start;
 }
 
-.stitch-back-btn {
-    background: none;
-    border: none;
-    color: #1B1B1F;
-    cursor: pointer;
-    padding: 8px;
-    display: flex;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.stitch-back-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-}
-
-.stitch-title-premium {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
+@media (max-width: 1024px) {
+    .stitch-help-container.view-mode {
+        margin: 12px;
+        border-radius: 20px;
+        align-self: stretch;
+    }
 }
 
 .stitch-content-wrapper {

@@ -431,8 +431,7 @@
           <span class="material-symbols-outlined">share</span>
           <span data-i18n="navShared">Compartidas</span>
         </a>
-        <a href="#" class="nav-item"
-          onclick="window.helpModal.open(); if(window.innerWidth < 1024) window.dashboard.toggleSidebar(false);">
+        <a href="#" class="nav-item" data-view="help">
           <span class="material-symbols-outlined">help</span>
           <span data-i18n="navHelp">Ayuda</span>
         </a>
@@ -547,6 +546,11 @@
         </md-filled-button>
       </div>
 
+      <!-- Help View -->
+      <div id="helpView" class="help-view-m3 hidden">
+        <!-- Content populated via HelpViewManager -->
+      </div>
+
       <!-- Floating Action Button (FAB) -->
       <button class="fab-m3" onclick="window.location.href='/recipe-form'" data-i18n-aria-label="formNewRecipe"
         aria-label="Nueva Receta">
@@ -611,14 +615,6 @@
       </div>
     </div>
 
-    <!-- Help Modal (Stitch Design) -->
-    <div id="help-modal" class="modal-overlay hidden">
-      <div class="modal-container" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 32px;">
-        <div id="help-modal-body" style="height: 600px; max-height: 90vh;">
-          <!-- Content populated via help-modal.js with Stitch designs -->
-        </div>
-      </div>
-    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

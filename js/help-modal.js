@@ -1,35 +1,15 @@
 /**
- * HelpModalManager - Recipe Pantry
- * Rebuilds the PWA installation guide using premium Stitch templates.
+ * HelpViewManager - Recipe Pantry
+ * Rebuilds the PWA installation guide as a native view using premium Stitch templates.
  */
-class HelpModalManager {
+class HelpViewManager {
     constructor() {
         this.currentPlatform = 'android'; // 'android' or 'iphone'
         this.init();
     }
 
     init() {
-        this.modal = document.getElementById('help-modal');
-        this.body = document.getElementById('help-modal-body');
-
-        if (!this.modal) return;
-
-        // Close when clicking outside the container
-        this.modal.addEventListener('click', (e) => {
-            if (e.target === this.modal) this.close();
-        });
-    }
-
-    open() {
-        if (!this.modal) return;
-        this.render();
-        this.modal.classList.remove('hidden');
-    }
-
-    close() {
-        if (this.modal) {
-            this.modal.classList.add('hidden');
-        }
+        this.container = document.getElementById('helpView');
     }
 
     setPlatform(platform) {
@@ -38,21 +18,13 @@ class HelpModalManager {
     }
 
     render() {
-        if (!this.body || !window.i18n) return;
+        if (!this.container || !window.i18n) return;
 
         const t = window.i18n.t.bind(window.i18n);
         const isAndroid = this.currentPlatform === 'android';
 
-        this.body.innerHTML = `
-            <div class="stitch-help-container">
-                <!-- Header with Back Arrow and Title -->
-                <div class="stitch-modal-header-premium">
-                    <button class="stitch-back-btn" onclick="window.helpModal.close()">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                    </button>
-                    <h3 class="stitch-title-premium">${t('helpModalTitle')}</h3>
-                </div>
-
+        this.container.innerHTML = `
+            <div class="stitch-help-container view-mode">
                 <div class="stitch-content-wrapper">
                     <h2 class="stitch-main-headline">${t('helpMainHeadline')}</h2>
                     <p class="stitch-sub-headline">${t('helpSubHeadline')}</p>
@@ -68,11 +40,11 @@ class HelpModalManager {
                     </div>
                 </div>
 
-                <!-- Footer Action -->
-                <div class="stitch-footer-premium">
-                    <button class="stitch-btn-primary-m3" onclick="window.helpModal.close()">
-                        <span class="material-symbols-outlined">check_circle</span>
-                        <span>${t('helpEntendido')}</span>
+                <!-- Footer Action (Optional in view mode) -->
+                <div class="stitch-footer-premium view-mode">
+                    <button class="stitch-btn-primary-m3" onclick="window.dashboard.switchView('recipes', document.querySelector('[data-view=recipes]'))">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        <span>Volver a recetas</span>
                     </button>
                 </div>
             </div>
@@ -145,5 +117,5 @@ class HelpModalManager {
     }
 }
 
-// Initialize and expose
-window.helpModal = new HelpModalManager();
+// Initialize and expose (Keeping helpModal name for compatibility with switchView)
+window.helpModal = new HelpViewManager();
