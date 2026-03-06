@@ -126,10 +126,10 @@ class RecipeFormManager {
         // Combinar datos existentes en un solo string para el input único
         let displayValue = '';
         if (data) {
-            const q = data.quantity || '';
+            const formattedQty = window.utils && window.utils.formatQuantity ? window.utils.formatQuantity(data.quantity) : (data.quantity || '');
             const u = isEn ? (data.unit_en || data.unit_es || '') : (data.unit_es || '');
             const n = isEn ? (data.name_en || data.name_es || '') : (data.name_es || '');
-            displayValue = `${q} ${u} ${n}`.replace(/\s+/g, ' ').trim();
+            displayValue = `${formattedQty} ${u} ${n}`.trim();
         }
 
         const labelTxt = window.i18n ? window.i18n.t('formIngredientsLabel') : 'Ingrediente (ej: 500g Harina)';

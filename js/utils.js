@@ -196,4 +196,43 @@ window.showActionSnackbar = (message, actionText, onAction) => {
     }, 10000);
 };
 
+/**
+ * Formatea una cantidad decimal a una fracción legible (ej: 0.5 -> 1/2)
+ * Soporta números mixtos (ej: 1.5 -> 1 1/2)
+ */
+window.utils = window.utils || {};
+window.utils.formatQuantity = (value) => {
+    if (value === null || value === undefined || value === '') return '';
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+
+    // Si es entero, devolver tal cual
+    if (Number.isInteger(num)) return num.toString();
+
+    const epsilon = 0.01;
+    const commonFractions = [
+        { dec: 0.25, frac: '1/4' },
+        { dec: 0.5, frac: '1/2' },
+        { dec: 0.75, frac: '3/4' },
+        { dec: 0.33, frac: '1/3' },
+        { dec: 0.66, frac: '2/3' },
+        { dec: 0.2, frac: '1/5' },
+        { dec: 0.125, frac: '1/8' },
+        { dec: 0.0625, frac: '1/16' }
+    ];
+
+    const integerPart = Math.floor(num);
+    const decimalPart = num - integerPart;
+
+    // Buscar coincidencia cercana en fracciones comunes
+    const match = commonFractions.find(f => Math.abs(f.dec - decimalPart) < epsilon);
+
+    if (match) {
+        return integerPart > 0 ? `${integerPart} ${match.frac}` : match.frac;
+    }
+
+    // Si no es fracción común, redondear a 2 decimales y mostrar
+    return parseFloat(num.toFixed(2)).toString();
+};
+
 console.log('✅ Utilidades inicializadas');
