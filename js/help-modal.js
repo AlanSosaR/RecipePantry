@@ -54,8 +54,8 @@ class HelpModalManager {
                 </div>
 
                 <div class="stitch-content-wrapper">
-                    <h2 class="stitch-main-headline">Install our App</h2>
-                    <p class="stitch-sub-headline">Add this app to your home screen for a fast, native experience and offline access.</p>
+                    <h2 class="stitch-main-headline">${t('helpMainHeadline')}</h2>
+                    <p class="stitch-sub-headline">${t('helpSubHeadline')}</p>
 
                     <!-- Platform Selector (Pills) -->
                     <div class="stitch-tab-selector">
@@ -72,7 +72,7 @@ class HelpModalManager {
                 <div class="stitch-footer-premium">
                     <button class="stitch-btn-primary-m3" onclick="window.helpModal.close()">
                         <span class="material-symbols-outlined">check_circle</span>
-                        <span>Entendido</span>
+                        <span>${t('helpEntendido')}</span>
                     </button>
                 </div>
             </div>

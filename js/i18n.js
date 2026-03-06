@@ -158,6 +158,9 @@
             instIosStep1: '1. Abre la app en Safari.',
             instIosStep2: '2. Toca el icono Compartir (▢↑).',
             instIosStep3: '3. Toca "Añadir a pantalla de inicio".',
+            helpMainHeadline: 'Instala nuestra App',
+            helpSubHeadline: 'Añade esta app a tu pantalla de inicio para una experiencia rápida y acceso sin conexión.',
+            helpEntendido: 'Entendido',
 
             // ── Detail / Form specific ─────────────────────────────────────
             loadingRecipe: 'Cargando receta...',
@@ -432,6 +435,9 @@
             instIosStep1: '1. Open the app in Safari.',
             instIosStep2: '2. Tap the Share icon (▢↑).',
             instIosStep3: '3. Tap "Add to Home Screen".',
+            helpMainHeadline: 'Install our App',
+            helpSubHeadline: 'Add this app to your home screen for a fast, native experience and offline access.',
+            helpEntendido: 'Got it',
 
             // ── Detail / Form specific ─────────────────────────────────────
             loadingRecipe: 'Loading recipe...',
