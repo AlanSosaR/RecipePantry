@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '34';
+const APP_VERSION_ID = '35';
 
 // AUTO-SYNCHRONIZER: Forzar actualización si el HTML y el JS no coinciden
 (function () {
@@ -37,7 +37,7 @@ async function registerSW() {
         console.log('[SW-Register] Registrado correctamente:', registration.scope);
 
         // Definir la versión en window para debugging
-        window.APP_VERSION = "2026-03-05-v29";
+        window.APP_VERSION = "2026-03-06-v35";
 
         // 1. Detectar si ya hay un SW esperando (updatefound ya ocurrió antes de esta carga)
         if (registration.waiting) {
