@@ -3,8 +3,8 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const CACHE_NAME = 'recipehub-v44';
-const BUILD_ID = '2026-03-06-v44';
+const CACHE_NAME = 'recipehub-v45';
+const BUILD_ID = '2026-03-06-v45';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
