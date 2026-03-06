@@ -65,7 +65,7 @@ class DashboardManager {
             // 2. Cargar datos iniciales según la vista guardada o URL
             const urlParams = new URLSearchParams(window.location.search);
             const viewParam = urlParams.get('view');
-            if (viewParam && ['recipes', 'favorites', 'shared'].includes(viewParam)) {
+            if (viewParam && ['recipes', 'favorites', 'shared', 'help'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
             this.currentOffset = 0;
@@ -175,7 +175,9 @@ class DashboardManager {
         window.addEventListener('recipes-index-updated', (e) => {
             console.log('🔄 Índice de recetas actualizado en segundo plano');
             this.currentRecipes = e.detail;
-            this.renderRecipesGrid(this.currentRecipes);
+            if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                this.renderRecipesGrid(this.currentRecipes);
+            }
         });
     }
 
@@ -284,6 +286,9 @@ class DashboardManager {
 
         this.currentRecipes = result.recipes;
 
+        const isRecipeView = ['recipes', 'favorites', 'shared'].includes(this.currentView);
+        if (!isRecipeView) return; // Background loading should not override Help or other views
+
         const titleEl = document.getElementById('view-title');
         if (titleEl) {
             const count = this.currentRecipes.length;
@@ -302,7 +307,7 @@ class DashboardManager {
             titleEl.textContent = `${baseTitle} (${count})`;
         }
 
-        // Hide help view if we are loading recipes
+        // Hide other views (like help) if we are loading recipes
         const helpView = document.getElementById('helpView');
         if (helpView) helpView.classList.add('hidden');
 
