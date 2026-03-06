@@ -163,25 +163,21 @@ class RecipeDetailManager {
         if (!selector) return;
         selector.classList.remove('hidden');
 
-        // Calcular porciones finales basándose en baseServings * escala
-        const totalPortions = Math.max(0.1, this.baseServings * this.currentScale);
+        // El número grande en el centro ahora es el MULTIPLICADOR (Scale Factor)
+        let mainDisplay = '';
+        if (this.currentScale === 0.125) mainDisplay = '1/8';
+        else if (this.currentScale === 0.25) mainDisplay = '1/4';
+        else if (this.currentScale === 0.5) mainDisplay = '1/2';
+        else if (this.currentScale === 0.75) mainDisplay = '3/4';
+        else mainDisplay = this.currentScale % 1 === 0 ? this.currentScale : this.currentScale.toFixed(2).replace(/\.?0+$/, '');
 
-        // El número grande en el centro es el total de porciones/raciones
-        // Si es decimal (ej: 0.5 porciones), mostrar con un decimal
         if (portionDisplay) {
-            portionDisplay.textContent = totalPortions % 1 === 0 ? totalPortions : totalPortions.toFixed(2).replace(/\.?0+$/, '');
+            portionDisplay.textContent = mainDisplay;
         }
 
         if (portionText) {
-            // El texto abajo indica el factor de escala: "Receta por 0.5x"
-            let scaleLabel = '';
-            if (this.currentScale === 0.125) scaleLabel = '1/8';
-            else if (this.currentScale === 0.25) scaleLabel = '1/4';
-            else if (this.currentScale === 0.5) scaleLabel = '1/2';
-            else if (this.currentScale === 0.75) scaleLabel = '3/4';
-            else scaleLabel = this.currentScale % 1 === 0 ? this.currentScale : this.currentScale.toFixed(2).replace(/\.?0+$/, '');
-
-            portionText.textContent = `Receta por ${scaleLabel}x`;
+            // El texto abajo confirma: "Receta por 2x" o "Receta por 1/2x"
+            portionText.textContent = `Receta por ${mainDisplay}x`;
         }
     }
 
