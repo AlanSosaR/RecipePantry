@@ -209,13 +209,13 @@ class RecipeDetailManager {
             const unit = isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es;
             const name = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
 
-            // Scaling logic (v36.5.0)
-            const scaledQty = ing.quantity ? (ing.quantity * this.currentScale) : null;
-            const formattedQty = window.utils && window.utils.formatQuantity
-                ? window.utils.formatQuantity(scaledQty, unit)
-                : (scaledQty || '');
+            // Advanced Scaling Logic (v43): Scale EVERY number in the ingredient string
+            const originalQty = ing.quantity || '';
+            const originalText = `${originalQty} ${unit || ''} ${name}`.trim();
 
-            const text = `${formattedQty} ${unit || ''} ${name}`.trim();
+            const text = (window.utils && window.utils.scaleText)
+                ? window.utils.scaleText(originalText, this.currentScale)
+                : originalText;
 
             return `
                 <label class="m3-ingredient-item">

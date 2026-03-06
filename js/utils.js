@@ -201,6 +201,7 @@ window.showActionSnackbar = (message, actionText, onAction) => {
  * Soporta números mixtos (ej: 1.5 -> 1 1/2)
  */
 window.utils = window.utils || {};
+
 window.utils.formatQuantity = (value) => {
     if (value === null || value === undefined || value === '') return '';
     const num = parseFloat(value);
@@ -235,4 +236,58 @@ window.utils.formatQuantity = (value) => {
     return parseFloat(num.toFixed(2)).toString();
 };
 
-console.log('✅ Utilidades inicializadas');
+/**
+ * Convierte cualquier formato de número (fracción, mixto, decimal) a un float puro.
+ */
+window.utils.parseToDecimal = (str) => {
+    if (!str) return null;
+    let cleanStr = str.toString().replace(',', '.').trim();
+
+    // Caso fracción mixta: "1 1/2"
+    if (cleanStr.includes(' ') && cleanStr.includes('/')) {
+        const parts = cleanStr.split(/\s+/);
+        const integerPart = parseFloat(parts[0]);
+        const fractionParts = parts[1].split('/');
+        if (fractionParts.length === 2) {
+            return integerPart + (parseFloat(fractionParts[0]) / parseFloat(fractionParts[1]));
+        }
+    }
+
+    // Caso fracción simple: "1/2"
+    if (cleanStr.includes('/')) {
+        const parts = cleanStr.split('/');
+        if (parts.length === 2) {
+            return parseFloat(parts[0]) / parseFloat(parts[1]);
+        }
+    }
+
+    const val = parseFloat(cleanStr);
+    return isNaN(val) ? null : val;
+};
+
+/**
+ * Escala todos los números encontrados en una cadena de texto.
+ * Ideal para cuando la cantidad está mezclada en el nombre del ingrediente.
+ */
+window.utils.scaleText = (text, scale) => {
+    if (!text || scale === 1) return text;
+
+    // Regex para detectar números: mixtos, fracciones, decimales o enteros aislados
+    const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\b\d+\b)/g;
+
+    return text.replace(regex, (match) => {
+        const val = window.utils.parseToDecimal(match);
+        if (val === null) return match;
+
+        const scaled = val * scale;
+
+        // Si el número es grande (> 10), probablemente es gramaje/volumen, redondear.
+        // Si es pequeño, usar formato de fracción.
+        if (val >= 10) {
+            return Math.round(scaled).toString();
+        }
+        return window.utils.formatQuantity(scaled);
+    });
+};
+
+console.log('✅ Utilidades inicializadas (v43)');
