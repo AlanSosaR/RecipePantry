@@ -3,8 +3,8 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const CACHE_NAME = 'recipehub-v45';
-const BUILD_ID = '2026-03-06-v45';
+const CACHE_NAME = 'recipehub-v46';
+const BUILD_ID = '2026-03-07-v46';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -113,3 +113,20 @@ self.addEventListener('message', (event) => {
     }
 });
 
+// 5. Gestión de Notificaciones (para actualizaciones y compartidos)
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    // Si es una notificación de actualización
+    if (event.notification.tag === 'app-update') {
+        self.skipWaiting();
+        event.waitUntil(
+            self.clients.matchAll({ type: 'window' }).then((clientsArr) => {
+                if (clientsArr.length > 0) {
+                    clientsArr[0].focus();
+                    clientsArr[0].navigate(clientsArr[0].url);
+                }
+            })
+        );
+    }
+});
