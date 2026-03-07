@@ -3,8 +3,8 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const CACHE_NAME = 'recipehub-v50';
-const BUILD_ID = '2026-03-07-v50';
+const CACHE_NAME = 'recipehub-v51';
+const BUILD_ID = '2026-03-07-v51';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -16,6 +16,7 @@ const STATIC_RESOURCES = [
     '/js/localdb.js',
     '/js/dashboard.js',
     '/js/sw-register.js',
+    '/recipe-detail.html',
     '/css/styles.css',
     '/css/components.css',
     '/assets/icons/icon.svg',
@@ -81,7 +82,14 @@ self.addEventListener('fetch', (event) => {
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                     return response;
                 })
-                .catch(() => caches.match(request))
+                .catch(async () => {
+                    const cache = await caches.open(CACHE_NAME);
+                    // Si falla la red, servir el template base ignorando query params.
+                    if (url.pathname.includes('recipe-detail.html')) {
+                        return cache.match('/recipe-detail.html');
+                    }
+                    return cache.match('/index.html') || cache.match('/');
+                })
         );
         return;
     }
