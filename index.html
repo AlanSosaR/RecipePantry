@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="55">
+<html lang="es" data-app-version="56">
 
 <head>
   <meta charset="utf-8">
@@ -45,38 +45,8 @@
     rel="stylesheet">
 
 
-  <link rel="stylesheet" href="css/styles.css?v=55">
-  <link rel="stylesheet" href="css/components.css?v=55">
-  <script>
-    // NUCLEAR CACHE BUSTER (v52 - FORCED UPDATE)
-    (async () => {
-      const CURRENT_VERSION = '52';
-      const NUKE_KEY = 'v55_offline_sync';
-
-      const needsUpdate = localStorage.getItem('recipe_app_version') !== CURRENT_VERSION;
-      const needsNuke = !localStorage.getItem(NUKE_KEY);
-
-      if (needsUpdate || needsNuke) {
-        console.warn('⚠️ Cache inconsistente o nueva versión. Limpiando todo...');
-
-        if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          for (let reg of regs) await reg.unregister();
-        }
-
-        if ('caches' in window) {
-          const names = await caches.keys();
-          for (let name of names) await caches.delete(name);
-        }
-
-        localStorage.setItem('recipe_app_version', CURRENT_VERSION);
-        localStorage.setItem(NUKE_KEY, 'true');
-
-        // Force hard reload
-        window.location.reload(true);
-      }
-    })();
-  </script>
+  <link rel="stylesheet" href="css/styles.css?v=56">
+  <link rel="stylesheet" href="css/components.css?v=56">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -618,24 +588,24 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=55"></script>
-    <script src="js/supabase-client.js?v=55"></script>
-    <script src="js/localdb.js?v=55"></script>
-    <script src="js/sync-manager.js?v=55"></script>
-    <script src="js/utils.js?v=55"></script>
-    <script src="js/i18n.js?v=55"></script>
+    <script src="js/config.js?v=56"></script>
+    <script src="js/supabase-client.js?v=56"></script>
+    <script src="js/localdb.js?v=56"></script>
+    <script src="js/sync-manager.js?v=56"></script>
+    <script src="js/utils.js?v=56"></script>
+    <script src="js/i18n.js?v=56"></script>
 
     <!-- Scripts (Versión Cache Buster) -->
-    <script src="js/db.js?v=55"></script>
-    <script src="js/auth.js?v=55"></script>
-    <script src="js/dashboard.js?v=55"></script>
-    <script src="js/share-modal.js?v=55"></script>
-    <script src="js/help-modal.js?v=55"></script>
-    <script src="js/notifications.js?v=55"></script>
-    <script src="js/ui.js?v=55"></script>
+    <script src="js/db.js?v=56"></script>
+    <script src="js/auth.js?v=56"></script>
+    <script src="js/dashboard.js?v=56"></script>
+    <script src="js/share-modal.js?v=56"></script>
+    <script src="js/help-modal.js?v=56"></script>
+    <script src="js/notifications.js?v=56"></script>
+    <script src="js/ui.js?v=56"></script>
 
     <!-- Service Worker Registration -->
-    <script src="js/sw-register.js?v=55"></script>
+    <script src="js/sw-register.js?v=56"></script>
 
 
     <script>

@@ -135,6 +135,11 @@ class NotificationManager {
         if (this.menu && !this.menu.classList.contains('hidden')) {
             this.renderMenu();
         }
+
+        // Mostrar un Toast para asegurar que el usuario lo vea
+        if (window.utils && window.utils.showToast) {
+            window.utils.showToast(isEn ? '🔔 New update available!' : '🔔 ¡Nueva actualización disponible!', 'info', 5000);
+        }
     }
 
     toggleMenu(event) {
