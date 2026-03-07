@@ -586,8 +586,19 @@
 
                     const res = await window.authManager.signUp(email, password, firstName, lastName);
                     if (res.success) {
-                        showMsg(window.i18n ? window.i18n.t('msgCreatedSuccess') : "¡Cuenta creada!", 'success');
-                        setTimeout(() => { isLogin = true; updateTranslations(); }, 2000);
+                        if (window.showActionSnackbar) {
+                            window.showActionSnackbar(
+                                window.i18n ? window.i18n.t('msgCreatedSuccess') : "¡Cuenta creada! Revisa tu email.",
+                                "Aceptar",
+                                () => {
+                                    isLogin = true;
+                                    updateTranslations();
+                                }
+                            );
+                        } else {
+                            showMsg(window.i18n ? window.i18n.t('msgCreatedSuccess') : "¡Cuenta creada!", 'success');
+                            setTimeout(() => { isLogin = true; updateTranslations(); }, 2000);
+                        }
                     } else {
                         throw new Error(res.error);
                     }

@@ -149,8 +149,14 @@ function setupLoginScreen() {
                 if (isRegister) {
                     const result = await auth.signUp(email, password, 'Chef');
                     if (result.error) throw result.error;
-                    showT('¡Cuenta creada! Revisa tu email.', 'success');
-                    setTimeout(() => renderUnifiedAuth(false), 3000);
+                    if (window.showActionSnackbar) {
+                        window.showActionSnackbar('¡Cuenta creada! Revisa tu email.', 'Aceptar', () => {
+                            renderUnifiedAuth(false);
+                        });
+                    } else {
+                        showT('¡Cuenta creada! Revisa tu email.', 'success');
+                        setTimeout(() => renderUnifiedAuth(false), 3000);
+                    }
                 } else {
                     const result = await auth.signIn(email, password);
                     if (result.error) throw result.error;
