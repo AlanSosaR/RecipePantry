@@ -114,6 +114,29 @@ class NotificationManager {
         this.lastCount = unreadCount;
     }
 
+    addUpdateNotification(worker) {
+        // Evitar duplicados
+        if (this.notifications.some(n => n.type === 'app_update')) return;
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        this.updateWorker = worker;
+
+        // Añadir al principio de la lista
+        this.notifications.unshift({
+            id: 'update-1',
+            type: 'app_update',
+            recipeName: isEn ? 'New Version Available' : 'Nueva versión disponible',
+            sender: 'Sistema',
+            timestamp: new Date().toISOString(),
+            leido: false
+        });
+
+        this.updateBadge();
+        if (this.menu && !this.menu.classList.contains('hidden')) {
+            this.renderMenu();
+        }
+    }
+
     toggleMenu(event) {
         if (event) event.stopPropagation();
         if (!this.menu) return;
@@ -140,6 +163,34 @@ class NotificationManager {
         }
 
         this.list.innerHTML = this.notifications.map(n => {
+            if (n.type === 'app_update') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const msg = isEn ? 'Tap to apply the new version and reload.' : 'Toca para aplicar la nueva versión y recargar.';
+                const btnText = isEn ? 'Update Now' : 'Actualizar ahora';
+                return `
+                    <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:#0ea5e9;">
+                                🚀
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <span style="color:white; display:block; font-size:13px; font-weight:600;">Recipe Pantry</span>
+                                <span style="color:#0ea5e9; font-weight:700; display:block; margin-top:2px;">${n.recipeName}</span>
+                                <span style="color:#bbb; font-size:11px; display:block; margin-top:4px;">${msg}</span>
+                                
+                                <!-- Action buttons -->
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleUpdateApp()"
+                                        style="flex:1; padding:8px 12px; background:#0ea5e9; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        🔄 ${btnText}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
@@ -167,6 +218,15 @@ class NotificationManager {
                 </div>
             `;
         }).join('');
+    }
+
+    handleUpdateApp() {
+        if (this.updateWorker) {
+            window.utils.showToast(window.i18n && window.i18n.getLang() === 'en' ? 'Updating app...' : 'Actualizando la app...', 'info');
+            this.updateWorker.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+            window.location.reload();
+        }
     }
 
     /**

@@ -279,7 +279,7 @@ window.utils.scaleText = (text, scale) => {
     // 4. Números enteros (incluso si están pegados a letras como "125g")
     const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)/g;
 
-    return text.replace(regex, (match, offset, fullString) => {
+    return text.replace(regex, (match, p1, offset, fullString) => {
         // Evitar escalar números que parecen ser parte de una versión o identificador
         // Si el número está precedido por una letra (ej: v46), no lo escalamos.
         const prevChar = offset > 0 ? fullString[offset - 1] : '';
@@ -300,4 +300,4 @@ window.utils.scaleText = (text, scale) => {
     });
 };
 
-console.log('✅ Utilidades inicializadas (v47)');
+console.log('✅ Utilidades inicializadas (v49)');

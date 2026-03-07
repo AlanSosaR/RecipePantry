@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '48';
+const APP_VERSION_ID = '49';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -37,38 +37,20 @@ async function registerSW() {
     });
 }
 
-// 3. Notificar al usuario con Notificación de Sistema y Badge en el Icono
+// 3. Notificar al usuario a través del sistema de notificaciones de la app
 async function notifyUpdateReady(worker) {
-    // A. Badge en el icono (PWA)
     if ('setAppBadge' in navigator) {
         navigator.setAppBadge(1).catch(() => { });
     }
 
-    // B. Notificación de Sistema
-    if ('Notification' in window) {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            const reg = await navigator.serviceWorker.getRegistration();
-            if (reg) {
-                const isEn = window.i18n && window.i18n.getLang() === 'en';
-                reg.showNotification(isEn ? 'Update Available' : 'Actualización Disponible', {
-                    body: isEn ? 'Tap to apply the new version.' : 'Toca para aplicar la nueva versión.',
-                    icon: '/assets/icons/icon.svg',
-                    tag: 'app-update',
-                    requireInteraction: true,
-                    data: { type: 'SKIP_WAITING' }
-                });
-            }
-        }
-    }
-
-    // C. Si el usuario hace clic en el documento, aprovechamos para actualizar si hay algo pendiente
-    // Esto es un "soft update" por si fallan las notificaciones
-    const updateHandler = () => {
+    // Agregar la notificación al sistema interno de la app (campanita)
+    if (window.notificationManager) {
+        window.notificationManager.addUpdateNotification(worker);
+    } else {
+        // Fallback en caso de que notificationManager no esté listo
+        console.warn('Update ready, but notificationManager not loaded yet.');
         worker.postMessage({ type: 'SKIP_WAITING' });
-        document.removeEventListener('click', updateHandler);
-    };
-    document.addEventListener('click', updateHandler);
+    }
 }
 
 // Iniciar registro
