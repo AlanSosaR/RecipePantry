@@ -114,6 +114,7 @@ class AuthManager {
     // Registro
     async signUp(email, password, firstName, lastName) {
         try {
+            await this.clearLocalCache();
             // 1. Crear usuario en auth
             const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
                 email,
@@ -149,6 +150,7 @@ class AuthManager {
     // Login
     async signIn(email, password) {
         try {
+            await this.clearLocalCache();
             const { data, error } = await window.supabaseClient.auth.signInWithPassword({
                 email,
                 password
@@ -184,9 +186,25 @@ class AuthManager {
         }
     }
 
+    // Limpieza de IndexedDB al cambiar de usuario
+    async clearLocalCache() {
+        if (window.localDB) {
+            try {
+                await window.localDB.clear('recipes_index');
+                await window.localDB.clear('recipes_full');
+                await window.localDB.clear('recipes');
+                await window.localDB.clear('categories');
+                console.log('🧹 Caché local limpiada preventivamente');
+            } catch (e) {
+                console.warn('No se pudo limpiar la caché', e);
+            }
+        }
+    }
+
     // Logout
     async signOut() {
         try {
+            await this.clearLocalCache();
             const { error } = await window.supabaseClient.auth.signOut();
             if (error) throw error;
 

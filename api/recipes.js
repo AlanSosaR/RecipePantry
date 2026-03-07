@@ -78,12 +78,17 @@ export default async function handler(req, res) {
             }
 
             // Normal Query - Optimized for Indexing
+            if (!userId) {
+                // Critical safeguard: never query all recipes if user_id is missing
+                return res.status(400).json({ success: false, error: 'user_id is required' });
+            }
+
             let query = supabase
                 .from('recipes')
                 .select(`id, name_es, name_en, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color)`, { count: 'exact' })
-                .eq('is_active', true);
+                .eq('is_active', true)
+                .eq('user_id', userId);
 
-            if (userId) query = query.eq('user_id', userId);
             if (search && search.trim()) {
                 query = query.or(`name_es.ilike.%${search}%,name_en.ilike.%${search}%,description_es.ilike.%${search}%`);
             }
