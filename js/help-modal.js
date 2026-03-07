@@ -26,8 +26,8 @@ class HelpViewManager {
         this.container.innerHTML = `
             <div class="stitch-help-container view-mode">
                 <div class="stitch-content-wrapper">
-                    <h2 class="stitch-main-headline">${t('helpMainHeadline')}</h2>
-                    <p class="stitch-sub-headline">${t('helpSubHeadline')}</p>
+                    <h2 class="stitch-main-headline">${isAndroid ? t('instAndroidTitle') : t('instIosTitle')}</h2>
+                    <p class="stitch-sub-headline">${isAndroid ? t('instAndroidSubtitle') : t('instIosSubtitle')}</p>
 
                     <!-- Platform Selector (Pills) -->
                     <div class="stitch-tab-selector">
@@ -53,26 +53,34 @@ class HelpViewManager {
 
     renderAndroidSteps(t) {
         return `
-            <div class="stitch-android-steps">
-                <div class="stitch-card-premium">
-                    <div class="stitch-card-icon android"><span class="material-symbols-outlined">browser_updated</span></div>
-                    <div class="stitch-card-text">
-                        <h4>Open Chrome</h4>
-                        <p>${t('instAndroidStep1')}</p>
+            <div class="stitch-iphone-steps">
+                <div class="stitch-stepper-vertical">
+                    <div class="stitch-step">
+                        <div class="stitch-step-circle">
+                            <span class="material-symbols-outlined">browser_updated</span>
+                        </div>
+                        <div class="stitch-step-content">
+                            <h4>${t('instAndroidStep1Title')}</h4>
+                            <p>${t('instAndroidStep1Desc')}</p>
+                        </div>
                     </div>
-                </div>
-                <div class="stitch-card-premium">
-                    <div class="stitch-card-icon android"><span class="material-symbols-outlined">more_vert</span></div>
-                    <div class="stitch-card-text">
-                        <h4>Tap Menu</h4>
-                        <p>${t('instAndroidStep2')}</p>
+                    <div class="stitch-step">
+                        <div class="stitch-step-circle">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </div>
+                        <div class="stitch-step-content">
+                            <h4>${t('instAndroidStep2Title')}</h4>
+                            <p>${t('instAndroidStep2Desc')}</p>
+                        </div>
                     </div>
-                </div>
-                <div class="stitch-card-premium">
-                    <div class="stitch-card-icon android"><span class="material-symbols-outlined">install_mobile</span></div>
-                    <div class="stitch-card-text">
-                        <h4>Install App</h4>
-                        <p>${t('instAndroidStep3')}</p>
+                    <div class="stitch-step">
+                        <div class="stitch-step-circle">
+                            <span class="material-symbols-outlined">install_mobile</span>
+                        </div>
+                        <div class="stitch-step-content">
+                            <h4>${t('instAndroidStep3Title')}</h4>
+                            <p>${t('instAndroidStep3Desc')}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,15 +90,14 @@ class HelpViewManager {
     renderIphoneSteps(t) {
         return `
             <div class="stitch-iphone-steps">
-                <h4 class="stitch-steps-label">Follow these steps</h4>
                 <div class="stitch-stepper-vertical">
                     <div class="stitch-step">
                         <div class="stitch-step-circle">
                             <span class="material-symbols-outlined">explore</span>
                         </div>
                         <div class="stitch-step-content">
-                            <span class="step-num">STEP 01</span>
-                            <p>${t('instIosStep1')}</p>
+                            <h4>${t('instIosStep1Title')}</h4>
+                            <p>${t('instIosStep1Desc')}</p>
                         </div>
                     </div>
                     <div class="stitch-step">
@@ -98,8 +105,8 @@ class HelpViewManager {
                             <span class="material-symbols-outlined">ios_share</span>
                         </div>
                         <div class="stitch-step-content">
-                            <span class="step-num">STEP 02</span>
-                            <p>${t('instIosStep2')}</p>
+                            <h4>${t('instIosStep2Title')}</h4>
+                            <p>${t('instIosStep2Desc')}</p>
                         </div>
                     </div>
                     <div class="stitch-step">
@@ -107,8 +114,8 @@ class HelpViewManager {
                             <span class="material-symbols-outlined">add_box</span>
                         </div>
                         <div class="stitch-step-content">
-                            <span class="step-num">STEP 03</span>
-                            <p>${t('instIosStep3')}</p>
+                            <h4>${t('instIosStep3Title')}</h4>
+                            <p>${t('instIosStep3Desc')}</p>
                         </div>
                     </div>
                 </div>
