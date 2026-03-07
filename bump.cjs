@@ -17,12 +17,12 @@ filesToUpdate.forEach(file => {
         let content = fs.readFileSync(filePath, 'utf8');
 
         // Replace versions
-        content = content.replace(/recipehub-v53/g, 'recipehub-v54');
-        content = content.replace(/v53_test_notification/g, 'v54_privacy_fix');
-        content = content.replace(/APP_VERSION_ID = '53'/g, "APP_VERSION_ID = '54'");
-        content = content.replace(/data-app-version="53"/g, 'data-app-version="54"');
-        content = content.replace(/\?v=53/g, '?v=54');
-        content = content.replace(/2026-03-07-v53/g, '2026-03-07-v54');
+        content = content.replace(/recipehub-v54/g, 'recipehub-v55');
+        content = content.replace(/v54_privacy_fix/g, 'v55_offline_sync');
+        content = content.replace(/APP_VERSION_ID = '54'/g, "APP_VERSION_ID = '55'");
+        content = content.replace(/data-app-version="54"/g, 'data-app-version="55"');
+        content = content.replace(/\?v=54/g, '?v=55');
+        content = content.replace(/2026-03-07-v54/g, `2026-03-07-v55`);
 
         fs.writeFileSync(filePath, content);
         console.log(`Updated ${file}`);

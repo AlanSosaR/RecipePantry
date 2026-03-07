@@ -17,6 +17,15 @@ class SyncManager {
         window.addEventListener('trigger-sync', () => {
             if (navigator.onLine) this.syncQueue();
         });
+
+        // Evento custom cuando se carga el índice de recetas
+        window.addEventListener('recipes-index-updated', () => {
+             // Iniciar la precarga en segundo plano tras un ligero retardo
+             // para permitir que el dashboard renderice primero.
+             if (navigator.onLine) {
+                 setTimeout(() => this.preloadOfflineRecipes(), 3000);
+             }
+        });
     }
 
     async syncQueue() {
@@ -144,6 +153,56 @@ class SyncManager {
         else if (operation === 'raw_rpc' || operation === 'custom') {
             // Operaciones custom si es necesario luego
             console.log("No implemented custom sync:", item);
+        }
+    }
+
+    async preloadOfflineRecipes() {
+        if (this.isPreloading) return; // Evitar ejecuciones simultáneas
+        if (!navigator.onLine) return; // Solo precargar si hay conexión
+        
+        this.isPreloading = true;
+        try {
+            await window.localDB.init();
+            
+            // 1. Obtener todas las recetas del índice
+            const indexRecipes = await window.localDB.getAll('recipes_index');
+            
+            // 2. Obtener los IDs de las recetas que ya tenemos completas en caché local
+            const fullRecipes = await window.localDB.getAll('recipes_full');
+            const cachedFullIds = new Set(fullRecipes.map(r => r.id));
+            
+            // 3. Filtrar cuáles nos faltan precargar
+            const recipesToLoad = indexRecipes.filter(r => !cachedFullIds.has(r.id));
+            
+            if (recipesToLoad.length > 0) {
+                console.log(`📥 Precargando silenciosamente ${recipesToLoad.length} recetas para uso offline...`);
+                
+                let count = 0;
+                for (const recipe of recipesToLoad) {
+                    if (!navigator.onLine) break; // Detener si se pierde internet
+                    
+                    try {
+                        // Llamar la rutina existente que descarga la receta full y la mete a localDB ('recipes_full')
+                        const result = await window.db._fetchFullRecipeFromServer(recipe.id, true);
+                        if (result.success) {
+                            count++;
+                        }
+                    } catch (e) {
+                        console.warn(`Error silenciado precargando receta offline ${recipe.id}:`, e);
+                    }
+                    
+                    // Pequeña pausa entre peticiones para no saturar la red ni la API
+                    await new Promise(resolve => setTimeout(resolve, 800)); 
+                }
+                
+                if (count > 0) {
+                    console.log(`✅ ${count} recetas precargadas y listas para usar sin conexión.`);
+                }
+            }
+        } catch (error) {
+            console.error('Error durante la precarga offline:', error);
+        } finally {
+            this.isPreloading = false;
         }
     }
 }
