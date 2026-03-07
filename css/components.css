@@ -6858,7 +6858,7 @@ input:checked~.m3-ingredient-text {
 .stepper-label-text {
     font-size: 13px;
     font-weight: 800;
-    color: #00A676;
+    color: #1B1B1F;
     letter-spacing: 0.05em;
     white-space: nowrap;
     text-transform: uppercase;
@@ -6916,7 +6916,7 @@ input:checked~.m3-ingredient-text {
 .recipe-portion-text {
     font-size: 15px;
     font-weight: 700;
-    color: #00a676;
+    color: #1B1B1F;
     margin-top: 10px;
     letter-spacing: 0.2px;
     background: none;

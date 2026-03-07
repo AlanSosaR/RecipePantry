@@ -272,17 +272,27 @@ window.utils.parseToDecimal = (str) => {
 window.utils.scaleText = (text, scale) => {
     if (!text || scale === 1) return text;
 
-    // Regex para detectar números: mixtos, fracciones, decimales o enteros aislados
-    const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\b\d+\b)/g;
+    // Regex mejorado: 
+    // 1. Fracciones mixtas: "1 1/2"
+    // 2. Fracciones simples: "1/2"
+    // 3. Decimales: "1.5" o "1,5"
+    // 4. Números enteros (incluso si están pegados a letras como "125g")
+    const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)/g;
 
-    return text.replace(regex, (match) => {
+    return text.replace(regex, (match, offset, fullString) => {
+        // Evitar escalar números que parecen ser parte de una versión o identificador
+        // Si el número está precedido por una letra (ej: v46), no lo escalamos.
+        const prevChar = offset > 0 ? fullString[offset - 1] : '';
+        if (/[a-zA-Z]/.test(prevChar)) {
+            return match;
+        }
+
         const val = window.utils.parseToDecimal(match);
         if (val === null) return match;
 
         const scaled = val * scale;
 
-        // Si el número es grande (> 10), probablemente es gramaje/volumen, redondear.
-        // Si es pequeño, usar formato de fracción.
+        // Si el número es grande (> 10), redondear para evitar decimales extraños en gramos/ml
         if (val >= 10) {
             return Math.round(scaled).toString();
         }
@@ -290,4 +300,4 @@ window.utils.scaleText = (text, scale) => {
     });
 };
 
-console.log('✅ Utilidades inicializadas (v43)');
+console.log('✅ Utilidades inicializadas (v47)');
