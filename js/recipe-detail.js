@@ -176,8 +176,18 @@ class RecipeDetailManager {
         }
 
         if (portionText) {
-            // El texto abajo confirma: "Receta por 2x" o "Receta por 1/2x"
-            portionText.textContent = `Receta por ${mainDisplay}x`;
+            if (this.currentScale === 1) {
+                portionText.textContent = 'Receta original';
+            } else if (this.currentScale > 1) {
+                portionText.textContent = `Receta multiplicada × ${mainDisplay}`;
+            } else {
+                const divisor = 1 / this.currentScale;
+                if (Math.abs(divisor - Math.round(divisor)) < 0.01) {
+                    portionText.textContent = `Receta reducida ÷ ${Math.round(divisor)}`;
+                } else {
+                    portionText.textContent = `Receta reducida a ${mainDisplay}`;
+                }
+            }
         }
     }
 
