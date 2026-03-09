@@ -53,8 +53,9 @@ class ProfileManager {
 
     updateProfileVisuals(user) {
         // Actualizar iniciales y nombre completo en el encabezado del perfil
-        const initialsEl = document.getElementById('profile-avatar-initials');
+        const initialsEl = document.getElementById('avatar-initials');
         const fullNameEl = document.getElementById('display-full-name');
+        const displayEmailEl = document.getElementById('display-email');
 
         if (initialsEl) {
             const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
@@ -64,6 +65,15 @@ class ProfileManager {
         if (fullNameEl) {
             const prefix = user.prefix || 'Chef';
             fullNameEl.textContent = `${prefix} ${user.first_name || ''} ${user.last_name || ''}`.trim();
+        }
+
+        if (displayEmailEl) {
+            displayEmailEl.textContent = user.email || '';
+        }
+
+        // Sincronizar con el sidebar si está presente
+        if (window.updateGlobalUserUI) {
+            window.updateGlobalUserUI();
         }
     }
 
