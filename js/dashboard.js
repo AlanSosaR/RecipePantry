@@ -433,17 +433,16 @@ class DashboardManager {
             document.body.classList.add('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.add('selection-mode-active');
 
-            if (countText) {
-                countText.classList.remove('hidden');
+            if (title) {
                 const count = this.selectedRecipes.size;
-                // Subtle selection count since total is already in title
-                countText.textContent = `(${count})`;
-                countText.style.color = 'var(--primary)';
+                title.textContent = `${count} seleccionados`;
+                title.style.color = 'var(--primary)';
             }
+            if (countText) countText.classList.add('hidden'); // Hide separate count to avoid duplicates
 
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
-            if (moreBtn) moreBtn.style.display = 'flex'; // Only show if recipes selected
+            if (moreBtn) moreBtn.style.display = 'flex'; 
 
         } else {
             // Exit Selection Mode
@@ -451,6 +450,12 @@ class DashboardManager {
             document.body.classList.remove('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.remove('selection-mode-active');
 
+            // Restore original title count
+            if (title) {
+                const total = this.currentRecipes ? this.currentRecipes.length : 0;
+                title.textContent = `Recetas (${total})`;
+                title.style.color = '';
+            }
             if (countText) countText.classList.add('hidden');
             // Keep Select All group visible on mobile so it's always available in the fixed header area
             if (countGroup) countGroup.classList.remove('hidden');

@@ -3,8 +3,8 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const CACHE_NAME = 'recipehub-v58';
-const BUILD_ID = '2026-03-09-v58';
+const CACHE_NAME = 'recipehub-v59';
+const BUILD_ID = '2026-03-09-v59';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -89,6 +89,25 @@ self.addEventListener('fetch', (event) => {
                         return cache.match('/recipe-detail.html');
                     }
                     return cache.match('/index.html') || cache.match('/');
+                })
+        );
+        return;
+    }
+
+    // Estrategia para API de Recetas: Network First (v59)
+    // Para asegurar que si se borra algo, no reaparezca por el cache
+    if (url.pathname.includes('/api/recipes')) {
+        event.respondWith(
+            fetch(request)
+                .then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    }
+                    return networkResponse;
+                })
+                .catch(async () => {
+                    return caches.match(request);
                 })
         );
         return;
