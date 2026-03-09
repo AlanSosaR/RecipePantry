@@ -375,10 +375,10 @@ class DatabaseManager {
                     recipe_id: newRecipeId,
                     name_es: i.name_es,
                     name_en: i.name_en,
-                    quantity: i.quantity,
+                    quantity: (i.quantity === '' || i.quantity === undefined) ? null : i.quantity,
                     unit_es: i.unit_es,
                     unit_en: i.unit_en,
-                    order_index: i.order_index
+                    order_index: (i.order_index === '' || i.order_index === undefined) ? null : i.order_index
                 }));
                 const { error: ingErr } = await window.supabaseClient.from('ingredients').insert(ingredientsToInsert);
                 if (ingErr) console.warn('⚠️ Error copiando ingredientes:', ingErr.message);
@@ -391,7 +391,7 @@ class DatabaseManager {
                     recipe_id: newRecipeId,
                     instruction_es: s.instruction_es,
                     instruction_en: s.instruction_en || null,
-                    step_number: s.step_number
+                    step_number: (s.step_number === '' || s.step_number === undefined) ? null : s.step_number
                 }));
                 const { error: stpErr } = await window.supabaseClient.from('preparation_steps').insert(stepsToInsert);
                 if (stpErr) console.warn('⚠️ Error copiando pasos:', stpErr.message);
