@@ -242,9 +242,24 @@ class NotificationManager {
             const user = window.authManager.currentUser;
             if (!user) return;
 
+            // 0. Verificar si el nombre ya existe en mis recetas
+            const n = this.notifications.find(item => item.id === notificationId);
+            if (n && n.recipeName) {
+                const exists = await window.db.recipeNameExists(n.recipeName);
+                if (exists) {
+                    window.utils.showToast(
+                        window.i18n && window.i18n.getLang() === 'en' ?
+                            'A recipe with this name already exists in your recipes' :
+                            'esta receta con este nobree ya esta en tus recetas',
+                        'warning'
+                    );
+                    return;
+                }
+            }
+
             window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
 
-            // 1. Actualizar estado en el servidor (shared_recipes)
+            // 1. Actualizar estado en el servidor (shared_recipes) - Opcional si vamos a borrar, pero mantenemos flujo
             const { error: shareError } = await window.supabaseClient
                 .from('shared_recipes')
                 .update({ status: 'accepted', accepted_at: new Date().toISOString() })
@@ -257,12 +272,8 @@ class NotificationManager {
             const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id);
             if (!duplicateResult.success) throw new Error(duplicateResult.error);
 
-            // 3. Marcar como copiada
-            await window.supabaseClient
-                .from('shared_recipes')
-                .update({ copied: true, copied_at: new Date().toISOString() })
-                .eq('recipe_id', recipeId)
-                .eq('recipient_user_id', user.id);
+            // 3. Eliminar de compartidas definitivamente
+            await window.db.deleteSharedRecipe(user.id, recipeId);
 
             // 4. Marcar notificación como leída
             await window.supabaseClient

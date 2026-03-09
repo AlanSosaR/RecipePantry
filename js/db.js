@@ -210,6 +210,43 @@ class DatabaseManager {
         }
     }
 
+    async recipeNameExists(name) {
+        if (!name) return false;
+        await this._checkLocalDB();
+
+        // 1. Buscar en caché local (recipes_index)
+        const recipes = await window.localDB.getAll('recipes_index');
+        // Filtrar solo recetas propias (no las recibidas en Compartidas)
+        const internalRecipes = recipes.filter(r => r.sharingContext !== 'received');
+        const existsLocally = internalRecipes.some(r =>
+            (r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
+            (r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim())
+        );
+
+        if (existsLocally) return true;
+
+        // 2. Si no está en caché y estamos online, verificar con el servidor para estar 100% seguros
+        if (this._isOnline) {
+            try {
+                const userId = window.authManager.currentUser?.id;
+                const { data, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .or(`name_es.ilike.${name},name_en.ilike.${name}`)
+                    .limit(1);
+
+                if (error) throw error;
+                return data && data.length > 0;
+            } catch (err) {
+                console.error('Error verificando nombre en servidor:', err);
+            }
+        }
+
+        return false;
+    }
+
+
     async getRecipeById(recipeId, forceRefresh = false) {
         await this._checkLocalDB();
         if (!forceRefresh) {
