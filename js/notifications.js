@@ -235,7 +235,7 @@ class NotificationManager {
     }
 
     /**
-     * Accept: Convierte la receta en propia usando lógica centralizada (duplica ingredientes/pasos y actualiza caché local)
+     * Accept: Convierte la receta en propia
      */
     async handleAcceptRecipe(notificationId, recipeId) {
         try {
@@ -244,19 +244,18 @@ class NotificationManager {
 
             window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
 
-            // 1. PRIMERO actualizar estado en el servidor para que la API lo devuelva como 'accepted'
-            // Esto evita que desaparezca de la vista 'Compartidas' durante la recarga
-            await window.supabaseClient
+            // 1. Actualizar estado en el servidor (shared_recipes)
+            const { error: shareError } = await window.supabaseClient
                 .from('shared_recipes')
                 .update({ status: 'accepted', accepted_at: new Date().toISOString() })
                 .eq('recipe_id', recipeId)
                 .eq('recipient_user_id', user.id);
 
-            // 2. Duplicar la receta (usando la lógica de db.js que ya limpia datos numéricos)
+            if (shareError) throw shareError;
+
+            // 2. Duplicar la receta
             const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id);
-            if (!duplicateResult.success) {
-                throw new Error(duplicateResult.error);
-            }
+            if (!duplicateResult.success) throw new Error(duplicateResult.error);
 
             // 3. Marcar como copiada
             await window.supabaseClient
@@ -266,34 +265,23 @@ class NotificationManager {
                 .eq('recipient_user_id', user.id);
 
             // 4. Marcar notificación como leída
-            const { error: notifError } = await window.supabaseClient
+            await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
                 .eq('id', notificationId);
 
-            if (notifError) console.warn('Could not mark notification as read:', notifError);
-
-            // 5. Remove from local list and update UI
+            // 5. Actualizar UI
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.render();
-
-            window.utils.showToast(window.i18n ? window.i18n.t('recipeAccepted') : '¡Receta guardada!', 'success');
-
-            // 6. NAVEGACIÓN AUTOMÁTICA a "Mis Recetas"
-            if (window.dashboardManager) {
-                window.dashboardManager.switchView('recipes');
-            }
             this.updateBadge();
             this.renderMenu();
 
             window.utils.showToast('✅ ¡Receta agregada a tu colección!', 'success');
 
-            // Reload recipes if on dashboard to ensure UI consistency
-            if (window.dashboard) {
-                // Forzar recarga desde red para actualizar despensas limpia
-                const currentFilters = window.dashboard.lastFilters || {};
-                await window.dashboard.loadRecipes({ ...currentFilters, forceRefresh: true });
+            // 6. NAVEGACIÓN AUTOMÁTICA a "Mis Recetas"
+            if (window.dashboardManager) {
+                window.dashboardManager.switchView('recipes');
+            } else if (window.dashboard) {
+                window.dashboard.switchView('recipes');
             }
 
         } catch (err) {
@@ -303,18 +291,23 @@ class NotificationManager {
     }
 
     /**
-     * Decline: Keep in shared, mark as read
+     * Decline: Dejar en compartidas
      */
     async handleDeclineRecipe(notificationId, recipeId) {
         try {
             const user = window.authManager.currentUser;
+            if (!user) return;
 
-            // 1. Update shared_recipes status (MUST be 'accepted' to pass constraints, it means accepted into shared despensa)
-            await window.supabaseClient
+            window.utils.showToast('Guardando en compartidas...', 'info');
+
+            // 1. Update shared_recipes status
+            const { error: shareError } = await window.supabaseClient
                 .from('shared_recipes')
-                .update({ status: 'accepted' })
+                .update({ status: 'accepted', accepted_at: new Date().toISOString() })
                 .eq('recipe_id', recipeId)
                 .eq('recipient_user_id', user.id);
+
+            if (shareError) throw shareError;
 
             // 2. Mark notification as read
             await window.supabaseClient
@@ -322,16 +315,18 @@ class NotificationManager {
                 .update({ leido: true })
                 .eq('id', notificationId);
 
-            // 3. Remove from local list and update UI
+            // 3. Update UI
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
             this.updateBadge();
             this.renderMenu();
 
-            window.utils.showToast('Receta guardada en compartidas', 'info');
+            window.utils.showToast('Receta guardada en compartidas', 'success');
 
-            // Reload shared recipes logic to ensure UI is completely synchronized
-            if (window.dashboard) {
-                await window.dashboard.loadRecipes({ shared: true, forceRefresh: true });
+            // 4. NAVEGACIÓN AUTOMÁTICA a "Compartidas"
+            if (window.dashboardManager) {
+                window.dashboardManager.switchView('shared');
+            } else if (window.dashboard) {
+                window.dashboard.switchView('shared');
             }
 
         } catch (err) {
