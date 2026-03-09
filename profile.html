@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="81">
+<html lang="es" data-app-version="82">
 
 <head>
     <meta charset="utf-8" />
@@ -35,8 +35,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=81">
-    <link rel="stylesheet" href="css/components.css?v=81">
+    <link rel="stylesheet" href="css/styles.css?v=82">
+    <link rel="stylesheet" href="css/components.css?v=82">
 
     <style>
         body {
@@ -49,7 +49,6 @@
             margin: 0;
         }
 
-        /* Shell consistent with ocr.html */
         .m3-main {
             flex: 1;
             display: flex;
@@ -95,12 +94,11 @@
             margin: 0 auto;
         }
 
-        /* Redesign profile header to be "flat" */
         .profile-hero {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             text-align: center;
         }
 
@@ -115,7 +113,7 @@
             justify-content: center;
             font-size: 36px;
             font-weight: 800;
-            margin-bottom: 16px;
+            margin-bottom: 0;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             position: relative;
         }
@@ -136,21 +134,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
-        .profile-hero h2 {
-            font-family: var(--font-brand);
-            font-size: 24px;
-            font-weight: 800;
-            margin: 0;
-            color: var(--on-surface);
-        }
-
-        .profile-hero p {
-            font-size: 14px;
-            color: var(--on-surface-variant);
-            margin: 4px 0 0 0;
-        }
-
-        /* M3 Outlined TextFields (copied from login.html style) */
         .m3-field-container {
             position: relative;
             margin-bottom: 28px;
@@ -217,7 +200,6 @@
             border-radius: 50%;
         }
 
-        /* Section titles */
         .section-header {
             display: flex;
             align-items: center;
@@ -234,7 +216,6 @@
             margin: 0;
         }
 
-        /* Save Button (M3 Full style from login) */
         .btn-save-m3 {
             width: 100%;
             height: 56px;
@@ -260,11 +241,6 @@
             filter: brightness(1.1);
         }
 
-        .btn-save-m3:active {
-            transform: scale(0.98);
-        }
-
-        /* Mobile specific header adjustment */
         @media (max-width: 1023px) {
             .mobile-only {
                 display: flex !important;
@@ -280,10 +256,8 @@
 </head>
 
 <body>
-    <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
 
-    <!-- Sidebar Desktop & Mobile Drawer -->
     <aside id="main-sidebar" class="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();"
@@ -328,9 +302,7 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <main class="m3-main">
-        <!-- Header with Hamburger Menu for Mobile -->
         <header class="m3-top-bar">
             <div class="left">
                 <button id="btnMenuMobile" class="m3-icon-btn mobile-only" onclick="window.toggleSidebar(true)">
@@ -345,53 +317,44 @@
             </div>
         </header>
 
-        <!-- Scrollable Content -->
         <div class="m3-scroll">
             <div class="profile-container">
-
-                <!-- Hero Section: Flat design with centered info -->
-                <div class="profile-hero">
+                <div class="profile-hero" style="margin-bottom: 24px;">
                     <div id="profile-hero-avatar" class="avatar-large">
                         <span id="avatar-initials">..</span>
                         <div class="camera-badge">
                             <span class="material-symbols-outlined" style="font-size: 18px;">photo_camera</span>
                         </div>
                     </div>
-                    <h2 id="display-full-name">Cargando...</h2>
-                    <p id="display-email">email@example.com</p>
                 </div>
 
                 <form id="profile-form" novalidate>
-                    <!-- Personal Info -->
                     <div class="section-header">
                         <span class="material-symbols-outlined">person</span>
                         <h3 data-i18n="profilePersonalInfo">Datos Personales</h3>
                     </div>
 
-                    <div style="display: flex; gap: 12px;">
-                        <!-- Prefix -->
-                        <div class="m3-field-container" style="flex: 1;">
-                            <select id="prefix" class="m3-field-select appearance-none">
-                                <option value="Chef">Chef</option>
-                                <option value="Cook" data-i18n="prefixCook">Cocinero</option>
-                                <option value="Baker" data-i18n="prefixBaker">Panadero</option>
-                                <option value="Foodie">Foodie</option>
-                            </select>
-                            <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
-                            <span class="material-symbols-outlined"
-                                style="position: absolute; right: 12px; top: 18px; pointer-events: none; color: var(--on-surface-variant);">expand_more</span>
-                        </div>
+                    <div class="m3-field-container">
+                        <select id="prefix" class="m3-field-select appearance-none">
+                            <option value="Chef">Chef</option>
+                            <option value="Cook" data-i18n="prefixCook">Cocinero</option>
+                            <option value="Baker" data-i18n="prefixBaker">Panadero</option>
+                            <option value="Foodie">Foodie</option>
+                        </select>
+                        <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
+                        <span class="material-symbols-outlined"
+                            style="position: absolute; right: 12px; top: 18px; pointer-events: none; color: var(--on-surface-variant);">expand_more</span>
+                    </div>
 
-                        <!-- Name -->
-                        <div class="m3-field-container" style="flex: 2;">
+                    <div style="display: flex; gap: 12px;">
+                        <div class="m3-field-container" style="flex: 1;">
                             <input id="first_name" class="m3-field-input" type="text" placeholder=" " required />
                             <label class="m3-field-label" data-i18n="profileFirstName">Nombre</label>
                         </div>
-                    </div>
-
-                    <div class="m3-field-container">
-                        <input id="last_name" class="m3-field-input" type="text" placeholder=" " required />
-                        <label class="m3-field-label" data-i18n="profileLastName">Apellidos</label>
+                        <div class="m3-field-container" style="flex: 1;">
+                            <input id="last_name" class="m3-field-input" type="text" placeholder=" " required />
+                            <label class="m3-field-label" data-i18n="profileLastName">Apellidos</label>
+                        </div>
                     </div>
 
                     <div class="m3-field-container">
@@ -400,10 +363,18 @@
                         <label class="m3-field-label">Email</label>
                     </div>
 
-                    <!-- Security -->
                     <div class="section-header" style="margin-top: 12px;">
                         <span class="material-symbols-outlined">security</span>
                         <h3 data-i18n="profileSecurity">Seguridad</h3>
+                    </div>
+
+                    <div class="m3-field-container">
+                        <input id="current_password" class="m3-field-input" type="password" placeholder=" " />
+                        <label class="m3-field-label" data-i18n="profileCurrentPass">Contraseña Actual</label>
+                        <div class="m3-field-trailing"
+                            onclick="window.profileManager.togglePass('current_password', this)">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </div>
                     </div>
 
                     <div class="m3-field-container">
@@ -427,28 +398,23 @@
                         <span class="material-symbols-outlined">check</span>
                         <span data-i18n="profileSaveBtn">Guardar cambios</span>
                     </button>
-
                     <div style="height: 48px;"></div>
                 </form>
             </div>
         </div>
     </main>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=81"></script>
-    <script src="js/supabase-client.js?v=81"></script>
-    <script src="js/auth.js?v=81"></script>
-    <script src="js/utils.js?v=81"></script>
-    <script src="js/i18n.js?v=81"></script>
-    <script src="js/ui.js?v=81"></script>
-    <script src="js/profile.js?v=81"></script>
+    <script src="js/config.js?v=82"></script>
+    <script src="js/supabase-client.js?v=82"></script>
+    <script src="js/auth.js?v=82"></script>
+    <script src="js/utils.js?v=82"></script>
+    <script src="js/i18n.js?v=82"></script>
+    <script src="js/ui.js?v=82"></script>
+    <script src="js/profile.js?v=82"></script>
 
     <script>
-        // Set light theme specifically for this view as requested by user's preference in ocr
         document.documentElement.setAttribute('data-theme', 'light');
-
-        // Initialize user UI
         window.addEventListener('load', () => {
             if (window.updateGlobalUserUI) window.updateGlobalUserUI();
             if (window.setupMobileMenu) window.setupMobileMenu();
