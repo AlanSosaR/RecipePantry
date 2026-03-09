@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="82">
+<html lang="es" data-app-version="83">
 
 <head>
     <meta charset="utf-8" />
@@ -35,8 +35,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=82">
-    <link rel="stylesheet" href="css/components.css?v=82">
+    <link rel="stylesheet" href="css/styles.css?v=83">
+    <link rel="stylesheet" href="css/components.css?v=83">
 
     <style>
         body {
@@ -153,6 +153,8 @@
             outline: none;
             transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
             box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
         }
 
         .m3-field-input:focus,
@@ -208,12 +210,50 @@
             color: var(--secondary);
         }
 
+        .section-header.clickable {
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .section-header.clickable:hover {
+            background: var(--primary-light);
+            opacity: 0.8;
+        }
+
         .section-header h3 {
             font-size: 16px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin: 0;
+            flex: 1;
+        }
+
+        .security-content {
+            display: none;
+            flex-direction: column;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .security-content.expanded {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .btn-save-m3 {
@@ -335,15 +375,13 @@
                     </div>
 
                     <div class="m3-field-container">
-                        <select id="prefix" class="m3-field-select appearance-none">
+                        <select id="prefix" class="m3-field-select">
                             <option value="Chef">Chef</option>
                             <option value="Cook" data-i18n="prefixCook">Cocinero</option>
                             <option value="Baker" data-i18n="prefixBaker">Panadero</option>
                             <option value="Foodie">Foodie</option>
                         </select>
                         <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
-                        <span class="material-symbols-outlined"
-                            style="position: absolute; right: 12px; top: 18px; pointer-events: none; color: var(--on-surface-variant);">expand_more</span>
                     </div>
 
                     <div style="display: flex; gap: 12px;">
@@ -362,35 +400,41 @@
                             style="opacity: 0.6; cursor: not-allowed;" />
                         <label class="m3-field-label">Email</label>
                     </div>
-
-                    <div class="section-header" style="margin-top: 12px;">
+                    <!-- Security -->
+                    <div class="section-header clickable" style="margin-top: 12px;"
+                        onclick="window.profileManager.toggleSecurity()">
                         <span class="material-symbols-outlined">security</span>
                         <h3 data-i18n="profileSecurity">Seguridad</h3>
+                        <span id="security-chevron" class="material-symbols-outlined">expand_more</span>
                     </div>
 
-                    <div class="m3-field-container">
-                        <input id="current_password" class="m3-field-input" type="password" placeholder=" " />
-                        <label class="m3-field-label" data-i18n="profileCurrentPass">Contraseña Actual</label>
-                        <div class="m3-field-trailing"
-                            onclick="window.profileManager.togglePass('current_password', this)">
-                            <span class="material-symbols-outlined">visibility</span>
+                    <div id="security-content" class="security-content">
+                        <div class="m3-field-container">
+                            <input id="current_password" class="m3-field-input" type="password" placeholder=" " />
+                            <label class="m3-field-label" data-i18n="profileCurrentPass">Contraseña Actual</label>
+                            <div class="m3-field-trailing"
+                                onclick="window.profileManager.togglePass('current_password', this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="m3-field-container">
-                        <input id="new_password" class="m3-field-input" type="password" placeholder=" " />
-                        <label class="m3-field-label" data-i18n="profileNewPass">Nueva Contraseña</label>
-                        <div class="m3-field-trailing" onclick="window.profileManager.togglePass('new_password', this)">
-                            <span class="material-symbols-outlined">visibility</span>
+                        <div class="m3-field-container">
+                            <input id="new_password" class="m3-field-input" type="password" placeholder=" " />
+                            <label class="m3-field-label" data-i18n="profileNewPass">Nueva Contraseña</label>
+                            <div class="m3-field-trailing"
+                                onclick="window.profileManager.togglePass('new_password', this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="m3-field-container">
-                        <input id="confirm_password" class="m3-field-input" type="password" placeholder=" " />
-                        <label class="m3-field-label" data-i18n="profileConfirmPass">Confirmar Nueva Contraseña</label>
-                        <div class="m3-field-trailing"
-                            onclick="window.profileManager.togglePass('confirm_password', this)">
-                            <span class="material-symbols-outlined">visibility</span>
+                        <div class="m3-field-container">
+                            <input id="confirm_password" class="m3-field-input" type="password" placeholder=" " />
+                            <label class="m3-field-label" data-i18n="profileConfirmPass">Confirmar Nueva
+                                Contraseña</label>
+                            <div class="m3-field-trailing"
+                                onclick="window.profileManager.togglePass('confirm_password', this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
                         </div>
                     </div>
 
@@ -405,13 +449,13 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=82"></script>
-    <script src="js/supabase-client.js?v=82"></script>
-    <script src="js/auth.js?v=82"></script>
-    <script src="js/utils.js?v=82"></script>
-    <script src="js/i18n.js?v=82"></script>
-    <script src="js/ui.js?v=82"></script>
-    <script src="js/profile.js?v=82"></script>
+    <script src="js/config.js?v=83"></script>
+    <script src="js/supabase-client.js?v=83"></script>
+    <script src="js/auth.js?v=83"></script>
+    <script src="js/utils.js?v=83"></script>
+    <script src="js/i18n.js?v=83"></script>
+    <script src="js/ui.js?v=83"></script>
+    <script src="js/profile.js?v=83"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');

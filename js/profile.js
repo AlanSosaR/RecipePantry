@@ -146,6 +146,17 @@ class ProfileManager {
             icon.textContent = 'visibility';
         }
     }
+
+    toggleSecurity() {
+        const content = document.getElementById('security-content');
+        const chevron = document.getElementById('security-chevron');
+        if (content) {
+            content.classList.toggle('expanded');
+            if (chevron) {
+                chevron.textContent = content.classList.contains('expanded') ? 'expand_less' : 'expand_more';
+            }
+        }
+    }
 }
 
 // Inicializar cuando el DOM esté listo
