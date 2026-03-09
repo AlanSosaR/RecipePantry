@@ -175,18 +175,18 @@ class NotificationManager {
                 return `
                     <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#0ea5e9;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:#10B981;">
                                 🚀
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <span style="color:white; display:block; font-size:13px; font-weight:600;">Recipe Pantry</span>
-                                <span style="color:#0ea5e9; font-weight:700; display:block; margin-top:2px;">${n.recipeName}</span>
+                                <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">${n.recipeName}</span>
                                 <span style="color:#bbb; font-size:11px; display:block; margin-top:4px;">${msg}</span>
                                 
                                 <!-- Action buttons -->
                                 <div style="display:flex; gap:8px; margin-top:10px;">
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleUpdateApp()"
-                                        style="flex:1; padding:8px 12px; background:#0ea5e9; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
                                         🔄 ${btnText}
                                     </button>
                                 </div>
