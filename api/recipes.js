@@ -59,16 +59,19 @@ export default async function handler(req, res) {
                     return res.status(400).json({ success: false, error: 'User ID is required' });
                 }
 
-                // Optimization: Select only index fields for shared recipes too
+                    // Optimization: Select only index fields for shared recipes too (v62)
                 let { data, error } = await supabase
                     .from('shared_recipes')
-                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color))')
+                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, category_id, is_favorite, is_active, category:categories(id, name_es, name_en, icon, color))')
                     .eq('recipient_user_id', userId);
 
                 if (error) throw error;
 
-                // Cloudflare optimized cache
-                res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=600');
+                // Filtrar recetas que ya no existen o están inactivas (hard fix para persistencia v62)
+                data = (data || []).filter(item => item.recipe && item.recipe.is_active !== false);
+
+                // Disable Edge Cache for immediate deletion reflecting (v62)
+                res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
                 return res.status(200).json({
                     success: true,
                     data: data || [],
@@ -102,9 +105,8 @@ export default async function handler(req, res) {
             const { data, error, count } = await query;
             if (error) throw error;
 
-            // Cloudflare optimized cache
-            const cdTtl = search ? 30 : 60;
-            res.setHeader('Cache-Control', `public, s-maxage=${cdTtl}, stale-while-revalidate=600`);
+            // Disable Edge Cache for immediate deletion reflecting (v62)
+            res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
 
             return res.status(200).json({
                 success: true,
