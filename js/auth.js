@@ -69,6 +69,7 @@ class AuthManager {
         try {
             const firstName = authUser.user_metadata?.first_name || authUser.email.split('@')[0];
             const lastName = authUser.user_metadata?.last_name || '';
+            const prefix = authUser.user_metadata?.prefix || 'Chef';
 
             const { data: userData, error: userError } = await window.supabaseClient
                 .from('users')
@@ -77,6 +78,7 @@ class AuthManager {
                     email: authUser.email,
                     first_name: firstName,
                     last_name: lastName,
+                    prefix: prefix,
                     collection_name: `Recetario de ${firstName}`
                 }])
                 .select()
@@ -216,6 +218,43 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Error en logout:', error);
+        }
+    }
+
+    // Actualizar perfil del usuario
+    async updateProfile(fields) {
+        try {
+            if (!this.currentUser) throw new Error('No hay usuario logueado');
+
+            const { data, error } = await window.supabaseClient
+                .from('users')
+                .update(fields)
+                .eq('id', this.currentUser.id)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            this.currentUser = data;
+            return { success: true, user: data };
+        } catch (error) {
+            console.error('Error actualizando perfil:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Actualizar contraseña
+    async updatePassword(newPassword) {
+        try {
+            const { error } = await window.supabaseClient.auth.updateUser({
+                password: newPassword
+            });
+
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('Error actualizando contraseña:', error);
+            return { success: false, error: error.message };
         }
     }
 

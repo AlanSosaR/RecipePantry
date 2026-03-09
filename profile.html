@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es" data-app-version="80">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title data-i18n="profileTitle">Mi Perfil - Recipe Pantry</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+        rel="stylesheet" />
+
+    <!-- Material 3 Expressive Infrastructure -->
+    <script type="importmap">
+        {
+          "imports": {
+            "lit": "https://cdn.jsdelivr.net/npm/lit@3/index.js",
+            "lit/": "https://cdn.jsdelivr.net/npm/lit@3/",
+            "@lit/localize": "https://cdn.jsdelivr.net/npm/@lit/localize/lit-localize.js",
+            "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@1/reactive-element.js",
+            "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@1/",
+            "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4/lit-element.js",
+            "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3/lit-html.js",
+            "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3/",
+            "tslib": "https://cdn.jsdelivr.net/npm/tslib@2.6.2/tslib.es6.js",
+            "@material/web/": "https://cdn.jsdelivr.net/npm/@material/web@1.0.1/"
+          }
+        }
+    </script>
+
+    <!-- Tailwind for Layout (as requested) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00a879",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f231d",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "1.75rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100dvh;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* M3 Outlined TextFields adaptados de login.html */
+        .m3-field-container {
+            position: relative;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        .m3-field-input,
+        .m3-field-select {
+            width: 100%;
+            height: 56px;
+            background: transparent;
+            border: 1.5px solid var(--outline-variant);
+            border-radius: 28px;
+            padding: 0 24px;
+            font-size: 16px;
+            color: var(--on-surface);
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-sizing: border-box;
+            background-color: #f8fafc;
+            /* slate-50 */
+        }
+
+        .dark .m3-field-input,
+        .dark .m3-field-select {
+            background-color: #0f172a;
+            /* slate-900 */
+            border-color: #1e293b;
+            /* slate-800 */
+        }
+
+        .m3-field-input:focus,
+        .m3-field-select:focus {
+            border-color: var(--primary);
+            border-width: 2px;
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(0, 168, 121, 0.1);
+        }
+
+        .dark .m3-field-input:focus,
+        .dark .m3-field-select:focus {
+            background-color: #020617;
+            /* slate-950 */
+        }
+
+        .m3-field-label {
+            position: absolute;
+            left: 20px;
+            top: 18px;
+            padding: 0 8px;
+            font-size: 16px;
+            color: #64748b;
+            /* slate-500 */
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            background: transparent;
+        }
+
+        .m3-field-input:focus+.m3-field-label,
+        .m3-field-input:not(:placeholder-shown)+.m3-field-label,
+        .m3-field-select:focus+.m3-field-label,
+        .m3-field-select:not([value=""])+.m3-field-label {
+            top: -10px;
+            left: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            background: white;
+        }
+
+        .dark .m3-field-input:focus+.m3-field-label,
+        .dark .m3-field-input:not(:placeholder-shown)+.m3-field-label,
+        .dark .m3-field-select:focus+.m3-field-label {
+            background: #020617;
+        }
+
+        .m3-field-trailing {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #94a3b8;
+            /* slate-400 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .m3-field-trailing:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-save-sticky {
+            position: sticky;
+            bottom: 24px;
+            width: 100%;
+            height: 64px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            border-radius: 32px;
+            box-shadow: 0 12px 24px -6px rgba(0, 168, 121, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .btn-save-sticky:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px -6px rgba(0, 168, 121, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .btn-save-sticky:active {
+            transform: scale(0.98);
+        }
+
+        /* Avatar styles */
+        .profile-avatar-container {
+            width: 128px;
+            height: 128px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .dark .profile-avatar {
+            border-color: #1e293b;
+            background: #020617;
+        }
+
+        .btn-photo-camera {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .dark .btn-photo-camera {
+            border-color: #1e293b;
+        }
+
+        .btn-photo-camera:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+    <div class="relative mx-auto max-w-md min-h-screen bg-white dark:bg-slate-950 shadow-sm flex flex-col">
+
+        <!-- Header -->
+        <header
+            class="sticky top-0 z-10 flex items-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-md px-4 py-4 justify-between border-b border-primary/10">
+            <div class="flex items-center gap-4">
+                <button onclick="window.history.back()"
+                    class="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors text-slate-800 dark:text-slate-200">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1 class="text-xl font-bold leading-tight tracking-tight" data-i18n="profileHeader">Perfil</h1>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col px-6 py-8">
+            <!-- Profile Photo Section -->
+            <div class="flex flex-col items-center mb-10">
+                <div class="profile-avatar-container">
+                    <div id="profile-avatar-initials" class="profile-avatar">
+                        <!-- Initials via JS -->
+                    </div>
+                    <!-- Photo camera button (not implemented yet, but visual as requested) -->
+                    <button class="btn-photo-camera">
+                        <span class="material-symbols-outlined text-xl">photo_camera</span>
+                    </button>
+                </div>
+                <div class="mt-4 text-center">
+                    <p class="text-xs font-medium text-primary uppercase tracking-widest mb-1">Recipe Pantry Member</p>
+                    <p id="display-full-name" class="text-lg font-bold">Chef Usuario</p>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form id="profile-form" class="space-y-8" novalidate>
+                <!-- Personal Info Section -->
+                <section>
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="material-symbols-outlined text-primary text-lg">person</span>
+                        <h2 class="text-base font-bold tracking-tight" data-i18n="profilePersonalInfo">Información
+                            Personal</h2>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Prefix + Name -->
+                        <div class="flex gap-3">
+                            <!-- Prefix Select -->
+                            <div class="m3-field-container w-1/3">
+                                <select id="prefix" class="m3-field-select appearance-none">
+                                    <option value="Chef">Chef</option>
+                                    <option value="Cook" data-i18n="prefixCook">Cocinero</option>
+                                    <option value="Baker" data-i18n="prefixBaker">Panadero</option>
+                                    <option value="Foodie">Foodie</option>
+                                </select>
+                                <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
+                                <span
+                                    class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
+
+                            <!-- First Name -->
+                            <div class="m3-field-container flex-1">
+                                <input id="first_name" class="m3-field-input" type="text" placeholder=" " required />
+                                <label class="m3-field-label" data-i18n="profileFirstName">Nombre</label>
+                            </div>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="m3-field-container">
+                            <input id="last_name" class="m3-field-input" type="text" placeholder=" " required />
+                            <label class="m3-field-label" data-i18n="profileLastName">Apellido</label>
+                        </div>
+
+                        <!-- Email (Read-only for now) -->
+                        <div class="m3-field-container">
+                            <input id="email" class="m3-field-input opacity-70 cursor-not-allowed" type="email"
+                                placeholder=" " disabled />
+                            <label class="m3-field-label">Email</label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Security Section -->
+                <section>
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="material-symbols-outlined text-primary text-lg">lock</span>
+                        <h2 class="text-base font-bold tracking-tight" data-i18n="profileSecurity">Seguridad</h2>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- New Password -->
+                        <div class="m3-field-container">
+                            <input id="new_password" class="m3-field-input" type="password" placeholder=" " />
+                            <label class="m3-field-label" data-i18n="profileNewPass">Nueva contraseña</label>
+                            <div class="m3-field-trailing"
+                                onclick="window.profileManager.togglePass('new_password', this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="m3-field-container">
+                            <input id="confirm_password" class="m3-field-input" type="password" placeholder=" " />
+                            <label class="m3-field-label" data-i18n="profileConfirmPass">Confirmar nueva
+                                contraseña</label>
+                            <div class="m3-field-trailing"
+                                onclick="window.profileManager.togglePass('confirm_password', this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Spacer -->
+                <div class="h-24"></div>
+            </form>
+        </main>
+
+        <!-- Fixed Save Button Container -->
+        <div
+            class="p-6 sticky bottom-0 bg-gradient-to-t from-white via-white/100 dark:from-slate-950 dark:via-slate-950/100 to-transparent">
+            <button id="btn-save-profile" class="btn-save-sticky">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span data-i18n="profileSaveBtn">Guardar cambios</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast / Notification Manager (Global) -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js?v=80"></script>
+    <script src="js/supabase-client.js?v=80"></script>
+    <script src="js/auth.js?v=80"></script>
+    <script src="js/utils.js?v=80"></script>
+    <script src="js/i18n.js?v=80"></script>
+    <script src="js/profile.js?v=80"></script>
+
+    <script type="module">
+        import '@material/web/button/filled-button.js'
+        import '@material/web/button/outlined-button.js'
+        import '@material/web/textfield/outlined-text-field.js'
+    </script>
+</body>
+
+</html>

@@ -57,11 +57,11 @@ window.updateGlobalUserUI = function () {
     if (!window.authManager || !window.authManager.currentUser) return;
     const user = window.authManager.currentUser;
 
-    // Update greeting
+    // Update greeting with prefix
     const sidebarGreeting = document.getElementById('sidebar-user-greeting');
     if (sidebarGreeting) {
-        const chefText = window.i18n ? window.i18n.t('chefGreeting') : 'Chef';
-        sidebarGreeting.textContent = `${chefText} ${user.first_name || ''}`;
+        const prefix = user.prefix || 'Chef';
+        sidebarGreeting.textContent = `${prefix} ${user.first_name || ''}`;
     }
 
     // Update initials in all avatar circles (sidebar and header)
@@ -70,6 +70,17 @@ window.updateGlobalUserUI = function () {
     initialsElements.forEach(el => {
         el.textContent = initials.toUpperCase();
     });
+
+    // Make sidebar profile clickable
+    const profileSection = document.querySelector('.sidebar-user-profile');
+    if (profileSection && !profileSection.dataset.listenerAdded) {
+        profileSection.style.cursor = 'pointer';
+        profileSection.title = 'Editar Perfil';
+        profileSection.onclick = () => {
+            window.location.href = 'profile.html';
+        };
+        profileSection.dataset.listenerAdded = 'true';
+    }
 }
 
 // Global slim sidebar toggle (desktop)
