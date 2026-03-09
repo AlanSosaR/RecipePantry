@@ -292,6 +292,7 @@ class DashboardManager {
 
     async loadRecipes(filters = {}) {
         this.lastFilters = filters;
+        // Si se solicita forceRefresh, asegurar que se pase a db.js
         const result = await window.db.getMyRecipes(filters);
 
         if (!result.success) {
@@ -302,11 +303,7 @@ class DashboardManager {
         this.currentRecipes = result.recipes;
 
         const isRecipeView = ['recipes', 'favorites', 'shared'].includes(this.currentView);
-        console.log(`[Dashboard] loadRecipes result: view=${this.currentView}, isRecipeView=${isRecipeView}`);
-        if (!isRecipeView) {
-            console.log('[Dashboard] Aborting loadRecipes UI update - current view is not recipes');
-            return;
-        }
+        if (!isRecipeView) return;
 
         const titleEl = document.getElementById('view-title');
         if (titleEl) {
@@ -326,21 +323,18 @@ class DashboardManager {
             titleEl.textContent = `${baseTitle} (${count})`;
         }
 
-        // Hide other views (like help) if we are loading recipes
         const helpView = document.getElementById('helpView');
         if (helpView) helpView.classList.add('hidden');
 
         const recipesGrid = document.getElementById('recipesGrid');
         if (recipesGrid) recipesGrid.classList.remove('hidden');
 
-        console.log('[Dashboard] Rendering recipes grid');
         this.renderRecipesGrid(this.currentRecipes);
 
-        // Prefetch inteligente: Pre-cargar las primeras 5 recetas completas para uso offline
+        // Prefetch inteligente
         if (navigator.onLine && (!filters.search)) {
             const toPrefetch = this.currentRecipes.slice(0, 5);
             toPrefetch.forEach(recipe => {
-                // Pequeño delay para no saturar la red al inicio
                 setTimeout(() => this.prefetchRecipe(recipe.id), 1000);
             });
         }
@@ -441,7 +435,7 @@ class DashboardManager {
 
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
-            if (moreBtn) moreBtn.style.display = 'flex'; 
+            if (moreBtn) moreBtn.style.display = 'flex';
 
         } else {
             // Exit Selection Mode

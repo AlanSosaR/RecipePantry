@@ -273,7 +273,8 @@ class NotificationManager {
             // Reload recipes if on dashboard to ensure UI consistency
             if (window.dashboard) {
                 // Forzar recarga desde red para actualizar despensas limpia
-                await window.dashboard.loadRecipes(window.dashboard.lastFilters || {});
+                const currentFilters = window.dashboard.lastFilters || {};
+                await window.dashboard.loadRecipes({ ...currentFilters, forceRefresh: true });
             }
 
         } catch (err) {
@@ -311,7 +312,7 @@ class NotificationManager {
 
             // Reload shared recipes logic to ensure UI is completely synchronized
             if (window.dashboard) {
-                await window.dashboard.loadRecipes({ shared: true });
+                await window.dashboard.loadRecipes({ shared: true, forceRefresh: true });
             }
 
         } catch (err) {
