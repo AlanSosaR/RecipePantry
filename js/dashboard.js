@@ -390,17 +390,16 @@ class DashboardManager {
 
 
     handleSelectAll(e) {
-        // Mejorado para móvil: Si hay algunos seleccionados, el primer click selecciona TODO.
-        // Solo si YA están todos seleccionados, el click deselecciona todo.
-        const total = this.currentRecipes.length;
-        const currentlySelected = this.currentRecipes.filter(r => this.selectedRecipes.has(r.id)).length;
-
-        if (currentlySelected === total && total > 0) {
-            // Deseleccionar todo
+        const isChecked = e.target.checked;
+        
+        if (!isChecked) {
+            // Si se desmarca el checkbox principal, deseleccionar TODO el set
             this.selectedRecipes.clear();
         } else {
-            // Seleccionar todo
-            this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
+            // Si se marca, seleccionar todas las recetas visibles actualmente
+            if (this.currentRecipes) {
+                this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
+            }
         }
 
         this.isSelectionMode = this.selectedRecipes.size > 0;
