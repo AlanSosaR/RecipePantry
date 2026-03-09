@@ -490,7 +490,7 @@ class DashboardManager {
             const isSent = recipe.sharingContext === 'sent';
 
             const sharedLabelHTML = isReceived ? `
-                <div style="font-size: 12px; color: #00A676; padding: 0 16px 8px 16px; margin-top: -4px;">
+                <div style="font-size: 12px; color: #10B981; padding: 0 16px 8px 16px; margin-top: -4px;">
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">groups</span>
                     ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
                 </div>
@@ -924,7 +924,7 @@ class DashboardManager {
                     ? `<span style="color:#c7a44b;display:flex;align-items:center;gap:4px">
                             <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 400">file_copy</span>
                             ${window.i18n ? window.i18n.t('canCopy') : 'Puede copiar'}</span>`
-                    : `<span style="color:#00A676;display:flex;align-items:center;gap:4px">
+                    : `<span style="color:#10B981;display:flex;align-items:center;gap:4px">
                             <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 400">visibility</span>
                             ${window.i18n ? window.i18n.t('canView') : 'Solo ver'}</span>`)
                 : recipe.sharingContext === 'sent' ? `<span style="color: var(--primary); font-weight: 600;">${window.i18n ? window.i18n.t('accessShared') : 'Compartida'}</span>` : (window.i18n ? window.i18n.t('accessPrivate') : 'Solo tú')}

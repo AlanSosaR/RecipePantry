@@ -5139,7 +5139,7 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 .btn-copy-recipe {
-    background: #00A676;
+    background: #10B981;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -5297,7 +5297,7 @@ html[data-auth-likely="true"] #dashboard-app {
 .theme-option.active::before,
 .lang-option.active::before {
     content: '✓';
-    color: #00A676;
+    color: #10B981;
     margin-right: 4px;
     font-weight: bold;
 }
@@ -6638,7 +6638,7 @@ input:checked~.m3-ingredient-text {
 
 .stitch-tab-btn.active {
     background: #FFFFFF;
-    color: #00A676;
+    color: #10B981;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -6665,7 +6665,7 @@ input:checked~.m3-ingredient-text {
 
 .stitch-card-icon.android {
     background: #E8F7F2;
-    color: #00A676;
+    color: #10B981;
 }
 
 .stitch-card-icon .material-symbols-outlined {
@@ -6718,14 +6718,14 @@ input:checked~.m3-ingredient-text {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #00A676;
+    color: #10B981;
     z-index: 1;
 }
 
 .stitch-step-content .step-num {
     font-size: 11px;
     font-weight: 800;
-    color: #00A676;
+    color: #10B981;
     display: block;
     margin-bottom: 4px;
 }
@@ -6745,7 +6745,7 @@ input:checked~.m3-ingredient-text {
 
 .stitch-btn-primary-m3 {
     width: 100%;
-    background: #00A676;
+    background: #10B981;
     color: #FFFFFF;
     border: none;
     border-radius: 100px;
@@ -6794,7 +6794,7 @@ input:checked~.m3-ingredient-text {
 .scale-btn {
     background: #FFFFFF;
     border: 1.5px solid #d0e8df;
-    color: #00a676;
+    color: #10B981;
     padding: 10px 24px;
     border-radius: 100px;
     font-size: 16px;
@@ -6811,20 +6811,20 @@ input:checked~.m3-ingredient-text {
 
 .scale-btn:hover {
     background: #f0faf7;
-    border-color: #00a676;
+    border-color: #10B981;
 }
 
 .scale-btn.active {
-    background: #00a676;
+    background: #10B981;
     color: #FFFFFF;
-    border-color: #00a676 !important;
+    border-color: #10B981 !important;
     box-shadow: 0 4px 12px rgba(0, 166, 118, 0.22);
 }
 
 .recipe-portion-text {
     font-size: 16px;
     font-weight: 600;
-    color: #00a676;
+    color: #10B981;
     margin-top: 8px;
     letter-spacing: 0.1px;
     display: block;
@@ -6900,7 +6900,7 @@ input:checked~.m3-ingredient-text {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #00A676;
+    background: #10B981;
     color: #FFFFFF;
     border: none;
     padding: 0;
@@ -6938,7 +6938,7 @@ input:checked~.m3-ingredient-text {
 .recipe-portion-text {
     font-size: 15px;
     font-weight: 700;
-    color: #00A676;
+    color: #10B981;
     margin-top: 10px;
     letter-spacing: 0.2px;
     background: none;
