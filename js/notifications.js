@@ -244,20 +244,28 @@ class NotificationManager {
 
             window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
 
-            // 1. Usar la robusta API de db.js que acabamos de parchear
+            // 1. PRIMERO actualizar estado en el servidor para que la API lo devuelva como 'accepted'
+            // Esto evita que desaparezca de la vista 'Compartidas' durante la recarga
+            await window.supabaseClient
+                .from('shared_recipes')
+                .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                .eq('recipe_id', recipeId)
+                .eq('recipient_user_id', user.id);
+
+            // 2. Duplicar la receta (usando la lógica de db.js que ya limpia datos numéricos)
             const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id);
             if (!duplicateResult.success) {
                 throw new Error(duplicateResult.error);
             }
 
-            // 2. Mark shared_recipes as copied and accepted
+            // 3. Marcar como copiada
             await window.supabaseClient
                 .from('shared_recipes')
-                .update({ copied: true, copied_at: new Date().toISOString(), status: 'accepted' })
+                .update({ copied: true, copied_at: new Date().toISOString() })
                 .eq('recipe_id', recipeId)
                 .eq('recipient_user_id', user.id);
 
-            // 3. Mark notification as read
+            // 4. Marcar notificación como leída
             await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
