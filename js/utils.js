@@ -263,13 +263,10 @@ window.utils.formatQuantity = (value) => {
     const num = parseFloat(value);
     if (isNaN(num)) return value;
 
-    // Si es entero, devolver tal cual/**
- * RecipeHub Service Worker(v77)
-        * Soporte Offline Total + Sync Background
-            */
+    // Si es entero, devolver tal cual
+    if (Number.isInteger(num)) return num.toString();
 
-    const CACHE_NAME = 'recipehub-v77';
-    const BUILD_ID = '2026-03-09-v77';
+    const epsilon = 0.01;
     const commonFractions = [
         { dec: 0.25, frac: '1/4' },
         { dec: 0.5, frac: '1/2' },
