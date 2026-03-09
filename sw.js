@@ -1,10 +1,10 @@
 /**
- * Recipe Pantry - Service Worker Profesional (v9)
+ * Recipe Pantry - Service Worker Profesional (v71)
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const CACHE_NAME = 'recipehub-v69';
-const BUILD_ID = '2026-03-09-v69';
+const CACHE_NAME = 'recipehub-v71';
+const BUILD_ID = '2026-03-09-v71';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
