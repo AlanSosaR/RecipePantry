@@ -58,6 +58,14 @@ class DatabaseManager {
                 return 0;
             });
 
+            // CORRECCIÓN CRÍTICA: Si el filtro específico (ej. shared) no devolvió nada, 
+            // pero tenemos recetas en caché, NO asumimos que no hay. Vamos al servidor.
+            const hasSpecificFilter = filters.shared || filters.favorite || filters.categoryId || filters.search;
+            if (filteredRecipes.length === 0 && hasSpecificFilter && this._isOnline) {
+                console.log(`🔍 Filtro local vacío para ${JSON.stringify(filters)}, reintentando desde servidor...`);
+                return this._fetchRecipesFromServer(filters);
+            }
+
             console.log(`⚡ ${filteredRecipes.length} recetas desde caché (recipes_index)`);
 
             // 2. Refresco silencioso en segundo plano
