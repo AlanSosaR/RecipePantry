@@ -54,7 +54,8 @@ class DashboardManager {
                 return;
             }
 
-            console.log('Recipe Pantry Dashboard init - v20.2.1 - fixed broken scripts');
+            const appVersionString = 'v21.0.0';
+            console.log(`Recipe Pantry Dashboard init - ${appVersionString} - deep cleanup fix`);
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
@@ -390,22 +391,20 @@ class DashboardManager {
 
 
     handleSelectAll(e) {
-        // Ignorar e.target.checked porque en estados indeterminados cada navegador responde distinto.
-        // Nos basamos en la realidad de la lista actual.
         if (!this.currentRecipes || this.currentRecipes.length === 0) return;
 
-        const allSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
+        // Verificar si TODOS los actualmente visibles están en el Set
+        const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
 
-        if (allSelected) {
-            // Si ya están todos seleccionados, deseleccionamos TODO
+        if (allVisibleSelected) {
+            // Si ya están todos los visibles seleccionados, limpiamos TODA la selección (comportamiento Google Drive/Dropbox)
             this.selectedRecipes.clear();
         } else {
-            // Si no están todos (algunos sí o ninguno), seleccionamos TODO
+            // Si falta alguno, los añadimos todos
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
 
         this.isSelectionMode = this.selectedRecipes.size > 0;
-        this.updateSelectionModeClass();
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
     }
@@ -801,6 +800,17 @@ class DashboardManager {
     renderRecipesGrid(recipes) {
         const container = document.getElementById('recipesGrid');
         if (!container) return;
+
+        // Sincronizar contador en cabecera (v69)
+        const titleEl = document.getElementById('view-title');
+        if (titleEl) {
+            const count = recipes.length;
+            const currentText = titleEl.textContent || '';
+            const baseTitle = currentText.includes(' (') ? currentText.split(' (')[0] : currentText;
+            if (baseTitle) {
+                titleEl.textContent = `${baseTitle} (${count})`;
+            }
+        }
 
         const emptyState = document.getElementById('emptyState');
 
@@ -1329,6 +1339,9 @@ class DashboardManager {
     }
 
     async confirmDelete(recipeId) {
+        // CIERRE RADICAL DE MENÚS (v69) - Elimina el residuo visual del menú que quedó abierto
+        document.querySelectorAll('.dropbox-menu-m3, .mobile-bottom-sheet').forEach(m => m.remove());
+
         const recipe = this.currentRecipes.find(r => r.id === recipeId);
         const isReceived = recipe && recipe.sharingContext === 'received';
 
@@ -1339,6 +1352,10 @@ class DashboardManager {
         const deleteBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'ELIMINAR';
 
         window.showActionSnackbar(confirmMsg, deleteBtnTxt, async () => {
+            // Cierre inmediato del snackbar para evitar persistencia visual estorbando
+            const snackbar = document.getElementById('global-snackbar');
+            if (snackbar) snackbar.classList.remove('active');
+
             const result = isReceived
                 ? await window.db.deleteSharedRecipe(window.authManager.currentUser.id, recipeId)
                 : await window.db.deleteRecipe(recipeId);

@@ -3,8 +3,8 @@
  * Implementa estrategias de invalidación de caché robustas para producción.
  */
 
-const CACHE_NAME = 'recipehub-v62';
-const BUILD_ID = '2026-03-09-v62';
+const CACHE_NAME = 'recipehub-v69';
+const BUILD_ID = '2026-03-09-v69';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -27,11 +27,9 @@ const STATIC_RESOURCES = [
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined'
 ];
 
-// 1. Instalación: Pre-caché y activación inmediata
+// 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
-    // Tomar control inmediatamente sin esperar a que el usuario cierre todas las pestañas
-    self.skipWaiting();
-
+    // ELIMINADO: self.skipWaiting() para evitar recarga automática intrusiva
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
