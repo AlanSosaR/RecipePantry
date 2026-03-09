@@ -6,6 +6,8 @@ class DatabaseManager {
         this._isOnline = navigator.onLine;
         window.addEventListener('online', () => this._isOnline = true);
         window.addEventListener('offline', () => this._isOnline = false);
+        // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
+        this._deletedIds = new Set();
     }
 
     async _checkLocalDB() {
@@ -25,10 +27,7 @@ class DatabaseManager {
         if (window.localDB) {
             recipes = await window.localDB.getAll('recipes_index');
             // Si está vacío pero existe recipes (v1), intentar leer de ahí como fallback temporal
-            if (recipes.length === 0) {
-                const legacy = await window.localDB.getAll('recipes');
-                if (legacy.length > 0) recipes = legacy;
-            }
+            // Si está vacío, se esperará a la red (v67: Eliminado fallback legacy que resucitaba borrados)
         }
 
         // Aplicar filtros locales sobre el índice
@@ -79,8 +78,10 @@ class DatabaseManager {
         try {
             const result = await this._fetchRecipesFromServer(filters);
             if (result.success && !result.fromCache) {
+                // Filtrar cualquier receta que esté en el registro de borrados recientes (tombstone)
+                const filtered = result.recipes.filter(r => !this._deletedIds.has(r.id));
                 // Notificar al dashboard que el índice se ha actualizado
-                window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: result.recipes }));
+                window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: filtered }));
             }
         } catch (e) { /* silent */ }
     }
@@ -105,7 +106,7 @@ class DatabaseManager {
             if (filters.shared) url.searchParams.set('shared', 'true');
             if (filters.orderBy) url.searchParams.set('sort_by', filters.orderBy);
             if (filters.ascending !== undefined) url.searchParams.set('sort_order', filters.ascending.toString());
-            
+
             // Cache buster para evitar CDN Edge Cache antigua
             url.searchParams.set('t', Date.now());
 
@@ -144,7 +145,35 @@ class DatabaseManager {
                         senderName: senderMap[s.owner_user_id] || 'Chef'
                     };
                 }).filter(Boolean);
+
+                // LIMPIEZA CRÍTICA v69: Debemos limpiar AMBAS tablas locales
+                // Si solo limpiamos 'recipes', la tabla 'recipes_index' sigue teniendo el dato viejo y el Dashboard lo muestra.
+                if (window.localDB) {
+                    const allLocalFull = await window.localDB.getAll('recipes');
+                    for (const item of allLocalFull) {
+                        if (item.sharingContext === 'received') {
+                            await window.localDB.delete('recipes', item.id);
+                        }
+                    }
+                    const allLocalIndex = await window.localDB.getAll('recipes_index');
+                    for (const item of allLocalIndex) {
+                        if (item.sharingContext === 'received') {
+                            await window.localDB.delete('recipes_index', item.id);
+                        }
+                    }
+                }
+
+                // v70: Filtrar tombstones ANTES de guardar en IndexedDB
+                recipes = recipes.filter(r => !this._deletedIds.has(r.id));
+
                 await window.localDB.putAll('recipes', recipes);
+                // v66: Asegurar que el índice también se actualice con los nuevos datos limpios
+                const indexItems = recipes.map(r => ({
+                    id: r.id, name_es: r.name_es, name_en: r.name_en, image_url: r.image_url,
+                    updated_at: r.updated_at, category_id: r.category_id, is_favorite: r.is_favorite,
+                    sharingContext: r.sharingContext || null
+                }));
+                await window.localDB.putAll('recipes_index', indexItems);
             } else {
                 recipes = result.data;
                 const { data: sentShared } = await window.supabaseClient.from('shared_recipes').select('recipe_id, recipient_user_id').eq('owner_user_id', userId);
@@ -328,7 +357,11 @@ class DatabaseManager {
     async deleteRecipe(recipeId) {
         await this._checkLocalDB();
 
-        // 0. Limpieza agresiva de TODAS las tablas locales posibles para este ID
+        // 0. Registrar como borrado (tombstone) para bloquear background refresh
+        this._deletedIds.add(recipeId);
+        setTimeout(() => this._deletedIds.delete(recipeId), 60000); // Limpiar tras 60s
+
+        // Limpieza agresiva de TODAS las tablas locales posibles para este ID
         if (window.localDB) {
             await window.localDB.delete('recipes_index', recipeId);
             await window.localDB.delete('recipes_full', recipeId);
@@ -349,7 +382,7 @@ class DatabaseManager {
                 // Primero relaciones con restricción NO ACTION
                 await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId).eq('owner_user_id', userId);
                 await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
-                
+
                 // Luego la receta propiamente dicha
                 const { error: deleteError } = await window.supabaseClient.from('recipes').delete()
                     .eq('id', recipeId)
@@ -363,7 +396,7 @@ class DatabaseManager {
                             const cache = await caches.open(name);
                             // Borrar el detalle y CUALQUIER variante de la lista de recetas
                             await cache.delete(`/api/recipe/${recipeId}`);
-                            
+
                             const cachedRequests = await cache.keys();
                             for (const req of cachedRequests) {
                                 // Invalidar TODA la API de recetas para forzar recarga limpia
@@ -375,14 +408,12 @@ class DatabaseManager {
                     } catch (e) { console.warn('Cache clear error:', e); }
                 }
 
-                // 4. Forzar una actualización de la lista en el dashboard si existe (v60)
-                if (window.dashboard && window.dashboard.loadRecipes) {
-                    setTimeout(() => window.dashboard.loadRecipes(), 500);
-                }
+                // 4. (v65) Ya no forzamos carga desde aquí para evitar saltos de pantalla inesperados.
+                // El DashboardManager se encarga de reflejar el cambio localmente.
                 return { success: true };
-            } catch (err) { 
+            } catch (err) {
                 console.error('❌ Error en deleteRecipe:', err);
-                return { success: false, error: err.message }; 
+                return { success: false, error: err.message };
             }
         } else {
             // Modo Offline: Encolar para sincronización
@@ -554,12 +585,49 @@ class DatabaseManager {
     }
 
     async deleteSharedRecipe(userId, recipeId) {
-        if (!this._isOnline) return { success: false, error: 'Sin red para borrar enlace' };
+        // 1. Registrar como borrado (tombstone) para bloquear background refresh
+        this._deletedIds.add(recipeId);
+        setTimeout(() => this._deletedIds.delete(recipeId), 60000); // Limpiar tras 60s
+
+        // 2. Limpieza local instantánea de TODAS las tablas
+        if (window.localDB) {
+            await window.localDB.delete('recipes_index', recipeId);
+            await window.localDB.delete('recipes_full', recipeId);
+            await window.localDB.delete('recipes', recipeId);
+        }
+
+        if (!this._isOnline) return { success: true, offline: true };
+
         try {
+            // 3. Limpiar cachés del Service Worker ANTES de borrar en red
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    for (const name of cacheNames) {
+                        const cache = await caches.open(name);
+                        await cache.delete(`/api/recipe/${recipeId}`);
+                        const cachedRequests = await cache.keys();
+                        for (const req of cachedRequests) {
+                            if (req.url.includes('/api/recipes')) {
+                                await cache.delete(req);
+                            }
+                        }
+                    }
+                } catch (e) { console.warn('Cache clear error:', e); }
+            }
+
+            // 4. Borrar enlace en Supabase
             const { error } = await window.supabaseClient.from('shared_recipes').delete().eq('recipient_user_id', userId).eq('recipe_id', recipeId);
             if (error) throw error;
+
+            console.log(`✅ Receta compartida ${recipeId} eliminada de Supabase`);
             return { success: true };
-        } catch (e) { return { success: false, error: e.message }; }
+        } catch (e) {
+            // Si falla la red, revertir el tombstone inmediatamente
+            this._deletedIds.delete(recipeId);
+            console.error('❌ Error en deleteSharedRecipe:', e);
+            return { success: false, error: e.message };
+        }
     }
 }
 

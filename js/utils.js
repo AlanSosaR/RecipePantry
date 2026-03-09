@@ -158,14 +158,29 @@ window.showSnackbar = (message, duration = 4000) => {
     const messageEl = snackbar.querySelector('.message');
     if (messageEl) messageEl.textContent = message;
 
-    // Remove any previous action button
+    // Limpiar acciones previas
     const actionsEl = snackbar.querySelector('.snackbar-actions');
     if (actionsEl) actionsEl.innerHTML = '';
 
+    // Forzar reinicio de clase active para animar de nuevo si ya estaba visible
+    snackbar.classList.remove('active');
+    void snackbar.offsetWidth; // Trigger reflow
     snackbar.classList.add('active');
 
+    // Botón de cerrar (dismiss) por defecto si la duración es larga o indefinida
+    if (duration === 0 || duration > 5000) {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn-icon-m3';
+        closeBtn.style.color = 'inherit';
+        closeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">close</span>';
+        closeBtn.onclick = () => snackbar.classList.remove('active');
+        actionsEl.appendChild(closeBtn);
+    }
+
     if (duration > 0) {
-        setTimeout(() => {
+        // Limpiar cualquier timer anterior si existiera
+        if (snackbar._timeout) clearTimeout(snackbar._timeout);
+        snackbar._timeout = setTimeout(() => {
             snackbar.classList.remove('active');
         }, duration);
     }
@@ -175,25 +190,66 @@ window.showSnackbar = (message, duration = 4000) => {
  * Muestra un Snackbar con un botón de acción
  */
 window.showActionSnackbar = (message, actionText, onAction) => {
-    window.showSnackbar(message, 0); // duration 0 means it stays until action or manual close
-    const snackbar = document.getElementById('global-snackbar');
+    // Eliminar cualquier snackbar anterior del DOM para evitar residuos
+    const old = document.getElementById('global-snackbar');
+    if (old) {
+        if (old._timeout) clearTimeout(old._timeout);
+        old.remove();
+    }
+
+    // Crear snackbar fresco en el DOM
+    const snackbar = document.createElement('div');
+    snackbar.id = 'global-snackbar';
+    snackbar.className = 'snackbar-m3';
+    snackbar.innerHTML = `
+        <div class="snackbar-content">
+            <span class="material-symbols-outlined icon">info</span>
+            <span class="message"></span>
+        </div>
+        <div class="snackbar-actions"></div>
+    `;
+    document.body.appendChild(snackbar);
+
+    const messageEl = snackbar.querySelector('.message');
+    if (messageEl) messageEl.textContent = message;
+
     const actionsEl = snackbar.querySelector('.snackbar-actions');
 
+    // Función de cierre definitivo: quita clase Y elimina del DOM
+    const closeSnackbar = () => {
+        if (snackbar._timeout) clearTimeout(snackbar._timeout);
+        snackbar.classList.remove('active');
+        // Esperar la transición CSS antes de eliminar del DOM
+        setTimeout(() => {
+            if (snackbar.parentNode) snackbar.remove();
+        }, 400);
+    };
+
+    // Botón de acción principal (ELIMINAR, ACEPTAR, etc.)
     const btn = document.createElement('button');
     btn.className = 'snackbar-btn';
     btn.textContent = actionText;
-    btn.onclick = () => {
-        snackbar.classList.remove('active');
+    btn.onclick = (e) => {
+        if (e) e.preventDefault();
+        closeSnackbar();
         if (onAction) onAction();
     };
-
     actionsEl.appendChild(btn);
 
-    // Auto-close after a bit if no action taken? No, better keep it for confirmation.
-    // But let's add a close timer anyway just in case.
-    setTimeout(() => {
-        snackbar.classList.remove('active');
-    }, 10000);
+    // Botón X de cierre
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn-icon-m3';
+    closeBtn.style.color = 'inherit';
+    closeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">close</span>';
+    closeBtn.onclick = () => closeSnackbar();
+    actionsEl.appendChild(closeBtn);
+
+    // Forzar reflow y mostrar
+    void snackbar.offsetWidth;
+    snackbar.classList.add('active');
+
+    // Auto-cierre de seguridad tras 15 segundos
+    snackbar._timeout = setTimeout(() => closeSnackbar(), 15000);
 };
 
 /**
