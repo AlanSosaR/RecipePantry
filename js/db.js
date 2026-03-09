@@ -354,6 +354,91 @@ class DatabaseManager {
         }
     }
 
+    /**
+     * Duplica una receta compartida como propia del usuario destino.
+     * Copia: datos de receta + ingredientes + pasos de preparación.
+     */
+    async duplicateRecipe(sourceRecipeId, targetUserId) {
+        try {
+            // 1. Obtener la receta completa desde Supabase (con ingredientes y pasos)
+            const { data: src, error: srcErr } = await window.supabaseClient
+                .from('recipes')
+                .select(`
+                    name_es, name_en, description_es, description_en,
+                    category_id, pantry_es, pantry_en, personal_notes, tags,
+                    ingredients(name_es, name_en, quantity, unit_es, unit_en, order_index),
+                    preparation_steps(step_number, instruction_es, instruction_en)
+                `)
+                .eq('id', sourceRecipeId)
+                .single();
+
+            if (srcErr || !src) throw new Error(srcErr?.message || 'Receta no encontrada');
+
+            // 2. Insertar la nueva receta como propia
+            const { data: newRecipe, error: rcpErr } = await window.supabaseClient
+                .from('recipes')
+                .insert({
+                    user_id: targetUserId,
+                    category_id: src.category_id,
+                    name_es: src.name_es,
+                    name_en: src.name_en,
+                    description_es: src.description_es,
+                    description_en: src.description_en,
+                    pantry_es: src.pantry_es,
+                    pantry_en: src.pantry_en,
+                    personal_notes: src.personal_notes,
+                    tags: src.tags,
+                    is_active: true,
+                    is_favorite: false
+                })
+                .select('id')
+                .single();
+
+            if (rcpErr || !newRecipe) throw new Error(rcpErr?.message || 'Error al crear receta');
+
+            const newId = newRecipe.id;
+
+            // 3. Copiar ingredientes (si hay)
+            if (src.ingredients && src.ingredients.length > 0) {
+                const ingredients = src.ingredients.map(i => ({
+                    recipe_id: newId,
+                    name_es: i.name_es,
+                    name_en: i.name_en,
+                    quantity: i.quantity,
+                    unit_es: i.unit_es,
+                    unit_en: i.unit_en,
+                    order_index: i.order_index
+                }));
+                const { error: ingErr } = await window.supabaseClient.from('ingredients').insert(ingredients);
+                if (ingErr) console.warn('⚠️ Error copiando ingredientes:', ingErr.message);
+            }
+
+            // 4. Copiar pasos de preparación (si hay)
+            if (src.preparation_steps && src.preparation_steps.length > 0) {
+                const steps = src.preparation_steps.map(s => ({
+                    recipe_id: newId,
+                    step_number: s.step_number,
+                    instruction_es: s.instruction_es,
+                    instruction_en: s.instruction_en
+                }));
+                const { error: stpErr } = await window.supabaseClient.from('preparation_steps').insert(steps);
+                if (stpErr) console.warn('⚠️ Error copiando pasos:', stpErr.message);
+            }
+
+            // 5. Invalidar caché local para que la nueva receta aparezca
+            if (window.localDB) {
+                await window.localDB.delete('recipes_index', sourceRecipeId);
+            }
+
+            console.log(`✅ Receta duplicada: ${sourceRecipeId} → ${newId}`);
+            return { success: true, newRecipeId: newId };
+
+        } catch (e) {
+            console.error('❌ duplicateRecipe error:', e);
+            return { success: false, error: e.message };
+        }
+    }
+
     async deleteRecipe(recipeId) {
         await this._checkLocalDB();
 

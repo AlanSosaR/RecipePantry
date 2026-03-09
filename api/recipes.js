@@ -59,11 +59,12 @@ export default async function handler(req, res) {
                     return res.status(400).json({ success: false, error: 'User ID is required' });
                 }
 
-                    // Optimization: Select only index fields for shared recipes too (v62)
+                // Optimization: Select only index fields for shared recipes too (v62)
                 let { data, error } = await supabase
                     .from('shared_recipes')
                     .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, category_id, is_favorite, is_active, category:categories(id, name_es, name_en, icon, color))')
-                    .eq('recipient_user_id', userId);
+                    .eq('recipient_user_id', userId)
+                    .eq('status', 'accepted');
 
                 if (error) throw error;
 
