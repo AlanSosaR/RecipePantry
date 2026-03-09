@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '56';
+const APP_VERSION_ID = '61';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -55,7 +55,7 @@ async function notifyUpdateReady(worker) {
             setTimeout(tryAddNotification, 500);
         } else {
             console.warn('Update ready, but notificationManager failed to load in time.');
-            worker.postMessage({ type: 'SKIP_WAITING' });
+            // Autostart removed in v61 to honor user interaction
         }
     };
 

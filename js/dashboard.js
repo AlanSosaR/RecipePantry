@@ -1300,11 +1300,11 @@ class DashboardManager {
         if (left < 0) left = 8;
 
         if (window.innerWidth < 600) {
-            // MOBILE: Bottom Sheet Style (v60)
+            // MOBILE: Center Sheet Style (v60+)
             menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.bottom = '20px';
-            menu.style.left = '5%;';
+            menu.style.bottom = '15%'; // Subir un poco más del borde
+            menu.style.left = '5%';
             menu.style.width = '90%';
             menu.style.top = 'auto';
             menu.style.transform = 'none';
