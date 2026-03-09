@@ -328,47 +328,61 @@ class DatabaseManager {
     async deleteRecipe(recipeId) {
         await this._checkLocalDB();
 
-        // 0. Obtener info de la receta para saber el contexto de compartición
-        const cachedMeta = await window.localDB.get('recipes_index', recipeId);
-        const isReceived = cachedMeta && cachedMeta.sharingContext === 'received';
-
-        await window.localDB.delete('recipes_index', recipeId);
-        await window.localDB.delete('recipes_full', recipeId);
+        // 0. Limpieza agresiva de TODAS las tablas locales posibles para este ID
+        if (window.localDB) {
+            await window.localDB.delete('recipes_index', recipeId);
+            await window.localDB.delete('recipes_full', recipeId);
+            await window.localDB.delete('recipes', recipeId); // Legacy fallback
+        }
 
         if (this._isOnline) {
             try {
                 const userId = window.authManager.currentUser?.id;
 
-                if (isReceived) {
-                    // Si es compartida, solo eliminar el vínculo de recepción
-                    console.log(`🤝 Eliminando vínculo de receta compartida: ${recipeId}`);
-                    await this.deleteSharedRecipe(userId, recipeId);
-                } else {
-                    // Si es propia, eliminación completa
-                    console.log(`🗑️ Eliminando receta propia (Hard Delete): ${recipeId}`);
-                    // 1. Eliminar relaciones que tienen restricción NO ACTION en BD
-                    await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId);
-                    await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
-                    
-                    // 2. Hard Delete de la receta (esto elimina ingredientes, pasos y notificaciones en cascada)
-                    const { error } = await window.supabaseClient.from('recipes').delete().eq('id', recipeId).eq('user_id', userId);
-                    if (error) throw error;
-                }
+                // Intentar eliminar de ambas tablas para asegurar persistencia (redundancia de seguridad)
+                // 1. Si soy receptor de una compartida, elimino el vínculo
+                await window.supabaseClient.from('shared_recipes').delete()
+                    .eq('recipe_id', recipeId)
+                    .eq('recipient_user_id', userId);
+
+                // 2. Si soy el dueño, elimino la receta (hard delete)
+                // Primero relaciones con restricción NO ACTION
+                await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId).eq('owner_user_id', userId);
+                await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
                 
+                // Luego la receta propiamente dicha
+                const { error: deleteError } = await window.supabaseClient.from('recipes').delete()
+                    .eq('id', recipeId)
+                    .eq('user_id', userId);
+
                 // 3. Limpiar cachés del Service Worker para evitar reaparición offline/fantasma
                 if ('caches' in window) {
                     try {
                         const cacheNames = await caches.keys();
                         for (const name of cacheNames) {
                             const cache = await caches.open(name);
+                            // Borrar el detalle
                             await cache.delete(`/api/recipe/${recipeId}`);
+                            
+                            // 4. Intentar invalidar listados cacheados que podrían contener la receta
+                            const cachedRequests = await cache.keys();
+                            for (const req of cachedRequests) {
+                                if (req.url.includes('/api/recipes')) {
+                                    await cache.delete(req);
+                                    console.log('🗑️ Cache de listado API eliminada');
+                                }
+                            }
                         }
                     } catch(e) { console.warn("Cache SW delete issue", e); }
                 }
 
                 return { success: true };
-            } catch (err) { return { success: false, error: err.message }; }
+            } catch (err) { 
+                console.error('❌ Error en deleteRecipe:', err);
+                return { success: false, error: err.message }; 
+            }
         } else {
+            // Modo Offline: Encolar para sincronización
             await window.localDB.enqueueSync('delete', 'recipes', { id: recipeId }, recipeId);
             return { success: true, offline: true };
         }
