@@ -1300,14 +1300,16 @@ class DashboardManager {
         if (left < 0) left = 8;
 
         if (window.innerWidth < 600) {
-            // CENTERED ON MOBILE
-            menu.style.top = '50%';
-            menu.style.left = '50%';
-            menu.style.transform = 'translate(-50%, -50%)';
+            // MOBILE: Bottom Sheet Style (v60)
+            menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.zIndex = '3000';
+            menu.style.bottom = '20px';
+            menu.style.left = '5%;';
             menu.style.width = '90%';
-            menu.style.maxWidth = '320px';
+            menu.style.top = 'auto';
+            menu.style.transform = 'none';
+            menu.style.borderRadius = '24px';
+            menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
         } else {
             menu.style.top = `${top}px`;
             menu.style.left = `${left}px`;

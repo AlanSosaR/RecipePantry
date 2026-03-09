@@ -361,21 +361,24 @@ class DatabaseManager {
                         const cacheNames = await caches.keys();
                         for (const name of cacheNames) {
                             const cache = await caches.open(name);
-                            // Borrar el detalle
+                            // Borrar el detalle y CUALQUIER variante de la lista de recetas
                             await cache.delete(`/api/recipe/${recipeId}`);
                             
-                            // 4. Intentar invalidar listados cacheados que podrían contener la receta
                             const cachedRequests = await cache.keys();
                             for (const req of cachedRequests) {
+                                // Invalidar TODA la API de recetas para forzar recarga limpia
                                 if (req.url.includes('/api/recipes')) {
                                     await cache.delete(req);
-                                    console.log('🗑️ Cache de listado API eliminada');
                                 }
                             }
                         }
-                    } catch(e) { console.warn("Cache SW delete issue", e); }
+                    } catch (e) { console.warn('Cache clear error:', e); }
                 }
 
+                // 4. Forzar una actualización de la lista en el dashboard si existe (v60)
+                if (window.dashboard && window.dashboard.loadRecipes) {
+                    setTimeout(() => window.dashboard.loadRecipes(), 500);
+                }
                 return { success: true };
             } catch (err) { 
                 console.error('❌ Error en deleteRecipe:', err);
