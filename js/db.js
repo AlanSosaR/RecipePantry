@@ -327,19 +327,33 @@ class DatabaseManager {
 
     async deleteRecipe(recipeId) {
         await this._checkLocalDB();
+
+        // 0. Obtener info de la receta para saber el contexto de compartición
+        const cachedMeta = await window.localDB.get('recipes_index', recipeId);
+        const isReceived = cachedMeta && cachedMeta.sharingContext === 'received';
+
         await window.localDB.delete('recipes_index', recipeId);
         await window.localDB.delete('recipes_full', recipeId);
+
         if (this._isOnline) {
             try {
                 const userId = window.authManager.currentUser?.id;
-                
-                // 1. Eliminar relaciones que tienen restricción NO ACTION en BD
-                await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId);
-                await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
-                
-                // 2. Hard Delete de la receta (esto elimina ingredientes, pasos y notificaciones en cascada)
-                const { error } = await window.supabaseClient.from('recipes').delete().eq('id', recipeId).eq('user_id', userId);
-                if (error) throw error;
+
+                if (isReceived) {
+                    // Si es compartida, solo eliminar el vínculo de recepción
+                    console.log(`🤝 Eliminando vínculo de receta compartida: ${recipeId}`);
+                    await this.deleteSharedRecipe(userId, recipeId);
+                } else {
+                    // Si es propia, eliminación completa
+                    console.log(`🗑️ Eliminando receta propia (Hard Delete): ${recipeId}`);
+                    // 1. Eliminar relaciones que tienen restricción NO ACTION en BD
+                    await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId);
+                    await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
+                    
+                    // 2. Hard Delete de la receta (esto elimina ingredientes, pasos y notificaciones en cascada)
+                    const { error } = await window.supabaseClient.from('recipes').delete().eq('id', recipeId).eq('user_id', userId);
+                    if (error) throw error;
+                }
                 
                 // 3. Limpiar cachés del Service Worker para evitar reaparición offline/fantasma
                 if ('caches' in window) {
@@ -348,7 +362,6 @@ class DatabaseManager {
                         for (const name of cacheNames) {
                             const cache = await caches.open(name);
                             await cache.delete(`/api/recipe/${recipeId}`);
-                            // Opcional: intentar limpiar posibles caches de listado para el offline, aunque ya tengamos cache busting "t="
                         }
                     } catch(e) { console.warn("Cache SW delete issue", e); }
                 }

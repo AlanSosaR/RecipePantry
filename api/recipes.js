@@ -44,7 +44,7 @@ export default async function handler(req, res) {
             shared,
             sort_by: sortBy = 'created_at',
             sort_order: sortOrder = 'desc',
-            limit = '50',
+            limit = '1000',
             offset = '0'
         } = req.query;
 
