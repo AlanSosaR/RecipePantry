@@ -50,10 +50,10 @@
             border-color: rgba(239, 68, 68, 0.2);
         }
         .toast-info .material-symbols-outlined {
-            color: #6B7280;
+            color: #10B981;
         }
         .toast-info {
-            color: #374151;
+            color: #10B981;
         }
         .toast-message {
             flex: 1;
@@ -263,10 +263,13 @@ window.utils.formatQuantity = (value) => {
     const num = parseFloat(value);
     if (isNaN(num)) return value;
 
-    // Si es entero, devolver tal cual
-    if (Number.isInteger(num)) return num.toString();
+    // Si es entero, devolver tal cual/**
+ * RecipeHub Service Worker(v77)
+        * Soporte Offline Total + Sync Background
+            */
 
-    const epsilon = 0.01;
+    const CACHE_NAME = 'recipehub-v77';
+    const BUILD_ID = '2026-03-09-v77';
     const commonFractions = [
         { dec: 0.25, frac: '1/4' },
         { dec: 0.5, frac: '1/2' },

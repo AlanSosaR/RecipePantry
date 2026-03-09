@@ -5,8 +5,10 @@
 /* ─── Notifications System ─── */
 .notifications-wrapper {
     position: relative;
-    flex-shrink: 0; /* Ensures it doesn't shrink on smaller screens */
-    margin-left: 12px; /* Add margin to separate from search bar */
+    flex-shrink: 0;
+    /* Ensures it doesn't shrink on smaller screens */
+    margin-left: 12px;
+    /* Add margin to separate from search bar */
 }
 
 .notifications-wrapper .btn-icon-m3 {
@@ -99,7 +101,7 @@
 .notification-avatar {
     width: 38px;
     height: 38px;
-    background: #00A676;
+    background: #10B981;
     color: #ffffff;
     border-radius: 50%;
     display: flex;
@@ -125,7 +127,7 @@
 }
 
 .notification-recipe-name {
-    color: #00A676;
+    color: #10B981;
     font-size: 13px;
     font-weight: 700;
 }
@@ -178,7 +180,7 @@
 }
 
 .btn-copy-recipe {
-    background: #00A676;
+    background: #10B981;
     color: white;
     border: none;
     padding: 10px 20px;
