@@ -266,13 +266,24 @@ class NotificationManager {
                 .eq('recipient_user_id', user.id);
 
             // 4. Marcar notificación como leída
-            await window.supabaseClient
+            const { error: notifError } = await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
                 .eq('id', notificationId);
 
-            // 4. Remove from local list and update UI
+            if (notifError) console.warn('Could not mark notification as read:', notifError);
+
+            // 5. Remove from local list and update UI
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.render();
+
+            window.utils.showToast(window.i18n ? window.i18n.t('recipeAccepted') : '¡Receta guardada!', 'success');
+
+            // 6. NAVEGACIÓN AUTOMÁTICA a "Mis Recetas"
+            if (window.dashboardManager) {
+                window.dashboardManager.switchView('recipes');
+            }
             this.updateBadge();
             this.renderMenu();
 
