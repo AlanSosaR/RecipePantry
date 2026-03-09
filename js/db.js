@@ -105,6 +105,9 @@ class DatabaseManager {
             if (filters.shared) url.searchParams.set('shared', 'true');
             if (filters.orderBy) url.searchParams.set('sort_by', filters.orderBy);
             if (filters.ascending !== undefined) url.searchParams.set('sort_order', filters.ascending.toString());
+            
+            // Cache buster para evitar CDN Edge Cache antigua
+            url.searchParams.set('t', Date.now());
 
             const headers = { 'Content-Type': 'application/json' };
             const { data: sessionData } = await window.supabaseClient.auth.getSession();
@@ -329,9 +332,27 @@ class DatabaseManager {
         if (this._isOnline) {
             try {
                 const userId = window.authManager.currentUser?.id;
-                await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId).eq('recipient_user_id', userId);
-                const { error } = await window.supabaseClient.from('recipes').update({ is_active: false }).eq('id', recipeId).eq('user_id', userId);
+                
+                // 1. Eliminar relaciones que tienen restricción NO ACTION en BD
+                await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId);
+                await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
+                
+                // 2. Hard Delete de la receta (esto elimina ingredientes, pasos y notificaciones en cascada)
+                const { error } = await window.supabaseClient.from('recipes').delete().eq('id', recipeId).eq('user_id', userId);
                 if (error) throw error;
+                
+                // 3. Limpiar cachés del Service Worker para evitar reaparición offline/fantasma
+                if ('caches' in window) {
+                    try {
+                        const cacheNames = await caches.keys();
+                        for (const name of cacheNames) {
+                            const cache = await caches.open(name);
+                            await cache.delete(`/api/recipe/${recipeId}`);
+                            // Opcional: intentar limpiar posibles caches de listado para el offline, aunque ya tengamos cache busting "t="
+                        }
+                    } catch(e) { console.warn("Cache SW delete issue", e); }
+                }
+
                 return { success: true };
             } catch (err) { return { success: false, error: err.message }; }
         } else {
