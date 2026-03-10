@@ -3839,18 +3839,25 @@ select.input-field {
 
 .sidebar-user-profile {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 16px;
-    padding: 16px 32px;
-    margin: 8px 16px;
-    border-radius: 16px;
-    background: var(--primary-light);
+    padding: 32px 16px;
+    margin: 12px 16px 24px 16px;
+    border-radius: 24px;
+    background: transparent;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.sidebar-user-profile:hover {
+    background: rgba(16, 185, 129, 0.03);
 }
 
 .user-avatar-m3 {
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
     /* Expressive M3 Shape */
     background: var(--primary);
     color: white;
@@ -3858,17 +3865,36 @@ select.input-field {
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 24px;
+    font-size: 20px;
     box-shadow:
         0 4px 12px rgba(16, 185, 129, 0.25),
-        0 0 0 4px white,
-        0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        0 0 0 3px white,
+        0 8px 16px -4px rgba(0, 0, 0, 0.15);
     /* Elevated look */
-    transition: transform 0.3s var(--m3-easing);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+}
+
+.sidebar-user-profile .user-avatar-m3 {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    font-size: 36px;
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.12),
+        0 0 0 4px var(--bg),
+        0 0 0 6px rgba(16, 185, 129, 0.15);
 }
 
 .user-avatar-m3:hover {
     transform: scale(1.05) rotate(2deg);
+}
+
+.sidebar-user-profile:hover .user-avatar-m3 {
+    transform: scale(1.08);
+    box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.18),
+        0 0 0 4px var(--bg),
+        0 0 0 6px rgba(16, 185, 129, 0.25);
 }
 
 .user-info-m3 {
@@ -3877,9 +3903,9 @@ select.input-field {
 }
 
 .user-greeting {
+    font-size: 1.25rem;
     font-weight: 800;
     color: var(--on-surface);
-    font-size: 16px;
     letter-spacing: -0.2px;
 }
 

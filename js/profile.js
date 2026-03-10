@@ -110,9 +110,9 @@ class ProfileManager {
         try {
             window.utils.showToast(window.i18n?.t('uploadingAvatar') || 'Subiendo foto...', 'info');
             
-            // Reemplazar la anterior usando un nombre fijo (userId)
+            // Reemplazar la anterior usando un nombre fijo (auth_user_id que coincide con RLS)
             const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}.${fileExt}`;
+            const fileName = `${user.auth_user_id}.${fileExt}`;
             
             const { error: uploadError } = await window.supabaseClient.storage
                 .from('avatars')
