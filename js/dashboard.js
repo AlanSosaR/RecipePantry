@@ -1475,7 +1475,8 @@ class DashboardManager {
 
         try {
             // Nuevo: Verificar si el nombre ya existe antes de intentar duplicar
-            const exists = await window.db.recipeNameExists(recipeName);
+            // IMPORTANTE: Al mover de compartidas a mis recetas, solo bloqueamos si ya existe en MIS RECETAS
+            const exists = await window.db.recipeNameExists(recipeName, { includeShared: false });
             if (exists) {
                 const errorMsg = window.i18n 
                     ? window.i18n.t('recipeNameAlreadyExists') 

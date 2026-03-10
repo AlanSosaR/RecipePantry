@@ -210,18 +210,21 @@ class DatabaseManager {
         }
     }
 
-    async recipeNameExists(name) {
+    async recipeNameExists(name, options = { includeShared: true }) {
         if (!name) return false;
         await this._checkLocalDB();
+        const includeShared = options.includeShared !== false;
 
         // 1. Buscar en caché local (recipes_index)
         const recipes = await window.localDB.getAll('recipes_index');
-        // El usuario pide que si el nombre ya existe tanto en compartidas como en mis recetas, NO se acepte.
-        // Por lo tanto, no filtramos por sharingContext.
-        const existsLocally = recipes.some(r =>
-            (r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
-            (r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim())
-        );
+        
+        const existsLocally = recipes.some(r => {
+            // Si includeShared es falso, ignoramos las que son 'received'
+            if (!includeShared && r.sharingContext === 'received') return false;
+            
+            return (r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
+                   (r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim());
+        });
 
         if (existsLocally) return true;
 
@@ -230,35 +233,39 @@ class DatabaseManager {
             try {
                 const userId = window.authManager.currentUser?.id;
                 
-                // Verificar en mis recetas
+                // Siempre verificar en mis recetas
                 const { data: mine, error: errorMine } = await window.supabaseClient
                     .from('recipes')
                     .select('id')
                     .eq('user_id', userId)
-                    .or(`name_es.ilike.${name},name_en.ilike.${name}`)
+                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`)
                     .limit(1);
 
                 if (errorMine) throw errorMine;
                 if (mine && mine.length > 0) return true;
 
-                // Verificar en compartidas (que no han sido copiadas aún)
-                const { data: shared, error: errorShared } = await window.supabaseClient
-                    .from('shared_recipes')
-                    .select('id, recipe:recipes(name_es, name_en)')
-                    .eq('recipient_user_id', userId)
-                    .eq('status', 'accepted')
-                    .eq('copied', false);
+                // Solo verificar en compartidas si se solicita
+                if (includeShared) {
+                    const { data: shared, error: errorShared } = await window.supabaseClient
+                        .from('shared_recipes')
+                        .select('id, recipe:recipes(name_es, name_en)')
+                        .eq('recipient_user_id', userId)
+                        .eq('status', 'accepted')
+                        .eq('copied', false);
 
-                if (errorShared) throw errorShared;
+                    if (errorShared) throw errorShared;
+                    
+                    const existsInShared = shared?.some(s => 
+                        (s.recipe?.name_es && s.recipe.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
+                        (s.recipe?.name_en && s.recipe.name_en.toLowerCase().trim() === name.toLowerCase().trim())
+                    );
+                    if (existsInShared) return true;
+                }
                 
-                const existsInShared = shared?.some(s => 
-                    (s.recipe?.name_es && s.recipe.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
-                    (s.recipe?.name_en && s.recipe.name_en.toLowerCase().trim() === name.toLowerCase().trim())
-                );
-
-                return !!existsInShared;
+                return false;
             } catch (err) {
-                console.error('Error verificando nombre en servidor:', err);
+                console.warn('⚠️ Error en recipeNameExists server check:', err);
+                return false;
             }
         }
 
@@ -408,7 +415,7 @@ class DatabaseManager {
 
             // 2. Verificar si el nombre ya existe en la colección del usuario (Nuevo requisito)
             const recipeName = (window.i18n && window.i18n.getLang() === 'en') ? (recipe.name_en || recipe.name_es) : recipe.name_es;
-            const exists = await this.recipeNameExists(recipeName);
+            const exists = await this.recipeNameExists(recipeName, { includeShared: false });
             if (exists) {
                 return { success: false, error: `Ya existe una receta con el nombre "${recipeName}" en tu colección.` };
             }
