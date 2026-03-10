@@ -216,28 +216,47 @@ class DatabaseManager {
 
         // 1. Buscar en caché local (recipes_index)
         const recipes = await window.localDB.getAll('recipes_index');
-        // Filtrar solo recetas propias (no las recibidas en Compartidas)
-        const internalRecipes = recipes.filter(r => r.sharingContext !== 'received');
-        const existsLocally = internalRecipes.some(r =>
+        // El usuario pide que si el nombre ya existe tanto en compartidas como en mis recetas, NO se acepte.
+        // Por lo tanto, no filtramos por sharingContext.
+        const existsLocally = recipes.some(r =>
             (r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
             (r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim())
         );
 
         if (existsLocally) return true;
 
-        // 2. Si no está en caché y estamos online, verificar con el servidor para estar 100% seguros
+        // 2. Si no está en caché y estamos online, verificar con el servidor
         if (this._isOnline) {
             try {
                 const userId = window.authManager.currentUser?.id;
-                const { data, error } = await window.supabaseClient
+                
+                // Verificar en mis recetas
+                const { data: mine, error: errorMine } = await window.supabaseClient
                     .from('recipes')
                     .select('id')
                     .eq('user_id', userId)
                     .or(`name_es.ilike.${name},name_en.ilike.${name}`)
                     .limit(1);
 
-                if (error) throw error;
-                return data && data.length > 0;
+                if (errorMine) throw errorMine;
+                if (mine && mine.length > 0) return true;
+
+                // Verificar en compartidas (que no han sido copiadas aún)
+                const { data: shared, error: errorShared } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .select('id, recipe:recipes(name_es, name_en)')
+                    .eq('recipient_user_id', userId)
+                    .eq('status', 'accepted')
+                    .eq('copied', false);
+
+                if (errorShared) throw errorShared;
+                
+                const existsInShared = shared?.some(s => 
+                    (s.recipe?.name_es && s.recipe.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
+                    (s.recipe?.name_en && s.recipe.name_en.toLowerCase().trim() === name.toLowerCase().trim())
+                );
+
+                return !!existsInShared;
             } catch (err) {
                 console.error('Error verificando nombre en servidor:', err);
             }
@@ -434,7 +453,19 @@ class DatabaseManager {
                 if (stpErr) console.warn('⚠️ Error copiando pasos:', stpErr.message);
             }
 
-            // 5. Cachear localmente la nueva receta y limpiar rastro de la vieja
+            // 5. Marcar la receta compartida como COPIADA para que desaparezca de "Compartidas"
+            const { error: copyErr } = await window.supabaseClient
+                .from('shared_recipes')
+                .update({ 
+                    copied: true, 
+                    copied_at: new Date().toISOString() 
+                })
+                .eq('recipe_id', sourceRecipeId)
+                .eq('recipient_user_id', targetUserId);
+            
+            if (copyErr) console.warn('⚠️ Error marcando como copiada:', copyErr.message);
+
+            // 6. Cachear localmente la nueva receta y limpiar rastro de la vieja
             if (window.localDB) {
                 await window.localDB.delete('recipes_index', sourceRecipeId);
                 const completelyDuplicatedRecipe = { ...newRecipeData, sharingContext: null, ingredients: recipe.ingredients, preparation_steps: steps };

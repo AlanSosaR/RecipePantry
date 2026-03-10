@@ -312,6 +312,29 @@ class RecipeFormManager {
             }
             if (nameGroup) nameGroup.classList.remove('has-error');
 
+            // 1.1) Validar nombre único (Nuevo requisito)
+            const nameExists = await window.db.recipeNameExists(recipeName);
+            if (nameExists) {
+                // Verificar si es la misma receta que estamos editando
+                let isSameRecipe = false;
+                if (this.isEditing && this.recipeId) {
+                    const existing = await window.db.getRecipeById(this.recipeId);
+                    if (existing && (existing.name_es === recipeName || existing.name_en === recipeName)) {
+                        isSameRecipe = true;
+                    }
+                }
+                
+                if (!isSameRecipe) {
+                    const errorMsg = window.i18n 
+                        ? window.i18n.t('recipeNameAlreadyExists') 
+                        : `Ya existe una receta con el nombre "${recipeName}" en tus recetas o compartidas.`;
+                    window.utils.showToast(errorMsg, 'error');
+                    if (nameGroup) nameGroup.classList.add('has-error');
+                    form.name.focus();
+                    return;
+                }
+            }
+
             // 2) Primer ingrediente vacío
             const initialIngredientItems = document.querySelectorAll('#ingredientsList .group');
             if (initialIngredientItems.length === 0) {

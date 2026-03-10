@@ -1408,6 +1408,17 @@ class DashboardManager {
             input.replaceWith(spanOrH4);
 
             if (newName !== original) {
+                // Nuevo: Verificar unicidad de nombre
+                const exists = await window.db.recipeNameExists(newName);
+                if (exists) {
+                    const errorMsg = window.i18n 
+                        ? window.i18n.t('recipeNameAlreadyExists') 
+                        : `Ya existe una receta con el nombre "${newName}".`;
+                    window.utils.showToast(errorMsg, 'error');
+                    spanOrH4.textContent = original; // Revertir visualmente
+                    return;
+                }
+
                 const result = await window.db.updateRecipe(recipeId, { name_es: newName });
                 if (result.success) {
                     recipe.name_es = newName;
