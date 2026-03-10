@@ -292,7 +292,7 @@
             // ── Selection (v19.4.0) ──────────────────────────────────────
             oneItemSelected: '1 receta',
             itemsSelected: '{count} recetas',
-            recipeNameAlreadyExists: 'El nombre de esta receta ya existe en tu colección o compartidas',
+            recipeNameAlreadyExists: '"{name}" ya existe en tus recetas, cámbialo para que puedas agregarla',
         },
 
         en: {
@@ -577,7 +577,7 @@
             // ── Selection (v19.4.0) ──────────────────────────────────────
             oneItemSelected: '1 recipe',
             itemsSelected: '{count} recipes',
-            recipeNameAlreadyExists: 'This recipe name already exists in your collection or shared recipes',
+            recipeNameAlreadyExists: '"{name}" already exists in your recipes, change it so you can add it',
         }
     };
 

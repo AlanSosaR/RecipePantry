@@ -1412,8 +1412,8 @@ class DashboardManager {
                 const exists = await window.db.recipeNameExists(newName);
                 if (exists) {
                     const errorMsg = window.i18n 
-                        ? window.i18n.t('recipeNameAlreadyExists') 
-                        : `Ya existe una receta con el nombre "${newName}".`;
+                        ? window.i18n.t('recipeNameAlreadyExists', { name: newName }) 
+                        : `"${newName}" ya existe en tus recetas, cámbialo para que puedas agregarla.`;
                     window.utils.showToast(errorMsg, 'error');
                     spanOrH4.textContent = original; // Revertir visualmente
                     return;
@@ -1479,8 +1479,8 @@ class DashboardManager {
             const exists = await window.db.recipeNameExists(recipeName, { includeShared: false });
             if (exists) {
                 const errorMsg = window.i18n 
-                    ? window.i18n.t('recipeNameAlreadyExists') 
-                    : `Ya existe una receta con el nombre "${recipeName}" en tu colección.`;
+                    ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
+                    : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas agregarla.`;
                 window.utils.showToast(errorMsg, 'error');
                 return;
             }

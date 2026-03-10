@@ -326,8 +326,8 @@ class RecipeFormManager {
                 
                 if (!isSameRecipe) {
                     const errorMsg = window.i18n 
-                        ? window.i18n.t('recipeNameAlreadyExists') 
-                        : `Ya existe una receta con el nombre "${recipeName}" en tus recetas o compartidas.`;
+                        ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
+                        : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas agregarla.`;
                     window.utils.showToast(errorMsg, 'error');
                     if (nameGroup) nameGroup.classList.add('has-error');
                     form.name.focus();
