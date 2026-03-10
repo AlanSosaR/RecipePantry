@@ -32,6 +32,13 @@ class ProfileManager {
             this.btnSave.onclick = (e) => this.handleSave(e);
         }
 
+        const avatarContainer = document.getElementById('profile-hero-avatar');
+        const avatarInput = document.getElementById('avatar-upload-input');
+        if (avatarContainer && avatarInput) {
+            avatarContainer.addEventListener('click', () => avatarInput.click());
+            avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
+        }
+
         // 4. Traducciones iniciales
         if (window.i18n) {
             window.i18n.applyLanguage(window.i18n.getLang());
@@ -53,17 +60,89 @@ class ProfileManager {
     }
 
     updateProfileVisuals(user) {
-        // Actualizar iniciales en el avatar del perfil
+        // Actualizar avatar grande del perfil
         const initialsEl = document.getElementById('avatar-initials');
+        const imgEl = document.getElementById('avatar-img');
 
-        if (initialsEl) {
-            const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
-            initialsEl.textContent = initials;
+        if (user.avatar_url) {
+            if (imgEl) {
+                imgEl.src = user.avatar_url;
+                imgEl.style.display = 'block';
+                imgEl.style.opacity = '1';
+            }
+            if (initialsEl) initialsEl.style.display = 'none';
+        } else {
+            if (imgEl) imgEl.style.display = 'none';
+            if (initialsEl) {
+                const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
+                initialsEl.textContent = initials;
+                initialsEl.style.display = 'block';
+            }
         }
 
         // Sincronizar con el sidebar si está presente
         if (window.updateGlobalUserUI) {
             window.updateGlobalUserUI();
+        }
+    }
+
+    async handleAvatarUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const user = window.authManager.currentUser;
+        if (!user) return;
+
+        // Limpiar input para permitir seleccionar la misma imagen si hubo error
+        e.target.value = '';
+
+        // Previsualización inmediata
+        const avatarImg = document.getElementById('avatar-img');
+        const initialsEl = document.getElementById('avatar-initials');
+        
+        if (avatarImg) {
+            avatarImg.src = URL.createObjectURL(file);
+            avatarImg.style.display = 'block';
+            avatarImg.style.opacity = '0.5'; // Dimming while uploading
+            if (initialsEl) initialsEl.style.display = 'none';
+        }
+
+        try {
+            window.utils.showToast(window.i18n?.t('uploadingAvatar') || 'Subiendo foto...', 'info');
+            
+            // Reemplazar la anterior usando un nombre fijo (userId)
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}.${fileExt}`;
+            
+            const { error: uploadError } = await window.supabaseClient.storage
+                .from('avatars')
+                .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+            if (uploadError) throw uploadError;
+            
+            // Obtener URL pública
+            const { data: { publicUrl } } = window.supabaseClient.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+                
+            // Evitar caché del navegador adjuntando la hora
+            const urlWithCacheBuster = `${publicUrl}?t=${new Date().getTime()}`;
+                
+            // Actualizar el perfil del usuario
+            const res = await window.authManager.updateProfile({
+                avatar_url: urlWithCacheBuster
+            });
+            
+            if (!res.success) throw new Error(res.error);
+            
+            window.utils.showToast(window.i18n?.t('avatarUpdated') || 'Foto de perfil actualizada', 'success');
+            this.updateProfileVisuals(window.authManager.currentUser);
+            
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            window.utils.showToast(window.i18n?.t('errorUploadingAvatar') || 'Error al subir la foto', 'error');
+            // Revertir UI
+            this.updateProfileVisuals(user); 
         }
     }
 

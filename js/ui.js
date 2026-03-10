@@ -64,11 +64,27 @@ window.updateGlobalUserUI = function () {
         sidebarGreeting.textContent = `${prefix} ${user.first_name || ''}`;
     }
 
-    // Update initials in all avatar circles (sidebar and header)
-    const initialsElements = document.querySelectorAll('.user-initials-m3');
+    // Update initials or image in all avatar circles (sidebar and header)
+    const avatarContainers = document.querySelectorAll('.user-avatar-m3');
     const initials = (user.first_name?.[0] || 'C') + (user.last_name?.[0] || 'H');
-    initialsElements.forEach(el => {
-        el.textContent = initials.toUpperCase();
+    
+    avatarContainers.forEach(container => {
+        const initialsSpan = container.querySelector('.user-initials-m3');
+        
+        if (user.avatar_url) {
+            // Apply background image and hide initials
+            container.style.backgroundImage = `url(${user.avatar_url})`;
+            container.style.backgroundSize = 'cover';
+            container.style.backgroundPosition = 'center';
+            if (initialsSpan) initialsSpan.style.display = 'none';
+        } else {
+            // Remove background image and show initials
+            container.style.backgroundImage = 'none';
+            if (initialsSpan) {
+                initialsSpan.textContent = initials.toUpperCase();
+                initialsSpan.style.display = 'block';
+            }
+        }
     });
 
     // Make sidebar profile clickable
