@@ -35,8 +35,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=94">
-    <link rel="stylesheet" href="css/components.css?v=94">
+    <link rel="stylesheet" href="css/styles.css?v=95">
+    <link rel="stylesheet" href="css/components.css?v=95">
 
     <style>
         body {
@@ -132,28 +132,6 @@
             object-fit: cover;
             border-radius: 50%;
             display: none;
-        }
-
-        .camera-badge {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 36px;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.85;
-            transition: opacity 0.2s, height 0.2s;
-        }
-        
-        .avatar-large:hover .camera-badge {
-            opacity: 1;
-            height: 40px;
         }
 
         .m3-field-container {
@@ -383,9 +361,7 @@
                     <div id="profile-hero-avatar" class="avatar-large" title="Cambiar foto de perfil">
                         <span id="avatar-initials">..</span>
                         <img id="avatar-img" src="" alt="Profile Picture" />
-                        <div class="camera-badge">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">photo_camera</span>
-                        </div>
+
                         <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;">
                     </div>
                 </div>
@@ -471,13 +447,13 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=94"></script>
-    <script src="js/supabase-client.js?v=94"></script>
-    <script src="js/auth.js?v=94"></script>
-    <script src="js/utils.js?v=94"></script>
-    <script src="js/i18n.js?v=94"></script>
-    <script src="js/ui.js?v=94"></script>
-    <script src="js/profile.js?v=94"></script>
+    <script src="js/config.js?v=95"></script>
+    <script src="js/supabase-client.js?v=95"></script>
+    <script src="js/auth.js?v=95"></script>
+    <script src="js/utils.js?v=95"></script>
+    <script src="js/i18n.js?v=95"></script>
+    <script src="js/ui.js?v=95"></script>
+    <script src="js/profile.js?v=95"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
