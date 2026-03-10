@@ -35,8 +35,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=93">
-    <link rel="stylesheet" href="css/components.css?v=93">
+    <link rel="stylesheet" href="css/styles.css?v=94">
+    <link rel="stylesheet" href="css/components.css?v=94">
 
     <style>
         body {
@@ -103,50 +103,57 @@
         }
 
         .avatar-large {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             background: var(--primary-light);
             color: var(--secondary);
-            border-radius: 28px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 42px;
             font-weight: 800;
             margin-bottom: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 0 0 4px var(--bg);
             position: relative;
             cursor: pointer;
             overflow: hidden;
-            transition: opacity 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         .avatar-large:hover {
-            opacity: 0.9;
+            transform: scale(1.02);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), 0 0 0 4px var(--bg);
         }
 
         .avatar-large img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 28px;
+            border-radius: 50%;
             display: none;
         }
 
         .camera-badge {
             position: absolute;
-            bottom: -8px;
-            right: -8px;
-            width: 36px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             height: 36px;
-            background: var(--primary);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             color: white;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid var(--bg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            opacity: 0.85;
+            transition: opacity 0.2s, height 0.2s;
+        }
+        
+        .avatar-large:hover .camera-badge {
+            opacity: 1;
+            height: 40px;
         }
 
         .m3-field-container {
@@ -464,13 +471,13 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=93"></script>
-    <script src="js/supabase-client.js?v=93"></script>
-    <script src="js/auth.js?v=93"></script>
-    <script src="js/utils.js?v=93"></script>
-    <script src="js/i18n.js?v=93"></script>
-    <script src="js/ui.js?v=93"></script>
-    <script src="js/profile.js?v=93"></script>
+    <script src="js/config.js?v=94"></script>
+    <script src="js/supabase-client.js?v=94"></script>
+    <script src="js/auth.js?v=94"></script>
+    <script src="js/utils.js?v=94"></script>
+    <script src="js/i18n.js?v=94"></script>
+    <script src="js/ui.js?v=94"></script>
+    <script src="js/profile.js?v=94"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
