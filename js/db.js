@@ -406,7 +406,14 @@ class DatabaseManager {
             const { success, recipe, error: fetchError } = await this.getRecipeById(sourceRecipeId, true);
             if (!success) throw new Error(fetchError);
 
-            // 2. Insertar metadatos base
+            // 2. Verificar si el nombre ya existe en la colección del usuario (Nuevo requisito)
+            const recipeName = (window.i18n && window.i18n.getLang() === 'en') ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+            const exists = await this.recipeNameExists(recipeName);
+            if (exists) {
+                return { success: false, error: `Ya existe una receta con el nombre "${recipeName}" en tu colección.` };
+            }
+
+            // 3. Insertar metadatos base
             const { data: newRecipeData, error: recipeError } = await window.supabaseClient.from('recipes').insert([{
                 user_id: targetUserId,
                 name_es: recipe.name_es,

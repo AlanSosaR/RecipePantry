@@ -1474,6 +1474,16 @@ class DashboardManager {
         if (existingMenu) existingMenu.remove();
 
         try {
+            // Nuevo: Verificar si el nombre ya existe antes de intentar duplicar
+            const exists = await window.db.recipeNameExists(recipeName);
+            if (exists) {
+                const errorMsg = window.i18n 
+                    ? window.i18n.t('recipeNameAlreadyExists') 
+                    : `Ya existe una receta con el nombre "${recipeName}" en tu colección.`;
+                window.utils.showToast(errorMsg, 'error');
+                return;
+            }
+
             window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
             const result = await window.db.duplicateRecipe(recipeId, window.authManager.currentUser.id);
             if (result.success) {
