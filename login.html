@@ -251,6 +251,7 @@
         .m3-field-container {
             margin-bottom: 32px;
             /* Aumentado para dejar espacio al error text */
+            margin-top: 12px;
             position: relative;
         }
 
@@ -391,11 +392,11 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=88"></script>
-    <script src="js/supabase-client.js?v=88"></script>
-    <script src="js/i18n.js?v=88"></script>
-    <script src="js/auth.js?v=88"></script>
-    <script src="js/utils.js?v=88"></script>
+    <script src="js/config.js?v=89"></script>
+    <script src="js/supabase-client.js?v=89"></script>
+    <script src="js/i18n.js?v=89"></script>
+    <script src="js/auth.js?v=89"></script>
+    <script src="js/utils.js?v=89"></script>
 
     <script>
         let isLogin = true;
@@ -427,9 +428,9 @@
                 document.getElementById('btn-submit-text').textContent = window.i18n ? window.i18n.t('btnSubmitLogin') : "Iniciar Sesión";
                 document.getElementById('switch-text').textContent = window.i18n ? window.i18n.t('switchTextLogin') : "¿No tienes cuenta? Regístrate";
             } else {
-                document.getElementById('auth-title').style.display = 'block';
+                document.getElementById('auth-title').style.display = 'none';
                 document.getElementById('auth-title').textContent = window.i18n ? window.i18n.t('authTitleRegister') : "Crear Cuenta";
-                document.getElementById('auth-subtitle').textContent = window.i18n ? window.i18n.t('authSubtitleRegister') : "Únete para guardar tus recetas familiares.";
+                document.getElementById('auth-subtitle').textContent = window.i18n ? window.i18n.t('authSubtitleRegister') : "Únete para guardar tus recetas favoritas.";
                 document.getElementById('btn-submit-text').textContent = window.i18n ? window.i18n.t('btnSubmitRegister') : "Registrarse";
                 document.getElementById('switch-text').textContent = window.i18n ? window.i18n.t('switchTextRegister') : "¿Ya tienes cuenta? Ingresa";
             }

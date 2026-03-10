@@ -1195,7 +1195,6 @@ ol {
 
 .input-field:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px oklch(from var(--primary) l c h / 0.15);
 }
 
 select.input-field {
@@ -2789,7 +2788,6 @@ select.input-field {
 .input-group textarea:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px var(--primary-light);
 }
 
 .form-row {

@@ -140,6 +140,13 @@ select,
     /* Soft rounding en el focus */
 }
 
+/* Prevent double lines on inputs specifically (user request) */
+input:focus, textarea:focus, select:focus,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 h1 {
     font-size: clamp(2rem, 3vw, 2.6rem);
     line-height: 1.2;
