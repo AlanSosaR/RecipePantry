@@ -68,7 +68,36 @@ class ProfileManager {
             window.i18n.applyLanguage(window.i18n.getLang());
         }
 
-        console.log('👤 ProfileManager inicializado (v167)');
+        console.log('👤 ProfileManager inicializado (v168)');
+    }
+
+    handleCurrentPasswordInput(value) {
+        if (this.verifyTimeout) clearTimeout(this.verifyTimeout);
+        
+        const statusEl = document.getElementById('current-pass-status');
+        if (!statusEl) return;
+
+        if (!value) {
+            statusEl.textContent = '';
+            this.currentPasswordVerified = false;
+            return;
+        }
+
+        statusEl.textContent = 'Verificando...';
+        statusEl.style.color = '#bbb';
+
+        this.verifyTimeout = setTimeout(async () => {
+            const res = await window.authManager.verifyCurrentPassword(value);
+            if (res.success) {
+                statusEl.textContent = '✓ Contraseña verificada';
+                statusEl.style.color = '#10B981';
+                this.currentPasswordVerified = true;
+            } else {
+                statusEl.textContent = '✗ Contraseña incorrecta';
+                statusEl.style.color = '#EF4444';
+                this.currentPasswordVerified = false;
+            }
+        }, 1000);
     }
 
     async loadCustomPrefixes() {
@@ -369,8 +398,11 @@ class ProfileManager {
             }
 
             if (newPass) {
-                if (newPass.length < 6) throw new Error('Contraseña muy corta');
-                if (newPass !== confirmPass) throw new Error('Contraseñas no coinciden');
+                if (!this.currentPasswordVerified) {
+                    throw new Error('Primero debes verificar tu contraseña actual');
+                }
+                if (newPass.length < 6) throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
+                if (newPass !== confirmPass) throw new Error('Las nuevas contraseñas no coinciden');
 
                 const resPass = await window.authManager.updatePassword(newPass);
                 if (!resPass.success) throw new Error(resPass.error);
@@ -379,6 +411,9 @@ class ProfileManager {
                 this.fields.new_password.value = '';
                 this.fields.confirm_password.value = '';
                 this.fields.current_password.value = '';
+                const statusEl = document.getElementById('current-pass-status');
+                if (statusEl) statusEl.textContent = '';
+                this.currentPasswordVerified = false;
             }
 
             if (profileUpdated || passwordUpdated) {

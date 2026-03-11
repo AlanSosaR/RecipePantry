@@ -258,6 +258,23 @@ class AuthManager {
         }
     }
 
+    // Verificar contraseña actual
+    async verifyCurrentPassword(password) {
+        try {
+            if (!this.currentUser || !this.currentUser.email) return { success: false };
+            
+            const { error } = await window.supabaseClient.auth.signInWithPassword({
+                email: this.currentUser.email,
+                password: password
+            });
+
+            if (error) return { success: false, error: error.message };
+            return { success: true };
+        } catch (error) {
+            return { success: false };
+        }
+    }
+
     // Crear categorías predeterminadas
     async createDefaultCategories(userId) {
         const defaultCategories = [

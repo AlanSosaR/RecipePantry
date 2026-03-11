@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="167">
+<html lang="es" data-app-version="168">
 
 <head>
     <meta charset="utf-8" />
@@ -432,12 +432,12 @@
 
                     <div id="security-content" class="security-content">
                         <div class="m3-field-container">
-                            <input id="current_password" class="m3-field-input" type="password" placeholder=" " />
+                            <input type="password" id="current_password" class="m3-field-input" placeholder=" " oninput="window.profileManager.handleCurrentPasswordInput(this.value)">
                             <label class="m3-field-label" data-i18n="profileCurrentPass">Contraseña Actual</label>
-                            <div class="m3-field-trailing"
-                                onclick="window.profileManager.togglePass('current_password', this)">
+                            <button type="button" class="m3-field-icon-btn" onclick="window.profileManager.togglePass('current_password', this)">
                                 <span class="material-symbols-outlined">visibility</span>
-                            </div>
+                            </button>
+                            <span id="current-pass-status" style="font-size: 11px; font-weight: 700; display: block; margin-top: 4px; transition: color 0.3s;"></span>
                         </div>
 
                         <div class="m3-field-container">
@@ -471,13 +471,13 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=167"></script>
-    <script src="js/supabase-client.js?v=167"></script>
-    <script src="js/auth.js?v=167"></script>
-    <script src="js/utils.js?v=167"></script>
-    <script src="js/i18n.js?v=167"></script>
-    <script src="js/ui.js?v=167"></script>
-    <script src="js/profile.js?v=167"></script>
+    <script src="js/config.js?v=168"></script>
+    <script src="js/supabase-client.js?v=168"></script>
+    <script src="js/auth.js?v=168"></script>
+    <script src="js/utils.js?v=168"></script>
+    <script src="js/i18n.js?v=168"></script>
+    <script src="js/ui.js?v=168"></script>
+    <script src="js/profile.js?v=168"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
