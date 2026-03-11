@@ -3837,12 +3837,11 @@ select.input-field {
     justify-content: center;
     font-weight: 800;
     font-size: 20px;
-    box-shadow:
-        0 4px 12px rgba(16, 185, 129, 0.25),
-        0 0 0 3px white,
-        0 8px 16px -4px rgba(0, 0, 0, 0.15);
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        0 2px 6px rgba(0, 0, 0, 0.04);
     /* Elevated look */
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s;
 }
 
 .sidebar-user-profile .user-avatar-m3 {
@@ -3851,11 +3850,13 @@ select.input-field {
     border-radius: 50%;
     font-size: 36px;
     margin-bottom: 8px;
-    /* Clean Premium Look: No borders, no rings, subtle shadow only */
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    /* Clean Premium Look: No borders, no rings, soft floating shadow */
+    box-shadow: 
+        0 12px 32px rgba(0, 0, 0, 0.1),
+        0 4px 12px rgba(0, 0, 0, 0.05);
     background-size: cover;
     background-position: center;
-    border: none;
+    border: none !important;
 }
 
 .user-status {
@@ -3870,11 +3871,10 @@ select.input-field {
 }
 
 .sidebar-user-profile:hover .user-avatar-m3 {
-    transform: scale(1.08);
+    transform: scale(1.06) translateY(-4px);
     box-shadow:
-        0 16px 36px rgba(0, 0, 0, 0.18),
-        0 0 0 4px var(--bg),
-        0 0 0 6px rgba(16, 185, 129, 0.25);
+        0 20px 48px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .user-info-m3 {
