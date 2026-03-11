@@ -91,6 +91,12 @@ class RecipeDetailManager {
 
             this.renderRecipe();
 
+            // Si es parcial, mostrar aviso
+            if (this.currentRecipe.isPartial) {
+                const bannerMsg = window.i18n ? window.i18n.t('limitedData') : 'Datos limitados - Conectarse para ver receta completa';
+                window.showToast?.(bannerMsg, 'info');
+            }
+
         } catch (error) {
             console.error('Error en loadRecipeData:', error);
         }

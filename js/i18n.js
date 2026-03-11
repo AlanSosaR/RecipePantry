@@ -24,6 +24,9 @@
             deleteSharedConfirm: '¿Deseas eliminar esta receta compartida?',
             navBack: 'Volver',
             navToggleLanguage: 'Cambiar idioma',
+            offlineDownloadPrompt: "¿Descargar recetas para uso offline?",
+            offlineDownloadBtn: "DESCARGAR",
+            limitedData: "Datos limitados - Conectarse para ver receta completa",
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Buscar en mi recetario...',
@@ -315,6 +318,9 @@
             deleteSharedConfirm: 'Do you want to remove this shared recipe?',
             navBack: 'Back',
             navToggleLanguage: 'Toggle language',
+            offlineDownloadPrompt: "Download recipes for offline use?",
+            offlineDownloadBtn: "DOWNLOAD",
+            limitedData: "Limited data - Connect to see full recipe",
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Search my cookbook...',

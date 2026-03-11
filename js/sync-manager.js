@@ -4,6 +4,8 @@
 class SyncManager {
     constructor() {
         this.isSyncing = false;
+        this.isPreloading = false;
+        this.STORAGE_KEY = 'recipehub_initial_sync_completed';
         this.initListeners();
     }
 
@@ -19,13 +21,35 @@ class SyncManager {
         });
 
         // Evento custom cuando se carga el índice de recetas
-        window.addEventListener('recipes-index-updated', () => {
-             // Iniciar la precarga en segundo plano tras un ligero retardo
-             // para permitir que el dashboard renderice primero.
+        window.addEventListener('recipes-index-updated', (e) => {
+             // Si hay internet, verificar si necesitamos sincronizar cambios o empezar la inicial
              if (navigator.onLine) {
-                 setTimeout(() => this.preloadOfflineRecipes(), 3000);
+                 this.handleAutoSync(e.detail);
              }
         });
+    }
+
+    async handleAutoSync(recipes = []) {
+        const isInitialCompleted = localStorage.getItem(this.STORAGE_KEY) === 'true';
+        
+        if (!isInitialCompleted) {
+            // Fase 1: Notificar al usuario para la descarga inicial
+            this.showInitialSyncNotification();
+        } else {
+            // Fase 2: Actualización silenciosa de cambios/faltantes
+            setTimeout(() => this.preloadOfflineRecipes({ silent: true }), 2000);
+        }
+    }
+
+    showInitialSyncNotification() {
+        if (this.isPreloading || !window.utils?.showActionSnackbar) return;
+
+        const msg = window.i18n ? window.i18n.t('offlineDownloadPrompt') : '¿Descargar recetas para uso offline?';
+        const actionBtn = window.i18n ? window.i18n.t('offlineDownloadBtn') : 'DESCARGAR';
+
+        window.showActionSnackbar(msg, actionBtn, () => {
+            this.preloadOfflineRecipes({ silent: false });
+        }, 10000); // 10s timeout
     }
 
     async syncQueue() {
@@ -156,51 +180,75 @@ class SyncManager {
         }
     }
 
-    async preloadOfflineRecipes() {
-        if (this.isPreloading) return; // Evitar ejecuciones simultáneas
-        if (!navigator.onLine) return; // Solo precargar si hay conexión
+    async preloadOfflineRecipes(options = { silent: true }) {
+        if (this.isPreloading) return; 
+        if (!navigator.onLine) return; 
         
         this.isPreloading = true;
+        const silent = options.silent;
+
         try {
             await window.localDB.init();
             
-            // 1. Obtener todas las recetas del índice
-            const indexRecipes = await window.localDB.getAll('recipes_index');
+            // 1. Obtener todas las recetas del índice y priorizar por fecha
+            let indexRecipes = await window.localDB.getAll('recipes_index');
+            indexRecipes.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
             
-            // 2. Obtener los IDs de las recetas que ya tenemos completas en caché local
+            // 2. Filtrar faltantes
             const fullRecipes = await window.localDB.getAll('recipes_full');
             const cachedFullIds = new Set(fullRecipes.map(r => r.id));
-            
-            // 3. Filtrar cuáles nos faltan precargar
             const recipesToLoad = indexRecipes.filter(r => !cachedFullIds.has(r.id));
             
-            if (recipesToLoad.length > 0) {
-                console.log(`📥 Precargando silenciosamente ${recipesToLoad.length} recetas para uso offline...`);
-                
-                let count = 0;
-                for (const recipe of recipesToLoad) {
-                    if (!navigator.onLine) break; // Detener si se pierde internet
-                    
-                    try {
-                        // Llamar la rutina existente que descarga la receta full y la mete a localDB ('recipes_full')
-                        const result = await window.db._fetchFullRecipeFromServer(recipe.id, true);
-                        if (result.success) {
-                            count++;
-                        }
-                    } catch (e) {
-                        console.warn(`Error silenciado precargando receta offline ${recipe.id}:`, e);
-                    }
-                    
-                    // Pequeña pausa entre peticiones para no saturar la red ni la API
-                    await new Promise(resolve => setTimeout(resolve, 800)); 
+            if (recipesToLoad.length === 0) {
+                if (!silent) {
+                    window.showToast('✅ ¡Todo listo!', 'success');
+                    localStorage.setItem(this.STORAGE_KEY, 'true');
                 }
-                
-                if (count > 0) {
-                    console.log(`✅ ${count} recetas precargadas y listas para usar sin conexión.`);
-                }
+                this.isPreloading = false;
+                return;
             }
+
+            const total = recipesToLoad.length;
+            console.log(`📥 Sincronizando ${total} recetas (modo ${silent ? 'silencioso' : 'visible'})...`);
+
+            if (!silent && window.utils?.showNotificationBar) {
+                window.utils.showNotificationBar('sync-progress', `Sincronizando recetas 0/${total}...`);
+            }
+
+            // 3. Descarga paralela en bloques (Chunking)
+            const CHUNK_SIZE = 3;
+            let loadedCount = 0;
+
+            for (let i = 0; i < recipesToLoad.length; i += CHUNK_SIZE) {
+                if (!navigator.onLine) break;
+
+                const chunk = recipesToLoad.slice(i, i + CHUNK_SIZE);
+                const results = await Promise.allSettled(
+                    chunk.map(recipe => window.db._fetchFullRecipeFromServer(recipe.id, true))
+                );
+
+                loadedCount += results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+
+                // Notificar progreso si no es silencioso
+                if (!silent && window.utils?.updateNotificationBar) {
+                    window.utils.updateNotificationBar('sync-progress', `Descargando recetas ${i + chunk.length}/${total}...`);
+                }
+
+                // Pausa corta entre bloques (200ms)
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            if (!silent) {
+                if (window.utils?.hideNotificationBar) window.utils.hideNotificationBar('sync-progress');
+                window.showToast('✅ ¡Listo! Usa tus recetas sin datos', 'success');
+                localStorage.setItem(this.STORAGE_KEY, 'true');
+            } else if (loadedCount > 0) {
+                window.showToast('✅ Recetas actualizadas', 'info');
+            }
+
         } catch (error) {
-            console.error('Error durante la precarga offline:', error);
+            console.error('Error durante la sincronización offline:', error);
+            if (!silent && window.utils?.hideNotificationBar) window.utils.hideNotificationBar('sync-progress');
         } finally {
             this.isPreloading = false;
         }

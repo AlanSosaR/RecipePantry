@@ -265,6 +265,40 @@ ol {
     animation: slideOutDown 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
+/* ─── Sync Notification Bar ─────────────────────────────────────── */
+.m3-notification-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transform: translateY(-100%);
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.m3-notification-bar.active {
+    transform: translateY(0);
+}
+
+.m3-notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.m3-notification-content .material-symbols-outlined.spin {
+    animation: spin 1s linear infinite;
+}
+
 /* ─── Chips de Categoría (Stitch) ─────────────────────────────────── */
 .filter-chips {
     display: flex;

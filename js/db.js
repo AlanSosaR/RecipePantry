@@ -276,11 +276,21 @@ class DatabaseManager {
     async getRecipeById(recipeId, forceRefresh = false) {
         await this._checkLocalDB();
         if (!forceRefresh) {
-            const cached = await window.localDB.get('recipes_full', recipeId);
-            if (cached) {
+            let recipe = await window.localDB.get('recipes_full', recipeId);
+            
+            // Fallback: Si no está en full, buscar en index (metadatos básicos)
+            if (!recipe) {
+                const indexRecipe = await window.localDB.get('recipes_index', recipeId);
+                if (indexRecipe) {
+                    console.warn(`⚠️ Receta ${recipeId} no encontrada en full. Usando datos básicos del índice.`);
+                    return { success: true, recipe: { ...indexRecipe, isPartial: true }, fromCache: true };
+                }
+            }
+
+            if (recipe) {
                 console.log(`ℹ️ Cargando receta ${recipeId} (Modo Offline-Ready)`);
-                if (this._isOnline) this._revalidateRecipeInBackground(recipeId, cached.updated_at);
-                return { success: true, recipe: cached, fromCache: true };
+                if (this._isOnline) this._revalidateRecipeInBackground(recipeId, recipe.updated_at);
+                return { success: true, recipe: recipe, fromCache: true };
             }
         } else {
             console.log(`🚀 Forzando carga de red para receta ${recipeId}...`);

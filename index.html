@@ -390,6 +390,14 @@
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
 
+    <!-- Barra de Notificación de Sincronización -->
+    <div id="notification-bar" class="m3-notification-bar hidden">
+      <div class="m3-notification-content">
+        <span class="material-symbols-outlined spin" id="notification-icon">sync</span>
+        <span id="notification-text">Sincronizando...</span>
+      </div>
+    </div>
+
     <!-- Sidebar Desktop & Mobile Drawer -->
     <aside id="main-sidebar" class="sidebar">
       <div class="sidebar-header">
@@ -633,7 +641,18 @@
     <script>
       // Kept for backward compatibility – i18n.js handles the heavy lifting.
       function updateTranslations() {
-        if (window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
+        if (window.i18n) {
+            const lang = window.i18n.getLang();
+            window.i18n.applyLanguage(lang);
+            
+            // Extra manual labels for sync
+            const labels = {
+                es: { ready: "¡Listo!", upd: "Recetas actualizadas" },
+                en: { ready: "Ready!", upd: "Recipes updated" }
+            };
+            const current = labels[lang] || labels.es;
+            window.syncLabels = current;
+        }
       }
     </script>
     <script type="module">

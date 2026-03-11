@@ -203,4 +203,30 @@ window.setupSidebarMenus = function () {
 // Initialize on load if sidebar exists
 document.addEventListener('DOMContentLoaded', () => {
     window.initSidebarState();
+    
+    // Setup global utils for notification bar if not exists
+    if (!window.utils) window.utils = {};
+    
+    window.utils.showNotificationBar = function(id, text) {
+        const bar = document.getElementById('notification-bar');
+        const textEl = document.getElementById('notification-text');
+        if (bar && textEl) {
+            textEl.textContent = text;
+            bar.classList.remove('hidden');
+            bar.classList.add('active');
+        }
+    };
+
+    window.utils.updateNotificationBar = function(id, text) {
+        const textEl = document.getElementById('notification-text');
+        if (textEl) textEl.textContent = text;
+    };
+
+    window.utils.hideNotificationBar = function(id) {
+        const bar = document.getElementById('notification-bar');
+        if (bar) {
+            bar.classList.remove('active');
+            setTimeout(() => bar.classList.add('hidden'), 300);
+        }
+    };
 });
