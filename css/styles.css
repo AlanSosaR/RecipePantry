@@ -259,3 +259,25 @@ h3 {
     align-items: center;
     justify-content: space-between;
 }
+
+/* Pull to Refresh Styles */
+.ptr-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.ptr-icon {
+    transition: transform 0.1s linear;
+}
+
+.ptr-loading .ptr-icon {
+    animation: ptr-spin 1s infinite linear;
+}
+
+@keyframes ptr-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

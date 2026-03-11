@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v123
-console.log('📄 [File] js/dashboard.js loaded (v123)');
+// Lógica específica del Dashboard - v124
+console.log('📄 [File] js/dashboard.js loaded (v124)');
 
 class DashboardManager {
     constructor() {
@@ -95,11 +95,113 @@ class DashboardManager {
 
             // 4. Indicador de modo offline
             this.setupOfflineIndicator();
+
+            // 5. Pull to Refresh (v124)
+            this.initPullToRefresh();
         } catch (error) {
             console.error('❌ Error crítico en Dashboard.init:', error);
             const landingEl = document.getElementById('landing-section');
             if (landingEl) landingEl.classList.remove('hidden');
         }
+    }
+
+    initPullToRefresh() {
+        const container = document.querySelector('.main-content');
+        if (!container) return;
+
+        let startY = 0;
+        let pulling = false;
+        const threshold = 80;
+        
+        // Crear indicador visual
+        const ptrIndicator = document.createElement('div');
+        ptrIndicator.id = 'ptr-indicator';
+        ptrIndicator.innerHTML = `
+            <div class="ptr-content">
+                <span class="material-symbols-outlined ptr-icon">sync</span>
+                <span class="ptr-text">Sincronizando...</span>
+            </div>
+        `;
+        ptrIndicator.style.cssText = `
+            position: absolute;
+            top: -60px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            color: var(--primary);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        `;
+        container.prepend(ptrIndicator);
+
+        container.addEventListener('touchstart', (e) => {
+            if (container.scrollTop <= 0) {
+                startY = e.touches[0].pageY;
+                pulling = true;
+            } else {
+                pulling = false;
+            }
+        }, { passive: true });
+
+        container.addEventListener('touchmove', (e) => {
+            if (!pulling) return;
+            const y = e.touches[0].pageY;
+            const diff = y - startY;
+
+            if (diff > 0 && container.scrollTop <= 0) {
+                const translateY = Math.min(diff / 2, threshold + 20);
+                ptrIndicator.style.transform = `translateY(${translateY}px)`;
+                ptrIndicator.style.opacity = Math.min(diff / threshold, 1);
+                
+                if (diff > threshold) {
+                    ptrIndicator.querySelector('.ptr-icon').style.transform = `rotate(${diff * 2}deg)`;
+                }
+            } else {
+                pulling = false;
+                ptrIndicator.style.transform = `translateY(0)`;
+                ptrIndicator.style.opacity = 0;
+            }
+        }, { passive: true });
+
+        container.addEventListener('touchend', async (e) => {
+            if (!pulling) return;
+            const y = e.changedTouches[0].pageY;
+            const diff = y - startY;
+
+            if (diff > threshold) {
+                // Ejecutar refresh
+                console.log('🔄 Pull to Refresh activado');
+                ptrIndicator.classList.add('ptr-loading');
+                ptrIndicator.style.transform = `translateY(${threshold}px)`;
+                ptrIndicator.style.opacity = 1;
+
+                if (window.utils && window.utils.showToast) {
+                    window.utils.showToast('Sincronizando recetas...', 'info', 2000);
+                }
+
+                try {
+                    await window.db.getMyRecipes({ forceRefresh: true });
+                } catch (err) {
+                    console.error('Error in pull-to-refresh:', err);
+                } finally {
+                    setTimeout(() => {
+                        ptrIndicator.style.transform = `translateY(0)`;
+                        ptrIndicator.style.opacity = 0;
+                        ptrIndicator.classList.remove('ptr-loading');
+                    }, 500);
+                }
+            } else {
+                ptrIndicator.style.transform = `translateY(0)`;
+                ptrIndicator.style.opacity = 0;
+            }
+            pulling = false;
+        });
     }
 
     updateUserUI() {
