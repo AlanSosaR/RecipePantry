@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v121
-console.log('📄 [File] js/dashboard.js loaded (v121)');
+// Lógica específica del Dashboard - v122
+console.log('📄 [File] js/dashboard.js loaded (v122)');
 
 class DashboardManager {
     constructor() {
@@ -30,6 +30,11 @@ class DashboardManager {
                 this.clearSelection();
             }
         });
+    }
+
+    // Mantener para compatibilidad con cachés viejas que aún llamen a esta función
+    prefetchRecipe(id) {
+        // No-op - El nuevo SyncManager maneja esto de forma global
     }
 
     async init() {
