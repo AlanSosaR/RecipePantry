@@ -1,5 +1,5 @@
 /**
- * OCRProcessor.js - Recipe Pantry Premium v7.0.0
+ * OCRProcessor.js - Recipe Pantry Premium v7.1.0 (Precision Boost)
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
@@ -339,20 +339,26 @@ class OCRProcessor {
         corrected = corrected.replace(/\b1509\b/g, '150g');
         corrected = corrected.replace(/\b3009\b/g, '300g');
         corrected = corrected.replace(/\b909\b/g, '90g');
+        corrected = corrected.replace(/\b([0-9]+)9\b/g, '$1g'); // Genérico para pesos: 159 -> 15g
 
         // PROBLEMA 2: Unidades 'ml' escaneadas como 'm' o 'mi'
-        corrected = corrected.replace(/(\d+)\s*m\b(?!\w)/g, '$1ml');    // 5m → 5ml
-        corrected = corrected.replace(/(\d+)\s*mi\b/g, '$1ml');         // 5mi → 5ml
+        corrected = corrected.replace(/([0-9]+)\s*m\b(?!\w)/g, '$1ml');    // 5m → 5ml
+        corrected = corrected.replace(/([0-9]+)\s*mi\b/g, '$1ml');         // 5mi → 5ml
 
-        // PROBLEMA 3: Fracción ¼ escaneada como '%'
-        corrected = corrected.replace(/\s%\s*de\s*cucharadita/gi, ' ¼ de cucharadita');
-        corrected = corrected.replace(/\s%\s*cucharadita/gi, ' ¼ cucharadita');
-        corrected = corrected.replace(/\+\s*%\s*cucharadita/gi, '+ ¼ cucharadita');
+        // PROBLEMA 3: Fracción ¼ escaneada como % o 14
+        corrected = corrected.replace(/%\s*cucharadita/gi, '¼ cucharadita');
+        corrected = corrected.replace(/\b14\s+cucharadita/gi, '¼ cucharadita');
+        corrected = corrected.replace(/\b1\/4\b/g, '¼');
 
-        // PROBLEMA 4: Fracción ½ escaneada como 'a' o desaparece
-        corrected = corrected.replace(/\ba\s*taza\s*de\s*nueces/gi, '½ taza de nueces');
-        corrected = corrected.replace(/Añadir\s+taza\s*de/gi, 'Añadir ½ taza de');
-        corrected = corrected.replace(/\s*taza\s*de\s*nueces\s*al\s*final/gi, ' ½ taza de nueces al final');
+        // PROBLEMA 4: Fracción ½ escaneada como 'Y2', 'a' o '17'
+        corrected = corrected.replace(/\bY2\b/g, '½');
+        corrected = corrected.replace(/\b17\s+taza/gi, '½ taza');
+        corrected = corrected.replace(/\b1\/2\b/g, '½');
+
+        // PROBLEMA 5: Fracción ¾ escaneada como % (común en Brownies)
+        corrected = corrected.replace(/(\s)%\s+taza/gi, '$1¾ taza');
+        corrected = corrected.replace(/\b3\/4\b/g, '¾');
+        corrected = corrected.replace(/3%\s+taza/gi, '¾ taza');
 
         // PROBLEMA 5: Símbolo %/ escaneado como fracción
         corrected = corrected.replace(/%\//g, '½');
