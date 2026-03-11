@@ -61,7 +61,7 @@ window.updateGlobalUserUI = function () {
     const sidebarGreeting = document.getElementById('sidebar-user-greeting');
     if (sidebarGreeting) {
         const prefix = user.prefix || 'Chef';
-        sidebarGreeting.textContent = `${prefix} ${user.first_name || ''}`;
+        sidebarGreeting.textContent = `${prefix} ${user.first_name || ''} ${user.last_name || ''}`.trim();
     }
 
     // Update initials or image in all avatar circles (sidebar and header)
