@@ -1472,7 +1472,8 @@ select.input-field {
 }
 
 .nav-item {
-    display: flex;
+    display: flex !important;
+    flex-direction: row !important;
     align-items: center;
     gap: 16px;
     padding: 14px 16px;
@@ -3804,7 +3805,7 @@ select.input-field {
 
 /* Sidebar M3 Refined */
 .sidebar-header {
-    display: none;
+    display: none !important;
 }
 
 .sidebar-user-profile {
@@ -3850,10 +3851,11 @@ select.input-field {
     border-radius: 50%;
     font-size: 36px;
     margin-bottom: 8px;
-    box-shadow:
-        0 12px 28px rgba(0, 0, 0, 0.12),
-        0 0 0 4px var(--bg),
-        0 0 0 6px rgba(16, 185, 129, 0.15);
+    /* Clean Premium Look: No borders, no rings, subtle shadow only */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    background-size: cover;
+    background-position: center;
+    border: none;
 }
 
 .user-status {

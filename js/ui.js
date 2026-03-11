@@ -59,14 +59,9 @@ window.updateGlobalUserUI = function () {
 
     // Update greeting with prefix
     const sidebarGreeting = document.getElementById('sidebar-user-greeting');
-    const sidebarStatus = document.getElementById('sidebar-user-status');
     if (sidebarGreeting) {
         const prefix = user.prefix || 'Chef';
         sidebarGreeting.textContent = `${prefix} ${user.first_name || ''}`;
-    }
-    if (sidebarStatus) {
-        // Default to "Chef" or user role
-        sidebarStatus.textContent = 'Cocinero';
     }
 
     // Update initials or image in all avatar circles (sidebar and header)
