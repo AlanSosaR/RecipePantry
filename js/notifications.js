@@ -10,6 +10,7 @@ class NotificationManager {
     }
 
     async init() {
+        console.log('🔔 [Notifications] Iniciando manager...');
         this.menu = document.getElementById('notifications-menu');
         this.badge = document.getElementById('notifications-badge');
         this.list = document.getElementById('notifications-list');
