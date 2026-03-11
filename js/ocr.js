@@ -37,11 +37,13 @@ class OCRScanner {
         const cameraState = document.getElementById('ocrCameraState');
         const resultState = document.getElementById('ocrResultState');
 
+        const captureSection = document.getElementById('ocrCaptureSection');
+        if (captureSection) captureSection.style.display = 'block';
+
+        const resultArea = document.getElementById('ocrResultInStep1');
+        if (resultArea) resultArea.style.display = 'none';
+
         if (preview) { preview.style.display = 'none'; preview.src = ''; }
-        if (video) video.style.display = 'block';
-        if (loadingState) loadingState.style.display = 'none';
-        if (cameraState) cameraState.style.display = 'flex';
-        if (resultState) resultState.style.display = 'none';
 
         // Reset progress
         const progressText = document.getElementById('ocrProgressText');
@@ -188,7 +190,10 @@ class OCRScanner {
 
         // Update Scan Results in Step 1 (Main Page v134)
         const resultArea = document.getElementById('ocrResultInStep1');
+        const captureSection = document.getElementById('ocrCaptureSection');
+
         if (resultArea) resultArea.style.display = 'block';
+        if (captureSection) captureSection.style.display = 'none';
 
         const nameInput = document.getElementById('ocrRecipeName');
         if (nameInput) nameInput.value = results.nombre || '';

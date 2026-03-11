@@ -807,33 +807,37 @@
 
                 <!-- PASO 1: Capturar Imagen -->
                 <div id="step1" class="ocr-step active">
-                    <div style="margin-bottom: 32px;">
-                        <h2 class="brand-font"
-                            style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"
-                            data-i18n="ocrStep1Title">Prepara tu
-                            escáner
-                        </h2>
-                        <p style="color: var(--on-surface-variant); font-size: 16px;" data-i18n="ocrStep1Desc">Sube una
-                            foto clara de tu receta
-                            para
-                            digitalizarla al instante.</p>
-                    </div>
 
-                    <div class="dropzone" id="dropzone"
-                        onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('fileInput').click()">
-                        <div
-                            style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0, 166, 118, 0.2);">
-                            <span class="material-symbols-outlined" style="font-size: 32px;">add_a_photo</span>
+                    <!-- SECCIÓN DE CAPTURA (Se ocultará al mostrar resultados) -->
+                    <div id="ocrCaptureSection">
+                        <div style="margin-bottom: 32px;">
+                            <h2 class="brand-font"
+                                style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"
+                                data-i18n="ocrStep1Title">Prepara tu
+                                escáner
+                            </h2>
+                            <p style="color: var(--on-surface-variant); font-size: 16px;" data-i18n="ocrStep1Desc">Sube una
+                                foto clara de tu receta
+                                para
+                                digitalizarla al instante.</p>
                         </div>
-                        <p style="font-weight: 700; color: var(--md-on-surface); font-size: 20px;"
-                            data-i18n="ocrSelectImage">Tomar foto o subir
-                        </p>
-                        <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;"
-                            data-i18n="ocrFormats">JPG o PNG compatibles</p>
-                    </div>
 
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;"
-                        onchange="handleFileSelect(event)">
+                        <div class="dropzone" id="dropzone"
+                            onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('fileInput').click()">
+                            <div
+                                style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0, 166, 118, 0.2);">
+                                <span class="material-symbols-outlined" style="font-size: 32px;">add_a_photo</span>
+                            </div>
+                            <p style="font-weight: 700; color: var(--md-on-surface); font-size: 20px;"
+                                data-i18n="ocrSelectImage">Tomar foto o subir
+                            </p>
+                            <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;"
+                                data-i18n="ocrFormats">JPG o PNG compatibles</p>
+                        </div>
+
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;"
+                            onchange="handleFileSelect(event)">
+                    </div>
 
                     <!-- RESULTADOS EN EL MISMO PASO 1 (Unificado v134) -->
                     <div id="ocrResultInStep1" style="display: none; margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
