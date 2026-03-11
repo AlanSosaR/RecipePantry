@@ -1508,33 +1508,7 @@ select.input-field {
     box-shadow: none !important;
 }
 
-/* Remove green pill from user profile */
-.user-avatar-m3 {
-    width: 40px;
-    /* Reduced from 48px */
-    height: 40px;
-    border-radius: 12px;
-    background: var(--primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.5rem;
-    margin-bottom: 8px;
-}
 
-.sidebar-user-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 1.2rem 1.6rem;
-    margin-bottom: 1.6rem;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
 
 /* Main Content Area */
 .main-content {
