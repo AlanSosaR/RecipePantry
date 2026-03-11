@@ -186,41 +186,27 @@ class OCRScanner {
         // Skip result state in modal and close immediately
         this.close();
 
-        // If on /ocr page, move to page Step 3
-        if (typeof goToStep === 'function') {
-            goToStep(3);
-        }
+        // Update Scan Results in Step 1 (Main Page v134)
+        const resultArea = document.getElementById('ocrResultInStep1');
+        if (resultArea) resultArea.style.display = 'block';
 
-        // Set Recipe Name (Main Page)
         const nameInput = document.getElementById('ocrRecipeName');
         if (nameInput) nameInput.value = results.nombre || '';
 
-        // Set Full Text (Main Page)
         const pageFullText = document.getElementById('ocrFullText');
         if (pageFullText) pageFullText.value = results.texto;
 
-        const modalFullText = document.getElementById('extractedText');
-        if (modalFullText) modalFullText.value = results.texto;
-
-        const modalOCRText = document.getElementById('extractedTextModal');
-        if (modalOCRText) modalOCRText.value = results.texto;
-
-        // Confidence badge
+        // Confidence badge in Step 1
         const conf = Math.round(results.confidence || 0);
-        const confBadge = document.getElementById('confidenceBadge');
+        const confBadge = document.getElementById('confidenceBadgeStep1');
         if (confBadge) {
             confBadge.textContent = `${conf}%`;
-            confBadge.className = 'confidence-badge ' + (conf >= 85 ? 'confidence-high' : conf >= 60 ? 'confidence-medium' : 'confidence-low');
-
-            // Apply dynamic background based on confidence
             confBadge.style.background = conf >= 90 ? '#10B981' : conf >= 70 ? '#F59E0B' : '#EF4444';
+            confBadge.style.display = 'inline-flex';
         }
 
-        // Auto-scroll para que se vea el texto
-        if (resultState) {
-            resultState.scrollTop = 0;
-            setTimeout(() => resultState.scrollTop = 0, 100);
-        }
+        // Auto-scroll to result
+        if (resultArea) resultArea.scrollIntoView({ behavior: 'smooth' });
 
         console.log(`✅ showResults: ${results.texto.length} chars, confianza ${conf}% | Método: ${results.method}`);
 
