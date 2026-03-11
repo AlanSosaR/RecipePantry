@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="133">
+<html lang="es" data-app-version="134">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear (v65)
-            const CURRENT_VERSION = '80';
-            const NUKE_KEY = 'v80_total_nuke';
+            const CURRENT_VERSION = '85';
+            const NUKE_KEY = 'v85_total_nuke';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -835,6 +835,42 @@
                     <input type="file" id="fileInput" accept="image/*" style="display: none;"
                         onchange="handleFileSelect(event)">
 
+                    <!-- RESULTADOS EN EL MISMO PASO 1 (Unificado v134) -->
+                    <div id="ocrResultInStep1" style="display: none; margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                            <h3 style="font-weight:800; font-size:20px; margin:0; color: var(--primary);">Resultado del Escaneo</h3>
+                            <span id="confidenceBadgeStep1" class="confidence-badge"></span>
+                        </div>
+
+                        <div class="m3-field-container" style="margin-bottom: 20px;">
+                            <input type="text" id="ocrRecipeName" class="m3-field-input" placeholder=" "
+                                data-i18n-placeholder="placeholderRecipeName">
+                            <label class="m3-field-label" data-i18n="formNameLabel">Nombre de la Receta</label>
+                        </div>
+
+                        <div class="ocr-result-textarea-container" style="margin-bottom: 24px;">
+                            <textarea id="ocrFullText" class="ocr-result-textarea" 
+                                style="min-height: 150px;"
+                                placeholder="La información aparecerá aquí..."
+                                data-i18n-placeholder="ocrTextPlaceholder"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 12px;">
+                            <button class="m3-expressive-card secondary" 
+                                style="flex: 1; padding: 16px; border-radius: 16px; min-height: 60px; flex-direction: row; gap: 8px;"
+                                onclick="goToStep(1)">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">refresh</span>
+                                <span style="font-size: 14px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
+                            </button>
+                            <button id="btnSaveRecipe" class="m3-expressive-card" 
+                                style="flex: 2; padding: 16px; border-radius: 16px; min-height: 60px; background: var(--primary); color: white; flex-direction: row; gap: 8px; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);"
+                                onclick="saveRecipe();">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+                                <span style="font-size: 16px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
+                            </button>
+                        </div>
+                    </div>
+
 
                     <div
                         style="margin-top: 32px; padding: 20px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border);">
@@ -1169,7 +1205,11 @@
 
                 const saveSuccessMsg = window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada!';
                 window.showToast(saveSuccessMsg, 'success');
-                setTimeout(() => window.location.href = `/recipe-detail?id=${recipeId}`, 1000);
+                
+                // NOTA v134: No redirigir, solo limpiar para nuevo escaneo o dejar editar
+                btn.disabled = false;
+                const saveBtnTxt = window.i18n ? window.i18n.t('ocrSave') : 'Guardar Receta';
+                btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ${saveBtnTxt}`;
 
             } catch (err) {
                 console.error('Error saving recipe:', err);

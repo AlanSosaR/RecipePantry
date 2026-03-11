@@ -5809,6 +5809,13 @@ input:checked~.m3-ingredient-text {
     transition: border .2s, box-shadow .2s;
 }
 
+#ocrRecipeName, 
+#ocrRecipeNameModal {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: var(--md-on-surface);
+}
+
 .m3-field-input:focus {
     border-color: var(--md-primary);
     border-width: 2px;
