@@ -42,7 +42,7 @@ class NotificationManager {
                     type,
                     from_user_id, 
                     recipe_id,
-                    from_user:users!from_user_id(first_name, last_name, email),
+                    from_user:users!from_user_id(first_name, last_name, email, prefix),
                     recipe:recipes(id, name_es, name_en)
                 `)
                 .eq('user_id', user.id)
@@ -57,6 +57,7 @@ class NotificationManager {
                 const senderName = [n.from_user?.first_name, n.from_user?.last_name].filter(Boolean).join(' ')
                     || n.from_user?.email
                     || 'Alguien';
+                const senderPrefix = n.from_user?.prefix || (isEn ? 'Chef' : 'Chef');
 
                 return {
                     id: n.id,
@@ -65,6 +66,7 @@ class NotificationManager {
                     type: n.type || 'recipe_shared',
                     timestamp: n.created_at,
                     sender: senderName,
+                    prefix: senderPrefix,
                     leido: n.leido
                 };
             });
@@ -82,18 +84,25 @@ class NotificationManager {
         const user = window.authManager.currentUser;
         if (!user) return;
 
-        window.supabaseClient
+        console.log(`📡 [Notifications] Suscribiendo a realtime para usuario: ${user.id}`);
+
+        const channel = window.supabaseClient
             .channel(`notifications:${user.id}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
                 table: 'notifications',
                 filter: `user_id=eq.${user.id}`
-            }, () => {
+            }, (payload) => {
+                console.log('🔔 Nueva notificación recibida vía Realtime:', payload);
                 this.fetchNotifications();
-                window.utils.showToast('¡Has recibido una nueva receta!', 'info');
-            })
-            .subscribe();
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                window.utils.showToast(isEn ? 'You have received a new recipe!' : '¡Has recibido una nueva receta!', 'info');
+            });
+
+        channel.subscribe((status) => {
+            console.log(`📡 [Notifications] Realtime status: ${status}`);
+        });
     }
 
     updateBadge() {
@@ -260,7 +269,7 @@ class NotificationManager {
                             ${n.sender ? n.sender.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <span style="color:white; display:block; font-size:13px; font-weight:600;">Chef ${n.sender} te ha compartido una receta</span>
+                            <span style="color:white; display:block; font-size:13px; font-weight:600;">${n.prefix} ${n.sender} te ha compartido una receta</span>
                             <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">${n.recipeName}</span>
                             <span style="color:#666; font-size:10px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                             

@@ -222,10 +222,10 @@ class ShareModalManager {
         html += available.map(user => {
             const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
             return `
-                <div class="suggestion-item" onclick="window.shareModal.addUser('${user.id}', '${name.replace(/'/g, "\\'")}', '${user.email}')">
+                <div class="suggestion-item" onclick="window.shareModal.addUser('${user.id}', '${name.replace(/'/g, "\\'")}', '${user.email}', '${user.prefix || 'Chef'}')">
                     <div class="suggestion-avatar">${name[0]}</div>
                     <div class="suggestion-info">
-                        <span class="suggestion-name">${name}</span>
+                        <span class="suggestion-name">${user.prefix || 'Chef'} ${name}</span>
                         <span class="suggestion-email">${user.email}</span>
                     </div>
                 </div>
@@ -257,11 +257,11 @@ class ShareModalManager {
     }
 
     // --- Chip-based selection ---
-    addUser(userId, name, email) {
+    addUser(userId, name, email, prefix) {
         // Don't add duplicates
         if (this.selectedUsers.some(u => u.id === userId)) return;
 
-        this.selectedUsers.push({ id: userId, name, email });
+        this.selectedUsers.push({ id: userId, name, email, prefix: prefix || 'Chef' });
 
         // Clear search
         if (this.searchInput) this.searchInput.value = '';
@@ -299,7 +299,7 @@ class ShareModalManager {
         if (!this.btnShare) return;
         if (this.selectedUsers.length > 0) {
             this.btnShare.style.display = 'flex';
-            const names = this.selectedUsers.map(u => `Chef ${u.name}`).join(', ');
+            const names = this.selectedUsers.map(u => `${u.prefix} ${u.name}`).join(', ');
             this.btnShare.textContent = `Compartir con ${names}`;
         } else {
             this.btnShare.style.display = 'none';
@@ -346,9 +346,14 @@ class ShareModalManager {
                 type: 'recipe_shared'
             }));
 
-            await window.supabaseClient.from('notifications').insert(notifications);
+            const { error: notifError } = await window.supabaseClient.from('notifications').insert(notifications);
+            if (notifError) {
+                console.error('Error creating notifications:', notifError);
+                // We don't throw here to not block the main share flow if only notifications failed
+            }
 
-            const names = this.selectedUsers.map(u => `Chef ${u.name}`).join(', ');
+            const currentPrefix = window.authManager.currentUser?.prefix || 'Chef';
+            const names = this.selectedUsers.map(u => `${u.prefix} ${u.name}`).join(', ');
             const successMsg = window.i18n ? window.i18n.t('sharedWithSuccess', { names }) : `✅ Compartido con ${names}`;
             window.utils.showToast(successMsg, 'success');
 
@@ -359,7 +364,7 @@ class ShareModalManager {
                     recipe.sharingContext = 'sent';
                     // Combine with existing shared names if any
                     const existing = recipe.sharedWith ? recipe.sharedWith.split(', ') : [];
-                    const newNames = this.selectedUsers.map(u => `Chef ${u.name}`);
+                    const newNames = this.selectedUsers.map(u => `${u.prefix} ${u.name}`);
                     const combined = [...new Set([...existing, ...newNames])];
                     recipe.sharedWith = combined.join(', ');
                 }
