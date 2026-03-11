@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="167">
+<html lang="es" data-app-version="169">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -21,8 +21,8 @@
       };
 
       // 2. Emergency Clear (v167) - Manual Flow Enforcement
-      const CURRENT_VERSION = '167';
-      const NUKE_KEY = 'v167_manual_flow_v3';
+      const CURRENT_VERSION = '169';
+      const NUKE_KEY = 'v169_lang_toggle_pos';
 
       (async () => {
         const storedVersion = localStorage.getItem('recipe_app_version');
@@ -90,8 +90,8 @@
     rel="stylesheet">
 
 
-  <link rel="stylesheet" href="css/styles.css?v=135">
-  <link rel="stylesheet" href="css/components.css?v=135">
+  <link rel="stylesheet" href="css/styles.css?v=169">
+  <link rel="stylesheet" href="css/components.css?v=169">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -310,27 +310,28 @@
 
     /* Language Toggle (Floating corner) */
     .language-toggle {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      z-index: 100;
-      background: white;
-      padding: 8px 16px;
-      border-radius: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text-black);
+      color: white;
       transition: all 0.2s;
-      border: 1px solid #eee;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .language-toggle:hover {
-      background: #f8f9fa;
+      background: rgba(255, 255, 255, 0.3);
       transform: translateY(-1px);
     }
 
@@ -362,15 +363,15 @@
 
 <body class="body-drive">
   <div id="landing-section" class="mode-landing-wrapper">
-    <div class="language-toggle" onclick="if(window.i18n) window.i18n.toggle(); updateTranslations();"
-      data-i18n-title="navToggleLanguage" title="Cambiar idioma">
-      <span class="material-symbols-outlined" style="font-size: 18px">language</span>
-      <span class="lang-label">ES</span>
-    </div>
     <div class="landing-unified-card">
 
       <!-- 1. HERO PART -->
       <div class="hero-part">
+        <div class="language-toggle" onclick="if(window.i18n) window.i18n.toggle(); updateTranslations();"
+          data-i18n-title="navToggleLanguage" title="Cambiar idioma">
+          <span class="material-symbols-outlined" style="font-size: 18px">language</span>
+          <span class="lang-label">ES</span>
+        </div>
         <div class="hero-circle">
           <div class="hero-circle-inner">
             <img src="assets/icons/icon.svg" width="60" height="60" alt="Recipe Pantry Logo"
@@ -384,7 +385,7 @@
         <h1 class="landing-title" style="color: var(--primary);">Recipe Pantry</h1>
         <p class="landing-subtitle" data-i18n="pantrySubtitle">
           Tu recetario digital inteligente, ahora con modo offline y escaneo de fotos.
-          <br><span style="font-size: 10px; opacity: 0.5;">Build v167.0</span>
+          <br><span style="font-size: 10px; opacity: 0.5;">Build v169.0</span>
         </p>
         <div class="features-grid">
           <div class="feature-card">
@@ -644,24 +645,24 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=167"></script>
-    <script src="js/supabase-client.js?v=167"></script>
-    <script src="js/localdb.js?v=167"></script>
-    <script src="js/sync-manager.js?v=167"></script>
-    <script src="js/utils.js?v=167"></script>
-    <script src="js/i18n.js?v=167"></script>
+    <script src="js/config.js?v=169"></script>
+    <script src="js/supabase-client.js?v=169"></script>
+    <script src="js/localdb.js?v=169"></script>
+    <script src="js/sync-manager.js?v=169"></script>
+    <script src="js/utils.js?v=169"></script>
+    <script src="js/i18n.js?v=169"></script>
 
     <!-- Scripts (Versión Cache Buster) -->
-    <script src="js/db.js?v=167"></script>
-    <script src="js/auth.js?v=167"></script>
-    <script src="js/dashboard.js?v=167"></script>
-    <script src="js/share-modal.js?v=167"></script>
-    <script src="js/help-modal.js?v=167"></script>
-    <script src="js/notifications.js?v=167"></script>
-    <script src="js/ui.js?v=167"></script>
+    <script src="js/db.js?v=169"></script>
+    <script src="js/auth.js?v=169"></script>
+    <script src="js/dashboard.js?v=169"></script>
+    <script src="js/share-modal.js?v=169"></script>
+    <script src="js/help-modal.js?v=169"></script>
+    <script src="js/notifications.js?v=169"></script>
+    <script src="js/ui.js?v=169"></script>
 
     <!-- Service Worker Registration -->
-    <script src="js/sw-register.js?v=167"></script>
+    <script src="js/sw-register.js?v=169"></script>
 
 
     <script>
