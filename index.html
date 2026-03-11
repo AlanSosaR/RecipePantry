@@ -299,6 +299,70 @@
     }
 
     .btn-comenzar:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    /* 5. FOOTER INSIDE CARD */
+    .landing-card-footer {
+      display: flex;
+      gap: 24px;
+      margin-top: 32px;
+      font-size: 12px;
+      color: var(--text-grey);
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .landing-card-footer span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .landing-card-footer .material-symbols-outlined {
+      font-size: 14px;
+      color: #FBBF24; /* Ámbar para candado */
+    }
+
+    .landing-card-footer .offline-icon {
+      color: #4B5563; /* Grisáceo para móvil */
+    }
+
+    .version-badge {
+      position: absolute;
+      top: 16px;
+      right: 76px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      backdrop-filter: blur(4px);
+    }
+
+    .pantry-description {
+       font-size: 13px;
+       color: #6B7280;
+       line-height: 1.6;
+       margin-bottom: 32px;
+       max-width: 320px;
+       font-weight: 500;
+    }
+
+    .hero-part {
+      background: var(--primary-green);
+      height: 200px; /* Un poco más pequeño */
+      position: relative;
+      border-bottom-left-radius: 50% 30%;
+      border-bottom-right-radius: 50% 30%;
+      display: flex;
+      justify-content: center;
+      z-index: 1;
+    }
+
+    .btn-comenzar:hover {
       filter: brightness(1.05);
       transform: translateY(-2px);
       box-shadow: 0 12px 32px rgba(0, 166, 118, 0.4);
@@ -367,6 +431,7 @@
 
       <!-- 1. HERO PART -->
       <div class="hero-part">
+        <div class="version-badge">v3.6 Beta</div>
         <div class="language-toggle" onclick="if(window.i18n) window.i18n.toggle(); updateTranslations();"
           data-i18n-title="navToggleLanguage" title="Cambiar idioma">
           <span class="material-symbols-outlined" style="font-size: 18px">language</span>
@@ -374,39 +439,47 @@
         </div>
         <div class="hero-circle">
           <div class="hero-circle-inner">
-            <img src="assets/icons/icon.svg" width="60" height="60" alt="Recipe Pantry Logo"
-              style="filter: brightness(0) invert(1);" />
+            <span class="material-symbols-outlined" style="font-size: 48px;">menu_book</span>
           </div>
         </div>
       </div>
 
       <!-- 2. CONTENT PART -->
       <div id="view-landing" class="content-part">
-        <h1 class="landing-title" style="color: var(--primary);">Recipe Pantry</h1>
-        <p class="landing-subtitle" data-i18n="pantrySubtitle">
-          Tu recetario digital inteligente, ahora con modo offline y escaneo de fotos.
-          <br><span style="font-size: 10px; opacity: 0.5;">Build v171.0</span>
+        <h1 class="landing-title" style="color: var(--primary-green);">Recipe Pantry</h1>
+        <p class="landing-subtitle" style="margin-bottom: 8px;">
+          <span data-i18n="pantrySubtitle">Tu recetario, siempre contigo</span>
         </p>
+        <p class="pantry-description" data-i18n="pantryDescription">
+          Guarda tus recetas y conecta con otros profesionales y amigos que comparten tu pasión
+        </p>
+
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon-circle">
-              <span class="material-symbols-outlined">document_scanner</span>
+              <span class="material-symbols-outlined">photo_camera</span>
             </div>
-            <h3 id="feat-ocr-title" data-i18n="featOcrTitle">Escaneo OCR</h3>
-            <p id="feat-ocr-desc" data-i18n="featOcrDesc">Digitaliza tus recetas</p>
+            <h3 data-i18n="featOcrTitle">Escanea y organiza</h3>
+            <p data-i18n="featOcrDesc">Digitaliza tus recetas en papel en segundos</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon-circle">
-              <span class="material-symbols-outlined">restaurant_menu</span>
+              <span class="material-symbols-outlined">handshake</span>
             </div>
-            <h3 id="feat-plan-title" data-i18n="featPlanTitle">Plan semanal</h3>
-            <p id="feat-plan-desc" data-i18n="featPlanDesc">Organiza tus comidas</p>
+            <h3 data-i18n="featPlanTitle">Intercambia con otros</h3>
+            <p data-i18n="featPlanDesc">Comparte con amigos y profesionales en la app</p>
           </div>
         </div>
+
         <button class="btn-comenzar" onclick="window.location.href='/login'">
           <span id="btn-get-started" data-i18n="btnGetStarted">Comenzar</span>
-          <span class="material-symbols-outlined">arrow_forward</span>
+          <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
         </button>
+
+        <div class="landing-card-footer">
+          <span><span class="material-symbols-outlined">lock</span> <span data-i18n="footerPrivate">Privado</span></span>
+          <span><span class="material-symbols-outlined offline-icon">smartphone</span> <span data-i18n="footerOffline">Offline</span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -421,7 +494,7 @@
     <div id="notification-bar" class="m3-notification-bar hidden">
       <div class="m3-notification-content">
         <span class="material-symbols-outlined spin" id="notification-icon">sync</span>
-        <span id="notification-text">Sincronizando...</span>
+        <span id="notification-text" data-i18n="saving">Sincronizando...</span>
       </div>
     </div>
 

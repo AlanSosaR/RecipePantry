@@ -68,7 +68,8 @@ class SyncManager {
 
             console.log(`🔄 Procesando ${queue.length} tareas offline...`);
             if (window.utils && window.utils.showToast) {
-                window.utils.showToast(`Sincronizando ${queue.length} cambios con la nube...`, 'info', 3000);
+                const msg = window.i18n ? window.i18n.t('syncingChanges') : `Sincronizando ${queue.length} cambios...`;
+                window.utils.showToast(msg, 'info', 3000);
             }
 
             // Mapeo temporal de ID local -> ID de la base de datos real
@@ -98,7 +99,7 @@ class SyncManager {
             }
 
             if (window.utils && window.utils.showToast) {
-                window.utils.showToast('¡Todo sincronizado!', 'success');
+                window.utils.showToast(window.i18n ? window.i18n.t('allSynced') : '¡Todo sincronizado!', 'success');
             }
 
         } catch (error) {
@@ -202,7 +203,7 @@ class SyncManager {
             
             if (recipesToLoad.length === 0) {
                 if (!silent) {
-                    window.showToast('✅ ¡Todas las recetas están offline!', 'success');
+                    window.showToast(window.i18n ? window.i18n.t('offlineReady') : '✅ ¡Listo! Recetas disponibles offline', 'success');
                     localStorage.setItem(this.STORAGE_KEY, 'true');
                 }
                 this.isPreloading = false;
@@ -213,7 +214,8 @@ class SyncManager {
             console.log(`📥 Descarga AGRESIVA de ${total} recetas...`);
 
             if (!silent && window.utils?.showNotificationBar) {
-                window.utils.showNotificationBar('sync-progress', `Descargando recetas para uso offline 0/${total}...`);
+                const msg = window.i18n ? window.i18n.t('syncingProgress') : 'Descargando recetas...';
+                window.utils.showNotificationBar('sync-progress', msg);
             }
 
             // 3. Descarga paralela AGRESIVA (Chunking más grande)
@@ -232,8 +234,8 @@ class SyncManager {
 
                 // Notificar progreso si no es silencioso
                 if (!silent && window.utils?.updateNotificationBar) {
-                    const progress = Math.min(i + chunk.length, total);
-                    window.utils.updateNotificationBar('sync-progress', `⚡ Descargando: ${progress}/${total}`);
+                    const msg = window.i18n ? window.i18n.t('syncingProgress') : 'Descargando...';
+                    window.utils.updateNotificationBar('sync-progress', msg);
                 }
 
                 // Pausa mínima para no saturar al usuario pero ir rápido
@@ -242,10 +244,10 @@ class SyncManager {
 
             if (!silent) {
                 if (window.utils?.hideNotificationBar) window.utils.hideNotificationBar('sync-progress');
-                window.showToast('✅ ¡Listo! Recetas disponibles sin internet', 'success');
+                window.showToast(window.i18n ? window.i18n.t('offlineReady') : '✅ ¡Listo! Recetas disponibles offline', 'success');
                 localStorage.setItem(this.STORAGE_KEY, 'true');
             } else if (loadedCount > 0) {
-                window.showToast('✅ Recetas actualizadas', 'info');
+                window.showToast(window.i18n ? window.i18n.t('recipesUpdated') : '✅ Recetas actualizadas', 'info');
             }
 
         } catch (error) {

@@ -325,6 +325,12 @@
         <div class="login-card-expressive fade-m3">
 
             <div class="login-header">
+                <div class="language-toggle" onclick="if(window.i18n) window.i18n.toggle(); updateTranslations();"
+                    data-i18n-title="navToggleLanguage" title="Cambiar idioma"
+                    style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--on-surface-variant); padding: 4px 8px; border-radius: 20px; background: rgba(0,0,0,0.05); font-size: 12px; font-weight: 700; transition: all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size: 16px">language</span>
+                    <span class="lang-label">ES</span>
+                </div>
                 <div class="login-brand" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                     <img src="assets/icons/icon.svg" width="48" height="48" alt="Logo" />
                     <h1
@@ -378,7 +384,7 @@
             </form>
 
             <div id="forgot-password-container" style="text-align: center; margin-top: 8px;">
-                <a href="recovery.html" style="color: var(--on-surface-variant); font-size: 14px; text-decoration: underline; font-weight: 500;">
+                <a href="recovery.html" data-i18n="forgotPasswordLink" style="color: #000; font-size: 14px; text-decoration: underline; font-weight: 500;">
                     ¿Olvidaste tu contraseña?
                 </a>
             </div>
@@ -432,8 +438,8 @@
                 document.getElementById('auth-subtitle').textContent = window.i18n ? window.i18n.t('authSubtitleLogin') : "Ingresa a tu colección privada de recetas.";
                 document.getElementById('btn-submit-text').textContent = window.i18n ? window.i18n.t('btnSubmitLogin') : "Iniciar Sesión";
                 
-                document.getElementById('switch-text-prefix').textContent = "¿No tienes cuenta? ";
-                document.getElementById('switch-text-action').textContent = "Regístrate ahora";
+                document.getElementById('switch-text-prefix').textContent = window.i18n ? window.i18n.t('switchTextLoginPrefix') : "¿No tienes cuenta? ";
+                document.getElementById('switch-text-action').textContent = window.i18n ? window.i18n.t('switchTextLoginAction') : "Regístrate ahora";
                 document.getElementById('forgot-password-container').style.display = 'block';
             } else {
                 document.getElementById('auth-title').style.display = 'none';
@@ -441,8 +447,8 @@
                 document.getElementById('auth-subtitle').textContent = window.i18n ? window.i18n.t('authSubtitleRegister') : "Únete para guardar tus recetas favoritas.";
                 document.getElementById('btn-submit-text').textContent = window.i18n ? window.i18n.t('btnSubmitRegister') : "Registrarse";
                 
-                document.getElementById('switch-text-prefix').textContent = "¿Ya tienes cuenta? ";
-                document.getElementById('switch-text-action').textContent = "Ingresa";
+                document.getElementById('switch-text-prefix').textContent = window.i18n ? window.i18n.t('switchTextRegisterPrefix') : "¿Ya tienes cuenta? ";
+                document.getElementById('switch-text-action').textContent = window.i18n ? window.i18n.t('switchTextRegisterAction') : "Ingresa";
                 document.getElementById('forgot-password-container').style.display = 'none';
             }
         }
