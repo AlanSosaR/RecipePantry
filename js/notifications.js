@@ -52,7 +52,7 @@ class NotificationManager {
 
             if (error) throw error;
 
-            this.notifications = data.map(n => {
+            const serverNotifications = data.map(n => {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const recipeName = isEn ? (n.recipe?.name_en || n.recipe?.name_es) : n.recipe?.name_es;
                 const senderName = [n.from_user?.first_name, n.from_user?.last_name].filter(Boolean).join(' ')
@@ -70,6 +70,20 @@ class NotificationManager {
                     prefix: senderPrefix,
                     leido: n.leido
                 };
+            });
+
+            // v156: Preservar notificaciones locales (update, sync) al refrescar desde el servidor
+            const localNotifications = this.notifications.filter(n => ['app_update', 'offline_sync'].includes(n.type));
+            
+            // Combinar: las del servidor + las locales
+            this.notifications = [...localNotifications, ...serverNotifications];
+            
+            // Eliminar duplicados si los hay (por ID)
+            const seen = new Set();
+            this.notifications = this.notifications.filter(n => {
+                const duplicate = seen.has(n.id);
+                seen.add(n.id);
+                return !duplicate;
             });
 
             this.updateBadge();

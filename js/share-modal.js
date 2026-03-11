@@ -348,8 +348,9 @@ class ShareModalManager {
 
             const { error: notifError } = await window.supabaseClient.from('notifications').insert(notifications);
             if (notifError) {
-                console.error('Error creating notifications:', notifError);
-                // We don't throw here to not block the main share flow if only notifications failed
+                console.error('❌ [Share] Error creating notifications:', notifError);
+            } else {
+                console.log('✅ [Share] Notificaciones creadas exitosamente para:', this.selectedUsers.map(u => u.email));
             }
 
             const currentPrefix = window.authManager.currentUser?.prefix || 'Chef';
