@@ -68,36 +68,92 @@ class ProfileManager {
             window.i18n.applyLanguage(window.i18n.getLang());
         }
 
-        console.log('👤 ProfileManager inicializado (v171)');
+        console.log('👤 ProfileManager inicializado (v172)');
     }
 
     handleCurrentPasswordInput(value) {
         if (this.verifyTimeout) clearTimeout(this.verifyTimeout);
         
         const statusEl = document.getElementById('current-pass-status');
+        const container = document.getElementById('current-pass-container');
         if (!statusEl) return;
 
         if (!value) {
             statusEl.textContent = '';
+            if (container) container.classList.remove('verified');
             this.currentPasswordVerified = false;
             return;
         }
 
         statusEl.textContent = 'Verificando...';
         statusEl.style.color = '#bbb';
+        if (container) container.classList.remove('verified');
 
         this.verifyTimeout = setTimeout(async () => {
             const res = await window.authManager.verifyCurrentPassword(value);
             if (res.success) {
                 statusEl.textContent = '✓ Contraseña verificada';
                 statusEl.style.color = '#10B981';
+                if (container) container.classList.add('verified');
                 this.currentPasswordVerified = true;
             } else {
                 statusEl.textContent = '✗ Contraseña incorrecta';
                 statusEl.style.color = '#EF4444';
+                if (container) container.classList.remove('verified');
                 this.currentPasswordVerified = false;
             }
         }, 1000);
+    }
+
+    handleNewPasswordInput(value) {
+        const statusEl = document.getElementById('new-password-status');
+        const container = document.getElementById('new-pass-container');
+        if (!statusEl) return;
+        
+        if (!value) {
+            statusEl.textContent = '';
+            if (container) container.classList.remove('verified');
+            return;
+        }
+
+        if (value.length < 6) {
+            statusEl.textContent = '✗ Mínimo 6 caracteres';
+            statusEl.style.color = '#EF4444';
+            if (container) container.classList.remove('verified');
+        } else {
+            statusEl.textContent = '✓ Longitud válida';
+            statusEl.style.color = '#10B981';
+            if (container) container.classList.add('verified');
+        }
+        
+        // Re-validar confirmación si hay algo
+        this.handleConfirmPasswordInput(this.fields.confirm_password.value);
+    }
+
+    handleConfirmPasswordInput(value) {
+        const statusEl = document.getElementById('confirm-password-status');
+        const container = document.getElementById('confirm-pass-container');
+        if (!statusEl) return;
+        
+        const newPass = this.fields.new_password.value;
+        if (!value) {
+            statusEl.textContent = '';
+            if (container) container.classList.remove('verified');
+            return;
+        }
+
+        if (value !== newPass) {
+            statusEl.textContent = '✗ Las contraseñas no coinciden';
+            statusEl.style.color = '#EF4444';
+            if (container) container.classList.remove('verified');
+        } else if (value.length >= 6) {
+            statusEl.textContent = '✓ Las contraseñas coinciden';
+            statusEl.style.color = '#10B981';
+            if (container) container.classList.add('verified');
+        } else {
+             statusEl.textContent = '';
+             if (container) container.classList.remove('verified');
+        }
     }
 
     async loadCustomPrefixes() {

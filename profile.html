@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="168">
+<html lang="es" data-app-version="172">
 
 <head>
     <meta charset="utf-8" />
@@ -281,16 +281,32 @@
             filter: brightness(1.1);
         }
 
-        @media (max-width: 1023px) {
-            .mobile-only {
-                display: flex !important;
-            }
+        .validation-status {
+            font-size: 11px;
+            font-weight: 700;
+            display: block;
+            margin-top: 4px;
+            transition: all 0.3s;
+            height: 16px;
+            margin-left: 4px;
         }
 
-        @media (min-width: 1024px) {
-            .mobile-only {
-                display: none !important;
-            }
+        /* State color for verified password */
+        .m3-field-container.verified .m3-field-label {
+            color: var(--primary) !important;
+        }
+        
+        .m3-field-container.verified .m3-field-input {
+            border-color: var(--primary);
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -431,32 +447,31 @@
                     </div>
 
                     <div id="security-content" class="security-content">
-                        <div class="m3-field-container">
+                        <div id="current-pass-container" class="m3-field-container">
                             <input type="password" id="current_password" class="m3-field-input" placeholder=" " oninput="window.profileManager.handleCurrentPasswordInput(this.value)">
                             <label class="m3-field-label" data-i18n="profileCurrentPass">Contraseña Actual</label>
-                            <button type="button" class="m3-field-icon-btn" onclick="window.profileManager.togglePass('current_password', this)">
+                            <div class="m3-field-trailing" onclick="window.profileManager.togglePass('current_password', this)">
                                 <span class="material-symbols-outlined">visibility</span>
-                            </button>
-                            <span id="current-pass-status" style="font-size: 11px; font-weight: 700; display: block; margin-top: 4px; transition: color 0.3s;"></span>
+                            </div>
+                            <span id="current-pass-status" class="validation-status"></span>
                         </div>
 
-                        <div class="m3-field-container">
-                            <input id="new_password" class="m3-field-input" type="password" placeholder=" " />
+                        <div id="new-pass-container" class="m3-field-container">
+                            <input id="new_password" class="m3-field-input" type="password" placeholder=" " oninput="window.profileManager.handleNewPasswordInput(this.value)" />
                             <label class="m3-field-label" data-i18n="profileNewPass">Nueva Contraseña</label>
-                            <div class="m3-field-trailing"
-                                onclick="window.profileManager.togglePass('new_password', this)">
+                            <div class="m3-field-trailing" onclick="window.profileManager.togglePass('new_password', this)">
                                 <span class="material-symbols-outlined">visibility</span>
                             </div>
+                            <span id="new-password-status" class="validation-status"></span>
                         </div>
 
-                        <div class="m3-field-container">
-                            <input id="confirm_password" class="m3-field-input" type="password" placeholder=" " />
-                            <label class="m3-field-label" data-i18n="profileConfirmPass">Confirmar Nueva
-                                Contraseña</label>
-                            <div class="m3-field-trailing"
-                                onclick="window.profileManager.togglePass('confirm_password', this)">
+                        <div id="confirm-pass-container" class="m3-field-container">
+                            <input id="confirm_password" class="m3-field-input" type="password" placeholder=" " oninput="window.profileManager.handleConfirmPasswordInput(this.value)" />
+                            <label class="m3-field-label" data-i18n="profileConfirmPass">Confirmar Nueva Contraseña</label>
+                            <div class="m3-field-trailing" onclick="window.profileManager.togglePass('confirm_password', this)">
                                 <span class="material-symbols-outlined">visibility</span>
                             </div>
+                            <span id="confirm-password-status" class="validation-status"></span>
                         </div>
                     </div>
 
@@ -477,7 +492,7 @@
     <script src="js/utils.js?v=168"></script>
     <script src="js/i18n.js?v=168"></script>
     <script src="js/ui.js?v=168"></script>
-    <script src="js/profile.js?v=168"></script>
+    <script src="js/profile.js?v=172"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
