@@ -1,15 +1,41 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="115">
+<html lang="es" data-app-version="130">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- EMERGENCY SW CACHE CLEAR (v52.0.0) -->
+    <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR (v52.0.2) -->
     <script>
         (async () => {
-            const CURRENT_VERSION = '40';
-            const NUKE_KEY = 'v40_total_nuke';
+            // 1. Console Sanitizer (Silence external noise)
+            (function() {
+                const noiseFilters = [
+                    'MetaMask', 'SES Removing', 'Unchecked runtime.lastError', 
+                    'Could not establish connection', 'Receiving end does not exist',
+                    'inpage.js', 'lockdown'
+                ];
+                const methods = ['log', 'warn', 'info', 'error', 'debug'];
+                methods.forEach(method => {
+                    const original = console[method];
+                    console[method] = function(...args) {
+                        const msg = args.join(' ');
+                        if (noiseFilters.some(filter => msg.includes(filter))) return;
+                        original.apply(console, args);
+                    };
+                });
+                window.addEventListener('unhandledrejection', (e) => {
+                    const msg = (e.reason?.message || e.reason || '').toString();
+                    if (noiseFilters.some(filter => msg.includes(filter))) { e.stopImmediatePropagation(); e.preventDefault(); }
+                });
+                window.onerror = function(msg) {
+                    if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
+                };
+            })();
+
+            // 2. Emergency Clear
+            const CURRENT_VERSION = '60';
+            const NUKE_KEY = 'v60_total_nuke';
 
             if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
                 if ('serviceWorker' in navigator) {
@@ -65,8 +91,8 @@
 
 
     <!-- App Styles Fallback -->
-    <link rel="stylesheet" href="css/styles.css?v=115">
-    <link rel="stylesheet" href="css/components.css?v=115">
+    <link rel="stylesheet" href="css/styles.css?v=130">
+    <link rel="stylesheet" href="css/components.css?v=130">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -259,16 +285,16 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=115"></script>
-    <script src="js/supabase-client.js?v=115"></script>
-    <script src="js/auth.js?v=115"></script>
-    <script src="js/localdb.js?v=115"></script>
-    <script src="js/sync-manager.js?v=115"></script>
-    <script src="js/db.js?v=115"></script>
-    <script src="js/utils.js?v=115"></script>
-    <script src="js/ui.js?v=115"></script>
-    <script src="js/i18n.js?v=115"></script>
-    <script src="js/recipe-detail.js?v=115"></script>
+    <script src="js/config.js?v=130"></script>
+    <script src="js/supabase-client.js?v=130"></script>
+    <script src="js/auth.js?v=130"></script>
+    <script src="js/localdb.js?v=130"></script>
+    <script src="js/sync-manager.js?v=130"></script>
+    <script src="js/db.js?v=130"></script>
+    <script src="js/utils.js?v=130"></script>
+    <script src="js/ui.js?v=130"></script>
+    <script src="js/i18n.js?v=130"></script>
+    <script src="js/recipe-detail.js?v=130"></script>
     <script>
         // RecipeDetailManager initializes itself via window.recipeDetailManager
     </script>

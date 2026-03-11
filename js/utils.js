@@ -356,4 +356,4 @@ window.utils.scaleText = (text, scale) => {
     });
 };
 
-console.log('✅ Utilidades inicializadas (v49)');
+console.log('✅ Utilidades inicializadas (v130)');

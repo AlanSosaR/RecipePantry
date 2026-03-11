@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="115">
+<html lang="es" data-app-version="125">
 
 <head>
     <meta charset="utf-8" />
@@ -25,11 +25,37 @@
     <title>Scanner OCR - Recipe Pantry</title>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- EMERGENCY SW CACHE CLEAR -->
+    <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
     <script>
         (async () => {
-            const CURRENT_VERSION = '40';
-            const NUKE_KEY = 'v40_total_nuke';
+            // 1. Console Sanitizer (Silence external noise)
+            (function() {
+                const noiseFilters = [
+                    'MetaMask', 'SES Removing', 'Unchecked runtime.lastError', 
+                    'Could not establish connection', 'Receiving end does not exist',
+                    'inpage.js', 'lockdown'
+                ];
+                const methods = ['log', 'warn', 'info', 'error', 'debug'];
+                methods.forEach(method => {
+                    const original = console[method];
+                    console[method] = function(...args) {
+                        const msg = args.join(' ');
+                        if (noiseFilters.some(filter => msg.includes(filter))) return;
+                        original.apply(console, args);
+                    };
+                });
+                window.addEventListener('unhandledrejection', (e) => {
+                    const msg = (e.reason?.message || e.reason || '').toString();
+                    if (noiseFilters.some(filter => msg.includes(filter))) { e.stopImmediatePropagation(); e.preventDefault(); }
+                });
+                window.onerror = function(msg) {
+                    if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
+                };
+            })();
+
+            // 2. Emergency Clear
+            const CURRENT_VERSION = '60';
+            const NUKE_KEY = 'v60_total_nuke';
 
             if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
                 if ('serviceWorker' in navigator) {
@@ -60,8 +86,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=115">
-    <link rel="stylesheet" href="css/components.css?v=115">
+    <link rel="stylesheet" href="css/styles.css?v=130">
+    <link rel="stylesheet" href="css/components.css?v=130">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -1,12 +1,38 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="125">
+<html lang="es" data-app-version="130">
 
 <head>
-  <!-- EMERGENCY SW CACHE CLEAR -->
+  <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
   <script>
     (async () => {
-      const CURRENT_VERSION = '49';
-      const NUKE_KEY = 'v49_total_nuke';
+      // 1. Console Sanitizer (Silence external noise)
+      (function() {
+        const noiseFilters = [
+          'MetaMask', 'SES Removing', 'Unchecked runtime.lastError', 
+          'Could not establish connection', 'Receiving end does not exist',
+          'inpage.js', 'lockdown'
+        ];
+        const methods = ['log', 'warn', 'info', 'error', 'debug'];
+        methods.forEach(method => {
+          const original = console[method];
+          console[method] = function(...args) {
+            const msg = args.join(' ');
+            if (noiseFilters.some(filter => msg.includes(filter))) return;
+            original.apply(console, args);
+          };
+        });
+        window.addEventListener('unhandledrejection', (e) => {
+          const msg = (e.reason?.message || e.reason || '').toString();
+          if (noiseFilters.some(filter => msg.includes(filter))) { e.stopImmediatePropagation(); e.preventDefault(); }
+        });
+        window.onerror = function(msg) {
+          if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
+        };
+      })();
+
+      // 2. Emergency Clear
+      const CURRENT_VERSION = '60';
+      const NUKE_KEY = 'v60_total_nuke';
 
       if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
         if ('serviceWorker' in navigator) {
@@ -67,8 +93,8 @@
     rel="stylesheet">
 
 
-  <link rel="stylesheet" href="css/styles.css?v=125">
-  <link rel="stylesheet" href="css/components.css?v=125">
+  <link rel="stylesheet" href="css/styles.css?v=130">
+  <link rel="stylesheet" href="css/components.css?v=130">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -620,24 +646,24 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=115"></script>
-    <script src="js/supabase-client.js?v=115"></script>
-    <script src="js/localdb.js?v=115"></script>
-    <script src="js/sync-manager.js?v=115"></script>
-    <script src="js/utils.js?v=115"></script>
-    <script src="js/i18n.js?v=115"></script>
+    <script src="js/config.js?v=130"></script>
+    <script src="js/supabase-client.js?v=130"></script>
+    <script src="js/localdb.js?v=130"></script>
+    <script src="js/sync-manager.js?v=130"></script>
+    <script src="js/utils.js?v=130"></script>
+    <script src="js/i18n.js?v=130"></script>
 
     <!-- Scripts (Versión Cache Buster) -->
-    <script src="js/db.js?v=115"></script>
-    <script src="js/auth.js?v=115"></script>
-    <script src="js/dashboard.js?v=115"></script>
-    <script src="js/share-modal.js?v=115"></script>
-    <script src="js/help-modal.js?v=115"></script>
-    <script src="js/notifications.js?v=115"></script>
-    <script src="js/ui.js?v=115"></script>
+    <script src="js/db.js?v=130"></script>
+    <script src="js/auth.js?v=130"></script>
+    <script src="js/dashboard.js?v=130"></script>
+    <script src="js/share-modal.js?v=130"></script>
+    <script src="js/help-modal.js?v=130"></script>
+    <script src="js/notifications.js?v=130"></script>
+    <script src="js/ui.js?v=130"></script>
 
     <!-- Service Worker Registration -->
-    <script src="js/sw-register.js?v=115"></script>
+    <script src="js/sw-register.js?v=130"></script>
 
 
     <script>
