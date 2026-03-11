@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v165)
+ * RecipeHub Service Worker (v166)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v165';
-const BUILD_ID = '2026-03-11-v165';
+const CACHE_NAME = 'recipehub-v166';
+const BUILD_ID = '2026-03-11-v166';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="164">
+<html lang="es" data-app-version="166">
 
 <head>
     <meta charset="utf-8" />
@@ -35,8 +35,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=164">
-    <link rel="stylesheet" href="css/components.css?v=164">
+    <link rel="stylesheet" href="css/styles.css?v=166">
+    <link rel="stylesheet" href="css/components.css?v=166">
 
     <style>
         body {
@@ -372,28 +372,33 @@
                         <h3 data-i18n="profilePersonalInfo">Datos Personales</h3>
                     </div>
 
-                    <div class="m3-field-container">
-                        <select id="prefix" class="m3-field-select" onchange="window.profileManager.handlePrefixChange()">
-                            <optgroup label="Cocina" data-i18n-label="prefixGroupKitchen">
-                                <option value="Chef">Chef</option>
-                                <option value="Sous Chef">Sous Chef</option>
-                                <option value="Cocinero" data-i18n="prefixCook">Cocinero/a</option>
-                                <option value="Panadero" data-i18n="prefixBaker">Panadero/a</option>
-                            </optgroup>
-                            <optgroup label="Bebidas" data-i18n-label="prefixGroupDrinks">
-                                <option value="Bartender">Bartender</option>
-                                <option value="Sommelier">Sommelier</option>
-                                <option value="Barista">Barista</option>
-                            </optgroup>
-                            <optgroup label="Especialidades" data-i18n-label="prefixGroupSpecs">
-                                <option value="Pastelero" data-i18n="prefixPastry">Pastelero/a</option>
-                                <option value="Pizzero" data-i18n="prefixPizza">Pizzero/a</option>
-                            </optgroup>
-                            <optgroup label="Otro" data-i18n-label="prefixGroupOther">
-                                <option value="" data-i18n="prefixCustomAction">Escribe tu prefijo...</option>
-                            </optgroup>
-                        </select>
-                        <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
+                    <div class="m3-field-container" style="display: flex; gap: 8px; align-items: center;">
+                        <div style="flex: 1; position: relative;">
+                            <select id="prefix" class="m3-field-select" onchange="window.profileManager.handlePrefixChange()">
+                                <optgroup label="Cocina" data-i18n-label="prefixGroupKitchen">
+                                    <option value="Chef">Chef</option>
+                                    <option value="Sous Chef">Sous Chef</option>
+                                    <option value="Cocinero" data-i18n="prefixCook">Cocinero/a</option>
+                                    <option value="Panadero" data-i18n="prefixBaker">Panadero/a</option>
+                                </optgroup>
+                                <optgroup label="Bebidas" data-i18n-label="prefixGroupDrinks">
+                                    <option value="Bartender">Bartender</option>
+                                    <option value="Sommelier">Sommelier</option>
+                                    <option value="Barista">Barista</option>
+                                </optgroup>
+                                <optgroup label="Especialidades" data-i18n-label="prefixGroupSpecs">
+                                    <option value="Pastelero" data-i18n="prefixPastry">Pastelero/a</option>
+                                    <option value="Pizzero" data-i18n="prefixPizza">Pizzero/a</option>
+                                </optgroup>
+                                <optgroup label="Otro" data-i18n-label="prefixGroupOther" id="custom-prefixes-group">
+                                    <option value="" data-i18n="prefixCustomAction">Escribe tu prefijo...</option>
+                                </optgroup>
+                            </select>
+                            <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
+                        </div>
+                        <button type="button" id="btn-delete-prefix" class="btn-icon-m3" style="display: none; background: rgba(255,0,0,0.1); color: #ff5252;" onclick="window.profileManager.handleDeletePrefix()" title="Eliminar este prefijo">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
                     </div>
 
                     <div id="custom-prefix-wrapper" class="m3-field-container" style="display: none;">
@@ -466,13 +471,13 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=164"></script>
-    <script src="js/supabase-client.js?v=164"></script>
-    <script src="js/auth.js?v=164"></script>
-    <script src="js/utils.js?v=164"></script>
-    <script src="js/i18n.js?v=164"></script>
-    <script src="js/ui.js?v=164"></script>
-    <script src="js/profile.js?v=164"></script>
+    <script src="js/config.js?v=166"></script>
+    <script src="js/supabase-client.js?v=166"></script>
+    <script src="js/auth.js?v=166"></script>
+    <script src="js/utils.js?v=166"></script>
+    <script src="js/i18n.js?v=166"></script>
+    <script src="js/ui.js?v=166"></script>
+    <script src="js/profile.js?v=166"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
