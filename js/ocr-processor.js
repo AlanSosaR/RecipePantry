@@ -416,9 +416,11 @@ class OCRProcessor {
         // FASE 2: CORRECCIONES DE FRACCIONES (MEJORADAS)
         // ═══════════════════════════════════════════════════
 
-        // Fracciones con porcentaje mal escaneado
-        corrected = corrected.replace(/(\d)%\s*(?=taza|cucharadita|cucharada)/gi, '$1½');
-        corrected = corrected.replace(/1\s*%\s*tazas/gi, '1½ tazas');
+        // Fracciones con porcentaje o dos puntos mal escaneado (User pattern 1%:, Y:, Ya)
+        corrected = corrected.replace(/(\d)[:%]\s*(?=taza|cucharadita|cucharada)/gi, '$1½');
+        corrected = corrected.replace(/1\s*[:%]\s*tazas/gi, '1½ tazas');
+        corrected = corrected.replace(/\bYa\s+de\b/gi, '¼ de');
+        corrected = corrected.replace(/\bY:\s+taza/gi, '½ taza');
 
         // Tres cuartos
         corrected = corrected.replace(/3%\s*(?=de|taza)/gi, '¾');
@@ -560,8 +562,8 @@ class OCRProcessor {
             if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción')) { inSection = false; continue; }
 
             if (inSection && line.trim().length > 2) {
-                // Limpiar viñetas
-                ingredients.push(line.replace(/^[-•*◦▪▫+—–\d\.]+\s*/, '').trim());
+                // Limpiar viñetas (Mejorado v153: no borrar números al inicio si no van seguidos de punto o espacio)
+                ingredients.push(line.replace(/^[\s•\-*◦▪▫+—–]*(?:\d+[\.\)\-]\s+)?/, '').trim());
             }
         }
         return ingredients;
