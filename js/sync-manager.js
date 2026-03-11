@@ -195,14 +195,14 @@ class SyncManager {
             let indexRecipes = await window.localDB.getAll('recipes_index');
             indexRecipes.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
             
-            // 2. Filtrar faltantes
+            // 2. Filtrar faltantes (mejorado para detectar datos parciales)
             const fullRecipes = await window.localDB.getAll('recipes_full');
-            const cachedFullIds = new Set(fullRecipes.map(r => r.id));
+            const cachedFullIds = new Set(fullRecipes.filter(r => Array.isArray(r.ingredients)).map(r => r.id));
             const recipesToLoad = indexRecipes.filter(r => !cachedFullIds.has(r.id));
             
             if (recipesToLoad.length === 0) {
                 if (!silent) {
-                    window.showToast('✅ ¡Todo listo!', 'success');
+                    window.showToast('✅ ¡Todas las recetas están offline!', 'success');
                     localStorage.setItem(this.STORAGE_KEY, 'true');
                 }
                 this.isPreloading = false;
@@ -210,14 +210,14 @@ class SyncManager {
             }
 
             const total = recipesToLoad.length;
-            console.log(`📥 Sincronizando ${total} recetas (modo ${silent ? 'silencioso' : 'visible'})...`);
+            console.log(`📥 Descarga AGRESIVA de ${total} recetas...`);
 
             if (!silent && window.utils?.showNotificationBar) {
-                window.utils.showNotificationBar('sync-progress', `Sincronizando recetas 0/${total}...`);
+                window.utils.showNotificationBar('sync-progress', `Descargando recetas para uso offline 0/${total}...`);
             }
 
-            // 3. Descarga paralela en bloques (Chunking)
-            const CHUNK_SIZE = 3;
+            // 3. Descarga paralela AGRESIVA (Chunking más grande)
+            const CHUNK_SIZE = 5; 
             let loadedCount = 0;
 
             for (let i = 0; i < recipesToLoad.length; i += CHUNK_SIZE) {
@@ -232,16 +232,17 @@ class SyncManager {
 
                 // Notificar progreso si no es silencioso
                 if (!silent && window.utils?.updateNotificationBar) {
-                    window.utils.updateNotificationBar('sync-progress', `Descargando recetas ${i + chunk.length}/${total}...`);
+                    const progress = Math.min(i + chunk.length, total);
+                    window.utils.updateNotificationBar('sync-progress', `⚡ Descargando: ${progress}/${total}`);
                 }
 
-                // Pausa corta entre bloques (200ms)
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // Pausa mínima para no saturar al usuario pero ir rápido
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
 
             if (!silent) {
                 if (window.utils?.hideNotificationBar) window.utils.hideNotificationBar('sync-progress');
-                window.showToast('✅ ¡Listo! Usa tus recetas sin datos', 'success');
+                window.showToast('✅ ¡Listo! Recetas disponibles sin internet', 'success');
                 localStorage.setItem(this.STORAGE_KEY, 'true');
             } else if (loadedCount > 0) {
                 window.showToast('✅ Recetas actualizadas', 'info');
