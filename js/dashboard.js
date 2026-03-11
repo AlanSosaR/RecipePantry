@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v125
-console.log('📄 [File] js/dashboard.js loaded (v125)');
+// Lógica específica del Dashboard - v130
+console.log('📄 [File] js/dashboard.js loaded (v130)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('🚀 Dashboard Inicializado (Recipe Pantry Premium v36)');
+            console.log('🚀 Dashboard Inicializado (Recipe Pantry Premium v130)');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -59,7 +59,7 @@ class DashboardManager {
                 return;
             }
 
-            const appVersionString = 'v21.0.0';
+            const appVersionString = 'v130';
             console.log(`Recipe Pantry Dashboard init - ${appVersionString} - deep cleanup fix`);
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
