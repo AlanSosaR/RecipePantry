@@ -1024,25 +1024,6 @@ class DashboardManager {
         window.location.href = url;
     }
 
-    /**
-     * Prefetch inteligente: Carga la receta en caché antes de que el usuario haga clic.
-     * Se dispara al hacer hover sobre la tarjeta o fila.
-     */
-    prefetchRecipe(recipeId) {
-        if (!recipeId || !window.db) return;
-
-        // Evitar múltiples peticiones si ya estamos cargando o si es offline
-        if (this._prefetching === recipeId || !navigator.onLine) return;
-
-        this._prefetching = recipeId;
-        console.log(`🔍 Prefetching receta: ${recipeId}`);
-
-        // Llamada fire-and-forget a db.js que ya maneja IndexedDB
-        window.db.getRecipeById(recipeId).finally(() => {
-            setTimeout(() => { this._prefetching = null; }, 2000);
-        });
-    }
-
     updateSelectionUI() {
         document.querySelectorAll('.file-row, .recipe-card-m3').forEach(el => {
             el.classList.remove('selected');
