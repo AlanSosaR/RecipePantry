@@ -141,6 +141,7 @@ class NotificationManager {
     }
 
     addUpdateNotification(worker) {
+        console.log('🔔 [Notifications] Agregando tarjeta de actualización manual...');
         // Evitar duplicados
         if (this.notifications.some(n => n.type === 'app_update')) return;
 

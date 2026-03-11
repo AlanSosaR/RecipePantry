@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v160)
+ * RecipeHub Service Worker (v161)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v160';
-const BUILD_ID = '2026-03-11-v160';
+const CACHE_NAME = 'recipehub-v161';
+const BUILD_ID = '2026-03-11-v161';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -29,7 +29,7 @@ const STATIC_RESOURCES = [
 
 // 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
-    // self.skipWaiting(); // v159: MANUAL UPDATE - Comentado para que aparezca el botón de "Actualizar"
+    // self.skipWaiting(); // v159+: MANUAL UPDATE - Comentado para que aparezca el botón de "Actualizar"
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);

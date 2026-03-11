@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '160';
+const APP_VERSION_ID = '161';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -11,6 +11,7 @@ async function registerSW() {
 
         // Si hay una actualización esperando, informar al usuario
         if (registration.waiting) {
+            console.log('[SW] Worker en espera detectado al inicio.');
             notifyUpdateReady(registration.waiting);
         }
 
@@ -42,6 +43,7 @@ async function registerSW() {
 
 // 3. Notificar al usuario a través del sistema de notificaciones de la app
 async function notifyUpdateReady(worker) {
+    console.log('📢 [Update] Preparando notificación interactiva...');
     if ('setAppBadge' in navigator) {
         navigator.setAppBadge(1).catch(() => { });
     }
@@ -58,7 +60,6 @@ async function notifyUpdateReady(worker) {
             setTimeout(tryAddNotification, 500);
         } else {
             console.warn('Update ready, but notificationManager failed to load in time.');
-            // Autostart removed in v61 to honor user interaction
         }
     };
 
