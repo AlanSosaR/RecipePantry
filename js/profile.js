@@ -8,6 +8,8 @@ class ProfileManager {
 
         this.fields = {
             prefix: document.getElementById('prefix'),
+            customPrefixWrapper: document.getElementById('custom-prefix-wrapper'),
+            customPrefixInput: document.getElementById('custom-prefix-input'),
             first_name: document.getElementById('first_name'),
             last_name: document.getElementById('last_name'),
             email: document.getElementById('email'),
@@ -39,6 +41,17 @@ class ProfileManager {
             avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
         }
 
+        // Custom Prefix blur logic
+        if (this.fields.customPrefixInput) {
+            this.fields.customPrefixInput.addEventListener('blur', () => this.handleCustomPrefixBlur());
+            this.fields.customPrefixInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.handleCustomPrefixBlur();
+                }
+            });
+        }
+
         // 4. Traducciones iniciales
         if (window.i18n) {
             window.i18n.applyLanguage(window.i18n.getLang());
@@ -51,12 +64,98 @@ class ProfileManager {
         const user = window.authManager.currentUser;
         if (!user) return;
 
-        if (this.fields.prefix) this.fields.prefix.value = user.prefix || 'Chef';
+        const prefix = user.prefix || 'Chef';
+        this.setPrefixValue(prefix);
+
         if (this.fields.first_name) this.fields.first_name.value = user.first_name || '';
         if (this.fields.last_name) this.fields.last_name.value = user.last_name || '';
         if (this.fields.email) this.fields.email.value = user.email || '';
 
         this.updateProfileVisuals(user);
+    }
+
+    setPrefixValue(value) {
+        if (!this.fields.prefix) return;
+
+        // Verificar si el valor existe en las opciones
+        const options = Array.from(this.fields.prefix.options);
+        const exists = options.some(opt => opt.value === value);
+
+        if (!exists && value) {
+            // Si es un valor custom que no está en la lista estática, agregarlo al grupo "Otro"
+            this.addCustomOption(value);
+        }
+
+        this.fields.prefix.value = value;
+    }
+
+    addCustomOption(value) {
+        if (!this.fields.prefix) return;
+        
+        const newOption = document.createElement('option');
+        newOption.value = value;
+        newOption.text = value;
+        
+        // Insertar en el optgroup "Otro" (antes de la opción vacía "Escribe tu prefijo...")
+        const groups = this.fields.prefix.querySelectorAll('optgroup');
+        const otherGroup = groups[groups.length - 1]; // "Otro"
+        
+        if (otherGroup) {
+            // Insertar antes de la opción vacía si existe, o al final
+            const emptyOption = Array.from(otherGroup.options).find(opt => opt.value === "");
+            if (emptyOption) {
+                otherGroup.insertBefore(newOption, emptyOption);
+            } else {
+                otherGroup.appendChild(newOption);
+            }
+        }
+    }
+
+    handlePrefixChange() {
+        const select = this.fields.prefix;
+        const wrapper = this.fields.customPrefixWrapper;
+        const input = this.fields.customPrefixInput;
+
+        if (select.value === "") {
+            // Mostrar input custom
+            if (wrapper) wrapper.style.display = 'block';
+            if (input) {
+                input.value = "";
+                input.focus();
+            }
+        } else {
+            if (wrapper) wrapper.style.display = 'none';
+        }
+    }
+
+    handleCustomPrefixBlur() {
+        const input = this.fields.customPrefixInput;
+        const select = this.fields.prefix;
+        const wrapper = this.fields.customPrefixWrapper;
+
+        const newValue = input.value.trim();
+        if (newValue) {
+            // Verificar si ya existe en el select
+            const options = Array.from(select.options);
+            const exists = options.some(opt => opt.value === newValue);
+
+            if (!exists) {
+                this.addCustomOption(newValue);
+                console.log(`✓ "${newValue}" agregado a la lista`);
+            }
+            
+            select.value = newValue;
+            if (wrapper) wrapper.style.display = 'none';
+        } else {
+            // Si el usuario no escribió nada, volver a un valor por defecto o dejarlo en blanco?
+            // User request says: "Escribe su rol -> se agrega a la lista". 
+            // If empty, maybe just hide?
+            if (select.value === "") {
+                // Si sigue en vacio (porque seleccionó "Escribe tu prefijo..."), lo dejamos ahi por si quiere intentar de nuevo
+                // o lo ocultamos si sale del foco? 
+                // User intent: show input, user writes. If blurs without writing, maybe hide it.
+            }
+        }
     }
 
     updateProfileVisuals(user) {
@@ -114,7 +213,6 @@ class ProfileManager {
             if (user.avatar_url) {
                 try {
                     // Extraer el nombre del archivo de la URL
-                    // Ejemplo: .../avatars/user_id_timestamp.jpg?t=...
                     const urlPath = user.avatar_url.split('?')[0];
                     const oldFileName = urlPath.split('/').pop();
                     
