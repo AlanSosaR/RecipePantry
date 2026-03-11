@@ -42,17 +42,15 @@ class SyncManager {
     }
 
     showInitialSyncNotification() {
-        if (this.isPreloading || !window.showActionSnackbar) return;
+        if (this.isPreloading) return;
         
         // Solo mostrar si el usuario está logueado
         if (!window.authManager?.currentUser) return;
 
-        const msg = window.i18n ? window.i18n.t('offlineDownloadPrompt') : '¿Descargar recetas para uso offline?';
-        const actionBtn = window.i18n ? window.i18n.t('offlineDownloadBtn') : 'DESCARGAR';
-
-        window.showActionSnackbar(msg, actionBtn, () => {
-            this.preloadOfflineRecipes({ silent: false });
-        }, 10000); // 10s timeout
+        // Usar el sistema de notificaciones internas de la app
+        if (window.notificationManager) {
+            window.notificationManager.addSyncNotification();
+        }
     }
 
     async syncQueue() {

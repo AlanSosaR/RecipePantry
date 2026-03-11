@@ -142,6 +142,33 @@ class NotificationManager {
         }
     }
 
+    addSyncNotification() {
+        // Evitar duplicados
+        if (this.notifications.some(n => n.type === 'offline_sync')) return;
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        // Añadir al principio de la lista
+        this.notifications.unshift({
+            id: 'sync-prompt-1',
+            type: 'offline_sync',
+            recipeName: isEn ? 'Recipes Offline' : 'Recetas Offline',
+            sender: 'Sistema',
+            timestamp: new Date().toISOString(),
+            leido: false
+        });
+
+        this.updateBadge();
+        if (this.menu && !this.menu.classList.contains('hidden')) {
+            this.renderMenu();
+        }
+
+        // Mostrar un Toast discreto
+        if (window.utils && window.utils.showToast) {
+            window.utils.showToast(isEn ? '🔔 Access your recipes offline!' : '🔔 ¡Accede a tus recetas sin conexión!', 'info', 5000);
+        }
+    }
+
     toggleMenu(event) {
         if (event) event.stopPropagation();
         if (!this.menu) return;
@@ -196,6 +223,36 @@ class NotificationManager {
                 `;
             }
 
+            if (n.type === 'offline_sync') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const msg = isEn 
+                    ? 'Download your recipes to use them without internet.' 
+                    : 'Descarga tus recetas para usarlas sin internet.';
+                const btnText = isEn ? 'Download Now' : 'Descargar ahora';
+                return `
+                    <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:#10B981;">
+                                📥
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <span style="color:white; display:block; font-size:13px; font-weight:600;">Recipe Pantry</span>
+                                <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">${n.recipeName}</span>
+                                <span style="color:#bbb; font-size:11px; display:block; margin-top:4px;">${msg}</span>
+                                
+                                <!-- Action buttons -->
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleSyncDownload('${n.id}')"
+                                        style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        ⚡ ${btnText}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
@@ -231,6 +288,18 @@ class NotificationManager {
             this.updateWorker.postMessage({ type: 'SKIP_WAITING' });
         } else {
             window.location.reload();
+        }
+    }
+
+    handleSyncDownload(notificationId) {
+        if (window.syncManager) {
+            window.syncManager.preloadOfflineRecipes({ silent: false });
+            
+            // Marcar como leída y quitar de la lista
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+            this.menu.classList.add('hidden');
         }
     }
 
