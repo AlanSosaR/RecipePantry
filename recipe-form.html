@@ -1247,6 +1247,9 @@
 
                 if (!name) {
                     window.utils.showToast('Asigna un nombre a la receta', 'error');
+                    // 2. Emergency Clear (v65)
+            const CURRENT_VERSION = '152';
+            const NUKE_KEY = 'v152_ocr_cache_fix';
                     return;
                 }
 

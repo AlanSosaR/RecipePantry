@@ -185,42 +185,65 @@ class OCRScanner {
     }
 
     showResults(results) {
-        // Skip result state in modal and close immediately
-        this.close();
+        window.currentOCRResults = results;
+        
+        // Determinar si estamos en ocr.html (modo página principal)
+        const isMainPageMode = document.getElementById('ocrFullText') !== null;
 
-        // Update Scan Results in Step 1 (Main Page v134)
-        const resultHeader = document.getElementById('ocrResultHeaderStep1');
-        const resultBody = document.getElementById('ocrResultBodyStep1');
-        const captureSection = document.getElementById('ocrCaptureSection');
-        const tipsSection = document.getElementById('ocrTipsSection');
+        if (isMainPageMode) {
+            // MODO A: Página principal (ocr.html)
+            this.close(); // Cerramos el modal
 
-        if (resultHeader) resultHeader.classList.remove('hidden');
-        if (resultBody) resultBody.classList.remove('hidden');
-        if (captureSection) captureSection.classList.add('hidden');
-        if (tipsSection) tipsSection.classList.add('hidden');
+            const resultHeader = document.getElementById('ocrResultHeaderStep1');
+            const resultBody = document.getElementById('ocrResultBodyStep1');
+            const captureSection = document.getElementById('ocrCaptureSection');
+            const tipsSection = document.getElementById('ocrTipsSection');
 
-        const nameInput = document.getElementById('ocrRecipeName');
-        if (nameInput) nameInput.value = results.nombre || '';
+            if (resultHeader) resultHeader.classList.remove('hidden');
+            if (resultBody) resultBody.classList.remove('hidden');
+            if (captureSection) captureSection.classList.add('hidden');
+            if (tipsSection) tipsSection.classList.add('hidden');
 
-        const pageFullText = document.getElementById('ocrFullText');
-        if (pageFullText) pageFullText.value = results.texto;
+            const unifiedBody = document.querySelector('.ocr-result-unified');
+            if (unifiedBody && !unifiedBody.id) unifiedBody.classList.remove('hidden'); // Soporte v148
 
-        // Confidence badge in Step 1
-        const conf = Math.round(results.confidence || 0);
-        const confBadge = document.getElementById('confidenceBadgeStep1');
-        if (confBadge) {
-            confBadge.textContent = `${conf}%`;
-            confBadge.style.background = conf >= 90 ? '#10B981' : conf >= 70 ? '#F59E0B' : '#EF4444';
-            confBadge.style.display = 'inline-flex';
+            const nameInput = document.getElementById('ocrRecipeName');
+            if (nameInput) nameInput.value = results.nombre || '';
+
+            const pageFullText = document.getElementById('ocrFullText');
+            if (pageFullText) pageFullText.value = results.texto;
+
+            const conf = Math.round(results.confidence || 0);
+            const confBadge = document.getElementById('confidenceBadgeStep1');
+            if (confBadge) {
+                confBadge.textContent = `${conf}%`;
+                confBadge.style.background = conf >= 90 ? '#10B981' : conf >= 70 ? '#F59E0B' : '#EF4444';
+                confBadge.style.display = 'inline-flex';
+            }
+
+            if (resultBody) resultBody.scrollIntoView({ behavior: 'smooth' });
+            else if (unifiedBody) unifiedBody.scrollIntoView({ behavior: 'smooth' });
+
+        } else {
+            // MODO B: Modal en formulario (recipe-form.html)
+            this.stopCamera();
+            
+            const cameraState = document.getElementById('ocrCameraState');
+            const loadingState = document.getElementById('ocrLoading');
+            const resultState = document.getElementById('ocrResultState');
+
+            if (cameraState) cameraState.style.display = 'none';
+            if (loadingState) loadingState.style.display = 'none';
+            if (resultState) resultState.style.display = 'flex';
+
+            const nameInput = document.getElementById('ocrRecipeName');
+            if (nameInput) nameInput.value = results.nombre || 'Nueva Receta OCR';
+
+            const extractedText = document.getElementById('extractedText');
+            if (extractedText) extractedText.value = results.texto || '';
         }
 
-        // Auto-scroll to result
-        if (resultBody) resultBody.scrollIntoView({ behavior: 'smooth' });
-
-        console.log(`✅ showResults: ${results.texto.length} chars, confianza ${conf}% | Método: ${results.method}`);
-
-        // Guardar para uso global por otros botones (como saveRecipe en /ocr)
-        window.currentOCRResults = results;
+        console.log(`✅ showResults: ${results.texto.length} chars, confianza ${Math.round(results.confidence || 0)}% | Método: ${results.method}`);
     }
 
     async handleGallery(file) {
