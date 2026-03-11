@@ -68,7 +68,7 @@ class ProfileManager {
             window.i18n.applyLanguage(window.i18n.getLang());
         }
 
-        console.log('👤 ProfileManager inicializado (v166)');
+        console.log('👤 ProfileManager inicializado (v167)');
     }
 
     async loadCustomPrefixes() {
@@ -90,7 +90,7 @@ class ProfileManager {
             const otherGroup = document.getElementById('custom-prefixes-group');
             if (otherGroup) {
                 // Limpiar opciones previas que no sean la de "Escribe tu prefijo..."
-                const options = Array.from(otherGroup.options);
+                const options = Array.from(otherGroup.children);
                 options.forEach(opt => {
                     if (opt.value !== "") opt.remove();
                 });
