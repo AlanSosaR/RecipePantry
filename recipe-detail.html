@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="83">
+<html lang="es" data-app-version="115">
 
 <head>
     <meta charset="UTF-8">
@@ -8,8 +8,8 @@
     <!-- EMERGENCY SW CACHE CLEAR (v52.0.0) -->
     <script>
         (async () => {
-            const CURRENT_VERSION = '52';
-            const NUKE_KEY = 'v55_offline_sync';
+            const CURRENT_VERSION = '40';
+            const NUKE_KEY = 'v40_total_nuke';
 
             if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
                 if ('serviceWorker' in navigator) {
@@ -65,8 +65,8 @@
 
 
     <!-- App Styles Fallback -->
-    <link rel="stylesheet" href="css/styles.css?v=56">
-    <link rel="stylesheet" href="css/components.css?v=56">
+    <link rel="stylesheet" href="css/styles.css?v=115">
+    <link rel="stylesheet" href="css/components.css?v=115">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -259,16 +259,16 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=101"></script>
-    <script src="js/supabase-client.js?v=101"></script>
-    <script src="js/auth.js?v=101"></script>
-    <script src="js/localdb.js?v=101"></script>
-    <script src="js/sync-manager.js?v=101"></script>
-    <script src="js/db.js?v=101"></script>
-    <script src="js/utils.js?v=101"></script>
-    <script src="js/ui.js?v=101"></script>
-    <script src="js/i18n.js?v=101"></script>
-    <script src="js/recipe-detail.js?v=101"></script>
+    <script src="js/config.js?v=115"></script>
+    <script src="js/supabase-client.js?v=115"></script>
+    <script src="js/auth.js?v=115"></script>
+    <script src="js/localdb.js?v=115"></script>
+    <script src="js/sync-manager.js?v=115"></script>
+    <script src="js/db.js?v=115"></script>
+    <script src="js/utils.js?v=115"></script>
+    <script src="js/ui.js?v=115"></script>
+    <script src="js/i18n.js?v=115"></script>
+    <script src="js/recipe-detail.js?v=115"></script>
     <script>
         // RecipeDetailManager initializes itself via window.recipeDetailManager
     </script>
