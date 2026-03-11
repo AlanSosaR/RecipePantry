@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="146">
+<html lang="es" data-app-version="147">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear (v65)
-            const CURRENT_VERSION = '145';
-            const NUKE_KEY = 'v145_ocr_results_fix';
+            const CURRENT_VERSION = '147';
+            const NUKE_KEY = 'v1477_duplicate_id_fix';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -840,7 +840,7 @@
                     </div>
 
                     <!-- RESULTADOS EN EL MISMO PASO 1 (Unificado v134) -->
-                    <div id="ocrResultInStep1" style="display: none; margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
+                    <div id="ocrResultHeaderStep1" class="hidden" style="margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                             <h3 style="font-weight:800; font-size:20px; margin:0; color: var(--primary);">Resultado del Escaneo</h3>
                             <span id="confidenceBadgeStep1" class="confidence-badge"></span>
@@ -875,7 +875,7 @@
                     </div>
 
                     <!-- NUEVOS BOTONES AL FINAL (OCULTOS POR DEFECTO) -->
-                    <div id="ocrResultInStep1" class="hidden">
+                    <div id="ocrResultBodyStep1" class="hidden">
                         <div class="ocr-result-textarea-container" style="margin-top: 32px; margin-bottom: 24px;">
                             <textarea id="ocrFullText" class="ocr-result-textarea" 
                                 style="min-height: 550px;"

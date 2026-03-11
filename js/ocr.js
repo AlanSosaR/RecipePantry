@@ -189,11 +189,13 @@ class OCRScanner {
         this.close();
 
         // Update Scan Results in Step 1 (Main Page v134)
-        const resultArea = document.getElementById('ocrResultInStep1');
+        const resultHeader = document.getElementById('ocrResultHeaderStep1');
+        const resultBody = document.getElementById('ocrResultBodyStep1');
         const captureSection = document.getElementById('ocrCaptureSection');
         const tipsSection = document.getElementById('ocrTipsSection');
 
-        if (resultArea) resultArea.classList.remove('hidden');
+        if (resultHeader) resultHeader.classList.remove('hidden');
+        if (resultBody) resultBody.classList.remove('hidden');
         if (captureSection) captureSection.classList.add('hidden');
         if (tipsSection) tipsSection.classList.add('hidden');
 
@@ -213,7 +215,7 @@ class OCRScanner {
         }
 
         // Auto-scroll to result
-        if (resultArea) resultArea.scrollIntoView({ behavior: 'smooth' });
+        if (resultBody) resultBody.scrollIntoView({ behavior: 'smooth' });
 
         console.log(`✅ showResults: ${results.texto.length} chars, confianza ${conf}% | Método: ${results.method}`);
 
