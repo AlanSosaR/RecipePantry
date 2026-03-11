@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="140">
+<html lang="es" data-app-version="141">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear (v65)
-            const CURRENT_VERSION = '140';
-            const NUKE_KEY = 'v140_nuclear_clear';
+            const CURRENT_VERSION = '141';
+            const NUKE_KEY = 'v141_final_sync';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -852,28 +852,9 @@
                             <label class="m3-field-label" data-i18n="formNameLabel">Nombre de la Receta</label>
                         </div>
 
-                        <div class="ocr-result-textarea-container" style="margin-bottom: 24px;">
-                            <textarea id="ocrFullText" class="ocr-result-textarea" 
-                                style="min-height: 350px;"
-                                placeholder="La información aparecerá aquí..."
-                                data-i18n-placeholder="ocrTextPlaceholder"></textarea>
-                        </div>
-
-                        <div style="display: flex; gap: 12px;">
-                            <button class="m3-expressive-card secondary" 
-                                style="flex: 1; padding: 16px; border-radius: 16px; min-height: 60px; flex-direction: row; gap: 8px;"
-                                onclick="goToStep(1)">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">refresh</span>
-                                <span style="font-size: 14px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
-                            </button>
-                            <button id="btnSaveRecipe" class="m3-expressive-card" 
-                                style="flex: 2; padding: 16px; border-radius: 16px; min-height: 60px; background: var(--primary); color: white; flex-direction: row; gap: 8px; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);"
-                                onclick="saveRecipe();">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
-                                <span style="font-size: 16px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
-                            </button>
                         </div>
                     </div>
+
 
 
                     <!-- SECCIÓN DE CONSEJOS (Ahora dentro de step1 para que se oculte automáticamente) -->
@@ -891,6 +872,29 @@
                             <li data-i18n="ocrTip2">Usa buena iluminación (evita sombras).</li>
                             <li data-i18n="ocrTip3">Mantén la cámara paralela al papel.</li>
                         </ul>
+                    </div>
+
+                    <!-- NUEVOS BOTONES AL FINAL -->
+                    <div class="ocr-result-textarea-container" style="margin-top: 32px; margin-bottom: 24px;">
+                        <textarea id="ocrFullText" class="ocr-result-textarea" 
+                            style="min-height: 550px;"
+                            placeholder="La información aparecerá aquí..."
+                            data-i18n-placeholder="ocrTextPlaceholder"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 32px;">
+                        <button class="m3-expressive-card secondary" 
+                            style="flex: 1; padding: 16px; border-radius: 16px; min-height: 60px; flex-direction: row; gap: 8px;"
+                            onclick="goToStep(1)">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">refresh</span>
+                            <span style="font-size: 14px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
+                        </button>
+                        <button id="btnSaveRecipe" class="m3-expressive-card" 
+                            style="flex: 2; padding: 16px; border-radius: 16px; min-height: 60px; background: var(--primary); color: white; flex-direction: row; gap: 8px; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);"
+                            onclick="saveRecipe();">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+                            <span style="font-size: 16px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
+                        </button>
                     </div>
                 </div>
 
