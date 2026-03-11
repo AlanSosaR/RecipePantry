@@ -51,6 +51,7 @@ class NotificationManager {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
+            console.log(`🔔 [Notifications] Datos del servidor (${data?.length || 0}):`, data);
 
             const serverNotifications = data.map(n => {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
@@ -110,7 +111,8 @@ class NotificationManager {
                 filter: `user_id=eq.${user.id}`
             }, (payload) => {
                 console.log('🔔 Nueva notificación recibida vía Realtime:', payload);
-                this.fetchNotifications();
+                // v157: Añadir delay para dar tiempo a que la DB se estabilice
+                setTimeout(() => this.fetchNotifications(), 500);
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 window.utils.showToast(isEn ? 'You have received a new recipe!' : '¡Has recibido una nueva receta!', 'info');
             });
