@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v154';
-const BUILD_ID = '2026-03-11-v154';
+const CACHE_NAME = 'recipehub-v155';
+const BUILD_ID = '2026-03-11-v155';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -29,7 +29,7 @@ const STATIC_RESOURCES = [
 
 // 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // v154: Re-activado para asegurar que los fixes lleguen de inmediato
+    // self.skipWaiting(); // Desactivado en v155 para probar notificación manual
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
