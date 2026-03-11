@@ -262,6 +262,8 @@
             // ── Profile ───────────────────────────────────────────────────
             profileUnnamed: 'Usuario sin nombre',
             profileUpdated: '¡Perfil actualizado!',
+            avatarUpdated: '¡Foto de perfil actualizada!',
+            errorUploadingAvatar: 'Error al subir la foto',
             profilePhotoUpdated: '¡Foto actualizada!',
             profileExported: 'Recetas exportadas',
             profileEditFirstName: 'Nombre:',
@@ -520,6 +522,8 @@
             updateProfileSuccess: 'Profile updated successfully',
             profileNoChanges: 'No changes detected in profile',
             uploadingAvatar: 'Uploading photo...',
+            avatarUpdated: 'Profile photo updated!',
+            errorUploadingAvatar: 'Error uploading photo',
             saveSuccess: 'Recipe saved successfully!',
             saveError: 'Error saving recipe',
             ocrScanning: 'Recipe scanned with OCR',

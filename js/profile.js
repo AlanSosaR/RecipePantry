@@ -110,9 +110,28 @@ class ProfileManager {
         try {
             window.utils.showToast(window.i18n?.t('uploadingAvatar') || 'Subiendo foto...', 'info');
             
-            // Reemplazar la anterior usando un nombre fijo (auth_user_id que coincide con RLS)
+            // 1. Identificar y borrar avatar anterior si existe para no dejar basura
+            if (user.avatar_url) {
+                try {
+                    // Extraer el nombre del archivo de la URL
+                    // Ejemplo: .../avatars/user_id_timestamp.jpg?t=...
+                    const urlPath = user.avatar_url.split('?')[0];
+                    const oldFileName = urlPath.split('/').pop();
+                    
+                    if (oldFileName && oldFileName.includes(user.auth_user_id)) {
+                        await window.supabaseClient.storage
+                            .from('avatars')
+                            .remove([oldFileName]);
+                        console.log('🗑️ Avatar antiguo eliminado:', oldFileName);
+                    }
+                } catch (err) {
+                    console.warn('No se pudo borrar el avatar anterior:', err);
+                }
+            }
+
+            // 2. Generar nombre único con timestamp para evitar colisiones y caché
             const fileExt = file.name.split('.').pop();
-            const fileName = `${user.auth_user_id}.${fileExt}`;
+            const fileName = `${user.auth_user_id}_${Date.now()}.${fileExt}`;
             
             const { error: uploadError } = await window.supabaseClient.storage
                 .from('avatars')
@@ -120,17 +139,16 @@ class ProfileManager {
 
             if (uploadError) throw uploadError;
             
-            // Obtener URL pública
+            // 3. Obtener URL pública
             const { data: { publicUrl } } = window.supabaseClient.storage
                 .from('avatars')
                 .getPublicUrl(fileName);
                 
-            // Evitar caché del navegador adjuntando la hora
-            const urlWithCacheBuster = `${publicUrl}?t=${new Date().getTime()}`;
+            // 4. Actualizar el perfil del usuario localmente primero para sincronización inmediata
+            user.avatar_url = publicUrl; 
                 
-            // Actualizar el perfil del usuario
             const res = await window.authManager.updateProfile({
-                avatar_url: urlWithCacheBuster
+                avatar_url: publicUrl
             });
             
             if (!res.success) throw new Error(res.error);

@@ -70,16 +70,25 @@ window.updateGlobalUserUI = function () {
     
     avatarContainers.forEach(container => {
         const initialsSpan = container.querySelector('.user-initials-m3');
+        const imgTag = container.querySelector('img');
         
         if (user.avatar_url) {
-            // Apply background image and hide initials
-            container.style.backgroundImage = `url(${user.avatar_url})`;
-            container.style.backgroundSize = 'cover';
-            container.style.backgroundPosition = 'center';
+            // Option 1: If there's an <img> tag, update its src
+            if (imgTag) {
+                imgTag.src = user.avatar_url;
+                imgTag.style.display = 'block';
+                container.style.backgroundImage = 'none'; // Clear bg if img is used
+            } else {
+                // Option 2: Use background image (sidebar default)
+                container.style.backgroundImage = `url(${user.avatar_url})`;
+                container.style.backgroundSize = 'cover';
+                container.style.backgroundPosition = 'center';
+            }
             if (initialsSpan) initialsSpan.style.display = 'none';
         } else {
-            // Remove background image and show initials
+            // Fallback to initials
             container.style.backgroundImage = 'none';
+            if (imgTag) imgTag.style.display = 'none';
             if (initialsSpan) {
                 initialsSpan.textContent = initials.toUpperCase();
                 initialsSpan.style.display = 'block';
