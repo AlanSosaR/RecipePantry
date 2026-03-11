@@ -193,9 +193,9 @@ class OCRScanner {
         const captureSection = document.getElementById('ocrCaptureSection');
         const tipsSection = document.getElementById('ocrTipsSection');
 
-        if (resultArea) resultArea.style.display = 'block';
-        if (captureSection) captureSection.style.display = 'none';
-        if (tipsSection) tipsSection.style.display = 'none';
+        if (resultArea) resultArea.classList.remove('hidden');
+        if (captureSection) captureSection.classList.add('hidden');
+        if (tipsSection) tipsSection.classList.add('hidden');
 
         const nameInput = document.getElementById('ocrRecipeName');
         if (nameInput) nameInput.value = results.nombre || '';
