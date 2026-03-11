@@ -102,7 +102,7 @@ class ProfileManager {
         
         if (otherGroup) {
             // Insertar antes de la opción vacía si existe, o al final
-            const emptyOption = Array.from(otherGroup.options).find(opt => opt.value === "");
+            const emptyOption = Array.from(otherGroup.children).find(opt => opt.value === "");
             if (emptyOption) {
                 otherGroup.insertBefore(newOption, emptyOption);
             } else {

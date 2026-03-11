@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v163)
+ * RecipeHub Service Worker (v164)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v163';
-const BUILD_ID = '2026-03-11-v163';
+const CACHE_NAME = 'recipehub-v164';
+const BUILD_ID = '2026-03-11-v164';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -40,7 +40,6 @@ self.addEventListener('install', (event) => {
 
 // 2. Activación: Limpieza agresiva de caches antiguos
 self.addEventListener('activate', (event) => {
-    self.clients.claim(); // Tomar control de inmediato
     event.waitUntil(
         Promise.all([
             // Eliminar cualquier cache que no sea el actual
@@ -94,7 +93,6 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Estrategia para API de Recetas: Network First (v59)
-    // Para asegurar que si se borra algo, no reaparezca por el cache
     if (url.pathname.includes('/api/recipes')) {
         event.respondWith(
             fetch(request)
@@ -123,7 +121,6 @@ self.addEventListener('fetch', (event) => {
                 }
                 return networkResponse;
             }).catch(() => {
-                // Si falla la red y no hay caché, retornar error silencioso o fallback
                 return null;
             });
 
@@ -139,11 +136,10 @@ self.addEventListener('message', (event) => {
     }
 });
 
-// 5. Gestión de Notificaciones (para actualizaciones y compartidos)
+// 5. Gestión de Notificaciones
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
-    // Si es una notificación de actualización
     if (event.notification.tag === 'app-update') {
         self.skipWaiting();
         event.waitUntil(

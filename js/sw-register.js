@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '163';
+const APP_VERSION_ID = '164';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -50,7 +50,7 @@ async function notifyUpdateReady(worker) {
 
     // Agregar la notificación al sistema interno de la app (campanita)
     let retries = 0;
-    const maxRetries = 20; // 10 seconds (500ms * 20)
+    const maxRetries = 20;
 
     const tryAddNotification = () => {
         if (window.notificationManager && window.notificationManager.menu) {
