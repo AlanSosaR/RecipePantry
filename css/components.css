@@ -1503,7 +1503,7 @@ select.input-field {
     flex-direction: column;
     gap: 8px;
     padding: 0 16px;
-    margin-top: 60px !important;
+    margin-top: 24px !important;
 }
 
 .nav-item {
@@ -3880,7 +3880,7 @@ select.input-field {
     flex-direction: column;
     align-items: center;
     gap: 4px; /* Reduced gap for status */
-    padding: 24px 16px 80px !important;
+    padding: 24px 16px 48px !important;
     margin: 0;
     border-radius: 0;
     background: transparent;
