@@ -9,7 +9,7 @@ window.setupMobileMenu = function () {
         if (btnMenuMobile) {
             btnMenuMobile.addEventListener('click', (e) => {
                 e.stopPropagation();
-                sidebar.classList.toggle('active');
+                window.toggleSidebar(true);
             });
         }
 

@@ -185,21 +185,10 @@ class DashboardManager {
     }
 
     toggleSidebar(forceState = null) {
-        const sidebar = document.getElementById('main-sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        if (!sidebar || !overlay) return;
-
-        const isOpen = sidebar.classList.contains('active');
+        const isOpen = document.getElementById('main-sidebar')?.classList.contains('active');
         const shouldOpen = forceState !== null ? forceState : !isOpen;
-
-        if (shouldOpen) {
-            sidebar.classList.add('active');
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        } else {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
+        if (window.toggleSidebar) {
+            window.toggleSidebar(shouldOpen);
         }
     }
 
