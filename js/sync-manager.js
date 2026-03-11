@@ -7,6 +7,10 @@ class SyncManager {
         this.isPreloading = false;
         this.STORAGE_KEY = 'recipehub_initial_sync_completed';
         this.initListeners();
+        // Check initial state immediately if online
+        if (navigator.onLine) {
+            setTimeout(() => this.handleAutoSync(), 1000);
+        }
     }
 
     initListeners() {
@@ -42,7 +46,7 @@ class SyncManager {
     }
 
     showInitialSyncNotification() {
-        if (this.isPreloading || !window.utils?.showActionSnackbar) return;
+        if (this.isPreloading || !window.showActionSnackbar) return;
 
         const msg = window.i18n ? window.i18n.t('offlineDownloadPrompt') : '¿Descargar recetas para uso offline?';
         const actionBtn = window.i18n ? window.i18n.t('offlineDownloadBtn') : 'DESCARGAR';

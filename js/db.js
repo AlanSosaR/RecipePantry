@@ -67,6 +67,9 @@ class DatabaseManager {
             }
 
             console.log(`⚡ ${filteredRecipes.length} recetas desde caché (recipes_index)`);
+            
+            // Trigger event for listeners like SyncManager
+            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: filteredRecipes }));
 
             // 2. Refresco silencioso en segundo plano
             if (this._isOnline) {
@@ -201,6 +204,9 @@ class DatabaseManager {
             } else {
                 await window.localDB.putAll('recipes_index', recipes);
             }
+
+            // Trigger event for listeners like SyncManager
+            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: recipes }));
 
             return { success: true, recipes, fromCache: false };
         } catch (error) {
