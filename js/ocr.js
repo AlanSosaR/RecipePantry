@@ -183,24 +183,19 @@ class OCRScanner {
     }
 
     showResults(results) {
-        const cameraState = document.getElementById('ocrCameraState');
-        const resultState = document.getElementById('ocrResultState');
-        const loadingState = document.getElementById('ocrLoading');
+        // Skip result state in modal and close immediately
+        this.close();
 
-        if (cameraState) cameraState.style.display = 'none';
-        if (loadingState) loadingState.style.display = 'none';
-        if (resultState) resultState.style.display = 'flex';
+        // If on /ocr page, move to page Step 3
+        if (typeof goToStep === 'function') {
+            goToStep(3);
+        }
 
-        // Set Recipe Name (Page and Modal)
+        // Set Recipe Name (Main Page)
         const nameInput = document.getElementById('ocrRecipeName');
         if (nameInput) nameInput.value = results.nombre || '';
-        const nameInputModal = document.getElementById('ocrRecipeNameModal');
-        if (nameInputModal) nameInputModal.value = results.nombre || '';
 
-        // Set Full Text (Page and Modal)
-        // ocrFullText: Para la vista de Step 3 en /ocr
-        // extractedText: Para el modal en /recipe-form
-        // extractedTextModal: Para el modal en /ocr
+        // Set Full Text (Main Page)
         const pageFullText = document.getElementById('ocrFullText');
         if (pageFullText) pageFullText.value = results.texto;
 
