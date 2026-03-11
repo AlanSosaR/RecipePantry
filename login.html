@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="115">
+<html lang="es" data-app-version="171">
 
 <head>
     <meta charset="utf-8" />
@@ -72,8 +72,8 @@
     </script>
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=115">
-    <link rel="stylesheet" href="css/components.css?v=115">
+    <link rel="stylesheet" href="css/styles.css?v=171">
+    <link rel="stylesheet" href="css/components.css?v=171">
 
     <style>
         :root {
@@ -108,15 +108,13 @@
             box-shadow:
                 0 24px 48px -12px rgba(0, 0, 0, 0.12),
                 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-            padding: 3.2rem 2.4rem;
-            /* Reduced from clamp(24, 48) */
+            padding: 4.8rem 2.8rem 3.2rem; /* Increased top padding */
             border: 1px solid var(--outline-variant);
             display: flex;
             flex-direction: column;
-            gap: 1.6rem;
+            gap: 2rem;
             transition: all var(--m3-duration-long) var(--m3-easing);
             width: min(400px, 92vw);
-            /* Reduced from 460px */
             max-width: 400px;
             margin: auto;
         }
@@ -379,8 +377,15 @@
                 </button>
             </form>
 
-            <div class="btn-m3-text">
-                <span id="switch-text" data-i18n="switchTextLogin">¿No tienes cuenta? Regístrate</span>
+            <div id="forgot-password-container" style="text-align: center; margin-top: 8px;">
+                <a href="recovery.html" style="color: var(--on-surface-variant); font-size: 14px; text-decoration: underline; font-weight: 500;">
+                    ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+
+            <div class="btn-m3-text" id="switch-text-container" style="color: #000; font-size: 15px; font-weight: 500;">
+                <span id="switch-text-prefix">¿No tienes cuenta? </span>
+                <span id="switch-text-action" style="color: var(--primary); font-weight: 700; cursor: pointer;">Regístrate ahora</span>
             </div>
 
             <button type="button" onclick="window.location.href='/'" class="btn-m3-text"
@@ -392,11 +397,11 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=115"></script>
-    <script src="js/supabase-client.js?v=115"></script>
-    <script src="js/i18n.js?v=115"></script>
-    <script src="js/auth.js?v=115"></script>
-    <script src="js/utils.js?v=115"></script>
+    <script src="js/config.js?v=171"></script>
+    <script src="js/supabase-client.js?v=171"></script>
+    <script src="js/i18n.js?v=171"></script>
+    <script src="js/auth.js?v=171"></script>
+    <script src="js/utils.js?v=171"></script>
 
     <script>
         let isLogin = true;
@@ -426,13 +431,19 @@
                 document.getElementById('auth-title').textContent = '';
                 document.getElementById('auth-subtitle').textContent = window.i18n ? window.i18n.t('authSubtitleLogin') : "Ingresa a tu colección privada de recetas.";
                 document.getElementById('btn-submit-text').textContent = window.i18n ? window.i18n.t('btnSubmitLogin') : "Iniciar Sesión";
-                document.getElementById('switch-text').textContent = window.i18n ? window.i18n.t('switchTextLogin') : "¿No tienes cuenta? Regístrate";
+                
+                document.getElementById('switch-text-prefix').textContent = "¿No tienes cuenta? ";
+                document.getElementById('switch-text-action').textContent = "Regístrate ahora";
+                document.getElementById('forgot-password-container').style.display = 'block';
             } else {
                 document.getElementById('auth-title').style.display = 'none';
                 document.getElementById('auth-title').textContent = window.i18n ? window.i18n.t('authTitleRegister') : "Crear Cuenta";
                 document.getElementById('auth-subtitle').textContent = window.i18n ? window.i18n.t('authSubtitleRegister') : "Únete para guardar tus recetas favoritas.";
                 document.getElementById('btn-submit-text').textContent = window.i18n ? window.i18n.t('btnSubmitRegister') : "Registrarse";
-                document.getElementById('switch-text').textContent = window.i18n ? window.i18n.t('switchTextRegister') : "¿Ya tienes cuenta? Ingresa";
+                
+                document.getElementById('switch-text-prefix').textContent = "¿Ya tienes cuenta? ";
+                document.getElementById('switch-text-action').textContent = "Ingresa";
+                document.getElementById('forgot-password-container').style.display = 'none';
             }
         }
 
@@ -448,7 +459,7 @@
             }
         }
 
-        document.getElementById('switch-text').addEventListener('click', () => {
+        document.getElementById('switch-text-action').addEventListener('click', () => {
             isLogin = !isLogin;
             const card = document.querySelector('.login-card-expressive');
             card.style.opacity = '0';

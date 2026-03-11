@@ -275,6 +275,20 @@ class AuthManager {
         }
     }
 
+    // Recuperar contraseña
+    async resetPassword(email) {
+        try {
+            const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/reset-password.html',
+            });
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            console.error('Error enviando reset:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // Crear categorías predeterminadas
     async createDefaultCategories(userId) {
         const defaultCategories = [
