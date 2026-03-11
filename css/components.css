@@ -3879,7 +3879,7 @@ select.input-field {
     flex-direction: column;
     align-items: center;
     gap: 4px; /* Reduced gap for status */
-    padding: 24px 16px 12px;
+    padding: 24px 16px 40px;
     margin: 0;
     border-radius: 0;
     background: transparent;
