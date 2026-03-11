@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v120
-console.log('📄 [File] js/dashboard.js loaded (v120)');
+// Lógica específica del Dashboard - v121
+console.log('📄 [File] js/dashboard.js loaded (v121)');
 
 class DashboardManager {
     constructor() {
@@ -319,14 +319,6 @@ class DashboardManager {
         if (recipesGrid) recipesGrid.classList.remove('hidden');
 
         this.renderRecipesGrid(this.currentRecipes);
-
-        // Prefetch inteligente
-        if (navigator.onLine && (!filters.search)) {
-            const toPrefetch = this.currentRecipes.slice(0, 5);
-            toPrefetch.forEach(recipe => {
-                setTimeout(() => this.prefetchRecipe(recipe.id), 1000);
-            });
-        }
     }
 
     // --- Multi-Selection Logic (v13.7.0) ---
