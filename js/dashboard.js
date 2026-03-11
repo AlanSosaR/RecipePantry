@@ -59,8 +59,8 @@ class DashboardManager {
                 return;
             }
 
-            const appVersionString = 'v145';
-            console.log(`Recipe Pantry Dashboard init - ${appVersionString} - deep cleanup fix`);
+            const appVersionString = 'v146';
+            console.log(`Recipe Pantry Dashboard init - ${appVersionString} - manual update flow`);
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
