@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="184">
+<html lang="es" data-app-version="207">
 
 <head>
     <meta charset="utf-8" />
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=206">
-    <link rel="stylesheet" href="css/components.css?v=206">
+    <link rel="stylesheet" href="css/styles.css?v=207">
+    <link rel="stylesheet" href="css/components.css?v=207">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -979,18 +979,18 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=206"></script>
-    <script src="js/supabase-client.js?v=206"></script>
-    <script src="js/auth.js?v=206"></script>
-    <script src="js/localdb.js?v=206"></script>
-    <script src="js/sync-manager.js?v=206"></script>
-    <script src="js/db.js?v=206"></script>
-    <script src="js/utils.js?v=206"></script>
-    <script src="js/i18n.js?v=206"></script>
+    <script src="js/config.js?v=207"></script>
+    <script src="js/supabase-client.js?v=207"></script>
+    <script src="js/auth.js?v=207"></script>
+    <script src="js/localdb.js?v=207"></script>
+    <script src="js/sync-manager.js?v=207"></script>
+    <script src="js/db.js?v=207"></script>
+    <script src="js/utils.js?v=207"></script>
+    <script src="js/i18n.js?v=207"></script>
 
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=206"></script>
-    <script src="js/ocr.js?v=206"></script>
+    <script src="js/ocr-processor.js?v=207"></script>
+    <script src="js/ocr.js?v=207"></script>
 
     <script>
         // Variables de estado
@@ -1260,6 +1260,17 @@
 
             // Si volvemos al paso 1, resetear estado e inputs
             if (s === 1) {
+                // Reset internal visibility states (v207 Fix)
+                const captureSection = document.getElementById('ocrCaptureSection');
+                const resultHeader = document.getElementById('ocrResultHeaderStep1');
+                const resultBody = document.getElementById('ocrResultBodyStep1');
+                const tipsSection = document.getElementById('ocrTipsSection');
+
+                if (captureSection) captureSection.classList.remove('hidden');
+                if (tipsSection) tipsSection.classList.remove('hidden');
+                if (resultHeader) resultHeader.classList.add('hidden');
+                if (resultBody) resultBody.classList.add('hidden');
+
                 const fileInput = document.getElementById('fileInput');
                 if (fileInput) fileInput.value = '';
                 currentImageFile = null;
@@ -1426,7 +1437,7 @@
         </div>
     </div>
 
-    <script src="js/ui.js?v=206"></script>
+    <script src="js/ui.js?v=207"></script>
     <script>
         // Initialize sidebar
         document.addEventListener('DOMContentLoaded', () => {
