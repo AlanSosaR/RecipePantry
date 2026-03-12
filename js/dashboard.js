@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v202
-console.log('📄 [File] js/dashboard.js loaded (v202)');
+// Lógica específica del Dashboard - v203
+console.log('📄 [File] js/dashboard.js loaded (v203)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v202)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v203)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -682,17 +682,20 @@ class DashboardManager {
         const menuWidth = 220; // Default approximation
 
         if (window.innerWidth < 600) {
-            // CENTERED ON MOBILE
-            menu.style.top = '50%';
-            menu.style.left = '50%';
-            menu.style.transform = 'translate(-50%, -50%)';
+            // MOBILE: Bottom Sheet Style (v203)
+            menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.zIndex = '3000';
+            menu.style.bottom = '15%'; 
+            menu.style.left = '5%';
             menu.style.width = '90%';
-            menu.style.maxWidth = '320px';
+            menu.style.top = 'auto';
+            menu.style.transform = 'none';
+            menu.style.borderRadius = '24px';
+            menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
+            menu.style.zIndex = '3000';
         } else {
             menu.style.top = `${rect.bottom + 8}px`;
-            menu.style.right = `${window.innerWidth - rect.right}px`;
+            menu.style.left = `${rect.right - 220}px`;
         }
 
         // Close menu on outside click
