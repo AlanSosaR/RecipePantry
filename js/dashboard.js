@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v197
-console.log('📄 [File] js/dashboard.js loaded (v197)');
+// Lógica específica del Dashboard - v198
+console.log('📄 [File] js/dashboard.js loaded (v198)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v197)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v198)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -799,12 +799,18 @@ class DashboardManager {
             const isAnySelected = this.selectedRecipes.size > 0;
             const isIndeterminate = isAnySelected && !allSelected;
 
-            [selectAllTop, selectAllList].forEach(cb => {
-                if (cb) {
-                    cb.checked = allSelected && isAnySelected;
-                    cb.indeterminate = isIndeterminate;
-                }
-            });
+            // v198: Usamos un pequeño delay para asegurar que el DOM refleje el estado tras preventDefault()
+            setTimeout(() => {
+                [selectAllTop, selectAllList].forEach(cb => {
+                    if (cb) {
+                        cb.checked = allSelected;
+                        cb.indeterminate = isIndeterminate;
+                        // Forzar refresco visual si es necesario
+                        if (allSelected) cb.setAttribute('checked', 'checked');
+                        else cb.removeAttribute('checked');
+                    }
+                });
+            }, 50);
         }
     }
 
