@@ -402,7 +402,7 @@ class DashboardManager {
         if (!isRecipeView) return;
 
         const titleEl = document.getElementById('view-title');
-        if (titleEl) {
+        if (titleEl && !this.isSelectionMode) {
             const count = this.currentRecipes.length;
             let baseTitle = '';
 
@@ -475,23 +475,16 @@ class DashboardManager {
     handleSelectAll(e) {
         if (!this.currentRecipes || this.currentRecipes.length === 0) return;
 
-        // Si el evento viene de un input, nos dice qué quiere el usuario
-        const wantSelected = e.target.checked;
-        
-        // Pero para ser robustos (especialmente si es un click en label), verificamos el estado actual
+        // Determinar si todos los visibles ya están seleccionados
         const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
 
-        if (allVisibleSelected && !wantSelected) {
-            // Deseleccionar todos
+        if (allVisibleSelected) {
+            // Si están todos, deseleccionamos todo (incluyendo lo que no sea visible si aplica)
             this.selectedRecipes.clear();
         } else {
-            // Seleccionar todos los visibles
+            // Si falta alguno, seleccionamos todos los visibles
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
-
-        // Force syncing the checkbox state of the event target to be sure
-        e.target.checked = this.selectedRecipes.size > 0 && this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
-
 
         // Haptic feedback if available
         if (navigator.vibrate) try { navigator.vibrate(10); } catch(e){}
@@ -526,8 +519,9 @@ class DashboardManager {
 
             if (title) {
                 const count = this.selectedRecipes.size;
-                // Format: "seleccionados" (black) + "(count)" (green)
-                title.innerHTML = `seleccionados <span style="color: var(--primary); font-weight: 800;">(${count})</span>`;
+                const label = count === 1 ? 'seleccionado' : 'seleccionados';
+                // Format: "seleccionado(s)" (black) + "(count)" (green)
+                title.innerHTML = `${label} <span style="color: var(--primary); font-weight: 800;">(${count})</span>`;
                 title.style.color = '#1B1B1F'; // Dark text
             }
             if (countText) {
@@ -899,7 +893,7 @@ class DashboardManager {
 
         // Sincronizar contador en cabecera (v69)
         const titleEl = document.getElementById('view-title');
-        if (titleEl) {
+        if (titleEl && !this.isSelectionMode) {
             const count = recipes.length;
             const currentText = titleEl.textContent || '';
             const baseTitle = currentText.includes(' (') ? currentText.split(' (')[0] : currentText;
