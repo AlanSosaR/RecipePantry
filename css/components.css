@@ -6654,11 +6654,11 @@ input:checked~.m3-ingredient-text {
     font-size: 28px;
     font-weight: 800;
     margin: 0 0 12px 0;
-    color: #1B1B1F;
+    color: #10B981;
 }
 
 .stitch-sub-headline {
-    color: #5E5E62;
+    color: #000000;
     font-size: 15px;
     line-height: 1.5;
     margin-bottom: 32px;
@@ -6780,11 +6780,18 @@ input:checked~.m3-ingredient-text {
     margin-bottom: 4px;
 }
 
+.stitch-step-content h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #10B981;
+}
+
 .stitch-step-content p {
     margin: 0;
     font-size: 14px;
     font-weight: 600;
-    color: #1B1B1F;
+    color: #000000;
     line-height: 1.4;
 }
 
