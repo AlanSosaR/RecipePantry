@@ -1,22 +1,23 @@
 /**
- * RecipeHub Service Worker (v189)
+ * RecipeHub Service Worker (v190)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v189';
-const BUILD_ID = '2026-03-11-v189';
+const CACHE_NAME = 'recipehub-v190';
+const BUILD_ID = '2026-03-12-v190';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
     '/index.html',
+    '/recipe-detail',
+    '/recipe-detail.html',
     '/manifest.webmanifest',
     '/js/auth.js',
     '/js/db.js',
     '/js/localdb.js',
     '/js/dashboard.js',
     '/js/sw-register.js',
-    '/recipe-detail.html',
     '/css/styles.css',
     '/css/components.css',
     '/assets/icons/icon.svg',
@@ -74,17 +75,21 @@ self.addEventListener('fetch', (event) => {
     // Estrategia para Navegación (HTML): Network First
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request)
+            fetch(request, { redirect: 'follow', cache: 'no-store' })
                 .then((response) => {
-                    const copy = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    // Solo cachear respuestas básicas (no opaque redirects)
+                    if (response && response.status === 200 && response.type !== 'opaqueredirect') {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    }
                     return response;
                 })
                 .catch(async () => {
                     const cache = await caches.open(CACHE_NAME);
-                    // Si falla la red, servir el template base ignorando query params.
-                    if (url.pathname.includes('recipe-detail.html')) {
-                        return cache.match('/recipe-detail.html');
+                    // Si falla la red, servir el template base desde caché
+                    const pathname = url.pathname;
+                    if (pathname.includes('recipe-detail')) {
+                        return cache.match('/recipe-detail.html') || cache.match('/recipe-detail');
                     }
                     return cache.match('/index.html') || cache.match('/');
                 })

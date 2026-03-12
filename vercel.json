@@ -50,6 +50,10 @@
             "destination": "/api/:path*"
         },
         {
+            "source": "/recipe-detail",
+            "destination": "/recipe-detail.html"
+        },
+        {
             "source": "/((?!api|assets|js|css|sw\\.js|favicon\\.ico|manifest\\.webmanifest).*)",
             "destination": "/index.html"
         }
