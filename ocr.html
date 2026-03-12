@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear (v65)
-            const CURRENT_VERSION = '184';
+            const CURRENT_VERSION = '185';
             const NUKE_KEY = 'v184_ocr_fix';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=184">
-    <link rel="stylesheet" href="css/components.css?v=184">
+    <link rel="stylesheet" href="css/styles.css?v=185">
+    <link rel="stylesheet" href="css/components.css?v=185">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -979,18 +979,18 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=184"></script>
-    <script src="js/supabase-client.js?v=184"></script>
-    <script src="js/auth.js?v=184"></script>
-    <script src="js/localdb.js?v=184"></script>
-    <script src="js/sync-manager.js?v=184"></script>
-    <script src="js/db.js?v=184"></script>
-    <script src="js/utils.js?v=184"></script>
-    <script src="js/i18n.js?v=184"></script>
+    <script src="js/config.js?v=185"></script>
+    <script src="js/supabase-client.js?v=185"></script>
+    <script src="js/auth.js?v=185"></script>
+    <script src="js/localdb.js?v=185"></script>
+    <script src="js/sync-manager.js?v=185"></script>
+    <script src="js/db.js?v=185"></script>
+    <script src="js/utils.js?v=185"></script>
+    <script src="js/i18n.js?v=185"></script>
 
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=184"></script>
-    <script src="js/ocr.js?v=184"></script>
+    <script src="js/ocr-processor.js?v=185"></script>
+    <script src="js/ocr.js?v=185"></script>
 
     <script>
         // Variables de estado
@@ -1183,18 +1183,25 @@
                 const reParsed = window.ocrProcessor.parseRecipeText(fullText);
                 const currentIngs = reParsed.ingredients.map(i => {
                     if (typeof i === 'string') return i;
-                    return `${i.quantity || ''} ${i.unit || ''} ${i.name}`.trim();
+                    if (typeof i === 'object' && i !== null) {
+                        return `${i.quantity || ''} ${i.unit || ''} ${i.name || ''}`.trim();
+                    }
+                    return null;
                 }).filter(Boolean);
 
                 const currentSteps = reParsed.steps.map(s => {
                     if (typeof s === 'string') return s;
-                    return s.instruction;
+                    if (typeof s === 'object' && s !== null) {
+                        return s.instruction || '';
+                    }
+                    return null;
                 }).filter(Boolean);
 
                 // 2. Ingredientes
                 if (currentIngs.length > 0) {
                     const ings = currentIngs.map(line => ({
                         name_es: line.trim(),
+                        name_en: line.trim(),
                         raw_text: line.trim()
                     }));
                     await window.db.addIngredients(recipeId, ings);
@@ -1204,16 +1211,18 @@
                 if (currentSteps.length > 0) {
                     const steps = currentSteps.map((line, idx) => ({
                         instruction_es: line.trim(),
+                        instruction_en: line.trim(),
                         step_order: idx + 1
                     }));
                     await window.db.addSteps(recipeId, steps);
                 }
 
-                // 4. Update local cache immediately so the detail view sees the data (v153 Fix)
+                // 4. Update local cache immediately so the detail view sees the data (v153 Fix / v184 Fix)
                 const fullRecipeForCache = {
                     ...recipeRes.recipe,
                     ingredients: currentIngs.map(line => ({ name_es: line.trim() })),
-                    steps: currentSteps.map((line, idx) => ({ instruction_es: line.trim(), step_number: idx + 1 }))
+                    steps: currentSteps.map((line, idx) => ({ instruction_es: line.trim(), step_number: idx + 1 })),
+                    preparation_steps: currentSteps.map((line, idx) => ({ instruction_es: line.trim(), step_number: idx + 1 }))
                 };
                 if (window.localDB) {
                     await window.localDB.put('recipes_full', fullRecipeForCache);
@@ -1417,7 +1426,7 @@
         </div>
     </div>
 
-    <script src="js/ui.js?v=184"></script>
+    <script src="js/ui.js?v=185"></script>
     <script>
         // Initialize sidebar
         document.addEventListener('DOMContentLoaded', () => {
