@@ -1138,47 +1138,6 @@ class DashboardManager {
         }
     }
 
-    setupOfflineIndicator() {
-        const updateStatus = () => {
-            const isOnline = navigator.onLine;
-            let indicator = document.getElementById('offline-indicator');
-
-            if (!isOnline) {
-                if (!indicator) {
-                    indicator = document.createElement('div');
-                    indicator.id = 'offline-indicator';
-                    indicator.style.cssText = `
-                        position: fixed;
-                        bottom: 80px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        background: #323232;
-                        color: white;
-                        padding: 8px 16px;
-                        border-radius: 20px;
-                        font-size: 13px;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                        z-index: 9999;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                        animation: slideUp 0.3s ease;
-                    `;
-                    indicator.innerHTML = `
-                        <span class="material-symbols-outlined" style="font-size: 18px; color: #FFB74D;">cloud_off</span>
-                        <span>Modo sin conexión</span>
-                    `;
-                    document.body.appendChild(indicator);
-                }
-            } else {
-                if (indicator) indicator.remove();
-            }
-        };
-
-        window.addEventListener('online', updateStatus);
-        window.addEventListener('offline', updateStatus);
-        updateStatus(); // Estado inicial
-    }
 
     async showRecipeDetails(recipeId) {
         const recipe = this.currentRecipes.find(r => r.id === recipeId);

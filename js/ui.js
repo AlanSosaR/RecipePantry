@@ -229,4 +229,67 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => bar.classList.add('hidden'), 300);
         }
     };
+
+    // Global Offline Indicator
+    const setupGlobalOfflineIndicator = () => {
+        const updateStatus = () => {
+            const isOnline = navigator.onLine;
+            let indicator = document.getElementById('global-offline-indicator');
+
+            if (!isOnline) {
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'global-offline-indicator';
+                    indicator.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: rgba(30, 30, 30, 0.95);
+                        backdrop-filter: blur(10px);
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 24px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        z-index: 10000; /* Asegurado siempre por encima */
+                        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+                        animation: slideDownFade 0.3s ease;
+                        border: 1px solid rgba(255,255,255,0.1);
+                    `;
+                    // Inject slide animations if they don't exist
+                    if (!document.getElementById('offline-anim-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'offline-anim-style';
+                        style.textContent = `
+                            @keyframes slideDownFade {
+                                from { opacity: 0; transform: translate(-50%, -20px); }
+                                to { opacity: 1; transform: translate(-50%, 0); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                    indicator.innerHTML = `
+                        <span class="material-symbols-outlined" style="font-size: 20px; color: #EF4444;">wifi_off</span>
+                        <span>Estás navegando sin conexión</span>
+                    `;
+                    document.body.appendChild(indicator);
+                }
+            } else {
+                if (indicator) {
+                    indicator.style.animation = 'slideDownFade 0.3s ease reverse forwards';
+                    setTimeout(() => indicator.remove(), 300);
+                }
+            }
+        };
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
+    };
+
+    setupGlobalOfflineIndicator();
 });
