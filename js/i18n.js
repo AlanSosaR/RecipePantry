@@ -77,6 +77,10 @@
             resetNewPasswordLabel: "Nueva Contraseña",
             resetSuccess: "Contraseña actualizada. Redirigiendo...",
             recoverySuccess: "Enlace enviado correctamente. Revisa tu correo.",
+            resetInvalidLink: "Enlace inválido o expirado",
+            resetInvalidLinkDesc: "Por seguridad, los enlaces de recuperación solo pueden usarse una vez. Por favor solicita uno nuevo.",
+            btnRequestNewLink: "Solicitar nuevo enlace",
+            msgSaving: "Guardando...",
 
             // ── Dashboard headers ─────────────────────────────────────────
             myRecipes: 'Mis Recetas',
@@ -397,6 +401,10 @@
             resetNewPasswordLabel: "New Password",
             resetSuccess: "Password updated. Redirecting...",
             recoverySuccess: "Link sent correctly. Check your email.",
+            resetInvalidLink: "Invalid or expired link",
+            resetInvalidLinkDesc: "For security, recovery links can only be used once. Please request a new one.",
+            btnRequestNewLink: "Request new link",
+            msgSaving: "Saving...",
 
             // ── Dashboard headers ─────────────────────────────────────────
             myRecipes: 'My Recipes',

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="171">
+<html lang="es" data-app-version="183">
 
 <head>
     <meta charset="utf-8" />
@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=171">
-    <link rel="stylesheet" href="css/components.css?v=171">
+    <link rel="stylesheet" href="css/styles.css?v=183">
+    <link rel="stylesheet" href="css/components.css?v=183">
 
     <style>
         :root {
@@ -51,7 +51,7 @@
         .recovery-title { font-weight: 800; font-size: 24px; color: #111827; margin: 0 0 8px 0; }
         .recovery-subtitle { font-size: 14px; color: var(--on-surface-variant); line-height: 1.6; }
 
-        .m3-field-container { position: relative; margin-bottom: 32px; width: 100%; text-align: left; }
+        .m3-field-container { position: relative; margin-bottom: 8px; width: 100%; text-align: left; }
         .m3-field-input {
             width: 100%; height: 56px; background: transparent;
             border: 1.5px solid var(--outline-variant); border-radius: 12px;
@@ -70,63 +70,136 @@
             color: var(--primary); background: white;
         }
 
+        .validation-status {
+            font-size: 11px;
+            font-weight: 700;
+            display: block;
+            margin-top: 4px;
+            transition: all 0.3s;
+            height: 16px;
+            margin-left: 4px;
+            margin-bottom: 12px;
+        }
+
         .btn-m3-full {
             width: 100%; min-height: 48px; border-radius: 28px; border: none;
             font-weight: 700; font-size: 16px; cursor: pointer;
             background: var(--primary); color: white;
             display: flex; align-items: center; justify-content: center; gap: 12px;
             transition: all 0.3s; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+            margin-top: 16px;
         }
         .btn-m3-full:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-m3-full:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-m3-full:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-m3-text { border: none; background: none; color: var(--primary); font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 24px; padding: 8px 16px; border-radius: 20px; transition: background 0.2s; }
+        .btn-m3-text:hover { background: rgba(16, 185, 129, 0.08); }
 
         @keyframes m3-fade-up {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success-state {
+            display: none;
+            animation: m3-fade-up 0.5s var(--m3-easing);
+        }
+
+        .success-icon {
+            width: 72px;
+            height: 72px;
+            background: #D1FAE5;
+            color: #10B981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
         }
     </style>
 </head>
 
 <body>
     <div class="recovery-card">
-        <div class="recovery-header">
-            <img src="assets/icons/icon.svg" width="48" height="48" alt="Logo" style="margin-bottom: 16px;" />
-            <h1 class="recovery-title" data-i18n="recoveryTitle">¿Olvidaste tu contraseña?</h1>
-            <p class="recovery-subtitle" data-i18n="recoverySubtitle">Introduce tu correo electrónico y te enviaremos un enlace para restablecerla.</p>
-        </div>
-
-        <form id="recovery-form">
-            <div class="m3-field-container">
-                <input class="m3-field-input" id="email" type="email" placeholder=" " required />
-                <label class="m3-field-label" for="email" data-i18n="lblEmail">Email</label>
+        <!-- Flow: Recovery Form -->
+        <div id="recovery-form-state">
+            <div class="recovery-header">
+                <img src="assets/icons/icon.svg" width="48" height="48" alt="Logo" style="margin-bottom: 16px;" />
+                <h1 class="recovery-title" data-i18n="recoveryTitle">¿Olvidaste tu contraseña?</h1>
+                <p class="recovery-subtitle" data-i18n="recoverySubtitle">Introduce tu email y te enviaremos un enlace para restablecerla.</p>
             </div>
 
-            <button type="submit" id="btn-submit" class="btn-m3-full">
-                <span id="btn-text" data-i18n="recoveryBtn">Enviar enlace</span>
-                <span class="material-symbols-outlined">send</span>
-            </button>
-        </form>
+            <form id="recovery-form" novalidate>
+                <div class="m3-field-container">
+                    <input class="m3-field-input" id="email" type="email" placeholder=" " required oninput="validateEmail(this.value)" />
+                    <label class="m3-field-label" for="email" data-i18n="lblEmail">Email</label>
+                    <span id="email-status" class="validation-status"></span>
+                </div>
 
-        <button type="button" onclick="window.location.href='/login'" class="btn-m3-text" style="color: var(--primary); font-size: 14px; margin-top: 24px; background: none; border: none; cursor: pointer; font-weight: 600;" data-i18n="recoveryBack">
-            Volver al inicio de sesión
-        </button>
+                <button type="submit" id="btn-submit" class="btn-m3-full" disabled>
+                    <span id="btn-text" data-i18n="recoveryBtn">Enviar enlace</span>
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </form>
+
+            <button type="button" onclick="window.location.href='/login'" class="btn-m3-text" data-i18n="recoveryBack">
+                Volver al inicio de sesión
+            </button>
+        </div>
+
+        <!-- Flow: Success Message -->
+        <div id="recovery-success-state" class="success-state">
+            <div class="success-icon">
+                <span class="material-symbols-outlined" style="font-size: 40px;">mail</span>
+            </div>
+            <h1 class="recovery-title" data-i18n="recoverySuccessTitle">Email enviado</h1>
+            <p class="recovery-subtitle" data-i18n="recoverySuccessDesc">Hemos enviado un enlace a <strong id="submitted-email">tu correo</strong>. Revisa también tu carpeta de correo no deseado.</p>
+            
+            <button class="btn-m3-full" onclick="window.location.href='/login'" style="background: #374151;">
+                <span data-i18n="btnBackToLogin">Ir al login</span>
+                <span class="material-symbols-outlined">login</span>
+            </button>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=171"></script>
-    <script src="js/supabase-client.js?v=171"></script>
-    <script src="js/i18n.js?v=171"></script>
-    <script src="js/auth.js?v=171"></script>
-    <script src="js/utils.js?v=171"></script>
+    <script src="js/config.js?v=183"></script>
+    <script src="js/supabase-client.js?v=183"></script>
+    <script src="js/i18n.js?v=183"></script>
+    <script src="js/auth.js?v=183"></script>
+    <script src="js/utils.js?v=183"></script>
 
     <script>
+        function validateEmail(email) {
+            const btn = document.getElementById('btn-submit');
+            const status = document.getElementById('email-status');
+            const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            
+            if (!email) {
+                status.textContent = '';
+                btn.disabled = true;
+                return;
+            }
+
+            if (re.test(String(email).toLowerCase())) {
+                status.textContent = '✓ Email válido';
+                status.style.color = '#10B981';
+                btn.disabled = false;
+            } else {
+                status.textContent = '✗ Email inválido';
+                status.style.color = '#EF4444';
+                btn.disabled = true;
+            }
+        }
+
         document.getElementById('recovery-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim();
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
             const btn = document.getElementById('btn-submit');
             const span = document.getElementById('btn-text');
 
-            if (!email) return;
+            if (!email || btn.disabled) return;
 
             btn.disabled = true;
             span.textContent = window.i18n ? window.i18n.t('msgEntering') : "Enviando...";
@@ -134,16 +207,22 @@
             try {
                 const res = await window.authManager.resetPassword(email);
                 if (res.success) {
-                    window.showToast(window.i18n ? window.i18n.t('recoverySuccess') : "Enlace enviado correctamente. Revisa tu correo.", "success");
-                    setTimeout(() => window.location.href = '/login', 3000);
+                    document.getElementById('submitted-email').textContent = email;
+                    document.getElementById('recovery-form-state').style.display = 'none';
+                    document.getElementById('recovery-success-state').style.display = 'block';
                 } else {
                     throw new Error(res.error);
                 }
             } catch (err) {
                 window.showToast(err.message, "error");
                 btn.disabled = false;
-                span.textContent = "Enviar enlace";
+                span.textContent = window.i18n ? window.i18n.t('recoveryBtn') : "Enviar enlace";
             }
+        });
+
+        // Initialize i18n
+        window.addEventListener('load', () => {
+            if(window.i18n) window.i18n.applyLanguage(window.i18n.getLang());
         });
     </script>
 </body>
