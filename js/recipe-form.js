@@ -88,23 +88,6 @@ class RecipeFormManager {
         document.getElementById('btnAddIngredient').addEventListener('click', () => this.addIngredient());
         document.getElementById('btnAddStep').addEventListener('click', () => this.addStep());
 
-        // OCR
-        const btnOCROpen = document.getElementById('btnOCROpen');
-        if (btnOCROpen) {
-            btnOCROpen.addEventListener('click', () => {
-                if (window.ocr) window.ocr.openModal();
-            });
-        }
-
-        // Form Submit
-        const btnSaveDirectOCR = document.getElementById('btnSaveDirectOCR');
-        if (btnSaveDirectOCR) {
-            btnSaveDirectOCR.addEventListener('click', () => {
-                const name = document.getElementById('ocrRecipeName').value.trim();
-                const res = window.currentOCRResults || {};
-                this.saveProcessedRecipe(name, res.ingredientes || [], res.pasos || []);
-            });
-        }
 
         document.getElementById('recipeForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -481,104 +464,7 @@ class RecipeFormManager {
         }
     }
 
-    /**
-     * Guarda una receta directamente desde el OCR.
-     */
-    async saveProcessedRecipe(name, ingredients, steps) {
-        const btnSaveOCR = document.getElementById('btnSaveDirectOCR');
-        const ocrLoading = document.getElementById('ocrLoading');
 
-        try {
-            btnSaveOCR.disabled = true;
-            const savingTxt = window.i18n ? window.i18n.t('saving') : 'Guardando...';
-            btnSaveOCR.innerHTML = `<span class="spinner-small"></span> ${savingTxt}`;
-
-            // 1. Obtener ID de categoría 'General'
-            const catsResult = await window.db.getMyCategories();
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
-            const generalCat = catsResult.categories.find(c => (isEn ? (c.name_en || c.name_es) : c.name_es) === 'General') || catsResult.categories[0];
-
-            const recipeData = {};
-            if (isEn) {
-                recipeData.name_en = name;
-                recipeData.description_en = window.i18n.t('ocrScanning');
-            } else {
-                recipeData.name_es = name;
-                recipeData.description_es = 'Receta escaneada con OCR';
-            }
-            recipeData.category_id = generalCat ? generalCat.id : null;
-
-            const result = await window.db.createRecipe(recipeData);
-            const recipeId = result.recipe?.id;
-
-            if (!result.success) throw new Error(result.error);
-
-            // 2. Guardar Ingredientes
-            if (ingredients.length > 0) {
-                const ingredientsData = ingredients.map(ing => {
-                    // Si ya es un objeto (formato nuevo/IA)
-                    if (typeof ing === 'object' && ing !== null) {
-                        const data = { quantity: ing.quantity || '' };
-                        if (isEn) {
-                            data.name_en = ing.name || '';
-                            data.unit_en = ing.unit || '';
-                        } else {
-                            data.name_es = ing.name || '';
-                            data.unit_es = ing.unit || '';
-                        }
-                        return data;
-                    }
-                    // Si es un string (formato legacy/Tesseract directo)
-                    const data = { quantity: '' };
-                    if (isEn) {
-                        data.name_en = ing;
-                        data.unit_en = '';
-                    } else {
-                        data.name_es = ing;
-                        data.unit_es = '';
-                    }
-                    return data;
-                });
-                const ingResult = await window.db.addIngredients(recipeId, ingredientsData);
-                if (!ingResult.success) console.warn('Error guardando ingredientes:', ingResult.error);
-            }
-
-            // 3. Guardar Pasos
-            if (steps.length > 0) {
-                const stepsData = steps.map((step, index) => {
-                    // Si ya es un objeto
-                    if (typeof step === 'object' && step !== null) {
-                        const data = { step_number: step.number || (index + 1) };
-                        if (isEn) data.instruction_en = step.instruction || '';
-                        else data.instruction_es = step.instruction || '';
-                        return data;
-                    }
-                    // Si es un string
-                    const data = { step_number: index + 1 };
-                    if (isEn) data.instruction_en = step;
-                    else data.instruction_es = step;
-                    return data;
-                });
-                const stepResult = await window.db.addSteps(recipeId, stepsData);
-                if (!stepResult.success) console.warn('Error guardando pasos:', stepResult.error);
-            }
-
-            window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta creada con éxito!', 'success');
-
-            if (window.ocr) window.ocr.close();
-
-            setTimeout(() => {
-                window.location.href = `/recipe-detail?id=${recipeId}`;
-            }, 800);
-
-        } catch (error) {
-            console.error('Error salvando receta desde OCR:', error);
-            window.showToast(window.i18n ? window.i18n.t('saveError') : 'Error al crear la receta', 'error');
-            btnSaveOCR.disabled = false;
-            const btnTxt = window.i18n ? window.i18n.t('ocrCreatingRecipe') : 'Crear Receta Ahora';
-            btnSaveOCR.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px">cloud_upload</span> ${btnTxt}`;
-        }
-    }
 }
 
 // Inicializar
