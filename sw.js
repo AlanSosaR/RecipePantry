@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v211)
+ * RecipeHub Service Worker (v212)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v211';
-const BUILD_ID = '2026-03-12-v211';
+const CACHE_NAME = 'recipehub-v212';
+const BUILD_ID = '2026-03-12-v212';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -32,7 +32,22 @@ const STATIC_RESOURCES = [
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
 ];
 
-// Helper to ensure we always return a valid Response
+// Helper to ensure we always return a valid and "clean" Response.
+// Browsers block redirected responses from SW for navigation requests if not handled properly.
+const cleanResponse = async (response) => {
+    if (!response) return response;
+    // If the response is redirected, we MUST create a new response from its body to strip the redirected flag.
+    if (response.redirected) {
+        const body = await response.blob();
+        return new Response(body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers
+        });
+    }
+    return response;
+};
+
 const createErrorResponse = (message, status = 503) => {
     return new Response(JSON.stringify({ error: message, status }), {
         status,
@@ -42,6 +57,7 @@ const createErrorResponse = (message, status = 503) => {
 
 // 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Forzar activación inmediata
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
@@ -85,10 +101,11 @@ self.addEventListener('fetch', (event) => {
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request, { cache: 'no-store' })
-                .then((response) => {
+                .then(async (response) => {
                     if (response && response.status === 200 && response.type !== 'opaqueredirect') {
                         const copy = response.clone();
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                        return cleanResponse(response);
                     }
                     return response;
                 })
@@ -97,14 +114,16 @@ self.addEventListener('fetch', (event) => {
                     const pathname = url.pathname;
                     const rootFallback = (await cache.match('/index.html')) || (await cache.match('/'));
                     
+                    let fallback;
                     if (pathname.includes('recipe-detail')) {
-                        return (await cache.match('/recipe-detail.html')) || (await cache.match('/recipe-detail')) || rootFallback;
-                    }
-                    if (pathname.includes('recipe-form')) {
-                        return (await cache.match('/recipe-form.html')) || (await cache.match('/recipe-form')) || rootFallback;
+                        fallback = (await cache.match('/recipe-detail.html')) || (await cache.match('/recipe-detail')) || rootFallback;
+                    } else if (pathname.includes('recipe-form')) {
+                        fallback = (await cache.match('/recipe-form.html')) || (await cache.match('/recipe-form')) || rootFallback;
+                    } else {
+                        fallback = rootFallback || createErrorResponse('Offline: Resource not in cache');
                     }
                     
-                    return rootFallback || createErrorResponse('Offline: Resource not in cache');
+                    return cleanResponse(fallback);
                 })
         );
         return;
