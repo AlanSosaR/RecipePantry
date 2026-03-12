@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v195
-console.log('📄 [File] js/dashboard.js loaded (v195)');
+// Lógica específica del Dashboard - v196
+console.log('📄 [File] js/dashboard.js loaded (v196)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v195)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v196)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -474,6 +474,11 @@ class DashboardManager {
 
     handleSelectAll(e) {
         if (!this.currentRecipes || this.currentRecipes.length === 0) return;
+
+        // v196: Prevención de doble disparo en móviles
+        if (this._selectAllTimeout) return;
+        this._selectAllTimeout = true;
+        setTimeout(() => this._selectAllTimeout = false, 150);
 
         // Determinar si todos los visibles ya están seleccionados
         const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
