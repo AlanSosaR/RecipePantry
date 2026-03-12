@@ -341,12 +341,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         display: flex;
                         align-items: center;
                         gap: 8px;
-                        z-index: 10000; /* Asegurado siempre por encima */
+                        z-index: 10000;
                         box-shadow: 0 4px 16px rgba(0,0,0,0.3);
                         animation: slideDownFade 0.3s ease;
                         border: 1px solid rgba(255,255,255,0.1);
                     `;
-                    // Inject slide animations if they don't exist
                     if (!document.getElementById('offline-anim-style')) {
                         const style = document.createElement('style');
                         style.id = 'offline-anim-style';
@@ -363,6 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Estás navegando sin conexión</span>
                     `;
                     document.body.appendChild(indicator);
+
+                    // Auto-hide after 5 seconds to reduce annoyance
+                    setTimeout(() => {
+                        if (indicator && indicator.parentElement) {
+                            indicator.style.animation = 'slideDownFade 0.3s ease reverse forwards';
+                            setTimeout(() => indicator.remove(), 300);
+                        }
+                    }, 5000);
                 }
             } else {
                 if (indicator) {
