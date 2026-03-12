@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v196
-console.log('📄 [File] js/dashboard.js loaded (v196)');
+// Lógica específica del Dashboard - v197
+console.log('📄 [File] js/dashboard.js loaded (v197)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v196)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v197)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -475,19 +475,24 @@ class DashboardManager {
     handleSelectAll(e) {
         if (!this.currentRecipes || this.currentRecipes.length === 0) return;
 
-        // v196: Prevención de doble disparo en móviles
+        // v197: Prevent default and stop propagation for mobile stability
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
         if (this._selectAllTimeout) return;
         this._selectAllTimeout = true;
-        setTimeout(() => this._selectAllTimeout = false, 150);
+        setTimeout(() => this._selectAllTimeout = false, 400); // 400ms buffer
 
         // Determinar si todos los visibles ya están seleccionados
         const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
 
         if (allVisibleSelected) {
-            // Si están todos, deseleccionamos todo (incluyendo lo que no sea visible si aplica)
+            // Si ya están TODOS seleccionados, deseleccionamos todos
             this.selectedRecipes.clear();
         } else {
-            // Si falta alguno, seleccionamos todos los visibles
+            // Si falta alguno (incluyendo estado indeterminado), los seleccionamos todos
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
 
