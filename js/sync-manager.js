@@ -53,9 +53,10 @@ class SyncManager {
         }
     }
 
-    async syncQueue() {
+    async syncQueue(options = { silent: false }) {
         if (this.isSyncing) return;
         this.isSyncing = true;
+        const silent = options.silent;
 
         try {
             await window.localDB.init();
@@ -67,7 +68,7 @@ class SyncManager {
             }
 
             console.log(`🔄 Procesando ${queue.length} tareas offline...`);
-            if (window.utils && window.utils.showToast) {
+            if (!silent && window.utils && window.utils.showToast) {
                 const msg = window.i18n ? window.i18n.t('syncingChanges') : `Sincronizando ${queue.length} cambios...`;
                 window.utils.showToast(msg, 'info', 3000);
             }
@@ -98,7 +99,7 @@ class SyncManager {
                 window.db.getMyRecipes(); // Refreshes IndexedDB snapshot automatically if online
             }
 
-            if (window.utils && window.utils.showToast) {
+            if (!silent && window.utils && window.utils.showToast) {
                 window.utils.showToast(window.i18n ? window.i18n.t('allSynced') : '¡Todo sincronizado!', 'success');
             }
 
@@ -245,7 +246,8 @@ class SyncManager {
                 window.showToast(window.i18n ? window.i18n.t('offlineReady') : '✅ ¡Listo! Recetas disponibles offline', 'success');
                 localStorage.setItem(this.STORAGE_KEY, 'true');
             } else if (loadedCount > 0) {
-                window.showToast(window.i18n ? window.i18n.t('recipesUpdated') : '✅ Recetas actualizadas', 'info');
+                // Silenced v208 - No more notifications for background updates
+                // window.showToast(window.i18n ? window.i18n.t('recipesUpdated') : '✅ Recetas actualizadas', 'info');
             }
 
         } catch (error) {

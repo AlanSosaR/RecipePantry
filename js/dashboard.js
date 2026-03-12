@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v207
-console.log('📄 [File] js/dashboard.js loaded (v207)');
+// Lógica específica del Dashboard - v208
+console.log('📄 [File] js/dashboard.js loaded (v208)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v207)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v208)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -106,42 +106,44 @@ class DashboardManager {
     }
 
     initPullToRefresh() {
+        // Container must be the scrollable main content
         const container = document.querySelector('.main-content');
         if (!container) return;
 
         let startY = 0;
         let pulling = false;
-        const threshold = 80;
+        const threshold = 70;
         
-        // Crear indicador visual
+        // Remove old ptr-indicator if exists
+        const oldPtr = document.getElementById('ptr-indicator');
+        if (oldPtr) oldPtr.remove();
+
+        // Create new visual indicator (Circular Spinner v208)
         const ptrIndicator = document.createElement('div');
         ptrIndicator.id = 'ptr-indicator';
         ptrIndicator.innerHTML = `
-            <div class="ptr-content">
-                <span class="material-symbols-outlined ptr-icon">sync</span>
-                <span class="ptr-text">Sincronizando...</span>
+            <div class="ptr-circle" style="transform: scale(0); opacity: 0;">
+                <div class="ptr-spinner"></div>
             </div>
         `;
         ptrIndicator.style.cssText = `
             position: absolute;
-            top: -60px;
+            top: -40px;
             left: 0;
             width: 100%;
-            height: 60px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--surface);
-            color: var(--primary);
-            transition: transform 0.2s ease, opacity 0.2s ease;
-            z-index: 10;
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
+            z-index: 1000;
             opacity: 0;
             pointer-events: none;
         `;
         container.prepend(ptrIndicator);
 
         container.addEventListener('touchstart', (e) => {
-            if (container.scrollTop <= 0) {
+            if (container.scrollTop <= 5) { // Small buffer for easier trigger
                 startY = e.touches[0].pageY;
                 pulling = true;
             } else {
@@ -154,18 +156,26 @@ class DashboardManager {
             const y = e.touches[0].pageY;
             const diff = y - startY;
 
-            if (diff > 0 && container.scrollTop <= 0) {
-                const translateY = Math.min(diff / 2, threshold + 20);
+            // Only pull if moving down and at top
+            if (diff > 0 && container.scrollTop <= 5) {
+                // Resistance logic
+                const translateY = Math.min(diff * 0.4, threshold + 30);
+                const scale = Math.min(diff / threshold, 1);
+                const rotation = diff * 2;
+
                 ptrIndicator.style.transform = `translateY(${translateY}px)`;
-                ptrIndicator.style.opacity = Math.min(diff / threshold, 1);
+                ptrIndicator.style.opacity = Math.min(diff / 30, 1);
                 
-                if (diff > threshold) {
-                    ptrIndicator.querySelector('.ptr-icon').style.transform = `rotate(${diff * 2}deg)`;
+                const circle = ptrIndicator.querySelector('.ptr-circle');
+                const spinner = ptrIndicator.querySelector('.ptr-spinner');
+                if (circle) {
+                    circle.style.transform = `scale(${scale})`;
+                    circle.style.opacity = Math.min(diff / 20, 1);
                 }
+                if (spinner) spinner.style.transform = `rotate(${rotation}deg)`;
             } else {
                 pulling = false;
-                ptrIndicator.style.transform = `translateY(0)`;
-                ptrIndicator.style.opacity = 0;
+                this.resetPTR(ptrIndicator);
             }
         }, { passive: true });
 
@@ -175,33 +185,41 @@ class DashboardManager {
             const diff = y - startY;
 
             if (diff > threshold) {
-                // Ejecutar refresh
-                console.log('🔄 Pull to Refresh activado');
+                // Trigger Silent Sync
+                console.log('🔄 Pull to Refresh: Triggering Silent Sync');
                 ptrIndicator.classList.add('ptr-loading');
                 ptrIndicator.style.transform = `translateY(${threshold}px)`;
                 ptrIndicator.style.opacity = 1;
 
-                if (window.utils && window.utils.showToast) {
-                    window.utils.showToast('Sincronizando recetas...', 'info', 2000);
-                }
-
                 try {
+                    // SILENT SYNC v208
+                    if (window.syncManager) {
+                        await window.syncManager.syncQueue({ silent: true });
+                    }
+                    // Also refresh UI
                     await window.db.getMyRecipes({ forceRefresh: true });
                 } catch (err) {
-                    console.error('Error in pull-to-refresh:', err);
+                    console.error('Error in pull-to-refresh sync:', err);
                 } finally {
-                    setTimeout(() => {
-                        ptrIndicator.style.transform = `translateY(0)`;
-                        ptrIndicator.style.opacity = 0;
-                        ptrIndicator.classList.remove('ptr-loading');
-                    }, 500);
+                    setTimeout(() => this.resetPTR(ptrIndicator), 600);
                 }
             } else {
-                ptrIndicator.style.transform = `translateY(0)`;
-                ptrIndicator.style.opacity = 0;
+                this.resetPTR(ptrIndicator);
             }
             pulling = false;
-        });
+        }, { passive: true });
+    }
+
+    resetPTR(indicator) {
+        if (!indicator) return;
+        indicator.classList.remove('ptr-loading');
+        indicator.style.transform = `translateY(0)`;
+        indicator.style.opacity = 0;
+        const circle = indicator.querySelector('.ptr-circle');
+        if (circle) {
+            circle.style.transform = `scale(0)`;
+            circle.style.opacity = 0;
+        }
     }
 
     updateUserUI() {
