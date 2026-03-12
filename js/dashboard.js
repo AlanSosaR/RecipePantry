@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v204
-console.log('📄 [File] js/dashboard.js loaded (v204)');
+// Lógica específica del Dashboard - v205
+console.log('📄 [File] js/dashboard.js loaded (v205)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v204)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v205)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -583,9 +583,6 @@ class DashboardManager {
 
         const menu = document.createElement('div');
         menu.className = 'dropbox-menu-m3';
-
-        const isEn = window.i18n && window.i18n.getLang() === 'en';
-
         if (this.selectedRecipes.size === 1) {
             // SINGLE SELECTION: Match row menu exactly
             const recipeId = Array.from(this.selectedRecipes)[0];
@@ -655,22 +652,27 @@ class DashboardManager {
             `;
         } else {
             // MULTIPLE SELECTION: Batch actions
+            const count = this.selectedRecipes.size;
+            const headerText = count === 1 
+                ? (window.i18n ? window.i18n.t('oneItemSelected') : '1 receta')
+                : (window.i18n ? window.i18n.t('itemsSelected', { count }) : `${count} recetas`);
+
             menu.innerHTML = `
                 <div class="dropbox-menu-header">
-                    <h4>${this.selectedRecipes.size} ${window.i18n ? window.i18n.t('selected') : 'seleccionados'}</h4>
+                    <h4>${headerText}</h4>
                 </div>
                 <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected()">
                     <span class="material-symbols-outlined">link</span>
-                    Copiar enlaces
+                    ${window.i18n ? (count === 1 ? window.i18n.t('copyLinkLabel') : 'Copiar enlaces') : 'Copiar enlaces'}
                 </button>
                 <button class="context-menu-item" onclick="window.dashboard.shareSelected()">
                     <span class="material-symbols-outlined">share</span>
-                    Compartir selección
+                    ${window.i18n ? (count === 1 ? window.i18n.t('shareSelection') : 'Compartir selección') : 'Compartir selección'}
                 </button>
                 <div class="context-menu-divider"></div>
                 <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
                     <span class="material-symbols-outlined">delete</span>
-                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar seleccón'}
+                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
                 </button>
             `;
         }
@@ -679,13 +681,12 @@ class DashboardManager {
 
         // Position menu
         const rect = event.target.getBoundingClientRect();
-        const menuWidth = 220; // Default approximation
 
         if (window.innerWidth < 600) {
-            // MOBILE: Bottom Sheet Style (v204)
+            // MOBILE: Bottom Sheet Style (v205)
             menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.bottom = '35%'; 
+            menu.style.bottom = '40%'; // Subir más hacia la mitad (v205)
             menu.style.left = '5%';
             menu.style.width = '90%';
             menu.style.top = 'auto';
@@ -1380,10 +1381,10 @@ class DashboardManager {
         if (left < 0) left = 8;
 
         if (window.innerWidth < 600) {
-            // MOBILE: Center Sheet Style (v204)
+            // MOBILE: Center Sheet Style (v205)
             menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.bottom = '35%'; // Subir más hacia la mitad
+            menu.style.bottom = '40%'; // Subir más hacia la mitad (v205)
             menu.style.left = '5%';
             menu.style.width = '90%';
             menu.style.top = 'auto';
