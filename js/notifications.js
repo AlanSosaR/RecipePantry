@@ -160,11 +160,11 @@ class NotificationManager {
         }
 
         console.log('🔔 [Notifications] Agregando tarjeta de actualización manual...');
-        // Evitar duplicados
+        this.updateWorker = worker;
+        // Evitar duplicados en la lista de UI
         if (this.notifications.some(n => n.type === 'app_update')) return;
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
-        this.updateWorker = worker;
 
         // Añadir al principio de la lista
         this.notifications.unshift({
@@ -334,10 +334,22 @@ class NotificationManager {
     }
 
     handleUpdateApp() {
-        if (this.updateWorker) {
-            window.utils.showToast(window.i18n && window.i18n.getLang() === 'en' ? 'Updating app...' : 'Actualizando la app...', 'info');
-            this.updateWorker.postMessage({ type: 'SKIP_WAITING' });
+        console.log('🔄 [Notifications] Intentando actualizar app...', this.updateWorker);
+        
+        if (this.updateWorker && this.updateWorker.state !== 'redundant') {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (window.utils && window.utils.showToast) {
+                window.utils.showToast(isEn ? 'Updating app...' : 'Actualizando la app...', 'info');
+            }
+            
+            try {
+                this.updateWorker.postMessage({ type: 'SKIP_WAITING' });
+            } catch (err) {
+                console.error('❌ Error postMessage to worker:', err);
+                window.location.reload();
+            }
         } else {
+            console.warn('⚠️ No hay worker activo para actualizar o está redundante. Recargando...');
             window.location.reload();
         }
     }
