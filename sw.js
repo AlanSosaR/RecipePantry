@@ -1,15 +1,17 @@
 /**
- * RecipeHub Service Worker (v194)
+ * RecipeHub Service Worker (v199)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v198';
-const BUILD_ID = '2026-03-12-v198';
+const CACHE_NAME = 'recipehub-v199';
+const BUILD_ID = '2026-03-12-v199';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
     '/index.html',
+    '/profile',
+    '/profile.html',
     '/recipe-detail',
     '/recipe-detail.html',
     '/manifest.webmanifest',
@@ -75,7 +77,7 @@ self.addEventListener('fetch', (event) => {
     // Estrategia para Navegación (HTML): Network First
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request, { redirect: 'follow', cache: 'no-store' })
+            fetch(request, { cache: 'no-store' })
                 .then((response) => {
                     // Solo cachear respuestas básicas (no opaque redirects)
                     if (response && response.status === 200 && response.type !== 'opaqueredirect') {
