@@ -63,7 +63,12 @@ window.updateGlobalUserUI = function () {
         const prefix = user.prefix || 'Chef';
         const fName = user.first_name || '';
         const lName = user.last_name || '';
-        sidebarGreeting.textContent = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
+        
+        // Robust name display: fallback to 'Chef' if first_name is missing
+        let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
+        if (!fName && !lName) fullName = prefix;
+        
+        sidebarGreeting.textContent = fullName;
     }
 
     // Update initials or image in all avatar circles (sidebar and header)

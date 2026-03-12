@@ -68,7 +68,7 @@ class ProfileManager {
             window.i18n.applyLanguage(window.i18n.getLang());
         }
 
-        console.log('👤 ProfileManager inicializado (v172)');
+        console.log('👤 ProfileManager inicializado (v201)');
     }
 
     handleCurrentPasswordInput(value) {
@@ -349,9 +349,11 @@ class ProfileManager {
             }
         }
 
-        // Sincronizar con el sidebar si está presente
+        // Sincronizar con el sidebar si está presente (v201 fix)
         if (window.updateGlobalUserUI) {
             window.updateGlobalUserUI();
+            // Re-sync after a short delay for safety in profile view
+            setTimeout(() => window.updateGlobalUserUI(), 500);
         }
     }
 

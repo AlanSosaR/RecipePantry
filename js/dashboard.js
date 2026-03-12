@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v200
-console.log('📄 [File] js/dashboard.js loaded (v200)');
+// Lógica específica del Dashboard - v201
+console.log('📄 [File] js/dashboard.js loaded (v201)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v200)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v201)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
