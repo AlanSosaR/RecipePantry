@@ -213,9 +213,8 @@ class SyncManager {
             const total = recipesToLoad.length;
             console.log(`📥 Descarga AGRESIVA de ${total} recetas...`);
 
-            if (!silent && window.utils?.showNotificationBar) {
-                const msg = window.i18n ? window.i18n.t('syncingProgress') : 'Descargando recetas...';
-                window.utils.showNotificationBar('sync-progress', msg);
+            if (!silent && window.utils?.showDownloadProgress) {
+                window.utils.showDownloadProgress(0, total);
             }
 
             // 3. Descarga paralela AGRESIVA (Chunking más grande)
@@ -233,9 +232,8 @@ class SyncManager {
                 loadedCount += results.filter(r => r.status === 'fulfilled' && r.value.success).length;
 
                 // Notificar progreso si no es silencioso
-                if (!silent && window.utils?.updateNotificationBar) {
-                    const msg = window.i18n ? window.i18n.t('syncingProgress') : 'Descargando...';
-                    window.utils.updateNotificationBar('sync-progress', msg);
+                if (!silent && window.utils?.showDownloadProgress) {
+                    window.utils.showDownloadProgress(loadedCount, total);
                 }
 
                 // Pausa mínima para no saturar al usuario pero ir rápido
@@ -243,7 +241,7 @@ class SyncManager {
             }
 
             if (!silent) {
-                if (window.utils?.hideNotificationBar) window.utils.hideNotificationBar('sync-progress');
+                if (window.utils?.hideDownloadProgress) window.utils.hideDownloadProgress();
                 window.showToast(window.i18n ? window.i18n.t('offlineReady') : '✅ ¡Listo! Recetas disponibles offline', 'success');
                 localStorage.setItem(this.STORAGE_KEY, 'true');
             } else if (loadedCount > 0) {

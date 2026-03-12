@@ -230,6 +230,85 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Material 3 Expressive Download Progress Bar
+    window.utils.showDownloadProgress = function(current, total) {
+        let container = document.getElementById('global-download-progress');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'global-download-progress';
+            container.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--surface, #1e1e1e);
+                color: var(--on-surface, #FFFFFF);
+                padding: 16px 24px;
+                border-radius: 28px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                z-index: 10000;
+                box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+                width: 90%;
+                max-width: 400px;
+                animation: slideUpFade 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+                border: 1px solid rgba(255,255,255,0.05);
+            `;
+            if (!document.getElementById('download-anim-style')) {
+                const style = document.createElement('style');
+                style.id = 'download-anim-style';
+                style.textContent = `
+                    @keyframes slideUpFade {
+                        from { opacity: 0; transform: translate(-50%, 40px) scale(0.95); }
+                        to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+                    }
+                    .m3-progress-track {
+                        width: 100%;
+                        height: 6px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border-radius: 4px;
+                        overflow: hidden;
+                    }
+                    .m3-progress-fill {
+                        height: 100%;
+                        background: var(--primary, #10B981);
+                        width: 0%;
+                        border-radius: 4px;
+                        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-family: var(--font-display, sans-serif);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-outlined" style="color: var(--primary, #10B981);">cloud_download</span>
+                        <span id="global-progress-text" style="font-size: 15px;">Descargando...</span>
+                    </div>
+                    <span id="global-progress-percent" style="color: var(--primary, #10B981); font-size: 15px;">0%</span>
+                </div>
+                <div class="m3-progress-track">
+                    <div id="global-progress-fill" class="m3-progress-fill"></div>
+                </div>
+            `;
+            document.body.appendChild(container);
+        }
+
+        const percent = total > 0 ? Math.round((current / total) * 100) : 100;
+        document.getElementById('global-progress-text').textContent = `Sincronizando (${current}/${total})`;
+        document.getElementById('global-progress-percent').textContent = `${percent}%`;
+        document.getElementById('global-progress-fill').style.width = `${percent}%`;
+    };
+
+    window.utils.hideDownloadProgress = function() {
+        const container = document.getElementById('global-download-progress');
+        if (container) {
+            container.style.animation = 'slideUpFade 0.3s cubic-bezier(0.2, 0, 0, 1) reverse forwards';
+            setTimeout(() => container.remove(), 300);
+        }
+    };
+
     // Global Offline Indicator
     const setupGlobalOfflineIndicator = () => {
         const updateStatus = () => {

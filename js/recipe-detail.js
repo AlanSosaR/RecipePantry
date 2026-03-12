@@ -64,28 +64,36 @@ class RecipeDetailManager {
             // Check if this recipe was shared with the current user
             this.sharedBy = null;
             const currentUserId = window.authManager.currentUser?.id;
+            // Solo verificar autorías compartidas si estamos online (evitar hangs)
             if (currentUserId && this.currentRecipe.user_id !== currentUserId) {
-                try {
-                    const { data: shareData } = await window.supabaseClient
-                        .from('shared_recipes')
-                        .select('owner_user_id')
-                        .eq('recipe_id', this.recipeId)
-                        .eq('recipient_user_id', currentUserId)
-                        .limit(1)
-                        .maybeSingle();
-
-                    if (shareData?.owner_user_id) {
-                        const { data: ownerData } = await window.supabaseClient
-                            .from('users')
-                            .select('first_name, last_name')
-                            .eq('id', shareData.owner_user_id)
+                if (navigator.onLine) {
+                    try {
+                        const sharedQuery = window.supabaseClient
+                            .from('shared_recipes')
+                            .select('owner_user_id')
+                            .eq('recipe_id', this.recipeId)
+                            .eq('recipient_user_id', currentUserId)
+                            .limit(1)
                             .maybeSingle();
-                        if (ownerData) {
-                            this.sharedBy = [ownerData.first_name, ownerData.last_name].filter(Boolean).join(' ') || 'Alguien';
+
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_SHARED')), 2500));
+                        const { data: shareData } = await Promise.race([sharedQuery, timeoutPromise]);
+
+                        if (shareData?.owner_user_id) {
+                            const ownerQuery = window.supabaseClient
+                                .from('users')
+                                .select('first_name, last_name')
+                                .eq('id', shareData.owner_user_id)
+                                .maybeSingle();
+
+                            const { data: ownerData } = await Promise.race([ownerQuery, timeoutPromise]);
+                            if (ownerData) {
+                                this.sharedBy = [ownerData.first_name, ownerData.last_name].filter(Boolean).join(' ') || 'Alguien';
+                            }
                         }
+                    } catch (e) {
+                        console.warn('Could not check share info or timeout reached:', e.message || e);
                     }
-                } catch (e) {
-                    console.warn('Could not check share info:', e);
                 }
             }
 

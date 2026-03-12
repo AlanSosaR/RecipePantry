@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '171';
+const APP_VERSION_ID = '189';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -64,6 +64,24 @@ async function notifyUpdateReady(worker) {
     };
 
     tryAddNotification();
+
+    // Nueva notificación prominent y global (Material 3 Snackbar)
+    const updateMsg = window.i18n ? window.i18n.t('updateAvailable') : '¡Nueva actualización de la app disponible!';
+    const applyTxt = window.i18n ? window.i18n.t('applyUpdateBtn') : 'ACTUALIZAR';
+    
+    // Si tenemos la función global de snackbar (de action-snackbar), usarla para que sea muy visible
+    if (window.showActionSnackbar) {
+        window.showActionSnackbar(updateMsg, applyTxt, () => {
+            worker.postMessage({ type: 'SKIP_WAITING' });
+        });
+    } else {
+        // Fallback a un toast normal si el snackbar no está listo
+        if (window.showToast) {
+            window.showToast(updateMsg, 'info');
+        }
+        // Force update after 3 seconds as a fallback
+        setTimeout(() => worker.postMessage({ type: 'SKIP_WAITING' }), 3000);
+    }
 }
 
 // Iniciar registro
