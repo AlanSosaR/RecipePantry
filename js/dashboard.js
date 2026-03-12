@@ -489,6 +489,10 @@ class DashboardManager {
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
 
+        // Force syncing the checkbox state of the event target to be sure
+        e.target.checked = this.selectedRecipes.size > 0 && this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
+
+
         // Haptic feedback if available
         if (navigator.vibrate) try { navigator.vibrate(10); } catch(e){}
 
@@ -522,10 +526,14 @@ class DashboardManager {
 
             if (title) {
                 const count = this.selectedRecipes.size;
-                title.textContent = `${count} seleccionados`;
-                title.style.color = 'var(--primary)';
+                // Format: "seleccionados" (black) + "(count)" (green)
+                title.innerHTML = `seleccionados <span style="color: var(--primary); font-weight: 800;">(${count})</span>`;
+                title.style.color = '#1B1B1F'; // Dark text
             }
-            if (countText) countText.classList.add('hidden'); // Hide separate count to avoid duplicates
+            if (countText) {
+                countText.innerHTML = ''; 
+                countText.classList.add('hidden');
+            }
 
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
