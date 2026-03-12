@@ -8,7 +8,7 @@ class NotificationManager {
         this.notifications = [];
         this.lastCount = 0;
         this.isReady = false;
-        this.pendingNotifications = []; // v216: Cola para notificaciones que llegan antes del init
+        this.pendingNotifications = []; // v217: Cola para notificaciones que llegan antes del init
     }
 
     async init() {

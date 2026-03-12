@@ -1,6 +1,6 @@
 // js/profile.js
-// Manager para la vista de perfil de usuario - v216
-console.log('👤 [File] js/profile.js loaded (v216)');
+// Manager para la vista de perfil de usuario - v217
+console.log('👤 [File] js/profile.js loaded (v217)');
 
 class ProfileManager {
     constructor() {

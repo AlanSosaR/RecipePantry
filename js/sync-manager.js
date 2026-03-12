@@ -34,7 +34,14 @@ class SyncManager {
         
         if (!isInitialCompleted) {
             // Fase 1: Notificar al usuario para la descarga inicial
-            this.showInitialSyncNotification();
+            // v217: Solo si hay recetas para descargar
+            if (recipes && recipes.length > 0) {
+                this.showInitialSyncNotification();
+            } else {
+                console.log('ℹ️ [Sync] No hay recetas para sincronización inicial.');
+                // Marcar como completado si no hay nada que descargar, para evitar re-intentos innecesarios
+                // O si preferimos, dejarlo hasta que cree su primera receta.
+            }
         } else {
             // Fase 2: Actualización silenciosa de cambios/faltantes
             setTimeout(() => this.preloadOfflineRecipes({ silent: true }), 2000);
