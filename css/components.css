@@ -833,9 +833,9 @@ ol {
         justify-content: space-between;
     }
 
-    /* Selection mode styling for title/dots handled via JS visibility now */
+    /* Selection mode: only show accent border, no background */
     body.selection-mode-active .dashboard-header {
-        background: var(--secondary-light) !important;
+        border-bottom: 2px solid var(--primary) !important;
     }
 
     .main-content-scroll {
@@ -6213,7 +6213,7 @@ input:checked~.m3-ingredient-text {
 }
 
 .file-row-m3.selected {
-    background-color: var(--md-sys-color-secondary-container, rgba(16, 185, 129, 0.12)) !important;
+    background-color: transparent !important;
 }
 
 .file-row-m3.selected::before {
@@ -6238,8 +6238,8 @@ input:checked~.m3-ingredient-text {
 }
 
 .m3-checkbox-input:checked+.m3-checkbox-visual {
-    background-color: #6750A4;
-    border-color: #6750A4;
+    background-color: var(--primary);
+    border-color: var(--primary);
 }
 
 .m3-checkbox-input:checked+.m3-checkbox-visual::after {
@@ -6254,8 +6254,8 @@ input:checked~.m3-ingredient-text {
 }
 
 .m3-checkbox-input:indeterminate+.m3-checkbox-visual {
-    background-color: #6750A4;
-    border-color: #6750A4;
+    background-color: var(--primary);
+    border-color: var(--primary);
 }
 
 .m3-checkbox-input:indeterminate+.m3-checkbox-visual::after {

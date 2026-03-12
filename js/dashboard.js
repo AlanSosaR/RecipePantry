@@ -475,16 +475,22 @@ class DashboardManager {
     handleSelectAll(e) {
         if (!this.currentRecipes || this.currentRecipes.length === 0) return;
 
-        // Verificar si TODOS los actualmente visibles están en el Set
+        // Si el evento viene de un input, nos dice qué quiere el usuario
+        const wantSelected = e.target.checked;
+        
+        // Pero para ser robustos (especialmente si es un click en label), verificamos el estado actual
         const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
 
-        if (allVisibleSelected) {
-            // Si ya están todos los visibles seleccionados, limpiamos TODA la selección (comportamiento Google Drive/Dropbox)
+        if (allVisibleSelected && !wantSelected) {
+            // Deseleccionar todos
             this.selectedRecipes.clear();
         } else {
-            // Si falta alguno, los añadimos todos
+            // Seleccionar todos los visibles
             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
+
+        // Haptic feedback if available
+        if (navigator.vibrate) try { navigator.vibrate(10); } catch(e){}
 
         this.isSelectionMode = this.selectedRecipes.size > 0;
         this.updateActionBar();
