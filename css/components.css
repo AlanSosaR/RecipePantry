@@ -833,8 +833,9 @@ ol {
         justify-content: space-between;
     }
 
-    /* Selection mode: only show accent border, no background */
+    /* Selection mode: only show accent border, no background (v193) */
     body.selection-mode-active .dashboard-header {
+        background: transparent !important;
         border-bottom: 2px solid var(--primary) !important;
     }
 
@@ -4301,7 +4302,7 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 .file-row-m3.selected {
-    background: var(--primary-light);
+    background: transparent !important;
 }
 
 .recipe-name {
@@ -6227,38 +6228,8 @@ input:checked~.m3-ingredient-text {
     border-radius: 0 4px 4px 0;
 }
 
-/* 4. M3 Checkbox Visuals */
-.m3-checkbox-visual {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--outline);
-    border-radius: 2px;
-    position: relative;
-    transition: all 0.2s;
-}
-
-.m3-checkbox-input:checked+.m3-checkbox-visual {
-    background-color: var(--primary);
-    border-color: var(--primary);
-}
-
-.m3-checkbox-input:checked+.m3-checkbox-visual::after {
-    content: 'check';
-    font-family: 'Material Symbols Outlined';
-    font-size: 16px;
-    color: white;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.m3-checkbox-input:indeterminate+.m3-checkbox-visual {
-    background-color: var(--primary);
-    border-color: var(--primary);
-}
-
-.m3-checkbox-input:indeterminate+.m3-checkbox-visual::after {
+/* M3 Checkbox styles consolidated in the main checkbox block (v193) */
+.m3-checkbox-input:indeterminate + .m3-checkbox-visual::after {
     content: 'remove';
     font-family: 'Material Symbols Outlined';
     font-size: 16px;
