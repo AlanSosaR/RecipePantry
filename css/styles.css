@@ -281,3 +281,23 @@ h3 {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* ─── Sidebar Custom Styling (v200) ─── */
+.nav-item .material-symbols-outlined {
+    color: var(--primary) !important;
+    transition: color 0.2s ease;
+}
+
+.nav-item.nav-logout-m3 .material-symbols-outlined {
+    color: var(--error) !important;
+}
+
+.nav-item span:not(.material-symbols-outlined) {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* Subtlety on hover */
+.nav-item:hover .material-symbols-outlined {
+    opacity: 0.8;
+}
