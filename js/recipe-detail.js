@@ -37,15 +37,20 @@ class RecipeDetailManager {
     }
 
     async loadRecipeData() {
+        const titleEl = document.getElementById('recipeTitle');
+        const descEl = document.getElementById('recipeDescription');
+
         try {
             const params = new URLSearchParams(window.location.search);
             const forceRefresh = params.get('f') === '1';
 
             const result = await window.db.getRecipeById(this.recipeId, forceRefresh);
 
-            if (!result.success) {
+            if (!result.success || !result.recipe) {
                 console.error('Error cargando receta:', result.error);
-                window.showToast(window.i18n ? window.i18n.t('noRecipesTitle') : 'Receta no encontrada', 'error');
+                if (titleEl) titleEl.textContent = window.i18n ? window.i18n.t('recipeNotFound') : 'Receta no encontrada';
+                if (descEl) descEl.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'No pudimos cargar esta receta. Verifica tu conexión.';
+                window.showToast?.(window.i18n ? window.i18n.t('noRecipesTitle') : 'Receta no encontrada', 'error');
                 return;
             }
 
@@ -64,7 +69,8 @@ class RecipeDetailManager {
             // Check if this recipe was shared with the current user
             this.sharedBy = null;
             const currentUserId = window.authManager.currentUser?.id;
-            // Solo verificar autorías compartidas si estamos online (evitar hangs)
+            
+            // Solo verificar autorías compartidas si estamos online y tenemos receta
             if (currentUserId && this.currentRecipe.user_id !== currentUserId) {
                 if (navigator.onLine) {
                     try {
@@ -76,7 +82,7 @@ class RecipeDetailManager {
                             .limit(1)
                             .maybeSingle();
 
-                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_SHARED')), 2500));
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_SHARED')), 2000));
                         const { data: shareData } = await Promise.race([sharedQuery, timeoutPromise]);
 
                         if (shareData?.owner_user_id) {
@@ -106,7 +112,9 @@ class RecipeDetailManager {
             }
 
         } catch (error) {
-            console.error('Error en loadRecipeData:', error);
+            console.error('Error crítico en loadRecipeData:', error);
+            if (titleEl) titleEl.textContent = 'Error';
+            if (descEl) descEl.textContent = 'Ocurrió un error al cargar los datos.';
         }
     }
 

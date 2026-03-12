@@ -8,7 +8,7 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
-        console.log('📦 DatabaseManager: Inicializando (v213)');
+        console.log('📦 DatabaseManager: Inicializando (v214)');
     }
 
     async _checkLocalDB() {
@@ -329,26 +329,41 @@ class DatabaseManager {
     }
 
     async _fetchFullRecipeFromServer(recipeId, forceRefresh = false) {
+        // AbortController para timeout de 5 segundos (v214)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         try {
             const headers = { 'Content-Type': 'application/json' };
             const { data: sessionData } = await window.supabaseClient.auth.getSession();
             if (sessionData?.session?.access_token) {
                 headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
             }
+            
             const connector = recipeId.includes('?') ? '&' : '?';
             const url = `/api/recipe/${recipeId}${connector}t=${Date.now()}`;
 
-            const response = await fetch(url, { method: 'GET', headers: headers });
+            const response = await fetch(url, { 
+                method: 'GET', 
+                headers: headers,
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const result = await response.json();
             if (!result.success) throw new Error(result.error);
+            
             let recipe = result.data;
             const localMeta = await window.localDB.get('recipes_index', recipeId);
             if (localMeta) {
                 if (localMeta.sharingContext) recipe.sharingContext = localMeta.sharingContext;
                 if (localMeta.senderName) recipe.senderName = localMeta.senderName;
             }
+            
             await window.localDB.put('recipes_full', recipe);
+            
             const indexData = {
                 id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en,
                 image_url: recipe.image_url, updated_at: recipe.updated_at,
@@ -356,10 +371,21 @@ class DatabaseManager {
                 sharingContext: recipe.sharingContext || null
             };
             await window.localDB.put('recipes_index', indexData);
+            
             return { success: true, recipe, data: recipe };
         } catch (error) {
-            console.error('Error fetching full recipe:', error);
-            return { success: false, error: error.message };
+            clearTimeout(timeoutId);
+            const isTimeout = error.name === 'AbortError';
+            console.error(isTimeout ? `⏱️ Timeout (5s) en fetch de receta ${recipeId}` : `❌ Error fetching full recipe ${recipeId}:`, error);
+            
+            // Si falló la red pero forzamos un refresh, intentar devolver lo que haya en caché como último recurso
+            const cached = await window.localDB.get('recipes_full', recipeId);
+            if (cached) {
+                console.log('✅ Fallback a caché local tras fallo de red');
+                return { success: true, recipe: cached, fromCache: true };
+            }
+
+            return { success: false, error: isTimeout ? 'Timeout de conexión' : error.message };
         }
     }
 

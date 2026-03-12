@@ -10,12 +10,29 @@ class AuthManager {
     // Verificar si hay sesión activa
     async checkAuth() {
         try {
-            // 1. Verificar sesión en Supabase (rápido, a menudo local)
-            const { data, error: sessionError } = await window.supabaseClient.auth.getSession();
+            // 1. Verificar sesión en Supabase (con timeout de seguridad para v214)
+            const sessionPromise = window.supabaseClient.auth.getSession();
+            const sessionTimeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_SESSION')), 2000));
+            
+            let sessionData;
+            try {
+                const { data } = await Promise.race([sessionPromise, sessionTimeoutPromise]);
+                sessionData = data;
+            } catch (e) {
+                if (e.message === 'TIMEOUT_SESSION') {
+                    console.warn('⚠️ Timeout obteniendo sesión, asumiendo estado offline/lento');
+                    // Si hay rastro de sesión previa en el cliente, intentamos seguir
+                    const session = await window.supabaseClient.auth.getSession().then(({data}) => data.session).catch(() => null);
+                    if (session) {
+                        this.session = session;
+                        document.documentElement.setAttribute('data-auth-likely', 'true');
+                    }
+                } else {
+                    throw e;
+                }
+            }
 
-            if (sessionError) throw sessionError;
-
-            const session = data?.session;
+            const session = sessionData?.session || this.session;
             if (!session) {
                 this.currentUser = null;
                 this.session = null;
@@ -27,12 +44,11 @@ class AuthManager {
             document.documentElement.setAttribute('data-auth-likely', 'true');
 
             // 2. Intentar obtener el perfil (opcional para considerar "autenticado")
-            // Si ya tenemos el usuario en memoria, no hace falta volver a la DB cada vez
             if (this.currentUser && this.currentUser.auth_user_id === session.user.id) {
                 return true;
             }
 
-            // Uso de caché si estamos offline explícitamente
+            // Uso de caché si estamos offline explícitamente o el refresh previo falló
             if (!navigator.onLine) {
                 console.log('📶 Modo offline detectado, usando perfil caché');
                 const cached = localStorage.getItem('recipe_pantry_user_profile');
@@ -57,7 +73,7 @@ class AuthManager {
                 .eq('auth_user_id', session.user.id)
                 .single();
 
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_DB')), 3000));
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_DB')), 2500));
 
             const response = await Promise.race([fetchProfile, timeoutPromise]);
             const { data: userData, error: userError } = response;
@@ -68,7 +84,6 @@ class AuthManager {
                 return await this.createProfile(session.user);
             } else if (userError) {
                 console.warn('⚠️ Error al cargar perfil, pero la sesión es válida:', userError.message);
-                // Si hay sesión pero falló la DB, intentamos usar caché o sesión
                 const cached = localStorage.getItem('recipe_pantry_user_profile');
                 if (cached) {
                     try { this.currentUser = JSON.parse(cached); return true; } catch(e){}
@@ -79,7 +94,7 @@ class AuthManager {
                     first_name: session.user.user_metadata?.first_name || 'Chef',
                     last_name: session.user.user_metadata?.last_name || ''
                 };
-                return true; // Seguimos autenticados a nivel de sesión
+                return true; 
             }
 
             this.currentUser = userData;
@@ -89,8 +104,7 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Error verificando auth:', error);
-            if (error.message === 'TIMEOUT_DB') {
-                console.warn('⚠️ Timeout en DB debido a conexión lenta. Usando caché.');
+            if (error.message === 'TIMEOUT_DB' || error.message === 'TIMEOUT_SESSION') {
                 if (this.session) {
                     const cached = localStorage.getItem('recipe_pantry_user_profile');
                     if (cached) {
@@ -107,7 +121,6 @@ class AuthManager {
                     return true;
                 }
             }
-            // Solo devolvemos false si realmente no hay rastro de sesión
             return !!this.session;
         }
     }
