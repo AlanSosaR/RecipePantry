@@ -8,6 +8,7 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
+        console.log('📦 DatabaseManager: Inicializando (v210)');
     }
 
     async _checkLocalDB() {

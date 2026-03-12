@@ -68,7 +68,7 @@ class ProfileManager {
             window.i18n.applyLanguage(window.i18n.getLang());
         }
 
-        console.log('👤 ProfileManager inicializado (v209)');
+        console.log('👤 ProfileManager inicializado (v210)');
     }
 
     handleCurrentPasswordInput(value) {
