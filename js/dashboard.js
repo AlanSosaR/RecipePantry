@@ -1478,7 +1478,7 @@ class DashboardManager {
 
             if (newName !== original) {
                 // Nuevo: Verificar unicidad de nombre
-                const exists = await window.db.recipeNameExists(newName);
+                const exists = await window.db.recipeNameExists(newName, { excludeId: recipeId });
                 if (exists) {
                     const errorMsg = window.i18n 
                         ? window.i18n.t('recipeNameAlreadyExists', { name: newName }) 

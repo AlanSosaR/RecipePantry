@@ -296,26 +296,16 @@ class RecipeFormManager {
             if (nameGroup) nameGroup.classList.remove('has-error');
 
             // 1.1) Validar nombre único (Nuevo requisito)
-            const nameExists = await window.db.recipeNameExists(recipeName);
+            const existsOptions = this.isEditing && this.recipeId ? { excludeId: this.recipeId } : {};
+            const nameExists = await window.db.recipeNameExists(recipeName, existsOptions);
             if (nameExists) {
-                // Verificar si es la misma receta que estamos editando
-                let isSameRecipe = false;
-                if (this.isEditing && this.recipeId) {
-                    const existing = await window.db.getRecipeById(this.recipeId);
-                    if (existing && (existing.name_es === recipeName || existing.name_en === recipeName)) {
-                        isSameRecipe = true;
-                    }
-                }
-                
-                if (!isSameRecipe) {
-                    const errorMsg = window.i18n 
-                        ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
-                        : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas agregarla.`;
-                    window.utils.showToast(errorMsg, 'error');
-                    if (nameGroup) nameGroup.classList.add('has-error');
-                    form.name.focus();
-                    return;
-                }
+                const errorMsg = window.i18n 
+                    ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
+                    : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas guardarla.`;
+                window.utils.showToast(errorMsg, 'error');
+                if (nameGroup) nameGroup.classList.add('has-error');
+                form.name.focus();
+                return;
             }
 
             // 2) Primer ingrediente vacío

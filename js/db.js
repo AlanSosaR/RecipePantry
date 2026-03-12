@@ -216,20 +216,23 @@ class DatabaseManager {
         }
     }
 
-    async recipeNameExists(name, options = { includeShared: true }) {
+    async recipeNameExists(name, options = { includeShared: true, excludeId: null }) {
         if (!name) return false;
         await this._checkLocalDB();
         const includeShared = options.includeShared !== false;
+        const excludeId = options.excludeId || null;
 
         // 1. Buscar en caché local (recipes_index)
         const recipes = await window.localDB.getAll('recipes_index');
         
         const existsLocally = recipes.some(r => {
+            if (excludeId && r.id === excludeId) return false;
             // Si includeShared es falso, ignoramos las que son 'received'
             if (!includeShared && r.sharingContext === 'received') return false;
             
-            return (r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
-                   (r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim());
+            const matchEs = r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim();
+            const matchEn = r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim();
+            return matchEs || matchEn;
         });
 
         if (existsLocally) return true;
@@ -240,12 +243,17 @@ class DatabaseManager {
                 const userId = window.authManager.currentUser?.id;
                 
                 // Siempre verificar en mis recetas
-                const { data: mine, error: errorMine } = await window.supabaseClient
+                let queryMine = window.supabaseClient
                     .from('recipes')
                     .select('id')
                     .eq('user_id', userId)
-                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`)
-                    .limit(1);
+                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`);
+                    
+                if (excludeId) {
+                    queryMine = queryMine.neq('id', excludeId);
+                }
+
+                const { data: mine, error: errorMine } = await queryMine.limit(1);
 
                 if (errorMine) throw errorMine;
                 if (mine && mine.length > 0) return true;
