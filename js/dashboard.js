@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v208
-console.log('📄 [File] js/dashboard.js loaded (v208)');
+// Lógica específica del Dashboard - v209
+console.log('📄 [File] js/dashboard.js loaded (v209)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v208)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v209)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -118,7 +118,7 @@ class DashboardManager {
         const oldPtr = document.getElementById('ptr-indicator');
         if (oldPtr) oldPtr.remove();
 
-        // Create new visual indicator (Circular Spinner v208)
+        // Create new visual indicator (Circular Spinner v208/209)
         const ptrIndicator = document.createElement('div');
         ptrIndicator.id = 'ptr-indicator';
         ptrIndicator.innerHTML = `
@@ -143,7 +143,8 @@ class DashboardManager {
         container.prepend(ptrIndicator);
 
         container.addEventListener('touchstart', (e) => {
-            if (container.scrollTop <= 5) { // Small buffer for easier trigger
+            // STRICT START AT TOP v209
+            if (container.scrollTop === 0) {
                 startY = e.touches[0].pageY;
                 pulling = true;
             } else {
@@ -156,8 +157,8 @@ class DashboardManager {
             const y = e.touches[0].pageY;
             const diff = y - startY;
 
-            // Only pull if moving down and at top
-            if (diff > 0 && container.scrollTop <= 5) {
+            // Only pull if moving down and STRICTLY at top
+            if (diff > 0 && container.scrollTop === 0) {
                 // Resistance logic
                 const translateY = Math.min(diff * 0.4, threshold + 30);
                 const scale = Math.min(diff / threshold, 1);
@@ -185,21 +186,25 @@ class DashboardManager {
             const diff = y - startY;
 
             if (diff > threshold) {
-                // Trigger Silent Sync
-                console.log('🔄 Pull to Refresh: Triggering Silent Sync');
+                // Trigger Silent Sync & Update Check v209
+                console.log('🔄 Pull to Refresh: Sync & Update Check');
                 ptrIndicator.classList.add('ptr-loading');
                 ptrIndicator.style.transform = `translateY(${threshold}px)`;
                 ptrIndicator.style.opacity = 1;
 
                 try {
-                    // SILENT SYNC v208
+                    // 1. Silent Recipe Sync
                     if (window.syncManager) {
                         await window.syncManager.syncQueue({ silent: true });
                     }
-                    // Also refresh UI
                     await window.db.getMyRecipes({ forceRefresh: true });
+
+                    // 2. Manual App Update Check (v209)
+                    if (window.checkAppUpdate) {
+                        await window.checkAppUpdate();
+                    }
                 } catch (err) {
-                    console.error('Error in pull-to-refresh sync:', err);
+                    console.error('Error in pull-to-refresh action:', err);
                 } finally {
                     setTimeout(() => this.resetPTR(ptrIndicator), 600);
                 }

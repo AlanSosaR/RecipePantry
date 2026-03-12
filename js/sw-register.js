@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '208';
+const APP_VERSION_ID = '209';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -65,6 +65,20 @@ async function notifyUpdateReady(worker) {
 
     tryAddNotification();
 }
+
+// 4. Manual check trigger for Pull-to-Refresh
+window.checkAppUpdate = async function () {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+            console.log('🔍 [Update] Buscando actualizaciones manualmente...');
+            await registration.update();
+        }
+    } catch (error) {
+        console.error('[Update] Error en chequeo manual:', error);
+    }
+};
 
 // Iniciar registro
 window.addEventListener('load', registerSW);
