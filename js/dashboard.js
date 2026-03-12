@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v171
-console.log('📄 [File] js/dashboard.js loaded (v171)');
+// Lógica específica del Dashboard - v195
+console.log('📄 [File] js/dashboard.js loaded (v195)');
 
 class DashboardManager {
     constructor() {
@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v171)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v195)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -1144,6 +1144,27 @@ class DashboardManager {
             const isPersisted = await navigator.storage.persist();
             console.log(`💾 Persistencia de almacenamiento: ${isPersisted ? 'Concedida' : 'Denegada'}`);
         }
+    }
+
+    setupOfflineIndicator() {
+        const updateStatus = () => {
+            const isOnline = navigator.onLine;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            
+            if (!isOnline) {
+                if (window.utils && window.utils.showNotificationBar) {
+                    window.utils.showNotificationBar('offline', isEn ? 'You are browsing offline' : 'Estás navegando sin conexión');
+                }
+            } else {
+                if (window.utils && window.utils.hideNotificationBar) {
+                    window.utils.hideNotificationBar('offline');
+                }
+            }
+        };
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
     }
 
 
