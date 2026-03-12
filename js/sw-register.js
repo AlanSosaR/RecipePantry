@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '215';
+const APP_VERSION_ID = '216';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -17,13 +17,18 @@ async function registerSW() {
 
         // Si se encuentra una actualización
         registration.addEventListener('updatefound', () => {
-            console.log('[SW] Nueva actualización detectada, instalando...');
             const newWorker = registration.installing;
+            console.log('[SW] Nueva actualización detectada. Estado inicial:', newWorker.state);
+            
             newWorker.addEventListener('statechange', () => {
-                console.log('[SW] Estado del nuevo worker:', newWorker.state);
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('[SW] Update listo para ser aplicado.');
-                    notifyUpdateReady(newWorker);
+                console.log('[SW] Cambio de estado del worker:', newWorker.state);
+                if (newWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                        console.log('[SW] Nueva versión lista (Update).');
+                        notifyUpdateReady(newWorker);
+                    } else {
+                        console.log('[SW] Instalación inicial completada.');
+                    }
                 }
             });
         });

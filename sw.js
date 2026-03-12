@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v215)
+ * RecipeHub Service Worker (v216)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v215';
-const BUILD_ID = '2026-03-12-v215';
+const CACHE_NAME = 'recipehub-v216';
+const BUILD_ID = '2026-03-12-v216';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -66,22 +66,23 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. Activación: Limpieza agresiva de caches antiguos
+// 2. Activación: Limpieza y Reclamo
 self.addEventListener('activate', (event) => {
+    console.log(`[SW] Activado (v${BUILD_ID})`);
     event.waitUntil(
-        Promise.all([
-            caches.keys().then((cacheNames) => {
-                return Promise.all(
-                    cacheNames.map((name) => {
-                        if (name !== CACHE_NAME) {
-                            console.log('[SW] Purgando caché obsoleta:', name);
-                            return caches.delete(name);
-                        }
-                    })
-                );
-            }),
-            self.clients.claim()
-        ])
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('[SW] Borrando caché antiguo:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => {
+            // Reclamar clientes inmediatamente (v216)
+            return self.clients.claim();
+        })
     );
 });
 

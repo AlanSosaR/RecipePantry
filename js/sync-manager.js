@@ -47,10 +47,16 @@ class SyncManager {
         // Solo mostrar si el usuario está logueado
         if (!window.authManager?.currentUser) return;
 
-        // Usar el sistema de notificaciones internas de la app
-        if (window.notificationManager) {
-            window.notificationManager.addSyncNotification();
-        }
+        // v216: Sistema de reintentos para asegurar que el manager esté listo
+        const tryNotify = () => {
+            if (window.notificationManager && window.notificationManager.isReady) {
+                window.notificationManager.addSyncNotification();
+            } else {
+                setTimeout(tryNotify, 1000);
+            }
+        };
+
+        tryNotify();
     }
 
     async syncQueue(options = { silent: false }) {

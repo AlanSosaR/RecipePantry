@@ -7,6 +7,8 @@ class NotificationManager {
     constructor() {
         this.notifications = [];
         this.lastCount = 0;
+        this.isReady = false;
+        this.pendingNotifications = []; // v216: Cola para notificaciones que llegan antes del init
     }
 
     async init() {
@@ -17,12 +19,20 @@ class NotificationManager {
 
         await this.fetchNotifications();
         this.setupRealtime();
+        
+        this.isReady = true;
+        // Procesar pendientes si las hay
+        if (this.pendingNotifications.length > 0) {
+            console.log(`🔔 [Notifications] Procesando ${this.pendingNotifications.length} notificaciones pendientes...`);
+            this.pendingNotifications.forEach(fn => fn());
+            this.pendingNotifications = [];
+        }
 
         // Cerrar menú al hacer clic fuera
         document.addEventListener('mousedown', (e) => {
             if (this.menu && !this.menu.classList.contains('hidden')) {
                 const btn = document.getElementById('btn-notifications');
-                if (!this.menu.contains(e.target) && !btn.contains(e.target)) {
+                if (btn && !this.menu.contains(e.target) && !btn.contains(e.target)) {
                     this.menu.classList.add('hidden');
                 }
             }
@@ -31,7 +41,7 @@ class NotificationManager {
 
     async fetchNotifications() {
         try {
-            const user = window.authManager.currentUser;
+            const user = window.authManager?.currentUser;
             if (!user) return;
 
             const { data, error } = await window.supabaseClient
@@ -88,7 +98,7 @@ class NotificationManager {
             });
 
             this.updateBadge();
-            if (!this.menu?.classList.contains('hidden')) {
+            if (this.menu && !this.menu.classList.contains('hidden')) {
                 this.renderMenu();
             }
         } catch (err) {
@@ -97,7 +107,7 @@ class NotificationManager {
     }
 
     setupRealtime() {
-        const user = window.authManager.currentUser;
+        const user = window.authManager?.currentUser;
         if (!user) return;
 
         console.log(`📡 [Notifications] Suscribiendo a realtime para usuario: ${user.id}`);
@@ -114,7 +124,9 @@ class NotificationManager {
                 // v157: Añadir delay para dar tiempo a que la DB se estabilice
                 setTimeout(() => this.fetchNotifications(), 500);
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
-                window.utils.showToast(isEn ? 'You have received a new recipe!' : '¡Has recibido una nueva receta!', 'info');
+                if (window.utils && window.utils.showToast) {
+                    window.utils.showToast(isEn ? 'You have received a new recipe!' : '¡Has recibido una nueva receta!', 'info');
+                }
             });
 
         channel.subscribe((status) => {
@@ -141,6 +153,12 @@ class NotificationManager {
     }
 
     addUpdateNotification(worker) {
+        if (!this.isReady) {
+            console.log('🔔 [Notifications] Manager no listo, encolando actualización...');
+            this.pendingNotifications.push(() => this.addUpdateNotification(worker));
+            return;
+        }
+
         console.log('🔔 [Notifications] Agregando tarjeta de actualización manual...');
         // Evitar duplicados
         if (this.notifications.some(n => n.type === 'app_update')) return;
@@ -170,6 +188,12 @@ class NotificationManager {
     }
 
     addSyncNotification() {
+        if (!this.isReady) {
+            console.log('🔔 [Notifications] Manager no listo, encolando aviso de sync...');
+            this.pendingNotifications.push(() => this.addSyncNotification());
+            return;
+        }
+
         // Evitar duplicados
         if (this.notifications.some(n => n.type === 'offline_sync')) return;
 
