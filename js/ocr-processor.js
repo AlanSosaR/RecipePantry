@@ -432,6 +432,7 @@ class OCRProcessor {
         // Medio (casos adicionales)
         corrected = corrected.replace(/32\s*cucharadita/gi, '½ cucharadita');
         corrected = corrected.replace(/\b2\s*taza\s*de\s*nueces/gi, '½ taza de nueces');
+        corrected = corrected.replace(/'%/g, '½');
 
         // ═══════════════════════════════════════════════════
         // FASE 3: CORRECCIONES DE SÍMBOLOS
@@ -485,6 +486,7 @@ class OCRProcessor {
             'Tiemos': 'Tiempo',
             'tienpo': 'tiempo',
             'ones': 'minutos',
+            'minulos': 'minutos',
             'orenaración': 'preparación',
             'Porciminutos': 'Porciones',
             'allados': 'rallados',
@@ -545,10 +547,15 @@ class OCRProcessor {
     extractRecipeName(text) {
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         if (lines.length > 0) {
+            const firstLine = lines[0];
+            const cleanLine = firstLine.toLowerCase().replace(/[^a-z]/g, '');
+            if (cleanLine === 'ingredientes' || cleanLine === 'ingrediente') {
+                return ''; // Se deja vacío para que aparezca "Nueva Receta" o pida el campo
+            }
             // Eliminar adornos comunes en el título
-            return lines[0].replace(/[═─━*#_-]+/g, '').trim();
+            return firstLine.replace(/[═─━*#_\-]+/g, '').trim();
         }
-        return 'Nueva Receta';
+        return '';
     }
 
     extractIngredients(text) {
@@ -558,8 +565,10 @@ class OCRProcessor {
         const lines = text.split('\n');
         for (const line of lines) {
             const clean = line.trim().toLowerCase();
+            // Start of ingredients
             if (clean.includes('ingrediente')) { inSection = true; continue; }
-            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción')) { inSection = false; continue; }
+            // End of ingredients / Start of steps
+            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('procedimiento') || clean.includes('elaboración')) { inSection = false; continue; }
 
             if (inSection && line.trim().length > 2) {
                 // Limpiar viñetas (Mejorado v153: no borrar números al inicio si no van seguidos de punto o espacio)
@@ -576,8 +585,10 @@ class OCRProcessor {
         const lines = text.split('\n');
         for (const line of lines) {
             const clean = line.trim().toLowerCase();
-            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción')) { inSection = true; continue; }
-            if (clean.includes('notas') || clean.includes('tips')) { inSection = false; continue; }
+            // Start of steps
+            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('procedimiento') || clean.includes('elaboración')) { inSection = true; continue; }
+            // End of steps
+            if (clean.includes('notas') || clean.includes('tips') || clean.includes('consejos')) { inSection = false; continue; }
 
             if (inSection && line.trim().length > 5) {
                 // Limpiar números de paso si ya vienen
