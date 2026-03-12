@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v210)
+ * RecipeHub Service Worker (v211)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v210';
-const BUILD_ID = '2026-03-12-v210';
+const CACHE_NAME = 'recipehub-v211';
+const BUILD_ID = '2026-03-12-v211';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -95,15 +95,15 @@ self.addEventListener('fetch', (event) => {
                 .catch(async () => {
                     const cache = await caches.open(CACHE_NAME);
                     const pathname = url.pathname;
+                    const rootFallback = (await cache.match('/index.html')) || (await cache.match('/'));
                     
                     if (pathname.includes('recipe-detail')) {
-                        return (await cache.match('/recipe-detail.html')) || (await cache.match('/recipe-detail')) || Response.redirect('/');
+                        return (await cache.match('/recipe-detail.html')) || (await cache.match('/recipe-detail')) || rootFallback;
                     }
                     if (pathname.includes('recipe-form')) {
-                        return (await cache.match('/recipe-form.html')) || (await cache.match('/recipe-form')) || Response.redirect('/');
+                        return (await cache.match('/recipe-form.html')) || (await cache.match('/recipe-form')) || rootFallback;
                     }
                     
-                    const rootFallback = (await cache.match('/index.html')) || (await cache.match('/'));
                     return rootFallback || createErrorResponse('Offline: Resource not in cache');
                 })
         );
