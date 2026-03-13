@@ -10,6 +10,18 @@ class AuthManager {
     // Verificar si hay sesión activa
     async checkAuth() {
         console.log('🔐 AuthManager.checkAuth: Iniciando...');
+        
+        // v232: Restauración temprana desde caché antes de cualquier fetch
+        if (!this.currentUser) {
+            const cached = localStorage.getItem('recipe_pantry_user_profile');
+            if (cached) {
+                try { 
+                    this.currentUser = JSON.parse(cached);
+                    console.log('📦 Perfil restaurado preventivamente desde caché:', this.currentUser?.first_name);
+                } catch(e){}
+            }
+        }
+
         try {
             // 1. Verificar sesión en Supabase (con timeout de seguridad para v214)
             const sessionPromise = window.supabaseClient.auth.getSession();
@@ -23,8 +35,6 @@ class AuthManager {
             } catch (e) {
                 if (e.message === 'TIMEOUT_SESSION') {
                     console.warn('⚠️ Timeout obteniendo sesión, asumiendo estado offline/lento');
-                    // v220: NO re-intentar sin timeout. Si falló la primera, usamos el estado local si existe.
-                    // Supabase-js maneja la sesión internamente.
                 } else {
                     throw e;
                 }
@@ -44,105 +54,78 @@ class AuthManager {
             // 2. Intentar obtener el perfil (opcional para considerar "autenticado")
             // v231: Solo saltar si tenemos usuario completo (CON ID real)
             if (this.currentUser && this.currentUser.id && this.currentUser.auth_user_id === session.user.id) {
-                console.log('✅ AuthManager.checkAuth: Usando perfil cargado en memoria');
+                console.log('✅ AuthManager.checkAuth: Perfil en memoria es válido y completo');
                 return true;
             }
 
-            // Uso de caché si estamos offline explícitamente o el refresh previo falló
+            // Uso de caché si estamos offline
             if (!navigator.onLine) {
                 console.log('📶 Modo offline detectado, usando perfil caché');
-                const cached = localStorage.getItem('recipe_pantry_user_profile');
-                if (cached) {
-                    try { this.currentUser = JSON.parse(cached); } catch(e){}
-                }
                 if (!this.currentUser || !this.currentUser.id) {
-                    console.warn('⚠️ Generando perfil parcial de emergencia (Offline/Sin Cache)');
                     this.currentUser = {
                         auth_user_id: session.user.id,
                         email: session.user.email,
                         first_name: session.user.user_metadata?.first_name || 'Chef',
                         last_name: session.user.user_metadata?.last_name || '',
-                        is_partial: true // v231: Flag para debugging
+                        is_partial: true 
                     };
                 }
                 return true;
             }
 
-            // Implementar un timeout para redes intermitentes (Lie-Fi)
+            // Implementar un timeout para redes intermitentes
             const fetchProfile = window.supabaseClient
                 .from('users')
                 .select('*')
                 .eq('auth_user_id', session.user.id)
                 .single();
 
-            // v231: Timeout aumentado a 7s para redes inestables
+            // v231: Timeout aumentado a 7s
             const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_DB')), 7000));
 
-            console.log('🔐 AuthManager.checkAuth: Consultando perfil de usuario...');
+            console.log('🔐 AuthManager.checkAuth: Consultando perfil actualizado...');
             const response = await Promise.race([fetchProfile, timeoutPromise]);
-            console.log('🔐 AuthManager.checkAuth: Perfil obtenido');
             const { data: userData, error: userError } = response;
 
             // Si el perfil no existe, lo creamos
             if (userError && userError.code === 'PGRST116') {
                 console.log('Perfil no encontrado, creando uno nuevo...');
                 return await this.createProfile(session.user);
-                console.warn('⚠️ Error al cargar perfil, usando caché o perfil parcial:', userError.message);
-                const cached = localStorage.getItem('recipe_pantry_user_profile');
-                if (cached) {
-                    try { 
-                        this.currentUser = JSON.parse(cached); 
-                        if (this.currentUser.id) {
-                            console.log('✅ Recuperado perfil completo desde localStorage tras error de red');
-                            return true; 
-                        }
-                    } catch(e){}
+            } 
+            
+            if (userError) {
+                console.warn('⚠️ Error de red al cargar perfil:', userError.message);
+                // Si ya tenemos currentUser (aunque sea de cache), mantenemos ese y no lo sobreescribimos con un stub
+                if (this.currentUser && this.currentUser.id) {
+                    console.log('📦 Manteniendo perfil de cache previo funcional');
+                    return true;
                 }
                 
-                if (!this.currentUser || !this.currentUser.id) {
-                    console.error('🛑 FALLO CRÍTICO: No hay perfil en BD ni en Caché. Usando stub limitado.');
-                    this.currentUser = {
-                        auth_user_id: session.user.id,
-                        email: session.user.email,
-                        first_name: session.user.user_metadata?.first_name || 'Chef',
-                        last_name: session.user.user_metadata?.last_name || '',
-                        is_partial: true
-                    };
-                }
+                // Si no hay nada, intentamos stub
+                this.currentUser = {
+                    auth_user_id: session.user.id,
+                    email: session.user.email,
+                    first_name: session.user.user_metadata?.first_name || 'Chef',
+                    last_name: session.user.user_metadata?.last_name || '',
+                    is_partial: true
+                };
                 return true; 
             }
 
-            this.currentUser = userData;
-            console.log('✅ Perfil cargado correctamente:', userData.first_name, userData.last_name);
-            localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
+            // EXITO: Guardar y actualizar
+            if (userData && userData.id) {
+                this.currentUser = userData;
+                console.log('✅ Perfil cargado y guardado:', userData.first_name);
+                localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
+                if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+            }
             
-            // v227: Forzar actualización de UI si el método existe
-            if (window.updateGlobalUserUI) window.updateGlobalUserUI();
-            
-            console.log('✅ Usuario autenticado:', userData.email);
             return true;
 
         } catch (error) {
-            console.error('❌ Error verificando auth:', error);
-            if (error.message === 'TIMEOUT_DB' || error.message === 'TIMEOUT_SESSION') {
-                if (this.session) {
-                    const cached = localStorage.getItem('recipe_pantry_user_profile');
-                    if (cached) {
-                        try { this.currentUser = JSON.parse(cached); } catch(e){}
-                    }
-                    if (!this.currentUser) {
-                        this.currentUser = {
-                            auth_user_id: this.session.user.id,
-                            email: this.session.user.email,
-                            first_name: this.session.user.user_metadata?.first_name || 'Chef',
-                            last_name: this.session.user.user_metadata?.last_name || ''
-                            // NOTA: id (PK) queda null hasta que se cargue de DB
-                        };
-                    }
-                    return true;
-                }
-            }
-            return !!this.session;
+            console.error('❌ Error crítico en checkAuth:', error);
+            // Fallback total a memoria/cache
+            return !!this.session || !!this.currentUser;
         }
     }
 
