@@ -442,11 +442,19 @@ class NotificationManager {
             // 3. Eliminar de compartidas definitivamente
             await window.db.deleteSharedRecipe(user.id, recipeId);
 
-            // 4. Marcar notificación como leída
-            await window.supabaseClient
+            // 4. Marcar notificación como leída (y cualquier otra duplicada para esta receta)
+            const { error: notifError } = await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
-                .eq('id', notificationId);
+                .eq('user_id', user.id)
+                .eq('recipe_id', recipeId)
+                .eq('type', 'recipe_shared');
+
+            if (notifError) {
+                console.error('⚠️ [Notifications] Error marcando como leída:', notifError);
+                // Intentar backup por ID exacto si el filtro complejo falla
+                await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+            }
 
             // 5. Actualizar UI
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
@@ -487,11 +495,17 @@ class NotificationManager {
 
             if (shareError) throw shareError;
 
-            // 2. Mark notification as read
-            await window.supabaseClient
+            // 2. Mark notification as read (and any duplicates)
+            const { error: notifError } = await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
-                .eq('id', notificationId);
+                .eq('user_id', user.id)
+                .eq('recipe_id', recipeId);
+            
+            if (notifError) {
+                console.error('⚠️ [Notifications] Error marcando declive como leído:', notifError);
+                await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+            }
 
             // 3. Update UI
             this.notifications = this.notifications.filter(n => n.id !== notificationId);

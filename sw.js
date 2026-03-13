@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v240';
-const BUILD_ID = '2026-03-13-v240';
+const CACHE_NAME = 'recipehub-v241';
+const BUILD_ID = '2026-03-13-v241';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -97,8 +97,8 @@ self.addEventListener('fetch', (event) => {
 
     if (!request.url.startsWith('http')) return;
 
-    // Bypassear Supabase directo (Auth/PostgREST directo), pero cachear nuestra API
-    if (url.origin.includes('supabase.co') && request.method !== 'GET') {
+    // v241: Bypassear TODO Supabase (Auth/PostgREST) para evitar datos stale en notificaciones/recetas
+    if (url.origin.includes('supabase.co')) {
         return;
     }
 
