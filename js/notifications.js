@@ -66,7 +66,10 @@ class NotificationManager {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            console.log(`🔔 [Notifications] Éxito: ${data?.length || 0} notificaciones pendientes del servidor.`, data);
+            console.log(`🔔 [Notifications] Fetch successful for ${user.id}. Rows: ${data?.length || 0}`);
+            if (data && data.length > 0) {
+                console.log('🔔 [Notifications] Detalle de datos crudos:', data);
+            }
 
             const serverNotifications = data.map(n => {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';

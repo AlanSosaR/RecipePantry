@@ -144,10 +144,12 @@ class DatabaseManager {
                 let senderMap = {};
                 if (senderIds.length > 0) {
                     const { data: senders } = await window.supabaseClient.from('users').select('id, first_name, last_name').in('id', senderIds);
-                    if (senders) {
+                    if (senders && Array.isArray(senders)) {
                         senders.forEach(u => {
                             senderMap[u.id] = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Chef';
                         });
+                    } else {
+                        console.warn('⚠️ [DB] No se pudieron cargar detalles de los remitentes:', senderIds);
                     }
                 }
                 recipes = shared.map(s => {
