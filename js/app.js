@@ -228,19 +228,6 @@ async function setupDashboardScreen() {
     const avatarEl = document.getElementById('user-avatar');
     if (avatarEl) avatarEl.addEventListener('click', () => navigateTo('profile'));
 
-    // --- Offline Status UI (Dashboard) ---
-    const offlineIndicator = document.getElementById('offline-indicator');
-    const toggleOfflineUI = () => {
-        if (offlineIndicator) {
-            if (navigator.onLine) offlineIndicator.classList.add('hidden');
-            else offlineIndicator.classList.remove('hidden');
-        }
-    };
-
-    toggleOfflineUI(); // Set initial state
-    window.addEventListener('online', toggleOfflineUI);
-    window.addEventListener('offline', toggleOfflineUI);
-
     // Escuchar cuando el syncManager termina de vaciar la cola o cambian cosas
     window.addEventListener('sync-completed', () => {
         renderRecipeGrid();
