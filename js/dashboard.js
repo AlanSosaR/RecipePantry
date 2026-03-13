@@ -852,45 +852,74 @@ class DashboardManager {
     }
 
     async deleteSelected() {
-        if (this.selectedRecipes.size === 0) return;
+        if (!this.selectedRecipes || this.selectedRecipes.size === 0) return;
+        
         const count = this.selectedRecipes.size;
+        console.log(`[Dashboard] Initializing deleteSelected for ${count} recipes`);
+        
         const confirmMsg = window.i18n && window.i18n.getLang() === 'en'
             ? `Are you sure you want to delete ${count} recipes?`
             : `¿Seguro que desea eliminar ${count} recetas?`;
 
         window.showActionSnackbar(confirmMsg, 'ELIMINAR', async () => {
-            window.showToast(window.i18n ? window.i18n.t('deleting') : 'Eliminando...', 'info');
-            const ids = Array.from(this.selectedRecipes);
-            const recipesToDelete = this.currentRecipes.filter(r => ids.includes(r.id));
-            
-            // Optimistic UI Update: Remove from currentRecipes immediately
-            this.currentRecipes = this.currentRecipes.filter(r => !ids.includes(r.id));
-            this.clearSelection(); // This also triggers renderRecipesGrid
-            
-            const userId = window.authManager.currentUser?.id;
-            const deletePromises = recipesToDelete.map(async (recipe) => {
-                try {
-                    if (recipe.sharingContext === 'received') {
-                        return await window.db.deleteSharedRecipe(userId, recipe.id);
-                    } else {
-                        return await window.db.deleteRecipe(recipe.id);
-                    }
-                } catch (e) {
-                    console.error(`Error deleting recipe ${recipe.id}:`, e);
-                    return { success: false };
+            try {
+                window.showToast(window.i18n ? window.i18n.t('deleting') : 'Eliminando...', 'info');
+                
+                // Convert all selected IDs to strings for robust comparison
+                const selectedIdsArr = Array.from(this.selectedRecipes).map(id => id.toString());
+                const selectedIdsSet = new Set(selectedIdsArr);
+                
+                console.log('[Dashboard] Selected IDs (stringified):', selectedIdsArr);
+                
+                // Identify objects before they disappear from currentRecipes
+                const recipesToDelete = this.currentRecipes.filter(r => selectedIdsSet.has(r.id.toString()));
+                console.log(`[Dashboard] Found ${recipesToDelete.length} recipe objects to delete`);
+
+                if (recipesToDelete.length === 0) {
+                    // Fallback: if we can't find them in currentRecipes, use the IDs directly from the set
+                    console.warn('[Dashboard] recipesToDelete is empty! Fallback to raw IDs.');
+                    selectedIdsArr.forEach(id => recipesToDelete.push({ id }));
                 }
-            });
 
-            const results = await Promise.all(deletePromises);
-            const successCount = results.filter(r => r.success).length;
+                // --- Optimistic UI Update ---
+                this.currentRecipes = this.currentRecipes.filter(r => !selectedIdsSet.has(r.id.toString()));
+                this.clearSelection(); // Clears Set and calls updateActionBar + renderRecipesGrid
+                
+                const userId = window.authManager.currentUser?.id;
+                console.log(`[Dashboard] Proceeding with parallel deletion for user: ${userId}`);
 
-            // Final reload with current filters to ensure everything is in sync
-            await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
-            
-            const msg = window.i18n 
-                ? (successCount === 1 ? window.i18n.t('deleteSuccess') : `${successCount} recetas eliminadas`)
-                : `${successCount} recetas eliminadas`;
-            window.showToast(msg, 'success');
+                const deletePromises = recipesToDelete.map(async (recipe) => {
+                    try {
+                        const rId = recipe.id.toString();
+                        if (recipe.sharingContext === 'received') {
+                            return await window.db.deleteSharedRecipe(userId, rId);
+                        } else {
+                            return await window.db.deleteRecipe(rId);
+                        }
+                    } catch (e) {
+                        console.error(`[Dashboard] Error in promise for recipe ${recipe.id}:`, e);
+                        return { success: false };
+                    }
+                });
+
+                const results = await Promise.all(deletePromises);
+                const successCount = results.filter(r => r && r.success).length;
+                console.log(`[Dashboard] Deletion completed. Success count: ${successCount}/${recipesToDelete.length}`);
+
+                // Final reload to ensure sync with server
+                await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+                
+                const msg = (successCount === recipesToDelete.length)
+                    ? (window.i18n ? window.i18n.t('deleteSuccess') : 'Eliminadas correctamente')
+                    : `${successCount} recetas eliminadas`;
+                window.showToast(msg, 'success');
+
+            } catch (err) {
+                console.error('[Dashboard] Fatal error in deleteSelected:', err);
+                window.utils.showToast('Error al procesar el borrado', 'error');
+                // Reload in case of error to restore UI state
+                this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+            }
         });
     }
 
