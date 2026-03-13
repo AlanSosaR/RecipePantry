@@ -104,17 +104,12 @@ class DatabaseManager {
             const url = new URL('/api/recipes', window.location.origin);
             let userId = window.authManager?.currentUser?.id;
 
-            // v223: Si authManager no tiene el usuario, intentar obtenerlo de la sesión activa directamente
-            if (!userId && window.supabaseClient) {
-                const { data: sessionData } = await window.supabaseClient.auth.getSession();
-                userId = sessionData?.session?.user?.id;
-            }
-
-            if (userId) {
-                url.searchParams.set('user_id', userId);
-            } else {
-                console.warn('⚠️ No user_id found for API request. Aborting to avoid 400 error.');
-                return { success: false, error: 'User not authenticated', recipes: [], fromCache: true };
+            // v229: QUITADO fallback a auth_user_id porque causa fallos en la API de recetas (espera PK int/uuid de tabla users)
+            if (!userId) {
+                console.warn('⚠️ No hay id real del usuario todavía. Abortando fetch para proteger caché.');
+                // Retornamos éxito falso pero indicando que viene de cache para no borrar el localDB
+                const localRecipes = await window.localDB?.getAll('recipes_index') || [];
+                return { success: true, recipes: localRecipes, fromCache: true };
             }
 
             if (filters.search) url.searchParams.set('search', filters.search);

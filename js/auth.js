@@ -55,7 +55,7 @@ class AuthManager {
                 }
                 if (!this.currentUser) {
                     this.currentUser = {
-                        id: session.user.id,
+                        // id: session.user.id, // ❌ ELIMINADO: Nunca asignar auth_user_id a id (PK de tabla users)
                         auth_user_id: session.user.id,
                         email: session.user.email,
                         first_name: session.user.user_metadata?.first_name || 'Chef',
@@ -90,7 +90,7 @@ class AuthManager {
                     try { this.currentUser = JSON.parse(cached); return true; } catch(e){}
                 }
                 this.currentUser = {
-                    id: session.user.id,
+                    // id: session.user.id, // ❌ El ID real solo vendrá de la tabla 'users'
                     auth_user_id: session.user.id,
                     email: session.user.email,
                     first_name: session.user.user_metadata?.first_name || 'Chef',
@@ -117,14 +117,13 @@ class AuthManager {
                     if (cached) {
                         try { this.currentUser = JSON.parse(cached); } catch(e){}
                     }
-                    if (!this.currentUser) {
                         this.currentUser = {
                             auth_user_id: this.session.user.id,
                             email: this.session.user.email,
                             first_name: this.session.user.user_metadata?.first_name || 'Chef',
                             last_name: this.session.user.user_metadata?.last_name || ''
+                            // NOTA: id (PK) queda null hasta que se cargue de DB
                         };
-                    }
                     return true;
                 }
             }
@@ -303,6 +302,7 @@ class AuthManager {
             if (error) throw error;
 
             this.currentUser = data;
+            localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(data)); // ⚡ v229: Actualización inmediata de cache
             return { success: true, user: data };
         } catch (error) {
             console.error('Error actualizando perfil:', error);
