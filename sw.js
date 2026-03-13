@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v226';
-const BUILD_ID = '2026-03-13-v226';
+const CACHE_NAME = 'recipehub-v227';
+const BUILD_ID = '2026-03-13-v227';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [

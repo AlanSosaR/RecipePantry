@@ -37,9 +37,13 @@ class DashboardManager {
         // No-op - El nuevo SyncManager maneja esto de forma global
     }
 
+    setupOfflineIndicator() {
+        // No-op - El indicador global ahora se gestiona de forma pasiva o se ha eliminado
+    }
+
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v226)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v227)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();

@@ -8,7 +8,7 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
-        console.log('📦 DatabaseManager: Inicializando (v226)');
+        console.log('📦 DatabaseManager: Inicializando (v227)');
     }
 
     async _checkLocalDB() {
@@ -194,7 +194,7 @@ class DatabaseManager {
                     const recipientIds = [...new Set(sentShared.map(s => s.recipient_user_id).filter(Boolean))];
                     if (recipientIds.length > 0) {
                         const { data: recipientUsers } = await window.supabaseClient.from('users').select('id, first_name, last_name').in('id', recipientIds);
-                        if (recipientUsers) {
+                        if (recipientUsers && Array.isArray(recipientUsers)) {
                             recipientUsers.forEach(u => {
                                 recipientMap[u.id] = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Chef';
                             });
