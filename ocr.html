@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="213">
+<html lang="es" data-app-version="219">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear (v65)
-            const CURRENT_VERSION = '189';
-            const NUKE_KEY = 'v184_ocr_fix';
+            const CURRENT_VERSION = '219';
+            const NUKE_KEY = 'v219_ocr_fix';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=215">
-    <link rel="stylesheet" href="css/components.css?v=215">
+    <link rel="stylesheet" href="css/styles.css?v=219">
+    <link rel="stylesheet" href="css/components.css?v=219">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1437,7 +1437,7 @@
         </div>
     </div>
 
-    <script src="js/ui.js?v=215"></script>
+    <script src="js/ui.js?v=219"></script>
     <script>
         // Initialize sidebar
         document.addEventListener('DOMContentLoaded', () => {

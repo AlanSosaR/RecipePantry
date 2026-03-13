@@ -323,7 +323,18 @@ document.addEventListener('DOMContentLoaded', () => {
             let indicator = document.getElementById('global-offline-indicator');
 
             if (!isOnline) {
-                if (!indicator) {
+                // v219: Logic to reduce annoyance
+                const isRecipeDetail = window.location.pathname.includes('recipe-detail');
+                const lastShown = sessionStorage.getItem('offline_indicator_shown');
+                
+                // Only show automatically if:
+                // 1. We are NOT on a recipe detail page (unless it's a fresh connection drop)
+                // 2. We haven't shown it in this session yet
+                // Note: Real-time drops (going offline while on page) will ALWAYS show it.
+                
+                const isRealTimeDrop = window.lastConnectionState === true && isOnline === false;
+                
+                if (!indicator && (!isRecipeDetail || isRealTimeDrop) && (!lastShown || isRealTimeDrop)) {
                     indicator = document.createElement('div');
                     indicator.id = 'global-offline-indicator';
                     indicator.style.cssText = `
@@ -363,6 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     document.body.appendChild(indicator);
 
+                    // Mark as shown in this session
+                    sessionStorage.setItem('offline_indicator_shown', 'true');
+
                     // Auto-hide after 5 seconds to reduce annoyance
                     setTimeout(() => {
                         if (indicator && indicator.parentElement) {
@@ -377,10 +391,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => indicator.remove(), 300);
                 }
             }
+            
+            // Track state for next change
+            window.lastConnectionState = isOnline;
         };
 
         window.addEventListener('online', updateStatus);
         window.addEventListener('offline', updateStatus);
+        
+        // Initial state tracking
+        window.lastConnectionState = navigator.onLine;
         updateStatus();
     };
 
