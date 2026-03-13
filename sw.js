@@ -127,8 +127,28 @@ self.addEventListener('fetch', (event) => {
                         fallback = rootFallback || createErrorResponse('Offline: Resource not in cache');
                     }
                     
-                    return cleanResponse(fallback);
                 })
+        );
+        return;
+    }
+
+    // Estrategia para Assets Externos (Google Fonts, CDNs)
+    const isExternalAsset = url.hostname.includes('fonts.googleapis.com') || 
+                          url.hostname.includes('fonts.gstatic.com') ||
+                          url.hostname.includes('cdn.jsdelivr.net');
+
+    if (isExternalAsset) {
+        event.respondWith(
+            caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
+                if (cachedResponse) return cachedResponse;
+                return fetch(request).then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    }
+                    return networkResponse;
+                }).catch(() => null);
+            })
         );
         return;
     }
