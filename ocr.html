@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="251">
+<html lang="es" data-app-version="253">
 
 <head>
     <meta charset="utf-8" />
@@ -51,9 +51,9 @@
                 if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
             };
 
-            // 2. Emergency Clear (v65)
-            const CURRENT_VERSION = '251';
-            const NUKE_KEY = 'v251_ocr_crop_fix';
+            // 2. Emergency Clear
+            const CURRENT_VERSION = '253';
+            const NUKE_KEY = 'v253_ocr_green_ui';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -647,6 +647,32 @@
             /* Material 3 Secondary Container Tonal */
             color: #1D192B;
             /* Material 3 On Secondary Container */
+        }
+
+        /* --- Interactive Scanning UI --- */
+        #ocrOverlay {
+            transition: all 0.3s ease;
+            --guide-color: rgba(255, 255, 255, 0.4);
+            --corner-color: #FFFFFF;
+            border-color: var(--guide-color) !important;
+        }
+
+        #ocrOverlay .corner {
+            border-color: var(--corner-color) !important;
+            transition: all 0.3s ease;
+        }
+
+        #ocrOverlay.active {
+            --guide-color: rgba(16, 185, 129, 0.6);
+            --corner-color: #10B981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            border-width: 3px !important;
+        }
+
+        @keyframes scanFlash {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
 
         /* --- Camera Modal (ocrModal) Styles --- */
@@ -1324,16 +1350,16 @@
                 <!-- Corner guides overlay -->
                 <div id="ocrOverlay"
                     style="position:absolute;inset:48px 32px;border:2px solid rgba(255,255,255,.4);border-radius:12px;pointer-events:none;">
-                    <div
+                    <div class="corner"
                         style="position:absolute;top:0;left:0;width:16px;height:16px;border-top:3px solid white;border-left:3px solid white;border-radius:2px 0 0 0;">
                     </div>
-                    <div
+                    <div class="corner"
                         style="position:absolute;top:0;right:0;width:16px;height:16px;border-top:3px solid white;border-right:3px solid white;border-radius:0 2px 0 0;">
                     </div>
-                    <div
+                    <div class="corner"
                         style="position:absolute;bottom:0;left:0;width:16px;height:16px;border-bottom:3px solid white;border-left:3px solid white;border-radius:0 0 0 2px;">
                     </div>
-                    <div
+                    <div class="corner"
                         style="position:absolute;bottom:0;right:0;width:16px;height:16px;border-bottom:3px solid white;border-right:3px solid white;border-radius:0 0 2px 0;">
                     </div>
                 </div>
@@ -1437,10 +1463,10 @@
         </div>
     </div>
 
-    <script src="js/config.js?v=251"></script>
-    <script src="js/ocr-processor.js?v=251"></script>
-    <script src="js/ocr.js?v=251"></script>
-    <script src="js/ui.js?v=251"></script>
+    <script src="js/config.js?v=253"></script>
+    <script src="js/ocr-processor.js?v=253"></script>
+    <script src="js/ocr.js?v=253"></script>
+    <script src="js/ui.js?v=253"></script>
     <script>
         // Initialize sidebar
         document.addEventListener('DOMContentLoaded', () => {

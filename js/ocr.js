@@ -20,6 +20,10 @@ class OCRScanner {
         if (cameraState) cameraState.style.display = 'flex';
         if (resultState) resultState.style.display = 'none';
         if (loadingState) loadingState.style.display = 'none';
+        
+        // v253: Activar visual green guide
+        const overlay = document.getElementById('ocrOverlay');
+        if (overlay) overlay.classList.add('active');
     }
 
     async close() {
@@ -157,6 +161,12 @@ class OCRScanner {
         
         const video = this.videoElement;
         const overlay = document.getElementById('ocrOverlay');
+        
+        if (overlay) {
+            // Efecto de captura: Flash verde intenso
+            overlay.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+            setTimeout(() => { if(overlay) overlay.style.backgroundColor = 'transparent'; }, 200);
+        }
         
         if (!overlay) {
             console.warn('⚠️ No ocrOverlay found, legacy capture.');
