@@ -55,6 +55,7 @@ class AuthManager {
                 }
                 if (!this.currentUser) {
                     this.currentUser = {
+                        id: session.user.id,
                         auth_user_id: session.user.id,
                         email: session.user.email,
                         first_name: session.user.user_metadata?.first_name || 'Chef',
@@ -89,6 +90,7 @@ class AuthManager {
                     try { this.currentUser = JSON.parse(cached); return true; } catch(e){}
                 }
                 this.currentUser = {
+                    id: session.user.id,
                     auth_user_id: session.user.id,
                     email: session.user.email,
                     first_name: session.user.user_metadata?.first_name || 'Chef',

@@ -109,16 +109,17 @@ class NotificationManager {
     setupRealtime() {
         const user = window.authManager?.currentUser;
         if (!user) return;
+        const userId = user.id || user.auth_user_id;
 
-        console.log(`📡 [Notifications] Suscribiendo a realtime para usuario: ${user.id}`);
+        console.log(`📡 [Notifications] Suscribiendo a realtime para usuario: ${userId}`);
 
         const channel = window.supabaseClient
-            .channel(`notifications:${user.id}`)
+            .channel(`notifications:${userId}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
                 table: 'notifications',
-                filter: `user_id=eq.${user.id}`
+                filter: `user_id=eq.${userId}`
             }, (payload) => {
                 console.log('🔔 Nueva notificación recibida vía Realtime:', payload);
                 // v157: Añadir delay para dar tiempo a que la DB se estabilice

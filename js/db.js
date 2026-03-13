@@ -113,7 +113,8 @@ class DatabaseManager {
             if (userId) {
                 url.searchParams.set('user_id', userId);
             } else {
-                console.warn('⚠️ No user_id found for API request');
+                console.warn('⚠️ No user_id found for API request. Aborting to avoid 400 error.');
+                return { success: false, error: 'User not authenticated', recipes: [], fromCache: true };
             }
 
             if (filters.search) url.searchParams.set('search', filters.search);
