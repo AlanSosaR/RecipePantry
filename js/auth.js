@@ -42,7 +42,9 @@ class AuthManager {
             document.documentElement.setAttribute('data-auth-likely', 'true');
 
             // 2. Intentar obtener el perfil (opcional para considerar "autenticado")
-            if (this.currentUser && this.currentUser.auth_user_id === session.user.id) {
+            // v231: Solo saltar si tenemos usuario completo (CON ID real)
+            if (this.currentUser && this.currentUser.id && this.currentUser.auth_user_id === session.user.id) {
+                console.log('✅ AuthManager.checkAuth: Usando perfil cargado en memoria');
                 return true;
             }
 
@@ -53,13 +55,14 @@ class AuthManager {
                 if (cached) {
                     try { this.currentUser = JSON.parse(cached); } catch(e){}
                 }
-                if (!this.currentUser) {
+                if (!this.currentUser || !this.currentUser.id) {
+                    console.warn('⚠️ Generando perfil parcial de emergencia (Offline/Sin Cache)');
                     this.currentUser = {
-                        // id: session.user.id, // ❌ ELIMINADO: Nunca asignar auth_user_id a id (PK de tabla users)
                         auth_user_id: session.user.id,
                         email: session.user.email,
                         first_name: session.user.user_metadata?.first_name || 'Chef',
-                        last_name: session.user.user_metadata?.last_name || ''
+                        last_name: session.user.user_metadata?.last_name || '',
+                        is_partial: true // v231: Flag para debugging
                     };
                 }
                 return true;
@@ -72,7 +75,8 @@ class AuthManager {
                 .eq('auth_user_id', session.user.id)
                 .single();
 
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_DB')), 2500));
+            // v231: Timeout aumentado a 7s para redes inestables
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_DB')), 7000));
 
             console.log('🔐 AuthManager.checkAuth: Consultando perfil de usuario...');
             const response = await Promise.race([fetchProfile, timeoutPromise]);
@@ -83,19 +87,28 @@ class AuthManager {
             if (userError && userError.code === 'PGRST116') {
                 console.log('Perfil no encontrado, creando uno nuevo...');
                 return await this.createProfile(session.user);
-            } else if (userError) {
-                console.warn('⚠️ Error al cargar perfil, pero la sesión es válida:', userError.message);
+                console.warn('⚠️ Error al cargar perfil, usando caché o perfil parcial:', userError.message);
                 const cached = localStorage.getItem('recipe_pantry_user_profile');
                 if (cached) {
-                    try { this.currentUser = JSON.parse(cached); return true; } catch(e){}
+                    try { 
+                        this.currentUser = JSON.parse(cached); 
+                        if (this.currentUser.id) {
+                            console.log('✅ Recuperado perfil completo desde localStorage tras error de red');
+                            return true; 
+                        }
+                    } catch(e){}
                 }
-                this.currentUser = {
-                    // id: session.user.id, // ❌ El ID real solo vendrá de la tabla 'users'
-                    auth_user_id: session.user.id,
-                    email: session.user.email,
-                    first_name: session.user.user_metadata?.first_name || 'Chef',
-                    last_name: session.user.user_metadata?.last_name || ''
-                };
+                
+                if (!this.currentUser || !this.currentUser.id) {
+                    console.error('🛑 FALLO CRÍTICO: No hay perfil en BD ni en Caché. Usando stub limitado.');
+                    this.currentUser = {
+                        auth_user_id: session.user.id,
+                        email: session.user.email,
+                        first_name: session.user.user_metadata?.first_name || 'Chef',
+                        last_name: session.user.user_metadata?.last_name || '',
+                        is_partial: true
+                    };
+                }
                 return true; 
             }
 

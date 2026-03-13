@@ -106,7 +106,8 @@ class DatabaseManager {
 
             // v229: QUITADO fallback a auth_user_id porque causa fallos en la API de recetas (espera PK int/uuid de tabla users)
             if (!userId) {
-                console.warn('⚠️ No hay id real del usuario todavía. Abortando fetch para proteger caché.');
+                console.error('❌ ERROR: userId no disponible en _fetchRecipesFromServer. Perfil:', window.authManager?.currentUser);
+                console.warn('⚠️ Abortando fetch para proteger caché de recipes_index.');
                 // Retornamos éxito falso pero indicando que viene de cache para no borrar el localDB
                 const localRecipes = await window.localDB?.getAll('recipes_index') || [];
                 return { success: true, recipes: localRecipes, fromCache: true };
@@ -228,7 +229,8 @@ class DatabaseManager {
             return { success: true, recipes, fromCache: false };
         } catch (error) {
             console.error('❌ Edge API Error _fetchRecipesFromServer:', error);
-            const localRecipes = await window.localDB?.getAll('recipes') || [];
+            // v231: Corregido almacen fallback (recipes_index en lugar de recipes)
+            const localRecipes = await window.localDB?.getAll('recipes_index') || [];
             return { success: true, recipes: localRecipes, fromCache: true };
         }
     }
