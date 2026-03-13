@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let indicator = document.getElementById('global-offline-indicator');
 
             if (!isOnline) {
-                // v219: Logic to reduce annoyance
+                // v220: Logic to reduce annoyance
                 const isRecipeDetail = window.location.pathname.includes('recipe-detail');
                 const lastShown = sessionStorage.getItem('offline_indicator_shown');
                 
