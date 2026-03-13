@@ -409,10 +409,13 @@ class NotificationManager {
             const user = window.authManager.currentUser;
             if (!user) return;
 
-            // 0. Verificar si el nombre ya existe en mis recetas
+            // 0. Verificar si el nombre ya existe en mis recetas (excluyendo la que estamos aceptando)
             const n = this.notifications.find(item => item.id === notificationId);
             if (n && n.recipeName) {
-                const exists = await window.db.recipeNameExists(n.recipeName, { includeShared: false });
+                const exists = await window.db.recipeNameExists(n.recipeName, { 
+                    includeShared: false, 
+                    excludeId: recipeId // v250: Crítico para que no se autodetecte como duplicado
+                });
                 if (exists) {
                     window.utils.showToast(
                         window.i18n && window.i18n.getLang() === 'en' ?

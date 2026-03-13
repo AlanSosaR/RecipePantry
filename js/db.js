@@ -8,12 +8,12 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
-        console.log('📦 DatabaseManager: Inicializando (v249)');
+        console.log('📦 DatabaseManager: Inicializando (v250)');
         this._forcedCleanup();
     }
 
     async _forcedCleanup() {
-        const FIX_KEY = 'recipe_pantry_fix_249_cleanup';
+        const FIX_KEY = 'recipe_pantry_fix_250_cleanup';
         if (localStorage.getItem(FIX_KEY) !== 'done') {
             console.warn('🧹 [DB] Forced Cleanup (v249): Clearing local caches to resolve zombie conflicts.');
             try {
@@ -295,7 +295,7 @@ class DatabaseManager {
         });
 
         if (localMatch) {
-            console.warn('🚩 [DB] Conflicto de nombre encontrado LOCALMENTE:', localMatch);
+            console.warn(`🚩 [DB] Conflicto de nombre encontrado LOCALMENTE con ID ${localMatch.id}. (excludeId era: ${excludeId})`, localMatch);
             return true;
         }
 
@@ -532,9 +532,13 @@ class DatabaseManager {
             const { success, recipe, error: fetchError } = await this.getRecipeById(sourceRecipeId, true);
             if (!success) throw new Error(fetchError);
 
-            // 2. Verificar si el nombre ya existe en la colección del usuario (Nuevo requisito)
+            // 2. Verificar si el nombre ya existe en la colección del usuario 
+            // v250: Pasamos sourceRecipeId para evitar que la receta compartida se bloquee a sí misma
             const recipeName = (window.i18n && window.i18n.getLang() === 'en') ? (recipe.name_en || recipe.name_es) : recipe.name_es;
-            const exists = await this.recipeNameExists(recipeName, { includeShared: false });
+            const exists = await this.recipeNameExists(recipeName, { 
+                includeShared: false,
+                excludeId: sourceRecipeId 
+            });
             if (exists) {
                 return { success: false, error: `Ya existe una receta con el nombre "${recipeName}" en tu colección.` };
             }
