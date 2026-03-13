@@ -5901,7 +5901,21 @@ input:checked~.m3-ingredient-text {
 .selection-actions-group {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+    height: 40px !important;
+}
+
+/* Ensure the menu button and checkbox wrapper are identical in layout terms */
+#selectionMoreBtn, 
+.m3-checkbox-wrapper {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
 }
 
 .selection-count-text {
