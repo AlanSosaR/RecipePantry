@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v221';
-const BUILD_ID = '2026-03-13-v221';
+const CACHE_NAME = 'recipehub-v222';
+const BUILD_ID = '2026-03-13-v222';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -30,7 +30,9 @@ const STATIC_RESOURCES = [
     '/js/notifications.js',
     '/css/styles.css',
     '/css/components.css',
-    '/assets/icons/icon.svg'
+    '/assets/icons/icon.svg',
+    'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
+    'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
 ];
 
 // Helper to ensure we always return a valid and "clean" Response.

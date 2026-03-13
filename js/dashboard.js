@@ -93,8 +93,6 @@ class DashboardManager {
             // 3. Persistencia de almacenamiento (Evitar que el navegador limpie caches)
             this.requestPersistence();
 
-            // 4. Indicador de modo offline
-            this.setupOfflineIndicator();
 
             // 5. Pull to Refresh (v124)
             this.initPullToRefresh();
@@ -1189,26 +1187,6 @@ class DashboardManager {
         }
     }
 
-    setupOfflineIndicator() {
-        const updateStatus = () => {
-            const isOnline = navigator.onLine;
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
-            
-            if (!isOnline) {
-                if (window.utils && window.utils.showNotificationBar) {
-                    window.utils.showNotificationBar('offline', isEn ? 'You are browsing offline' : 'Estás navegando sin conexión');
-                }
-            } else {
-                if (window.utils && window.utils.hideNotificationBar) {
-                    window.utils.hideNotificationBar('offline');
-                }
-            }
-        };
-
-        window.addEventListener('online', updateStatus);
-        window.addEventListener('offline', updateStatus);
-        updateStatus();
-    }
 
 
     async showRecipeDetails(recipeId) {
