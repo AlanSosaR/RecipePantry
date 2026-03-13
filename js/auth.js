@@ -43,9 +43,10 @@ class AuthManager {
 
             const session = sessionData?.session || this.session;
             if (!session) {
-                // v233: Solo limpiar si estamos SEGUROS de que no hay sesión, no por timeout
-                if (!sessionData && !this.session) {
-                    console.log('💡 Manteniendo sesión previa por incertidumbre de red');
+                // v234: Si hay timeout pero tenemos sesión previa, NO cerramos sesión
+                if (sessionData === undefined && this.session) {
+                    console.log('💡 Manteniendo sesión previa por incertidumbre de red (v234)');
+                    return true; 
                 } else {
                     this.currentUser = null;
                     this.session = null;
