@@ -373,31 +373,6 @@
 
         <div class="m3-scroll">
             <div class="profile-container">
-                <div class="profile-hero">
-                    <div id="profile-hero-avatar" class="avatar-large" title="Cambiar foto de perfil">
-                        <span id="avatar-initials">..</span>
-                        <img id="avatar-img" src="" alt="Profile Picture" />
-
-                        <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;">
-                    </div>
-                </div>
-
-                <form id="profile-form" novalidate>
-                    <div class="section-header">
-                        <span class="material-symbols-outlined">person</span>
-                        <h3 data-i18n="profilePersonalInfo">Datos Personales</h3>
-                    </div>
-
-                    <div class="m3-field-container" style="display: flex; gap: 8px; align-items: center;">
-                        <div style="flex: 1; position: relative;">
-                            <select id="prefix" class="m3-field-select" onchange="window.profileManager.handlePrefixChange()">
-                                <optgroup label="Cocina" data-i18n-label="prefixGroupKitchen">
-                                    <option value="Chef">Chef</option>
-                                    <option value="Sous Chef">Sous Chef</option>
-                                    <option value="Cocinero" data-i18n="prefixCook">Cocinero/a</option>
-                                    <option value="Panadero" data-i18n="prefixBaker">Panadero/a</option>
-                                </optgroup>
-                                <optgroup label="Bebidas" data-i18n-label="prefixGroupDrinks">
                                     <option value="Bartender">Bartender</option>
                                     <option value="Sommelier">Sommelier</option>
                                     <option value="Barista">Barista</option>

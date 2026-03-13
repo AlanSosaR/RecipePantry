@@ -23,9 +23,10 @@ class AuthManager {
         }
 
         try {
-            // 1. Verificar sesión en Supabase (con timeout de seguridad para v214)
+            // 1. Verificar sesión en Supabase (con timeout de seguridad para redes lentas)
             const sessionPromise = window.supabaseClient.auth.getSession();
-            const sessionTimeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_SESSION')), 2000));
+            // v233: Aumentado timeout a 7s para evitar falsos negativos en redes intermitentes
+            const sessionTimeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_SESSION')), 7000));
             
             let sessionData;
             try {
@@ -34,7 +35,7 @@ class AuthManager {
                 console.log('🔐 AuthManager.checkAuth: Sesion obtenida:', sessionData?.session ? 'Si' : 'No');
             } catch (e) {
                 if (e.message === 'TIMEOUT_SESSION') {
-                    console.warn('⚠️ Timeout obteniendo sesión, asumiendo estado offline/lento');
+                    console.warn('⚠️ Timeout obteniendo sesión. Intentando usar sesión previa o caché para evitar parpadeo.');
                 } else {
                     throw e;
                 }
@@ -42,10 +43,15 @@ class AuthManager {
 
             const session = sessionData?.session || this.session;
             if (!session) {
-                this.currentUser = null;
-                this.session = null;
-                document.documentElement.removeAttribute('data-auth-likely');
-                return false;
+                // v233: Solo limpiar si estamos SEGUROS de que no hay sesión, no por timeout
+                if (!sessionData && !this.session) {
+                    console.log('💡 Manteniendo sesión previa por incertidumbre de red');
+                } else {
+                    this.currentUser = null;
+                    this.session = null;
+                    document.documentElement.removeAttribute('data-auth-likely');
+                    return false;
+                }
             }
 
             this.session = session;
