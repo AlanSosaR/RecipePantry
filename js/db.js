@@ -8,7 +8,26 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
-        console.log('📦 DatabaseManager: Inicializando (v228)');
+        console.log('📦 DatabaseManager: Inicializando (v249)');
+        this._forcedCleanup();
+    }
+
+    async _forcedCleanup() {
+        const FIX_KEY = 'recipe_pantry_fix_249_cleanup';
+        if (localStorage.getItem(FIX_KEY) !== 'done') {
+            console.warn('🧹 [DB] Forced Cleanup (v249): Clearing local caches to resolve zombie conflicts.');
+            try {
+                await this._checkLocalDB();
+                if (window.localDB) {
+                    await window.localDB.clear('recipes_index');
+                    await window.localDB.clear('recipes_full');
+                    await window.localDB.clear('recipes');
+                }
+                localStorage.setItem(FIX_KEY, 'done');
+            } catch (e) {
+                console.error('❌ [DB] Forced Cleanup failed:', e);
+            }
+        }
     }
 
     async _checkLocalDB() {
@@ -182,9 +201,15 @@ class DatabaseManager {
                 await window.localDB.putAll('recipes', recipes);
 
                 const indexItems = recipes.map(r => ({
-                    id: r.id, name_es: r.name_es, name_en: r.name_en, image_url: r.image_url,
-                    updated_at: r.updated_at, category_id: r.category_id, is_favorite: r.is_favorite,
-                    sharingContext: r.sharingContext || null
+                    id: r.id, 
+                    name_es: r.name_es, 
+                    name_en: r.name_en, 
+                    image_url: r.image_url,
+                    updated_at: r.updated_at, 
+                    category_id: r.category_id, 
+                    is_favorite: r.is_favorite,
+                    sharingContext: r.sharingContext || null,
+                    user_id: r.user_id || null // v249: critical for duplicate check
                 }));
                 await window.localDB.putAll('recipes_index', indexItems);
             } else {
@@ -256,9 +281,11 @@ class DatabaseManager {
         const localMatch = localRecipes.find(r => {
             if (excludeId && r.id === excludeId) return false;
             
-            // v248: Mejora en la detección de contexto: si no tiene sharingContext pero es private, se considera private.
-            // Si includeShared es falso, ignoramos las que explícitamente son 'received'.
-            const isReceived = r.sharingContext === 'received' || r.type === 'received';
+            const userId = window.authManager.currentUser?.id;
+            
+            // v249: Si includeShared es falso, ignoramos las recibidas.
+            // Verificamos por contexto o por user_id (si el dueño NO es el usuario actual, es recibida)
+            const isReceived = r.sharingContext === 'received' || r.type === 'received' || (r.user_id && userId && r.user_id !== userId);
             if (!includeShared && isReceived) return false;
             
             const matchEs = r.name_es && r.name_es.toLowerCase().trim() === normalizedName;
