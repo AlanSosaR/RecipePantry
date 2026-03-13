@@ -159,11 +159,11 @@ class OCRScanner {
         const overlay = document.getElementById('ocrOverlay');
         
         if (!overlay) {
-            console.warn('⚠️ No se encontró ocrOverlay, usando captura completa.');
+            console.warn('⚠️ No ocrOverlay found, legacy capture.');
             return this._captureLegacy();
         }
 
-        // 1. Calcular dimensiones reales contemplando object-fit: cover
+        // 1. Calculate Real Dimensions (Handling Object-Fit: Cover)
         const vWidth = video.videoWidth;
         const vHeight = video.videoHeight;
         const cWidth = video.clientWidth;
@@ -175,36 +175,33 @@ class OCRScanner {
         let drawScale, xOffset = 0, yOffset = 0;
 
         if (videoRatio > clientRatio) {
-            // El video es más ancho que el contenedor (se cortan los lados)
             drawScale = cHeight / vHeight;
             xOffset = (vWidth * drawScale - cWidth) / 2;
         } else {
-            // El video es más alto que el contenedor (se corta arriba/abajo)
             drawScale = cWidth / vWidth;
             yOffset = (vHeight * drawScale - cHeight) / 2;
         }
 
-        // Mapear coordenadas del overlay (CSS px) a coordenadas del video (Physical px)
         const realCropX = (overlay.offsetLeft + xOffset) / drawScale;
         const realCropY = (overlay.offsetTop + yOffset) / drawScale;
         const realCropW = overlay.offsetWidth / drawScale;
         const realCropH = overlay.offsetHeight / drawScale;
 
-        // 2. Crear canvas con el tamaño del recorte
+        // 2. High-Res Canvas Creator
         const canvas = document.createElement('canvas');
         canvas.width = realCropW;
         canvas.height = realCropH;
         const ctx = canvas.getContext('2d');
 
-        // Dibujar solo la región de interés
+        // Capture raw frame
         ctx.drawImage(video, realCropX, realCropY, realCropW, realCropH, 0, 0, realCropW, realCropH);
 
-        // 3. Preprocesamiento para OCR (Grayscale + Contrast + Threshold)
-        this.applyOCRPreprocessing(canvas);
+        // 3. Dropbox-Style Professional Preprocessing
+        this.applyScannerEnhancement(canvas);
 
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-        // Mostrar estado de procesamiento
+        // Show Processing State
         this.stopCamera();
         this.showProcessingState(imageDataUrl);
 
@@ -212,6 +209,7 @@ class OCRScanner {
         const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
 
         try {
+            // v252: Precision check - No over-processing later because we already optimized it here
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
             if (results.success) {
                 this.showResults(results);
@@ -220,48 +218,76 @@ class OCRScanner {
             }
         } catch (error) {
             console.error('Capture error:', error);
-            if (window.showSnackbar) window.showSnackbar('No se pudo analizar la imagen. Prueba con mejor luz.');
+            if (window.showSnackbar) window.showSnackbar('No se pudo analizar. Limpia la lente e intenta con luz directa.');
             this.resetModal();
         }
     }
 
     /**
-     * Preprocesamiento de imagen para maximizar precisión de Tesseract
-     * (Grayscale + Thresholding)
+     * Dropbox/Adobe Scan Logic: Adaptive Thresholding + Contrast Boost
+     * Uses Integral Images for O(N) performance on mobile.
      */
-    applyOCRPreprocessing(canvas) {
+    applyScannerEnhancement(canvas) {
         const ctx = canvas.getContext('2d');
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
+        const w = canvas.width;
+        const h = canvas.height;
 
-        // Factor de contraste (ajustable)
-        const contrast = 60; 
-        const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-
+        // Step A: Convert to Grayscale & Initial Contrast
+        const factor = 1.2; // Moderate initial boost
+        const grayData = new Uint8Array(w * h);
         for (let i = 0; i < data.length; i += 4) {
-            // A. Escala de grises (Luminancia perceptiva)
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            let g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
+            grayData[i / 4] = g;
+        }
 
-            // B. Mejora de contraste
-            gray = factor * (gray - 128) + 128;
+        // Step B: Build Integral Image and Integral Square Image
+        const sum = new Float64Array(w * h);
+        const sumSq = new Float64Array(w * h);
+        for (let y = 0; y < h; y++) {
+            let rowP = 0, rowPSq = 0;
+            for (let x = 0; x < w; x++) {
+                const i = y * w + x;
+                const v = grayData[i];
+                rowP += v;
+                rowPSq += v * v;
+                sum[i] = rowP + (y > 0 ? sum[i - w] : 0);
+                sumSq[i] = rowPSq + (y > 0 ? sumSq[i - w] : 0);
+            }
+        }
 
-            // C. Umbral simple (Binarización Blanco y Negro)
-            const threshold = 128;
-            const final = gray < threshold ? 0 : 255;
+        // Step C: Adaptive Thresholding (Sauvola Algorithm)
+        // This handles shadows and page gradients perfectly.
+        const radius = Math.round(w / 16); // Local neighborhood size
+        const k = 0.18; // Sensitivity factor
+        const R = 127; // Max standard deviation for 8-bit
 
-            data[i] = data[i + 1] = data[i + 2] = final;
-            // El canal Alpha (data[i+3]) se mantiene como está (opaco)
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const y1 = Math.max(0, y - radius), y2 = Math.min(h - 1, y + radius);
+                const x1 = Math.max(0, x - radius), x2 = Math.min(w - 1, x + radius);
+                const count = (y2 - y1 + 1) * (x2 - x1 + 1);
+
+                const getAreaSum = (S) => S[y2 * w + x2] - S[y1 * w + x2] - S[y2 * w + x1] + S[y1 * w + x1];
+                const mean = getAreaSum(sum) / count;
+                const meanSq = getAreaSum(sumSq) / count;
+                const stdDev = Math.sqrt(Math.max(0, meanSq - (mean * mean)));
+
+                // Sauvola Threshold
+                const T = mean * (1 + k * (stdDev / R - 1));
+                
+                const idx = (y * w + x) * 4;
+                const final = grayData[y * w + x] < T ? 0 : 255;
+                data[idx] = data[idx+1] = data[idx+2] = final;
+                data[idx+3] = 255; // Alpha
+            }
         }
 
         ctx.putImageData(imageData, 0, 0);
     }
 
-    /**
-     * Método fallback por si el overlay falla
-     */
     async _captureLegacy() {
         const video = this.videoElement;
         const canvas = document.createElement('canvas');
@@ -269,55 +295,36 @@ class OCRScanner {
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0);
-
-        this.applyOCRPreprocessing(canvas); // Aplicamos preprocesamiento aunque no haya recorte
-
+        this.applyScannerEnhancement(canvas);
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
         this.stopCamera();
         this.showProcessingState(imageDataUrl);
-
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
         const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
-
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
             if (results.success) this.showResults(results);
             else throw new Error(results.error);
-        } catch (error) {
-            console.error('Legacy Capture error:', error);
-            this.resetModal();
-        }
+        } catch (error) { this.resetModal(); }
     }
 
     showResults(results) {
         window.currentOCRResults = results;
-        
-        // Determinar si estamos en ocr.html (modo página principal)
         const isMainPageMode = document.getElementById('ocrFullText') !== null;
-
         if (isMainPageMode) {
-            // MODO A: Página principal (ocr.html)
-            this.close(); // Cerramos el modal
-
+            this.close();
             const resultHeader = document.getElementById('ocrResultHeaderStep1');
             const resultBody = document.getElementById('ocrResultBodyStep1');
             const captureSection = document.getElementById('ocrCaptureSection');
             const tipsSection = document.getElementById('ocrTipsSection');
-
             if (resultHeader) resultHeader.classList.remove('hidden');
             if (resultBody) resultBody.classList.remove('hidden');
             if (captureSection) captureSection.classList.add('hidden');
             if (tipsSection) tipsSection.classList.add('hidden');
-
-            const unifiedBody = document.querySelector('.ocr-result-unified');
-            if (unifiedBody && !unifiedBody.id) unifiedBody.classList.remove('hidden'); // Soporte v148
-
             const nameInput = document.getElementById('ocrRecipeName');
             if (nameInput) nameInput.value = results.nombre || '';
-
             const pageFullText = document.getElementById('ocrFullText');
             if (pageFullText) pageFullText.value = results.texto;
-
             const conf = Math.round(results.confidence || 0);
             const confBadge = document.getElementById('confidenceBadgeStep1');
             if (confBadge) {
@@ -325,64 +332,39 @@ class OCRScanner {
                 confBadge.style.background = conf >= 90 ? '#10B981' : conf >= 70 ? '#F59E0B' : '#EF4444';
                 confBadge.style.display = 'inline-flex';
             }
-
             if (resultBody) resultBody.scrollIntoView({ behavior: 'smooth' });
-            else if (unifiedBody) unifiedBody.scrollIntoView({ behavior: 'smooth' });
-
         } else {
-            // MODO B: Modal en formulario (recipe-form.html)
             this.stopCamera();
-            
             const cameraState = document.getElementById('ocrCameraState');
             const loadingState = document.getElementById('ocrLoading');
             const resultState = document.getElementById('ocrResultState');
-
             if (cameraState) cameraState.style.display = 'none';
             if (loadingState) loadingState.style.display = 'none';
             if (resultState) resultState.style.display = 'flex';
-
             const nameInput = document.getElementById('ocrRecipeName');
             if (nameInput) nameInput.value = results.nombre || 'Nueva Receta OCR';
-
             const extractedText = document.getElementById('extractedText');
             if (extractedText) extractedText.value = results.texto || '';
         }
-
-        console.log(`✅ showResults: ${results.texto.length} chars, confianza ${Math.round(results.confidence || 0)}% | Método: ${results.method}`);
     }
 
     async handleGallery(file) {
         if (!file) return;
-
-        // Generate preview from the gallery file
         const reader = new FileReader();
         const imageDataUrl = await new Promise((resolve) => {
             reader.onload = e => resolve(e.target.result);
             reader.readAsDataURL(file);
         });
-
-        // Show Analizando with preview
         this.stopCamera();
         this.showProcessingState(imageDataUrl);
-
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
-            if (results.success) {
-                this.showResults(results);
-            } else {
-                throw new Error(results.error);
-            }
-        } catch (error) {
-            console.error('Gallery error:', error);
-            if (window.showSnackbar) window.showSnackbar('No se pudo analizar la imagen.');
-            this.resetModal();
-        }
+            if (results.success) this.showResults(results);
+            else throw new Error(results.error);
+        } catch (error) { this.resetModal(); }
     }
 
-    learnCorrections() {
-        console.log("Sistema local no requiere fase de aprendizaje.");
-    }
+    learnCorrections() { console.log("Sistema local no requiere fase de aprendizaje."); }
 }
 
-// Global initialization
 window.ocr = new OCRScanner();
