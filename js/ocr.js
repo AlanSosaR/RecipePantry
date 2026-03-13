@@ -154,16 +154,57 @@ class OCRScanner {
 
     async capture() {
         if (!this.videoElement || !this.stream) return;
+        
         const video = this.videoElement;
+        const overlay = document.getElementById('ocrOverlay');
+        
+        if (!overlay) {
+            console.warn('⚠️ No se encontró ocrOverlay, usando captura completa.');
+            return this._captureLegacy();
+        }
+
+        // 1. Calcular dimensiones reales contemplando object-fit: cover
+        const vWidth = video.videoWidth;
+        const vHeight = video.videoHeight;
+        const cWidth = video.clientWidth;
+        const cHeight = video.clientHeight;
+
+        const videoRatio = vWidth / vHeight;
+        const clientRatio = cWidth / cHeight;
+
+        let drawScale, xOffset = 0, yOffset = 0;
+
+        if (videoRatio > clientRatio) {
+            // El video es más ancho que el contenedor (se cortan los lados)
+            drawScale = cHeight / vHeight;
+            xOffset = (vWidth * drawScale - cWidth) / 2;
+        } else {
+            // El video es más alto que el contenedor (se corta arriba/abajo)
+            drawScale = cWidth / vWidth;
+            yOffset = (vHeight * drawScale - cHeight) / 2;
+        }
+
+        // Mapear coordenadas del overlay (CSS px) a coordenadas del video (Physical px)
+        const realCropX = (overlay.offsetLeft + xOffset) / drawScale;
+        const realCropY = (overlay.offsetTop + yOffset) / drawScale;
+        const realCropW = overlay.offsetWidth / drawScale;
+        const realCropH = overlay.offsetHeight / drawScale;
+
+        // 2. Crear canvas con el tamaño del recorte
         const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        canvas.width = realCropW;
+        canvas.height = realCropH;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0);
+
+        // Dibujar solo la región de interés
+        ctx.drawImage(video, realCropX, realCropY, realCropW, realCropH, 0, 0, realCropW, realCropH);
+
+        // 3. Preprocesamiento para OCR (Grayscale + Contrast + Threshold)
+        this.applyOCRPreprocessing(canvas);
 
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-        // Show "Analizando..." with image preview
+        // Mostrar estado de procesamiento
         this.stopCamera();
         this.showProcessingState(imageDataUrl);
 
@@ -179,7 +220,71 @@ class OCRScanner {
             }
         } catch (error) {
             console.error('Capture error:', error);
-            if (window.showSnackbar) window.showSnackbar('No se pudo analizar la imagen. Intenta con mejor iluminación.');
+            if (window.showSnackbar) window.showSnackbar('No se pudo analizar la imagen. Prueba con mejor luz.');
+            this.resetModal();
+        }
+    }
+
+    /**
+     * Preprocesamiento de imagen para maximizar precisión de Tesseract
+     * (Grayscale + Thresholding)
+     */
+    applyOCRPreprocessing(canvas) {
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Factor de contraste (ajustable)
+        const contrast = 60; 
+        const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+        for (let i = 0; i < data.length; i += 4) {
+            // A. Escala de grises (Luminancia perceptiva)
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+            // B. Mejora de contraste
+            gray = factor * (gray - 128) + 128;
+
+            // C. Umbral simple (Binarización Blanco y Negro)
+            const threshold = 128;
+            const final = gray < threshold ? 0 : 255;
+
+            data[i] = data[i + 1] = data[i + 2] = final;
+            // El canal Alpha (data[i+3]) se mantiene como está (opaco)
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    /**
+     * Método fallback por si el overlay falla
+     */
+    async _captureLegacy() {
+        const video = this.videoElement;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+
+        this.applyOCRPreprocessing(canvas); // Aplicamos preprocesamiento aunque no haya recorte
+
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        this.stopCamera();
+        this.showProcessingState(imageDataUrl);
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+        const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
+
+        try {
+            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
+            if (results.success) this.showResults(results);
+            else throw new Error(results.error);
+        } catch (error) {
+            console.error('Legacy Capture error:', error);
             this.resetModal();
         }
     }
