@@ -850,44 +850,66 @@ class DashboardManager {
 
     async deleteSelected() {
         if (this.selectedRecipes.size === 0) return;
+        const count = this.selectedRecipes.size;
         const confirmMsg = window.i18n && window.i18n.getLang() === 'en'
-            ? `Are you sure you want to delete ${this.selectedRecipes.size} recipes?`
-            : `¿Seguro que desea eliminar ${this.selectedRecipes.size} recetas?`;
+            ? `Are you sure you want to delete ${count} recipes?`
+            : `¿Seguro que desea eliminar ${count} recetas?`;
 
         window.showActionSnackbar(confirmMsg, 'ELIMINAR', async () => {
-            window.showToast('Eliminando...', 'info');
+            window.showToast(window.i18n ? window.i18n.t('deleting') : 'Eliminando...', 'info');
             const ids = Array.from(this.selectedRecipes);
-            let successCount = 0;
+            const recipesToDelete = this.currentRecipes.filter(r => ids.includes(r.id));
+            
+            // Optimistic UI Update: Remove from currentRecipes immediately
+            this.currentRecipes = this.currentRecipes.filter(r => !ids.includes(r.id));
+            this.clearSelection(); // This also triggers renderRecipesGrid
+            
+            const userId = window.authManager.currentUser?.id;
+            const deletePromises = recipesToDelete.map(async (recipe) => {
+                try {
+                    if (recipe.sharingContext === 'received') {
+                        return await window.db.deleteSharedRecipe(userId, recipe.id);
+                    } else {
+                        return await window.db.deleteRecipe(recipe.id);
+                    }
+                } catch (e) {
+                    console.error(`Error deleting recipe ${recipe.id}:`, e);
+                    return { success: false };
+                }
+            });
 
-            for (const id of ids) {
-                const res = await window.db.deleteRecipe(id);
-                if (res.success) successCount++;
-            }
+            const results = await Promise.all(deletePromises);
+            const successCount = results.filter(r => r.success).length;
 
-            this.clearSelection();
-            this.loadRecipes({ forceRefresh: true }); // Reload
-            window.showToast(`${successCount} recetas eliminadas`, 'success');
+            // Final reload with current filters to ensure everything is in sync
+            await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+            
+            const msg = window.i18n 
+                ? (successCount === 1 ? window.i18n.t('deleteSuccess') : `${successCount} recetas eliminadas`)
+                : `${successCount} recetas eliminadas`;
+            window.showToast(msg, 'success');
         });
     }
 
     async favoriteSelected() {
         if (this.selectedRecipes.size === 0) return;
         const ids = Array.from(this.selectedRecipes);
+        const recipesToToggle = this.currentRecipes.filter(r => ids.includes(r.id));
+        
+        if (recipesToToggle.length === 0) return;
 
-        // Determinar si vamos a marcar o desmarcar (si el primero es fav, desmarcamos todos?)
-        // Drive style: Si hay mezcla, usualmente se marcan todos.
-        const firstId = ids[0];
-        const firstRecipe = this.currentRecipes.find(r => r.id === firstId);
-        const newStatus = firstRecipe ? !firstRecipe.is_favorite : true;
+        // Determinar si vamos a marcar o desmarcar (usamos el primero como referencia)
+        const firstRecipe = recipesToToggle[0];
+        const newStatus = !firstRecipe.is_favorite;
 
-        window.showToast(newStatus ? 'Marcando como favoritos...' : 'Quitando de favoritos...', 'info');
+        window.showToast(newStatus ? (window.i18n ? window.i18n.t('addingFavs') : 'Marcando como favoritos...') : (window.i18n ? window.i18n.t('removingFavs') : 'Quitando de favoritos...'), 'info');
 
-        for (const id of ids) {
-            await window.db.toggleFavorite(id, !newStatus); // toggleFavorite espera el estado ACTUAL
-        }
+        // Parallel update
+        const togglePromises = ids.map(id => window.db.toggleFavorite(id, !newStatus));
+        await Promise.all(togglePromises);
 
         this.clearSelection();
-        this.loadRecipes({ forceRefresh: true });
+        await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
     }
 
     async moveSelected() {
@@ -903,14 +925,14 @@ class DashboardManager {
         );
 
         if (newCategory) {
-            window.showToast('Moviendo recetas...', 'info');
+            window.showToast(window.i18n ? window.i18n.t('movingRecs') : 'Moviendo recetas...', 'info');
             const ids = Array.from(this.selectedRecipes);
-            for (const id of ids) {
-                await window.db.updateRecipe(id, { category: newCategory });
-            }
+            const movePromises = ids.map(id => window.db.updateRecipe(id, { category: newCategory }));
+            await Promise.all(movePromises);
+            
             this.clearSelection();
-            this.loadRecipes({ forceRefresh: true });
-            window.showToast('Recetas movidas con éxito', 'success');
+            await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+            window.showToast(window.i18n ? window.i18n.t('moveSuccess') : 'Recetas movidas con éxito', 'success');
         }
     }
 
