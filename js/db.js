@@ -120,6 +120,8 @@ class DatabaseManager {
             if (filters.orderBy) url.searchParams.set('sort_by', filters.orderBy);
             if (filters.ascending !== undefined) url.searchParams.set('sort_order', filters.ascending.toString());
 
+            // v236: Mandatory user_id for Edge API
+            url.searchParams.set('user_id', userId);
             url.searchParams.set('t', Date.now());
 
             const headers = { 'Content-Type': 'application/json' };
@@ -128,6 +130,7 @@ class DatabaseManager {
                 headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
             }
 
+            console.log(`📡 [DB] Fetching recipes from API: ${url.pathname}${url.search}`);
             const response = await fetch(url.toString(), { method: 'GET', headers: headers });
             if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
