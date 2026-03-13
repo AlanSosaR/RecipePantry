@@ -145,9 +145,9 @@ class DatabaseManager {
                 if (senderIds.length > 0) {
                     const { data: senders } = await window.supabaseClient.from('users').select('id, first_name, last_name').in('id', senderIds);
                     if (senders && Array.isArray(senders)) {
-                        senders.forEach(u => {
+                        for (const u of senders) {
                             senderMap[u.id] = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Chef';
-                        });
+                        }
                     } else {
                         console.warn('⚠️ [DB] No se pudieron cargar detalles de los remitentes:', senderIds);
                     }
@@ -196,9 +196,9 @@ class DatabaseManager {
                     if (recipientIds.length > 0) {
                         const { data: recipientUsers } = await window.supabaseClient.from('users').select('id, first_name, last_name').in('id', recipientIds);
                         if (recipientUsers && Array.isArray(recipientUsers)) {
-                            recipientUsers.forEach(u => {
+                            for (const u of recipientUsers) {
                                 recipientMap[u.id] = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Chef';
-                            });
+                            }
                         }
                     }
                 }
@@ -218,20 +218,21 @@ class DatabaseManager {
             }
 
             console.log(`📦 Recipes loaded from API (Index Mode)`);
+            const safeRecipes = Array.isArray(recipes) ? recipes : [];
             if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared && !result.isSharedFormat) {
                 const allLocalIndex = await window.localDB.getAll('recipes_index');
                 const received = allLocalIndex.filter(r => r.sharingContext === 'received');
                 await window.localDB.clear('recipes_index');
                 if (received.length > 0) await window.localDB.putAll('recipes_index', received);
-                await window.localDB.putAll('recipes_index', recipes);
+                await window.localDB.putAll('recipes_index', safeRecipes);
             } else {
-                await window.localDB.putAll('recipes_index', recipes);
+                await window.localDB.putAll('recipes_index', safeRecipes);
             }
 
             // Trigger event for listeners like SyncManager
-            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: recipes }));
+            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: safeRecipes }));
 
-            return { success: true, recipes, fromCache: false };
+            return { success: true, recipes: safeRecipes, fromCache: false };
         } catch (error) {
             console.error('❌ Edge API Error _fetchRecipesFromServer:', error);
             // v231: Corregido almacen fallback (recipes_index en lugar de recipes)

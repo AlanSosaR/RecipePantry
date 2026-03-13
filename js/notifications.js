@@ -314,6 +314,9 @@ class NotificationManager {
                 `;
             }
 
+            const safeRecipeId = n.recipeId || '';
+            const isRecipeIdValid = safeRecipeId.length > 10 && safeRecipeId !== 'undefined';
+            
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
@@ -326,16 +329,18 @@ class NotificationManager {
                             <span style="color:#666; font-size:10px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                             
                             <!-- Action buttons -->
-                            <div style="display:flex; gap:8px; margin-top:10px;">
-                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${n.recipeId}')"
+                            <div style="display:flex; gap:8px; margin-top:10px; ${isRecipeIdValid ? '' : 'opacity:0.5; pointer-events:none;'}">
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${safeRecipeId}')"
                                     style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
                                     ✅ Agregar a mis recetas
                                 </button>
-                                <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineRecipe('${n.id}', '${n.recipeId}')"
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineRecipe('${n.id}', '${safeRecipeId}')"
                                     style="flex:1; padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
                                     Dejar en compartidas
                                 </button>
                             </div>
+                            <!-- Error fallback message if ID is invalid -->
+                            ${!isRecipeIdValid ? '<span style="color:red; font-size:10px; display:block; margin-top:4px;">⚠️ Error: ID de receta no válido</span>' : ''}
                         </div>
                     </div>
                 </div>

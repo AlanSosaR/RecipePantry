@@ -130,19 +130,29 @@ class LocalDBManager {
     }
 
     async putAll(storeName, items) {
+        if (!Array.isArray(items)) {
+            console.error(`[LocalDB] Error crítico: putAll(${storeName}) esperaba un array, recibió:`, typeof items, items);
+            return Promise.resolve(); // Fail safely without crashing the execution
+        }
+        
         const store = await this._getTransaction(storeName, 'readwrite');
         return new Promise((resolve, reject) => {
             let completed = 0;
             if (items.length === 0) return resolve();
 
-            items.forEach(item => {
+            for (const item of items) {
+                if (!item || typeof item !== 'object' || Array.isArray(item)) {
+                    completed++;
+                    if (completed === items.length) resolve();
+                    continue;
+                }
                 const req = store.put(item);
                 req.onsuccess = () => {
                     completed++;
                     if (completed === items.length) resolve();
                 };
                 req.onerror = () => reject(req.error);
-            });
+            }
         });
     }
 
