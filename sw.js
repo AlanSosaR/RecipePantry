@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v238';
-const BUILD_ID = '2026-03-13-v238';
+const CACHE_NAME = 'recipehub-v239';
+const BUILD_ID = '2026-03-13-v239';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -178,8 +178,9 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Estrategia General: Stale-While-Revalidate (Assets & API GET)
+    const ignoreQuery = !url.pathname.endsWith('.js') && !url.pathname.endsWith('.css');
     event.respondWith(
-        caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
+        caches.match(request, { ignoreSearch: ignoreQuery }).then((cachedResponse) => {
             const fetchPromise = fetch(request).then((networkResponse) => {
                 if (networkResponse && networkResponse.status === 200 && request.method === 'GET') {
                     const copy = networkResponse.clone();
