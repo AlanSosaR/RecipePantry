@@ -576,7 +576,10 @@ class DashboardManager {
             // Restore original title count
             if (title) {
                 const total = this.currentRecipes ? this.currentRecipes.length : 0;
-                title.textContent = `Recetas (${total})`;
+                let base = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
+                if (this.currentView === 'favorites') base = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
+                if (this.currentView === 'shared') base = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
+                title.textContent = `${base} (${total})`;
                 title.style.color = '';
             }
             if (countText) countText.classList.add('hidden');
@@ -1352,7 +1355,7 @@ class DashboardManager {
                     ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
                 </button>
                 <div class="context-menu-divider"></div>
-                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDelete('${recipe.id}')">
+                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
                     <span class="material-symbols-outlined">delete</span>
                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
                 </button>
@@ -1385,7 +1388,7 @@ class DashboardManager {
                     ${recipe.is_favorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}
                 </button>
                 <div class="context-menu-divider"></div>
-                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDelete('${recipe.id}')">
+                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
                     <span class="material-symbols-outlined">delete</span>
                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar receta'}
                 </button>
@@ -1435,39 +1438,17 @@ class DashboardManager {
         window.utils.showToast(window.i18n ? window.i18n.t('downloading') : 'Descarga iniciada...', 'success');
     }
 
+    // Nueva función puente para menús (v243)
+    confirmDeleteFromMenu(recipeId) {
+        // Seleccionamos solo esta receta para usar el flujo unificado deleteSelected
+        this.selectedRecipes.clear();
+        this.selectedRecipes.add(recipeId);
+        this.deleteSelected();
+    }
+
     async confirmDelete(recipeId) {
-        // CIERRE RADICAL DE MENÚS (v69) - Elimina el residuo visual del menú que quedó abierto
-        document.querySelectorAll('.dropbox-menu-m3, .mobile-bottom-sheet').forEach(m => m.remove());
-
-        const recipe = this.currentRecipes.find(r => r.id === recipeId);
-        const isReceived = recipe && recipe.sharingContext === 'received';
-
-        const confirmMsg = isReceived
-            ? (window.i18n ? window.i18n.t('deleteSharedConfirm') : '¿Deseas eliminar esta receta compartida?')
-            : (window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?');
-
-        const deleteBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'ELIMINAR';
-
-        window.showActionSnackbar(confirmMsg, deleteBtnTxt, async () => {
-            // Cierre inmediato del snackbar para evitar persistencia visual estorbando
-            const snackbar = document.getElementById('global-snackbar');
-            if (snackbar) snackbar.classList.remove('active');
-
-            const result = isReceived
-                ? await window.db.deleteSharedRecipe(window.authManager.currentUser.id, recipeId)
-                : await window.db.deleteRecipe(recipeId);
-
-            if (result.success) {
-                window.utils.showToast(window.i18n ? window.i18n.t('deleteSuccess') : 'Eliminada correctamente', 'success');
-                this.currentRecipes = this.currentRecipes.filter(r => r.id !== recipeId);
-                this.renderRecipesGrid(this.currentRecipes);
-                if (this.selectedRecipeId === recipeId) {
-                    this.toggleDetailsSidebar(false);
-                }
-            } else {
-                window.utils.showToast(window.i18n ? window.i18n.t('deleteError') : 'Error al eliminar la receta', 'error');
-            }
-        });
+        // Redirigir al nuevo flujo unificado
+        this.confirmDeleteFromMenu(recipeId);
     }
 
     startRename(recipeId, event) {
