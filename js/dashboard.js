@@ -854,9 +854,15 @@ class DashboardManager {
     async deleteSelected() {
         if (!this.selectedRecipes || this.selectedRecipes.size === 0) return;
         
-        const count = this.selectedRecipes.size;
-        console.log(`[Dashboard] Initializing deleteSelected for ${count} recipes`);
+        // v246: Capturar la selección INMEDIATAMENTE para evitar que se pierda 
+        // mientras el usuario interactúa con el snackbar de confirmación.
+        const selectedIdsArr = Array.from(this.selectedRecipes).map(id => id.toString());
+        const selectedIdsSet = new Set(selectedIdsArr);
+        const recipesToDelete = this.currentRecipes.filter(r => selectedIdsSet.has(r.id.toString()));
         
+        const count = selectedIdsArr.length;
+        console.log(`[Dashboard] Initializing deleteSelected for ${count} recipes. IDs:`, selectedIdsArr);
+
         const confirmMsg = window.i18n && window.i18n.getLang() === 'en'
             ? `Are you sure you want to delete ${count} recipes?`
             : `¿Seguro que desea eliminar ${count} recetas?`;
@@ -865,32 +871,24 @@ class DashboardManager {
             try {
                 window.showToast(window.i18n ? window.i18n.t('deleting') : 'Eliminando...', 'info');
                 
-                // Convert all selected IDs to strings for robust comparison
-                const selectedIdsArr = Array.from(this.selectedRecipes).map(id => id.toString());
-                const selectedIdsSet = new Set(selectedIdsArr);
+                console.log('[Dashboard] Executing deletion for captured IDs:', selectedIdsArr);
                 
-                console.log('[Dashboard] Selected IDs (stringified):', selectedIdsArr);
-                
-                // Identify objects before they disappear from currentRecipes
-                const recipesToDelete = this.currentRecipes.filter(r => selectedIdsSet.has(r.id.toString()));
-                console.log(`[Dashboard] Found ${recipesToDelete.length} recipe objects to delete`);
-
-                if (recipesToDelete.length === 0) {
-                    // Fallback: if we can't find them in currentRecipes, use the IDs directly from the set
-                    console.warn('[Dashboard] recipesToDelete is empty! Fallback to raw IDs.');
-                    selectedIdsArr.forEach(id => recipesToDelete.push({ id }));
-                }
-
                 // --- Optimistic UI Update ---
+                // Usamos la lista capturada para filtrar, no el estado actual que podría haber cambiado
                 this.currentRecipes = this.currentRecipes.filter(r => !selectedIdsSet.has(r.id.toString()));
-                this.clearSelection(); // Clears Set and calls updateActionBar + renderRecipesGrid
+                this.clearSelection(); // Esto limpia el Set y refresca la interfaz visualmente
                 
                 const userId = window.authManager.currentUser?.id;
-                console.log(`[Dashboard] Proceeding with parallel deletion for user: ${userId}`);
+                
+                // Si la lista de objetos está vacía por algún motivo, usamos los IDs crudos
+                const targets = recipesToDelete.length > 0 
+                    ? recipesToDelete 
+                    : selectedIdsArr.map(id => ({ id }));
 
-                const deletePromises = recipesToDelete.map(async (recipe) => {
+                const deletePromises = targets.map(async (recipe) => {
                     try {
                         const rId = recipe.id.toString();
+                        // Nota: Si es fallback, sharingContext será undefined, irá por deleteRecipe normal
                         if (recipe.sharingContext === 'received') {
                             return await window.db.deleteSharedRecipe(userId, rId);
                         } else {
@@ -904,20 +902,19 @@ class DashboardManager {
 
                 const results = await Promise.all(deletePromises);
                 const successCount = results.filter(r => r && r.success).length;
-                console.log(`[Dashboard] Deletion completed. Success count: ${successCount}/${recipesToDelete.length}`);
+                console.log(`[Dashboard] Deletion results: ${successCount}/${targets.length}`);
 
-                // Final reload to ensure sync with server
+                // Refresco forzado tras la operación para estar en sincronía total
                 await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
                 
-                const msg = (successCount === recipesToDelete.length)
+                const msg = (successCount === targets.length)
                     ? (window.i18n ? window.i18n.t('deleteSuccess') : 'Eliminadas correctamente')
                     : `${successCount} recetas eliminadas`;
                 window.showToast(msg, 'success');
 
             } catch (err) {
-                console.error('[Dashboard] Fatal error in deleteSelected:', err);
+                console.error('[Dashboard] Fatal error in deleteSelected callback:', err);
                 window.utils.showToast('Error al procesar el borrado', 'error');
-                // Reload in case of error to restore UI state
                 this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
             }
         });
