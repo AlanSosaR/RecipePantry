@@ -102,9 +102,20 @@ class DatabaseManager {
 
         try {
             const url = new URL('/api/recipes', window.location.origin);
-            const userId = window.authManager?.currentUser?.id;
+            let userId = window.authManager?.currentUser?.id;
 
-            if (userId) url.searchParams.set('user_id', userId);
+            // v223: Si authManager no tiene el usuario, intentar obtenerlo de la sesión activa directamente
+            if (!userId && window.supabaseClient) {
+                const { data: sessionData } = await window.supabaseClient.auth.getSession();
+                userId = sessionData?.session?.user?.id;
+            }
+
+            if (userId) {
+                url.searchParams.set('user_id', userId);
+            } else {
+                console.warn('⚠️ No user_id found for API request');
+            }
+
             if (filters.search) url.searchParams.set('search', filters.search);
             if (filters.categoryId) url.searchParams.set('category_id', filters.categoryId);
             if (filters.favorite) url.searchParams.set('favorite', 'true');

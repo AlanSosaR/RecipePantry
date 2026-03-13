@@ -1,10 +1,10 @@
 /**
- * RecipeHub Service Worker (v220)
+ * RecipeHub Service Worker (v223)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v222';
-const BUILD_ID = '2026-03-13-v222';
+const CACHE_NAME = 'recipehub-v223';
+const BUILD_ID = '2026-03-13-v223';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -126,7 +126,7 @@ self.addEventListener('fetch', (event) => {
                     } else {
                         fallback = rootFallback || createErrorResponse('Offline: Resource not in cache');
                     }
-                    
+                    return cleanResponse(fallback);
                 })
         );
         return;
@@ -142,12 +142,13 @@ self.addEventListener('fetch', (event) => {
             caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
                 if (cachedResponse) return cachedResponse;
                 return fetch(request).then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
+                    // Cacheamos fuentes aun si son opacas (v223)
+                    if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
                         const copy = networkResponse.clone();
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                     }
                     return networkResponse;
-                }).catch(() => null);
+                }).catch(() => createErrorResponse('External asset not available offline', 404));
             })
         );
         return;
