@@ -117,6 +117,7 @@ class AuthManager {
                     if (cached) {
                         try { this.currentUser = JSON.parse(cached); } catch(e){}
                     }
+                    if (!this.currentUser) {
                         this.currentUser = {
                             auth_user_id: this.session.user.id,
                             email: this.session.user.email,
@@ -124,6 +125,7 @@ class AuthManager {
                             last_name: this.session.user.user_metadata?.last_name || ''
                             // NOTA: id (PK) queda null hasta que se cargue de DB
                         };
+                    }
                     return true;
                 }
             }
