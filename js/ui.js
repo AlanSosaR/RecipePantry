@@ -404,5 +404,5 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStatus();
     };
 
-    setupGlobalOfflineIndicator();
+    // setupGlobalOfflineIndicator();
 });
