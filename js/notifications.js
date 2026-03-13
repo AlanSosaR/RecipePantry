@@ -129,7 +129,27 @@ class NotificationManager {
                 filter: `user_id=eq.${userId}`
             }, (payload) => {
                 console.log('📬 [Notifications] Nuevo registro detectado vía Realtime!', payload);
-                // Delay para asegurar que los joins (from_user, recipes) estén listos si fetch falla
+                
+                // Optimistic UI Update: Mostrar en la campana de inmediato
+                if (payload.new && payload.new.id) {
+                    const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    this.notifications.unshift({
+                        id: payload.new.id,
+                        recipeId: payload.new.recipe_id,
+                        recipeName: isEn ? 'Loading recipe...' : 'Cargando receta...',
+                        type: payload.new.type || 'recipe_shared',
+                        timestamp: payload.new.created_at || new Date().toISOString(),
+                        sender: '...',
+                        prefix: '',
+                        leido: false
+                    });
+                    this.updateBadge(); // Esto hará que tiemble y suba el contador inmediatamente
+                    if (this.menu && !this.menu.classList.contains('hidden')) {
+                        this.renderMenu();
+                    }
+                }
+
+                // Delay para asegurar que los joins (from_user, recipes) estén listos
                 setTimeout(() => this.fetchNotifications(), 800);
                 
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
