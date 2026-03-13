@@ -8,7 +8,7 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
-        console.log('📦 DatabaseManager: Inicializando (v227)');
+        console.log('📦 DatabaseManager: Inicializando (v228)');
     }
 
     async _checkLocalDB() {
@@ -202,8 +202,17 @@ class DatabaseManager {
                     }
                 }
                 recipes = recipes.map(recipe => {
-                    const recipients = sentShared ? sentShared.filter(s => s.recipe_id === recipe.id).map(s => `Chef ${recipientMap[s.recipient_user_id] || ''}`.trim()).filter(Boolean) : [];
-                    return { ...recipe, sharingContext: recipients.length > 0 ? 'sent' : null, sharedWith: recipients.join(', ') };
+                    const recipients = sentShared 
+                        ? sentShared
+                            .filter(s => s.recipe_id === recipe.id && s.recipient_user_id && recipientMap[s.recipient_user_id])
+                            .map(s => `Chef ${recipientMap[s.recipient_user_id]}`)
+                            .filter(Boolean)
+                        : [];
+                    return { 
+                        ...recipe, 
+                        sharingContext: recipients.length > 0 ? 'sent' : null, 
+                        sharedWith: recipients.join(', ') 
+                    };
                 });
             }
 

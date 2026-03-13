@@ -100,7 +100,12 @@ class AuthManager {
             }
 
             this.currentUser = userData;
+            console.log('✅ Perfil cargado correctamente:', userData.first_name, userData.last_name);
             localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
+            
+            // v227: Forzar actualización de UI si el método existe
+            if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+            
             console.log('✅ Usuario autenticado:', userData.email);
             return true;
 
