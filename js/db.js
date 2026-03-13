@@ -289,12 +289,15 @@ class DatabaseManager {
 
 
     async getRecipeById(recipeId, forceRefresh = false) {
+        console.log('📦 db.getRecipeById: Iniciando para', recipeId, 'forceRefresh:', forceRefresh);
         await this._checkLocalDB();
         if (!forceRefresh) {
+            console.log('📦 db.getRecipeById: Buscando en localDB.recipes_full...');
             let recipe = await window.localDB.get('recipes_full', recipeId);
             
             // Fallback: Si no está en full, buscar en index (metadatos básicos)
             if (!recipe) {
+                console.log('📦 db.getRecipeById: No encontrado en full, buscando en index...');
                 const indexRecipe = await window.localDB.get('recipes_index', recipeId);
                 if (indexRecipe) {
                     console.warn(`⚠️ Receta ${recipeId} no encontrada en full. Usando datos básicos del índice.`);

@@ -37,6 +37,7 @@ class RecipeDetailManager {
     }
 
     async loadRecipeData() {
+        console.log('🔍 loadRecipeData: Iniciando carga para ID:', this.recipeId);
         const titleEl = document.getElementById('recipeTitle');
         const descEl = document.getElementById('recipeDescription');
 
@@ -44,7 +45,9 @@ class RecipeDetailManager {
             const params = new URLSearchParams(window.location.search);
             const forceRefresh = params.get('f') === '1';
 
+            console.log('🔍 loadRecipeData: Llamando a db.getRecipeById...');
             const result = await window.db.getRecipeById(this.recipeId, forceRefresh);
+            console.log('🔍 loadRecipeData: Resultado de db.getRecipeById:', result.success ? 'Success' : 'Fail', result.fromCache ? '(Cache)' : '(Network)');
 
             if (!result.success || !result.recipe) {
                 console.error('Error cargando receta:', result.error);

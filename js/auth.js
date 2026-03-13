@@ -9,6 +9,7 @@ class AuthManager {
 
     // Verificar si hay sesión activa
     async checkAuth() {
+        console.log('🔐 AuthManager.checkAuth: Iniciando...');
         try {
             // 1. Verificar sesión en Supabase (con timeout de seguridad para v214)
             const sessionPromise = window.supabaseClient.auth.getSession();
@@ -18,15 +19,12 @@ class AuthManager {
             try {
                 const { data } = await Promise.race([sessionPromise, sessionTimeoutPromise]);
                 sessionData = data;
+                console.log('🔐 AuthManager.checkAuth: Sesion obtenida:', sessionData?.session ? 'Si' : 'No');
             } catch (e) {
                 if (e.message === 'TIMEOUT_SESSION') {
                     console.warn('⚠️ Timeout obteniendo sesión, asumiendo estado offline/lento');
-                    // Si hay rastro de sesión previa en el cliente, intentamos seguir
-                    const session = await window.supabaseClient.auth.getSession().then(({data}) => data.session).catch(() => null);
-                    if (session) {
-                        this.session = session;
-                        document.documentElement.setAttribute('data-auth-likely', 'true');
-                    }
+                    // v220: NO re-intentar sin timeout. Si falló la primera, usamos el estado local si existe.
+                    // Supabase-js maneja la sesión internamente.
                 } else {
                     throw e;
                 }
@@ -75,7 +73,9 @@ class AuthManager {
 
             const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_DB')), 2500));
 
+            console.log('🔐 AuthManager.checkAuth: Consultando perfil de usuario...');
             const response = await Promise.race([fetchProfile, timeoutPromise]);
+            console.log('🔐 AuthManager.checkAuth: Perfil obtenido');
             const { data: userData, error: userError } = response;
 
             // Si el perfil no existe, lo creamos
