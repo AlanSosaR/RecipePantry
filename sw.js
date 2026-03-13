@@ -3,18 +3,15 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v220';
-const BUILD_ID = '2026-03-13-v220';
+const CACHE_NAME = 'recipehub-v221';
+const BUILD_ID = '2026-03-13-v221';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
     '/index.html',
-    '/profile',
     '/profile.html',
-    '/recipe-detail',
     '/recipe-detail.html',
-    '/recipe-form',
     '/recipe-form.html',
     '/manifest.webmanifest',
     '/js/auth.js',
@@ -33,12 +30,7 @@ const STATIC_RESOURCES = [
     '/js/notifications.js',
     '/css/styles.css',
     '/css/components.css',
-    '/assets/icons/icon.svg',
-    'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
-    'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-    'https://fonts.googleapis.com/icon?family=Material+Icons',
-    'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
+    '/assets/icons/icon.svg'
 ];
 
 // Helper to ensure we always return a valid and "clean" Response.
@@ -122,13 +114,13 @@ self.addEventListener('fetch', (event) => {
                 .catch(async () => {
                     const cache = await caches.open(CACHE_NAME);
                     const pathname = url.pathname;
-                    const rootFallback = (await cache.match('/index.html')) || (await cache.match('/'));
+                    const rootFallback = (await cache.match('/index.html', { ignoreSearch: true })) || (await cache.match('/', { ignoreSearch: true }));
                     
                     let fallback;
                     if (pathname.includes('recipe-detail')) {
-                        fallback = (await cache.match('/recipe-detail.html')) || (await cache.match('/recipe-detail')) || rootFallback;
+                        fallback = (await cache.match('/recipe-detail.html', { ignoreSearch: true })) || (await cache.match('/recipe-detail', { ignoreSearch: true })) || rootFallback;
                     } else if (pathname.includes('recipe-form')) {
-                        fallback = (await cache.match('/recipe-form.html')) || (await cache.match('/recipe-form')) || rootFallback;
+                        fallback = (await cache.match('/recipe-form.html', { ignoreSearch: true })) || (await cache.match('/recipe-form', { ignoreSearch: true })) || rootFallback;
                     } else {
                         fallback = rootFallback || createErrorResponse('Offline: Resource not in cache');
                     }
@@ -151,7 +143,7 @@ self.addEventListener('fetch', (event) => {
                     return networkResponse;
                 })
                 .catch(async () => {
-                    const cachedResponse = await caches.match(request);
+                    const cachedResponse = await caches.match(request, { ignoreSearch: true });
                     return cachedResponse || createErrorResponse('Offline: API data not in cache', 404);
                 })
         );
@@ -160,7 +152,7 @@ self.addEventListener('fetch', (event) => {
 
     // Estrategia General: Stale-While-Revalidate (Assets & API GET)
     event.respondWith(
-        caches.match(request).then((cachedResponse) => {
+        caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
             const fetchPromise = fetch(request).then((networkResponse) => {
                 if (networkResponse && networkResponse.status === 200 && request.method === 'GET') {
                     const copy = networkResponse.clone();
