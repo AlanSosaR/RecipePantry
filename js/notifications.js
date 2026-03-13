@@ -42,7 +42,12 @@ class NotificationManager {
     async fetchNotifications() {
         try {
             const user = window.authManager?.currentUser;
-            if (!user) return;
+            if (!user) {
+                console.warn('⚠️ [Notifications] No hay usuario para buscar notificaciones');
+                return;
+            }
+
+            console.log(`🔔 [Notifications] Buscando notificaciones para user_id: ${user.id}`);
 
             const { data, error } = await window.supabaseClient
                 .from('notifications')
@@ -61,20 +66,20 @@ class NotificationManager {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            console.log(`🔔 [Notifications] Datos del servidor (${data?.length || 0}):`, data);
+            console.log(`🔔 [Notifications] Éxito: ${data?.length || 0} notificaciones pendientes del servidor.`, data);
 
             const serverNotifications = data.map(n => {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const recipeName = isEn ? (n.recipe?.name_en || n.recipe?.name_es) : n.recipe?.name_es;
                 const senderName = [n.from_user?.first_name, n.from_user?.last_name].filter(Boolean).join(' ')
                     || n.from_user?.email
-                    || 'Alguien';
+                    || (isEn ? 'Someone' : 'Alguien');
                 const senderPrefix = n.from_user?.prefix || (isEn ? 'Chef' : 'Chef');
 
                 return {
                     id: n.id,
                     recipeId: n.recipe_id,
-                    recipeName: recipeName || 'Receta compartida',
+                    recipeName: recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida'),
                     type: n.type || 'recipe_shared',
                     timestamp: n.created_at,
                     sender: senderName,
@@ -83,15 +88,14 @@ class NotificationManager {
                 };
             });
 
-            // v156: Preservar notificaciones locales (update, sync) al refrescar desde el servidor
+            // Preservar notificaciones locales (update, sync)
             const localNotifications = this.notifications.filter(n => ['app_update', 'offline_sync'].includes(n.type));
-            
-            // Combinar: las del servidor + las locales
             this.notifications = [...localNotifications, ...serverNotifications];
             
-            // Eliminar duplicados si los hay (por ID)
+            // Eliminar duplicados por ID
             const seen = new Set();
             this.notifications = this.notifications.filter(n => {
+                if (!n.id) return true;
                 const duplicate = seen.has(n.id);
                 seen.add(n.id);
                 return !duplicate;
@@ -102,16 +106,16 @@ class NotificationManager {
                 this.renderMenu();
             }
         } catch (err) {
-            console.error('Error cargando notificaciones:', err);
+            console.error('❌ [Notifications] Error en fetchNotifications:', err);
         }
     }
 
     setupRealtime() {
         const user = window.authManager?.currentUser;
         if (!user) return;
-        const userId = user.id || user.auth_user_id;
+        const userId = user.id;
 
-        console.log(`📡 [Notifications] Suscribiendo a realtime para usuario: ${userId}`);
+        console.log(`📡 [Notifications] Configurando Realtime (INSERT) para user_id: ${userId}`);
 
         const channel = window.supabaseClient
             .channel(`notifications:${userId}`)
@@ -121,23 +125,25 @@ class NotificationManager {
                 table: 'notifications',
                 filter: `user_id=eq.${userId}`
             }, (payload) => {
-                console.log('🔔 Nueva notificación recibida vía Realtime:', payload);
-                // v157: Añadir delay para dar tiempo a que la DB se estabilice
-                setTimeout(() => this.fetchNotifications(), 500);
+                console.log('📬 [Notifications] Nuevo registro detectado vía Realtime!', payload);
+                // Delay para asegurar que los joins (from_user, recipes) estén listos si fetch falla
+                setTimeout(() => this.fetchNotifications(), 800);
+                
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 if (window.utils && window.utils.showToast) {
-                    window.utils.showToast(isEn ? 'You have received a new recipe!' : '¡Has recibido una nueva receta!', 'info');
+                    window.utils.showToast(isEn ? '🔔 You have received a new recipe!' : '🔔 ¡Has recibido una nueva receta!', 'info');
                 }
             });
 
         channel.subscribe((status) => {
-            console.log(`📡 [Notifications] Realtime status: ${status}`);
+            console.log(`📡 [Notifications] Realtime Channel Status: ${status}`);
         });
     }
 
     updateBadge() {
         if (!this.badge) return;
         const unreadCount = this.notifications.filter(n => !n.leido).length;
+        console.log(`🔔 [Notifications] Actualizando badge: ${unreadCount} pendientes`);
         const btn = document.getElementById('btn-notifications');
 
         if (unreadCount > 0) {
