@@ -1021,8 +1021,21 @@ class DashboardManager {
                         desc.style.opacity = '1';
                     }
                     if (btn) btn.classList.add('hidden');
+                } else if (this.currentView === 'favorites') {
+                    // v247: Nueva imagen like.svg para favoritos
+                    if (imgGroup) imgGroup.innerHTML = '<img src="assets/like.svg" style="width: 140px; height: auto; opacity: 1; margin: 0 auto; display: block;" alt="Favorites">';
+                    if (title) {
+                        title.textContent = window.i18n ? window.i18n.t('noFavoritesTitle') : 'Tu lista de favoritos está vacía';
+                        title.style.color = '#10B981';
+                    }
+                    if (desc) {
+                        desc.textContent = window.i18n ? window.i18n.t('noFavoritesDesc') : 'Guarda tus recetas preferidas aquí para tenerlas siempre a mano.';
+                        desc.style.color = '#000000';
+                        desc.style.opacity = '1';
+                    }
+                    if (btn) btn.classList.add('hidden');
                 } else {
-                    // Estado por defecto (Mis Recetas / Favoritos)
+                    // Estado por defecto (Mis Recetas)
                     if (imgGroup) imgGroup.innerHTML = '<img src="assets/recipe.svg" style="width: 120px; height: auto; opacity: 0.9; margin: 0 auto; display: block;" alt="Recipes">';
                     if (title) {
                         title.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'Tu despensa de recetas está vacía';

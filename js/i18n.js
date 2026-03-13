@@ -106,6 +106,8 @@
             noRecipesDesc: 'Digitaliza o agrega tus preparaciones favoritas para que nunca se pierdan.',
             noSharedRecipesTitle: 'Tu despensa compartida está vacía',
             noSharedRecipesDesc: 'En Recipe Pantry, cocinar es mejor en compañía. Aquí aparecerán todos los secretos de cocina que otras personas compartan contigo.',
+            noFavoritesTitle: 'Tu lista de favoritos está vacía',
+            noFavoritesDesc: 'Guarda tus recetas preferidas aquí para tenerlas siempre a mano.',
             scanRecipeBtn: 'Escanear Receta',
 
             // ── Landing page ──────────────────────────────────────────────
@@ -430,6 +432,8 @@
             noRecipesDesc: 'Digitize or add your favorite preparations so they never get lost.',
             noSharedRecipesTitle: 'Your shared pantry is empty',
             noSharedRecipesDesc: 'In Recipe Pantry, cooking is better together. All the cooking secrets others share with you will appear here.',
+            noFavoritesTitle: 'Your favorites list is empty',
+            noFavoritesDesc: 'Save your favorite recipes here to always have them at hand.',
             scanRecipeBtn: 'Scan Recipe',
 
             // ── Landing page ──────────────────────────────────────────────
