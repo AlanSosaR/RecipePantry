@@ -246,42 +246,52 @@ class DatabaseManager {
         await this._checkLocalDB();
         const includeShared = options.includeShared !== false;
         const excludeId = options.excludeId || null;
+        const normalizedName = name.toLowerCase().trim();
+
+        console.log(`🔍 [DB] recipeNameExists check: "${name}" (includeShared: ${includeShared})`);
 
         // 1. Buscar en caché local (recipes_index)
-        const recipes = await window.localDB.getAll('recipes_index');
+        const localRecipes = await window.localDB.getAll('recipes_index');
         
-        const existsLocally = recipes.some(r => {
+        const localMatch = localRecipes.find(r => {
             if (excludeId && r.id === excludeId) return false;
-            // Si includeShared es falso, ignoramos las que son 'received'
-            if (!includeShared && r.sharingContext === 'received') return false;
             
-            const matchEs = r.name_es && r.name_es.toLowerCase().trim() === name.toLowerCase().trim();
-            const matchEn = r.name_en && r.name_en.toLowerCase().trim() === name.toLowerCase().trim();
-            return matchEs || matchEn;
+            // v248: Mejora en la detección de contexto: si no tiene sharingContext pero es private, se considera private.
+            // Si includeShared es falso, ignoramos las que explícitamente son 'received'.
+            const isReceived = r.sharingContext === 'received' || r.type === 'received';
+            if (!includeShared && isReceived) return false;
+            
+            const matchEs = r.name_es && r.name_es.toLowerCase().trim() === normalizedName;
+            const matchEn = r.name_en && r.name_en.toLowerCase().trim() === normalizedName;
+            const matchGeneric = r.name && r.name.toLowerCase().trim() === normalizedName;
+            return matchEs || matchEn || matchGeneric;
         });
 
-        if (existsLocally) return true;
+        if (localMatch) {
+            console.warn('🚩 [DB] Conflicto de nombre encontrado LOCALMENTE:', localMatch);
+            return true;
+        }
 
         // 2. Si no está en caché y estamos online, verificar con el servidor
         if (this._isOnline) {
             try {
                 const userId = window.authManager.currentUser?.id;
-                
-                // Siempre verificar en mis recetas
-                let queryMine = window.supabaseClient
-                    .from('recipes')
-                    .select('id')
-                    .eq('user_id', userId)
-                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`);
-                    
-                if (excludeId) {
-                    queryMine = queryMine.neq('id', excludeId);
-                }
+                if (!userId) return false;
 
-                const { data: mine, error: errorMine } = await queryMine.limit(1);
+                // Siempre verificar en mis recetas
+                // v248: Usamos sintaxis más limpia para evitar fallos con caracteres especiales
+                const { data: mine, error: errorMine } = await window.supabaseClient
+                    .from('recipes')
+                    .select('id, name_es')
+                    .eq('user_id', userId)
+                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`)
+                    .limit(1);
 
                 if (errorMine) throw errorMine;
-                if (mine && mine.length > 0) return true;
+                if (mine && mine.length > 0) {
+                    console.warn('🚩 [DB] Conflicto de nombre encontrado en SERVIDOR (Mis Recetas):', mine[0]);
+                    return true;
+                }
 
                 // Solo verificar en compartidas si se solicita
                 if (includeShared) {
@@ -294,16 +304,20 @@ class DatabaseManager {
 
                     if (errorShared) throw errorShared;
                     
-                    const existsInShared = shared?.some(s => 
-                        (s.recipe?.name_es && s.recipe.name_es.toLowerCase().trim() === name.toLowerCase().trim()) ||
-                        (s.recipe?.name_en && s.recipe.name_en.toLowerCase().trim() === name.toLowerCase().trim())
+                    const sharedMatch = shared?.find(s => 
+                        (s.recipe?.name_es && s.recipe.name_es.toLowerCase().trim() === normalizedName) ||
+                        (s.recipe?.name_en && s.recipe.name_en.toLowerCase().trim() === normalizedName)
                     );
-                    if (existsInShared) return true;
+                    
+                    if (sharedMatch) {
+                        console.warn('🚩 [DB] Conflicto de nombre encontrado en SERVIDOR (Compartidas):', sharedMatch);
+                        return true;
+                    }
                 }
                 
                 return false;
             } catch (err) {
-                console.warn('⚠️ Error en recipeNameExists server check:', err);
+                console.warn('⚠️ [DB] Error en recipeNameExists server check:', err);
                 return false;
             }
         }

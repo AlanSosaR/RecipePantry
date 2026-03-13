@@ -412,7 +412,7 @@ class NotificationManager {
             // 0. Verificar si el nombre ya existe en mis recetas
             const n = this.notifications.find(item => item.id === notificationId);
             if (n && n.recipeName) {
-                const exists = await window.db.recipeNameExists(n.recipeName);
+                const exists = await window.db.recipeNameExists(n.recipeName, { includeShared: false });
                 if (exists) {
                     window.utils.showToast(
                         window.i18n && window.i18n.getLang() === 'en' ?
