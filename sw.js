@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v224';
-const BUILD_ID = '2026-03-13-v224';
+const CACHE_NAME = 'recipehub-v225';
+const BUILD_ID = '2026-03-13-v225';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -32,7 +32,8 @@ const STATIC_RESOURCES = [
     '/css/components.css',
     '/assets/icons/icon.svg',
     'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
-    'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
+    'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
+    'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap'
 ];
 
 // Helper to ensure we always return a valid and "clean" Response.
@@ -133,16 +134,19 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Estrategia para Assets Externos (Google Fonts, CDNs)
-    const isExternalAsset = url.hostname.includes('fonts.googleapis.com') || 
-                          url.hostname.includes('fonts.gstatic.com') ||
+    const isGoogleFontsCSS = url.hostname.includes('fonts.googleapis.com');
+    const isExternalAsset = url.hostname.includes('fonts.gstatic.com') ||
                           url.hostname.includes('cdn.jsdelivr.net');
 
-    if (isExternalAsset) {
+    if (isGoogleFontsCSS || isExternalAsset) {
+        // v225: NO usar ignoreSearch para el CSS de Google Fonts (googleapis) 
+        // porque distintas familias tienen distintas queries.
+        const useIgnoreSearch = !isGoogleFontsCSS;
+        
         event.respondWith(
-            caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
+            caches.match(request, { ignoreSearch: useIgnoreSearch }).then((cachedResponse) => {
                 if (cachedResponse) return cachedResponse;
                 return fetch(request).then((networkResponse) => {
-                    // Cacheamos fuentes aun si son opacas (v223)
                     if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
                         const copy = networkResponse.clone();
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));

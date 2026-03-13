@@ -39,7 +39,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v213)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v225)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -93,8 +93,7 @@ class DashboardManager {
             // 3. Persistencia de almacenamiento (Evitar que el navegador limpie caches)
             this.requestPersistence();
 
-
-            // 5. Pull to Refresh (v124)
+            // 4. Pull to Refresh (v225)
             this.initPullToRefresh();
         } catch (error) {
             console.error('❌ Error crítico en Dashboard.init:', error);
