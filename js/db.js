@@ -120,7 +120,6 @@ class DatabaseManager {
         }
 
         try {
-            const url = new URL('/api/recipes', window.location.origin);
             let userId = window.authManager?.currentUser?.id;
 
             // v229: QUITADO fallback a auth_user_id porque causa fallos en la API de recetas (espera PK int/uuid de tabla users)
@@ -132,33 +131,21 @@ class DatabaseManager {
                 return { success: true, recipes: localRecipes, fromCache: true };
             }
 
-            if (filters.search) url.searchParams.set('search', filters.search);
-            if (filters.categoryId) url.searchParams.set('category_id', filters.categoryId);
-            if (filters.favorite) url.searchParams.set('favorite', 'true');
-            if (filters.shared) url.searchParams.set('shared', 'true');
-            if (filters.orderBy) url.searchParams.set('sort_by', filters.orderBy);
-            if (filters.ascending !== undefined) url.searchParams.set('sort_order', filters.ascending.toString());
-
-            // v236: Mandatory user_id for Edge API
-            url.searchParams.set('user_id', userId);
-            url.searchParams.set('t', Date.now());
-
-            const headers = { 'Content-Type': 'application/json' };
-            const { data: sessionData } = await window.supabaseClient.auth.getSession();
-            if (sessionData?.session?.access_token) {
-                headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
-            }
-
-            console.log(`📡 [DB] Fetching recipes from API: ${url.pathname}${url.search}`);
-            const response = await fetch(url.toString(), { method: 'GET', headers: headers });
-            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-            const result = await response.json();
-            if (!result.success) throw new Error(result.error || 'Failed to fetch recipes from API');
-
+            console.log(`📡 [DB] Fetching recipes directly via Supabase Client (bypassing Edge API)`);
             let recipes = [];
-            if (result.isSharedFormat) {
-                const shared = result.data;
+            const isSharedFormat = filters.shared === true;
+            let shared = [];
+
+            if (isSharedFormat) {
+                let { data, error } = await window.supabaseClient
+                    .from('shared_recipes')
+                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, category_id, is_favorite, is_active, category:categories(id, name_es, name_en, icon, color))')
+                    .eq('recipient_user_id', userId)
+                    .eq('status', 'accepted')
+                    .eq('copied', false);
+
+                if (error) throw error;
+                shared = (data || []).filter(item => item.recipe && item.recipe.is_active !== false);
                 const senderIds = [...new Set(shared.map(s => s.owner_user_id).filter(Boolean))];
                 let senderMap = {};
                 if (senderIds.length > 0) {
@@ -213,7 +200,28 @@ class DatabaseManager {
                 }));
                 await window.localDB.putAll('recipes_index', indexItems);
             } else {
-                recipes = result.data;
+                let query = window.supabaseClient
+                    .from('recipes')
+                    .select(`id, name_es, name_en, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color)`)
+                    .eq('is_active', true)
+                    .eq('user_id', userId);
+
+                if (filters.search && filters.search.trim()) {
+                    const s = filters.search.trim();
+                    query = query.or(`name_es.ilike.%${s}%,name_en.ilike.%${s}%,description_es.ilike.%${s}%`);
+                }
+                if (filters.categoryId) query = query.eq('category_id', filters.categoryId);
+                if (filters.favorite) query = query.eq('is_favorite', true);
+
+                const sortBy = filters.orderBy || 'updated_at';
+                const isAsc = filters.ascending === true || filters.ascending === 'true';
+                query = query.order(sortBy, { ascending: isAsc });
+                query = query.range(0, 999);
+
+                const { data, error } = await query;
+                if (error) throw error;
+                recipes = data || [];
+
                 const { data: sentShared } = await window.supabaseClient.from('shared_recipes').select('recipe_id, recipient_user_id').eq('owner_user_id', userId);
                 let recipientMap = {};
                 if (sentShared && sentShared.length > 0) {
@@ -242,9 +250,9 @@ class DatabaseManager {
                 });
             }
 
-            console.log(`📦 Recipes loaded from API (Index Mode)`);
+            console.log(`📦 Recipes loaded from DB (Index Mode bypass)`);
             const safeRecipes = Array.isArray(recipes) ? recipes : [];
-            if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared && !result.isSharedFormat) {
+            if (!filters.search && !filters.categoryId && !filters.favorite && !filters.shared && !isSharedFormat) {
                 const allLocalIndex = await window.localDB.getAll('recipes_index');
                 const received = allLocalIndex.filter(r => r.sharingContext === 'received');
                 await window.localDB.clear('recipes_index');
@@ -402,28 +410,28 @@ class DatabaseManager {
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         try {
-            const headers = { 'Content-Type': 'application/json' };
-            const { data: sessionData } = await window.supabaseClient.auth.getSession();
-            if (sessionData?.session?.access_token) {
-                headers['Authorization'] = `Bearer ${sessionData.session.access_token}`;
-            }
+            console.log(`📡 [DB] Fetching full recipe directly via Supabase Client: ${recipeId}`);
             
-            const connector = recipeId.includes('?') ? '&' : '?';
-            const url = `/api/recipe/${recipeId}${connector}t=${Date.now()}`;
-
-            const response = await fetch(url, { 
-                method: 'GET', 
-                headers: headers,
-                signal: controller.signal
-            });
-            
+            const { data: recipe, error } = await window.supabaseClient
+                .from('recipes')
+                .select(`
+                    *,
+                    category:categories(*),
+                    ingredients:ingredients(*),
+                    steps:preparation_steps(*)
+                `)
+                .eq('id', recipeId)
+                .order('order_index', { foreignTable: 'ingredients', ascending: true })
+                .order('step_number', { foreignTable: 'preparation_steps', ascending: true })
+                .single();
+                
             clearTimeout(timeoutId);
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const result = await response.json();
-            if (!result.success) throw new Error(result.error);
-            
-            let recipe = result.data;
+            if (error) {
+                if (error.code === 'PGRST116') throw new Error('Recipe not found');
+                throw error;
+            }
+
             const localMeta = await window.localDB.get('recipes_index', recipeId);
             if (localMeta) {
                 if (localMeta.sharingContext) recipe.sharingContext = localMeta.sharingContext;
@@ -641,17 +649,17 @@ class DatabaseManager {
                 await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
                 const { error: deleteError } = await window.supabaseClient.from('recipes').delete().eq('id', recipeId).eq('user_id', userId);
 
-                if ('caches' in window) {
-                    const cacheNames = await caches.keys();
-                    for (const name of cacheNames) {
-                        const cache = await caches.open(name);
-                        await cache.delete(`/api/recipe/${recipeId}`);
-                        const cachedRequests = await cache.keys();
-                        for (const req of cachedRequests) {
-                            if (req.url.includes('/api/recipes')) await cache.delete(req);
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        for (const name of cacheNames) {
+                            const cache = await caches.open(name);
+                            await cache.delete(`/api/recipe/${recipeId}`);
+                            const cachedRequests = await cache.keys();
+                            for (const req of cachedRequests) {
+                                if (req.url.includes('/api/recipes')) await cache.delete(req);
+                            }
                         }
                     }
-                }
                 return { success: true };
             } catch (err) {
                 console.error('❌ Error en deleteRecipe:', err);
