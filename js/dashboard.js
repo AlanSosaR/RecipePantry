@@ -569,6 +569,10 @@ class DashboardManager {
                 moreBtn.style.setProperty('display', 'flex', 'important');
                 moreBtn.classList.remove('hidden');
             }
+            const moreBtnHeader = document.getElementById('selectionMoreBtnHeader');
+            if (moreBtnHeader) {
+                moreBtnHeader.style.setProperty('display', 'inline-flex', 'important');
+            }
             // Force PC selection header alignment leftwards next to title
             const dashHeader = document.querySelector('.dashboard-header');
             if (dashHeader && window.innerWidth > 800) {
@@ -599,6 +603,10 @@ class DashboardManager {
             if (moreBtn) {
                 moreBtn.style.setProperty('display', 'none', 'important');
                 moreBtn.classList.add('hidden');
+            }
+            const moreBtnHeader = document.getElementById('selectionMoreBtnHeader');
+            if (moreBtnHeader) {
+                moreBtnHeader.style.setProperty('display', 'none', 'important');
             }
             // Restore normal PC header alignment
             const dashHeader = document.querySelector('.dashboard-header');
@@ -1094,10 +1102,13 @@ class DashboardManager {
                 <div class="col-access">${colAccess}</div>
                 <div class="col-date">${colDate}</div>
                 <div class="col-checkbox">
-                    <label class="m3-checkbox-wrapper">
+                    <label class="m3-checkbox-wrapper" style="pointer-events: auto !important; opacity: 1 !important;">
                         <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
                         <span class="m3-checkbox-visual"></span>
                     </label>
+                    <button class="btn-icon-m3" id="selectionMoreBtnHeader" onclick="window.dashboard.toggleSelectionMenu(event)" style="display: none; margin-left: 8px;" title="Más opciones">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
                 </div>
                 <div class="col-actions"></div>
             </div>
