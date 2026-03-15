@@ -569,6 +569,14 @@ class DashboardManager {
                 moreBtn.style.setProperty('display', 'flex', 'important');
                 moreBtn.classList.remove('hidden');
             }
+            // Force PC overlap alignment leftwards securely
+            const barContent = document.querySelector('.selection-bar-content');
+            const barLeft = document.querySelector('.selection-bar-left');
+            if (barContent && barLeft && window.innerWidth > 800) {
+                barLeft.style.setProperty('flex', 'none', 'important');
+                barContent.style.setProperty('justify-content', 'flex-start', 'important');
+                barContent.style.setProperty('gap', '16px', 'important');
+            }
 
         } else {
             // Exit Selection Mode
