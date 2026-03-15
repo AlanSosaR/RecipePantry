@@ -407,7 +407,7 @@ class NotificationManager {
         // Mostrar el modal que está en index.html
         const modal = document.getElementById('welcome-modal');
         if (modal) {
-            modal.style.setProperty('display', 'flex', 'important');
+            modal.classList.remove('hidden');
         }
     }
 
