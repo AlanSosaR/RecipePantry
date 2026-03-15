@@ -1,10 +1,10 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v266)
+// Configuración Global Recipe Pantry (v286)
 
 const APP_CONFIG = {
-    APP_VERSION: '285',
-    CACHE_NAME: 'recipepantry-v285',
-    BUILD_ID: '2026-03-15-v285'
+    APP_VERSION: '286',
+    CACHE_NAME: 'recipepantry-v286',
+    BUILD_ID: '2026-03-15-v286'
 };
 
 const SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
@@ -16,4 +16,4 @@ window.DEFAULT_RECIPE_IMAGE = DEFAULT_RECIPE_IMAGE;
 // Exportar a global
 window.APP_CONFIG = APP_CONFIG;
 
-console.log('✅ Configuración v266 inicializada');
+console.log('✅ Configuración v286 inicializada');
