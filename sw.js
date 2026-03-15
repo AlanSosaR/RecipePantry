@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v261';
-const BUILD_ID = '2026-03-13-v261';
+const CACHE_NAME = 'recipehub-v262';
+const BUILD_ID = '2026-03-13-v262';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -61,7 +61,7 @@ const createErrorResponse = (message, status = 503) => {
 
 // 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
-    // self.skipWaiting(); // Removido: Dejar que el usuario decida actualizar de forma interactiva (v261+)
+    // self.skipWaiting(); // Removido: Dejar que el usuario decida actualizar de forma interactiva (v262+)
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
@@ -177,7 +177,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // v261: Estrategia para JS y CSS: Network First para actualizar de inmediato
+    // v262: Estrategia para JS y CSS: Network First para actualizar de inmediato
     const isStaticAsset = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
     
     if (isStaticAsset) {
