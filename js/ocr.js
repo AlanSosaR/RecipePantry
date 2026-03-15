@@ -245,8 +245,8 @@ class OCRScanner {
         const h = canvas.height;
 
         // Step A: Convert to Grayscale & Initial Contrast
-        // v255: Mantener en escala de grises mejorada para previsualización legible
-        const factor = 1.2; 
+        // v259: Aumentar contraste para hacerlo 'un poco más blanco y negro' sin blobs
+        const factor = 1.5; 
         for (let i = 0; i < data.length; i += 4) {
             let g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
             g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
