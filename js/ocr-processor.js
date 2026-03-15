@@ -214,8 +214,8 @@ class OCRProcessor {
      */
     adaptiveThreshold(imageData) {
         const { data, width, height } = imageData;
-        const blockSize = 48;  // Aumentado para promediar mejor el fondo y evitar manchas de sombras
-        const k = 0.16;        // Subido ligeramente para hacer las letras un poco más delgadas y legibles
+        const blockSize = 40;  // Valor intermedio para capturar bien los detalles del texto
+        const k = 0.13;        // Ajustado para que las letras tengan buen grosor sin borrarse
         const output = new Uint8ClampedArray(data);
 
         for (let by = 0; by < height; by += blockSize) {
