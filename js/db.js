@@ -646,7 +646,6 @@ class DatabaseManager {
                 const userId = window.authManager.currentUser?.id;
                 await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId).eq('recipient_user_id', userId);
                 await window.supabaseClient.from('shared_recipes').delete().eq('recipe_id', recipeId).eq('owner_user_id', userId);
-                await window.supabaseClient.from('ocr_queue').delete().eq('recipe_id', recipeId);
                 const { error: deleteError } = await window.supabaseClient.from('recipes').delete().eq('id', recipeId).eq('user_id', userId);
 
                     if ('caches' in window) {
