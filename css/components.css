@@ -5907,7 +5907,16 @@ input:checked~.m3-ingredient-text {
 }
 
 /* Ensure the menu button and checkbox wrapper are identical in layout terms */
-#selectionMoreBtn, 
+#selectionMoreBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+}
+
 .m3-checkbox-wrapper {
     display: inline-flex !important;
     align-items: center !important;
