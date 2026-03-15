@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipehub-v256';
-const BUILD_ID = '2026-03-13-v256';
+const CACHE_NAME = 'recipehub-v257';
+const BUILD_ID = '2026-03-13-v257';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
@@ -177,27 +177,41 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Estrategia General: Stale-While-Revalidate (Assets & API GET)
-    const ignoreQuery = !url.pathname.endsWith('.js') && !url.pathname.endsWith('.css');
+    // v257: Estrategia para JS y CSS: Network First para actualizar de inmediato
+    const isStaticAsset = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
+    
+    if (isStaticAsset) {
+        event.respondWith(
+            fetch(request)
+                .then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const copy = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    }
+                    return networkResponse;
+                })
+                .catch(async () => {
+                    const cachedResponse = await caches.match(request);
+                    return cachedResponse || createErrorResponse('Offline: Asset not in cache');
+                })
+        );
+        return;
+    }
+
+    // Estrategia General: Stale-While-Revalidate (Imágenes y Assets Generales)
     event.respondWith(
-        caches.match(request, { ignoreSearch: ignoreQuery }).then((cachedResponse) => {
+        caches.match(request).then((cachedResponse) => {
             const fetchPromise = fetch(request).then((networkResponse) => {
                 if (networkResponse && networkResponse.status === 200 && request.method === 'GET') {
                     const copy = networkResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                 }
                 return networkResponse;
-            }).catch(() => {
-                // Fallback silencioso si falla la red en SWR
-                return null; 
-            });
+            }).catch(() => null);
 
-            // CRITICAL: event.respondWith MUST receive a Response object, not null.
-            // If cachedResponse is null and network fails, we must return a fallback Response.
             return cachedResponse || fetchPromise.then(res => res || createErrorResponse('Resource not available offline'));
         })
     );
-});
 
 // 4. Mensajería
 self.addEventListener('message', (event) => {
