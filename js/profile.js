@@ -35,8 +35,7 @@ class ProfileManager {
         const ok = await window.authManager.requireAuth();
         if (!ok) return;
 
-        // 2. Cargar prefijos personalizados de la BD
-        await this.loadCustomPrefixes();
+        // 2. Cargar prefijos personalizados (Desactivado)
 
         // 3. Cargar datos del usuario
         this.loadUserData();
@@ -158,37 +157,7 @@ class ProfileManager {
     }
 
     async loadCustomPrefixes() {
-        try {
-            const user = window.authManager.currentUser;
-            if (!user) return;
-
-            const { data, error } = await window.supabaseClient
-                .from('user_custom_prefixes')
-                .select('name')
-                .eq('user_id', user.id);
-
-            if (error) throw error;
-
-            this.userCustomPrefixes = data.map(p => p.name);
-            console.log('📋 Prefijos personalizados cargados:', this.userCustomPrefixes);
-
-            // Poblar el select con estos prefijos
-            const otherGroup = document.getElementById('custom-prefixes-group');
-            if (otherGroup) {
-                // Limpiar opciones previas que no sean la de "Escribe tu prefijo..."
-                const options = Array.from(otherGroup.children);
-                options.forEach(opt => {
-                    if (opt.value !== "") opt.remove();
-                });
-
-                // Agregar los cargados
-                this.userCustomPrefixes.forEach(name => {
-                    this.addOptionToGroup(otherGroup, name);
-                });
-            }
-        } catch (err) {
-            console.error('Error cargando prefijos:', err);
-        }
+        // Eliminado
     }
 
     addOptionToGroup(group, value) {
@@ -213,7 +182,7 @@ class ProfileManager {
         
         // Si el prefijo actual es uno que no está en la lista estática ni en la de custom, 
         // lo agregamos temporalmente para que se vea seleccionado (por si viene de una versión anterior o compartida)
-        if (!this.staticPrefixes.includes(prefix) && !this.userCustomPrefixes.includes(prefix)) {
+        if (!this.staticPrefixes.includes(prefix) && true) {
             const otherGroup = document.getElementById('custom-prefixes-group');
             if (otherGroup) this.addOptionToGroup(otherGroup, prefix);
         }
@@ -253,80 +222,29 @@ class ProfileManager {
         
         const currentVal = this.fields.prefix.value;
         // Solo mostrar botón de borrar si es un prefijo personalizado del usuario
-        const isCustom = this.userCustomPrefixes.includes(currentVal);
+        const isCustom = false;
         this.btnDeletePrefix.style.display = isCustom ? 'flex' : 'none';
     }
 
-    async handleCustomPrefixBlur() {
+    handleCustomPrefixBlur() {
         const input = this.fields.customPrefixInput;
         const select = this.fields.prefix;
         const wrapper = this.fields.customPrefixWrapper;
 
         const newValue = input.value.trim();
         if (newValue) {
-            // 1. Guardar en Base de Datos si no existe
-            const exists = this.userCustomPrefixes.includes(newValue) || this.staticPrefixes.includes(newValue);
-            
-            if (!exists) {
-                try {
-                    const user = window.authManager.currentUser;
-                    const { error } = await window.supabaseClient
-                        .from('user_custom_prefixes')
-                        .insert([{ user_id: user.id, name: newValue }]);
-                        
-                    if (error) throw error;
-                    
-                    this.userCustomPrefixes.push(newValue);
-                    const otherGroup = document.getElementById('custom-prefixes-group');
-                    if (otherGroup) this.addOptionToGroup(otherGroup, newValue);
-                    console.log(`✓ "${newValue}" guardado en BD`);
-                } catch (err) {
-                    console.error('Error guardando nuevo prefijo:', err);
-                    window.utils.showToast('No se pudo guardar el prefijo', 'error');
-                }
+            let option = Array.from(select.options).find(opt => opt.value === newValue);
+            if (!option) {
+                const otherGroup = document.getElementById('custom-prefixes-group');
+                if (otherGroup) this.addOptionToGroup(otherGroup, newValue);
             }
-            
             select.value = newValue;
             if (wrapper) wrapper.style.display = 'none';
-            this.updateDeleteButtonVisibility();
         }
     }
 
     async handleDeletePrefix() {
-        const select = this.fields.prefix;
-        const prefixToDelete = select.value;
-        
-        if (!prefixToDelete || !this.userCustomPrefixes.includes(prefixToDelete)) return;
-
-        const confirmOk = confirm(`¿Estás seguro de que deseas eliminar el prefijo "${prefixToDelete}"?`);
-        if (!confirmOk) return;
-
-        try {
-            const user = window.authManager.currentUser;
-            const { error } = await window.supabaseClient
-                .from('user_custom_prefixes')
-                .delete()
-                .eq('user_id', user.id)
-                .eq('name', prefixToDelete);
-
-            if (error) throw error;
-
-            // Quitar de la lista local
-            this.userCustomPrefixes = this.userCustomPrefixes.filter(p => p !== prefixToDelete);
-            
-            // Quitar del select
-            const option = Array.from(select.options).find(opt => opt.value === prefixToDelete);
-            if (option) option.remove();
-
-            // Seleccionar el por defecto (Chef)
-            select.value = 'Chef';
-            this.updateDeleteButtonVisibility();
-            
-            window.utils.showToast('Prefijo eliminado correctamente', 'success');
-        } catch (err) {
-            console.error('Error eliminando prefijo:', err);
-            window.utils.showToast('Error al eliminar', 'error');
-        }
+        // Eliminado
     }
 
     updateProfileVisuals(user) {
