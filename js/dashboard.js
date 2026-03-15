@@ -583,8 +583,8 @@ class DashboardManager {
                 title.style.color = '';
             }
             if (countText) countText.classList.add('hidden');
-            // Keep Select All group visible on mobile so it's always available in the fixed header area
-            if (countGroup) countGroup.classList.remove('hidden');
+            // Hide the group completely when no items are selected (user request)
+            if (countGroup) countGroup.classList.add('hidden');
 
             const moreBtn = document.getElementById('selectionMoreBtn');
             if (moreBtn) moreBtn.classList.add('hidden'); // Only show if selection > 0
