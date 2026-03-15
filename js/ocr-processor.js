@@ -214,8 +214,8 @@ class OCRProcessor {
      */
     adaptiveThreshold(imageData) {
         const { data, width, height } = imageData;
-        const blockSize = 32;  // Tamano del bloque para umbral local
-        const k = 0.12;        // Sensibilidad (0 = umbral global, 0.5 = muy sensible)
+        const blockSize = 48;  // Aumentado para promediar mejor el fondo y evitar manchas de sombras
+        const k = 0.16;        // Subido ligeramente para hacer las letras un poco más delgadas y legibles
         const output = new Uint8ClampedArray(data);
 
         for (let by = 0; by < height; by += blockSize) {
