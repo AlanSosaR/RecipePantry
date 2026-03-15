@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="262">
+<html lang="es" data-app-version="263">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '262';
-            const NUKE_KEY = 'v262_ocr_green_ui';
+            const CURRENT_VERSION = '263';
+            const NUKE_KEY = 'v263_ocr_green_ui';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -118,7 +118,7 @@
             --md-shape-xl: 28px;
             --md-shape-lg: 16px;
             --md-shape-md: 12px;
-            --md-error: #B3262E;
+            --md-error: #B3263E;
 
             /* Legacy compatibility */
             --primary: #10B981;
@@ -521,7 +521,7 @@
             left: 0;
             right: 0;
             z-index: 100;
-            background: rgba(262, 262, 262, 0.8);
+            background: rgba(263, 263, 263, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--outline-variant);
             height: 72px;
@@ -652,7 +652,7 @@
         /* --- Interactive Scanning UI --- */
         #ocrOverlay {
             transition: all 0.3s ease;
-            --guide-color: rgba(262, 262, 262, 0.4);
+            --guide-color: rgba(263, 263, 263, 0.4);
             --corner-color: #FFFFFF;
             border-color: var(--guide-color) !important;
         }
@@ -848,6 +848,26 @@
                                 digitalizarla al instante.</p>
                         </div>
 
+                        <!-- v263: Toolbar de Configuración Tesseract -->
+                        <div style="display: flex; gap: 12px; margin: 0 auto 24px auto; max-width: 420px; flex-wrap: wrap; background: rgba(255,255,255,0.03); padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="flex: 1; min-width: 130px;">
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">Idioma</label>
+                                <select id="ocrLang" style="width: 100%; padding: 12px; background: var(--md-surface-container-high); border: 1px solid var(--md-outline-variant); border-radius: 12px; color: var(--md-on-surface); font-weight: 600; cursor: pointer; outline: none;">
+                                    <option value="spa">Español (Recomendado)</option>
+                                    <option value="spa+eng">Español + Inglés</option>
+                                    <option value="eng">Inglés</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1; min-width: 130px;">
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">Diseño Hoja</label>
+                                <select id="ocrPsm" style="width: 100%; padding: 12px; background: var(--md-surface-container-high); border: 1px solid var(--md-outline-variant); border-radius: 12px; color: var(--md-on-surface); font-weight: 600; cursor: pointer; outline: none;">
+                                    <option value="3">Autodetección</option>
+                                    <option value="4">Una Columna</option>
+                                    <option value="6">Párrafo Único</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="dropzone" id="dropzone"
                             onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('fileInput').click()">
                             <div
@@ -1005,19 +1025,19 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=262"></script>
-    <script src="js/supabase-client.js?v=262"></script>
-    <script src="js/auth.js?v=262"></script>
-    <script src="js/localdb.js?v=262"></script>
-    <script src="js/sync-manager.js?v=262"></script>
-    <script src="js/db.js?v=262"></script>
-    <script src="js/utils.js?v=262"></script>
-    <script src="js/i18n.js?v=262"></script>
-    <script src="js/ui.js?v=262"></script>
+    <script src="js/config.js?v=263"></script>
+    <script src="js/supabase-client.js?v=263"></script>
+    <script src="js/auth.js?v=263"></script>
+    <script src="js/localdb.js?v=263"></script>
+    <script src="js/sync-manager.js?v=263"></script>
+    <script src="js/db.js?v=263"></script>
+    <script src="js/utils.js?v=263"></script>
+    <script src="js/i18n.js?v=263"></script>
+    <script src="js/ui.js?v=263"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=262"></script>
-    <script src="js/ocr.js?v=262"></script>
+    <script src="js/ocr-processor.js?v=263"></script>
+    <script src="js/ocr.js?v=263"></script>
 
     <script>
         // Variables de estado
@@ -1129,6 +1149,9 @@
 
             try {
                 // Usar el nuevo OCRProcessor simplificado con Tesseract v7
+                const lang = document.getElementById('ocrLang')?.value || 'spa';
+                const psm = parseInt(document.getElementById('ocrPsm')?.value || '3');
+
                 const results = await window.ocrProcessor.processImage(file, m => {
                     if (m.status === 'recognizing text' || m.status === 'reconociendo') {
                         const p = Math.round((m.progress || 0) * 100);
@@ -1350,7 +1373,7 @@
                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;">
                 <!-- Corner guides overlay -->
                 <div id="ocrOverlay"
-                    style="position:absolute;inset:48px 32px;border:2px solid rgba(262,262,262,.4);border-radius:12px;pointer-events:none;">
+                    style="position:absolute;inset:48px 32px;border:2px solid rgba(263,263,263,.4);border-radius:12px;pointer-events:none;">
                     <div class="corner"
                         style="position:absolute;top:0;left:0;width:16px;height:16px;border-top:3px solid white;border-left:3px solid white;border-radius:2px 0 0 0;">
                     </div>
@@ -1365,7 +1388,7 @@
                     </div>
                 </div>
                 <!-- Hint -->
-                <p style="position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(262,262,262,.85);font-size:13px;font-weight:500;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.5);"
+                <p style="position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(263,263,263,.85);font-size:13px;font-weight:500;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.5);"
                     data-i18n="ocrCameraHint">
                     Apunta la cámara a la receta y presiona el botón
                 </p>
@@ -1374,14 +1397,14 @@
                     style="margin-top:auto;padding:24px 24px 28px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:space-around;z-index:10;">
                     <!-- Gallery fallback -->
                     <button id="btnGallery"
-                        style="width:48px;height:48px;border-radius:50%;background:rgba(262,262,262,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
+                        style="width:48px;height:48px;border-radius:50%;background:rgba(263,263,263,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
                         data-i18n-title="ocrGalleryTooltip" title="Subir imagen desde galería">
                         <input type="file" id="ocrGalleryInput" accept="image/*" style="display:none">
                         <span class="material-symbols-outlined">photo_library</span>
                     </button>
                     <!-- Main capture button: takes photo and auto-processes -->
                     <button id="btnCapture"
-                        style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(262,262,262,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);"
+                        style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(263,263,263,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);"
                         data-i18n-title="ocrCaptureTooltip" title="Capturar y analizar receta">
                         <div
                             style="width:58px;height:58px;border-radius:50%;background:white;border:2px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;">
@@ -1391,7 +1414,7 @@
                     </button>
                     <!-- Switch camera -->
                     <button id="btnSwitchCamera"
-                        style="width:48px;height:48px;border-radius:50%;background:rgba(262,262,262,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
+                        style="width:48px;height:48px;border-radius:50%;background:rgba(263,263,263,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
                         data-i18n-title="ocrSwitchCameraTooltip" title="Cambiar cámara">
                         <span class="material-symbols-outlined">cameraswitch</span>
                     </button>
