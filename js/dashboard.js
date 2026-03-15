@@ -566,8 +566,13 @@ class DashboardManager {
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
             if (moreBtn) {
-                moreBtn.style.setProperty('display', 'flex', 'important');
-                moreBtn.classList.remove('hidden');
+                // v281: Ocultar en PC para que SOLO se vea el de la cabecera del listado
+                if (window.innerWidth > 768) {
+                    moreBtn.style.setProperty('display', 'none', 'important');
+                } else {
+                    moreBtn.style.setProperty('display', 'flex', 'important');
+                    moreBtn.classList.remove('hidden');
+                }
             }
             const moreBtnHeader = document.getElementById('selectionMoreBtnHeader');
             if (moreBtnHeader) {
