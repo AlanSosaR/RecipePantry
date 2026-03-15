@@ -565,7 +565,7 @@ class DashboardManager {
 
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
-            if (moreBtn) moreBtn.style.display = 'flex';
+            if (moreBtn) moreBtn.classList.remove('hidden');
 
         } else {
             // Exit Selection Mode
@@ -587,7 +587,7 @@ class DashboardManager {
             if (countGroup) countGroup.classList.remove('hidden');
 
             const moreBtn = document.getElementById('selectionMoreBtn');
-            if (moreBtn) moreBtn.style.display = 'none'; // Only show if selection > 0
+            if (moreBtn) moreBtn.classList.add('hidden'); // Only show if selection > 0
         }
 
         this.updateSelectionModeClass();
