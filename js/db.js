@@ -139,7 +139,7 @@ class DatabaseManager {
             if (isSharedFormat) {
                 let { data, error } = await window.supabaseClient
                     .from('shared_recipes')
-                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, category_id, is_favorite, is_active, category:categories(id, name_es, name_en, icon, color))')
+                    .select('id, permission, owner_user_id, recipe:recipe_id(id, name_es, name_en, updated_at, is_favorite, is_active)')
                     .eq('recipient_user_id', userId)
                     .eq('status', 'accepted')
                     .eq('copied', false);
@@ -202,7 +202,7 @@ class DatabaseManager {
             } else {
                 let query = window.supabaseClient
                     .from('recipes')
-                    .select(`id, name_es, name_en, updated_at, category_id, is_favorite, category:categories(id, name_es, name_en, icon, color)`)
+                    .select(`id, name_es, name_en, updated_at, is_favorite`)
                     .eq('is_active', true)
                     .eq('user_id', userId);
 
@@ -416,7 +416,6 @@ class DatabaseManager {
                 .from('recipes')
                 .select(`
                     *,
-                    category:categories(*),
                     ingredients:ingredients(*),
                     steps:preparation_steps(*)
                 `)
@@ -443,7 +442,7 @@ class DatabaseManager {
             const indexData = {
                 id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en,
                 image_url: recipe.image_url, updated_at: recipe.updated_at,
-                category_id: recipe.category_id, is_favorite: recipe.is_favorite,
+                is_favorite: recipe.is_favorite,
                 sharingContext: recipe.sharingContext || null
             };
             await window.localDB.put('recipes_index', indexData);
@@ -475,7 +474,7 @@ class DatabaseManager {
                 await window.localDB.put('recipes_full', recipe);
                 await window.localDB.put('recipes_index', {
                     id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en, image_url: recipe.image_url,
-                    updated_at: recipe.updated_at, category_id: recipe.category_id, is_favorite: recipe.is_favorite
+                    updated_at: recipe.updated_at, is_favorite: recipe.is_favorite
                 });
                 return { success: true, recipe };
             } catch (err) { return { success: false, error: err.message }; }
@@ -485,7 +484,7 @@ class DatabaseManager {
             await window.localDB.put('recipes_full', tempRecipe);
             await window.localDB.put('recipes_index', {
                 id: tempId, name_es: tempRecipe.name_es, name_en: tempRecipe.name_en, image_url: tempRecipe.image_url,
-                updated_at: tempRecipe.updated_at, category_id: tempRecipe.category_id, is_favorite: tempRecipe.is_favorite
+                updated_at: tempRecipe.updated_at, is_favorite: tempRecipe.is_favorite
             });
             await window.localDB.enqueueSync('insert', 'recipes', tempRecipe, null);
             return { success: true, recipe: tempRecipe, offline: true };
@@ -558,7 +557,6 @@ class DatabaseManager {
                 name_en: recipe.name_en || null,
                 description_es: recipe.description_es,
                 description_en: recipe.description_en,
-                category_id: recipe.category_id,
                 pantry_es: recipe.pantry_es,
                 pantry_en: recipe.pantry_en,
                 personal_notes: recipe.personal_notes,
@@ -617,7 +615,7 @@ class DatabaseManager {
                 await window.localDB.put('recipes_full', completelyDuplicatedRecipe);
                 await window.localDB.put('recipes_index', {
                     id: newRecipeData.id, name_es: newRecipeData.name_es, name_en: newRecipeData.name_en,
-                    updated_at: newRecipeData.updated_at, category_id: newRecipeData.category_id,
+                    updated_at: newRecipeData.updated_at,
                     is_favorite: false, sharingContext: null
                 });
             }
@@ -736,17 +734,7 @@ class DatabaseManager {
     }
 
     async getMyCategories() {
-        await this._checkLocalDB();
-        const cached = await window.localDB.getAll('categories');
-        if (this._isOnline) {
-            try {
-                const { data } = await window.supabaseClient.from('categories').select('*').order('order_index');
-                await window.localDB.putAll('categories', data);
-                return { success: true, categories: data };
-            } catch (error) {
-                if (cached.length) return { success: true, categories: cached, fromCache: true };
-            }
-        } else { return { success: true, categories: cached, fromCache: true, offline: true }; }
+        return { success: true, categories: [] };
     }
 
     async deleteSharedRecipe(userId, recipeId) {
