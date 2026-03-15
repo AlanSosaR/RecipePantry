@@ -408,6 +408,7 @@ class NotificationManager {
         const modal = document.getElementById('welcome-modal');
         if (modal) {
             modal.classList.remove('hidden');
+            modal.style.setProperty('display', 'flex', 'important');
         }
     }
 
