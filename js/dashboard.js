@@ -565,7 +565,10 @@ class DashboardManager {
 
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
-            if (moreBtn) moreBtn.classList.remove('hidden');
+            if (moreBtn) {
+                moreBtn.style.setProperty('display', 'flex', 'important');
+                moreBtn.classList.remove('hidden');
+            }
 
         } else {
             // Exit Selection Mode
@@ -587,7 +590,10 @@ class DashboardManager {
             if (countGroup) countGroup.classList.add('hidden');
 
             const moreBtn = document.getElementById('selectionMoreBtn');
-            if (moreBtn) moreBtn.classList.add('hidden'); // Only show if selection > 0
+            if (moreBtn) {
+                moreBtn.style.setProperty('display', 'none', 'important');
+                moreBtn.classList.add('hidden');
+            }
         }
 
         this.updateSelectionModeClass();

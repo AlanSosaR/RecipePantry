@@ -6077,7 +6077,7 @@ input:checked~.m3-ingredient-text {
 .file-row-m3,
 .list-header-m3 {
     display: grid !important;
-    grid-template-columns: 48px 48px 1fr 140px 100px 120px 60px !important;
+    grid-template-columns: 48px 1fr 120px 180px 48px 48px !important;
     align-items: center !important;
     gap: 12px !important;
     padding: 12px 16px !important;
@@ -6087,11 +6087,11 @@ input:checked~.m3-ingredient-text {
 
 .list-header-m3 {
     background: transparent !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important; /* Más negrita */
     font-size: 11px !important;
     letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
-    color: var(--on-surface-variant) !important;
+    color: #1a1a1a !important; /* Más oscuro/negro */
     border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
     margin-bottom: 4px;
     height: 48px;
@@ -7027,4 +7027,9 @@ input:checked~.m3-ingredient-text {
     /* Removed padding */
     display: block;
     /* Ensure it starts on a new line and remains left-aligned */
+}
+
+/* Fix forced single line for date header on PC */
+.list-header-m3 .col-date {
+    white-space: nowrap !important;
 }
