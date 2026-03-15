@@ -3582,7 +3582,7 @@ html[data-auth-likely="true"] #dashboard-app {
 .list-header-m3,
 .file-row-m3 {
     display: grid;
-    grid-template-columns: 56px 1fr 120px 160px 80px;
+    grid-template-columns: 56px 1fr 120px 180px 80px;
     align-items: center;
     padding: 0 16px;
 }
@@ -3590,10 +3590,14 @@ html[data-auth-likely="true"] #dashboard-app {
 .list-header-m3 {
     height: 48px;
     border-bottom: 1px solid var(--outline-variant);
-    color: var(--on-surface-variant);
+    color: var(--on-surface);
+    font-weight: bold;
     font-size: 11px;
-    font-weight: 700;
     letter-spacing: 0.5px;
+}
+
+.list-header-m3 > div {
+    white-space: nowrap;
 }
 
 .file-row-m3 {
