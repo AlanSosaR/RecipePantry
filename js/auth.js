@@ -159,6 +159,7 @@ class AuthManager {
 
             this.currentUser = userData;
             await this.createDefaultCategories(userData.id);
+            await this.createWelcomeNotification(userData.id);
             return true;
         } catch (err) {
             console.error('Error creando perfil:', err);
@@ -379,6 +380,25 @@ class AuthManager {
         }));
 
         await window.supabaseClient.from('categories').insert(categoriesData);
+    }
+
+    // Crear notificación de bienvenida (v279)
+    async createWelcomeNotification(userId) {
+        try {
+            const title = '🎉 ¡Te damos la bienvenida a Recipe Pantry!';
+            const message = `¡Hola! Estamos muy felices de tenerte aquí. Este es tu nuevo lugar favorito para guardar, organizar y compartir tus mejores recetas.\n\nPara empezar puedes:\n📝 Crear una receta desde cero.\n📷 Escanear una foto de algún libro con tu cámara (OCR).\n🤝 Compartir tus secretos con amigos.\n\n¡Esperamos que disfrutes! Acuérdate que la app no solo es para la cocina.`;
+
+            await window.supabaseClient.from('notifications').insert([{
+                user_id: userId,
+                type: 'welcome',
+                titulo: title,
+                mensaje: message,
+                leido: false
+            }]);
+            console.log('🎁 Notificación de bienvenida creada para el usuario:', userId);
+        } catch (err) {
+            console.warn('⚠️ No se pudo crear notificación de bienvenida:', err);
+        }
     }
 
     // Escuchar cambios de autenticación
