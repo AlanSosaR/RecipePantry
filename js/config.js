@@ -1,10 +1,10 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v264)
+// Configuración Global Recipe Pantry (v265)
 
 const APP_CONFIG = {
-    APP_VERSION: '264',
-    CACHE_NAME: 'recipehub-v264',
-    BUILD_ID: '2026-03-13-v264'
+    APP_VERSION: '265',
+    CACHE_NAME: 'recipehub-v265',
+    BUILD_ID: '2026-03-13-v265'
 };
 
 const SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
@@ -16,4 +16,4 @@ window.DEFAULT_RECIPE_IMAGE = DEFAULT_RECIPE_IMAGE;
 // Exportar a global
 window.APP_CONFIG = APP_CONFIG;
 
-console.log('✅ Configuración v264 inicializada');
+console.log('✅ Configuración v265 inicializada');
