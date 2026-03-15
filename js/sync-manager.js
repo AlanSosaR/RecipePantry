@@ -5,7 +5,7 @@ class SyncManager {
     constructor() {
         this.isSyncing = false;
         this.isPreloading = false;
-        this.STORAGE_KEY = 'recipehub_initial_sync_completed';
+        this.STORAGE_KEY = 'recipepantry_initial_sync_completed';
         this.initListeners();
     }
 

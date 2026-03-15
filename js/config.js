@@ -3,7 +3,7 @@
 
 const APP_CONFIG = {
     APP_VERSION: '266',
-    CACHE_NAME: 'recipehub-v266',
+    CACHE_NAME: 'recipepantry-v266',
     BUILD_ID: '2026-03-13-v266'
 };
 

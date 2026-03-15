@@ -1,5 +1,5 @@
 {
-  "name": "recipehub",
+  "name": "recipepantry",
   "version": "225",
   "description": "Recipe Scanner with Edge API and CDN Caching",
   "type": "module",

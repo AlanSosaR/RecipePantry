@@ -1,7 +1,7 @@
 // js/localdb.js
-// IndexedDB Wrapper for RecipeHub Offline First Architecture
+// IndexedDB Wrapper for RecipePantry Offline First Architecture
 
-const DB_NAME = 'RecipeHubDB';
+const DB_NAME = 'RecipePantryDB';
 const DB_VERSION = 2;
 
 class LocalDBManager {

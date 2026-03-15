@@ -43,7 +43,7 @@
             }
             const cacheNames = await caches.keys();
             for (const name of cacheNames) {
-              if (name !== `recipehub-v${CURRENT_VERSION}`) {
+              if (name !== `recipepantry-v${CURRENT_VERSION}`) {
                 await caches.delete(name);
               }
             }

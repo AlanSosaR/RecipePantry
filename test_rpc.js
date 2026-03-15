@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
-const env = fs.readFileSync('c:/Users/alans/Documents/Repocitorio_recetas/RecipeHub/js/config.js', 'utf8');
+const env = fs.readFileSync('./js/config.js', 'utf8');
 const supabaseUrl = env.match(/SUPABASE_URL\s*=\s*['"]([^'"]+)['"]/)[1];
 const supabaseKey = env.match(/SUPABASE_ANON_KEY\s*=\s*['"]([^'"]+)['"]/)[1];
 const supabase = createClient(supabaseUrl, supabaseKey);
