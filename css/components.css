@@ -6198,9 +6198,16 @@ input:checked~.m3-ingredient-text {
     display: flex;
     align-items: center;
     width: 100%;
-    height: 100%;
-    justify-content: flex-end;
-    /* Align all actions to the right */
+}
+
+@media (min-width: 801px) {
+    .selection-bar-left {
+        flex: none !important;
+    }
+    .selection-bar-content {
+        justify-content: flex-start !important;
+        gap: 16px !important;
+    }
 }
 
 .selection-actions-group {
