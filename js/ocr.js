@@ -245,54 +245,13 @@ class OCRScanner {
         const h = canvas.height;
 
         // Step A: Convert to Grayscale & Initial Contrast
-        const factor = 1.2; // Moderate initial boost
-        const grayData = new Uint8Array(w * h);
+        // v255: Mantener en escala de grises mejorada para previsualización legible
+        const factor = 1.2; 
         for (let i = 0; i < data.length; i += 4) {
             let g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
             g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
-            grayData[i / 4] = g;
-        }
-
-        // Step B: Build Integral Image and Integral Square Image
-        const sum = new Float64Array(w * h);
-        const sumSq = new Float64Array(w * h);
-        for (let y = 0; y < h; y++) {
-            let rowP = 0, rowPSq = 0;
-            for (let x = 0; x < w; x++) {
-                const i = y * w + x;
-                const v = grayData[i];
-                rowP += v;
-                rowPSq += v * v;
-                sum[i] = rowP + (y > 0 ? sum[i - w] : 0);
-                sumSq[i] = rowPSq + (y > 0 ? sumSq[i - w] : 0);
-            }
-        }
-
-        // Step C: Adaptive Thresholding (Sauvola Algorithm)
-        // This handles shadows and page gradients perfectly.
-        const radius = Math.round(w / 16); // Local neighborhood size
-        const k = 0.18; // Sensitivity factor
-        const R = 127; // Max standard deviation for 8-bit
-
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-                const y1 = Math.max(0, y - radius), y2 = Math.min(h - 1, y + radius);
-                const x1 = Math.max(0, x - radius), x2 = Math.min(w - 1, x + radius);
-                const count = (y2 - y1 + 1) * (x2 - x1 + 1);
-
-                const getAreaSum = (S) => S[y2 * w + x2] - S[y1 * w + x2] - S[y2 * w + x1] + S[y1 * w + x1];
-                const mean = getAreaSum(sum) / count;
-                const meanSq = getAreaSum(sumSq) / count;
-                const stdDev = Math.sqrt(Math.max(0, meanSq - (mean * mean)));
-
-                // Sauvola Threshold
-                const T = mean * (1 + k * (stdDev / R - 1));
-                
-                const idx = (y * w + x) * 4;
-                const final = grayData[y * w + x] < T ? 0 : 255;
-                data[idx] = data[idx+1] = data[idx+2] = final;
-                data[idx+3] = 255; // Alpha
-            }
+            data[i] = data[i + 1] = data[i + 2] = g; 
+            data[i + 3] = 255;
         }
 
         ctx.putImageData(imageData, 0, 0);
