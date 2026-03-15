@@ -569,13 +569,11 @@ class DashboardManager {
                 moreBtn.style.setProperty('display', 'flex', 'important');
                 moreBtn.classList.remove('hidden');
             }
-            // Force PC overlap alignment leftwards securely
-            const barContent = document.querySelector('.selection-bar-content');
-            const barLeft = document.querySelector('.selection-bar-left');
-            if (barContent && barLeft && window.innerWidth > 800) {
-                barLeft.style.setProperty('flex', 'none', 'important');
-                barContent.style.setProperty('justify-content', 'flex-start', 'important');
-                barContent.style.setProperty('gap', '16px', 'important');
+            // Force PC selection header alignment leftwards next to title
+            const dashHeader = document.querySelector('.dashboard-header');
+            if (dashHeader && window.innerWidth > 800) {
+                dashHeader.style.setProperty('justify-content', 'flex-start', 'important');
+                dashHeader.style.setProperty('gap', '24px', 'important');
             }
 
         } else {
@@ -601,6 +599,12 @@ class DashboardManager {
             if (moreBtn) {
                 moreBtn.style.setProperty('display', 'none', 'important');
                 moreBtn.classList.add('hidden');
+            }
+            // Restore normal PC header alignment
+            const dashHeader = document.querySelector('.dashboard-header');
+            if (dashHeader && window.innerWidth > 800) {
+                dashHeader.style.setProperty('justify-content', 'space-between', 'important');
+                dashHeader.style.setProperty('gap', '8px', 'important');
             }
         }
 
