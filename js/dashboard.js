@@ -1073,7 +1073,6 @@ class DashboardManager {
             <div class="list-header-m3">
                 <div class="col-icon"></div>
                 <div class="col-name">${colName}</div>
-                <div class="col-category">${colCategory}</div>
                 <div class="col-access">${colAccess}</div>
                 <div class="col-date">${colDate}</div>
                 <div class="col-checkbox">
@@ -1116,10 +1115,6 @@ class DashboardManager {
 
                 <div class="col-name text-ellipsis">
                     <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
-                </div>
-
-                <div class="col-category">
-                    <span class="badge-tag">General</span>
                 </div>
 
                 <div class="col-access">
@@ -1204,7 +1199,6 @@ class DashboardManager {
                 <div class="recipe-card-content">
                     <h4 class="recipe-card-title">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
                     <div class="recipe-card-meta">
-                        <span>General</span>
                         <span>${date}</span>
                     </div>
                 </div>
@@ -1292,7 +1286,6 @@ class DashboardManager {
                     </div>
                 ` : ''}
                 <div class="details-meta-m3">
-                    <span class="badge-tag">General</span>
                     <span class="badge-tag">${accessLabel}</span>
                 </div>
                 
