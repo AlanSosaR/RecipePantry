@@ -1,0 +1,1019 @@
+diff --git a/js/dashboard.js b/js/dashboard.js
+index 675e0dc..a4f983d 100644
+--- a/js/dashboard.js
++++ b/js/dashboard.js
+@@ -1,10 +1,11 @@
+ // js/dashboard.js
+-// Lógica específica del Dashboard
++// Lógica específica del Dashboard - v218
++console.log('📄 [File] js/dashboard.js loaded (v218)');
+ 
+ class DashboardManager {
+     constructor() {
+         this.currentFilters = {};
+-        this.displayMode = localStorage.getItem('recipe_pantry_display_mode') || 'list';
++        this.displayMode = 'list'; // Forzado a lista por solicitud de diseño
+         this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
+         this.currentRecipes = [];
+         this.selectedRecipeId = null;
+@@ -31,9 +32,18 @@ class DashboardManager {
+         });
+     }
+ 
++    // Mantener para compatibilidad con cachés viejas que aún llamen a esta función
++    prefetchRecipe(id) {
++        // No-op - El nuevo SyncManager maneja esto de forma global
++    }
++
++    setupOfflineIndicator() {
++        // No-op - El indicador global ahora se gestiona de forma pasiva o se ha eliminado
++    }
++
+     async init() {
+         try {
+-            console.log('🚀 Inicializando Recipe Pantry v21...');
++            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v234)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+ 
+             // 1. Verificar autenticación silenciosamente
+             const isAuthenticated = await window.authManager.checkAuth();
+@@ -53,7 +63,8 @@ class DashboardManager {
+                 return;
+             }
+ 
+-            console.log('Recipe Pantry Dashboard init - v20.2.1 - fixed broken scripts');
++            const appVersionString = 'v171';
++            console.log(`%cRecipe Pantry Dashboard init - ${appVersionString} - nuclear update flow`, 'color: #10B981; font-weight: bold;');
+             document.documentElement.setAttribute('data-auth-likely', 'true');
+             if (landingEl) landingEl.classList.add('hidden');
+             if (dashboardEl) dashboardEl.classList.remove('hidden');
+@@ -65,7 +76,7 @@ class DashboardManager {
+             // 2. Cargar datos iniciales según la vista guardada o URL
+             const urlParams = new URLSearchParams(window.location.search);
+             const viewParam = urlParams.get('view');
+-            if (viewParam && ['recipes', 'favorites', 'shared'].includes(viewParam)) {
++            if (viewParam && ['recipes', 'favorites', 'shared', 'help'].includes(viewParam)) {
+                 this.currentView = viewParam;
+             }
+             this.currentOffset = 0;
+@@ -86,8 +97,8 @@ class DashboardManager {
+             // 3. Persistencia de almacenamiento (Evitar que el navegador limpie caches)
+             this.requestPersistence();
+ 
+-            // 4. Indicador de modo offline
+-            this.setupOfflineIndicator();
++            // 4. Pull to Refresh (v225)
++            this.initPullToRefresh();
+         } catch (error) {
+             console.error('❌ Error crítico en Dashboard.init:', error);
+             const landingEl = document.getElementById('landing-section');
+@@ -95,6 +106,128 @@ class DashboardManager {
+         }
+     }
+ 
++    initPullToRefresh() {
++        // Container must be the scrollable main content
++        const container = document.querySelector('.main-content');
++        if (!container) return;
++
++        let startY = 0;
++        let pulling = false;
++        const threshold = 70;
++        
++        // Remove old ptr-indicator if exists
++        const oldPtr = document.getElementById('ptr-indicator');
++        if (oldPtr) oldPtr.remove();
++
++        // Create new visual indicator (Circular Spinner v208/209)
++        const ptrIndicator = document.createElement('div');
++        ptrIndicator.id = 'ptr-indicator';
++        ptrIndicator.innerHTML = `
++            <div class="ptr-circle" style="transform: scale(0); opacity: 0;">
++                <div class="ptr-spinner"></div>
++            </div>
++        `;
++        ptrIndicator.style.cssText = `
++            position: absolute;
++            top: -40px;
++            left: 0;
++            width: 100%;
++            height: 48px;
++            display: flex;
++            align-items: center;
++            justify-content: center;
++            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
++            z-index: 1000;
++            opacity: 0;
++            pointer-events: none;
++        `;
++        container.prepend(ptrIndicator);
++
++        container.addEventListener('touchstart', (e) => {
++            // STRICT START AT TOP v209
++            if (container.scrollTop === 0) {
++                startY = e.touches[0].pageY;
++                pulling = true;
++            } else {
++                pulling = false;
++            }
++        }, { passive: true });
++
++        container.addEventListener('touchmove', (e) => {
++            if (!pulling) return;
++            const y = e.touches[0].pageY;
++            const diff = y - startY;
++
++            // Only pull if moving down and STRICTLY at top
++            if (diff > 0 && container.scrollTop === 0) {
++                // Resistance logic
++                const translateY = Math.min(diff * 0.4, threshold + 30);
++                const scale = Math.min(diff / threshold, 1);
++                const rotation = diff * 2;
++
++                ptrIndicator.style.transform = `translateY(${translateY}px)`;
++                ptrIndicator.style.opacity = Math.min(diff / 30, 1);
++                
++                const circle = ptrIndicator.querySelector('.ptr-circle');
++                const spinner = ptrIndicator.querySelector('.ptr-spinner');
++                if (circle) {
++                    circle.style.transform = `scale(${scale})`;
++                    circle.style.opacity = Math.min(diff / 20, 1);
++                }
++                if (spinner) spinner.style.transform = `rotate(${rotation}deg)`;
++            } else {
++                pulling = false;
++                this.resetPTR(ptrIndicator);
++            }
++        }, { passive: true });
++
++        container.addEventListener('touchend', async (e) => {
++            if (!pulling) return;
++            const y = e.changedTouches[0].pageY;
++            const diff = y - startY;
++
++            if (diff > threshold) {
++                // Trigger Silent Sync & Update Check v209
++                console.log('🔄 Pull to Refresh: Sync & Update Check');
++                ptrIndicator.classList.add('ptr-loading');
++                ptrIndicator.style.transform = `translateY(${threshold}px)`;
++                ptrIndicator.style.opacity = 1;
++
++                try {
++                    // 1. Silent Recipe Sync
++                    if (window.syncManager) {
++                        await window.syncManager.syncQueue({ silent: true });
++                    }
++                    await window.db.getMyRecipes({ forceRefresh: true });
++
++                    // 2. Manual App Update Check (v209)
++                    if (window.checkAppUpdate) {
++                        await window.checkAppUpdate();
++                    }
++                } catch (err) {
++                    console.error('Error in pull-to-refresh action:', err);
++                } finally {
++                    setTimeout(() => this.resetPTR(ptrIndicator), 600);
++                }
++            } else {
++                this.resetPTR(ptrIndicator);
++            }
++            pulling = false;
++        }, { passive: true });
++    }
++
++    resetPTR(indicator) {
++        if (!indicator) return;
++        indicator.classList.remove('ptr-loading');
++        indicator.style.transform = `translateY(0)`;
++        indicator.style.opacity = 0;
++        const circle = indicator.querySelector('.ptr-circle');
++        if (circle) {
++            circle.style.transform = `scale(0)`;
++            circle.style.opacity = 0;
++        }
++    }
++
+     updateUserUI() {
+         if (window.updateGlobalUserUI) {
+             window.updateGlobalUserUI();
+@@ -156,6 +289,7 @@ class DashboardManager {
+         document.querySelectorAll('.nav-item').forEach(item => {
+             item.addEventListener('click', (e) => {
+                 const view = item.dataset.view;
++                console.log(`🖱️ Click en nav-item: ${view}`);
+                 if (view) {
+                     e.preventDefault();
+                     this.switchView(view, item);
+@@ -175,26 +309,17 @@ class DashboardManager {
+         window.addEventListener('recipes-index-updated', (e) => {
+             console.log('🔄 Índice de recetas actualizado en segundo plano');
+             this.currentRecipes = e.detail;
+-            this.renderRecipesGrid(this.currentRecipes);
++            if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
++                this.renderRecipesGrid(this.currentRecipes);
++            }
+         });
+     }
+ 
+     toggleSidebar(forceState = null) {
+-        const sidebar = document.getElementById('main-sidebar');
+-        const overlay = document.getElementById('sidebar-overlay');
+-        if (!sidebar || !overlay) return;
+-
+-        const isOpen = sidebar.classList.contains('active');
++        const isOpen = document.getElementById('main-sidebar')?.classList.contains('active');
+         const shouldOpen = forceState !== null ? forceState : !isOpen;
+-
+-        if (shouldOpen) {
+-            sidebar.classList.add('active');
+-            overlay.classList.add('active');
+-            document.body.style.overflow = 'hidden';
+-        } else {
+-            sidebar.classList.remove('active');
+-            overlay.classList.remove('active');
+-            document.body.style.overflow = '';
++        if (window.toggleSidebar) {
++            window.toggleSidebar(shouldOpen);
+         }
+     }
+ 
+@@ -209,12 +334,6 @@ class DashboardManager {
+         }
+     }
+ 
+-    toggleViewMenu() {
+-        const menu = document.getElementById('view-mode-menu');
+-        if (menu) {
+-            menu.classList.toggle('hidden');
+-        }
+-    }
+ 
+     toggleDetailsSidebar(forceState = null) {
+         const sidebar = document.getElementById('details-sidebar');
+@@ -232,37 +351,15 @@ class DashboardManager {
+         }
+     }
+ 
+-    switchDisplayMode(mode, element) {
+-        this.displayMode = mode;
+-        localStorage.setItem('recipe_pantry_display_mode', mode);
+-
+-        // Update current view icon in trigger
+-        const iconSpan = document.getElementById('current-view-icon');
+-        if (iconSpan) {
+-            if (mode === 'list') iconSpan.textContent = 'view_list';
+-            else if (mode === 'grid') iconSpan.textContent = 'grid_view';
+-            else if (mode === 'grid-large') iconSpan.textContent = 'view_module';
+-        }
+-
+-        // Update active state in menu
+-        document.querySelectorAll('.menu-item-m3').forEach(item => {
+-            item.classList.remove('active');
+-        });
+-        if (element) element.classList.add('active');
+-
+-        // Close menu
+-        this.toggleViewMenu();
+-
+-        this.renderRecipesGrid(this.currentRecipes);
+-    }
+ 
+     switchView(view, activeItem) {
++        console.log(`[Dashboard] switchView triggered: ${view}`);
+         this.currentView = view;
+ 
+         // Limpiar selección actual si cambia de pestaña
+         if (this.selectedRecipes) {
+             this.selectedRecipes.clear();
+-            this.updateActionBar();
++            if (this.updateActionBar) this.updateActionBar();
+         }
+         localStorage.setItem('recipe_pantry_current_view', view);
+ 
+@@ -275,6 +372,37 @@ class DashboardManager {
+             this.loadRecipes({ orderBy: 'name_es', ascending: true });
+         } else if (view === 'shared') {
+             this.loadRecipes({ shared: true });
++        } else if (view === 'help') {
++            this.showHelpView();
++        }
++    }
++
++    showHelpView() {
++        console.log('[Dashboard] Executing showHelpView');
++        const grid = document.getElementById('recipesGrid');
++        const empty = document.getElementById('emptyState');
++        const help = document.getElementById('helpView');
++        const titleEl = document.getElementById('view-title');
++
++        if (grid) grid.classList.add('hidden');
++        if (empty) empty.classList.add('hidden');
++
++        if (help) {
++            console.log('[Dashboard] Showing helpView container');
++            help.classList.remove('hidden');
++            if (window.helpModal) {
++                console.log('[Dashboard] Calling helpModal.render()');
++                window.helpModal.render();
++            } else {
++                console.error('[Dashboard] window.helpModal is NOT defined!');
++                help.innerHTML = '<div style="padding:40px;text-align:center;">Cargando ayuda...</div>';
++            }
++        } else {
++            console.error('[Dashboard] #helpView element NOT found in DOM!');
++        }
++
++        if (titleEl) {
++            titleEl.textContent = (window.i18n && window.i18n.t) ? window.i18n.t('navHelp') : 'Ayuda';
+         }
+     }
+ 
+@@ -284,6 +412,7 @@ class DashboardManager {
+ 
+     async loadRecipes(filters = {}) {
+         this.lastFilters = filters;
++        // Si se solicita forceRefresh, asegurar que se pase a db.js
+         const result = await window.db.getMyRecipes(filters);
+ 
+         if (!result.success) {
+@@ -293,8 +422,11 @@ class DashboardManager {
+ 
+         this.currentRecipes = result.recipes;
+ 
++        const isRecipeView = ['recipes', 'favorites', 'shared'].includes(this.currentView);
++        if (!isRecipeView) return;
++
+         const titleEl = document.getElementById('view-title');
+-        if (titleEl) {
++        if (titleEl && !this.isSelectionMode) {
+             const count = this.currentRecipes.length;
+             let baseTitle = '';
+ 
+@@ -311,16 +443,13 @@ class DashboardManager {
+             titleEl.textContent = `${baseTitle} (${count})`;
+         }
+ 
+-        this.renderRecipesGrid(this.currentRecipes);
++        const helpView = document.getElementById('helpView');
++        if (helpView) helpView.classList.add('hidden');
+ 
+-        // Prefetch inteligente: Pre-cargar las primeras 5 recetas completas para uso offline
+-        if (navigator.onLine && (!filters.search)) {
+-            const toPrefetch = this.currentRecipes.slice(0, 5);
+-            toPrefetch.forEach(recipe => {
+-                // Pequeño delay para no saturar la red al inicio
+-                setTimeout(() => this.prefetchRecipe(recipe.id), 1000);
+-            });
+-        }
++        const recipesGrid = document.getElementById('recipesGrid');
++        if (recipesGrid) recipesGrid.classList.remove('hidden');
++
++        this.renderRecipesGrid(this.currentRecipes);
+     }
+ 
+     // --- Multi-Selection Logic (v13.7.0) ---
+@@ -368,21 +497,33 @@ class DashboardManager {
+ 
+ 
+     handleSelectAll(e) {
+-        // Mejorado para móvil: Si hay algunos seleccionados, el primer click selecciona TODO.
+-        // Solo si YA están todos seleccionados, el click deselecciona todo.
+-        const total = this.currentRecipes.length;
+-        const currentlySelected = this.currentRecipes.filter(r => this.selectedRecipes.has(r.id)).length;
++        if (!this.currentRecipes || this.currentRecipes.length === 0) return;
+ 
+-        if (currentlySelected === total && total > 0) {
+-            // Deseleccionar todo
++        // v197: Prevent default and stop propagation for mobile stability
++        if (e) {
++            e.preventDefault();
++            e.stopPropagation();
++        }
++
++        if (this._selectAllTimeout) return;
++        this._selectAllTimeout = true;
++        setTimeout(() => this._selectAllTimeout = false, 400); // 400ms buffer
++
++        // Determinar si todos los visibles ya están seleccionados
++        const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
++
++        if (allVisibleSelected) {
++            // Si ya están TODOS seleccionados, deseleccionamos todos
+             this.selectedRecipes.clear();
+         } else {
+-            // Seleccionar todo
++            // Si falta alguno (incluyendo estado indeterminado), los seleccionamos todos
+             this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
+         }
+ 
++        // Haptic feedback if available
++        if (navigator.vibrate) try { navigator.vibrate(10); } catch(e){}
++
+         this.isSelectionMode = this.selectedRecipes.size > 0;
+-        this.updateSelectionModeClass();
+         this.updateActionBar();
+         this.renderRecipesGrid(this.currentRecipes);
+     }
+@@ -402,7 +543,6 @@ class DashboardManager {
+         const title = document.getElementById('view-title');
+         const countText = document.getElementById('selectionCountText');
+         const countGroup = document.getElementById('selectionActionsGroup');
+-        const viewSwitcher = document.getElementById('view-switcher-m3');
+         const recipesGrid = document.getElementById('recipesGrid');
+ 
+         if (this.selectedRecipes.size > 0) {
+@@ -410,27 +550,38 @@ class DashboardManager {
+             this.isSelectionMode = true;
+             document.body.classList.add('selection-mode-active');
+             if (recipesGrid) recipesGrid.classList.add('selection-mode-active');
+-            if (viewSwitcher) viewSwitcher.classList.add('hidden'); // Clean look on mobile
+ 
+-            if (countText) {
+-                countText.classList.remove('hidden');
++            if (title) {
+                 const count = this.selectedRecipes.size;
+-                // Subtle selection count since total is already in title
+-                countText.textContent = `(${count})`;
+-                countText.style.color = 'var(--primary)';
++                const label = count === 1 ? 'seleccionado' : 'seleccionados';
++                // Format: "seleccionado(s)" (black) + "(count)" (green)
++                title.innerHTML = `${label} <span style="color: var(--primary); font-weight: 800;">(${count})</span>`;
++                title.style.color = '#1B1B1F'; // Dark text
++            }
++            if (countText) {
++                countText.innerHTML = ''; 
++                countText.classList.add('hidden');
+             }
+ 
+             if (countGroup) countGroup.classList.remove('hidden');
+             const moreBtn = document.getElementById('selectionMoreBtn');
+-            if (moreBtn) moreBtn.style.display = 'flex'; // Only show if recipes selected
++            if (moreBtn) moreBtn.style.display = 'flex';
+ 
+         } else {
+             // Exit Selection Mode
+             this.isSelectionMode = false;
+             document.body.classList.remove('selection-mode-active');
+             if (recipesGrid) recipesGrid.classList.remove('selection-mode-active');
+-            if (viewSwitcher) viewSwitcher.classList.remove('hidden');
+ 
++            // Restore original title count
++            if (title) {
++                const total = this.currentRecipes ? this.currentRecipes.length : 0;
++                let base = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
++                if (this.currentView === 'favorites') base = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
++                if (this.currentView === 'shared') base = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
++                title.textContent = `${base} (${total})`;
++                title.style.color = '';
++            }
+             if (countText) countText.classList.add('hidden');
+             // Keep Select All group visible on mobile so it's always available in the fixed header area
+             if (countGroup) countGroup.classList.remove('hidden');
+@@ -459,9 +610,6 @@ class DashboardManager {
+ 
+         const menu = document.createElement('div');
+         menu.className = 'dropbox-menu-m3';
+-
+-        const isEn = window.i18n && window.i18n.getLang() === 'en';
+-
+         if (this.selectedRecipes.size === 1) {
+             // SINGLE SELECTION: Match row menu exactly
+             const recipeId = Array.from(this.selectedRecipes)[0];
+@@ -472,7 +620,7 @@ class DashboardManager {
+             const isSent = recipe.sharingContext === 'sent';
+ 
+             const sharedLabelHTML = isReceived ? `
+-                <div style="font-size: 12px; color: #00A676; padding: 0 16px 8px 16px; margin-top: -4px;">
++                <div style="font-size: 12px; color: #10B981; padding: 0 16px 8px 16px; margin-top: -4px;">
+                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">groups</span>
+                     ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
+                 </div>
+@@ -531,22 +679,27 @@ class DashboardManager {
+             `;
+         } else {
+             // MULTIPLE SELECTION: Batch actions
++            const count = this.selectedRecipes.size;
++            const headerText = count === 1 
++                ? (window.i18n ? window.i18n.t('oneItemSelected') : '1 receta')
++                : (window.i18n ? window.i18n.t('itemsSelected', { count }) : `${count} recetas`);
++
+             menu.innerHTML = `
+                 <div class="dropbox-menu-header">
+-                    <h4>${this.selectedRecipes.size} ${window.i18n ? window.i18n.t('selected') : 'seleccionados'}</h4>
++                    <h4>${headerText}</h4>
+                 </div>
+                 <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected()">
+                     <span class="material-symbols-outlined">link</span>
+-                    Copiar enlaces
++                    ${window.i18n ? (count === 1 ? window.i18n.t('copyLinkLabel') : 'Copiar enlaces') : 'Copiar enlaces'}
+                 </button>
+                 <button class="context-menu-item" onclick="window.dashboard.shareSelected()">
+                     <span class="material-symbols-outlined">share</span>
+-                    Compartir selección
++                    ${window.i18n ? (count === 1 ? window.i18n.t('shareSelection') : 'Compartir selección') : 'Compartir selección'}
+                 </button>
+                 <div class="context-menu-divider"></div>
+                 <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
+                     <span class="material-symbols-outlined">delete</span>
+-                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar seleccón'}
++                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
+                 </button>
+             `;
+         }
+@@ -555,20 +708,22 @@ class DashboardManager {
+ 
+         // Position menu
+         const rect = event.target.getBoundingClientRect();
+-        const menuWidth = 220; // Default approximation
+ 
+         if (window.innerWidth < 600) {
+-            // CENTERED ON MOBILE
+-            menu.style.top = '50%';
+-            menu.style.left = '50%';
+-            menu.style.transform = 'translate(-50%, -50%)';
++            // MOBILE: Bottom Sheet Style (v205)
++            menu.classList.add('mobile-bottom-sheet');
+             menu.style.position = 'fixed';
+-            menu.style.zIndex = '3000';
++            menu.style.bottom = '40%'; // Subir más hacia la mitad (v205)
++            menu.style.left = '5%';
+             menu.style.width = '90%';
+-            menu.style.maxWidth = '320px';
++            menu.style.top = 'auto';
++            menu.style.transform = 'none';
++            menu.style.borderRadius = '24px';
++            menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
++            menu.style.zIndex = '3000';
+         } else {
+             menu.style.top = `${rect.bottom + 8}px`;
+-            menu.style.right = `${window.innerWidth - rect.right}px`;
++            menu.style.left = `${rect.right - 220}px`;
+         }
+ 
+         // Close menu on outside click
+@@ -675,12 +830,18 @@ class DashboardManager {
+             const isAnySelected = this.selectedRecipes.size > 0;
+             const isIndeterminate = isAnySelected && !allSelected;
+ 
+-            [selectAllTop, selectAllList].forEach(cb => {
+-                if (cb) {
+-                    cb.checked = allSelected && isAnySelected;
+-                    cb.indeterminate = isIndeterminate;
+-                }
+-            });
++            // v198: Usamos un pequeño delay para asegurar que el DOM refleje el estado tras preventDefault()
++            setTimeout(() => {
++                [selectAllTop, selectAllList].forEach(cb => {
++                    if (cb) {
++                        cb.checked = allSelected;
++                        cb.indeterminate = isIndeterminate;
++                        // Forzar refresco visual si es necesario
++                        if (allSelected) cb.setAttribute('checked', 'checked');
++                        else cb.removeAttribute('checked');
++                    }
++                });
++            }, 50);
+         }
+     }
+ 
+@@ -691,45 +852,93 @@ class DashboardManager {
+     }
+ 
+     async deleteSelected() {
+-        if (this.selectedRecipes.size === 0) return;
++        if (!this.selectedRecipes || this.selectedRecipes.size === 0) return;
++        
++        // v246: Capturar la selección INMEDIATAMENTE para evitar que se pierda 
++        // mientras el usuario interactúa con el snackbar de confirmación.
++        const selectedIdsArr = Array.from(this.selectedRecipes).map(id => id.toString());
++        const selectedIdsSet = new Set(selectedIdsArr);
++        const recipesToDelete = this.currentRecipes.filter(r => selectedIdsSet.has(r.id.toString()));
++        
++        const count = selectedIdsArr.length;
++        console.log(`[Dashboard] Initializing deleteSelected for ${count} recipes. IDs:`, selectedIdsArr);
++
+         const confirmMsg = window.i18n && window.i18n.getLang() === 'en'
+-            ? `Are you sure you want to delete ${this.selectedRecipes.size} recipes?`
+-            : `¿Seguro que desea eliminar ${this.selectedRecipes.size} recetas?`;
++            ? `Are you sure you want to delete ${count} recipes?`
++            : `¿Seguro que desea eliminar ${count} recetas?`;
+ 
+         window.showActionSnackbar(confirmMsg, 'ELIMINAR', async () => {
+-            window.showToast('Eliminando...', 'info');
+-            const ids = Array.from(this.selectedRecipes);
+-            let successCount = 0;
++            try {
++                window.showToast(window.i18n ? window.i18n.t('deleting') : 'Eliminando...', 'info');
++                
++                console.log('[Dashboard] Executing deletion for captured IDs:', selectedIdsArr);
++                
++                // --- Optimistic UI Update ---
++                // Usamos la lista capturada para filtrar, no el estado actual que podría haber cambiado
++                this.currentRecipes = this.currentRecipes.filter(r => !selectedIdsSet.has(r.id.toString()));
++                this.clearSelection(); // Esto limpia el Set y refresca la interfaz visualmente
++                
++                const userId = window.authManager.currentUser?.id;
++                
++                // Si la lista de objetos está vacía por algún motivo, usamos los IDs crudos
++                const targets = recipesToDelete.length > 0 
++                    ? recipesToDelete 
++                    : selectedIdsArr.map(id => ({ id }));
++
++                const deletePromises = targets.map(async (recipe) => {
++                    try {
++                        const rId = recipe.id.toString();
++                        // Nota: Si es fallback, sharingContext será undefined, irá por deleteRecipe normal
++                        if (recipe.sharingContext === 'received') {
++                            return await window.db.deleteSharedRecipe(userId, rId);
++                        } else {
++                            return await window.db.deleteRecipe(rId);
++                        }
++                    } catch (e) {
++                        console.error(`[Dashboard] Error in promise for recipe ${recipe.id}:`, e);
++                        return { success: false };
++                    }
++                });
+ 
+-            for (const id of ids) {
+-                const res = await window.db.deleteRecipe(id);
+-                if (res.success) successCount++;
+-            }
++                const results = await Promise.all(deletePromises);
++                const successCount = results.filter(r => r && r.success).length;
++                console.log(`[Dashboard] Deletion results: ${successCount}/${targets.length}`);
+ 
+-            this.clearSelection();
+-            this.loadRecipes({ forceRefresh: true }); // Reload
+-            window.showToast(`${successCount} recetas eliminadas`, 'success');
++                // Refresco forzado tras la operación para estar en sincronía total
++                await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
++                
++                const msg = (successCount === targets.length)
++                    ? (window.i18n ? window.i18n.t('deleteSuccess') : 'Eliminadas correctamente')
++                    : `${successCount} recetas eliminadas`;
++                window.showToast(msg, 'success');
++
++            } catch (err) {
++                console.error('[Dashboard] Fatal error in deleteSelected callback:', err);
++                window.utils.showToast('Error al procesar el borrado', 'error');
++                this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
++            }
+         });
+     }
+ 
+     async favoriteSelected() {
+         if (this.selectedRecipes.size === 0) return;
+         const ids = Array.from(this.selectedRecipes);
++        const recipesToToggle = this.currentRecipes.filter(r => ids.includes(r.id));
++        
++        if (recipesToToggle.length === 0) return;
+ 
+-        // Determinar si vamos a marcar o desmarcar (si el primero es fav, desmarcamos todos?)
+-        // Drive style: Si hay mezcla, usualmente se marcan todos.
+-        const firstId = ids[0];
+-        const firstRecipe = this.currentRecipes.find(r => r.id === firstId);
+-        const newStatus = firstRecipe ? !firstRecipe.is_favorite : true;
++        // Determinar si vamos a marcar o desmarcar (usamos el primero como referencia)
++        const firstRecipe = recipesToToggle[0];
++        const newStatus = !firstRecipe.is_favorite;
+ 
+-        window.showToast(newStatus ? 'Marcando como favoritos...' : 'Quitando de favoritos...', 'info');
++        window.showToast(newStatus ? (window.i18n ? window.i18n.t('addingFavs') : 'Marcando como favoritos...') : (window.i18n ? window.i18n.t('removingFavs') : 'Quitando de favoritos...'), 'info');
+ 
+-        for (const id of ids) {
+-            await window.db.toggleFavorite(id, !newStatus); // toggleFavorite espera el estado ACTUAL
+-        }
++        // Parallel update
++        const togglePromises = ids.map(id => window.db.toggleFavorite(id, !newStatus));
++        await Promise.all(togglePromises);
+ 
+         this.clearSelection();
+-        this.loadRecipes({ forceRefresh: true });
++        await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+     }
+ 
+     async moveSelected() {
+@@ -745,14 +954,14 @@ class DashboardManager {
+         );
+ 
+         if (newCategory) {
+-            window.showToast('Moviendo recetas...', 'info');
++            window.showToast(window.i18n ? window.i18n.t('movingRecs') : 'Moviendo recetas...', 'info');
+             const ids = Array.from(this.selectedRecipes);
+-            for (const id of ids) {
+-                await window.db.updateRecipe(id, { category: newCategory });
+-            }
++            const movePromises = ids.map(id => window.db.updateRecipe(id, { category: newCategory }));
++            await Promise.all(movePromises);
++            
+             this.clearSelection();
+-            this.loadRecipes({ forceRefresh: true });
+-            window.showToast('Recetas movidas con éxito', 'success');
++            await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
++            window.showToast(window.i18n ? window.i18n.t('moveSuccess') : 'Recetas movidas con éxito', 'success');
+         }
+     }
+ 
+@@ -777,6 +986,17 @@ class DashboardManager {
+         const container = document.getElementById('recipesGrid');
+         if (!container) return;
+ 
++        // Sincronizar contador en cabecera (v69)
++        const titleEl = document.getElementById('view-title');
++        if (titleEl && !this.isSelectionMode) {
++            const count = recipes.length;
++            const currentText = titleEl.textContent || '';
++            const baseTitle = currentText.includes(' (') ? currentText.split(' (')[0] : currentText;
++            if (baseTitle) {
++                titleEl.textContent = `${baseTitle} (${count})`;
++            }
++        }
++
+         const emptyState = document.getElementById('emptyState');
+ 
+         if (recipes.length === 0) {
+@@ -801,8 +1021,21 @@ class DashboardManager {
+                         desc.style.opacity = '1';
+                     }
+                     if (btn) btn.classList.add('hidden');
++                } else if (this.currentView === 'favorites') {
++                    // v247: Nueva imagen like.svg para favoritos
++                    if (imgGroup) imgGroup.innerHTML = '<img src="assets/like.svg" style="width: 140px; height: auto; opacity: 1; margin: 0 auto; display: block;" alt="Favorites">';
++                    if (title) {
++                        title.textContent = window.i18n ? window.i18n.t('noFavoritesTitle') : 'Tu lista de favoritos está vacía';
++                        title.style.color = '#10B981';
++                    }
++                    if (desc) {
++                        desc.textContent = window.i18n ? window.i18n.t('noFavoritesDesc') : 'Guarda tus recetas preferidas aquí para tenerlas siempre a mano.';
++                        desc.style.color = '#000000';
++                        desc.style.opacity = '1';
++                    }
++                    if (btn) btn.classList.add('hidden');
+                 } else {
+-                    // Estado por defecto (Mis Recetas / Favoritos)
++                    // Estado por defecto (Mis Recetas)
+                     if (imgGroup) imgGroup.innerHTML = '<img src="assets/recipe.svg" style="width: 120px; height: auto; opacity: 0.9; margin: 0 auto; display: block;" alt="Recipes">';
+                     if (title) {
+                         title.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'Tu despensa de recetas está vacía';
+@@ -829,35 +1062,31 @@ class DashboardManager {
+         }
+         if (emptyState) emptyState.classList.add('hidden');
+ 
+-        if (this.displayMode.startsWith('grid')) {
+-            container.className = `recipes-grid ${this.displayMode === 'grid-large' ? 'grid-view--large' : 'grid-view'}`;
+-            container.innerHTML = recipes.map(recipe => this.renderRecipeCard(recipe)).join('');
+-        } else {
+-            container.className = 'recipes-grid list-view-m3';
+-            const colName = window.i18n ? window.i18n.t('colName') : 'NOMBRE';
+-            const colCategory = window.i18n ? window.i18n.t('colCategory') : 'CATEGORÍA';
+-            const colAccess = window.i18n ? window.i18n.t('colAccess') : 'ACCESO';
+-            const colDate = window.i18n ? window.i18n.t('colLastModified') : 'ÚLTIMA MODIFICACIÓN';
+-
+-            const header = `
+-                <div class="list-header-m3">
+-                    <div class="col-icon"></div>
+-                    <div class="col-name">${colName}</div>
+-                    <div class="col-category">${colCategory}</div>
+-                    <div class="col-access">${colAccess}</div>
+-                    <div class="col-date">${colDate}</div>
+-                    <div class="col-checkbox">
+-                        <label class="m3-checkbox-wrapper">
+-                            <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
+-                            <span class="m3-checkbox-visual"></span>
+-                        </label>
+-                    </div>
+-                    <div class="col-actions"></div>
++        // Solo renderizamos en modo lista (v34)
++        container.className = 'recipes-grid list-view-m3';
++        const colName = window.i18n ? window.i18n.t('colName') : 'NOMBRE';
++        const colCategory = window.i18n ? window.i18n.t('colCategory') : 'CATEGORÍA';
++        const colAccess = window.i18n ? window.i18n.t('colAccess') : 'ACCESO';
++        const colDate = window.i18n ? window.i18n.t('colLastModified') : 'ÚLTIMA MODIFICACIÓN';
++
++        const header = `
++            <div class="list-header-m3">
++                <div class="col-icon"></div>
++                <div class="col-name">${colName}</div>
++                <div class="col-category">${colCategory}</div>
++                <div class="col-access">${colAccess}</div>
++                <div class="col-date">${colDate}</div>
++                <div class="col-checkbox">
++                    <label class="m3-checkbox-wrapper">
++                        <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
++                        <span class="m3-checkbox-visual"></span>
++                    </label>
+                 </div>
+-            `;
+-            const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
+-            container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
+-        }
++                <div class="col-actions"></div>
++            </div>
++        `;
++        const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
++        container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
+         this.updateSelectAllCheckbox();
+     }
+ 
+@@ -899,7 +1128,7 @@ class DashboardManager {
+                     ? `<span style="color:#c7a44b;display:flex;align-items:center;gap:4px">
+                             <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 400">file_copy</span>
+                             ${window.i18n ? window.i18n.t('canCopy') : 'Puede copiar'}</span>`
+-                    : `<span style="color:#00A676;display:flex;align-items:center;gap:4px">
++                    : `<span style="color:#10B981;display:flex;align-items:center;gap:4px">
+                             <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 400">visibility</span>
+                             ${window.i18n ? window.i18n.t('canView') : 'Solo ver'}</span>`)
+                 : recipe.sharingContext === 'sent' ? `<span style="color: var(--primary); font-weight: 600;">${window.i18n ? window.i18n.t('accessShared') : 'Compartida'}</span>` : (window.i18n ? window.i18n.t('accessPrivate') : 'Solo tú')}
+@@ -1010,25 +1239,6 @@ class DashboardManager {
+         window.location.href = url;
+     }
+ 
+-    /**
+-     * Prefetch inteligente: Carga la receta en caché antes de que el usuario haga clic.
+-     * Se dispara al hacer hover sobre la tarjeta o fila.
+-     */
+-    prefetchRecipe(recipeId) {
+-        if (!recipeId || !window.db) return;
+-
+-        // Evitar múltiples peticiones si ya estamos cargando o si es offline
+-        if (this._prefetching === recipeId || !navigator.onLine) return;
+-
+-        this._prefetching = recipeId;
+-        console.log(`🔍 Prefetching receta: ${recipeId}`);
+-
+-        // Llamada fire-and-forget a db.js que ya maneja IndexedDB
+-        window.db.getRecipeById(recipeId).finally(() => {
+-            setTimeout(() => { this._prefetching = null; }, 2000);
+-        });
+-    }
+-
+     updateSelectionUI() {
+         document.querySelectorAll('.file-row, .recipe-card-m3').forEach(el => {
+             el.classList.remove('selected');
+@@ -1044,47 +1254,7 @@ class DashboardManager {
+         }
+     }
+ 
+-    setupOfflineIndicator() {
+-        const updateStatus = () => {
+-            const isOnline = navigator.onLine;
+-            let indicator = document.getElementById('offline-indicator');
+-
+-            if (!isOnline) {
+-                if (!indicator) {
+-                    indicator = document.createElement('div');
+-                    indicator.id = 'offline-indicator';
+-                    indicator.style.cssText = `
+-                        position: fixed;
+-                        bottom: 80px;
+-                        left: 50%;
+-                        transform: translateX(-50%);
+-                        background: #323232;
+-                        color: white;
+-                        padding: 8px 16px;
+-                        border-radius: 20px;
+-                        font-size: 13px;
+-                        display: flex;
+-                        align-items: center;
+-                        gap: 8px;
+-                        z-index: 9999;
+-                        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+-                        animation: slideUp 0.3s ease;
+-                    `;
+-                    indicator.innerHTML = `
+-                        <span class="material-symbols-outlined" style="font-size: 18px; color: #FFB74D;">cloud_off</span>
+-                        <span>Modo sin conexión</span>
+-                    `;
+-                    document.body.appendChild(indicator);
+-                }
+-            } else {
+-                if (indicator) indicator.remove();
+-            }
+-        };
+ 
+-        window.addEventListener('online', updateStatus);
+-        window.addEventListener('offline', updateStatus);
+-        updateStatus(); // Estado inicial
+-    }
+ 
+     async showRecipeDetails(recipeId) {
+         const recipe = this.currentRecipes.find(r => r.id === recipeId);
+@@ -1224,7 +1394,7 @@ class DashboardManager {
+                     ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
+                 </button>
+                 <div class="context-menu-divider"></div>
+-                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDelete('${recipe.id}')">
++                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
+                     <span class="material-symbols-outlined">delete</span>
+                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
+                 </button>
+@@ -1257,7 +1427,7 @@ class DashboardManager {
+                     ${recipe.is_favorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}
+                 </button>
+                 <div class="context-menu-divider"></div>
+-                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDelete('${recipe.id}')">
++                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
+                     <span class="material-symbols-outlined">delete</span>
+                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar receta'}
+                 </button>
+@@ -1279,14 +1449,16 @@ class DashboardManager {
+         if (left < 0) left = 8;
+ 
+         if (window.innerWidth < 600) {
+-            // CENTERED ON MOBILE
+-            menu.style.top = '50%';
+-            menu.style.left = '50%';
+-            menu.style.transform = 'translate(-50%, -50%)';
++            // MOBILE: Center Sheet Style (v205)
++            menu.classList.add('mobile-bottom-sheet');
+             menu.style.position = 'fixed';
+-            menu.style.zIndex = '3000';
++            menu.style.bottom = '40%'; // Subir más hacia la mitad (v205)
++            menu.style.left = '5%';
+             menu.style.width = '90%';
+-            menu.style.maxWidth = '320px';
++            menu.style.top = 'auto';
++            menu.style.transform = 'none';
++            menu.style.borderRadius = '24px';
++            menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
+         } else {
+             menu.style.top = `${top}px`;
+             menu.style.left = `${left}px`;
+@@ -1305,32 +1477,17 @@ class DashboardManager {
+         window.utils.showToast(window.i18n ? window.i18n.t('downloading') : 'Descarga iniciada...', 'success');
+     }
+ 
+-    async confirmDelete(recipeId) {
+-        const recipe = this.currentRecipes.find(r => r.id === recipeId);
+-        const isReceived = recipe && recipe.sharingContext === 'received';
+-
+-        const confirmMsg = isReceived
+-            ? (window.i18n ? window.i18n.t('deleteSharedConfirm') : '¿Deseas eliminar esta receta compartida?')
+-            : (window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?');
+-
+-        const deleteBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'ELIMINAR';
+-
+-        window.showActionSnackbar(confirmMsg, deleteBtnTxt, async () => {
+-            const result = isReceived
+-                ? await window.db.deleteSharedRecipe(window.authManager.currentUser.id, recipeId)
+-                : await window.db.deleteRecipe(recipeId);
++    // Nueva función puente para menús (v243)
++    confirmDeleteFromMenu(recipeId) {
++        // Seleccionamos solo esta receta para usar el flujo unificado deleteSelected
++        this.selectedRecipes.clear();
++        this.selectedRecipes.add(recipeId);
++        this.deleteSelected();
++    }
+ 
+-            if (result.success) {
+-                window.utils.showToast(window.i18n ? window.i18n.t('deleteSuccess') : 'Eliminada correctamente', 'success');
+-                this.currentRecipes = this.currentRecipes.filter(r => r.id !== recipeId);
+-                this.renderRecipesGrid(this.currentRecipes);
+-                if (this.selectedRecipeId === recipeId) {
+-                    this.toggleDetailsSidebar(false);
+-                }
+-            } else {
+-                window.utils.showToast(window.i18n ? window.i18n.t('deleteError') : 'Error al eliminar la receta', 'error');
+-            }
+-        });
++    async confirmDelete(recipeId) {
++        // Redirigir al nuevo flujo unificado
++        this.confirmDeleteFromMenu(recipeId);
+     }
+ 
+     startRename(recipeId, event) {
+@@ -1374,6 +1531,17 @@ class DashboardManager {
+             input.replaceWith(spanOrH4);
+ 
+             if (newName !== original) {
++                // Nuevo: Verificar unicidad de nombre
++                const exists = await window.db.recipeNameExists(newName, { excludeId: recipeId });
++                if (exists) {
++                    const errorMsg = window.i18n 
++                        ? window.i18n.t('recipeNameAlreadyExists', { name: newName }) 
++                        : `"${newName}" ya existe en tus recetas, cámbialo para que puedas agregarla.`;
++                    window.utils.showToast(errorMsg, 'error');
++                    spanOrH4.textContent = original; // Revertir visualmente
++                    return;
++                }
++
+                 const result = await window.db.updateRecipe(recipeId, { name_es: newName });
+                 if (result.success) {
+                     recipe.name_es = newName;
+@@ -1429,6 +1597,17 @@ class DashboardManager {
+         if (existingMenu) existingMenu.remove();
+ 
+         try {
++            // Nuevo: Verificar si el nombre ya existe antes de intentar duplicar
++            // IMPORTANTE: Al mover de compartidas a mis recetas, solo bloqueamos si ya existe en MIS RECETAS
++            const exists = await window.db.recipeNameExists(recipeName, { includeShared: false });
++            if (exists) {
++                const errorMsg = window.i18n 
++                    ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
++                    : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas agregarla.`;
++                window.utils.showToast(errorMsg, 'error');
++                return;
++            }
++
+             window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
+             const result = await window.db.duplicateRecipe(recipeId, window.authManager.currentUser.id);
+             if (result.success) {
