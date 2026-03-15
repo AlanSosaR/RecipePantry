@@ -53,7 +53,7 @@ async function notifyUpdateReady(worker) {
         navigator.setAppBadge(1).catch(() => { });
     }
 
-    // v259+: Banner flotante premium para actualizar de inmediato
+    // v260+: Banner flotante premium para actualizar de inmediato
     const isEn = window.i18n && window.i18n.getLang() === 'en';
     const banner = document.createElement('div');
     banner.id = 'sw-update-banner';
