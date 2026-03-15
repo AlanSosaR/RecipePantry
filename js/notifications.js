@@ -276,6 +276,30 @@ class NotificationManager {
         }
 
         this.list.innerHTML = this.notifications.map(n => {
+            if (n.type === 'welcome') {
+                return `
+                    <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:#10B981;">
+                                🎉
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <span style="color:white; display:block; font-size:13px; font-weight:600;">Recipe Pantry</span>
+                                <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">¡Te damos la bienvenida!</span>
+                                <span style="color:#bbb; font-size:11px; display:block; margin-top:4px;">Toca para abrir tu mensaje de bienvenida.</span>
+                                
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleWelcomeClick('${n.id}')"
+                                        style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        📋 Ver Bienvenida
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             if (n.type === 'app_update') {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const msg = isEn ? 'Tap to apply the new version and reload.' : 'Toca para aplicar la nueva versión y recargar.';
@@ -366,6 +390,25 @@ class NotificationManager {
                 </div>
             `;
         }).join('');
+    }
+
+    handleWelcomeClick(notificationId) {
+        console.log('🎉 [Notifications] Abriendo mensaje de bienvenida:', notificationId);
+        
+        // Marcar como leída en el servidor
+        window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId).then();
+
+        // Quitar de la lista local para que desaparezca de la campana
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        this.updateBadge();
+        this.renderMenu();
+        if (this.menu) this.menu.classList.add('hidden');
+
+        // Mostrar el modal que está en index.html
+        const modal = document.getElementById('welcome-modal');
+        if (modal) {
+            modal.style.setProperty('display', 'flex', 'important');
+        }
     }
 
     handleUpdateApp() {

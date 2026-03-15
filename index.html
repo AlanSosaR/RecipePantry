@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="279">
+<html lang="es" data-app-version="280">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -21,7 +21,7 @@
       };
 
       // 2. Emergency Clear (v167) - Manual Flow Enforcement
-      const CURRENT_VERSION = '279';
+      const CURRENT_VERSION = '280';
       const NUKE_KEY = 'v275_cleanup_bar_grid';
 
       (async () => {
@@ -94,8 +94,8 @@
     rel="stylesheet">
 
 
-  <link rel="stylesheet" href="css/styles.css?v=279">
-  <link rel="stylesheet" href="css/components.css?v=279">
+  <link rel="stylesheet" href="css/styles.css?v=280">
+  <link rel="stylesheet" href="css/components.css?v=280">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -649,6 +649,47 @@
 
     </main>
 
+    <!-- Welcome Modal M3 -->
+    <div id="welcome-modal" class="modal-overlay hidden" style="z-index: 5000; display:flex; align-items:center; justify-content:center;">
+      <div class="modal-container" style="width: 90%; max-width: 500px; padding:0; border-radius:24px; overflow:hidden; background: var(--md-surface); border: 1px solid var(--md-outline-var); box-shadow: 0 12px 40px rgba(0,0,0,0.15);">
+        <div class="modal-header" style="padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--md-outline-var); background: var(--md-surface-container);">
+           <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--md-on-surface); margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px;">🎉 ¡Te damos la bienvenida a Recipe Pantry!</h3>
+        </div>
+        <div class="modal-body" style="max-height: 60vh; overflow-y: auto; padding: 1.5rem; text-align: left; color: var(--md-on-surface-variant); font-size: 0.95rem; line-height: 1.5;">
+          <h4 style="font-weight: 800; font-size: 1.05rem; color: var(--md-on-surface); margin-bottom: 8px;">Mensaje Principal</h4>
+          <p style="margin-bottom: 12px;">¡Hola! Estamos muy felices de tenerte aquí. Recipe Pantry es tu nuevo aliado para guardar, organizar y compartir tus mejores recetas y técnicas — sin importar si eres chef, bartender, pastelero, sommelier o profesional de cualquier área de la hostelería.</p>
+          <p style="margin-bottom: 16px;">Este es el lugar donde viven tus secretos culinarios y de bebidas. Aquí tu conocimiento está a salvo, organizado y siempre a mano.</p>
+
+          <h4 style="font-weight: 800; font-size: 1.05rem; color: var(--md-on-surface); margin-top: 20px; margin-bottom: 8px;">Para empezar, puedes:</h4>
+          <p style="margin-bottom: 10px;">📝 <strong>Crear una receta desde cero</strong><br>Escribe tus propias recetas, técnicas o fórmulas directamente en la app. Perfecta para documentar tus creaciones únicas.</p>
+          <p style="margin-bottom: 10px;">📷 <strong>Escanear una foto</strong><br>¿Encontraste una receta en un libro, revista o apunte? Simplemente fotografíala y nuestro OCR inteligente la convierte en texto editable. Funciona en español e inglés.</p>
+          <p style="margin-bottom: 16px;">🤝 <strong>Compartir con tu equipo</strong><br>Colabora con compañeros de trabajo o amigos profesionales. Tus recetas, cuando quieras compartirlas.</p>
+
+          <h4 style="font-weight: 800; font-size: 1.05rem; color: var(--md-on-surface); margin-top: 20px; margin-bottom: 8px;">¿Quiénes somos?</h4>
+          <p style="margin-bottom: 12px;">Recipe Pantry está hecha para profesionales de la hostelería:</p>
+          <ul style="margin-left: 1.5rem; margin-bottom: 16px; line-height: 1.6;">
+            <li>👨‍🍳 Chefs y cocineros</li>
+            <li>🍹 Bartenders y mixólogos</li>
+            <li>🎂 Pasteleros y reposteros</li>
+            <li>🍷 Sommeliers y enólogos</li>
+            <li>☕ Especialistas en café</li>
+            <li>🍤 Marisqueros y pescaderos</li>
+            <li>Y cualquiera que trabaje con recetas</li>
+          </ul>
+
+          <p style="margin-bottom: 16px;">Tu experiencia, tu creatividad, tus técnicas. Todo en un lugar.</p>
+
+          <p style="font-weight: 800; color: var(--md-on-surface); margin-top: 20px; margin-bottom: 4px;">¿Listo para empezar?</p>
+          <p>Crea tu primera receta o escanea una foto. Tu Recippantry digital te está esperando. ¡Que disfrutes!</p>
+        </div>
+        <div class="modal-footer" style="padding: 1.25rem; border-top: 1px solid var(--md-outline-var); text-align: center; background: var(--md-surface-container);">
+          <button class="btn-m3 btn-primary-m3" style="width: 100%; justify-content: center; padding: 14px; border-radius: 16px; font-weight:700; font-size:0.95rem; background: #10B981; color: white; border: none; cursor: pointer;" onclick="document.getElementById('welcome-modal').style.setProperty('display', 'none', 'important')">
+             Tu Recippantry digital te está esperando.
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Right Sidebar: Details Panel (Dropbox Style) -->
     <aside id="details-sidebar" class="details-sidebar">
       <div class="details-sidebar-header">
@@ -708,24 +749,24 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=279"></script>
-    <script src="js/supabase-client.js?v=279"></script>
-    <script src="js/localdb.js?v=279"></script>
-    <script src="js/sync-manager.js?v=279"></script>
-    <script src="js/utils.js?v=279"></script>
-    <script src="js/i18n.js?v=279"></script>
+    <script src="js/config.js?v=280"></script>
+    <script src="js/supabase-client.js?v=280"></script>
+    <script src="js/localdb.js?v=280"></script>
+    <script src="js/sync-manager.js?v=280"></script>
+    <script src="js/utils.js?v=280"></script>
+    <script src="js/i18n.js?v=280"></script>
 
     <!-- Scripts (Versión Cache Buster) -->
-    <script src="js/db.js?v=279"></script>
-    <script src="js/auth.js?v=279"></script>
-    <script src="js/dashboard.js?v=279"></script>
-    <script src="js/share-modal.js?v=279"></script>
-    <script src="js/help-modal.js?v=279"></script>
-    <script src="js/notifications.js?v=279"></script>
-    <script src="js/ui.js?v=279"></script>
+    <script src="js/db.js?v=280"></script>
+    <script src="js/auth.js?v=280"></script>
+    <script src="js/dashboard.js?v=280"></script>
+    <script src="js/share-modal.js?v=280"></script>
+    <script src="js/help-modal.js?v=280"></script>
+    <script src="js/notifications.js?v=280"></script>
+    <script src="js/ui.js?v=280"></script>
 
     <!-- Service Worker Registration -->
-    <script src="js/sw-register.js?v=279"></script>
+    <script src="js/sw-register.js?v=280"></script>
 
 
     <script>
