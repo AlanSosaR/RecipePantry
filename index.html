@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="255">
+<html lang="es" data-app-version="256">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -21,8 +21,8 @@
       };
 
       // 2. Emergency Clear (v167) - Manual Flow Enforcement
-      const CURRENT_VERSION = '255';
-      const NUKE_KEY = 'v255_green_ocr_fix';
+      const CURRENT_VERSION = '256';
+      const NUKE_KEY = 'v256_green_ocr_fix';
 
       (async () => {
         const storedVersion = localStorage.getItem('recipe_app_version');
@@ -94,8 +94,8 @@
     rel="stylesheet">
 
 
-  <link rel="stylesheet" href="css/styles.css?v=255">
-  <link rel="stylesheet" href="css/components.css?v=255">
+  <link rel="stylesheet" href="css/styles.css?v=256">
+  <link rel="stylesheet" href="css/components.css?v=256">
   <script>
     // Anti-flicker: Improved logic to prevent landing page flicker
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
@@ -369,7 +369,7 @@
       top: 16px;
       right: 16px;
       z-index: 10;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(256, 256, 256, 0.2);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       padding: 6px 12px;
@@ -382,11 +382,11 @@
       font-weight: 700;
       color: white;
       transition: all 0.2s;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(256, 256, 256, 0.3);
     }
 
     .language-toggle:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(256, 256, 256, 0.3);
       transform: translateY(-1px);
     }
 
@@ -708,24 +708,24 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=255"></script>
-    <script src="js/supabase-client.js?v=255"></script>
-    <script src="js/localdb.js?v=255"></script>
-    <script src="js/sync-manager.js?v=255"></script>
-    <script src="js/utils.js?v=255"></script>
-    <script src="js/i18n.js?v=255"></script>
+    <script src="js/config.js?v=256"></script>
+    <script src="js/supabase-client.js?v=256"></script>
+    <script src="js/localdb.js?v=256"></script>
+    <script src="js/sync-manager.js?v=256"></script>
+    <script src="js/utils.js?v=256"></script>
+    <script src="js/i18n.js?v=256"></script>
 
     <!-- Scripts (Versión Cache Buster) -->
-    <script src="js/db.js?v=255"></script>
-    <script src="js/auth.js?v=255"></script>
-    <script src="js/dashboard.js?v=255"></script>
-    <script src="js/share-modal.js?v=255"></script>
-    <script src="js/help-modal.js?v=255"></script>
-    <script src="js/notifications.js?v=255"></script>
-    <script src="js/ui.js?v=255"></script>
+    <script src="js/db.js?v=256"></script>
+    <script src="js/auth.js?v=256"></script>
+    <script src="js/dashboard.js?v=256"></script>
+    <script src="js/share-modal.js?v=256"></script>
+    <script src="js/help-modal.js?v=256"></script>
+    <script src="js/notifications.js?v=256"></script>
+    <script src="js/ui.js?v=256"></script>
 
     <!-- Service Worker Registration -->
-    <script src="js/sw-register.js?v=255"></script>
+    <script src="js/sw-register.js?v=256"></script>
 
 
     <script>
