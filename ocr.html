@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="257">
+<html lang="es" data-app-version="258">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '257';
-            const NUKE_KEY = 'v257_ocr_green_ui';
+            const CURRENT_VERSION = '258';
+            const NUKE_KEY = 'v258_ocr_green_ui';
 
             (async () => {
                 if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
@@ -521,7 +521,7 @@
             left: 0;
             right: 0;
             z-index: 100;
-            background: rgba(257, 257, 257, 0.8);
+            background: rgba(258, 258, 258, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--outline-variant);
             height: 72px;
@@ -652,7 +652,7 @@
         /* --- Interactive Scanning UI --- */
         #ocrOverlay {
             transition: all 0.3s ease;
-            --guide-color: rgba(257, 257, 257, 0.4);
+            --guide-color: rgba(258, 258, 258, 0.4);
             --corner-color: #FFFFFF;
             border-color: var(--guide-color) !important;
         }
@@ -1005,18 +1005,18 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=257"></script>
-    <script src="js/supabase-client.js?v=257"></script>
-    <script src="js/auth.js?v=257"></script>
-    <script src="js/localdb.js?v=257"></script>
-    <script src="js/sync-manager.js?v=257"></script>
-    <script src="js/db.js?v=257"></script>
-    <script src="js/utils.js?v=257"></script>
-    <script src="js/i18n.js?v=257"></script>
+    <script src="js/config.js?v=258"></script>
+    <script src="js/supabase-client.js?v=258"></script>
+    <script src="js/auth.js?v=258"></script>
+    <script src="js/localdb.js?v=258"></script>
+    <script src="js/sync-manager.js?v=258"></script>
+    <script src="js/db.js?v=258"></script>
+    <script src="js/utils.js?v=258"></script>
+    <script src="js/i18n.js?v=258"></script>
 
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=257"></script>
-    <script src="js/ocr.js?v=257"></script>
+    <script src="js/ocr-processor.js?v=258"></script>
+    <script src="js/ocr.js?v=258"></script>
 
     <script>
         // Variables de estado
@@ -1349,7 +1349,7 @@
                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;">
                 <!-- Corner guides overlay -->
                 <div id="ocrOverlay"
-                    style="position:absolute;inset:48px 32px;border:2px solid rgba(257,257,257,.4);border-radius:12px;pointer-events:none;">
+                    style="position:absolute;inset:48px 32px;border:2px solid rgba(258,258,258,.4);border-radius:12px;pointer-events:none;">
                     <div class="corner"
                         style="position:absolute;top:0;left:0;width:16px;height:16px;border-top:3px solid white;border-left:3px solid white;border-radius:2px 0 0 0;">
                     </div>
@@ -1364,7 +1364,7 @@
                     </div>
                 </div>
                 <!-- Hint -->
-                <p style="position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(257,257,257,.85);font-size:13px;font-weight:500;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.5);"
+                <p style="position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(258,258,258,.85);font-size:13px;font-weight:500;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.5);"
                     data-i18n="ocrCameraHint">
                     Apunta la cámara a la receta y presiona el botón
                 </p>
@@ -1373,14 +1373,14 @@
                     style="margin-top:auto;padding:24px 24px 28px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:space-around;z-index:10;">
                     <!-- Gallery fallback -->
                     <button id="btnGallery"
-                        style="width:48px;height:48px;border-radius:50%;background:rgba(257,257,257,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
+                        style="width:48px;height:48px;border-radius:50%;background:rgba(258,258,258,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
                         data-i18n-title="ocrGalleryTooltip" title="Subir imagen desde galería">
                         <input type="file" id="ocrGalleryInput" accept="image/*" style="display:none">
                         <span class="material-symbols-outlined">photo_library</span>
                     </button>
                     <!-- Main capture button: takes photo and auto-processes -->
                     <button id="btnCapture"
-                        style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(257,257,257,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);"
+                        style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(258,258,258,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);"
                         data-i18n-title="ocrCaptureTooltip" title="Capturar y analizar receta">
                         <div
                             style="width:58px;height:58px;border-radius:50%;background:white;border:2px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;">
@@ -1390,7 +1390,7 @@
                     </button>
                     <!-- Switch camera -->
                     <button id="btnSwitchCamera"
-                        style="width:48px;height:48px;border-radius:50%;background:rgba(257,257,257,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
+                        style="width:48px;height:48px;border-radius:50%;background:rgba(258,258,258,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
                         data-i18n-title="ocrSwitchCameraTooltip" title="Cambiar cámara">
                         <span class="material-symbols-outlined">cameraswitch</span>
                     </button>
