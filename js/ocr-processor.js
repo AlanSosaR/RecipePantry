@@ -14,18 +14,30 @@ class OCRProcessor {
     /**
      * Inicialización optimizada para Tesseract.js v7.0.0
      */
-    async initialize(onProgress) {
-        if (this.isInitialized) return;
+    async initialize(onProgress, options = {}) {
+        const targetLang = options.lang || 'spa+eng';
+        const targetPsm = options.psm !== undefined ? options.psm : 3;
+
+        if (this.isInitialized && this.currentLang !== targetLang) {
+            console.log(`🔄 Cambiando idioma de OCR a ${targetLang}...`);
+            await this.worker.terminate();
+            this.isInitialized = false;
+        }
+
+        if (this.isInitialized) {
+            await this.worker.setParameters({ tessedit_pageseg_mode: targetPsm });
+            return;
+        }
 
         console.log('🚀 Cargando dependencias de OCR...');
         if (typeof Tesseract === 'undefined') {
             await this.loadDependencies();
         }
 
-        console.log('🚀 Inicializando Tesseract.js v7.0.0...');
+        console.log(`🚀 Inicializando Tesseract.js v7.0.0 para ${targetLang}...`);
+        this.currentLang = targetLang;
 
-        // V7: Los parámetros se pasan en createWorker si es necesario para el logger
-        this.worker = await Tesseract.createWorker('spa+eng', 1, {
+        this.worker = await Tesseract.createWorker(targetLang, 1, {
             logger: info => {
                 if (info.status === 'recognizing text' && onProgress) {
                     onProgress({
@@ -39,7 +51,7 @@ class OCRProcessor {
 
         // Configuración de motor
         await this.worker.setParameters({
-            tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+            tessedit_pageseg_mode: targetPsm,
             user_defined_dpi: '300', // Evita el log "Estimating resolution" que sale como error
             preserve_interword_spaces: '1',
             tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúñÁÉÍÓÚÑüÜ0123456789 .,;:()[]{}°•✓→★½¼¾-/+@#$%&\'\"',
@@ -52,9 +64,9 @@ class OCRProcessor {
     /**
      * Proceso principal de OCR
      */
-    async processImage(imageFile, onProgress) {
+    async processImage(imageFile, onProgress, options = {}) {
         try {
-            await this.initialize(onProgress);
+            await this.initialize(onProgress, options);
 
             if (onProgress) onProgress({ status: 'preprocesando', progress: 0.1, message: '📸 Preprocesando imagen...' });
             const processedCanvas = await this.preprocessImage(imageFile);
