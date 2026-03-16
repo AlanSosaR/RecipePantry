@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v289
-console.log('📄 [File] js/dashboard.js loaded (v289)');
+// Lógica específica del Dashboard - v290
+console.log('📄 [File] js/dashboard.js loaded (v290)');
 
 class DashboardManager {
     constructor() {
@@ -43,7 +43,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v289)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v290)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -1116,6 +1116,7 @@ class DashboardManager {
         const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
         container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
         this.updateSelectAllCheckbox();
+        this.updateActionBar(); // Asegurar que botones globales se actualicen tras el render
     }
 
     renderRecipeRow(recipe) {

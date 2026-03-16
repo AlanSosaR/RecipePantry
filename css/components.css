@@ -692,9 +692,10 @@ ol {
 /* --- Unified List View Grid --- */
 .list-header-m3,
 .file-row-m3 {
-    grid-template-columns: 48px minmax(200px, 1fr) 120px 120px 48px 48px;
+    display: grid !important;
+    grid-template-columns: 48px minmax(140px, 400px) 120px 140px 48px 48px;
     /* icon | name | access | date | checkbox | actions */
-    gap: 1rem;
+    gap: 1.5rem;
     align-items: center;
     padding: 0 1.6rem;
     height: 44px;
