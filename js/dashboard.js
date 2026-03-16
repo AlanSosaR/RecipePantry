@@ -1,6 +1,6 @@
 // js/dashboard.js
-// Lógica específica del Dashboard - v218
-console.log('📄 [File] js/dashboard.js loaded (v218)');
+// Lógica específica del Dashboard - v289
+console.log('📄 [File] js/dashboard.js loaded (v289)');
 
 class DashboardManager {
     constructor() {
@@ -43,7 +43,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v234)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v289)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -564,15 +564,10 @@ class DashboardManager {
             }
 
             if (countGroup) countGroup.classList.remove('hidden');
-            const moreBtn = document.getElementById('selectionMoreBtn');
             if (moreBtn) {
-                // v281: Ocultar en PC para que SOLO se vea el de la cabecera del listado
-                if (window.innerWidth > 768) {
-                    moreBtn.style.setProperty('display', 'none', 'important');
-                } else {
-                    moreBtn.style.setProperty('display', 'flex', 'important');
-                    moreBtn.classList.remove('hidden');
-                }
+                // v289: Mantener siempre visible el de la cabecera global para mayor claridad
+                moreBtn.style.setProperty('display', 'flex', 'important');
+                moreBtn.classList.remove('hidden');
             }
             const moreBtnHeader = document.getElementById('selectionMoreBtnHeader');
             if (moreBtnHeader) {
@@ -581,8 +576,8 @@ class DashboardManager {
             // Force PC selection header alignment leftwards next to title
             const dashHeader = document.querySelector('.dashboard-header');
             if (dashHeader && window.innerWidth > 800) {
-                dashHeader.style.setProperty('justify-content', 'flex-start', 'important');
-                dashHeader.style.setProperty('gap', '24px', 'important');
+                dashHeader.style.setProperty('justify-content', 'space-between', 'important');
+                dashHeader.style.setProperty('gap', '12px', 'important');
             }
 
         } else {

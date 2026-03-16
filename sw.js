@@ -1,10 +1,10 @@
 /**
- * RecipePantry Service Worker (v288)
+ * RecipePantry Service Worker (v289)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipepantry-v288';
-const BUILD_ID = '2026-03-16-v288';
+const CACHE_NAME = 'recipepantry-v289';
+const BUILD_ID = '2026-03-16-v289';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
