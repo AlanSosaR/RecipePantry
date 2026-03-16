@@ -125,6 +125,9 @@ class AuthManager {
                 console.log('✅ Perfil cargado y guardado:', userData.first_name);
                 localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
                 if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+                
+                // v287: Asegurar notificación de bienvenida tras confirmar/acceder
+                await this.ensureWelcomeNotification(userData.id);
             }
             
             return true;
@@ -159,7 +162,7 @@ class AuthManager {
 
             this.currentUser = userData;
             await this.createDefaultCategories(userData.id);
-            await this.createWelcomeNotification(userData.id);
+            await this.ensureWelcomeNotification(userData.id);
             return true;
         } catch (err) {
             console.error('Error creando perfil:', err);
@@ -250,6 +253,9 @@ class AuthManager {
 
             this.currentUser = userData;
             this.session = data.session;
+
+            // v287: Asegurar bienvenida al loguear
+            await this.ensureWelcomeNotification(userData.id);
 
             console.log('✅ Login exitoso:', email);
             return { success: true, user: userData };
@@ -382,11 +388,24 @@ class AuthManager {
         await window.supabaseClient.from('categories').insert(categoriesData);
     }
 
-    // Crear notificación de bienvenida (v279)
-    async createWelcomeNotification(userId) {
+    // Asegurar notificación de bienvenida (v287) - Idempotente
+    async ensureWelcomeNotification(userId) {
         try {
-            // v282: La tabla 'notifications' no tiene columnas 'titulo' ni 'mensaje'. 
-            // El texto se renderiza en notifications.js según el 'type'.
+            // Verificar si ya tiene una (leída o no)
+            const { data, error: checkError } = await window.supabaseClient
+                .from('notifications')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('type', 'welcome')
+                .limit(1);
+
+            if (checkError) throw checkError;
+            
+            if (data && data.length > 0) {
+                console.log('ℹ️ [Auth] El usuario ya tiene/tuvo notificación de bienvenida.');
+                return;
+            }
+
             const { error } = await window.supabaseClient.from('notifications').insert([{
                 user_id: userId,
                 type: 'welcome',
@@ -394,9 +413,9 @@ class AuthManager {
             }]);
 
             if (error) throw error;
-            console.log('🎁 Notificación de bienvenida creada para el usuario:', userId);
+            console.log('🎁 [Auth] Notificación de bienvenida generada automáticamente.');
         } catch (err) {
-            console.error('❌ Error creando notificación de bienvenida:', err);
+            console.error('❌ Error asegurando notificación de bienvenida:', err);
         }
     }
 
