@@ -55,20 +55,28 @@ class OCRScanner {
         if (preview) { preview.style.display = 'none'; preview.src = ''; }
 
         // Reset progress bar and text
-        const progressText = document.getElementById('ocrProgressText');
-        const progressBar = document.getElementById('ocrProgressBar');
-        const percentText = document.getElementById('ocrPercent');
-        if (progressText) progressText.textContent = 'Iniciando OCR...';
-        if (progressBar) progressBar.style.width = '0%';
-        if (percentText) percentText.textContent = '0%';
+        const percentTexts = [document.getElementById('ocrPercent'), document.getElementById('ocrPercentModal')];
+        const progressTexts = [document.getElementById('processingStatus'), document.getElementById('processingStatusModal')];
+        const progressBars = [document.getElementById('progressBar'), document.getElementById('progressBarModal')];
+
+        progressTexts.forEach(el => { if (el) el.textContent = 'Iniciando OCR...'; });
+        progressBars.forEach(el => { if (el) el.style.width = '0%'; });
+        percentTexts.forEach(el => { if (el) el.textContent = '0%'; });
 
         // Reset blob animation and checkmark to initial state
-        const m3Blob = document.getElementById('m3Blob');
-        const m3Checkmark = document.getElementById('m3Checkmark');
-        const glassOverlay = document.getElementById('ocrGlassOverlay');
-        if (m3Blob) m3Blob.classList.remove('success');
-        if (m3Checkmark) m3Checkmark.style.opacity = '0';
-        if (glassOverlay) glassOverlay.style.opacity = '1';
+        const m3Blobs = [document.getElementById('m3Blob'), document.getElementById('m3BlobModal')];
+        const m3Checkmarks = [document.getElementById('m3Checkmark'), document.getElementById('m3CheckmarkModal')];
+        const glassOverlays = [document.getElementById('ocrGlassOverlay'), document.getElementById('ocrGlassOverlayModal')];
+        
+        m3Blobs.forEach(el => {
+            if (el) el.classList.remove('success');
+        });
+        m3Checkmarks.forEach(el => {
+            if (el) el.style.opacity = '0';
+        });
+        glassOverlays.forEach(el => {
+            if (el) el.style.opacity = '1';
+        });
 
         // Hide loading state and show camera
         if (loadingState) loadingState.style.display = 'none';
@@ -153,13 +161,14 @@ class OCRScanner {
         }
 
         // Reset progress
-        const progressText = document.getElementById('processingStatus');
-        const progressBar = document.getElementById('progressBar');
-        const percentText = document.getElementById('ocrPercent');
+        const progressTexts = [document.getElementById('processingStatus'), document.getElementById('processingStatusModal')];
+        const progressBars = [document.getElementById('progressBar'), document.getElementById('progressBarModal')];
+        const percentTexts = [document.getElementById('ocrPercent'), document.getElementById('ocrPercentModal')];
         
-        if (progressText) progressText.textContent = window.i18n ? window.i18n.t('ocrProcessing') : 'Iniciando OCR...';
-        if (progressBar) progressBar.style.width = '0%';
-        if (percentText) percentText.textContent = '0%';
+        const initText = window.i18n ? window.i18n.t('ocrProcessing') : 'Iniciando OCR...';
+        progressTexts.forEach(el => { if (el) el.textContent = initText; });
+        progressBars.forEach(el => { if (el) el.style.width = '0%'; });
+        percentTexts.forEach(el => { if (el) el.textContent = '0%'; });
     }
 
     /**
@@ -168,26 +177,27 @@ class OCRScanner {
     updateProgress(message) {
         const p = Math.round((message.progress || 0) * 100);
         
-        const percentText = document.getElementById('ocrPercent');
-        const progressText = document.getElementById('processingStatus');
-        const progressBar = document.getElementById('progressBar');
-        const m3Blob = document.getElementById('m3Blob');
-        const m3Checkmark = document.getElementById('m3Checkmark');
-        const glassOverlay = document.getElementById('ocrGlassOverlay');
+        const percentTexts = [document.getElementById('ocrPercent'), document.getElementById('ocrPercentModal')];
+        const progressTexts = [document.getElementById('processingStatus'), document.getElementById('processingStatusModal')];
+        const progressBars = [document.getElementById('progressBar'), document.getElementById('progressBarModal')];
+        
+        const m3Blobs = [document.getElementById('m3Blob'), document.getElementById('m3BlobModal')];
+        const m3Checkmarks = [document.getElementById('m3Checkmark'), document.getElementById('m3CheckmarkModal')];
+        const glassOverlays = [document.getElementById('ocrGlassOverlay'), document.getElementById('ocrGlassOverlayModal')];
 
-        if (percentText) percentText.textContent = `${p}%`;
+        percentTexts.forEach(el => { if (el) el.textContent = `${p}%`; });
 
-        if (message.message && progressText) {
-            progressText.textContent = message.message;
+        if (message.message) {
+            progressTexts.forEach(el => { if (el) el.textContent = message.message; });
         }
 
-        if (progressBar) progressBar.style.width = p + '%';
+        progressBars.forEach(el => { if (el) el.style.width = p + '%'; });
 
         // Animación de Éxito al llegar a 100%
         if (p >= 100 || message.status === 'completado') {
-            if (m3Blob) m3Blob.classList.add('success');
-            if (m3Checkmark) m3Checkmark.style.opacity = '1';
-            if (glassOverlay) glassOverlay.style.opacity = '0'; // Quitar frosted glass
+            m3Blobs.forEach(el => { if (el) el.classList.add('success'); });
+            m3Checkmarks.forEach(el => { if (el) el.style.opacity = '1'; });
+            glassOverlays.forEach(el => { if (el) el.style.opacity = '0'; }); // Quitar frosted glass
         }
     }
 
@@ -254,7 +264,7 @@ class OCRScanner {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
         const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
 
-        const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
+        const selectedLang = window.selectedOcrLang || 'spa';
 
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
@@ -458,7 +468,7 @@ class OCRScanner {
             reader.readAsDataURL(file);
         });
         this.stopCamera();
-        const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
+        const selectedLang = window.selectedOcrLang || 'spa';
         this.showProcessingState(imageDataUrl);
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });

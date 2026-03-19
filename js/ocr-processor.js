@@ -4,7 +4,7 @@
  */
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const AI_MODEL = "google/gemini-2.0-flash-exp:free";
+const AI_MODEL = "google/gemini-2.5-flash";
 
 // Obfuscated OpenRouter key to avoid Git auto-revocation
 const OPENROUTER_KEY_ENC = "c2stb3ItdjEtNDU0NDA5YTUwOGZiODFhYzU4ZmJiNThjYzAyNDFiZWM1ODc4YThkYTg4Y2Y0NjYzNmVkMjVmNmNhM2M4YzllZm==";

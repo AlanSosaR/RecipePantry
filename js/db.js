@@ -315,12 +315,17 @@ class DatabaseManager {
 
                 // Siempre verificar en mis recetas
                 // v248: Usamos sintaxis más limpia para evitar fallos con caracteres especiales
-                const { data: mine, error: errorMine } = await window.supabaseClient
+                let query = window.supabaseClient
                     .from('recipes')
                     .select('id, name_es')
                     .eq('user_id', userId)
-                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`)
-                    .limit(1);
+                    .or(`name_es.ilike."${name}",name_en.ilike."${name}"`);
+
+                if (excludeId) {
+                    query = query.neq('id', excludeId);
+                }
+
+                const { data: mine, error: errorMine } = await query.limit(1);
 
                 if (errorMine) throw errorMine;
                 if (mine && mine.length > 0) {
