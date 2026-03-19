@@ -53,13 +53,26 @@
 
             // 2. Emergency Clear
             const CURRENT_VERSION = '337';
-            const NUKE_KEY = 'v337_force_update';
+            const NUKE_KEY = 'v337_nuclear_v2';
 
             (async () => {
-                        for (let k of keys) await caches.delete(k);
-                    }
-                    localStorage.setItem('recipe_app_version', CURRENT_VERSION);
+                const storedVersion = localStorage.getItem('recipe_app_version_ocr');
+                const storedNuke = localStorage.getItem(NUKE_KEY);
+
+                if (storedVersion !== CURRENT_VERSION || !storedNuke) {
+                    console.log(`[System] New OCR version: ${CURRENT_VERSION}. Forcing update...`);
+                    localStorage.setItem('recipe_app_version_ocr', CURRENT_VERSION);
                     localStorage.setItem(NUKE_KEY, 'true');
+
+                    try {
+                        if ('serviceWorker' in navigator) {
+                            const regs = await navigator.serviceWorker.getRegistrations();
+                            for (const r of regs) await r.unregister();
+                        }
+                        const cacheNames = await caches.keys();
+                        for (const name of cacheNames) await caches.delete(name);
+                    } catch(e) {}
+                    
                     window.location.reload(true);
                 }
             })();
@@ -77,8 +90,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=333">
-    <link rel="stylesheet" href="css/components.css?v=333">
+    <link rel="stylesheet" href="css/styles.css?v=337">
+    <link rel="stylesheet" href="css/components.css?v=337">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1190,19 +1203,19 @@
 
     <!-- Scripts -->
     <script src="js/config.js?v=330"></script>
-    <script src="js/supabase-client.js?v=333"></script>
-    <script src="js/auth.js?v=333"></script>
-    <script src="js/localdb.js?v=333"></script>
-    <script src="js/sync-manager.js?v=333"></script>
-    <script src="js/db.js?v=333"></script>
-    <script src="js/utils.js?v=333"></script>
-    <script src="js/i18n.js?v=333"></script>
-    <script src="js/ui.js?v=333"></script>
+    <script src="js/supabase-client.js?v=337"></script>
+    <script src="js/auth.js?v=337"></script>
+    <script src="js/localdb.js?v=337"></script>
+    <script src="js/sync-manager.js?v=337"></script>
+    <script src="js/db.js?v=337"></script>
+    <script src="js/utils.js?v=337"></script>
+    <script src="js/i18n.js?v=337"></script>
+    <script src="js/ui.js?v=337"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=333"></script>
-    <script src="js/ocr.js?v=333"></script>
-    <script src="js/url-importer.js?v=333"></script>
+    <script src="js/ocr-processor.js?v=337"></script>
+    <script src="js/ocr.js?v=337"></script>
+    <script src="js/url-importer.js?v=337"></script>
 
 
     <script>
