@@ -265,8 +265,8 @@ Return ONLY this JSON, no markdown, no explanation:
 
     async processImage(imageFile, onProgress, options = {}) {
         try {
-            this.currentKeyIndex = 0; // Siempre empezar desde la clave 0 en cada escaneo
             await this.initialize(onProgress, options);
+
 
 
             if (onProgress) onProgress({ status: 'preprocesando', progress: 0.2, message: 'Analizando imagen...' });

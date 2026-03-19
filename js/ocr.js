@@ -36,7 +36,6 @@ class OCRScanner {
     resetModal() {
         this.stopCamera();
         const preview = document.getElementById('capturePreview');
-        const video = document.getElementById('videoFeed');
         const loadingState = document.getElementById('ocrLoading');
         const captureSection = document.getElementById('ocrCaptureSection');
         if (captureSection) captureSection.style.display = 'block';
@@ -49,14 +48,32 @@ class OCRScanner {
 
         if (preview) { preview.style.display = 'none'; preview.src = ''; }
 
-        // Reset progress
+        // Reset progress bar and text
         const progressText = document.getElementById('ocrProgressText');
         const progressBar = document.getElementById('ocrProgressBar');
+        const percentText = document.getElementById('ocrPercent');
         if (progressText) progressText.textContent = 'Iniciando OCR...';
         if (progressBar) progressBar.style.width = '0%';
+        if (percentText) percentText.textContent = '0%';
+
+        // Reset blob animation and checkmark to initial state
+        const m3Blob = document.getElementById('m3Blob');
+        const m3Checkmark = document.getElementById('m3Checkmark');
+        const glassOverlay = document.getElementById('ocrGlassOverlay');
+        if (m3Blob) m3Blob.classList.remove('success');
+        if (m3Checkmark) m3Checkmark.style.opacity = '0';
+        if (glassOverlay) glassOverlay.style.opacity = '1';
+
+        // Hide loading state and show camera
+        if (loadingState) loadingState.style.display = 'none';
+        const cameraState = document.getElementById('ocrCameraState');
+        const resultState = document.getElementById('ocrResultState');
+        if (cameraState) cameraState.style.display = 'flex';
+        if (resultState) resultState.style.display = 'none';
 
         this.startCamera();
     }
+
 
     // Legacy alias
     reset() { this.resetModal(); }
@@ -231,10 +248,11 @@ class OCRScanner {
         const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
 
         try {
-            // v252: Precision check - No over-processing later because we already optimized it here
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
 
             if (results.success) {
+                // Esperar a que el usuario vea el 100% antes de mostrar resultados
+                await new Promise(resolve => setTimeout(resolve, 700));
                 this.showResults(results);
             } else {
                 throw new Error(results.error);
@@ -287,9 +305,13 @@ class OCRScanner {
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
 
-            if (results.success) this.showResults(results);
+            if (results.success) {
+                await new Promise(resolve => setTimeout(resolve, 700));
+                this.showResults(results);
+            }
             else throw new Error(results.error);
         } catch (error) { this.resetModal(); }
+
     }
 
     showResults(results) {
@@ -435,9 +457,13 @@ class OCRScanner {
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
 
-            if (results.success) this.showResults(results);
+            if (results.success) {
+                await new Promise(resolve => setTimeout(resolve, 700));
+                this.showResults(results);
+            }
             else throw new Error(results.error);
         } catch (error) { this.resetModal(); }
+
     }
 
     learnCorrections() { console.log("Sistema local no requiere fase de aprendizaje."); }
