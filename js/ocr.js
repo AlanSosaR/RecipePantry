@@ -278,6 +278,7 @@ class OCRScanner {
     }
 
     showResults(results) {
+        console.log("🔍 [DEBUG] OCR Results:", JSON.stringify(results, null, 2));
         window.currentOCRResults = results;
         const isMainPageMode = document.getElementById('ocrFullText') !== null;
         if (isMainPageMode) {
@@ -290,8 +291,12 @@ class OCRScanner {
             if (resultBody) resultBody.classList.remove('hidden');
             if (captureSection) captureSection.classList.add('hidden');
             if (tipsSection) tipsSection.classList.add('hidden');
-            const nameInput = document.getElementById('ocrRecipeName');
-            if (nameInput) nameInput.value = results.nombre || '';
+            
+            // Corregido: Actualizar todos los inputs de nombre (resolver ID duplicado)
+            document.querySelectorAll('[id="ocrRecipeName"]').forEach(nameInput => {
+                nameInput.value = results.nombre || '';
+            });
+
             const pageFullText = document.getElementById('ocrFullText');
             if (pageFullText) pageFullText.value = results.texto;
 
@@ -301,10 +306,18 @@ class OCRScanner {
             const rawView3 = document.getElementById('ocrRawViewStep3');
 
             if (results.isStructured) {
-                if (structuredView1) structuredView1.classList.remove('hidden');
-                if (rawView1) rawView1.classList.add('hidden');
-                if (structuredView3) structuredView3.classList.remove('hidden');
-                if (rawView3) rawView3.classList.add('hidden');
+                if (structuredView1) {
+                    structuredView1.style.display = 'block';
+                    structuredView1.classList.remove('hidden');
+                }
+                if (rawView1) rawView1.style.display = 'none';
+
+                if (structuredView3) {
+                    structuredView3.style.display = 'block';
+                    structuredView3.classList.remove('hidden');
+                }
+                if (rawView3) rawView3.style.display = 'none';
+
 
                 const renderIngs = (listId) => {
                     const list = document.getElementById(listId);
