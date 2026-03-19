@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="319">
+<html lang="es" data-app-version="320">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '319';
+            const CURRENT_VERSION = '320';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=319">
-    <link rel="stylesheet" href="css/components.css?v=319">
+    <link rel="stylesheet" href="css/styles.css?v=320">
+    <link rel="stylesheet" href="css/components.css?v=320">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -249,6 +249,31 @@
             padding: 0;
             min-height: auto;
         }
+
+        /* ─── OCR Editable Cards ───────────────────────── */
+        .ocr-edit-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: var(--surface);
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .ocr-edit-card:focus-within {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 1px var(--primary), 0 4px 12px rgba(16, 185, 129, 0.1);
+            background: #fff;
+        }
+
+        .ocr-edit-card [contenteditable] {
+            outline: none !important;
+            flex: 1;
+            cursor: text;
+        }
+
 
         /* Responsive Utilities */
         @media (max-width: 1023px) {
@@ -1126,20 +1151,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=319"></script>
-    <script src="js/supabase-client.js?v=319"></script>
-    <script src="js/auth.js?v=319"></script>
-    <script src="js/localdb.js?v=319"></script>
-    <script src="js/sync-manager.js?v=319"></script>
-    <script src="js/db.js?v=319"></script>
-    <script src="js/utils.js?v=319"></script>
-    <script src="js/i18n.js?v=319"></script>
-    <script src="js/ui.js?v=319"></script>
+    <script src="js/config.js?v=320"></script>
+    <script src="js/supabase-client.js?v=320"></script>
+    <script src="js/auth.js?v=320"></script>
+    <script src="js/localdb.js?v=320"></script>
+    <script src="js/sync-manager.js?v=320"></script>
+    <script src="js/db.js?v=320"></script>
+    <script src="js/utils.js?v=320"></script>
+    <script src="js/i18n.js?v=320"></script>
+    <script src="js/ui.js?v=320"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=319"></script>
-    <script src="js/ocr.js?v=319"></script>
-    <script src="js/url-importer.js?v=319"></script>
+    <script src="js/ocr-processor.js?v=320"></script>
+    <script src="js/ocr.js?v=320"></script>
+    <script src="js/url-importer.js?v=320"></script>
 
 
     <script>

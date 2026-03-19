@@ -363,28 +363,31 @@ class OCRScanner {
                     const list = document.getElementById(listId);
                     if (!list) return;
                     list.innerHTML = (results.ingredientes || []).map((ing, idx) => `
-                        <div style="display: flex; align-items: flex-start; gap: 8px; background: var(--surface); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border);">
+                        <div class="ocr-edit-card">
                             <span style="color: var(--primary); font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 1px;">•</span>
-                            <div contenteditable="true" data-idx="${idx}" data-type="ing" style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4; outline: none; cursor: text; flex: 1;">
+                            <div contenteditable="true" data-idx="${idx}" data-type="ing" style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4;">
                                 ${ing.cantidad ? `<strong style="color: var(--primary); margin-right: 4px;">${ing.cantidad}</strong>` : ''}
                                 ${ing.unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${ing.unidad}</span>` : ''}
                                 <span>${ing.nombre}</span>
                             </div>
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary); opacity: 0.8;">check_circle</span>
                         </div>
                     `).join('');
                 };
+
 
 
                 const renderSteps = (listId) => {
                     const list = document.getElementById(listId);
                     if (!list) return;
                     list.innerHTML = (results.pasos || []).map((paso, idx) => `
-                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <div class="ocr-edit-card" style="gap: 16px;">
                             <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;">${idx + 1}</span>
-                            <p contenteditable="true" data-idx="${idx}" data-type="paso" style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6; outline: none; cursor: text; flex: 1;">${paso}</p>
+                            <div contenteditable="true" data-idx="${idx}" data-type="paso" style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6;">${paso}</div>
                         </div>
                     `).join('');
                 };
+
 
 
                 renderIngs('ocrIngredientsListStep1');
