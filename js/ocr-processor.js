@@ -298,52 +298,53 @@ Return ONLY this JSON, no markdown, no explanation:
                 console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
                 console.log(`📝 Texto extraído | Confianza: ${confidence.toFixed(1)}%`);
 
-                if (onProgress) onProgress({ status: 'estructurando', progress: 0.7, message: '🤖 Estructurando receta...' });
+                if (onProgress) onProgress({ status: 'estructurando', progress: 0.7, message: '🤖 Estructurando receta con IA...' });
 
                 const textoCorregido = this.applyAllCorrections(text);
 
-                let nombre = '';
-                let ingredientes = [];
-                let pasos = [];
-                let isStructured = false;
-
                 try {
+                    console.log("🤖 [Tesseract Fallback] Enviando texto a Gemini para estructuración...");
                     const geminiResult = await this.structureRecipeWithGemini(textoCorregido, onProgress);
-                    nombre = geminiResult.nombre || '';
-                    ingredientes = geminiResult.ingredientes || [];
-                    pasos = geminiResult.pasos || [];
-                    isStructured = true;
-
-                    let score = 100;
-                    if (!nombre || nombre.trim().length < 3) score -= 10;
-                    if (ingredientes.length === 0) score -= 20;
-                    if (pasos.length < 2) score -= 5;
+                    
+                    // Cálculo de Confianza Dinámica (IA + Tesseract)
+                    let score = Math.round((tesseractConfidence + 100) / 2); // Promedio entre OCR y Estructuración
+                    if (!geminiResult.nombre || geminiResult.nombre.trim().length < 3) score -= 10;
+                    if (!geminiResult.ingredientes || geminiResult.ingredientes.length === 0) score -= 20;
                     if (score < 0) score = 0;
-                    confidence = score;
 
-                    console.log(`✅ Estructuración con Gemini exitosa | Confianza AI: ${confidence}%`);
+                    console.log(`✅ [Tesseract + Gemini] Éxito | Confianza: ${score}%`);
+                    if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado' });
+
+                    return {
+                        ...geminiResult,
+                        texto: textoCorregido,
+                        confidence: score,
+                        success: true,
+                        version: 'v7.2.1-tesseract-ia',
+                        method: 'tesseract-v7 + gemini-2.0-flash',
+                        isStructured: true
+                    };
+
                 } catch (e) {
-                    // Continuar siempre con regex local como último recurso
-                    console.warn("⚠️ Fallback a procesamiento Regex local:", e.message);
-                    nombre = this.extractRecipeName(textoCorregido);
-                    ingredientes = this.extractIngredients(textoCorregido);
-                    pasos = this.extractSteps(textoCorregido);
+                    console.warn("⚠️ Fallback a procesamiento Regex local (IA Falló):", e.message);
+                    const nombre = this.extractRecipeName(textoCorregido);
+                    const ingredientes = this.extractIngredients(textoCorregido);
+                    const pasos = this.extractSteps(textoCorregido);
 
+                    if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado (Modo Local)' });
+
+                    return {
+                        nombre: nombre,
+                        texto: textoCorregido,
+                        ingredientes: ingredientes,
+                        pasos: pasos,
+                        confidence: tesseractConfidence,
+                        success: true,
+                        version: 'v7.1.0-fallback-local',
+                        method: 'tesseract-v7-local',
+                        isStructured: false
+                    };
                 }
-
-                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado' });
-
-                return {
-                    nombre: nombre,
-                    texto: textoCorregido,
-                    ingredientes: ingredientes,
-                    pasos: pasos,
-                    confidence: confidence,
-                    success: true,
-                    version: 'v7.1.0-fallback',
-                    method: isStructured ? 'gemini-2.5-flash' : 'tesseract-v7',
-                    isStructured: isStructured
-                };
             }
         } catch (error) {
 
