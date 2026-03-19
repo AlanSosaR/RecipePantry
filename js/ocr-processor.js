@@ -3,7 +3,7 @@
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
-const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY_HERE";
+const OPENROUTER_API_KEY = "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";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const AI_MODEL = "google/gemini-2.0-flash-exp:free";
 

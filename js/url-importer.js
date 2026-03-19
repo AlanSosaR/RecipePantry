@@ -4,8 +4,7 @@
  */
 
 const URL_IMPORTER_CONFIG = {
-    EDGE_FUNCTION_URL: 'https://fsgfrqrerddmopojjcsw.supabase.co/functions/v1/fetch-url',
-    GEMINI_MODEL: 'gemini-2.5-flash-lite'
+    EDGE_FUNCTION_URL: 'https://fsgfrqrerddmopojjcsw.supabase.co/functions/v1/fetch-url'
 };
 
 class URLImporter {
