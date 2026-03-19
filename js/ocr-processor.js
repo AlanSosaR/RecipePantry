@@ -73,8 +73,9 @@ class OCRProcessor {
     async structureRecipeWithGemini(cleanedText, onProgress) {
         let apiKey = localStorage.getItem('GEMINI_API_KEY') || GEMINI_API_KEY;
         if (!apiKey || apiKey === "YOUR_KEY_HERE") {
-            const userKey = prompt("🤖 Inteligencia Artificial: Introduce tu GEMINI API KEY para procesar la receta con máxima precisión (Se guardará segura en tu navegador y no se subirá a GitHub):");
+            const userKey = window.prompt("🤖 Inteligencia Artificial: Introduce tu GEMINI API KEY para procesar la receta con máxima precisión (Se guardará segura en tu navegador y no se subirá a GitHub):");
             if (userKey && userKey.trim().length > 10) {
+
                 localStorage.setItem('GEMINI_API_KEY', userKey.trim());
                 apiKey = userKey.trim();
             } else {
