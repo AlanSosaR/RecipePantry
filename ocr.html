@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="326">
+<html lang="es" data-app-version="327">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '326';
+            const CURRENT_VERSION = '327';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=326">
-    <link rel="stylesheet" href="css/components.css?v=326">
+    <link rel="stylesheet" href="css/styles.css?v=327">
+    <link rel="stylesheet" href="css/components.css?v=327">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1005,8 +1005,6 @@
                                 data-i18n-placeholder="placeholderRecipeName">
                             <label class="m3-field-label" data-i18n="formNameLabel">Nombre de la Receta</label>
                         </div>
-
-                        </div>
                     </div>
 
 
@@ -1087,92 +1085,26 @@
                     </div>
                 </div>
 
-                <!-- PASO 3: Editar y Guardar -->
-                <!-- PASO 3: Resultado de la Digitalización (Unificado) -->
-                <div id="step3" class="ocr-step">
-                    <div
-                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                        <h2 class="brand-font" style="font-size: 28px; margin: 0;" data-i18n="ocrStep3Title">Receta
-                            Digitalizada</h2>
-                        <span id="confidenceBadge" class="confidence-badge"></span>
-                    </div>
-
-                    <div id="scanResultsForm" class="ocr-result-unified">
-                        <!-- Nombre de la Receta (Material 3 Outlined) -->
-                        <div class="m3-field-container">
-                            <input type="text" id="ocrRecipeName" class="m3-field-input" placeholder=" "
-                                data-i18n-placeholder="placeholderRecipeName">
-                            <label class="m3-field-label" data-i18n="formNameLabel">Nombre de la Receta</label>
-                        </div>
-
-                        <!-- Información de la receta (Lienzo Premium) -->
-                        <div>
-                            
-                            <!-- Vista Estructurada de Gemini -->
-                            <div id="ocrStructuredViewStep3" class="hidden" style="margin-top: 24px; animation: m3-fade-up 0.4s var(--m3-easing);">
-                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                                    <span class="material-symbols-outlined" style="font-size:20px;">shopping_basket</span> INGREDIENTES
-                                </h3>
-                                <div id="ocrIngredientsListStep3" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;"></div>
-
-                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-top: 32px;">
-                                    <span class="material-symbols-outlined" style="font-size:20px;">description</span> PASOS DE PREPARACIÓN
-                                </h3>
-                                <div id="ocrStepsListStep3" style="display: flex; flex-direction: column; gap: 14px;"></div>
-
-                            </div>
-
-                            <!-- Vista Tradicional (Raw View) -->
-                            <div id="ocrRawViewStep3">
-                                <h3 style="font-weight:700; margin-bottom:12px; font-size:15px; color: var(--md-on-surface-var);"
-                                    data-i18n="ocrTabRaw">Información de la receta</h3>
-                                <div class="ocr-result-textarea-container">
-                                    <textarea id="ocrFullText" class="ocr-result-textarea"
-                                        placeholder="La información aparecerá aquí..."
-                                        data-i18n-placeholder="ocrTextPlaceholder"></textarea>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div style="display: flex; gap: 16px; margin-top: 36px; padding-bottom: 48px;">
-                        <button class="m3-expressive-card secondary"
-                            style="flex: 1; padding: 24px; min-height: 80px; border-radius: 24px; background: var(--md-surface-container-high); color: var(--md-on-surface); border: 1px solid var(--md-outline-variant); flex-direction: row; gap: 12px;"
-                            onclick="goToStep(1)">
-                            <span class="material-symbols-outlined" style="font-size: 24px;">refresh</span>
-                            <span style="font-size: 16px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
-                        </button>
-                        <button id="btnSaveRecipe" class="m3-expressive-card"
-                            style="flex: 2; padding: 24px; min-height: 80px; border-radius: 24px; background: var(--primary); color: white; flex-direction: row; gap: 12px; box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);"
-                            onclick="saveRecipe();">
-                            <span class="material-symbols-outlined" style="font-size: 24px;">check_circle</span>
-                            <span style="font-size: 18px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
-                        </button>
-                </div>
-
-                </div><!-- /cameraModePanel -->
             </div><!-- /ocr-container -->
         </div><!-- /m3-scroll -->
     </main>
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=326"></script>
-    <script src="js/supabase-client.js?v=326"></script>
-    <script src="js/auth.js?v=326"></script>
-    <script src="js/localdb.js?v=326"></script>
-    <script src="js/sync-manager.js?v=326"></script>
-    <script src="js/db.js?v=326"></script>
-    <script src="js/utils.js?v=326"></script>
-    <script src="js/i18n.js?v=326"></script>
-    <script src="js/ui.js?v=326"></script>
+    <script src="js/config.js?v=327"></script>
+    <script src="js/supabase-client.js?v=327"></script>
+    <script src="js/auth.js?v=327"></script>
+    <script src="js/localdb.js?v=327"></script>
+    <script src="js/sync-manager.js?v=327"></script>
+    <script src="js/db.js?v=327"></script>
+    <script src="js/utils.js?v=327"></script>
+    <script src="js/i18n.js?v=327"></script>
+    <script src="js/ui.js?v=327"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=326"></script>
-    <script src="js/ocr.js?v=326"></script>
-    <script src="js/url-importer.js?v=326"></script>
+    <script src="js/ocr-processor.js?v=327"></script>
+    <script src="js/ocr.js?v=327"></script>
+    <script src="js/url-importer.js?v=327"></script>
 
 
     <script>
@@ -1243,9 +1175,6 @@
                     // Smooth transition to results
                     await new Promise(r => setTimeout(r, 700));
                     if (window.ocr) window.ocr.showResults(results);
-                    
-                    // Transition to step 3 (Final review)
-                    setTimeout(() => goToStep(3), 300);
                 }
 
             } catch (err) {

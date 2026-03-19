@@ -352,13 +352,6 @@ class OCRScanner {
                 }
                 if (rawView1) rawView1.style.display = 'none';
 
-                if (structuredView3) {
-                    structuredView3.style.display = 'block';
-                    structuredView3.classList.remove('hidden');
-                }
-                if (rawView3) rawView3.style.display = 'none';
-
-
                 const renderIngs = (listId) => {
                     const list = document.getElementById(listId);
                     if (!list) return;
@@ -391,15 +384,11 @@ class OCRScanner {
 
 
                 renderIngs('ocrIngredientsListStep1');
-                renderIngs('ocrIngredientsListStep3');
                 renderSteps('ocrStepsListStep1');
-                renderSteps('ocrStepsListStep3');
 
             } else {
                 if (structuredView1) structuredView1.classList.add('hidden');
                 if (rawView1) rawView1.classList.remove('hidden');
-                if (structuredView3) structuredView3.classList.add('hidden');
-                if (rawView3) rawView3.classList.remove('hidden');
             }
 
             // Cálculo de Badge de Confianza (Part 4)
