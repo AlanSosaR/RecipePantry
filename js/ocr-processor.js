@@ -3,6 +3,10 @@
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
+const GEMINI_API_KEY = "YOUR_KEY_HERE"; // Reemplazar con clave real
+
+
+
 class OCRProcessor {
     constructor() {
         this.worker = null;
@@ -15,8 +19,8 @@ class OCRProcessor {
      * Inicialización optimizada para Tesseract.js v7.0.0
      */
     async initialize(onProgress, options = {}) {
-        const targetLang = options.lang || 'spa+eng';
-        const targetPsm = options.psm !== undefined ? options.psm : 3;
+        const targetLang = 'spa'; // Forzado a Español para máxima precisión
+        const targetPsm = 6;     // Asume un bloque uniforme de texto
 
         if (this.isInitialized && this.currentLang !== targetLang) {
             console.log(`🔄 Cambiando idioma de OCR a ${targetLang}...`);
@@ -52,13 +56,98 @@ class OCRProcessor {
         // Configuración de motor
         await this.worker.setParameters({
             tessedit_pageseg_mode: targetPsm,
-            user_defined_dpi: '300', // Evita el log "Estimating resolution" que sale como error
+            tessedit_ocr_engine_mode: 1, // LSTM Only (Most accurate)
+            user_defined_dpi: '300', 
             preserve_interword_spaces: '1',
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúñÁÉÍÓÚÑüÜ0123456789 .,;:()[]{}°•✓→★½¼¾-/+@#$%&\'\"',
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúüñÁÉÍÓÚÑüÜ0123456789 .,;:()[]{}°•✓→★½¼¾-/+@#$%&\'\"¿¡',
         });
 
         this.isInitialized = true;
-        console.log('✅ Tesseract v7.0.0 listo (15-35% más rápido)');
+        console.log('✅ Tesseract v7.0.0 listo (Español, PSM 6)');
+    }
+
+
+    /**
+     * Estructura la receta usando la API de Gemini 2.0 Flash
+     */
+    async structureRecipeWithGemini(cleanedText, onProgress) {
+        let apiKey = localStorage.getItem('GEMINI_API_KEY') || GEMINI_API_KEY;
+        if (!apiKey || apiKey === "YOUR_KEY_HERE") {
+            const userKey = prompt("🤖 Inteligencia Artificial: Introduce tu GEMINI API KEY para procesar la receta con máxima precisión (Se guardará segura en tu navegador y no se subirá a GitHub):");
+            if (userKey && userKey.trim().length > 10) {
+                localStorage.setItem('GEMINI_API_KEY', userKey.trim());
+                apiKey = userKey.trim();
+            } else {
+                throw new Error("GEMINI_API_KEY bloqueada o cancelada");
+            }
+        }
+
+        if (onProgress) {
+
+            onProgress({ status: 'estructurando', progress: 0.85, message: '🤖 Estructurando receta con IA...' });
+        }
+
+        const prompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
+You will receive OCR text extracted from a recipe photo. This text may contain:
+- OCR misreads: 'l' instead of '1', 'O' instead of '0', 'Y' instead of '1/2'
+- Merged words, broken words, or random line breaks
+- Mixed ingredients and steps in wrong order
+- Bullet points, dashes, or other symbols mixed in
+
+Your job is to use culinary knowledge and context to reconstruct the recipe with 100% accuracy, correcting all OCR errors intelligently.
+
+Rules:
+- If you see 'Y2 taza' → correct to '1/2 taza'
+- If you see '3/4' written as '34' or 'Y4' → correct to '3/4'
+- If you see 'g' misread as '9' in quantities → correct it
+- Ingredients always have a quantity + optional unit + ingredient name
+- Steps are complete actions, never ingredient lines
+- If servings are not mentioned, default to 4
+- Recipe name is usually the first line or the most prominent text
+- Never invent ingredients or steps not present in the original text
+
+Return ONLY this JSON, no markdown, no explanation:
+{
+  "nombre": "Recipe name",
+  "porciones": 4,
+  "ingredientes": [
+    { "cantidad": "300", "unidad": "g", "nombre": "guisantes secos" }
+  ],
+  "pasos": [
+    "Step as a clean complete sentence in Spanish."
+  ]
+}
+
+OCR TEXT:
+${cleanedText}`;
+
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+            })
+        });
+
+        if (!response.ok) throw new Error(`Error en API Gemini: ${response.status}`);
+
+        const data = await response.json();
+        let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!textResponse) throw new Error("Respuesta vacía de Gemini");
+
+        // Limpiar bloques de código Markdown si se cuelan
+        textResponse = textResponse.replace(/^```json\s*/g, '').replace(/\s*```$/g, '').trim();
+
+        const parsed = JSON.parse(textResponse);
+        parsed.isStructured = true;
+        return parsed;
     }
 
     /**
@@ -80,15 +169,42 @@ class OCRProcessor {
 
             console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
             console.log(`📝 Texto extraído | Confianza: ${confidence.toFixed(1)}%`);
+
             if (onProgress) onProgress({ status: 'finalizando', progress: 0.7, message: '⚙️ Aplicando correcciones inteligentes...' });
 
             // 1. Aplicar todos los parches y correcciones de texto
             const textoCorregido = this.applyAllCorrections(text);
 
-            // 2. Extraer estructura básica (Nombre, Ingredientes, Pasos)
-            const nombre = this.extractRecipeName(textoCorregido);
-            const ingredientes = this.extractIngredients(textoCorregido);
-            const pasos = this.extractSteps(textoCorregido);
+            let nombre = '';
+            let ingredientes = [];
+            let pasos = [];
+            let isStructured = false;
+
+            try {
+                const geminiResult = await this.structureRecipeWithGemini(textoCorregido, onProgress);
+                nombre = geminiResult.nombre || '';
+                ingredientes = geminiResult.ingredientes || [];
+                pasos = geminiResult.pasos || [];
+                isStructured = true;
+
+                // Cálculo de Confianza Dinámica (Part 4)
+                let score = 100;
+                if (!nombre || nombre.trim().length < 3) score -= 10;
+                if (ingredientes.length === 0) score -= 20; // Penalizar fuertemente si no hay
+                ingredientes.forEach(inc => {
+                    if (!inc.cantidad || inc.cantidad.trim() === '') score -= 5;
+                });
+                if (pasos.length < 2) score -= 5;
+                if (score < 0) score = 0;
+                confidence = score; // Sobrescribir para UI
+
+                console.log(`✅ Estructuración con Gemini exitosa | Confianza AI: ${confidence}%`);
+            } catch (e) {
+                console.warn("⚠️ Fallback a procesamiento Regex local:", e.message);
+                nombre = this.extractRecipeName(textoCorregido);
+                ingredientes = this.extractIngredients(textoCorregido);
+                pasos = this.extractSteps(textoCorregido);
+            }
 
             if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado' });
 
@@ -97,11 +213,13 @@ class OCRProcessor {
                 texto: textoCorregido,
                 ingredientes: ingredientes,
                 pasos: pasos,
-                confidence: confidence,
+                confidence: confidence, // Puntuación de confianza calculada
                 success: true,
-                version: 'v7.0.0',
-                method: 'tesseract-v7'
+                version: 'v7.1.0',
+                method: isStructured ? 'gemini-2.5-flash' : 'tesseract-v7',
+                isStructured: isStructured
             };
+
 
         } catch (error) {
             console.error('❌ Error en OCRProcessor:', error);
@@ -159,6 +277,11 @@ class OCRProcessor {
                 else if (sourceHeight < targetHeight) scale = targetHeight / sourceHeight;
                 else if (sourceHeight > targetHeight * 2) scale = 0.6;
 
+                // NUEVO: Asegurar mínimo 1500px de ancho
+                const minWidth = 1500;
+                const widthScale = minWidth / img.width;
+                if (widthScale > scale) scale = widthScale;
+
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 canvas.width = Math.round(img.width * scale);
@@ -169,17 +292,25 @@ class OCRProcessor {
                 ctx.drawImage(img, 0, sourceY, img.width, sourceHeight, 0, 0, canvas.width, canvas.height);
 
                 // ─────────────────────────────────────────────────────
+                // 1.5 AUTO-ROTACION CANALIZADA
+                // ─────────────────────────────────────────────────────
+                const rotatedCanvas = this.detectAndCorrectSkew(canvas);
+                const rotCtx = rotatedCanvas.getContext('2d');
+
+                // ─────────────────────────────────────────────────────
                 // 2. PIPELINE DE FILTROS (pixel-level)
                 // ─────────────────────────────────────────────────────
-                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let imageData = rotCtx.getImageData(0, 0, rotatedCanvas.width, rotatedCanvas.height);
                 imageData = this.toGrayscale(imageData);         // a) Escala de grises
                 imageData = this.normalizeContrast(imageData);   // b) Estiramiento de histograma
-                imageData = this.adaptiveThreshold(imageData);   // c) Umbral local por bloque
-                imageData = this.sharpen(imageData);             // d) Nitidez (unsharp mask)
-                imageData = this.denoise(imageData);             // e) Mediana 3x3
 
-                ctx.putImageData(imageData, 0, 0);
-                resolve(canvas);
+                imageData = this.otsuThreshold(imageData);      // c) Umbral Global de Otsu
+                imageData = this.denoise(imageData);             // d) Mediana 3x3
+                imageData = this.unsharpMask(imageData);         // e) Nitidez (reparar bordes)
+
+                rotCtx.putImageData(imageData, 0, 0);
+                resolve(rotatedCanvas);
+
             };
             img.src = URL.createObjectURL(file);
         });
@@ -219,66 +350,69 @@ class OCRProcessor {
     }
 
     /**
-     * Umbral adaptativo por bloques (Sauvola simplificado).
-     * Divide la imagen en bloques de ~32x32 px y calcula el umbral
-     * local de cada bloque. Esto maneja sombras y gradientes de luz,
-     * que es el principal problema al fotografiar recetas en papel.
+     * Umbralización Global de Otsu.
+     * Calcula el umbral óptimo minimizando la varianza intra-clase.
+     * Ideal para binarizar texto sobre fondo uniforme después de corregir contraste.
      */
-    adaptiveThreshold(imageData) {
+    otsuThreshold(imageData) {
         const { data, width, height } = imageData;
-        const blockSize = 40;  // Valor intermedio para capturar bien los detalles del texto
-        const k = 0.13;        // Ajustado para que las letras tengan buen grosor sin borrarse
-        const output = new Uint8ClampedArray(data);
+        const total = width * height;
+        const histogram = new Int32Array(260); // 256 + safe margin
 
-        for (let by = 0; by < height; by += blockSize) {
-            for (let bx = 0; bx < width; bx += blockSize) {
-                const bw = Math.min(blockSize, width - bx);
-                const bh = Math.min(blockSize, height - by);
+        // 1. Calcular Histograma
+        for (let i = 0; i < total * 4; i += 4) {
+            histogram[data[i]]++;
+        }
 
-                // Calcula media y desviacion del bloque
-                let sum = 0, count = 0;
-                for (let y = by; y < by + bh; y++) {
-                    for (let x = bx; x < bx + bw; x++) {
-                        sum += data[(y * width + x) * 4];
-                        count++;
-                    }
-                }
-                const mean = sum / count;
+        let sum = 0;
+        for (let i = 0; i < 256; i++) sum += i * histogram[i];
 
-                let variance = 0;
-                for (let y = by; y < by + bh; y++) {
-                    for (let x = bx; x < bx + bw; x++) {
-                        const diff = data[(y * width + x) * 4] - mean;
-                        variance += diff * diff;
-                    }
-                }
-                const stdDev = Math.sqrt(variance / count);
-                const threshold = mean * (1 - k * (1 - stdDev / 128));
+        let sumB = 0;
+        let wB = 0;
+        let wF = 0;
 
-                // Binarizar el bloque
-                for (let y = by; y < by + bh; y++) {
-                    for (let x = bx; x < bx + bw; x++) {
-                        const idx = (y * width + x) * 4;
-                        const val = data[idx] < threshold ? 0 : 255;
-                        output[idx] = output[idx + 1] = output[idx + 2] = val;
-                        output[idx + 3] = 255;
-                    }
-                }
+        let maxVariance = 0;
+        let threshold = 0;
+
+        // 2. Maximizar varianza entre clases (Otsu)
+        for (let i = 0; i < 256; i++) {
+            wB += histogram[i];
+            if (wB === 0) continue;
+            wF = total - wB;
+            if (wF === 0) break;
+
+            sumB += i * histogram[i];
+            const mB = sumB / wB;
+            const mF = (sum - sumB) / wF;
+
+            const varBetween = wB * wF * (mB - mF) * (mB - mF);
+
+            if (varBetween > maxVariance) {
+                maxVariance = varBetween;
+                threshold = i;
             }
         }
 
-        imageData.data.set(output);
+        console.log(`💡 Umbral Otsu calculado: ${threshold}`);
+
+        // 3. Binarizar
+        for (let i = 0; i < total * 4; i += 4) {
+            const val = data[i] < threshold ? 0 : 255;
+            data[i] = data[i + 1] = data[i + 2] = val;
+            data[i + 3] = 255;
+        }
+
         return imageData;
     }
 
+
     /**
-     * Nitidez con mascara de desenfoque (Unsharp Mask 3x3).
-     * Acentua los bordes de las letras, lo que mejora la deteccion de
-     * caracteres delgados (tildes, puntos, comas, fracciones).
+     * Nitidez (Unsharp Mask 3x3).
+     * Acentúa los bordes de las letras para mejorar la lectura OCR.
      */
-    sharpen(imageData) {
+    unsharpMask(imageData) {
         const { data, width, height } = imageData;
-        // Kernel de nitidez (Laplaciano de Gaussiana)
+        // Kernel de nitidez
         const kernel = [
             0, -1, 0,
             -1, 5, -1,
@@ -304,6 +438,7 @@ class OCRProcessor {
         imageData.data.set(output);
         return imageData;
     }
+
 
     /**
      * Eliminacion de ruido con filtro de mediana 3x3.
@@ -333,7 +468,104 @@ class OCRProcessor {
         return imageData;
     }
 
+    /**
+     * Detecta y corrige inclinación de texto (Skew) hasta 45 grados.
+     * Basado en la máxima varianza de sumas de filas de proyecciones horizontales.
+     */
+    detectAndCorrectSkew(canvas) {
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // 1. Crear canvas pequeño para pruebas veloces
+        const smallCanvas = document.createElement('canvas');
+        const maxDim = 400;
+        const scale = Math.min(maxDim / w, maxDim / h);
+        smallCanvas.width = Math.round(w * scale);
+        smallCanvas.height = Math.round(h * scale);
+        const sctx = smallCanvas.getContext('2d');
+        sctx.drawImage(canvas, 0, 0, w, h, 0, 0, smallCanvas.width, smallCanvas.height);
+
+        // 2. Binarizar imagen pequeña para aislar líneas
+        let imgData = sctx.getImageData(0, 0, smallCanvas.width, smallCanvas.height);
+        this.toGrayscale(imgData);
+        this.normalizeContrast(imgData);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const val = d[i] < 128 ? 0 : 255;
+            d[i] = d[i + 1] = d[i + 2] = val;
+        }
+        sctx.putImageData(imgData, 0, 0);
+
+        // 3. Probar ángulos de -45° a 45°
+        let maxVar = -1;
+        let bestAngle = 0;
+        const testCanvas = document.createElement('canvas');
+        testCanvas.width = smallCanvas.width;
+        testCanvas.height = smallCanvas.height;
+        const tctx = testCanvas.getContext('2d');
+
+        for (let angle = -45; angle <= 45; angle += 1) {
+            tctx.clearRect(0, 0, testCanvas.width, testCanvas.height);
+            tctx.save();
+            tctx.translate(testCanvas.width / 2, testCanvas.height / 2);
+            tctx.rotate(angle * Math.PI / 180);
+            // Dibujar centrado
+            tctx.drawImage(smallCanvas, -testCanvas.width / 2, -testCanvas.height / 2);
+            tctx.restore();
+
+            const tData = tctx.getImageData(0, 0, testCanvas.width, testCanvas.height).data;
+            const rowSums = new Float32Array(testCanvas.height);
+            for (let y = 0; y < testCanvas.height; y++) {
+                let sum = 0;
+                for (let x = 0; x < testCanvas.width; x++) {
+                    const idx = (y * testCanvas.width + x) * 4;
+                    if (tData[idx] === 0) sum++; // Píxel negro (texto)
+                }
+                rowSums[y] = sum;
+            }
+
+            // Calcular varianza
+            let sumVal = 0;
+            for (let i = 0; i < rowSums.length; i++) sumVal += rowSums[i];
+            const mean = sumVal / rowSums.length;
+            let variance = 0;
+            for (let i = 0; i < rowSums.length; i++) {
+                const diff = rowSums[i] - mean;
+                variance += diff * diff;
+            }
+            variance /= rowSums.length;
+
+            if (variance > maxVar) {
+                maxVar = variance;
+                bestAngle = angle;
+            }
+        }
+
+        console.log(`📐 Skew de imagen detectado: ${bestAngle} grados`);
+
+        // 4. Rotar el original si el ángulo es significativo (> 0.5°)
+        if (Math.abs(bestAngle) > 0.5) {
+            const rotCanvas = document.createElement('canvas');
+            const rad = -bestAngle * Math.PI / 180; // Invertido para corrección
+            const cos = Math.abs(Math.cos(rad));
+            const sin = Math.abs(Math.sin(rad));
+            const rotW = Math.round(w * cos + h * sin);
+            const rotH = Math.round(w * sin + h * cos);
+            rotCanvas.width = rotW;
+            rotCanvas.height = rotH;
+
+            const rctx = rotCanvas.getContext('2d');
+            rctx.translate(rotW / 2, rotH / 2);
+            rctx.rotate(rad);
+            rctx.drawImage(canvas, -w / 2, -h / 2);
+
+            return rotCanvas;
+        }
+        return canvas;
+    }
+
     applyAllCorrections(text) {
+
         let corrected = text;
 
         // ═══════════════════════════════════════════════════

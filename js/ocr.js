@@ -294,13 +294,75 @@ class OCRScanner {
             if (nameInput) nameInput.value = results.nombre || '';
             const pageFullText = document.getElementById('ocrFullText');
             if (pageFullText) pageFullText.value = results.texto;
-            const conf = Math.round(results.confidence || 0);
-            const confBadge = document.getElementById('confidenceBadgeStep1');
-            if (confBadge) {
-                confBadge.textContent = `${conf}%`;
-                confBadge.style.background = conf >= 90 ? '#10B981' : conf >= 70 ? '#F59E0B' : '#EF4444';
-                confBadge.style.display = 'inline-flex';
+
+            const structuredView1 = document.getElementById('ocrStructuredViewStep1');
+            const rawView1 = document.getElementById('ocrRawViewStep1');
+            const structuredView3 = document.getElementById('ocrStructuredViewStep3');
+            const rawView3 = document.getElementById('ocrRawViewStep3');
+
+            if (results.isStructured) {
+                if (structuredView1) structuredView1.classList.remove('hidden');
+                if (rawView1) rawView1.classList.add('hidden');
+                if (structuredView3) structuredView3.classList.remove('hidden');
+                if (rawView3) rawView3.classList.add('hidden');
+
+                const renderIngs = (listId) => {
+                    const list = document.getElementById(listId);
+                    if (!list) return;
+                    list.innerHTML = (results.ingredientes || []).map(ing => `
+                        <div style="display: flex; align-items: flex-start; gap: 8px; background: var(--surface); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border);">
+                            <span style="background: var(--primary); color: white; min-width: 24px; height: 24px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">✓</span>
+                            <div style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4;">
+                                ${ing.cantidad ? `<strong style="color: var(--primary); margin-right: 4px;">${ing.cantidad}</strong>` : ''} 
+                                ${ing.unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${ing.unidad}</span>` : ''} 
+                                <span>${ing.nombre}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                };
+
+                const renderSteps = (listId) => {
+                    const list = document.getElementById(listId);
+                    if (!list) return;
+                    list.innerHTML = (results.pasos || []).map((paso, idx) => `
+                        <div style="display: flex; gap: 12px; align-items: flex-start;">
+                            <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;">${idx + 1}</span>
+                            <p style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6;">${paso}</p>
+                        </div>
+                    `).join('');
+                };
+
+                renderIngs('ocrIngredientsListStep1');
+                renderIngs('ocrIngredientsListStep3');
+                renderSteps('ocrStepsListStep1');
+                renderSteps('ocrStepsListStep3');
+
+            } else {
+                if (structuredView1) structuredView1.classList.add('hidden');
+                if (rawView1) rawView1.classList.remove('hidden');
+                if (structuredView3) structuredView3.classList.add('hidden');
+                if (rawView3) rawView3.classList.remove('hidden');
             }
+
+            // Cálculo de Badge de Confianza (Part 4)
+            const conf = Math.round(results.confidence || 0);
+            const updateBadge = (id) => {
+                const badge = document.getElementById(id);
+                if (badge) {
+                    badge.textContent = `${conf}% AI`;
+                    badge.style.background = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
+                    badge.style.display = 'inline-flex';
+                    badge.style.color = 'white';
+                    badge.style.padding = '4px 12px';
+                    badge.style.borderRadius = '16px';
+                    badge.style.fontSize = '14px';
+                    badge.style.fontWeight = '700';
+                }
+            };
+            
+            updateBadge('confidenceBadge');
+            updateBadge('confidenceBadgeStep1');
+
             if (resultBody) resultBody.scrollIntoView({ behavior: 'smooth' });
         } else {
             this.stopCamera();
@@ -310,14 +372,15 @@ class OCRScanner {
             if (cameraState) cameraState.style.display = 'none';
             if (loadingState) loadingState.style.display = 'none';
             if (resultState) resultState.style.display = 'flex';
-            const nameInput = document.getElementById('ocrRecipeName');
+            const nameInput = document.getElementById('ocrRecipeNameModal'); // Corregido ID
             if (nameInput) nameInput.value = results.nombre || 'Nueva Receta OCR';
-            const extractedText = document.getElementById('extractedText');
+            const extractedText = document.getElementById('extractedTextModal'); // Corregido ID
             if (extractedText) extractedText.value = results.texto || '';
         }
     }
 
     async handleGallery(file) {
+
         if (!file) return;
         const reader = new FileReader();
         const imageDataUrl = await new Promise((resolve) => {

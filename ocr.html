@@ -913,12 +913,28 @@
 
                     <!-- NUEVOS BOTONES AL FINAL (OCULTOS POR DEFECTO) -->
                     <div id="ocrResultBodyStep1" class="hidden">
-                        <div class="ocr-result-textarea-container" style="margin-top: 32px; margin-bottom: 24px;">
+                        
+                        <!-- Vista Estructurada de Gemini -->
+                        <div id="ocrStructuredViewStep1" class="hidden" style="margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
+                            <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="font-size:20px;">shopping_basket</span> INGREDIENTES
+                            </h3>
+                            <div id="ocrIngredientsListStep1" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;"></div>
+
+                            <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-top: 32px;">
+                                <span class="material-symbols-outlined" style="font-size:20px;">description</span> INSTRUCCIONES
+                            </h3>
+                            <div id="ocrStepsListStep1" style="display: flex; flex-direction: column; gap: 14px;"></div>
+                        </div>
+
+                        <!-- Vista Tradicional (Raw View) -->
+                        <div id="ocrRawViewStep1" class="ocr-result-textarea-container" style="margin-top: 32px; margin-bottom: 24px;">
                             <textarea id="ocrFullText" class="ocr-result-textarea" 
                                 style="min-height: 550px;"
                                 placeholder="La información aparecerá aquí..."
                                 data-i18n-placeholder="ocrTextPlaceholder"></textarea>
                         </div>
+
 
                         <div style="display: flex; gap: 12px; margin-bottom: 32px;">
                             <button class="m3-expressive-card secondary" 
@@ -988,14 +1004,33 @@
 
                         <!-- Información de la receta (Lienzo Premium) -->
                         <div>
-                            <h3 style="font-weight:700; margin-bottom:12px; font-size:15px; color: var(--md-on-surface-var);"
-                                data-i18n="ocrTabRaw">Información de la receta</h3>
-                            <div class="ocr-result-textarea-container">
-                                <textarea id="ocrFullText" class="ocr-result-textarea"
-                                    placeholder="La información aparecerá aquí..."
-                                    data-i18n-placeholder="ocrTextPlaceholder"></textarea>
+                            
+                            <!-- Vista Estructurada de Gemini -->
+                            <div id="ocrStructuredViewStep3" class="hidden" style="margin-top: 24px; animation: m3-fade-up 0.4s var(--m3-easing);">
+                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size:20px;">shopping_basket</span> INGREDIENTES
+                                </h3>
+                                <div id="ocrIngredientsListStep3" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;"></div>
+
+                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-top: 32px;">
+                                    <span class="material-symbols-outlined" style="font-size:20px;">description</span> INSTRUCCIONES
+                                </h3>
+                                <div id="ocrStepsListStep3" style="display: flex; flex-direction: column; gap: 14px;"></div>
                             </div>
+
+                            <!-- Vista Tradicional (Raw View) -->
+                            <div id="ocrRawViewStep3">
+                                <h3 style="font-weight:700; margin-bottom:12px; font-size:15px; color: var(--md-on-surface-var);"
+                                    data-i18n="ocrTabRaw">Información de la receta</h3>
+                                <div class="ocr-result-textarea-container">
+                                    <textarea id="ocrFullText" class="ocr-result-textarea"
+                                        placeholder="La información aparecerá aquí..."
+                                        data-i18n-placeholder="ocrTextPlaceholder"></textarea>
+                                </div>
+                            </div>
+
                         </div>
+
                     </div>
 
                     <div style="display: flex; gap: 16px; margin-top: 36px; padding-bottom: 48px;">
@@ -1220,23 +1255,34 @@
                 if (!recipeRes.success) throw new Error(recipeRes.error);
                 const recipeId = recipeRes.recipe.id;
 
-                // Re-procesar el texto para asegurar que los cambios manuales se reflejen en la lista de ingredientes/pasos
-                const reParsed = window.ocrProcessor.parseRecipeText(fullText);
-                const currentIngs = reParsed.ingredients.map(i => {
-                    if (typeof i === 'string') return i;
-                    if (typeof i === 'object' && i !== null) {
-                        return `${i.quantity || ''} ${i.unit || ''} ${i.name || ''}`.trim();
-                    }
-                    return null;
-                }).filter(Boolean);
+                // Re-procesar el texto solo si NO viene estructurado de Gemini
+                let currentIngs = [];
+                let currentSteps = [];
 
-                const currentSteps = reParsed.steps.map(s => {
-                    if (typeof s === 'string') return s;
-                    if (typeof s === 'object' && s !== null) {
-                        return s.instruction || '';
-                    }
-                    return null;
-                }).filter(Boolean);
+                if (ocrData.isStructured) {
+                    currentIngs = (ocrData.ingredientes || []).map(i => {
+                        return `${i.cantidad || ''} ${i.unidad || ''} ${i.nombre || ''}`.trim();
+                    }).filter(Boolean);
+                    currentSteps = (ocrData.pasos || []).map(s => typeof s === 'string' ? s : s.instruction || '').filter(Boolean);
+                } else {
+                    const reParsed = window.ocrProcessor.parseRecipeText(fullText);
+                    currentIngs = reParsed.ingredients.map(i => {
+                        if (typeof i === 'string') return i;
+                        if (typeof i === 'object' && i !== null) {
+                            return `${i.quantity || i.cantidad || ''} ${i.unit || i.unidad || ''} ${i.name || i.nombre || ''}`.trim();
+                        }
+                        return null;
+                    }).filter(Boolean);
+
+                    currentSteps = reParsed.steps.map(s => {
+                        if (typeof s === 'string') return s;
+                        if (typeof s === 'object' && s !== null) {
+                            return s.instruction || '';
+                        }
+                        return null;
+                    }).filter(Boolean);
+                }
+
 
                 // 2. Ingredientes
                 if (currentIngs.length > 0) {
