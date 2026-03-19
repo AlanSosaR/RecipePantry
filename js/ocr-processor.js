@@ -336,7 +336,8 @@ Return ONLY this JSON, no markdown, no explanation:
                         texto: textoCorregido,
                         confidence: tesseractConfidence,
                         success: true,
-                        isStructured: false
+                        version: 'v7.3.0-fallback-local-smart',
+                        method: 'tesseract-v7-local-smart'
                     };
                 }
             }
