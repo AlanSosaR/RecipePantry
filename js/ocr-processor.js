@@ -282,7 +282,9 @@ Return ONLY this JSON, no markdown, no explanation:
 
     async processImage(imageFile, onProgress, options = {}) {
         try {
+            this.currentKeyIndex = 0; // Siempre empezar desde la clave 0 en cada escaneo
             await this.initialize(onProgress, options);
+
 
             if (onProgress) onProgress({ status: 'preprocesando', progress: 0.2, message: 'Analizando imagen...' });
             const processedCanvas = await this.preprocessImage(imageFile);
@@ -366,9 +368,7 @@ Return ONLY this JSON, no markdown, no explanation:
 
                     console.log(`✅ Estructuración con Gemini exitosa | Confianza AI: ${confidence}%`);
                 } catch (e) {
-                    if (e.message.includes('429') || (visionError && visionError.message.includes('429'))) {
-                        throw new Error('La IA está saturada o alcanzó su cuota. Favor reintentar en 30 segundos.');
-                    }
+                    // Continuar siempre con regex local como último recurso
                     console.warn("⚠️ Fallback a procesamiento Regex local:", e.message);
                     nombre = this.extractRecipeName(textoCorregido);
                     ingredientes = this.extractIngredients(textoCorregido);
