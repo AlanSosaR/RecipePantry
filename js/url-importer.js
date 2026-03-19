@@ -59,9 +59,13 @@ class URLImporter {
         if (!apiKey) throw new Error('API key no configurada.');
 
         const geminiPrompt = `You are an expert culinary assistant. You will receive the text content extracted from a webpage.
-Your job is to find and extract the recipe from this content. The page may contain ads, navigation menus, comments, and other irrelevant text — ignore all of that.
+Your job is to find and extract the recipe from this content. 
 
-If the page contains a recipe, extract it with 100% accuracy.
+CRITICAL: For TikTok, Instagram, or YouTube videos, the recipe is ALMOST ALWAYS in the "TITULO" or "DESCRIPCION" fields provided below. 
+Analyze these fields first for ingredients and preparation steps. 
+If the description contains ingredients but not all steps, look for the rest in "CONTENIDO DE LA PÁGINA".
+
+The content may contain ads and irrelevant text — ignore it.
 If NO recipe is found, return: {"error": "No se encontró una receta en esta página."}
 
 Rules:
@@ -89,6 +93,7 @@ Page URL: ${url}
 
 PAGE CONTENT:
 ${pageData.text}`;
+
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${URL_IMPORTER_CONFIG.GEMINI_MODEL}:generateContent?key=${apiKey}`;
 

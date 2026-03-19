@@ -51,10 +51,12 @@
     "method": "GET",
     "params": {
       "url": "url",
-      "text": "text"
+      "text": "text",
+      "title": "title"
     },
     "enctype": "application/x-www-form-urlencoded"
   }
 }
+
 
 
