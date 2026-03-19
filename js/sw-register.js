@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '225';
+const APP_VERSION_ID = '337';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -7,7 +7,17 @@ async function registerSW() {
 
     try {
         const registration = await navigator.serviceWorker.register(SW_PATH);
-        console.log('[SW] Registrado:', registration.scope);
+        console.log('[SW] Registrado (v' + APP_VERSION_ID + '):', registration.scope);
+
+        // Forzar chequeo inmediatamente al cargar
+        registration.update();
+
+        // Chequear cada vez que la página vuelve a estar visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                registration.update();
+            }
+        });
 
         // Si hay una actualización esperando, informar al usuario
         if (registration.waiting) {
