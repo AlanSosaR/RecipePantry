@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="322">
+<html lang="es" data-app-version="323">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '322';
+            const CURRENT_VERSION = '323';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=322">
-    <link rel="stylesheet" href="css/components.css?v=322">
+    <link rel="stylesheet" href="css/styles.css?v=323">
+    <link rel="stylesheet" href="css/components.css?v=323">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -873,91 +873,91 @@
         <div class="m3-scroll">
             <div class="ocr-container">
 
-                <!-- TAB TOGGLE: Cámara / Pegar Link -->
-                <div id="ocrModeToggle" style="display: flex; background: #F3F4F6; border-radius: 16px; padding: 4px; margin-bottom: 24px; gap: 4px;">
-                    <button id="tabCamera" class="ocr-tab active" onclick="switchOcrTab('camera')"
-                        style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: #00C853; color: white;">
-                        📷 Cámara/Foto
-                    </button>
-                    <button id="tabUrl" class="ocr-tab" onclick="switchOcrTab('url')"
-                        style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: #6B7280;">
-                        🔗 Pegar Link
-                    </button>
-                </div>
-
-                <!-- URL MODE PANEL (hidden by default) -->
-                <div id="urlModePanel" style="display: none;">
-                    <div style="margin-bottom: 24px;">
-                        <h2 class="brand-font" style="font-size: 28px; color: var(--primary); margin-bottom: 8px;">Importar desde enlace</h2>
-                        <p style="color: var(--on-surface-variant); font-size: 14px;">Pega el link de una receta y la IA la extraerá por ti.</p>
-                    </div>
-
-                    <!-- URL Input -->
-                    <div style="margin-bottom: 16px;">
-                        <input type="url" id="urlImportInput" autocomplete="url"
-                            placeholder="Pega el link aquí..."
-                            style="width: 100%; padding: 16px 20px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-size: 16px; color: var(--md-on-surface); outline: none; transition: border-color 200ms ease; box-sizing: border-box;"
-                            onfocus="this.style.borderColor='#00C853'"
-                            onblur="this.style.borderColor='var(--border)'"
-                        />
-                    </div>
-
-                    <!-- Platform badges -->
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
-                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">YouTube</span>
-                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">TikTok</span>
-                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Instagram</span>
-                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Blog</span>
-                    </div>
-
-                    <!-- Error message (hidden) -->
-                    <div id="urlImportError" style="display: none; background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; line-height: 1.4;"></div>
-
-                    <!-- Extract button -->
-                    <button id="btnExtractUrl" onclick="handleUrlImport()"
-                        style="width: 100%; height: 56px; border-radius: 16px; border: none; background: #00C853; color: white; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(0,200,83,0.25); transition: transform 100ms ease;"
-                        onmousedown="this.style.transform='scale(0.97)'"
-                        onmouseup="this.style.transform='scale(1)'"
-                        ontouchstart="this.style.transform='scale(0.97)'"
-                        ontouchend="this.style.transform='scale(1)'">
-                        <span class="material-symbols-outlined" style="font-size: 22px;">magic_button</span>
-                        Extraer Receta
-                    </button>
-
-                    <!-- iOS tip -->
-                    <div id="urlTipIOS" style="display: none; margin-top: 20px; background: #F9FAFB; border-radius: 14px; padding: 14px 16px; border: 1px solid #E5E7EB;">
-                        <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5;">
-                            💡 <strong>En iPhone:</strong> abre el video → Compartir → Copiar enlace → vuelve y pégalo aquí
-                        </p>
-                    </div>
-
-                    <!-- Android PWA tip -->
-                    <div id="urlTipAndroid" style="display: none; margin-top: 20px; background: #F9FAFB; border-radius: 14px; padding: 14px 16px; border: 1px solid #E5E7EB;">
-                        <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5;">
-                            💡 También puedes compartir directo desde TikTok o YouTube sin copiar el link
-                        </p>
-                    </div>
-
-                    <!-- Android Install Banner -->
-                    <div id="androidInstallBanner" class="android-install-banner">
-                        <span class="material-symbols-outlined" style="color: var(--primary);">install_mobile</span>
-                        <span style="flex: 1;">📲 Instala la app para compartir videos directamente</span>
-                        <button onclick="dismissInstallBanner()" style="background: transparent; border: none; cursor: pointer; color: var(--on-surface-variant);">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
-                        </button>
-                    </div>
-                </div>
-
-
-                <!-- CAMERA MODE (existing, wrapped for toggle) -->
-                <div id="cameraModePanel">
-
-                <!-- PASO 1: Capturar Imagen -->
+                <!-- PASO 1: Capturar Imagen / Pegar Link -->
                 <div id="step1" class="ocr-step active">
 
                     <!-- SECCIÓN DE CAPTURA (Se ocultará al mostrar resultados) -->
                     <div id="ocrCaptureSection">
-                        <div style="margin-bottom: 32px;">
+                        
+                        <!-- TAB TOGGLE: Cámara / Pegar Link -->
+                        <div id="ocrModeToggle" style="display: flex; background: #F3F4F6; border-radius: 16px; padding: 4px; margin-bottom: 24px; gap: 4px;">
+                            <button id="tabCamera" class="ocr-tab active" onclick="switchOcrTab('camera')"
+                                style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: #00C853; color: white;">
+                                📷 Cámara/Foto
+                            </button>
+                            <button id="tabUrl" class="ocr-tab" onclick="switchOcrTab('url')"
+                                style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: #6B7280;">
+                                🔗 Pegar Link
+                            </button>
+                        </div>
+
+                        <!-- URL MODE PANEL (hidden by default) -->
+                        <div id="urlModePanel" style="display: none;">
+                            <div style="margin-bottom: 24px;">
+                                <h2 class="brand-font" style="font-size: 28px; color: var(--primary); margin-bottom: 8px;">Importar desde enlace</h2>
+                                <p style="color: var(--on-surface-variant); font-size: 14px;">Pega el link de una receta y la IA la extraerá por ti.</p>
+                            </div>
+
+                            <!-- URL Input -->
+                            <div style="margin-bottom: 16px;">
+                                <input type="url" id="urlImportInput" autocomplete="url"
+                                    placeholder="Pega el link aquí..."
+                                    style="width: 100%; padding: 16px 20px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-size: 16px; color: var(--md-on-surface); outline: none; transition: border-color 200ms ease; box-sizing: border-box;"
+                                    onfocus="this.style.borderColor='#00C853'"
+                                    onblur="this.style.borderColor='var(--border)'"
+                                />
+                            </div>
+
+                            <!-- Platform badges -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">YouTube</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">TikTok</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Instagram</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Blog</span>
+                            </div>
+
+                            <!-- Error message (hidden) -->
+                            <div id="urlImportError" style="display: none; background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; line-height: 1.4;"></div>
+
+                            <!-- Extract button -->
+                            <button id="btnExtractUrl" onclick="handleUrlImport()"
+                                style="width: 100%; height: 56px; border-radius: 16px; border: none; background: #00C853; color: white; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(0,200,83,0.25); transition: transform 100ms ease;"
+                                onmousedown="this.style.transform='scale(0.97)'"
+                                onmouseup="this.style.transform='scale(1)'"
+                                ontouchstart="this.style.transform='scale(0.97)'"
+                                ontouchend="this.style.transform='scale(1)'">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">magic_button</span>
+                                Extraer Receta
+                            </button>
+
+                            <!-- Android Install Banner -->
+                            <div id="androidInstallBanner" class="android-install-banner">
+                                <span class="material-symbols-outlined" style="color: var(--primary);">install_mobile</span>
+                                <span style="flex: 1;">📲 Instala la app para compartir videos directamente</span>
+                                <button onclick="dismissInstallBanner()" style="background: transparent; border: none; cursor: pointer; color: var(--on-surface-variant);">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                                </button>
+                            </div>
+
+                            <!-- iOS tip -->
+                            <div id="urlTipIOS" style="display: none; margin-top: 20px; background: #F9FAFB; border-radius: 14px; padding: 14px 16px; border: 1px solid #E5E7EB;">
+                                <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5;">
+                                    💡 <strong>En iPhone:</strong> abre el video → Compartir → Copiar enlace → vuelve y pégalo aquí
+                                </p>
+                            </div>
+
+                            <!-- Android PWA tip -->
+                            <div id="urlTipAndroid" style="display: none; margin-top: 20px; background: #F9FAFB; border-radius: 14px; padding: 14px 16px; border: 1px solid #E5E7EB;">
+                                <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5;">
+                                    💡 También puedes compartir directo desde TikTok o YouTube sin copiar el link
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- CAMERA INTERFACE PANEL -->
+                        <div id="cameraInterfacePanel">
+                            <div style="margin-bottom: 32px;">
+
                             <h2 class="brand-font"
                                 style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"
                                 data-i18n="ocrStep1Title">Prepara tu
@@ -1178,20 +1178,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=322"></script>
-    <script src="js/supabase-client.js?v=322"></script>
-    <script src="js/auth.js?v=322"></script>
-    <script src="js/localdb.js?v=322"></script>
-    <script src="js/sync-manager.js?v=322"></script>
-    <script src="js/db.js?v=322"></script>
-    <script src="js/utils.js?v=322"></script>
-    <script src="js/i18n.js?v=322"></script>
-    <script src="js/ui.js?v=322"></script>
+    <script src="js/config.js?v=323"></script>
+    <script src="js/supabase-client.js?v=323"></script>
+    <script src="js/auth.js?v=323"></script>
+    <script src="js/localdb.js?v=323"></script>
+    <script src="js/sync-manager.js?v=323"></script>
+    <script src="js/db.js?v=323"></script>
+    <script src="js/utils.js?v=323"></script>
+    <script src="js/i18n.js?v=323"></script>
+    <script src="js/ui.js?v=323"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=322"></script>
-    <script src="js/ocr.js?v=322"></script>
-    <script src="js/url-importer.js?v=322"></script>
+    <script src="js/ocr-processor.js?v=323"></script>
+    <script src="js/ocr.js?v=323"></script>
+    <script src="js/url-importer.js?v=323"></script>
 
 
     <script>
@@ -1217,7 +1217,7 @@
         function switchOcrTab(mode) {
             const tabCamera = document.getElementById('tabCamera');
             const tabUrl = document.getElementById('tabUrl');
-            const cameraPanel = document.getElementById('cameraModePanel');
+            const cameraInterface = document.getElementById('cameraInterfacePanel');
             const urlPanel = document.getElementById('urlModePanel');
 
             if (mode === 'camera') {
@@ -1225,19 +1225,20 @@
                 tabCamera.style.color = 'white';
                 tabUrl.style.background = 'transparent';
                 tabUrl.style.color = '#6B7280';
-                cameraPanel.style.display = 'block';
-                urlPanel.style.display = 'none';
+                if (cameraInterface) cameraInterface.style.display = 'block';
+                if (urlPanel) urlPanel.style.display = 'none';
                 if (window.ocr) window.ocr.startCamera();
             } else {
                 tabUrl.style.background = '#00C853';
                 tabUrl.style.color = 'white';
                 tabCamera.style.background = 'transparent';
                 tabCamera.style.color = '#6B7280';
-                cameraPanel.style.display = 'none';
-                urlPanel.style.display = 'block';
+                if (cameraInterface) cameraInterface.style.display = 'none';
+                if (urlPanel) urlPanel.style.display = 'block';
                 if (window.ocr) window.ocr.stopCamera();
             }
         }
+
 
         async function handleUrlImport() {
             const input = document.getElementById('urlImportInput');
@@ -1261,7 +1262,11 @@
                     // Smooth transition to results
                     await new Promise(r => setTimeout(r, 700));
                     if (window.ocr) window.ocr.showResults(results);
+                    
+                    // Transition to step 3 (Final review)
+                    setTimeout(() => goToStep(3), 300);
                 }
+
             } catch (err) {
                 console.error('URL Import error:', err);
                 if (window.ocr) window.ocr.resetModal();
