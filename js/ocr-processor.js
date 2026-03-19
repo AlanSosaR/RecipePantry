@@ -334,10 +334,14 @@ Return ONLY this JSON, no markdown, no explanation:
 
                     console.log(`✅ Estructuración con Gemini exitosa | Confianza AI: ${confidence}%`);
                 } catch (e) {
+                    if (e.message.includes('429') || (visionError && visionError.message.includes('429'))) {
+                        throw new Error('La IA está saturada o alcanzó su cuota. Favor reintentar en 30 segundos.');
+                    }
                     console.warn("⚠️ Fallback a procesamiento Regex local:", e.message);
                     nombre = this.extractRecipeName(textoCorregido);
                     ingredientes = this.extractIngredients(textoCorregido);
                     pasos = this.extractSteps(textoCorregido);
+
                 }
 
                 if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado' });
@@ -1021,7 +1025,7 @@ Return ONLY this JSON, no markdown, no explanation:
     /**
      * Reintenta una petición fetch si devuelve un error 429 (Too Many Requests)
      */
-    async fetchWithRetry(url, options, maxRetries = 2, delay = 1500) {
+    async fetchWithRetry(url, options, maxRetries = 3, delay = 2500) {
         let backoff = delay;
         for (let i = 0; i < maxRetries; i++) {
             try {
@@ -1029,16 +1033,17 @@ Return ONLY this JSON, no markdown, no explanation:
                 if (response.status !== 429) return response;
                 console.warn(`⚠️ Gemini API 429 (Too many requests). Reintentando en ${backoff}ms...`);
                 await new Promise(resolve => setTimeout(resolve, backoff));
-                backoff *= 1.5; // Incremento más suave
+                backoff *= 2; // Exponencial clásico
             } catch (err) {
                 if (i === maxRetries - 1) throw err;
                 await new Promise(resolve => setTimeout(resolve, backoff));
-                backoff *= 1.5;
+                backoff *= 2;
             }
         }
         return fetch(url, options); // Último intento
     }
 }
+
 
 
 
