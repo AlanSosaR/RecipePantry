@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="318">
+<html lang="es" data-app-version="319">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '318';
+            const CURRENT_VERSION = '319';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=318">
-    <link rel="stylesheet" href="css/components.css?v=318">
+    <link rel="stylesheet" href="css/styles.css?v=319">
+    <link rel="stylesheet" href="css/components.css?v=319">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -831,6 +831,75 @@
         <div class="m3-scroll">
             <div class="ocr-container">
 
+                <!-- TAB TOGGLE: Cámara / Pegar Link -->
+                <div id="ocrModeToggle" style="display: flex; background: #F3F4F6; border-radius: 16px; padding: 4px; margin-bottom: 24px; gap: 4px;">
+                    <button id="tabCamera" class="ocr-tab active" onclick="switchOcrTab('camera')"
+                        style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: #00C853; color: white;">
+                        📷 Cámara/Foto
+                    </button>
+                    <button id="tabUrl" class="ocr-tab" onclick="switchOcrTab('url')"
+                        style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: #6B7280;">
+                        🔗 Pegar Link
+                    </button>
+                </div>
+
+                <!-- URL MODE PANEL (hidden by default) -->
+                <div id="urlModePanel" style="display: none;">
+                    <div style="margin-bottom: 24px;">
+                        <h2 class="brand-font" style="font-size: 28px; color: var(--primary); margin-bottom: 8px;">Importar desde enlace</h2>
+                        <p style="color: var(--on-surface-variant); font-size: 14px;">Pega el link de una receta y la IA la extraerá por ti.</p>
+                    </div>
+
+                    <!-- URL Input -->
+                    <div style="margin-bottom: 16px;">
+                        <input type="url" id="urlImportInput" autocomplete="url"
+                            placeholder="Pega el link aquí..."
+                            style="width: 100%; padding: 16px 20px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-size: 16px; color: var(--md-on-surface); outline: none; transition: border-color 200ms ease; box-sizing: border-box;"
+                            onfocus="this.style.borderColor='#00C853'"
+                            onblur="this.style.borderColor='var(--border)'"
+                        />
+                    </div>
+
+                    <!-- Platform badges -->
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">YouTube</span>
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">TikTok</span>
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Instagram</span>
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Blog</span>
+                    </div>
+
+                    <!-- Error message (hidden) -->
+                    <div id="urlImportError" style="display: none; background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; line-height: 1.4;"></div>
+
+                    <!-- Extract button -->
+                    <button id="btnExtractUrl" onclick="handleUrlImport()"
+                        style="width: 100%; height: 56px; border-radius: 16px; border: none; background: #00C853; color: white; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(0,200,83,0.25); transition: transform 100ms ease;"
+                        onmousedown="this.style.transform='scale(0.97)'"
+                        onmouseup="this.style.transform='scale(1)'"
+                        ontouchstart="this.style.transform='scale(0.97)'"
+                        ontouchend="this.style.transform='scale(1)'">
+                        <span class="material-symbols-outlined" style="font-size: 22px;">magic_button</span>
+                        Extraer Receta
+                    </button>
+
+                    <!-- iOS tip -->
+                    <div id="urlTipIOS" style="display: none; margin-top: 20px; background: #F9FAFB; border-radius: 14px; padding: 14px 16px; border: 1px solid #E5E7EB;">
+                        <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5;">
+                            💡 <strong>En iPhone:</strong> abre el video → Compartir → Copiar enlace → vuelve y pégalo aquí
+                        </p>
+                    </div>
+
+                    <!-- Android PWA tip -->
+                    <div id="urlTipAndroid" style="display: none; margin-top: 20px; background: #F9FAFB; border-radius: 14px; padding: 14px 16px; border: 1px solid #E5E7EB;">
+                        <p style="margin: 0; font-size: 13px; color: #6B7280; line-height: 1.5;">
+                            💡 También puedes compartir directo desde TikTok o YouTube sin copiar el link
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CAMERA MODE (existing, wrapped for toggle) -->
+                <div id="cameraModePanel">
+
                 <!-- PASO 1: Capturar Imagen -->
                 <div id="step1" class="ocr-step active">
 
@@ -1048,24 +1117,30 @@
                             <span class="material-symbols-outlined" style="font-size: 24px;">check_circle</span>
                             <span style="font-size: 18px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
                         </button>
-                    </div>
                 </div>
+
+                </div><!-- /cameraModePanel -->
+            </div><!-- /ocr-container -->
+        </div><!-- /m3-scroll -->
     </main>
 
+
     <!-- Scripts -->
-    <script src="js/config.js?v=318"></script>
-    <script src="js/supabase-client.js?v=318"></script>
-    <script src="js/auth.js?v=318"></script>
-    <script src="js/localdb.js?v=318"></script>
-    <script src="js/sync-manager.js?v=318"></script>
-    <script src="js/db.js?v=318"></script>
-    <script src="js/utils.js?v=318"></script>
-    <script src="js/i18n.js?v=318"></script>
-    <script src="js/ui.js?v=318"></script>
+    <script src="js/config.js?v=319"></script>
+    <script src="js/supabase-client.js?v=319"></script>
+    <script src="js/auth.js?v=319"></script>
+    <script src="js/localdb.js?v=319"></script>
+    <script src="js/sync-manager.js?v=319"></script>
+    <script src="js/db.js?v=319"></script>
+    <script src="js/utils.js?v=319"></script>
+    <script src="js/i18n.js?v=319"></script>
+    <script src="js/ui.js?v=319"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=318"></script>
-    <script src="js/ocr.js?v=318"></script>
+    <script src="js/ocr-processor.js?v=319"></script>
+    <script src="js/ocr.js?v=319"></script>
+    <script src="js/url-importer.js?v=319"></script>
+
 
     <script>
         // Variables de estado
@@ -1083,7 +1158,89 @@
             if (window.updateGlobalUserUI) window.updateGlobalUserUI();
             setupDragAndDrop();
             setupOCRModal();
+            detectPlatformAndSharedUrl();
         });
+
+        // --- URL Import & Tab Logic ---
+        function switchOcrTab(mode) {
+            const tabCamera = document.getElementById('tabCamera');
+            const tabUrl = document.getElementById('tabUrl');
+            const cameraPanel = document.getElementById('cameraModePanel');
+            const urlPanel = document.getElementById('urlModePanel');
+
+            if (mode === 'camera') {
+                tabCamera.style.background = '#00C853';
+                tabCamera.style.color = 'white';
+                tabUrl.style.background = 'transparent';
+                tabUrl.style.color = '#6B7280';
+                cameraPanel.style.display = 'block';
+                urlPanel.style.display = 'none';
+                if (window.ocr) window.ocr.startCamera();
+            } else {
+                tabUrl.style.background = '#00C853';
+                tabUrl.style.color = 'white';
+                tabCamera.style.background = 'transparent';
+                tabCamera.style.color = '#6B7280';
+                cameraPanel.style.display = 'none';
+                urlPanel.style.display = 'block';
+                if (window.ocr) window.ocr.stopCamera();
+            }
+        }
+
+        async function handleUrlImport() {
+            const input = document.getElementById('urlImportInput');
+            const errorEl = document.getElementById('urlImportError');
+            const url = input.value.trim();
+
+            if (!url) return;
+            errorEl.style.display = 'none';
+
+            try {
+                // Show the standard OCR processing screen
+                if (window.ocr) {
+                    window.ocr.showProcessingState();
+                }
+
+                const results = await window.urlImporter.importFromURL(url, (m) => {
+                    if (window.ocr) window.ocr.updateProgress(m);
+                });
+
+                if (results.success) {
+                    // Smooth transition to results
+                    await new Promise(r => setTimeout(r, 700));
+                    if (window.ocr) window.ocr.showResults(results);
+                }
+            } catch (err) {
+                console.error('URL Import error:', err);
+                if (window.ocr) window.ocr.resetModal();
+                errorEl.textContent = err.message;
+                errorEl.style.display = 'block';
+                switchOcrTab('url'); // Ensure we stay in URL tab if it failed
+            }
+        }
+
+        function detectPlatformAndSharedUrl() {
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+            
+            if (isIOS) document.getElementById('urlTipIOS').style.display = 'block';
+            if (!isIOS && isPWA) document.getElementById('urlTipAndroid').style.display = 'block';
+
+            // Check for shared URL from Web Share Target
+            const params = new URLSearchParams(window.location.search);
+            const sharedUrl = params.get('url') || params.get('text');
+
+            if (sharedUrl && sharedUrl.startsWith('http')) {
+                // Switch to URL tab
+                switchOcrTab('url');
+                const cleanUrl = sharedUrl.match(/https?:\/\/[^\s]+/)?.[0] || sharedUrl;
+                document.getElementById('urlImportInput').value = cleanUrl;
+                
+                // Auto-trigger if it looks like a clean recipe link
+                setTimeout(() => handleUrlImport(), 500);
+            }
+        }
+
 
         function setupOCRModal() {
             const btnCloseOCR = document.getElementById('btnCloseOCR');

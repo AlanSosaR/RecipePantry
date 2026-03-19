@@ -54,8 +54,13 @@
             "destination": "/recipe-detail.html"
         },
         {
+            "source": "/ocr",
+            "destination": "/ocr.html"
+        },
+        {
             "source": "/((?!api|assets|js|css|sw\\.js|favicon\\.ico|manifest\\.webmanifest).*)",
             "destination": "/index.html"
         }
+
     ]
 }

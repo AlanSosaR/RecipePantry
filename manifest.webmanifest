@@ -45,5 +45,14 @@
         }
       ]
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/ocr?import=true",
+    "method": "GET",
+    "params": {
+      "url": "url",
+      "text": "text"
+    }
+  }
 }
+
