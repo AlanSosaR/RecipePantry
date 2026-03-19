@@ -3,9 +3,20 @@
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
-const OPENROUTER_API_KEY = "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";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const AI_MODEL = "google/gemini-2.0-flash-exp:free";
+
+// Helper to get/set API Key securely
+const getOpenRouterKey = () => {
+    let key = localStorage.getItem('openrouter_api_key');
+    if (!key || key.includes('sk-or-v1-454409a5')) { // Clear old exposed key if present
+        key = window.prompt("Por favor, introduce tu clave de OpenRouter (se guardará solo en este navegador):");
+        if (key) {
+            localStorage.setItem('openrouter_api_key', key);
+        }
+    }
+    return key;
+};
 
 class OCRProcessor {
     constructor() {
@@ -58,7 +69,7 @@ class OCRProcessor {
         await this.worker.setParameters({
             tessedit_pageseg_mode: targetPsm,
             tessedit_ocr_engine_mode: 1, // LSTM Only (Most accurate)
-            user_defined_dpi: '300', 
+            user_defined_dpi: '300',
             preserve_interword_spaces: '1',
             tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúüñÁÉÍÓÚÑüÜ0123456789 .,;:()[]{}°•✓→★½¼¾-/+@#$%&\'\"¿¡',
         });
@@ -90,10 +101,13 @@ Rules:
 OCR TEXT:
 ${cleanedText}`;
 
+        const apiKey = getOpenRouterKey();
+        if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
+
         const response = await fetch(OPENROUTER_URL, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
                 'HTTP-Referer': 'https://recipepantry.app',
                 'X-Title': 'Recipe Pantry'
@@ -128,15 +142,15 @@ ${cleanedText}`;
     extractJSON(text) {
         // Eliminar bloques de código markdown si los hay
         text = text.replace(/```json|```/g, '').trim();
-        
+
         // Encontrar primer { y último }
         const start = text.indexOf('{');
         const end = text.lastIndexOf('}');
-        
+
         if (start === -1 || end === -1) {
             throw new Error('No se encontró una estructura JSON válida en la respuesta');
         }
-        
+
         const jsonString = text.substring(start, end + 1);
         return JSON.parse(jsonString);
     }
@@ -147,7 +161,7 @@ ${cleanedText}`;
      */
     async structureRecipeWithGeminiVision(canvas, onProgress, options = {}) {
         const scaleCanvas = document.createElement('canvas');
-        const maxDim = 1200; 
+        const maxDim = 1200;
         let width = canvas.width;
         let height = canvas.height;
 
@@ -182,10 +196,13 @@ Return ONLY this JSON, no markdown, no explanation:
   ]
 }`;
 
+        const apiKey = getOpenRouterKey();
+        if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
+
         const response = await fetch(OPENROUTER_URL, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
                 'HTTP-Referer': 'https://recipepantry.app',
                 'X-Title': 'Recipe Pantry'
@@ -238,7 +255,7 @@ Return ONLY this JSON, no markdown, no explanation:
                 // ─────────────────────────────────────────────────────
                 if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: 'Reconociendo texto...' });
                 if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: 'Identificando ingredientes...' });
-                
+
                 const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress, options);
 
 
@@ -253,7 +270,7 @@ Return ONLY this JSON, no markdown, no explanation:
 
                 console.log(`✅ [Gemini Vision] Éxito | Confianza AI: ${score}%`);
                 if (onProgress) onProgress({ status: 'finalizando', progress: 0.95, message: 'Últimos ajustes...' });
-                
+
                 if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Lista!' });
 
 

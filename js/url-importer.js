@@ -75,10 +75,13 @@ Page URL: ${url}
 PAGE CONTENT:
 ${pageData.text}`;
 
+        const apiKey = getOpenRouterKey();
+        if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
+
         const response = await fetch(OPENROUTER_URL, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
                 'HTTP-Referer': 'https://recipepantry.app',
                 'X-Title': 'Recipe Pantry'
