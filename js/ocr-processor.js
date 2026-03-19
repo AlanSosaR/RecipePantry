@@ -126,7 +126,8 @@ ${cleanedText}`;
             body: JSON.stringify({
                 contents: [{ parts: [{ text: geminiPrompt }] }],
 
-                generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+                generationConfig: { temperature: 0.1, maxOutputTokens: 8192, responseMimeType: "application/json" }
+
             })
         });
 
@@ -140,10 +141,31 @@ ${cleanedText}`;
         // Limpiar bloques de código Markdown si se cuelan
         textResponse = textResponse.replace(/^```json\s*/g, '').replace(/\s*```$/g, '').trim();
 
-        const parsed = JSON.parse(textResponse);
+        const parsed = this.extractJSON(textResponse);
         parsed.isStructured = true;
         return parsed;
     }
+
+    /**
+     * Extrae de forma segura un objeto JSON de una cadena de texto, 
+     * eliminando cualquier bloque Markdown o texto basura circundante.
+     */
+    extractJSON(text) {
+        // Eliminar bloques de código markdown si los hay
+        text = text.replace(/```json|```/g, '').trim();
+        
+        // Encontrar primer { y último }
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        
+        if (start === -1 || end === -1) {
+            throw new Error('No se encontró una estructura JSON válida en la respuesta');
+        }
+        
+        const jsonString = text.substring(start, end + 1);
+        return JSON.parse(jsonString);
+    }
+
 
     /**
      * Lee y estructura la receta directamente usando Gemini 2.5 Flash Vision
@@ -174,6 +196,7 @@ Instructions:
 - Separate ingredients from preparation steps
 - Clean and normalize quantities (fix OCR-style errors if any)
 - Respond in Spanish (Castellano).
+- For long preparation steps, summarize each step concisely in one sentence maximum to avoid response truncation. Keep all ingredients complete.
 
 Return ONLY this JSON, no markdown, no explanation:
 {
@@ -186,14 +209,16 @@ Return ONLY this JSON, no markdown, no explanation:
     "Complete step as a clean sentence in Spanish."
   ]
 }`
+
                         }
                     ]
                 }],
                 generationConfig: {
                     temperature: 0.1,
-                    maxOutputTokens: 2048,
+                    maxOutputTokens: 8192,
                     responseMimeType: "application/json"
                 }
+
             })
 
         });
@@ -205,10 +230,9 @@ Return ONLY this JSON, no markdown, no explanation:
 
         if (!textResponse) throw new Error("Respuesta vacía de Gemini Vision");
 
-        textResponse = textResponse.replace(/^```json\s*/g, '').replace(/\s*```$/g, '').trim();
-
-        const parsed = JSON.parse(textResponse);
+        const parsed = this.extractJSON(textResponse);
         parsed.isStructured = true;
+
         parsed.texto = "Extracción directa con Gemini Vision.";
         return parsed;
     }
