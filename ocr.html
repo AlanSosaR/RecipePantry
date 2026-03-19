@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="328">
+<html lang="es" data-app-version="329">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '328';
+            const CURRENT_VERSION = '329';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=328">
-    <link rel="stylesheet" href="css/components.css?v=328">
+    <link rel="stylesheet" href="css/styles.css?v=329">
+    <link rel="stylesheet" href="css/components.css?v=329">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1091,20 +1091,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=328"></script>
-    <script src="js/supabase-client.js?v=328"></script>
-    <script src="js/auth.js?v=328"></script>
-    <script src="js/localdb.js?v=328"></script>
-    <script src="js/sync-manager.js?v=328"></script>
-    <script src="js/db.js?v=328"></script>
-    <script src="js/utils.js?v=328"></script>
-    <script src="js/i18n.js?v=328"></script>
-    <script src="js/ui.js?v=328"></script>
+    <script src="js/config.js?v=329"></script>
+    <script src="js/supabase-client.js?v=329"></script>
+    <script src="js/auth.js?v=329"></script>
+    <script src="js/localdb.js?v=329"></script>
+    <script src="js/sync-manager.js?v=329"></script>
+    <script src="js/db.js?v=329"></script>
+    <script src="js/utils.js?v=329"></script>
+    <script src="js/i18n.js?v=329"></script>
+    <script src="js/ui.js?v=329"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=328"></script>
-    <script src="js/ocr.js?v=328"></script>
-    <script src="js/url-importer.js?v=328"></script>
+    <script src="js/ocr-processor.js?v=329"></script>
+    <script src="js/ocr.js?v=329"></script>
+    <script src="js/url-importer.js?v=329"></script>
 
 
     <script>
@@ -1165,7 +1165,7 @@
                 // Show the standard OCR processing screen (Step 2)
                 goToStep(2);
                 document.getElementById('scanningLine').classList.remove('hidden');
-                document.getElementById('previewImage').src = 'assets/placeholder-recipe.jpg';
+                document.getElementById('previewImage').src = 'assets/url.svg';
                 document.getElementById('previewImage').style.display = 'block';
                 document.getElementById('processingStatus').textContent = 'Descargando contenido...';
                 document.getElementById('progressBar').style.width = '10%';
@@ -1678,7 +1678,7 @@
                         .m3-blob {
                             width: 52px;
                             height: 52px;
-                            background: #00C853;
+                            background: var(--primary);
                             animation: m3Morph 4s ease-in-out infinite, m3Pulse 2s ease-in-out infinite;
                             display: flex;
                             align-items: center;
@@ -1690,14 +1690,14 @@
                             width: 56px !important;
                             height: 56px !important;
                             border-radius: 50% !important;
-                            background: #00D655 !important;
-                            box-shadow: 0 0 0 0 rgba(0,200,83,0.7);
+                            background: var(--primary) !important;
+                            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
                             animation: m3Ripple 0.8s ease-out forwards !important;
                         }
                         @keyframes m3Ripple {
-                            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0,200,83,0.7); }
+                            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
                             50% { transform: scale(1.1); }
-                            100% { transform: scale(1); box-shadow: 0 0 0 24px rgba(0,200,83,0); }
+                            100% { transform: scale(1); box-shadow: 0 0 0 24px rgba(16, 185, 129, 0); }
                         }
                     </style>
                     <div id="m3Blob" class="m3-blob">
@@ -1712,12 +1712,12 @@
 
 
                 <!-- Progress text + bar -->
-                <p id="ocrProgressText" style="font-weight:600;color:#10B981;font-size:16px;margin-bottom:12px;"
+                <p id="ocrProgressText" style="font-weight:600;color:var(--primary);font-size:16px;margin-bottom:12px;"
                     data-i18n="ocrProcessing">Iniciando OCR...</p>
                 <div
                     style="width:100%;max-width:320px;height:8px;background:#E5E7EB;border-radius:99px;overflow:hidden;">
                     <div id="ocrProgressBar"
-                        style="height:100%;width:0%;background:linear-gradient(90deg,#10B981,#F59E0B);border-radius:99px;transition:width .3s ease;">
+                        style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#F59E0B);border-radius:99px;transition:width .3s ease;">
                     </div>
                 </div>
             </div>
