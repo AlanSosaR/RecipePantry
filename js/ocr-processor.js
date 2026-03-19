@@ -170,14 +170,28 @@ ${cleanedText}`;
      * Lee y estructura la receta directamente usando Gemini 2.5 Flash Vision
      */
     async structureRecipeWithGeminiVision(canvas, onProgress, options = {}) {
+        // v311: Reducir resolución para Gemini Vision para AHORRAR TOKENS y evitar el error 429
+        const scaleCanvas = document.createElement('canvas');
+        const maxDim = 1200; 
+        let width = canvas.width;
+        let height = canvas.height;
+
+        if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
+        else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+
+        scaleCanvas.width = width;
+        scaleCanvas.height = height;
+        const ctx = scaleCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, 0, width, height);
+
+        const imageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
         const apiKey = GEMINI_API_KEY;
-
-        const imageBase64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
 
         const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+
 
             body: JSON.stringify({
                 contents: [{
