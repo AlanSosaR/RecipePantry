@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="329">
+<html lang="es" data-app-version="330">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '329';
+            const CURRENT_VERSION = '330';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=329">
-    <link rel="stylesheet" href="css/components.css?v=329">
+    <link rel="stylesheet" href="css/styles.css?v=330">
+    <link rel="stylesheet" href="css/components.css?v=330">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1068,17 +1068,68 @@
                     </div>
 
                     <div style="text-align: center; position: relative;">
-                        <div style="position: relative; display: inline-block;">
-                            <img id="previewImage" class="preview-image" alt="Preview">
+                        <!-- Image preview with frosted glass overlay -->
+                        <div id="ocrPreviewContainer"
+                            style="position:relative; width:100%; max-width:320px; border-radius:32px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,.1); margin:0 auto 32px auto;">
+                            <img id="previewImage" class="preview-image" style="width:100%; display:block; border-radius:32px; margin:0;" alt="Preview">
                             <div id="scanningLine" class="scanning-line hidden"></div>
+                            <div id="ocrGlassOverlay"
+                                style="position:absolute; inset:0; background:rgba(255,255,255,0.05); backdrop-filter:blur(1.2px); -webkit-backdrop-filter:blur(1.2px); transition:all 0.4s ease;">
+                            </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; align-items: center; margin: 32px 0;">
+                        <!-- Unified M3 Expressive Morphing Loader -->
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom: 24px;">
+                            <style>
+                                @keyframes m3Morph {
+                                    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+                                    33% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+                                    66% { border-radius: 60% 40% 50% 50% / 40% 60% 40% 60%; }
+                                    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+                                }
+                                @keyframes m3Pulse {
+                                    0%, 100% { box-shadow: 0 4px 12px rgba(0,200,83,0.3); transform: scale(0.98); }
+                                    50% { box-shadow: 0 8px 24px rgba(0,200,83,0.5); transform: scale(1.02); }
+                                }
+                                .m3-blob {
+                                    width: 52px;
+                                    height: 52px;
+                                    background: var(--primary);
+                                    animation: m3Morph 4s ease-in-out infinite, m3Pulse 2s ease-in-out infinite;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                }
+                                .m3-blob.success {
+                                    animation: none !important;
+                                    width: 56px !important;
+                                    height: 56px !important;
+                                    border-radius: 50% !important;
+                                    background: var(--primary) !important;
+                                    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                                    animation: m3Ripple 0.8s ease-out forwards !important;
+                                }
+                                @keyframes m3Ripple {
+                                    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                                    50% { transform: scale(1.1); }
+                                    100% { transform: scale(1); box-shadow: 0 0 0 24px rgba(16, 185, 129, 0); }
+                                }
+                            </style>
+                            <div id="m3Blob" class="m3-blob">
+                                <span id="m3Checkmark" class="material-symbols-outlined" style="color:white; font-size: 32px; opacity:0; transition: opacity 0.3s ease;">check</span>
+                            </div>
+                        </div>
+
+                        <!-- Percentage Number -->
+                        <div id="ocrPercent" style="font-size: 28px; font-weight: 800; color: #111827; margin-bottom: 8px;">0%</div>
+
+                        <div style="display: flex; flex-direction: column; align-items: center;">
                             <p id="processingStatus"
-                                style="margin-bottom: 16px; font-weight: 600; color: var(--primary); font-size: 18px;"
+                                style="margin-bottom: 16px; font-weight: 700; color: var(--primary); font-size: 18px;"
                                 data-i18n="ocrProcessing">
                                 Iniciando OCR...</p>
-                            <div class="progress-container" style="max-width: 400px;">
+                            <div class="progress-container" style="max-width: 320px; height: 6px;">
                                 <div id="progressBar" class="progress-bar"></div>
                             </div>
                         </div>
@@ -1091,20 +1142,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=329"></script>
-    <script src="js/supabase-client.js?v=329"></script>
-    <script src="js/auth.js?v=329"></script>
-    <script src="js/localdb.js?v=329"></script>
-    <script src="js/sync-manager.js?v=329"></script>
-    <script src="js/db.js?v=329"></script>
-    <script src="js/utils.js?v=329"></script>
-    <script src="js/i18n.js?v=329"></script>
-    <script src="js/ui.js?v=329"></script>
+    <script src="js/config.js?v=330"></script>
+    <script src="js/supabase-client.js?v=330"></script>
+    <script src="js/auth.js?v=330"></script>
+    <script src="js/localdb.js?v=330"></script>
+    <script src="js/sync-manager.js?v=330"></script>
+    <script src="js/db.js?v=330"></script>
+    <script src="js/utils.js?v=330"></script>
+    <script src="js/i18n.js?v=330"></script>
+    <script src="js/ui.js?v=330"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=329"></script>
-    <script src="js/ocr.js?v=329"></script>
-    <script src="js/url-importer.js?v=329"></script>
+    <script src="js/ocr-processor.js?v=330"></script>
+    <script src="js/ocr.js?v=330"></script>
+    <script src="js/url-importer.js?v=330"></script>
 
 
     <script>
@@ -1169,9 +1220,11 @@
                 document.getElementById('previewImage').style.display = 'block';
                 document.getElementById('processingStatus').textContent = 'Descargando contenido...';
                 document.getElementById('progressBar').style.width = '10%';
+                document.getElementById('ocrPercent').textContent = '0%';
+
 
                 const results = await window.urlImporter.importFromURL(url, (m) => {
-                    // Actualizar UI del paso 2 al igual que la captura de imágenes
+                    // Update unified progress UI
                     const p = Math.round((m.progress || 0) * 100);
                     document.getElementById('processingStatus').textContent = m.message || 'Analizando...';
                     document.getElementById('progressBar').style.width = p + '%';
@@ -1647,80 +1700,9 @@
             <div id="ocrLoading"
                 style="flex:1;flex-direction:column;padding:20px;background:#F9F9F9;overflow-y:auto;display:none;align-items:center;">
 
-                <h3 style="font-weight:800;font-size:22px;margin-bottom:6px;align-self:flex-start;color:#111827;"
-                    data-i18n="ocrStep2Title">Analizando...</h3>
-
-                <p style="color:#00C853;font-size:14px;margin-bottom:24px;align-self:flex-start;"
-                    data-i18n="ocrStep2Desc">Estamos extrayendo los secretos de tu receta.</p>
-
-                <!-- Image preview with frosted glass overlay -->
-                <div id="ocrPreviewContainer"
-                    style="position:relative;width:100%;max-width:320px;border-radius:24px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);margin-bottom:32px;">
-                    <img id="ocrProcessingPreview" style="width:100%;display:block;border-radius:24px;" alt="Preview">
-                    <div id="ocrGlassOverlay"
-                        style="position:absolute;inset:0;background:rgba(255,255,255,0.05);backdrop-filter:blur(1.2px);-webkit-backdrop-filter:blur(1.2px);transition:all 0.4s ease;">
-                    </div>
-                </div>
-
-                <!-- M3 Expressive Morphing Loader -->
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom: 16px;">
-                    <style>
-                        @keyframes m3Morph {
-                            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-                            33% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-                            66% { border-radius: 60% 40% 50% 50% / 40% 60% 40% 60%; }
-                            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-                        }
-                        @keyframes m3Pulse {
-                            0%, 100% { box-shadow: 0 4px 12px rgba(0,200,83,0.3); transform: scale(0.98); }
-                            50% { box-shadow: 0 8px 24px rgba(0,200,83,0.5); transform: scale(1.02); }
-                        }
-                        .m3-blob {
-                            width: 52px;
-                            height: 52px;
-                            background: var(--primary);
-                            animation: m3Morph 4s ease-in-out infinite, m3Pulse 2s ease-in-out infinite;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-                        }
-                        .m3-blob.success {
-                            animation: none !important;
-                            width: 56px !important;
-                            height: 56px !important;
-                            border-radius: 50% !important;
-                            background: var(--primary) !important;
-                            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-                            animation: m3Ripple 0.8s ease-out forwards !important;
-                        }
-                        @keyframes m3Ripple {
-                            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-                            50% { transform: scale(1.1); }
-                            100% { transform: scale(1); box-shadow: 0 0 0 24px rgba(16, 185, 129, 0); }
-                        }
-                    </style>
-                    <div id="m3Blob" class="m3-blob">
-                        <span id="m3Checkmark" class="material-symbols-outlined" style="color:white; font-size: 32px; opacity:0; transition: opacity 0.3s ease;">check</span>
-                    </div>
-                </div>
-
-                <!-- Percentage Number -->
-                <div id="ocrPercent" style="font-size: 24px; font-weight: 800; color: #111827; margin-bottom: 4px;">0%</div>
-
-
-
-
-                <!-- Progress text + bar -->
-                <p id="ocrProgressText" style="font-weight:600;color:var(--primary);font-size:16px;margin-bottom:12px;"
-                    data-i18n="ocrProcessing">Iniciando OCR...</p>
-                <div
-                    style="width:100%;max-width:320px;height:8px;background:#E5E7EB;border-radius:99px;overflow:hidden;">
-                    <div id="ocrProgressBar"
-                        style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#F59E0B);border-radius:99px;transition:width .3s ease;">
-                    </div>
-                </div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 

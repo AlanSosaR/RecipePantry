@@ -147,10 +147,13 @@ class OCRScanner {
         }
 
         // Reset progress
-        const progressText = document.getElementById('ocrProgressText');
-        const progressBar = document.getElementById('ocrProgressBar');
+        const progressText = document.getElementById('processingStatus');
+        const progressBar = document.getElementById('progressBar');
+        const percentText = document.getElementById('ocrPercent');
+        
         if (progressText) progressText.textContent = window.i18n ? window.i18n.t('ocrProcessing') : 'Iniciando OCR...';
         if (progressBar) progressBar.style.width = '0%';
+        if (percentText) percentText.textContent = '0%';
     }
 
     /**
@@ -160,8 +163,8 @@ class OCRScanner {
         const p = Math.round((message.progress || 0) * 100);
         
         const percentText = document.getElementById('ocrPercent');
-        const progressText = document.getElementById('ocrProgressText');
-        const progressBar = document.getElementById('ocrProgressBar');
+        const progressText = document.getElementById('processingStatus');
+        const progressBar = document.getElementById('progressBar');
         const m3Blob = document.getElementById('m3Blob');
         const m3Checkmark = document.getElementById('m3Checkmark');
         const glassOverlay = document.getElementById('ocrGlassOverlay');
