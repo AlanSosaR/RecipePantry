@@ -228,9 +228,12 @@ class OCRScanner {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
         const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
 
+        const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
+
         try {
             // v252: Precision check - No over-processing later because we already optimized it here
-            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
+            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
+
             if (results.success) {
                 this.showResults(results);
             } else {
@@ -280,8 +283,10 @@ class OCRScanner {
         this.showProcessingState(imageDataUrl);
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
         const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
+        const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
         try {
-            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
+            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
+
             if (results.success) this.showResults(results);
             else throw new Error(results.error);
         } catch (error) { this.resetModal(); }
@@ -301,6 +306,26 @@ class OCRScanner {
             if (resultBody) resultBody.classList.remove('hidden');
             if (captureSection) captureSection.classList.add('hidden');
             if (tipsSection) tipsSection.classList.add('hidden');
+
+            // Badge de Traducción Dinámico
+            if (resultHeader) {
+                const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
+                const imgLang = results.idioma_original;
+                const isTranslated = imgLang && ((selectedLang === 'spa' && imgLang !== 'es') || (selectedLang === 'eng' && imgLang !== 'en'));
+
+                const oldBadge = resultHeader.querySelector('.translated-badge');
+                if (oldBadge) oldBadge.remove();
+
+                if (isTranslated) {
+                    const badge = document.createElement('span');
+                    badge.className = 'translated-badge';
+                    badge.style.cssText = 'font-size:11px; font-weight:600; background:#F3F4F6; color:#4B5563; padding:4px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-left:8px;';
+                    badge.innerHTML = `🌐 Traducido al ${selectedLang === 'eng' ? 'Inglés' : 'Español'}`;
+                    const titleRow = resultHeader.querySelector('h3');
+                    if (titleRow) { titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.appendChild(badge); }
+                }
+            }
+
             
             // Corregido: Actualizar todos los inputs de nombre (resolver ID duplicado)
             document.querySelectorAll('[id="ocrRecipeName"]').forEach(nameInput => {
@@ -394,8 +419,29 @@ class OCRScanner {
             const resultState = document.getElementById('ocrResultState');
             if (cameraState) cameraState.style.display = 'none';
             if (loadingState) loadingState.style.display = 'none';
-            if (resultState) resultState.style.display = 'flex';
-            const nameInput = document.getElementById('ocrRecipeNameModal'); // Corregido ID
+            
+            if (resultState) {
+                resultState.style.display = 'flex';
+                
+                const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
+                const imgLang = results.idioma_original;
+                const isTranslated = imgLang && ((selectedLang === 'spa' && imgLang !== 'es') || (selectedLang === 'eng' && imgLang !== 'en'));
+
+                const oldBadge = resultState.querySelector('.translated-badge');
+                if (oldBadge) oldBadge.remove();
+
+                if (isTranslated) {
+                    const badge = document.createElement('span');
+                    badge.className = 'translated-badge';
+                    badge.style.cssText = 'font-size:11px; font-weight:600; background:#F3F4F6; color:#4B5563; padding:4px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-left:8px;';
+                    badge.innerHTML = `🌐 Traducido al ${selectedLang === 'eng' ? 'Inglés' : 'Español'}`;
+                    const titleRow = resultState.querySelector('h3');
+                    if (titleRow) { titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.appendChild(badge); }
+                }
+            }
+
+            const nameInput = document.getElementById('ocrRecipeNameModal');
+ // Corregido ID
             if (nameInput) nameInput.value = results.nombre || 'Nueva Receta OCR';
             const extractedText = document.getElementById('extractedTextModal'); // Corregido ID
             if (extractedText) extractedText.value = results.texto || '';
@@ -411,9 +457,11 @@ class OCRScanner {
             reader.readAsDataURL(file);
         });
         this.stopCamera();
+        const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
         this.showProcessingState(imageDataUrl);
         try {
-            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m));
+            const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
+
             if (results.success) this.showResults(results);
             else throw new Error(results.error);
         } catch (error) { this.resetModal(); }

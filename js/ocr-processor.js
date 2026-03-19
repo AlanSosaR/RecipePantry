@@ -170,7 +170,8 @@ ${cleanedText}`;
     /**
      * Lee y estructura la receta directamente usando Gemini 2.5 Flash Vision
      */
-    async structureRecipeWithGeminiVision(canvas, onProgress) {
+    async structureRecipeWithGeminiVision(canvas, onProgress, options = {}) {
+
         const apiKey = GEMINI_API_KEY;
 
         const imageBase64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
@@ -188,14 +189,18 @@ ${cleanedText}`;
                             }
                         },
                         {
-                            text: `You are an expert culinary assistant specialized in Spanish-language recipes. Analyze this image and extract the complete recipe. The image may be a photo of a physical recipe book, a screenshot, a handwritten recipe, or a digital recipe with any lighting conditions.
+                            text: `You are an expert culinary assistant. Analyze this image and extract the complete recipe.
 
 Instructions:
 - Read ALL visible text in the image carefully
 - Identify the recipe name (usually the title or first line)
 - Separate ingredients from preparation steps
 - Clean and normalize quantities (fix OCR-style errors if any)
-- Respond in Spanish (Castellano).
+- Auto-detect the language of the text in the image.
+- IMPORTANT: The user wants the recipe in ${(options && options.lang === 'eng') ? 'English' : 'Spanish'}.
+- If the image language differs from the requested language: Translate all content (recipe name, ingredients, steps) to ${(options && options.lang === 'eng') ? 'English' : 'Spanish'} accurately.
+- Always return the final JSON in ${(options && options.lang === 'eng') ? 'English' : 'Spanish'}.
+- Keep ingredient quantities and units in their original format.
 - For long preparation steps, summarize each step concisely in one sentence maximum to avoid response truncation. Keep all ingredients complete.
 
 Return ONLY this JSON, no markdown, no explanation:
@@ -203,12 +208,14 @@ Return ONLY this JSON, no markdown, no explanation:
   "nombre": "Recipe name",
   "porciones": 4,
   "ingredientes": [
-    { "cantidad": "1", "unidad": "kilo", "nombre": "lomo de cerdo cortado en filetes delgados" }
+    { "cantidad": "1", "unidad": "kilo", "nombre": "lomo de cerdo" }
   ],
   "pasos": [
-    "Complete step as a clean sentence in Spanish."
-  ]
+    "Complete step as a clean sentence."
+  ],
+  "idioma_original": "es"
 }`
+
 
                         }
                     ]
@@ -255,7 +262,8 @@ Return ONLY this JSON, no markdown, no explanation:
                 if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: 'Reconociendo texto...' });
                 if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: 'Identificando ingredientes...' });
                 
-                const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress);
+                const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress, options);
+
 
                 if (onProgress) onProgress({ status: 'estructurando', progress: 0.8, message: 'Estructurando receta...' });
 
