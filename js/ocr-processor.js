@@ -6,9 +6,9 @@
 const GEMINI_API_KEYS_ENC = [
     "QUl6YVN5QzVtdE9rRVRGazV2cFlxR0EzSTJYM212a013VmJpcGNV", // Original Key
     "QUl6YVN5QkRFOE5RX1F5QXpFOTJsb3Q3ZW1qLUVhbzRzTWtEb2Rr", // Key 2
-    "QUl6YVN5QjZodk9uWm5WUzNlZWhFRXBYdERQMDVhU1hGbzNyWFpB", // Key 3
-    "QUl6YVN5QWkzR1RoaGt0Z20ySlk2bWNKak11SGdjYnpVSkJTa1Vn", // Key 4
-    "QUl6YVN5RFA4anJtUDBlc2pRQkZuVWtRbWtubWJsM3dhaFpNeHo4", // Key 5
+    "QUl6YVN5QjZodk9uWm5WUzNlZWhFRXBYdERQMDVhU1hHbzNyWFpB", // Key 3 (fixed)
+    "QUl6YVN5QWkzR1RoaGt0Z20ySlk2bWNKak11SGdjYnpVSkJTblVn", // Key 4 (fixed)
+    "QUl6YVN5RFA4anJtUDBlc2pRQkZuVWtRbWtubWJsM3dhaFpOeHo4", // Key 5 (fixed)
     "QUl6YVN5QUdCMEJCUHg2bUxRVXRvUGI5dWVqLUZiN1ZXX1oxRHZ3"  // Key 6
 ];
 
@@ -1068,10 +1068,12 @@ Return ONLY this JSON, no markdown, no explanation:
                 }
 
                 const response = await fetch(currentUrl, options);
-                if (response.status !== 429) return response;
-                
-                console.warn(`⚠️ Gemini API 429 (Too many requests). Rotando clave y reintentando en ${backoff}ms...`);
-                this.rotateApiKey(); // Rotar clave para el siguiente intento
+                // Rotar en 429 (cuota) y 400 (clave inválida)
+                if (response.status !== 429 && response.status !== 400) return response;
+
+                const reason = response.status === 429 ? 'cuota agotada (429)' : 'clave inválida (400)';
+                console.warn(`⚠️ Gemini API ${response.status}. Rotando clave (${reason}) y reintentando en ${backoff}ms...`);
+                this.rotateApiKey();
 
                 await new Promise(resolve => setTimeout(resolve, backoff));
                 backoff *= 2; // Exponencial clásico
