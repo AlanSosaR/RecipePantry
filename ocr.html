@@ -52,17 +52,10 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '333';
-            const NUKE_KEY = 'v337_unified_ocr_ui';
+            const CURRENT_VERSION = '337';
+            const NUKE_KEY = 'v337_force_update';
 
             (async () => {
-                if (localStorage.getItem('recipe_app_version') !== CURRENT_VERSION || !localStorage.getItem(NUKE_KEY)) {
-                    if ('serviceWorker' in navigator) {
-                        const regs = await navigator.serviceWorker.getRegistrations();
-                        for (let r of regs) await r.unregister();
-                    }
-                    if ('caches' in window) {
-                        const keys = await caches.keys();
                         for (let k of keys) await caches.delete(k);
                     }
                     localStorage.setItem('recipe_app_version', CURRENT_VERSION);
