@@ -87,7 +87,7 @@ class OCRProcessor {
             onProgress({ status: 'estructurando', progress: 0.85, message: '🤖 Estructurando receta con IA...' });
         }
 
-        const prompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
+        const geminiPrompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
 You will receive OCR text extracted from a recipe photo. This text may contain:
 - OCR misreads: 'l' instead of '1', 'O' instead of '0', 'Y' instead of '1/2'
 - Merged words, broken words, or random line breaks
@@ -130,7 +130,8 @@ ${cleanedText}`;
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
+                contents: [{ parts: [{ text: geminiPrompt }] }],
+
                 generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
             })
         });
