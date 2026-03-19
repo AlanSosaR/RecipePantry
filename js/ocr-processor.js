@@ -3,11 +3,16 @@
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
-const GEMINI_API_KEY_ENC = "QUl6YVN5QzVtdE9rRVRGazV2cFlxR0EzSTJYM212a013VmJpcGNV";
-const GEMINI_API_KEY = typeof window !== 'undefined' ? window.atob(GEMINI_API_KEY_ENC) : Buffer.from(GEMINI_API_KEY_ENC, 'base64').toString();
+const GEMINI_API_KEYS_ENC = [
+    "QUl6YVN5QzVtdE9rRVRGazV2cFlxR0EzSTJYM212a013VmJpcGNV", // Original Key
+    "QUl6YVN5QkRFOE5RX1F5QXpFOTJsb3Q3ZW1qLUVhbzRzTWtEb2Rr", // Key 2
+    "QUl6YVN5QjZodk9uWm5WUzNlZWhFRXBYdERQMDVhU1hGbzNyWFpB", // Key 3
+    "QUl6YVN5QWkzR1RoaGt0Z20ySlk2bWNKak11SGdjYnpVSkJTa1Vn", // Key 4
+    "QUl6YVN5RFA4anJtUDBlc2pRQkZuVWtRbWtubWJsM3dhaFpNeHo4", // Key 5
+    "QUl6YVN5QUdCMEJCUHg2bUxRVXRvUGI5dWVqLUZiN1ZXX1oxRHZ3"  // Key 6
+];
 
-
-
+const GEMINI_API_KEYS = GEMINI_API_KEYS_ENC.map(enc => typeof window !== 'undefined' ? window.atob(enc) : Buffer.from(enc, 'base64').toString());
 
 class OCRProcessor {
     constructor() {
@@ -15,7 +20,18 @@ class OCRProcessor {
         this.isInitialized = false;
         this.MAX_IMAGE_DIMENSION = 1800;
         this.TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js';
+        this.currentKeyIndex = 0;
     }
+
+    getApiKey() {
+        return GEMINI_API_KEYS[this.currentKeyIndex % GEMINI_API_KEYS.length];
+    }
+
+    rotateApiKey() {
+        this.currentKeyIndex++;
+        console.log(`🔄 Rotando clave de API a index: ${this.currentKeyIndex % GEMINI_API_KEYS.length}`);
+    }
+
 
     /**
      * Inicialización optimizada para Tesseract.js v7.0.0
@@ -1043,9 +1059,18 @@ Return ONLY this JSON, no markdown, no explanation:
         let backoff = delay;
         for (let i = 0; i < maxRetries; i++) {
             try {
-                const response = await fetch(url, options);
+                let currentUrl = url;
+                const currentKey = this.getApiKey();
+                if (currentUrl.includes('key=')) {
+                    currentUrl = currentUrl.replace(/key=[^&]+/, `key=${currentKey}`);
+                }
+
+                const response = await fetch(currentUrl, options);
                 if (response.status !== 429) return response;
-                console.warn(`⚠️ Gemini API 429 (Too many requests). Reintentando en ${backoff}ms...`);
+                
+                console.warn(`⚠️ Gemini API 429 (Too many requests). Rotando clave y reintentando en ${backoff}ms...`);
+                this.rotateApiKey(); // Rotar clave para el siguiente intento
+
                 await new Promise(resolve => setTimeout(resolve, backoff));
                 backoff *= 2; // Exponencial clásico
             } catch (err) {
