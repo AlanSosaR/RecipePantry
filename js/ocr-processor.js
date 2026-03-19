@@ -280,8 +280,9 @@ ${cleanedText}`;
                 if (widthScale > scale) scale = widthScale;
 
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 canvas.width = Math.round(img.width * scale);
+
                 canvas.height = Math.round(sourceHeight * scale);
 
                 ctx.imageSmoothingEnabled = true;
@@ -292,7 +293,8 @@ ${cleanedText}`;
                 // 1.5 AUTO-ROTACION CANALIZADA
                 // ─────────────────────────────────────────────────────
                 const rotatedCanvas = this.detectAndCorrectSkew(canvas);
-                const rotCtx = rotatedCanvas.getContext('2d');
+                const rotCtx = rotatedCanvas.getContext('2d', { willReadFrequently: true });
+
 
                 // ─────────────────────────────────────────────────────
                 // 2. PIPELINE DE FILTROS (pixel-level)
@@ -478,8 +480,9 @@ ${cleanedText}`;
         const scale = Math.min(maxDim / w, maxDim / h);
         smallCanvas.width = Math.round(w * scale);
         smallCanvas.height = Math.round(h * scale);
-        const sctx = smallCanvas.getContext('2d');
+        const sctx = smallCanvas.getContext('2d', { willReadFrequently: true });
         sctx.drawImage(canvas, 0, 0, w, h, 0, 0, smallCanvas.width, smallCanvas.height);
+
 
         // 2. Binarizar imagen pequeña para aislar líneas
         let imgData = sctx.getImageData(0, 0, smallCanvas.width, smallCanvas.height);
@@ -498,7 +501,8 @@ ${cleanedText}`;
         const testCanvas = document.createElement('canvas');
         testCanvas.width = smallCanvas.width;
         testCanvas.height = smallCanvas.height;
-        const tctx = testCanvas.getContext('2d');
+        const tctx = testCanvas.getContext('2d', { willReadFrequently: true });
+
 
         for (let angle = -45; angle <= 45; angle += 1) {
             tctx.clearRect(0, 0, testCanvas.width, testCanvas.height);
@@ -550,8 +554,9 @@ ${cleanedText}`;
             rotCanvas.width = rotW;
             rotCanvas.height = rotH;
 
-            const rctx = rotCanvas.getContext('2d');
+            const rctx = rotCanvas.getContext('2d', { willReadFrequently: true });
             rctx.translate(rotW / 2, rotH / 2);
+
             rctx.rotate(rad);
             rctx.drawImage(canvas, -w / 2, -h / 2);
 
