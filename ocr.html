@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="323">
+<html lang="es" data-app-version="324">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '323';
+            const CURRENT_VERSION = '324';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=323">
-    <link rel="stylesheet" href="css/components.css?v=323">
+    <link rel="stylesheet" href="css/styles.css?v=324">
+    <link rel="stylesheet" href="css/components.css?v=324">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -880,9 +880,9 @@
                     <div id="ocrCaptureSection">
                         
                         <!-- TAB TOGGLE: Cámara / Pegar Link -->
-                        <div id="ocrModeToggle" style="display: flex; background: #F3F4F6; border-radius: 16px; padding: 4px; margin-bottom: 24px; gap: 4px;">
+                        <div id="ocrModeToggle" style="display: flex; background: #E5E7EB; border-radius: 16px; padding: 4px; margin-bottom: 24px; gap: 4px;">
                             <button id="tabCamera" class="ocr-tab active" onclick="switchOcrTab('camera')"
-                                style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: #00C853; color: white;">
+                                style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--primary); color: white;">
                                 📷 Cámara/Foto
                             </button>
                             <button id="tabUrl" class="ocr-tab" onclick="switchOcrTab('url')"
@@ -903,17 +903,17 @@
                                 <input type="url" id="urlImportInput" autocomplete="url"
                                     placeholder="Pega el link aquí..."
                                     style="width: 100%; padding: 16px 20px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface); font-size: 16px; color: var(--md-on-surface); outline: none; transition: border-color 200ms ease; box-sizing: border-box;"
-                                    onfocus="this.style.borderColor='#00C853'"
+                                    onfocus="this.style.borderColor='var(--primary)'"
                                     onblur="this.style.borderColor='var(--border)'"
                                 />
                             </div>
 
                             <!-- Platform badges -->
                             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
-                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">YouTube</span>
-                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">TikTok</span>
-                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Instagram</span>
-                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(0,200,83,0.3); color: #6B7280; background: rgba(0,200,83,0.05);">Blog</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.3); color: #6B7280; background: rgba(16,185,129,0.05);">YouTube</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.3); color: #6B7280; background: rgba(16,185,129,0.05);">TikTok</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.3); color: #6B7280; background: rgba(16,185,129,0.05);">Instagram</span>
+                                <span style="font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.3); color: #6B7280; background: rgba(16,185,129,0.05);">Blog</span>
                             </div>
 
                             <!-- Error message (hidden) -->
@@ -921,7 +921,7 @@
 
                             <!-- Extract button -->
                             <button id="btnExtractUrl" onclick="handleUrlImport()"
-                                style="width: 100%; height: 56px; border-radius: 16px; border: none; background: #00C853; color: white; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(0,200,83,0.25); transition: transform 100ms ease;"
+                                style="width: 100%; height: 56px; border-radius: 16px; border: none; background: var(--primary); color: white; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(16,185,129,0.25); transition: transform 100ms ease;"
                                 onmousedown="this.style.transform='scale(0.97)'"
                                 onmouseup="this.style.transform='scale(1)'"
                                 ontouchstart="this.style.transform='scale(0.97)'"
@@ -931,7 +931,7 @@
                             </button>
 
                             <!-- Android Install Banner -->
-                            <div id="androidInstallBanner" class="android-install-banner">
+                            <div id="androidInstallBanner" class="android-install-banner" style="margin-top: 16px;">
                                 <span class="material-symbols-outlined" style="color: var(--primary);">install_mobile</span>
                                 <span style="flex: 1;">📲 Instala la app para compartir videos directamente</span>
                                 <button onclick="dismissInstallBanner()" style="background: transparent; border: none; cursor: pointer; color: var(--on-surface-variant);">
@@ -957,44 +957,42 @@
                         <!-- CAMERA INTERFACE PANEL -->
                         <div id="cameraInterfacePanel">
                             <div style="margin-bottom: 32px;">
+                                <h2 class="brand-font" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;" data-i18n="ocrStep1Title">Prepara tu Receta</h2>
+                                <p style="color: var(--on-surface-variant); font-size: 14px;" data-i18n="ocrStep1Desc">Enfoca bien el texto y captura la imagen para digitalizarla.</p>
+                            </div>
 
-                            <h2 class="brand-font"
-                                style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"
-                                data-i18n="ocrStep1Title">Prepara tu
-                                escáner
-                            </h2>
-                            <p style="color: var(--on-surface-variant); font-size: 16px;" data-i18n="ocrStep1Desc">Sube una
-                                foto clara de tu receta
-                                para
-                                digitalizarla al instante.</p>
-                        </div>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <button id="btnCapture" class="m3-expressive-card"
+                                    style="height: 100px; padding: 0 32px; border-radius: 32px; background: var(--primary); color: white; flex-direction: row; gap: 16px; box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);"
+                                    onclick="if(window.ocr) window.ocr.openModal()">
+                                    <span class="material-symbols-outlined" style="font-size: 32px;">photo_camera</span>
+                                    <span style="font-size: 20px; font-weight: 800;" data-i18n="ocrCapture">Capturar Ahora</span>
+                                </button>
 
-                        <!-- v266: Toolbar de Configuración Tesseract -->
-                        <div style="display: flex; gap: 12px; margin: 0 auto 24px auto; max-width: 380px; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
-                            <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
-                                <label style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; white-space: nowrap;">Idioma de lectura</label>
-                                <select id="ocrLang" style="flex: 1; padding: 12px; background: var(--md-surface-container-high); border: 1px solid var(--md-outline-variant); border-radius: 12px; color: var(--md-on-surface); font-weight: 600; cursor: pointer; outline: none;">
-                                    <option value="spa">Español</option>
-                                    <option value="eng">Inglés</option>
-                                </select>
+                                <button id="btnGallery" class="m3-expressive-card secondary"
+                                    style="height: 72px; padding: 0 28px; border-radius: 24px; background: var(--md-surface-container-high); color: var(--md-on-surface); border: 1px solid var(--md-outline-variant); flex-direction: row; gap: 12px;"
+                                    onclick="document.getElementById('fileInput').click()">
+                                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">image</span>
+                                    <span style="font-size: 16px; font-weight: 700;" data-i18n="ocrGallery">Subir desde Galería</span>
+                                </button>
+                                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                            </div>
+
+                            <!-- SECCIÓN DE CONSEJOS (Ahora dentro de cameraInterfacePanel) -->
+                            <div id="ocrTipsSection"
+                                style="margin-top: 32px; padding: 20px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border);">
+                                <p style="font-size: 14px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">lightbulb</span>
+                                    <span data-i18n="ocrTipsTitle">Consejos Pro:</span>
+                                </p>
+                                <ul style="margin-top: 12px; font-size: 14px; color: #6B7280; padding-left: 20px; line-height: 1.6;">
+                                    <li data-i18n="ocrTip1">Asegúrate que el texto sea legible.</li>
+                                    <li data-i18n="ocrTip2">Usa buena iluminación (evita sombras).</li>
+                                    <li data-i18n="ocrTip3">Mantén la cámara paralela al papel.</li>
+                                </ul>
                             </div>
                         </div>
 
-                        <div class="dropzone" id="dropzone"
-                            onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('fileInput').click()">
-                            <div
-                                style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0, 166, 118, 0.2);">
-                                <span class="material-symbols-outlined" style="font-size: 32px;">add_a_photo</span>
-                            </div>
-                            <p style="font-weight: 700; color: var(--md-on-surface); font-size: 20px;"
-                                data-i18n="ocrSelectImage">Tomar foto o subir
-                            </p>
-                            <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;"
-                                data-i18n="ocrFormats">JPG o PNG compatibles</p>
-                        </div>
-
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;"
-                            onchange="handleFileSelect(event)">
                     </div>
 
                     <!-- RESULTADOS EN EL MISMO PASO 1 (Unificado v134) -->
@@ -1015,22 +1013,7 @@
 
 
 
-                    <!-- SECCIÓN DE CONSEJOS (Ahora dentro de step1 para que se oculte automáticamente) -->
-                    <div id="ocrTipsSection"
-                        style="margin-top: 32px; padding: 20px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border);">
-                        <p
-                            style="font-size: 14px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                            <span class="material-symbols-outlined"
-                                style="font-size: 18px; color: var(--primary);">lightbulb</span>
-                            <span data-i18n="ocrTipsTitle">Consejos Pro:</span>
-                        </p>
-                        <ul
-                            style="margin-top: 12px; font-size: 14px; color: #6B7280; padding-left: 20px; line-height: 1.6;">
-                            <li data-i18n="ocrTip1">Asegúrate que el texto sea legible.</li>
-                            <li data-i18n="ocrTip2">Usa buena iluminación (evita sombras).</li>
-                            <li data-i18n="ocrTip3">Mantén la cámara paralela al papel.</li>
-                        </ul>
-                    </div>
+
 
                     <!-- NUEVOS BOTONES AL FINAL (OCULTOS POR DEFECTO) -->
                     <div id="ocrResultBodyStep1" class="hidden">
@@ -1178,20 +1161,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=323"></script>
-    <script src="js/supabase-client.js?v=323"></script>
-    <script src="js/auth.js?v=323"></script>
-    <script src="js/localdb.js?v=323"></script>
-    <script src="js/sync-manager.js?v=323"></script>
-    <script src="js/db.js?v=323"></script>
-    <script src="js/utils.js?v=323"></script>
-    <script src="js/i18n.js?v=323"></script>
-    <script src="js/ui.js?v=323"></script>
+    <script src="js/config.js?v=324"></script>
+    <script src="js/supabase-client.js?v=324"></script>
+    <script src="js/auth.js?v=324"></script>
+    <script src="js/localdb.js?v=324"></script>
+    <script src="js/sync-manager.js?v=324"></script>
+    <script src="js/db.js?v=324"></script>
+    <script src="js/utils.js?v=324"></script>
+    <script src="js/i18n.js?v=324"></script>
+    <script src="js/ui.js?v=324"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=323"></script>
-    <script src="js/ocr.js?v=323"></script>
-    <script src="js/url-importer.js?v=323"></script>
+    <script src="js/ocr-processor.js?v=324"></script>
+    <script src="js/ocr.js?v=324"></script>
+    <script src="js/url-importer.js?v=324"></script>
 
 
     <script>

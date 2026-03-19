@@ -114,8 +114,8 @@ ${pageData.text}`;
                     })
                 });
 
-                if (geminiResponse.status === 429) {
-                    console.warn(`⚠️ Gemini 429. Reintentando en ${backoff}ms...`);
+                if (geminiResponse.status === 429 || geminiResponse.status === 503) {
+                    console.warn(`⚠️ Gemini ${geminiResponse.status} (${geminiResponse.statusText}). Reintentando en ${backoff}ms...`);
                     await new Promise(r => setTimeout(r, backoff));
                     backoff *= 2;
                     continue;
