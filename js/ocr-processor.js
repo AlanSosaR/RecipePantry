@@ -191,9 +191,11 @@ Return ONLY this JSON, no markdown, no explanation:
                 }],
                 generationConfig: {
                     temperature: 0.1,
-                    maxOutputTokens: 2048
+                    maxOutputTokens: 2048,
+                    responseMimeType: "application/json"
                 }
             })
+
         });
 
         if (!response.ok) throw new Error(`Error en Gemini Vision: ${response.status}`);
