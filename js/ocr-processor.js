@@ -89,7 +89,8 @@ class OCRProcessor {
      * Estructura la receta usando la API de Gemini 2.0 Flash
      */
     async structureRecipeWithGemini(cleanedText, onProgress) {
-        const apiKey = GEMINI_API_KEY;
+        const apiKey = this.getApiKey();
+
 
         if (onProgress) {
 
@@ -202,7 +203,8 @@ ${cleanedText}`;
 
         const imageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
-        const apiKey = GEMINI_API_KEY;
+        const apiKey = this.getApiKey();
+
 
         const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
