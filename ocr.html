@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="325">
+<html lang="es" data-app-version="326">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '325';
+            const CURRENT_VERSION = '326';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=325">
-    <link rel="stylesheet" href="css/components.css?v=325">
+    <link rel="stylesheet" href="css/styles.css?v=326">
+    <link rel="stylesheet" href="css/components.css?v=326">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -957,26 +957,24 @@
                         <!-- CAMERA INTERFACE PANEL -->
                         <div id="cameraInterfacePanel">
                             <div style="margin-bottom: 32px;">
-                                <h2 class="brand-font" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;" data-i18n="ocrStep1Title">Prepara tu Receta</h2>
-                                <p style="color: var(--on-surface-variant); font-size: 14px;" data-i18n="ocrStep1Desc">Enfoca bien el texto y captura la imagen para digitalizarla.</p>
+                                <h2 class="brand-font" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;" data-i18n="ocrStep1Title">Prepara tu escáner</h2>
+                                <p style="color: var(--on-surface-variant); font-size: 14px;" data-i18n="ocrStep1Desc">Sube una foto clara de tu receta para digitalizarla al instante.</p>
                             </div>
 
-                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                <button id="btnCapture" class="m3-expressive-card"
-                                    style="height: 100px; padding: 0 32px; border-radius: 32px; background: var(--primary); color: white; flex-direction: row; gap: 16px; box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);"
-                                    onclick="if(window.ocr) window.ocr.openModal()">
-                                    <span class="material-symbols-outlined" style="font-size: 32px;">photo_camera</span>
-                                    <span style="font-size: 20px; font-weight: 800;" data-i18n="ocrCapture">Capturar Ahora</span>
-                                </button>
-
-                                <button id="btnGallery" class="m3-expressive-card secondary"
-                                    style="height: 72px; padding: 0 28px; border-radius: 24px; background: var(--md-surface-container-high); color: var(--md-on-surface); border: 1px solid var(--md-outline-variant); flex-direction: row; gap: 12px;"
-                                    onclick="document.getElementById('fileInput').click()">
-                                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">image</span>
-                                    <span style="font-size: 16px; font-weight: 700;" data-i18n="ocrGallery">Subir desde Galería</span>
-                                </button>
-                                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                            <div class="dropzone" id="dropzone"
+                                onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('fileInput').click()">
+                                <div
+                                    style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);">
+                                    <span class="material-symbols-outlined" style="font-size: 32px;">add_a_photo</span>
+                                </div>
+                                <p style="font-weight: 700; color: var(--md-on-surface); font-size: 20px;"
+                                    data-i18n="ocrSelectImage">Tomar foto o subir
+                                </p>
+                                <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;"
+                                    data-i18n="ocrFormats">JPG o PNG compatibles</p>
                             </div>
+
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
 
                             <!-- SECCIÓN DE CONSEJOS (Ahora dentro de cameraInterfacePanel) -->
                             <div id="ocrTipsSection"
@@ -1161,20 +1159,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=325"></script>
-    <script src="js/supabase-client.js?v=325"></script>
-    <script src="js/auth.js?v=325"></script>
-    <script src="js/localdb.js?v=325"></script>
-    <script src="js/sync-manager.js?v=325"></script>
-    <script src="js/db.js?v=325"></script>
-    <script src="js/utils.js?v=325"></script>
-    <script src="js/i18n.js?v=325"></script>
-    <script src="js/ui.js?v=325"></script>
+    <script src="js/config.js?v=326"></script>
+    <script src="js/supabase-client.js?v=326"></script>
+    <script src="js/auth.js?v=326"></script>
+    <script src="js/localdb.js?v=326"></script>
+    <script src="js/sync-manager.js?v=326"></script>
+    <script src="js/db.js?v=326"></script>
+    <script src="js/utils.js?v=326"></script>
+    <script src="js/i18n.js?v=326"></script>
+    <script src="js/ui.js?v=326"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=325"></script>
-    <script src="js/ocr.js?v=325"></script>
-    <script src="js/url-importer.js?v=325"></script>
+    <script src="js/ocr-processor.js?v=326"></script>
+    <script src="js/ocr.js?v=326"></script>
+    <script src="js/url-importer.js?v=326"></script>
 
 
     <script>
