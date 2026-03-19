@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="303">
+<html lang="es" data-app-version="304">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '303';
+            const CURRENT_VERSION = '304';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=303">
-    <link rel="stylesheet" href="css/components.css?v=303">
+    <link rel="stylesheet" href="css/styles.css?v=304">
+    <link rel="stylesheet" href="css/components.css?v=304">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1053,19 +1053,19 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=303"></script>
-    <script src="js/supabase-client.js?v=303"></script>
-    <script src="js/auth.js?v=303"></script>
-    <script src="js/localdb.js?v=303"></script>
-    <script src="js/sync-manager.js?v=303"></script>
-    <script src="js/db.js?v=303"></script>
-    <script src="js/utils.js?v=303"></script>
-    <script src="js/i18n.js?v=303"></script>
-    <script src="js/ui.js?v=303"></script>
+    <script src="js/config.js?v=304"></script>
+    <script src="js/supabase-client.js?v=304"></script>
+    <script src="js/auth.js?v=304"></script>
+    <script src="js/localdb.js?v=304"></script>
+    <script src="js/sync-manager.js?v=304"></script>
+    <script src="js/db.js?v=304"></script>
+    <script src="js/utils.js?v=304"></script>
+    <script src="js/i18n.js?v=304"></script>
+    <script src="js/ui.js?v=304"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=303"></script>
-    <script src="js/ocr.js?v=303"></script>
+    <script src="js/ocr-processor.js?v=304"></script>
+    <script src="js/ocr.js?v=304"></script>
 
     <script>
         // Variables de estado
@@ -1507,11 +1507,20 @@
                 <!-- Image preview with scanning line -->
                 <div
                     style="position:relative;width:100%;max-width:320px;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.15);margin-bottom:20px;">
+                    <style>
+                        @keyframes premiumScanner {
+                            0% { top: -5%; opacity: 0; }
+                            10% { opacity: 0.8; }
+                            90% { opacity: 0.8; }
+                            100% { top: 105%; opacity: 0; }
+                        }
+                    </style>
                     <img id="ocrProcessingPreview" style="width:100%;display:block;border-radius:16px;" alt="Preview">
                     <div id="ocrScanLine"
-                        style="position:absolute;top:0;left:0;width:100%;height:60px;background:linear-gradient(to bottom,transparent,rgba(16,185,129,.5));opacity:0.6;animation:modalScan 2.5s ease-in-out infinite;pointer-events:none;">
+                        style="position:absolute;top:0;left:0;width:100%;height:3px;background:#00C853;opacity:0.8;box-shadow:0 5px 15px #00C853, 0 -2px 8px #00C853;animation:premiumScanner 1.5s linear infinite;pointer-events:none;">
                     </div>
                 </div>
+
 
                 <!-- Progress text + bar -->
                 <p id="ocrProgressText" style="font-weight:600;color:#10B981;font-size:16px;margin-bottom:12px;"

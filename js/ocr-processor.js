@@ -245,19 +245,19 @@ Return ONLY this JSON, no markdown, no explanation:
         try {
             await this.initialize(onProgress, options);
 
-            if (onProgress) onProgress({ status: 'preprocesando', progress: 0.1, message: '📸 Preprocesando imagen...' });
+            if (onProgress) onProgress({ status: 'preprocesando', progress: 0.2, message: 'Analizando composición visual...' });
             const processedCanvas = await this.preprocessImage(imageFile);
 
             try {
                 // ─────────────────────────────────────────────────────
                 // RUTA PRIMARIA: Gemini 2.5 Flash Vision (v300)
                 // ─────────────────────────────────────────────────────
-                if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: '🤖 Enviando a Gemini Vision...' });
-                if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: '🤖 Leyendo imagen con IA...' });
+                if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: 'Identificando ingredientes...' });
+                if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: 'Extrayendo información...' });
                 
                 const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress);
 
-                if (onProgress) onProgress({ status: 'estructurando', progress: 0.9, message: '🤖 Estructurando receta...' });
+                if (onProgress) onProgress({ status: 'estructurando', progress: 0.8, message: 'Estructurando receta...' });
 
                 // Cálculo de Confianza Dinámica
                 let score = 100;
@@ -267,7 +267,10 @@ Return ONLY this JSON, no markdown, no explanation:
                 if (score < 0) score = 0;
 
                 console.log(`✅ [Gemini Vision] Éxito | Confianza AI: ${score}%`);
-                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ ¡Receta lista!' });
+                if (onProgress) onProgress({ status: 'finalizando', progress: 0.95, message: 'Aplicando correcciones finales...' });
+                
+                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Receta lista!' });
+
 
                 return {
                     ...geminiResult,
@@ -285,7 +288,8 @@ Return ONLY this JSON, no markdown, no explanation:
                 // ─────────────────────────────────────────────────────
                 // RUTA SECUNDARIA: Tesseract Fallback
                 // ─────────────────────────────────────────────────────
-                if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: '🔍 Extrayendo texto con Tesseract v7...' });
+                if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: 'Analizando texto alternativo...' });
+
 
                 const startTime = performance.now();
                 const { data: { text, confidence: tesseractConfidence } } = await this.worker.recognize(processedCanvas);
