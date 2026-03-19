@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="300">
+<html lang="es" data-app-version="301">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '300';
+            const CURRENT_VERSION = '301';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=300">
-    <link rel="stylesheet" href="css/components.css?v=300">
+    <link rel="stylesheet" href="css/styles.css?v=301">
+    <link rel="stylesheet" href="css/components.css?v=301">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1053,19 +1053,19 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=300"></script>
-    <script src="js/supabase-client.js?v=300"></script>
-    <script src="js/auth.js?v=300"></script>
-    <script src="js/localdb.js?v=300"></script>
-    <script src="js/sync-manager.js?v=300"></script>
-    <script src="js/db.js?v=300"></script>
-    <script src="js/utils.js?v=300"></script>
-    <script src="js/i18n.js?v=300"></script>
-    <script src="js/ui.js?v=300"></script>
+    <script src="js/config.js?v=301"></script>
+    <script src="js/supabase-client.js?v=301"></script>
+    <script src="js/auth.js?v=301"></script>
+    <script src="js/localdb.js?v=301"></script>
+    <script src="js/sync-manager.js?v=301"></script>
+    <script src="js/db.js?v=301"></script>
+    <script src="js/utils.js?v=301"></script>
+    <script src="js/i18n.js?v=301"></script>
+    <script src="js/ui.js?v=301"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=300"></script>
-    <script src="js/ocr.js?v=300"></script>
+    <script src="js/ocr-processor.js?v=301"></script>
+    <script src="js/ocr.js?v=301"></script>
 
     <script>
         // Variables de estado
@@ -1247,12 +1247,12 @@
                 // 1. Crear Receta
                 const recipeRes = await window.db.createRecipe({
                     name_es: name,
-                    category_id: '463d1444-c8e1-42ac-86ed-1fac331cd821', // Categoría General por defecto
                     ocr_raw_text: fullText,
                     ocr_confidence: Math.round(ocrData.confidence || 0),
                     created_from_ocr: true,
                     pantry_es: ''
                 });
+
 
                 if (!recipeRes.success) throw new Error(recipeRes.error);
                 const recipeId = recipeRes.recipe.id;
