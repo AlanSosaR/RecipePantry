@@ -140,21 +140,31 @@ class OCRScanner {
      * Update progress during OCR processing
      */
     updateProgress(message) {
-        if (message.status === 'recognizing text' || message.status === 'reconociendo') {
-            const p = Math.round((message.progress || 0) * 100);
-            const progressText = document.getElementById('ocrProgressText');
-            const progressBar = document.getElementById('ocrProgressBar');
-            if (progressText) {
-                progressText.textContent = window.i18n ?
-                    window.i18n.t('ocrReading', { progress: p }) :
-                    `Leyendo... ${p}%`;
-            }
-            if (progressBar) progressBar.style.width = p + '%';
-        } else if (message.message) {
-            const progressText = document.getElementById('ocrProgressText');
-            if (progressText) progressText.textContent = message.message;
+        const p = Math.round((message.progress || 0) * 100);
+        
+        const percentText = document.getElementById('ocrPercent');
+        const progressText = document.getElementById('ocrProgressText');
+        const progressBar = document.getElementById('ocrProgressBar');
+        const m3Blob = document.getElementById('m3Blob');
+        const m3Checkmark = document.getElementById('m3Checkmark');
+        const glassOverlay = document.getElementById('ocrGlassOverlay');
+
+        if (percentText) percentText.textContent = `${p}%`;
+
+        if (message.message && progressText) {
+            progressText.textContent = message.message;
+        }
+
+        if (progressBar) progressBar.style.width = p + '%';
+
+        // Animación de Éxito al llegar a 100%
+        if (p >= 100 || message.status === 'completado') {
+            if (m3Blob) m3Blob.classList.add('success');
+            if (m3Checkmark) m3Checkmark.style.opacity = '1';
+            if (glassOverlay) glassOverlay.style.opacity = '0'; // Quitar frosted glass
         }
     }
+
 
     async capture() {
         if (!this.videoElement || !this.stream) return;

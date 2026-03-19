@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="304">
+<html lang="es" data-app-version="305">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '304';
+            const CURRENT_VERSION = '305';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=304">
-    <link rel="stylesheet" href="css/components.css?v=304">
+    <link rel="stylesheet" href="css/styles.css?v=305">
+    <link rel="stylesheet" href="css/components.css?v=305">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1053,19 +1053,19 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=304"></script>
-    <script src="js/supabase-client.js?v=304"></script>
-    <script src="js/auth.js?v=304"></script>
-    <script src="js/localdb.js?v=304"></script>
-    <script src="js/sync-manager.js?v=304"></script>
-    <script src="js/db.js?v=304"></script>
-    <script src="js/utils.js?v=304"></script>
-    <script src="js/i18n.js?v=304"></script>
-    <script src="js/ui.js?v=304"></script>
+    <script src="js/config.js?v=305"></script>
+    <script src="js/supabase-client.js?v=305"></script>
+    <script src="js/auth.js?v=305"></script>
+    <script src="js/localdb.js?v=305"></script>
+    <script src="js/sync-manager.js?v=305"></script>
+    <script src="js/db.js?v=305"></script>
+    <script src="js/utils.js?v=305"></script>
+    <script src="js/i18n.js?v=305"></script>
+    <script src="js/ui.js?v=305"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=304"></script>
-    <script src="js/ocr.js?v=304"></script>
+    <script src="js/ocr-processor.js?v=305"></script>
+    <script src="js/ocr.js?v=305"></script>
 
     <script>
         // Variables de estado
@@ -1394,12 +1394,13 @@
     <div id="ocrModal">
         <div class="ocr-sheet">
             <div class="ocr-sheet-header">
-                <button type="button" id="btnCloseOCR" class="m3-icon-btn" style="color:#1C1B1B"
+                <button type="button" id="btnCloseOCR" class="m3-icon-btn" style="color:#00C853"
                     data-i18n-title="ocrClose" title="Cerrar">
                     <span class="material-symbols-outlined">close</span>
                 </button>
-                <h2 data-i18n="ocrTitle">Escanear Receta</h2>
+                <h2 data-i18n="ocrTitle" style="color:#00C853">Escanear Receta</h2>
                 <div style="width:40px"></div>
+
             </div>
 
             <!-- Camera state -->
@@ -1491,35 +1492,67 @@
                         onclick="saveRecipeFromModal()">
                         <span class="material-symbols-outlined" style="font-size:18px">save</span>
                         <span data-i18n="ocrSave">Crear Receta Ahora</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Processing / Analizando state -->
-            <div id="ocrLoading"
-                style="flex:1;flex-direction:column;padding:20px;background:#F9F9F9;overflow-y:auto;display:none;align-items:center;">
-
-                <h3 style="font-weight:800;font-size:22px;margin-bottom:6px;align-self:flex-start;"
+                    </button>                <h3 style="font-weight:800;font-size:22px;margin-bottom:6px;align-self:flex-start;color:#111827;"
                     data-i18n="ocrStep2Title">Analizando...</h3>
-                <p style="color:#6B7280;font-size:14px;margin-bottom:16px;align-self:flex-start;"
+                <p style="color:#00C853;font-size:14px;margin-bottom:24px;align-self:flex-start;"
                     data-i18n="ocrStep2Desc">Estamos extrayendo los secretos de tu receta.</p>
 
-                <!-- Image preview with scanning line -->
-                <div
-                    style="position:relative;width:100%;max-width:320px;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.15);margin-bottom:20px;">
-                    <style>
-                        @keyframes premiumScanner {
-                            0% { top: -5%; opacity: 0; }
-                            10% { opacity: 0.8; }
-                            90% { opacity: 0.8; }
-                            100% { top: 105%; opacity: 0; }
-                        }
-                    </style>
-                    <img id="ocrProcessingPreview" style="width:100%;display:block;border-radius:16px;" alt="Preview">
-                    <div id="ocrScanLine"
-                        style="position:absolute;top:0;left:0;width:100%;height:3px;background:#00C853;opacity:0.8;box-shadow:0 5px 15px #00C853, 0 -2px 8px #00C853;animation:premiumScanner 1.5s linear infinite;pointer-events:none;">
+                <!-- Image preview with frosted glass overlay -->
+                <div id="ocrPreviewContainer"
+                    style="position:relative;width:100%;max-width:320px;border-radius:24px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);margin-bottom:32px;">
+                    <img id="ocrProcessingPreview" style="width:100%;display:block;border-radius:24px;" alt="Preview">
+                    <div id="ocrGlassOverlay"
+                        style="position:absolute;inset:0;background:rgba(255,255,255,0.15);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);transition:all 0.4s ease;">
                     </div>
                 </div>
+
+                <!-- M3 Expressive Morphing Loader -->
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom: 16px;">
+                    <style>
+                        @keyframes m3Morph {
+                            0% { border-radius: 50%; width: 48px; height: 48px; }
+                            25% { border-radius: 12px; width: 44px; height: 44px; }
+                            50% { border-radius: 24px; width: 64px; height: 36px; }
+                            75% { border-radius: 24px; width: 36px; height: 64px; }
+                            100% { border-radius: 50%; width: 48px; height: 48px; }
+                        }
+                        @keyframes m3Pulse {
+                            0%, 100% { box-shadow: 0 4px 12px rgba(0,200,83,0.2); }
+                            50% { box-shadow: 0 8px 24px rgba(0,200,83,0.4); }
+                        }
+                        .m3-blob {
+                            width: 48px;
+                            height: 48px;
+                            background: #00C853;
+                            animation: m3Morph 2.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite, m3Pulse 2.6s ease-in-out infinite;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        }
+                        .m3-blob.success {
+                            animation: none !important;
+                            width: 56px !important;
+                            height: 56px !important;
+                            border-radius: 50% !important;
+                            background: #00D655 !important;
+                            box-shadow: 0 0 0 0 rgba(0,200,83,0.7);
+                            animation: m3Ripple 0.8s ease-out forwards !important;
+                        }
+                        @keyframes m3Ripple {
+                            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0,200,83,0.7); }
+                            50% { transform: scale(1.1); }
+                            100% { transform: scale(1); box-shadow: 0 0 0 24px rgba(0,200,83,0); }
+                        }
+                    </style>
+                    <div id="m3Blob" class="m3-blob">
+                        <span id="m3Checkmark" class="material-symbols-outlined" style="color:white; font-size: 32px; opacity:0; transition: opacity 0.3s ease;">check</span>
+                    </div>
+                </div>
+
+                <!-- Percentage Number -->
+                <div id="ocrPercent" style="font-size: 48px; font-weight: 800; color: #111827; margin-bottom: 4px;">0%</div>
+
 
 
                 <!-- Progress text + bar -->

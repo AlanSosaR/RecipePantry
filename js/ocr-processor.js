@@ -245,15 +245,15 @@ Return ONLY this JSON, no markdown, no explanation:
         try {
             await this.initialize(onProgress, options);
 
-            if (onProgress) onProgress({ status: 'preprocesando', progress: 0.2, message: 'Analizando composición visual...' });
+            if (onProgress) onProgress({ status: 'preprocesando', progress: 0.2, message: 'Analizando imagen...' });
             const processedCanvas = await this.preprocessImage(imageFile);
 
             try {
                 // ─────────────────────────────────────────────────────
                 // RUTA PRIMARIA: Gemini 2.5 Flash Vision (v300)
                 // ─────────────────────────────────────────────────────
-                if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: 'Identificando ingredientes...' });
-                if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: 'Extrayendo información...' });
+                if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: 'Reconociendo texto...' });
+                if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: 'Identificando ingredientes...' });
                 
                 const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress);
 
@@ -267,9 +267,10 @@ Return ONLY this JSON, no markdown, no explanation:
                 if (score < 0) score = 0;
 
                 console.log(`✅ [Gemini Vision] Éxito | Confianza AI: ${score}%`);
-                if (onProgress) onProgress({ status: 'finalizando', progress: 0.95, message: 'Aplicando correcciones finales...' });
+                if (onProgress) onProgress({ status: 'finalizando', progress: 0.95, message: 'Últimos ajustes...' });
                 
-                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Receta lista!' });
+                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Lista!' });
+
 
 
                 return {
