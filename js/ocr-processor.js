@@ -3,8 +3,9 @@
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
-const GEMINI_API_KEY_ENC = "QUl6YVN5QzVtdE9rRVRGazV2cFlxR0EzSTJYM212a013VmJpcGNV";
-const GEMINI_API_KEY = typeof window !== 'undefined' ? window.atob(GEMINI_API_KEY_ENC) : Buffer.from(GEMINI_API_KEY_ENC, 'base64').toString();
+const OPENROUTER_API_KEY = "YOUR_OPENROUTER_KEY_HERE";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const AI_MODEL = "google/gemini-2.0-flash-exp:free";
 
 class OCRProcessor {
     constructor() {
@@ -71,74 +72,49 @@ class OCRProcessor {
      * Estructura la receta usando la API de Gemini 2.0 Flash
      */
     async structureRecipeWithGemini(cleanedText, onProgress) {
-        const apiKey = GEMINI_API_KEY;
-
-
         if (onProgress) {
-
-
             onProgress({ status: 'estructurando', progress: 0.85, message: '🤖 Estructurando receta con IA...' });
         }
 
-        const geminiPrompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
-You will receive OCR text extracted from a recipe photo. This text may contain:
-- OCR misreads: 'l' instead of '1', 'O' instead of '0', 'Y' instead of '1/2'
-- Merged words, broken words, or random line breaks
-- Mixed ingredients and steps in wrong order
-- Bullet points, dashes, or other symbols mixed in
-
-Your job is to use culinary knowledge and context to reconstruct the recipe with 100% accuracy, correcting all OCR errors intelligently.
+        const prompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
+You will receive OCR text extracted from a recipe photo. This text may contain errors.
+Your job is to reconstruct the recipe with 100% accuracy in Spanish.
 
 Rules:
-- If you see 'Y2 taza' → correct to '1/2 taza'
-- If you see '3/4' written as '34' or 'Y4' → correct to '3/4'
-- If you see 'g' misread as '9' in quantities → correct it
-- Ingredients always have a quantity + optional unit + ingredient name
-- Steps are complete actions, never ingredient lines
-- If servings are not mentioned, default to 4
-- Recipe name is usually the first line or the most prominent text
-- Never invent ingredients or steps not present in the original text
-
-Return ONLY this JSON, no markdown, no explanation:
-{
-  "nombre": "Recipe name",
-  "porciones": 4,
-  "ingredientes": [
-    { "cantidad": "300", "unidad": "g", "nombre": "guisantes secos" }
-  ],
-  "pasos": [
-    "Step as a clean complete sentence in Spanish."
-  ]
-}
+- Fix common OCR misreads (1/2, 1/4, 3/4, g, ml, etc.)
+- Ingredients: quantity + unit + name
+- Steps: dry, clear sentences
+- Default to 4 servings
+- Return ONLY JSON
 
 OCR TEXT:
 ${cleanedText}`;
 
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
-
-
-
-
-        const response = await this.fetchWithRetry(url, {
+        const response = await fetch(OPENROUTER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://recipepantry.app',
+                'X-Title': 'Recipe Pantry'
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: geminiPrompt }] }],
-                generationConfig: { temperature: 0.1, maxOutputTokens: 8192, responseMimeType: "application/json" }
+                model: AI_MODEL,
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }],
+                max_tokens: 4096,
+                temperature: 0.1
             })
         });
 
-
-        if (!response.ok) throw new Error(`Error en API Gemini: ${response.status}`);
+        if (!response.ok) throw new Error(`Error en OpenRouter: ${response.status}`);
 
         const data = await response.json();
-        let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const textResponse = data.choices[0].message.content;
 
-        if (!textResponse) throw new Error("Respuesta vacía de Gemini");
-
-        // Limpiar bloques de código Markdown si se cuelan
-        textResponse = textResponse.replace(/^```json\s*/g, '').replace(/\s*```$/g, '').trim();
+        if (!textResponse) throw new Error("Respuesta vacía de la IA");
 
         const parsed = this.extractJSON(textResponse);
         parsed.isStructured = true;
@@ -170,7 +146,6 @@ ${cleanedText}`;
      * Lee y estructura la receta directamente usando Gemini 2.5 Flash Vision
      */
     async structureRecipeWithGeminiVision(canvas, onProgress, options = {}) {
-        // v311: Reducir resolución para Gemini Vision para AHORRAR TOKENS y evitar el error 429
         const scaleCanvas = document.createElement('canvas');
         const maxDim = 1200; 
         let width = canvas.width;
@@ -186,37 +161,14 @@ ${cleanedText}`;
 
         const imageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
-        const apiKey = GEMINI_API_KEY;
-
-        const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
-
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-
-
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        {
-                            inline_data: {
-                                mime_type: "image/jpeg",
-                                data: imageBase64
-                            }
-                        },
-                        {
-                            text: `You are an expert culinary assistant. Analyze this image and extract the complete recipe.
+        const prompt = `You are an expert culinary assistant. Analyze this image and extract the complete recipe.
 
 Instructions:
 - Read ALL visible text in the image carefully
-- Identify the recipe name (usually the title or first line)
-- Separate ingredients from preparation steps
-- Clean and normalize quantities (fix OCR-style errors if any)
-- Auto-detect the language of the text in the image.
+- Identify the recipe name
+- Separate ingredients from steps
 - IMPORTANT: The user wants the recipe in ${(options && options.lang === 'eng') ? 'English' : 'Spanish'}.
-- If the image language differs from the requested language: Translate all content (recipe name, ingredients, steps) to ${(options && options.lang === 'eng') ? 'English' : 'Spanish'} accurately.
 - Always return the final JSON in ${(options && options.lang === 'eng') ? 'English' : 'Spanish'}.
-- Keep ingredient quantities and units in their original format.
-- For long preparation steps, summarize each step concisely in one sentence maximum to avoid response truncation. Keep all ingredients complete.
 
 Return ONLY this JSON, no markdown, no explanation:
 {
@@ -227,35 +179,43 @@ Return ONLY this JSON, no markdown, no explanation:
   ],
   "pasos": [
     "Complete step as a clean sentence."
-  ],
-  "idioma_original": "es"
-}`
+  ]
+}`;
 
-
-                        }
+        const response = await fetch(OPENROUTER_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://recipepantry.app',
+                'X-Title': 'Recipe Pantry'
+            },
+            body: JSON.stringify({
+                model: AI_MODEL,
+                messages: [{
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image_url',
+                            image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
+                        },
+                        { type: 'text', text: prompt }
                     ]
                 }],
-                generationConfig: {
-                    temperature: 0.1,
-                    maxOutputTokens: 8192,
-                    responseMimeType: "application/json"
-                }
-
+                max_tokens: 4096
             })
-
         });
 
-        if (!response.ok) throw new Error(`Error en Gemini Vision: ${response.status}`);
+        if (!response.ok) throw new Error(`Error en Vision (OpenRouter): ${response.status}`);
 
         const data = await response.json();
-        let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const textResponse = data.choices[0].message.content;
 
-        if (!textResponse) throw new Error("Respuesta vacía de Gemini Vision");
+        if (!textResponse) throw new Error("Respuesta vacía de Vision");
 
         const parsed = this.extractJSON(textResponse);
         parsed.isStructured = true;
-
-        parsed.texto = "Extracción directa con Gemini Vision.";
+        parsed.texto = "Extracción directa con Vision.";
         return parsed;
     }
 
@@ -1036,29 +996,6 @@ Return ONLY this JSON, no markdown, no explanation:
             d[i + 2] = 255 - d[i + 2]; // B
         }
         return imageData;
-    }
-    /**
-     * Reintenta una petición fetch si devuelve un error 429 (Too Many Requests)
-     */
-    async fetchWithRetry(url, options, maxRetries = 3, delay = 2500) {
-        let backoff = delay;
-        for (let i = 0; i < maxRetries; i++) {
-            try {
-                const response = await fetch(url, options);
-                if (response.status !== 429) return response;
-
-                console.warn(`⚠️ Gemini API 429 (Too many requests). Reintentando en ${backoff}ms...`);
-
-
-                await new Promise(resolve => setTimeout(resolve, backoff));
-                backoff *= 2; // Exponencial clásico
-            } catch (err) {
-                if (i === maxRetries - 1) throw err;
-                await new Promise(resolve => setTimeout(resolve, backoff));
-                backoff *= 2;
-            }
-        }
-        return fetch(url, options); // Último intento
     }
 }
 
