@@ -158,8 +158,10 @@ ${cleanedText}`;
             if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: '🔍 Extrayendo texto con Tesseract v7...' });
 
             const startTime = performance.now();
-            const { data: { text, confidence } } = await this.worker.recognize(processedCanvas);
+            const { data: { text, confidence: tesseractConfidence } } = await this.worker.recognize(processedCanvas);
+            let confidence = tesseractConfidence;
             const endTime = performance.now();
+
             const elapsedTimeMs = (endTime - startTime).toFixed(2);
 
             console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
