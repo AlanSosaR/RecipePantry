@@ -328,6 +328,11 @@ class OCRScanner {
             if (resultBody) resultBody.classList.remove('hidden');
             if (captureSection) captureSection.classList.add('hidden');
             if (tipsSection) tipsSection.classList.add('hidden');
+            
+            // Switch active step back to step1 safely without triggering goToStep(1) resets
+            document.querySelectorAll('.ocr-step').forEach(el => el.classList.remove('active'));
+            const step1 = document.getElementById('step1');
+            if (step1) step1.classList.add('active');
 
 
 

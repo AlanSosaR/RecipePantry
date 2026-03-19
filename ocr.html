@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="327">
+<html lang="es" data-app-version="328">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '327';
+            const CURRENT_VERSION = '328';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=327">
-    <link rel="stylesheet" href="css/components.css?v=327">
+    <link rel="stylesheet" href="css/styles.css?v=328">
+    <link rel="stylesheet" href="css/components.css?v=328">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1091,20 +1091,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=327"></script>
-    <script src="js/supabase-client.js?v=327"></script>
-    <script src="js/auth.js?v=327"></script>
-    <script src="js/localdb.js?v=327"></script>
-    <script src="js/sync-manager.js?v=327"></script>
-    <script src="js/db.js?v=327"></script>
-    <script src="js/utils.js?v=327"></script>
-    <script src="js/i18n.js?v=327"></script>
-    <script src="js/ui.js?v=327"></script>
+    <script src="js/config.js?v=328"></script>
+    <script src="js/supabase-client.js?v=328"></script>
+    <script src="js/auth.js?v=328"></script>
+    <script src="js/localdb.js?v=328"></script>
+    <script src="js/sync-manager.js?v=328"></script>
+    <script src="js/db.js?v=328"></script>
+    <script src="js/utils.js?v=328"></script>
+    <script src="js/i18n.js?v=328"></script>
+    <script src="js/ui.js?v=328"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=327"></script>
-    <script src="js/ocr.js?v=327"></script>
-    <script src="js/url-importer.js?v=327"></script>
+    <script src="js/ocr-processor.js?v=328"></script>
+    <script src="js/ocr.js?v=328"></script>
+    <script src="js/url-importer.js?v=328"></script>
 
 
     <script>
@@ -1162,13 +1162,19 @@
             errorEl.style.display = 'none';
 
             try {
-                // Show the standard OCR processing screen
-                if (window.ocr) {
-                    window.ocr.showProcessingState();
-                }
+                // Show the standard OCR processing screen (Step 2)
+                goToStep(2);
+                document.getElementById('scanningLine').classList.remove('hidden');
+                document.getElementById('previewImage').src = 'assets/placeholder-recipe.jpg';
+                document.getElementById('previewImage').style.display = 'block';
+                document.getElementById('processingStatus').textContent = 'Descargando contenido...';
+                document.getElementById('progressBar').style.width = '10%';
 
                 const results = await window.urlImporter.importFromURL(url, (m) => {
-                    if (window.ocr) window.ocr.updateProgress(m);
+                    // Actualizar UI del paso 2 al igual que la captura de imágenes
+                    const p = Math.round((m.progress || 0) * 100);
+                    document.getElementById('processingStatus').textContent = m.message || 'Analizando...';
+                    document.getElementById('progressBar').style.width = p + '%';
                 });
 
                 if (results.success) {
