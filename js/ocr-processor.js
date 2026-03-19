@@ -301,7 +301,18 @@ ${cleanedText}`;
                 // ─────────────────────────────────────────────────────
                 let imageData = rotCtx.getImageData(0, 0, rotatedCanvas.width, rotatedCanvas.height);
                 imageData = this.toGrayscale(imageData);         // a) Escala de grises
+
+                // ─────────────────────────────────────────────────────
+                // 1.8 DETECCIÓN E INVERSIÓN DE FONDO OSCURO (v298)
+                // ─────────────────────────────────────────────────────
+                const totalBrightness = this.calculateBrightness(imageData);
+                if (totalBrightness < 128) {
+                    console.log(`🌑 [OCR] Fondo oscuro detectado (Brillo: ${totalBrightness.toFixed(1)}), invirtiendo imagen...`);
+                    imageData = this.invertImage(imageData);
+                }
+
                 imageData = this.normalizeContrast(imageData);   // b) Estiramiento de histograma
+
 
                 imageData = this.adaptiveThreshold(imageData);   // c) Umbral local adaptativo (Sauvola)
 
@@ -842,6 +853,34 @@ ${cleanedText}`;
         }
         return steps;
     }
+
+    /**
+     * Calcula el brillo promedio de una imagen en escala de grises.
+     */
+    calculateBrightness(imageData) {
+        const d = imageData.data;
+        let sum = 0;
+        let count = 0;
+        for (let i = 0; i < d.length; i += 4) {
+            sum += d[i]; // Como ya es gris, r=g=b
+            count++;
+        }
+        return sum / count;
+    }
+
+    /**
+     * Invierte los colores de la imagen (Blanco a Negro / Negro a Blanco)
+     */
+    invertImage(imageData) {
+        const d = imageData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            d[i] = 255 - d[i];     // R
+            d[i + 1] = 255 - d[i + 1]; // G
+            d[i + 2] = 255 - d[i + 2]; // B
+        }
+        return imageData;
+    }
 }
+
 
 window.ocrProcessor = new OCRProcessor();
