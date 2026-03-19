@@ -307,24 +307,7 @@ class OCRScanner {
             if (captureSection) captureSection.classList.add('hidden');
             if (tipsSection) tipsSection.classList.add('hidden');
 
-            // Badge de Traducción Dinámico
-            if (resultHeader) {
-                const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
-                const imgLang = results.idioma_original;
-                const isTranslated = imgLang && ((selectedLang === 'spa' && imgLang !== 'es') || (selectedLang === 'eng' && imgLang !== 'en'));
 
-                const oldBadge = resultHeader.querySelector('.translated-badge');
-                if (oldBadge) oldBadge.remove();
-
-                if (isTranslated) {
-                    const badge = document.createElement('span');
-                    badge.className = 'translated-badge';
-                    badge.style.cssText = 'font-size:11px; font-weight:600; background:#F3F4F6; color:#4B5563; padding:4px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-left:8px;';
-                    badge.innerHTML = `🌐 Traducido al ${selectedLang === 'eng' ? 'Inglés' : 'Español'}`;
-                    const titleRow = resultHeader.querySelector('h3');
-                    if (titleRow) { titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.appendChild(badge); }
-                }
-            }
 
             
             // Corregido: Actualizar todos los inputs de nombre (resolver ID duplicado)
@@ -357,17 +340,18 @@ class OCRScanner {
                 const renderIngs = (listId) => {
                     const list = document.getElementById(listId);
                     if (!list) return;
-                    list.innerHTML = (results.ingredientes || []).map(ing => `
-                        <div style="display: flex; align-items: flex-start; gap: 8px; background: var(--surface); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border);">
-                            <span style="background: var(--primary); color: white; min-width: 24px; height: 24px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">✓</span>
-                            <div style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4;">
-                                ${ing.cantidad ? `<strong style="color: var(--primary); margin-right: 4px;">${ing.cantidad}</strong>` : ''} 
-                                ${ing.unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${ing.unidad}</span>` : ''} 
+                    list.innerHTML = (results.ingredientes || []).map((ing, idx) => `
+                        <div style="display: flex; align-items: flex-start; gap: 8px; background: var(--surface); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border);">
+                            <span style="color: var(--primary); font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 1px;">•</span>
+                            <div contenteditable="true" data-idx="${idx}" data-type="ing" style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4; outline: none; cursor: text; flex: 1;">
+                                ${ing.cantidad ? `<strong style="color: var(--primary); margin-right: 4px;">${ing.cantidad}</strong>` : ''}
+                                ${ing.unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${ing.unidad}</span>` : ''}
                                 <span>${ing.nombre}</span>
                             </div>
                         </div>
                     `).join('');
                 };
+
 
                 const renderSteps = (listId) => {
                     const list = document.getElementById(listId);
@@ -375,10 +359,11 @@ class OCRScanner {
                     list.innerHTML = (results.pasos || []).map((paso, idx) => `
                         <div style="display: flex; gap: 12px; align-items: flex-start;">
                             <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;">${idx + 1}</span>
-                            <p style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6;">${paso}</p>
+                            <p contenteditable="true" data-idx="${idx}" data-type="paso" style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6; outline: none; cursor: text; flex: 1;">${paso}</p>
                         </div>
                     `).join('');
                 };
+
 
                 renderIngs('ocrIngredientsListStep1');
                 renderIngs('ocrIngredientsListStep3');
@@ -397,8 +382,9 @@ class OCRScanner {
             const updateBadge = (id) => {
                 const badge = document.getElementById(id);
                 if (badge) {
-                    badge.textContent = `${conf}% AI`;
+                    badge.textContent = `${conf}%`;
                     badge.style.background = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
+
                     badge.style.display = 'inline-flex';
                     badge.style.color = 'white';
                     badge.style.padding = '4px 12px';
@@ -423,21 +409,8 @@ class OCRScanner {
             if (resultState) {
                 resultState.style.display = 'flex';
                 
-                const selectedLang = document.getElementById('ocrLang')?.value || 'spa';
-                const imgLang = results.idioma_original;
-                const isTranslated = imgLang && ((selectedLang === 'spa' && imgLang !== 'es') || (selectedLang === 'eng' && imgLang !== 'en'));
 
-                const oldBadge = resultState.querySelector('.translated-badge');
-                if (oldBadge) oldBadge.remove();
 
-                if (isTranslated) {
-                    const badge = document.createElement('span');
-                    badge.className = 'translated-badge';
-                    badge.style.cssText = 'font-size:11px; font-weight:600; background:#F3F4F6; color:#4B5563; padding:4px 10px; border-radius:12px; display:inline-flex; align-items:center; gap:4px; margin-left:8px;';
-                    badge.innerHTML = `🌐 Traducido al ${selectedLang === 'eng' ? 'Inglés' : 'Español'}`;
-                    const titleRow = resultState.querySelector('h3');
-                    if (titleRow) { titleRow.style.display = 'flex'; titleRow.style.alignItems = 'center'; titleRow.appendChild(badge); }
-                }
             }
 
             const nameInput = document.getElementById('ocrRecipeNameModal');
