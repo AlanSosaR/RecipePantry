@@ -1004,6 +1004,101 @@ Return ONLY this JSON, no markdown, no explanation:
             d[i + 2] = 255 - d[i + 2]; // B
         }
         return imageData;
+    /**
+     * Parseador local "inteligente" para cuando no hay IA disponible.
+     * Detecta nombres, ingredientes, pasos y porciones por patrones.
+     */
+    parseRecipeLocally(text) {
+        const lines = text.split('\n')
+            .map(l => l.trim())
+            .filter(l => l.length > 2);
+
+        // STEP 1 — Find recipe name (first meaningful line)
+        const nombre = lines[0] || 'Receta sin nombre';
+
+        // STEP 2 — Detect ingredient lines by pattern:
+        // Has number + unit keywords OR starts with quantity
+        const unitKeywords = [
+            'g', 'kg', 'ml', 'l', 'taza', 'tazas', 'cucharada', 
+            'cucharadas', 'cucharadita', 'cucharaditas', 'kilo', 
+            'kilos', 'gramo', 'litro', 'pieza', 'piezas', 'diente',
+            'dientes', 'trozo', 'trozos', 'hoja', 'hojas', 'rama',
+            'ramas', 'pizca', 'sobre', 'lata', 'latas', 'rebanada',
+            'rebanadas', 'oz', 'lb', 'onza', 'tsp', 'tbsp', 'cup'
+        ];
+
+        const stepKeywords = [
+            'paso', 'step', 'mezcla', 'agrega', 'añade', 'calienta',
+            'cocina', 'hornea', 'fríe', 'hierve', 'corta', 'pica',
+            'bate', 'incorpora', 'vierte', 'deja', 'retira', 'sirve',
+            'prepara', 'cubre', 'revuelve', 'sazona', 'licúa', 'muele'
+        ];
+
+        const ingredientes = [];
+        const pasos = [];
+
+        let inIngredientsSection = false;
+        let inStepsSection = false;
+
+        for (const line of lines.slice(1)) {
+            const lower = line.toLowerCase();
+
+            // Detect section headers
+            if (/ingrediente|ingredient/i.test(lower)) {
+                inIngredientsSection = true;
+                inStepsSection = false;
+                continue;
+            }
+            if (/preparaci|procedimiento|instruccion|paso|method|direction/i.test(lower)) {
+                inStepsSection = true;
+                inIngredientsSection = false;
+                continue;
+            }
+
+            // Check if line looks like ingredient
+            const hasQuantity = /^\d|^[½⅓⅔¼¾⅛]/.test(line);
+            const hasUnit = unitKeywords.some(u => 
+                new RegExp(`\\b${u}\\b`, 'i').test(lower)
+            );
+            const hasStepWord = stepKeywords.some(w => lower.includes(w));
+            const isNumberedStep = /^(\d+[\.\-\)]|paso\s*\d)/i.test(lower);
+
+            if (inIngredientsSection || (!inStepsSection && (hasQuantity || hasUnit) && !hasStepWord)) {
+                // Parse ingredient: quantity + unit + name
+                const match = line.match(
+                    /^([\d½⅓⅔¼¾⅛\/\s]+)\s*(g|kg|ml|l|taza[s]?|cucharada[s]?|cucharadita[s]?|kilo[s]?|diente[s]?|pizca[s]?|oz|lb|cup[s]?)?\s*(.+)/i
+                );
+                if (match) {
+                    ingredientes.push({
+                        cantidad: match[1].trim(),
+                        unidad: match[2] ? match[2].trim() : '',
+                        nombre: match[3].trim()
+                    });
+                } else if (hasUnit || hasQuantity) {
+                    ingredientes.push({ cantidad: '', unidad: '', nombre: line });
+                }
+            } else if (inStepsSection || hasStepWord || isNumberedStep) {
+                // Clean step: remove numbering prefix
+                const cleanStep = line.replace(/^(\d+[\.\-\)]\s*|paso\s*\d+[\:\.\s]*)/i, '').trim();
+                if (cleanStep.length > 5) pasos.push(cleanStep);
+            }
+        }
+
+        // Detect servings
+        const porcMatch = text.match(
+            /(\d+)\s*(persona|porci|servicio|ración|racion|serving)/i
+        );
+        const porciones = porcMatch ? parseInt(porcMatch[1]) : 4;
+
+        return {
+            nombre,
+            porciones,
+            ingredientes,
+            pasos,
+            confidence: 55,
+            method: 'tesseract-local-parser',
+            isStructured: ingredientes.length > 0 || pasos.length > 0
+        };
     }
 }
 
