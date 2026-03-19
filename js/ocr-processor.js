@@ -3,16 +3,8 @@
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
  */
 
-const GEMINI_API_KEYS_ENC = [
-    "QUl6YVN5QzVtdE9rRVRGazV2cFlxR0EzSTJYM212a013VmJpcGNV", // Original Key
-    "QUl6YVN5QkRFOE5RX1F5QXpFOTJsb3Q3ZW1qLUVhbzRzTWtEb2Rr", // Key 2
-    "QUl6YVN5QjZodk9uWm5WUzNlZWhFRXBYdERQMDVhU1hHbzNyWFpB", // Key 3 (fixed)
-    "QUl6YVN5QWkzR1RoaGt0Z20ySlk2bWNKak11SGdjYnpVSkJTblVn", // Key 4 (fixed)
-    "QUl6YVN5RFA4anJtUDBlc2pRQkZuVWtRbWtubWJsM3dhaFpOeHo4", // Key 5 (fixed)
-    "QUl6YVN5QUdCMEJCUHg2bUxRVXRvUGI5dWVqLUZiN1ZXX1oxRHZ3"  // Key 6
-];
-
-const GEMINI_API_KEYS = GEMINI_API_KEYS_ENC.map(enc => typeof window !== 'undefined' ? window.atob(enc) : Buffer.from(enc, 'base64').toString());
+const GEMINI_API_KEY_ENC = "QUl6YVN5QzVtdE9rRVRGazV2cFlxR0EzSTJYM212a013VmJpcGNV";
+const GEMINI_API_KEY = typeof window !== 'undefined' ? window.atob(GEMINI_API_KEY_ENC) : Buffer.from(GEMINI_API_KEY_ENC, 'base64').toString();
 
 class OCRProcessor {
     constructor() {
@@ -20,16 +12,6 @@ class OCRProcessor {
         this.isInitialized = false;
         this.MAX_IMAGE_DIMENSION = 1800;
         this.TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js';
-        this.currentKeyIndex = 0;
-    }
-
-    getApiKey() {
-        return GEMINI_API_KEYS[this.currentKeyIndex % GEMINI_API_KEYS.length];
-    }
-
-    rotateApiKey() {
-        this.currentKeyIndex++;
-        console.log(`🔄 Rotando clave de API a index: ${this.currentKeyIndex % GEMINI_API_KEYS.length}`);
     }
 
 
@@ -89,7 +71,7 @@ class OCRProcessor {
      * Estructura la receta usando la API de Gemini 2.0 Flash
      */
     async structureRecipeWithGemini(cleanedText, onProgress) {
-        const apiKey = this.getApiKey();
+        const apiKey = GEMINI_API_KEY;
 
 
         if (onProgress) {
@@ -133,7 +115,8 @@ OCR TEXT:
 ${cleanedText}`;
 
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+
 
 
 
@@ -203,10 +186,10 @@ ${cleanedText}`;
 
         const imageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
 
-        const apiKey = this.getApiKey();
+        const apiKey = GEMINI_API_KEY;
 
+        const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
 
-        const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
 
@@ -1061,19 +1044,11 @@ Return ONLY this JSON, no markdown, no explanation:
         let backoff = delay;
         for (let i = 0; i < maxRetries; i++) {
             try {
-                let currentUrl = url;
-                const currentKey = this.getApiKey();
-                if (currentUrl.includes('key=')) {
-                    currentUrl = currentUrl.replace(/key=[^&]+/, `key=${currentKey}`);
-                }
+                const response = await fetch(url, options);
+                if (response.status !== 429) return response;
 
-                const response = await fetch(currentUrl, options);
-                // Rotar en 429 (cuota) y 400 (clave inválida)
-                if (response.status !== 429 && response.status !== 400) return response;
+                console.warn(`⚠️ Gemini API 429 (Too many requests). Reintentando en ${backoff}ms...`);
 
-                const reason = response.status === 429 ? 'cuota agotada (429)' : 'clave inválida (400)';
-                console.warn(`⚠️ Gemini API ${response.status}. Rotando clave (${reason}) y reintentando en ${backoff}ms...`);
-                this.rotateApiKey();
 
                 await new Promise(resolve => setTimeout(resolve, backoff));
                 backoff *= 2; // Exponencial clásico
