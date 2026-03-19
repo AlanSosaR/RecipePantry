@@ -146,8 +146,75 @@ ${cleanedText}`;
     }
 
     /**
+     * Lee y estructura la receta directamente usando Gemini 2.5 Flash Vision
+     */
+    async structureRecipeWithGeminiVision(canvas, onProgress) {
+        const apiKey = GEMINI_API_KEY;
+
+        const imageBase64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        {
+                            inline_data: {
+                                mime_type: "image/jpeg",
+                                data: imageBase64
+                            }
+                        },
+                        {
+                            text: `You are an expert culinary assistant specialized in Spanish-language recipes. Analyze this image and extract the complete recipe. The image may be a photo of a physical recipe book, a screenshot, a handwritten recipe, or a digital recipe with any lighting conditions.
+
+Instructions:
+- Read ALL visible text in the image carefully
+- Identify the recipe name (usually the title or first line)
+- Separate ingredients from preparation steps
+- Clean and normalize quantities (fix OCR-style errors if any)
+- Respond in Spanish (Castellano).
+
+Return ONLY this JSON, no markdown, no explanation:
+{
+  "nombre": "Recipe name",
+  "porciones": 4,
+  "ingredientes": [
+    { "cantidad": "1", "unidad": "kilo", "nombre": "lomo de cerdo cortado en filetes delgados" }
+  ],
+  "pasos": [
+    "Complete step as a clean sentence in Spanish."
+  ]
+}`
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 2048
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error(`Error en Gemini Vision: ${response.status}`);
+
+        const data = await response.json();
+        let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!textResponse) throw new Error("Respuesta vacía de Gemini Vision");
+
+        textResponse = textResponse.replace(/^```json\s*/g, '').replace(/\s*```$/g, '').trim();
+
+        const parsed = JSON.parse(textResponse);
+        parsed.isStructured = true;
+        parsed.texto = "Extracción directa con Gemini Vision.";
+        return parsed;
+    }
+
+    /**
      * Proceso principal de OCR
      */
+
     async processImage(imageFile, onProgress, options = {}) {
         try {
             await this.initialize(onProgress, options);
@@ -155,70 +222,101 @@ ${cleanedText}`;
             if (onProgress) onProgress({ status: 'preprocesando', progress: 0.1, message: '📸 Preprocesando imagen...' });
             const processedCanvas = await this.preprocessImage(imageFile);
 
-            if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: '🔍 Extrayendo texto con Tesseract v7...' });
-
-            const startTime = performance.now();
-            const { data: { text, confidence: tesseractConfidence } } = await this.worker.recognize(processedCanvas);
-            let confidence = tesseractConfidence;
-            const endTime = performance.now();
-
-            const elapsedTimeMs = (endTime - startTime).toFixed(2);
-
-            console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
-            console.log(`📝 Texto extraído | Confianza: ${confidence.toFixed(1)}%`);
-
-            if (onProgress) onProgress({ status: 'finalizando', progress: 0.7, message: '⚙️ Aplicando correcciones inteligentes...' });
-
-            // 1. Aplicar todos los parches y correcciones de texto
-            const textoCorregido = this.applyAllCorrections(text);
-
-            let nombre = '';
-            let ingredientes = [];
-            let pasos = [];
-            let isStructured = false;
-
             try {
-                const geminiResult = await this.structureRecipeWithGemini(textoCorregido, onProgress);
-                nombre = geminiResult.nombre || '';
-                ingredientes = geminiResult.ingredientes || [];
-                pasos = geminiResult.pasos || [];
-                isStructured = true;
+                // ─────────────────────────────────────────────────────
+                // RUTA PRIMARIA: Gemini 2.5 Flash Vision (v300)
+                // ─────────────────────────────────────────────────────
+                if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: '🤖 Enviando a Gemini Vision...' });
+                if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: '🤖 Leyendo imagen con IA...' });
+                
+                const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress);
 
-                // Cálculo de Confianza Dinámica (Part 4)
+                if (onProgress) onProgress({ status: 'estructurando', progress: 0.9, message: '🤖 Estructurando receta...' });
+
+                // Cálculo de Confianza Dinámica
                 let score = 100;
-                if (!nombre || nombre.trim().length < 3) score -= 10;
-                if (ingredientes.length === 0) score -= 20; // Penalizar fuertemente si no hay
-                ingredientes.forEach(inc => {
-                    if (!inc.cantidad || inc.cantidad.trim() === '') score -= 5;
-                });
-                if (pasos.length < 2) score -= 5;
+                if (!geminiResult.nombre || geminiResult.nombre.trim().length < 3) score -= 10;
+                if (!geminiResult.ingredientes || geminiResult.ingredientes.length === 0) score -= 20;
+                if (!geminiResult.pasos || geminiResult.pasos.length < 2) score -= 5;
                 if (score < 0) score = 0;
-                confidence = score; // Sobrescribir para UI
 
-                console.log(`✅ Estructuración con Gemini exitosa | Confianza AI: ${confidence}%`);
-            } catch (e) {
-                console.warn("⚠️ Fallback a procesamiento Regex local:", e.message);
-                nombre = this.extractRecipeName(textoCorregido);
-                ingredientes = this.extractIngredients(textoCorregido);
-                pasos = this.extractSteps(textoCorregido);
+                console.log(`✅ [Gemini Vision] Éxito | Confianza AI: ${score}%`);
+                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ ¡Receta lista!' });
+
+                return {
+                    ...geminiResult,
+                    texto: "Extraído directamente con Gemini Vision.",
+                    confidence: score,
+                    success: true,
+                    version: 'v7.2.0-vision',
+                    method: 'gemini-2.5-flash-vision',
+                    isStructured: true
+                };
+
+            } catch (visionError) {
+                console.warn("⚠️ Gemini Vision falló, recurriendo a Tesseract fallback:", visionError.message);
+
+                // ─────────────────────────────────────────────────────
+                // RUTA SECUNDARIA: Tesseract Fallback
+                // ─────────────────────────────────────────────────────
+                if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: '🔍 Extrayendo texto con Tesseract v7...' });
+
+                const startTime = performance.now();
+                const { data: { text, confidence: tesseractConfidence } } = await this.worker.recognize(processedCanvas);
+                let confidence = tesseractConfidence;
+                const endTime = performance.now();
+
+                const elapsedTimeMs = (endTime - startTime).toFixed(2);
+                console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
+                console.log(`📝 Texto extraído | Confianza: ${confidence.toFixed(1)}%`);
+
+                if (onProgress) onProgress({ status: 'estructurando', progress: 0.7, message: '🤖 Estructurando receta...' });
+
+                const textoCorregido = this.applyAllCorrections(text);
+
+                let nombre = '';
+                let ingredientes = [];
+                let pasos = [];
+                let isStructured = false;
+
+                try {
+                    const geminiResult = await this.structureRecipeWithGemini(textoCorregido, onProgress);
+                    nombre = geminiResult.nombre || '';
+                    ingredientes = geminiResult.ingredientes || [];
+                    pasos = geminiResult.pasos || [];
+                    isStructured = true;
+
+                    let score = 100;
+                    if (!nombre || nombre.trim().length < 3) score -= 10;
+                    if (ingredientes.length === 0) score -= 20;
+                    if (pasos.length < 2) score -= 5;
+                    if (score < 0) score = 0;
+                    confidence = score;
+
+                    console.log(`✅ Estructuración con Gemini exitosa | Confianza AI: ${confidence}%`);
+                } catch (e) {
+                    console.warn("⚠️ Fallback a procesamiento Regex local:", e.message);
+                    nombre = this.extractRecipeName(textoCorregido);
+                    ingredientes = this.extractIngredients(textoCorregido);
+                    pasos = this.extractSteps(textoCorregido);
+                }
+
+                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado' });
+
+                return {
+                    nombre: nombre,
+                    texto: textoCorregido,
+                    ingredientes: ingredientes,
+                    pasos: pasos,
+                    confidence: confidence,
+                    success: true,
+                    version: 'v7.1.0-fallback',
+                    method: isStructured ? 'gemini-2.5-flash' : 'tesseract-v7',
+                    isStructured: isStructured
+                };
             }
-
-            if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado' });
-
-            return {
-                nombre: nombre,
-                texto: textoCorregido,
-                ingredientes: ingredientes,
-                pasos: pasos,
-                confidence: confidence, // Puntuación de confianza calculada
-                success: true,
-                version: 'v7.1.0',
-                method: isStructured ? 'gemini-2.5-flash' : 'tesseract-v7',
-                isStructured: isStructured
-            };
-
-
         } catch (error) {
+
             console.error('❌ Error en OCRProcessor:', error);
             return { error: error.message, success: false };
         }
