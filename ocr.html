@@ -548,6 +548,28 @@
             }
         }
 
+        .ocr-step {
+            display: none;
+            flex-direction: column;
+            animation: m3-fade-up 0.5s var(--m3-easing) forwards;
+        }
+
+        .ocr-step.active {
+            display: flex;
+        }
+
+        @keyframes m3-fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* M3 Style Form Inputs for OCR */
         .form-input {
             width: 100%;
