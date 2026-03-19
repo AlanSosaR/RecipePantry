@@ -306,8 +306,9 @@ ${cleanedText}`;
                 // 1.8 DETECCIÓN E INVERSIÓN DE FONDO OSCURO (v298)
                 // ─────────────────────────────────────────────────────
                 const totalBrightness = this.calculateBrightness(imageData);
-                if (totalBrightness < 128) {
+                if (totalBrightness < 50) {
                     console.log(`🌑 [OCR] Fondo oscuro detectado (Brillo: ${totalBrightness.toFixed(1)}), invirtiendo imagen...`);
+
                     imageData = this.invertImage(imageData);
                 }
 
