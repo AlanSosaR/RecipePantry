@@ -305,7 +305,8 @@ ${cleanedText}`;
                 imageData = this.toGrayscale(imageData);         // a) Escala de grises
                 imageData = this.normalizeContrast(imageData);   // b) Estiramiento de histograma
 
-                imageData = this.otsuThreshold(imageData);      // c) Umbral Global de Otsu
+                imageData = this.adaptiveThreshold(imageData);   // c) Umbral local adaptativo (Sauvola)
+
                 imageData = this.denoise(imageData);             // d) Mediana 3x3
                 imageData = this.unsharpMask(imageData);         // e) Nitidez (reparar bordes)
 
@@ -351,60 +352,58 @@ ${cleanedText}`;
     }
 
     /**
-     * Umbralización Global de Otsu.
-     * Calcula el umbral óptimo minimizando la varianza intra-clase.
-     * Ideal para binarizar texto sobre fondo uniforme después de corregir contraste.
+     * Umbral adaptativo por bloques (Sauvola simplificado).
+     * Divide la imagen en bloques de ~32x32 px y calcula el umbral
+     * local de cada bloque. Esto maneja sombras y gradientes de luz,
+     * que es el principal problema al fotografiar recetas en papel.
      */
-    otsuThreshold(imageData) {
+    adaptiveThreshold(imageData) {
         const { data, width, height } = imageData;
-        const total = width * height;
-        const histogram = new Int32Array(260); // 256 + safe margin
+        const blockSize = 40;  // Valor intermedio para capturar bien los detalles del texto
+        const k = 0.13;        // Ajustado para que las letras tengan buen grosor sin borrarse
+        const output = new Uint8ClampedArray(data);
 
-        // 1. Calcular Histograma
-        for (let i = 0; i < total * 4; i += 4) {
-            histogram[data[i]]++;
-        }
+        for (let by = 0; by < height; by += blockSize) {
+            for (let bx = 0; bx < width; bx += blockSize) {
+                const bw = Math.min(blockSize, width - bx);
+                const bh = Math.min(blockSize, height - by);
 
-        let sum = 0;
-        for (let i = 0; i < 256; i++) sum += i * histogram[i];
+                // Calcula media y desviacion del bloque
+                let sum = 0, count = 0;
+                for (let y = by; y < by + bh; y++) {
+                    for (let x = bx; x < bx + bw; x++) {
+                        sum += data[(y * width + x) * 4];
+                        count++;
+                    }
+                }
+                const mean = sum / count;
 
-        let sumB = 0;
-        let wB = 0;
-        let wF = 0;
+                let variance = 0;
+                for (let y = by; y < by + bh; y++) {
+                    for (let x = bx; x < bx + bw; x++) {
+                        const diff = data[(y * width + x) * 4] - mean;
+                        variance += diff * diff;
+                    }
+                }
+                const stdDev = Math.sqrt(variance / count);
+                const threshold = mean * (1 - k * (1 - stdDev / 128));
 
-        let maxVariance = 0;
-        let threshold = 0;
-
-        // 2. Maximizar varianza entre clases (Otsu)
-        for (let i = 0; i < 256; i++) {
-            wB += histogram[i];
-            if (wB === 0) continue;
-            wF = total - wB;
-            if (wF === 0) break;
-
-            sumB += i * histogram[i];
-            const mB = sumB / wB;
-            const mF = (sum - sumB) / wF;
-
-            const varBetween = wB * wF * (mB - mF) * (mB - mF);
-
-            if (varBetween > maxVariance) {
-                maxVariance = varBetween;
-                threshold = i;
+                // Binarizar el bloque
+                for (let y = by; y < by + bh; y++) {
+                    for (let x = bx; x < bx + bw; x++) {
+                        const idx = (y * width + x) * 4;
+                        const val = data[idx] < threshold ? 0 : 255;
+                        output[idx] = output[idx + 1] = output[idx + 2] = val;
+                        output[idx + 3] = 255;
+                    }
+                }
             }
         }
 
-        console.log(`💡 Umbral Otsu calculado: ${threshold}`);
-
-        // 3. Binarizar
-        for (let i = 0; i < total * 4; i += 4) {
-            const val = data[i] < threshold ? 0 : 255;
-            data[i] = data[i + 1] = data[i + 2] = val;
-            data[i + 3] = 255;
-        }
-
+        imageData.data.set(output);
         return imageData;
     }
+
 
 
     /**
