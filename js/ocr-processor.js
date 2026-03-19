@@ -327,21 +327,15 @@ Return ONLY this JSON, no markdown, no explanation:
 
                 } catch (e) {
                     console.warn("⚠️ Fallback a procesamiento Regex local (IA Falló):", e.message);
-                    const nombre = this.extractRecipeName(textoCorregido);
-                    const ingredientes = this.extractIngredients(textoCorregido);
-                    const pasos = this.extractSteps(textoCorregido);
+                    const localResult = this.parseRecipeLocally(textoCorregido);
 
                     if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado (Modo Local)' });
 
                     return {
-                        nombre: nombre,
+                        ...localResult,
                         texto: textoCorregido,
-                        ingredientes: ingredientes,
-                        pasos: pasos,
                         confidence: tesseractConfidence,
                         success: true,
-                        version: 'v7.1.0-fallback-local',
-                        method: 'tesseract-v7-local',
                         isStructured: false
                     };
                 }
