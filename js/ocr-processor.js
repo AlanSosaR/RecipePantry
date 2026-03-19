@@ -1004,6 +1004,8 @@ Return ONLY this JSON, no markdown, no explanation:
             d[i + 2] = 255 - d[i + 2]; // B
         }
         return imageData;
+    }
+
     /**
      * Parseador local "inteligente" para cuando no hay IA disponible.
      * Detecta nombres, ingredientes, pasos y porciones por patrones.
