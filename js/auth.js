@@ -125,9 +125,6 @@ class AuthManager {
                 console.log('✅ Perfil cargado y guardado:', userData.first_name);
                 localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
                 if (window.updateGlobalUserUI) window.updateGlobalUserUI();
-                
-                // v287: Asegurar notificación de bienvenida tras confirmar/acceder
-                await this.ensureWelcomeNotification(userData.id);
             }
             
             return true;
@@ -253,9 +250,6 @@ class AuthManager {
 
             this.currentUser = userData;
             this.session = data.session;
-
-            // v287: Asegurar bienvenida al loguear
-            await this.ensureWelcomeNotification(userData.id);
 
             console.log('✅ Login exitoso:', email);
             return { success: true, user: userData };
