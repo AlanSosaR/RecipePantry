@@ -564,6 +564,7 @@ class DashboardManager {
             }
 
             if (countGroup) countGroup.classList.remove('hidden');
+            const moreBtn = document.getElementById('selectionMoreBtn');
             if (moreBtn) {
                 // v289: Mantener siempre visible el de la cabecera global para mayor claridad
                 moreBtn.style.setProperty('display', 'flex', 'important');

@@ -693,14 +693,16 @@ ol {
 .list-header-m3,
 .file-row-m3 {
     display: grid !important;
-    grid-template-columns: 48px minmax(140px, 400px) 120px 140px 48px 48px;
-    /* icon | name | access | date | checkbox | actions */
+    grid-template-columns: 48px 48px minmax(140px, 1fr) 120px 140px 48px;
+    /* checkbox | icon | name | access | date | actions */
     gap: 1.5rem;
     align-items: center;
     padding: 0 1.6rem;
     height: 44px;
     /* Reduced from 52px */
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     box-sizing: border-box;
     text-decoration: none;
     color: inherit;
