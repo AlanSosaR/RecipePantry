@@ -52,7 +52,9 @@
     "params": {
       "url": "url",
       "text": "text"
-    }
+    },
+    "enctype": "application/x-www-form-urlencoded"
   }
 }
+
 
