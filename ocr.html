@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="324">
+<html lang="es" data-app-version="325">
 
 <head>
     <meta charset="utf-8" />
@@ -52,7 +52,7 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '324';
+            const CURRENT_VERSION = '325';
             const NUKE_KEY = 'v275_cleanup_bar_grid_ocr';
 
             (async () => {
@@ -84,8 +84,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=324">
-    <link rel="stylesheet" href="css/components.css?v=324">
+    <link rel="stylesheet" href="css/styles.css?v=325">
+    <link rel="stylesheet" href="css/components.css?v=325">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1161,20 +1161,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=324"></script>
-    <script src="js/supabase-client.js?v=324"></script>
-    <script src="js/auth.js?v=324"></script>
-    <script src="js/localdb.js?v=324"></script>
-    <script src="js/sync-manager.js?v=324"></script>
-    <script src="js/db.js?v=324"></script>
-    <script src="js/utils.js?v=324"></script>
-    <script src="js/i18n.js?v=324"></script>
-    <script src="js/ui.js?v=324"></script>
+    <script src="js/config.js?v=325"></script>
+    <script src="js/supabase-client.js?v=325"></script>
+    <script src="js/auth.js?v=325"></script>
+    <script src="js/localdb.js?v=325"></script>
+    <script src="js/sync-manager.js?v=325"></script>
+    <script src="js/db.js?v=325"></script>
+    <script src="js/utils.js?v=325"></script>
+    <script src="js/i18n.js?v=325"></script>
+    <script src="js/ui.js?v=325"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=324"></script>
-    <script src="js/ocr.js?v=324"></script>
-    <script src="js/url-importer.js?v=324"></script>
+    <script src="js/ocr-processor.js?v=325"></script>
+    <script src="js/ocr.js?v=325"></script>
+    <script src="js/url-importer.js?v=325"></script>
 
 
     <script>
@@ -1204,7 +1204,7 @@
             const urlPanel = document.getElementById('urlModePanel');
 
             if (mode === 'camera') {
-                tabCamera.style.background = '#00C853';
+                tabCamera.style.background = 'var(--primary)';
                 tabCamera.style.color = 'white';
                 tabUrl.style.background = 'transparent';
                 tabUrl.style.color = '#6B7280';
@@ -1212,7 +1212,7 @@
                 if (urlPanel) urlPanel.style.display = 'none';
                 if (window.ocr) window.ocr.startCamera();
             } else {
-                tabUrl.style.background = '#00C853';
+                tabUrl.style.background = 'var(--primary)';
                 tabUrl.style.color = 'white';
                 tabCamera.style.background = 'transparent';
                 tabCamera.style.color = '#6B7280';
