@@ -120,16 +120,15 @@ ${cleanedText}`;
 
 
 
-        const response = await fetch(url, {
+        const response = await this.fetchWithRetry(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: geminiPrompt }] }],
-
                 generationConfig: { temperature: 0.1, maxOutputTokens: 8192, responseMimeType: "application/json" }
-
             })
         });
+
 
         if (!response.ok) throw new Error(`Error en API Gemini: ${response.status}`);
 
@@ -176,9 +175,10 @@ ${cleanedText}`;
 
         const imageBase64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+
             body: JSON.stringify({
                 contents: [{
                     parts: [
@@ -1018,7 +1018,28 @@ Return ONLY this JSON, no markdown, no explanation:
         }
         return imageData;
     }
+    /**
+     * Reintenta una petición fetch si devuelve un error 429 (Too Many Requests)
+     */
+    async fetchWithRetry(url, options, maxRetries = 2, delay = 1500) {
+        let backoff = delay;
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                const response = await fetch(url, options);
+                if (response.status !== 429) return response;
+                console.warn(`⚠️ Gemini API 429 (Too many requests). Reintentando en ${backoff}ms...`);
+                await new Promise(resolve => setTimeout(resolve, backoff));
+                backoff *= 1.5; // Incremento más suave
+            } catch (err) {
+                if (i === maxRetries - 1) throw err;
+                await new Promise(resolve => setTimeout(resolve, backoff));
+                backoff *= 1.5;
+            }
+        }
+        return fetch(url, options); // Último intento
+    }
 }
+
 
 
 window.ocrProcessor = new OCRProcessor();
