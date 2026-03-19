@@ -17,7 +17,13 @@ class OCRScanner {
         const cameraState = document.getElementById('ocrCameraState');
         const resultState = document.getElementById('ocrResultState');
         const loadingState = document.getElementById('ocrLoading');
-        if (cameraState) cameraState.style.display = 'flex';
+        
+        if (cameraState) {
+            cameraState.style.display = 'flex';
+            // Ensure video feed is also flex and visible
+            const videoFeed = document.getElementById('videoFeed');
+            if (videoFeed) videoFeed.style.display = 'block';
+        }
         if (resultState) resultState.style.display = 'none';
         if (loadingState) loadingState.style.display = 'none';
         

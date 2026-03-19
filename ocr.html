@@ -763,7 +763,7 @@
         }
 
         #ocrModal.open {
-            display: flex;
+            display: flex !important;
             animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -774,10 +774,11 @@
             max-height: 85vh;
             background: white;
             border-radius: 32px 32px 0 0;
-            display: flex;
+            display: flex !important;
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         @media (min-width: 600px) {
