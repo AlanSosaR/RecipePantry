@@ -336,10 +336,6 @@ class RecipeFormManager {
             const savingTxt = window.i18n ? window.i18n.t('saving') : 'Guardando...';
             btnSave.innerHTML = `<span class="spinner-small"></span> ${savingTxt}`;
 
-            // Obtener ID de categoría 'General'
-            const catsResult = await window.db.getMyCategories();
-            const generalCat = catsResult.categories.find(c => (isEn ? (c.name_en || c.name_es) : c.name_es) === 'General') || catsResult.categories[0];
-
             const recipeData = {};
             if (isEn) {
                 recipeData.name_en = form.name.value;
@@ -348,7 +344,6 @@ class RecipeFormManager {
                 recipeData.name_es = form.name.value;
                 recipeData.description_es = form.description.value;
             }
-            recipeData.category_id = generalCat ? generalCat.id : null;
 
             let recipeId = this.recipeId;
             let result;
