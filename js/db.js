@@ -287,7 +287,7 @@ class DatabaseManager {
         const localRecipes = await window.localDB.getAll('recipes_index');
         
         const localMatch = localRecipes.find(r => {
-            if (excludeId && r.id === excludeId) return false;
+            if (excludeId && r.id && String(r.id).toLowerCase() === String(excludeId).toLowerCase()) return false;
             
             const userId = window.authManager.currentUser?.id;
             
