@@ -1,6 +1,6 @@
 /**
  * url-importer.js - Simplified logic delegating AI structuring to the server
- * v373_rtf_support
+ * v376_multilang_support
  */
 
 const URLImporter = {
@@ -8,8 +8,9 @@ const URLImporter = {
      * Imports a recipe from a URL using a Supabase Edge Function (now handles AI server-side)
      * @param {string} url - The URL to import from
      * @param {function} onProgress - Callback for progress updates
+     * @param {string} lang - Language code ('es' or 'en')
      */
-    importFromURL: async function(url, onProgress) {
+    importFromURL: async function(url, onProgress, lang = 'es') {
         try {
             if (onProgress) onProgress({ status: 'fetching', progress: 0.2, message: 'Conectando con el servidor...' });
 
@@ -27,7 +28,7 @@ const URLImporter = {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                 },
-                body: JSON.stringify({ url, apiKey })
+                body: JSON.stringify({ url, apiKey, lang })
             });
 
             if (!response.ok) {
@@ -43,7 +44,7 @@ const URLImporter = {
                 throw new Error(`IA Error (${result.status}): ${result.details || 'Error estructurando'}`);
             }
 
-            // Handle AI Structure Failure (New in v11)
+            // Handle AI Structure Failure
             if (result.error === "AI Structure Failure") {
                 console.error("AI returned text but parsing failed:", result.raw_ai);
                 throw new Error(`IA No Estructuró: ${result.raw_ai?.substring(0, 100) || 'Contenido inválido'}`);
@@ -59,7 +60,6 @@ const URLImporter = {
             }
 
             if (result.text) {
-                 // Try parsing if it's a known error from AI
                  if (result.text.includes('"error"')) {
                     try {
                         const errObj = JSON.parse(result.text);
