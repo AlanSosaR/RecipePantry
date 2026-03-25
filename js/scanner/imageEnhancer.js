@@ -39,36 +39,24 @@ class ImageEnhancer {
     }
 
     /**
-     * Enhances the warped image. Defaults to B&W mode for OCR.
+     * Enhances the warped image. Defaults to color mode for OCR to preserve "real photo" feel.
      */
-    enhanceForOCR(src, mode = 'bw') {
+    enhanceForOCR(src, mode = 'color') {
         if (!window.cv || !src || src.empty()) return null;
 
         let dst = new cv.Mat();
         
         try {
             if (mode === 'color') {
-                src.copyTo(dst);
-                // Optional color contrast adjustments can be added here
+                // Subtle contrast boost to look like an enhanced photo
+                src.convertTo(dst, -1, 1.1, 10);
             } else {
                 let gray = new cv.Mat();
                 cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
                 
-                // Adaptive thresholding
-                // Increase blockSize significantly to handle lighting gradients
-                // Increase C to remove background noise and make background white
-                cv.adaptiveThreshold(
-                    gray, 
-                    dst, 
-                    255, 
-                    cv.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                    cv.THRESH_BINARY, 
-                    51, // blockSize => bigger means more context for lighting (odd number)
-                    15   // C => constant to subtract to remove background
-                );
-
-                // Small median blur to remove salt and pepper noise
-                cv.medianBlur(dst, dst, 3);
+                // Linear contrast boost instead of aggressive thresholding
+                // This keeps anti-aliasing and doesn't destroy fonts
+                gray.convertTo(dst, -1, 1.25, 10);
                 
                 gray.delete();
             }

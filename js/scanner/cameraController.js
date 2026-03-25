@@ -196,7 +196,7 @@ class CameraController {
      * @param {boolean} colorMode - optional 
      * @returns {HTMLCanvasElement} - The canvas with the processed image
      */
-    processCapture(corners, colorMode = false) {
+    processCapture(corners, colorMode = true) {
         const vw = this.video.videoWidth;
         const vh = this.video.videoHeight;
         
