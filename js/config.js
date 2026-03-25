@@ -2,8 +2,8 @@
 // Configuración Global Recipe Pantry (v319)
 
 const APP_CONFIG = {
-    APP_VERSION: '364',
-    CACHE_NAME: 'recipepantry-v364',
+    APP_VERSION: '365',
+    CACHE_NAME: 'recipepantry-v365',
     BUILD_ID: '2026-03-19-v319'
 };
 
@@ -16,4 +16,4 @@ window.DEFAULT_RECIPE_IMAGE = DEFAULT_RECIPE_IMAGE;
 // Exportar a global
 window.APP_CONFIG = APP_CONFIG;
 
-console.log('✅ Configuración v364 inicializada');
+console.log('✅ Configuración v365 inicializada');
