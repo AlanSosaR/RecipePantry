@@ -55,14 +55,16 @@ class ImageEnhancer {
                 cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
                 
                 // Adaptive thresholding
+                // Increase blockSize significantly to handle lighting gradients
+                // Increase C to remove background noise and make background white
                 cv.adaptiveThreshold(
                     gray, 
                     dst, 
                     255, 
                     cv.ADAPTIVE_THRESH_GAUSSIAN_C, 
                     cv.THRESH_BINARY, 
-                    11, // blockSize => try 11 
-                    2   // C => constant
+                    51, // blockSize => bigger means more context for lighting (odd number)
+                    15   // C => constant to subtract to remove background
                 );
 
                 // Small median blur to remove salt and pepper noise

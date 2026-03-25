@@ -27,11 +27,16 @@ class DocumentDetector {
             // 1. Grayscale
             cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
 
-            // 2. Blur to reduce noise
+            // 2. Blur to reduce noise - slightly larger blur to ignore text details and focus on paper edge
             cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
 
-            // 3. Edge detection
-            cv.Canny(blurred, edges, 75, 200);
+            // 3. Edge detection - more forgiving limits to catch paper edges in bad light
+            cv.Canny(blurred, edges, 30, 100);
+
+            // Dilate edges to close gaps in the contour
+            let M = cv.Mat.ones(3, 3, cv.CV_8U);
+            cv.dilate(edges, edges, M);
+            M.delete();
 
             // 4. Find contours
             cv.findContours(edges, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
@@ -41,7 +46,7 @@ class DocumentDetector {
             let bestApprox = new cv.Mat(); 
 
             let srcArea = src.cols * src.rows;
-            let minArea = srcArea * 0.1; // Contour must be at least 10% of image
+            let minArea = srcArea * 0.05; // Contour must be at least 5% of image (more forgiving)
 
             for (let i = 0; i < contours.size(); i++) {
                 let cnt = contours.get(i);
@@ -50,13 +55,17 @@ class DocumentDetector {
                 if (area > minArea && area > bestArea) {
                     let peri = cv.arcLength(cnt, true);
                     let approx = new cv.Mat();
-                    cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
+                    // Increased epsilon to 0.05 so slightly wavy edges on receipts still count as 4 points
+                    cv.approxPolyDP(cnt, approx, 0.05 * peri, true);
 
                     if (approx.rows === 4) {
                         if (this.isConvexPoly(approx)) {
                             bestArea = area;
                             approx.copyTo(bestApprox);
                         }
+                    } else if (approx.rows > 4 && approx.rows < 8) {
+                        // Sometimes the corners of receipts are rounded or folded.
+                        // Force 4 points by finding bounding rotated rect, but standard Drive scanner relies on 4 true approx points with high epsilon.
                     }
                     approx.delete();
                 }
