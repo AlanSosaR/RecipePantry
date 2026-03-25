@@ -205,60 +205,19 @@ class CameraController {
         this.ctx.drawImage(this.video, 0, 0, vw, vh);
         
         if (!window.cv || !window.cv.Mat) {
-             // Fallback if cv is not ready
              return this.canvas;
         }
 
         let src = cv.imread(this.canvas);
-        let finalMat = null;
         let finalMode = colorMode ? 'color' : 'bw';
 
-        if (corners) {
-            // Document found: Warp it
-            let warped = this.corrector.warpDocument(src, corners);
-            
-            // Validate quality
-            let isSharp = this.enhancer.validateQuality(warped, 30);
-            if (!isSharp) {
-                if (window.showSnackbar) window.showSnackbar("Imagen posiblemente borrosa.");
-            }
-
-            // Enhance
-            finalMat = this.enhancer.enhanceForOCR(warped, finalMode);
-            warped.delete();
-        } else {
-            // Fallback: No valid document corners, attempt to center-crop roughly based on old UI overlay
-            let oldOverlay = document.getElementById('ocrOverlay');
-            if (oldOverlay) {
-                let docRect = oldOverlay.getBoundingClientRect();
-                let videoRect = this.video.getBoundingClientRect();
-                
-                // Proportionally map overlay coordinates to video resolution
-                let scaleX = vw / videoRect.width;
-                let scaleY = vh / videoRect.height;
-                
-                let cropX = Math.max(0, (docRect.left - videoRect.left) * scaleX);
-                let cropY = Math.max(0, (docRect.top - videoRect.top) * scaleY);
-                let cropW = Math.min(vw - cropX, docRect.width * scaleX);
-                let cropH = Math.min(vh - cropY, docRect.height * scaleY);
-                
-                let rect = new cv.Rect(cropX, cropY, cropW, cropH);
-                try {
-                    let cropped = src.roi(rect);
-                    finalMat = this.enhancer.enhanceForOCR(cropped, finalMode);
-                    cropped.delete();
-                } catch(e) {
-                     finalMat = this.enhancer.enhanceForOCR(src, finalMode);
-                }
-            } else {
-                finalMat = this.enhancer.enhanceForOCR(src, finalMode);
-            }
-        }
-
+        // Petición del usuario: NO recortar la imagen (ignorar corners/warp) para capturar la foto completa en 4K.
+        // Solo aplicamos la mejora de contraste fotográfico al fotograma completo.
+        let finalMat = this.enhancer.enhanceForOCR(src, finalMode);
+        
         src.delete();
         
         if (finalMat) {
-            // Resize canvas to final cropped size and clear before drawing
             cv.imshow(this.canvas, finalMat);
             finalMat.delete();
         }
