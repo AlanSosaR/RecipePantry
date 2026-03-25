@@ -96,7 +96,11 @@ class OCRScanner {
         if (this.stream) this.stopCamera();
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: this.currentFacingMode },
+                video: { 
+                    facingMode: this.currentFacingMode,
+                    width: { ideal: 4096 }, // Forzar máxima resolución posible (hasta 4K)
+                    height: { ideal: 2160 }
+                },
                 audio: false
             });
             if (this.videoElement) {
@@ -293,7 +297,7 @@ class OCRScanner {
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0);
-        this.applyScannerEnhancement(canvas);
+        // Removed applyScannerEnhancement to guarantee original photo quality
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
         this.stopCamera();
         this.showProcessingState(imageDataUrl);
