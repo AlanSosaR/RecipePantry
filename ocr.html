@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="367">
+<html lang="es" data-app-version="368">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '367';
-            const NUKE_KEY = 'v367_config_final';
+            const CURRENT_VERSION = '368';
+            const NUKE_KEY = 'v368_retry_fix';
 
             (async () => {
                 const storedVersion = localStorage.getItem('recipe_app_version_ocr');
@@ -90,18 +90,18 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=367">
-    <link rel="stylesheet" href="css/components.css?v=367">
+    <link rel="stylesheet" href="css/styles.css?v=368">
+    <link rel="stylesheet" href="css/components.css?v=368">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://docs.opencv.org/master/opencv.js" type="text/javascript"></script>
 
     <!-- OpenCV Scanner Modules -->
-    <script defer src="js/scanner/documentDetection.js?v=367"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=367"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=367"></script>
-    <script defer src="js/scanner/cameraController.js?v=367"></script>
+    <script defer src="js/scanner/documentDetection.js?v=368"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=368"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=368"></script>
+    <script defer src="js/scanner/cameraController.js?v=368"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1257,20 +1257,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=367"></script>
-    <script src="js/supabase-client.js?v=367"></script>
-    <script src="js/auth.js?v=367"></script>
-    <script src="js/localdb.js?v=367"></script>
-    <script src="js/sync-manager.js?v=367"></script>
-    <script src="js/db.js?v=367"></script>
-    <script src="js/utils.js?v=367"></script>
-    <script src="js/i18n.js?v=367"></script>
-    <script src="js/ui.js?v=367"></script>
+    <script src="js/config.js?v=368"></script>
+    <script src="js/supabase-client.js?v=368"></script>
+    <script src="js/auth.js?v=368"></script>
+    <script src="js/localdb.js?v=368"></script>
+    <script src="js/sync-manager.js?v=368"></script>
+    <script src="js/db.js?v=368"></script>
+    <script src="js/utils.js?v=368"></script>
+    <script src="js/i18n.js?v=368"></script>
+    <script src="js/ui.js?v=368"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=367"></script>
-    <script src="js/ocr.js?v=367"></script>
-    <script src="js/url-importer.js?v=367"></script>
+    <script src="js/ocr-processor.js?v=368"></script>
+    <script src="js/ocr.js?v=368"></script>
+    <script src="js/url-importer.js?v=368"></script>
 
 
     <script>
@@ -1314,9 +1314,17 @@
                 tabCamera.style.color = '#6B7280';
                 if (cameraInterface) cameraInterface.style.display = 'none';
                 if (urlPanel) urlPanel.style.display = 'block';
-                if (window.ocr) window.ocr.stopCamera();
             }
         }
+
+        function resetOcrModal() {
+            goToStep(1);
+            const errorEl = document.getElementById('urlImportError');
+            if (errorEl) errorEl.style.display = 'none';
+            if (window.ocr) window.ocr.stopCamera();
+            console.log('🔄 Modal de OCR reseteado');
+        }
+        window.resetOcrModal = resetOcrModal;
 
         // --- OCR Language Logic ---
         window.selectedOcrLang = 'spa'; // Default to Spanish (Tesseract 'spa')
@@ -1350,13 +1358,13 @@
                 if (containerModal) containerModal.classList.add('is-url-preview');
                 
                 if (preview) {
-                    preview.src = 'assets/link.svg?v=367';
+                    preview.src = 'assets/link.svg?v=368';
                     preview.style.display = 'block';
                     preview.style.padding = '20px'; // Reduced padding
                     preview.style.margin = '0 auto';
                 }
                 if (previewModal) {
-                    previewModal.src = 'assets/link.svg?v=367';
+                    previewModal.src = 'assets/link.svg?v=368';
                     previewModal.style.display = 'block';
                     previewModal.style.padding = '20px';
                     previewModal.style.margin = '0 auto';
@@ -1381,7 +1389,7 @@
 
             } catch (err) {
                 console.error('URL Import error:', err);
-                if (window.ocr) window.ocr.resetModal();
+                resetOcrModal(); // Use the newly defined function
                 errorEl.textContent = err.message;
                 errorEl.style.display = 'block';
                 
