@@ -1,62 +1,94 @@
 /**
- * URL Importer - Recipe Pantry v1.0
- * Extracts recipes from URLs using Supabase Edge Function + Gemini
+ * url-importer.js - Logic for importing recipes from URLs (Web, YouTube, TikTok, Drive, Dropbox)
+ * v362_drive_dropbox
  */
 
-const URL_IMPORTER_CONFIG = {
-    EDGE_FUNCTION_URL: 'https://fsgfrqrerddmopojjcsw.supabase.co/functions/v1/fetch-url'
-};
-
-class URLImporter {
-
+const URLImporter = {
     /**
-     * Import a recipe from a URL
-     * @param {string} url - The URL to extract from
-     * @param {function} onProgress - Progress callback
-     * @returns {Promise<object>} - Structured recipe data
+     * Imports a recipe from a URL using a Supabase Edge Function and OpenRouter
+     * @param {string} url - The URL to import from
+     * @param {function} onProgress - Callback for progress updates
      */
-    async importFromURL(url, onProgress) {
-        // 1. Validate URL
+    importFromURL: async function(url, onProgress) {
         try {
-            new URL(url);
-        } catch {
-            throw new Error('URL inválida. Verifica el formato del enlace.');
-        }
+            if (onProgress) onProgress({ status: 'fetching', progress: 0.1, message: 'Conectando con el servidor...' });
 
-        if (onProgress) onProgress({ status: 'fetching', progress: 0.1, message: 'Descargando contenido...' });
+            // 1. Fetch content from our scraping edge function
+            const SUPABASE_URL = Config.SUPABASE_URL;
+            const SUPABASE_ANON_KEY = Config.SUPABASE_ANON_KEY;
 
-        // 2. Fetch page content via Edge Function
-        let pageData;
-        try {
-            const response = await fetch(URL_IMPORTER_CONFIG.EDGE_FUNCTION_URL, {
+            if (onProgress) onProgress({ status: 'fetching', progress: 0.2, message: 'Extrayendo contenido...' });
+
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/fetch-url`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                },
                 body: JSON.stringify({ url })
             });
 
             if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.error || `Error ${response.status}`);
+                const errData = await response.json();
+                throw new Error(errData.error || 'Error al extraer el contenido del enlace.');
             }
 
-            pageData = await response.json();
-        } catch (err) {
-            if (err.message.includes('Failed to fetch')) {
-                throw new Error('No se pudo conectar al servidor. Verifica tu conexión.');
+            const pageData = await response.json();
+
+            if (!pageData.text || pageData.text.trim().length < 50) {
+                throw new Error('No se encontró contenido suficiente (ni transcripción ni descripción). Intenta con otro enlace o verifica que el archivo sea público.');
             }
-            throw new Error(`No se pudo acceder al enlace: ${err.message}`);
-        }
 
-        if (!pageData.text || pageData.text.trim().length < 50) {
-            throw new Error('No se encontró contenido suficiente en esa página. Intenta con otro enlace.');
-        }
+            const isVideo = pageData.isVideo || false;
+            const isCloudDoc = pageData.isCloudDoc || false;
+            
+            let analysisMsg = 'Analizando contenido con IA...';
+            let structuringMsg = 'Estructurando receta...';
+            
+            if (isVideo) {
+                analysisMsg = 'Transcribiendo vídeo...';
+                structuringMsg = 'Estructurando pasos de la receta...';
+            } else if (isCloudDoc) {
+                analysisMsg = 'Leyendo documento de la nube...';
+                structuringMsg = 'Estructurando contenido del documento...';
+            }
 
-        if (onProgress) onProgress({ status: 'analyzing', progress: 0.4, message: 'Analizando contenido con IA...' });
+            if (onProgress) onProgress({ status: 'analyzing', progress: 0.4, message: analysisMsg });
 
-        // 3. Send to OpenRouter for recipe extraction
-        if (onProgress) onProgress({ status: 'structuring', progress: 0.6, message: 'Estructurando receta...' });
+            // 2. Send to OpenRouter for recipe extraction
+            if (onProgress) onProgress({ status: 'structuring', progress: 0.6, message: structuringMsg });
 
-        const prompt = `You are an expert culinary assistant. You will receive the text content extracted from a webpage.
+            let prompt;
+            if (isVideo) {
+                prompt = `Eres un experto culinario. Vas a recibir una TRANSCRIPCIÓN DE AUDIO o DESCRIPCIÓN de un vídeo de cocina (YouTube/TikTok).
+Tu trabajo es extraer la receta estructurada de este texto.
+
+REGLAS:
+- Identifica los ingredientes exactos (cantidad + unidad + nombre).
+- Si la transcripción es "sucia" (sin signos de puntuación), límpiala y dale sentido lógico.
+- Divide los pasos de preparación de forma clara.
+- Si no hay receta, devuelve: {"error": "No se pudo extraer una receta clara de este vídeo."}
+- Devuelve SOLO JSON en ESPAÑOL.
+
+TÍTULO DEL VÍDEO: ${pageData.title || 'Unknown'}
+URL: ${url}
+
+CONTENIDO:\n${pageData.text}`;
+            } else if (isCloudDoc) {
+                prompt = `Eres un experto culinario. Vas a recibir el contenido de un DOCUMENTO (Google Drive/Dropbox).
+Tu trabajo es encontrar la receta en este texto y estructurarla.
+
+REGLAS:
+- Identifica nombre, ingredientes y pasos.
+- Ignora metadatos o texto irrelevante.
+- Devuelve SOLO JSON en ESPAÑOL.
+
+TÍTULO DEL ARCHIVO: ${pageData.title || 'Unknown'}
+URL: ${url}
+
+CONTENIDO:\n${pageData.text}`;
+            } else {
+                prompt = `You are an expert culinary assistant. You will receive the text content extracted from a webpage.
 Your job is to find and extract the recipe from this content. 
 
 The content may contain ads and irrelevant text — ignore it.
@@ -72,69 +104,55 @@ Rules:
 Page title: ${pageData.title || 'Unknown'}
 Page URL: ${url}
 
-PAGE CONTENT:
-${pageData.text}`;
+PAGE CONTENT:\n${pageData.text}`;
+            }
 
-        const apiKey = getOpenRouterKey();
-        if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
+            const apiKey = getOpenRouterKey();
+            if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
 
-        const response = await fetch(OPENROUTER_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://recipepantry.app',
-                'X-Title': 'Recipe Pantry'
-            },
-            body: JSON.stringify({
-                model: AI_MODEL,
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }],
-                max_tokens: 4096,
-                temperature: 0.1
-            })
-        });
+            const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": window.location.origin,
+                    "X-Title": "Recipe Pantry"
+                },
+                body: JSON.stringify({
+                    model: "google/gemini-pro-1.5",
+                    messages: [{ role: "user", content: prompt }]
+                })
+            });
 
-        if (!response || !response.ok) {
-            throw new Error('La IA no pudo procesar el contenido. Intenta de nuevo en unos segundos.');
+            if (!aiResponse.ok) throw new Error("Error en la comunicación con la IA.");
+
+            const aiData = await aiResponse.json();
+            const rawContent = aiData.choices[0].message.content;
+            
+            // Clean JSON response (OpenRouter sometimes wraps it in markdown)
+            const cleanJson = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
+            const recipe = JSON.parse(cleanJson);
+
+            if (recipe.error) throw new Error(recipe.error);
+
+            if (onProgress) onProgress({ status: 'done', progress: 1.0, message: '¡Receta lista!' });
+
+            return {
+                ...recipe,
+                source_url: url,
+                servings: recipe.servings || 4
+            };
+
+        } catch (error) {
+            console.error('URL Import error:', error);
+            throw error;
         }
-
-        const data = await response.json();
-        const textResponse = data.choices[0].message.content;
-
-        if (!textResponse) {
-            throw new Error('La IA no devolvió resultados. Intenta con otro enlace.');
-        }
-
-        const parsed = JSON.parse(textResponse.replace(/```json|```/g, '').trim());
-
-        if (parsed.error) {
-            throw new Error(parsed.error);
-        }
-
-        if (onProgress) onProgress({ status: 'finalizing', progress: 0.9, message: 'Finalizando...' });
-
-        // Calculate confidence
-        let score = 100;
-        if (!parsed.nombre || parsed.nombre.trim().length < 3) score -= 10;
-        if (!parsed.ingredientes || parsed.ingredientes.length === 0) score -= 20;
-        if (!parsed.pasos || parsed.pasos.length < 2) score -= 5;
-        if (score < 0) score = 0;
-
-        if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Lista!' });
-
-        return {
-            ...parsed,
-            texto: `Extraído de: ${url}`,
-            confidence: score,
-            success: true,
-            version: 'v1.0-url-import',
-            method: 'url-import-gemini',
-            isStructured: true
-        };
     }
-}
+};
 
-window.urlImporter = new URLImporter();
+// Expose globally for ocr.html
+window.urlImporter = URLImporter;
+
+// No global helper here - already provided by ocr-processor.js
+
+

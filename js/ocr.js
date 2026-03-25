@@ -53,6 +53,12 @@ class OCRScanner {
         if (tipsSection) tipsSection.style.display = 'block';
 
         if (preview) { preview.style.display = 'none'; preview.src = ''; }
+        
+        // v360: Reset processing previews
+        const pr = document.getElementById('ocrProcessingPreview');
+        if (pr) pr.src = '';
+        const prm = document.getElementById('ocrProcessingPreviewModal');
+        if (prm) prm.src = '';
 
         // Reset progress bar and text
         const percentTexts = [document.getElementById('ocrPercent'), document.getElementById('ocrPercentModal')];
@@ -169,11 +175,14 @@ class OCRScanner {
         if (resultState) resultState.style.display = 'none';
         if (loadingState) loadingState.style.display = 'flex';
 
-        // Set the image preview
-        const processingPreview = document.getElementById('ocrProcessingPreview');
-        if (processingPreview && imageDataUrl) {
-            processingPreview.src = imageDataUrl;
-        }
+        // Set the image preview (Try both main page and modal IDs)
+        const previews = [
+            document.getElementById('ocrProcessingPreview'),
+            document.getElementById('ocrProcessingPreviewModal')
+        ];
+        previews.forEach(p => {
+            if (p && imageDataUrl) p.src = imageDataUrl;
+        });
 
         // Reset progress
         const progressTexts = [document.getElementById('processingStatus'), document.getElementById('processingStatusModal')];
@@ -457,6 +466,16 @@ class OCRScanner {
         });
         this.stopCamera();
         const selectedLang = window.selectedOcrLang || 'spa';
+        
+        // v360: Update all possible preview IDs
+        const previews = [
+            document.getElementById('ocrProcessingPreview'),
+            document.getElementById('ocrProcessingPreviewModal')
+        ];
+        previews.forEach(p => {
+            if (p && imageDataUrl) p.src = imageDataUrl;
+        });
+        
         this.showProcessingState(imageDataUrl);
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
