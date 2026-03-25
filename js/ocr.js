@@ -103,6 +103,11 @@ class OCRScanner {
                 this.videoElement.srcObject = this.stream;
                 try {
                     await this.videoElement.play();
+                    if (window.cameraController) {
+                        window.cameraController.startScanning(this.videoElement, (corners) => {
+                            this.capture(corners);
+                        });
+                    }
                 } catch (playError) {
                     if (playError.name !== 'AbortError') {
                         console.error('Error al reproducir video:', playError);
@@ -131,6 +136,7 @@ class OCRScanner {
     }
 
     stopCamera() {
+        if (window.cameraController) window.cameraController.stopScanning();
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
@@ -202,10 +208,11 @@ class OCRScanner {
     }
 
 
-    async capture() {
+    async capture(corners = null) {
         if (!this.videoElement || !this.stream) return;
         
-        const video = this.videoElement;
+        if (window.cameraController) window.cameraController.stopScanning();
+        
         const overlay = document.getElementById('ocrOverlay');
         
         if (overlay) {
@@ -214,46 +221,18 @@ class OCRScanner {
             setTimeout(() => { if(overlay) overlay.style.backgroundColor = 'transparent'; }, 200);
         }
         
-        if (!overlay) {
+        if (!overlay && !window.cameraController) {
             console.warn('⚠️ No ocrOverlay found, legacy capture.');
             return this._captureLegacy();
         }
 
-        // 1. Calculate Real Dimensions (Handling Object-Fit: Cover)
-        const vWidth = video.videoWidth;
-        const vHeight = video.videoHeight;
-        const cWidth = video.clientWidth;
-        const cHeight = video.clientHeight;
-
-        const videoRatio = vWidth / vHeight;
-        const clientRatio = cWidth / cHeight;
-
-        let drawScale, xOffset = 0, yOffset = 0;
-
-        if (videoRatio > clientRatio) {
-            drawScale = cHeight / vHeight;
-            xOffset = (vWidth * drawScale - cWidth) / 2;
+        let canvas;
+        if (window.cameraController) {
+            let useCorners = corners || window.cameraController.lastCorners;
+            canvas = window.cameraController.processCapture(useCorners);
         } else {
-            drawScale = cWidth / vWidth;
-            yOffset = (vHeight * drawScale - cHeight) / 2;
+            return this._captureLegacy();
         }
-
-        const realCropX = (overlay.offsetLeft + xOffset) / drawScale;
-        const realCropY = (overlay.offsetTop + yOffset) / drawScale;
-        const realCropW = overlay.offsetWidth / drawScale;
-        const realCropH = overlay.offsetHeight / drawScale;
-
-        // 2. High-Res Canvas Creator
-        const canvas = document.createElement('canvas');
-        canvas.width = realCropW;
-        canvas.height = realCropH;
-        const ctx = canvas.getContext('2d');
-
-        // Capture raw frame
-        ctx.drawImage(video, realCropX, realCropY, realCropW, realCropH, 0, 0, realCropW, realCropH);
-
-        // 3. Dropbox-Style Professional Preprocessing
-        this.applyScannerEnhancement(canvas);
 
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 

@@ -2,8 +2,8 @@
 // Configuración Global Recipe Pantry (v319)
 
 const APP_CONFIG = {
-    APP_VERSION: '350',
-    CACHE_NAME: 'recipepantry-v350',
+    APP_VERSION: '351',
+    CACHE_NAME: 'recipepantry-v351',
     BUILD_ID: '2026-03-19-v319'
 };
 
@@ -16,4 +16,4 @@ window.DEFAULT_RECIPE_IMAGE = DEFAULT_RECIPE_IMAGE;
 // Exportar a global
 window.APP_CONFIG = APP_CONFIG;
 
-console.log('✅ Configuración v350 inicializada');
+console.log('✅ Configuración v351 inicializada');

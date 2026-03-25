@@ -1,6 +1,6 @@
 {
   "name": "recipepantry",
-  "version": "350",
+  "version": "351",
   "description": "Recipe Scanner with Edge API and CDN Caching",
   "type": "module",
   "scripts": {
