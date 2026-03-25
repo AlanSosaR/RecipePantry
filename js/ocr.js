@@ -95,11 +95,16 @@ class OCRScanner {
     async startCamera() {
         if (this.stream) this.stopCamera();
         try {
+            // Detectar orientación para pedir la resolución 4K en el ratio correcto y evitar recortes
+            const isPortrait = window.innerHeight > window.innerWidth;
+            const idealW = isPortrait ? 2160 : 4096;
+            const idealH = isPortrait ? 4096 : 2160;
+
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: { 
                     facingMode: this.currentFacingMode,
-                    width: { ideal: 4096 }, // Forzar máxima resolución posible (hasta 4K)
-                    height: { ideal: 2160 }
+                    width: { ideal: idealW },
+                    height: { ideal: idealH }
                 },
                 audio: false
             });
