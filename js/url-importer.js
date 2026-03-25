@@ -1,6 +1,6 @@
 /**
  * url-importer.js - Simplified logic delegating AI structuring to the server
- * v371_server_side_ai
+ * v372_error_debugging
  */
 
 const URLImporter = {
@@ -16,7 +16,6 @@ const URLImporter = {
             const SUPABASE_URL = Config.SUPABASE_URL;
             const SUPABASE_ANON_KEY = Config.SUPABASE_ANON_KEY;
             
-            // Get the obfuscated key from the user's environment
             const apiKey = typeof getOpenRouterKey === 'function' ? getOpenRouterKey() : null;
             if (!apiKey) throw new Error("Se requiere una clave de OpenRouter válida.");
 
@@ -38,7 +37,12 @@ const URLImporter = {
 
             const result = await response.json();
 
-            // If the server returned a structured recipe successfully
+            // Handle OpenRouter specific errors returned in JSON
+            if (result.error === "OpenRouter Error") {
+                console.error("OpenRouter Error Details:", result.details);
+                throw new Error(`IA Error (${result.status}): ${result.details || 'Error estructurando'}`);
+            }
+
             if (result.success && result.nombre) {
                 if (onProgress) onProgress({ status: 'done', progress: 1.0, message: '¡Receta lista!' });
                 return {
@@ -48,7 +52,6 @@ const URLImporter = {
                 };
             }
 
-            // Fallback: If AI failed but we got raw text, we might try a local parse or error
             if (result.text) {
                  throw new Error("El servidor extrajo el texto pero la IA no pudo estructurar la receta. Intenta con otro enlace.");
             }
@@ -62,5 +65,4 @@ const URLImporter = {
     }
 };
 
-// Expose globally for ocr.html
 window.urlImporter = URLImporter;
