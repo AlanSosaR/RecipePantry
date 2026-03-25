@@ -39,7 +39,7 @@ class ImageEnhancer {
     }
 
     /**
-     * Enhances the warped image. Defaults to color mode for OCR to preserve "real photo" feel.
+     * Enhances the warped image. Forces color mode to preserve "real photo" feel and prevent binarization blobbing.
      */
     enhanceForOCR(src, mode = 'color') {
         if (!window.cv || !src || src.empty()) return null;
@@ -47,19 +47,10 @@ class ImageEnhancer {
         let dst = new cv.Mat();
         
         try {
-            if (mode === 'color') {
-                // Subtle contrast boost to look like an enhanced photo
-                src.convertTo(dst, -1, 1.1, 10);
-            } else {
-                let gray = new cv.Mat();
-                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-                
-                // Linear contrast boost instead of aggressive thresholding
-                // This keeps anti-aliasing and doesn't destroy fonts
-                gray.convertTo(dst, -1, 1.25, 10);
-                
-                gray.delete();
-            }
+            // Force a simple contrast boost that preserves photo realism
+            // Alpha 1.15 = 15% more contrast. Beta 15 = brighter image.
+            src.convertTo(dst, -1, 1.15, 15);
+            console.log("ImageEnhancer v354 applied contrast boost.");
         } catch(e) {
             console.error("Error in enhancement:", e);
             src.copyTo(dst); 
