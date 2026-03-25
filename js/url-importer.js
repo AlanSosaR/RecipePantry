@@ -119,12 +119,15 @@ PAGE CONTENT:\n${pageData.text}`;
                     "X-Title": "Recipe Pantry"
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-pro-1.5",
+                    model: "google/gemini-flash-1.5",
                     messages: [{ role: "user", content: prompt }]
                 })
             });
 
-            if (!aiResponse.ok) throw new Error("Error en la comunicación con la IA.");
+            if (!aiResponse.ok) {
+                const status = aiResponse.status;
+                throw new Error(`Error en la comunicación con la IA (Status: ${status}).`);
+            }
 
             const aiData = await aiResponse.json();
             const rawContent = aiData.choices[0].message.content;
