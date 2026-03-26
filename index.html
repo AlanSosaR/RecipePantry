@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="444">
+<html lang="es" data-app-version="445">
 
 <head>
   <meta charset="UTF-8" />
@@ -39,45 +39,49 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=444">
-  <link rel="stylesheet" href="css/components.css?v=444">
+  <link rel="stylesheet" href="css/styles.css?v=445">
+  <link rel="stylesheet" href="css/components.css?v=445">
   <script>
     // Essential Boot Logic
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) document.documentElement.setAttribute('data-auth-likely', 'true');
     document.documentElement.setAttribute('data-theme', 'light');
-    console.log('🏁 UI Boot v444 - Stable');
+    console.log('🏁 UI Boot v445 - Restored');
   </script>
 
   <style>
-    /* ─── Recipe Pantry Premium Landing ─── */
+    /* ─── Recipe Pantry Glassmorphism Landing ─── */
     :root {
       --m3-easing: cubic-bezier(0.2, 0.0, 0, 1.0);
       --primary-green: #10B981;
+      --primary-green-light: #e8f7f2;
       --text-black: #1B1B1F;
+      --text-grey: #888;
+      --font-display: 'Poppins', sans-serif;
+      --font-body: 'Poppins', sans-serif;
     }
-    body { margin: 0; background: #f0f2f5; font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .mode-landing-wrapper { width: 100%; padding: 24px; box-sizing: border-box; display: flex; justify-content: center; }
-    .landing-unified-card { width: min(440px, 100%); background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 80px rgba(0,0,0,0.12); animation: m3-fade-up 0.8s var(--m3-easing); }
-    .hero-part { background: var(--primary-green); height: 180px; position: relative; border-bottom-left-radius: 50% 20%; border-bottom-right-radius: 50% 20%; display: flex; justify-content: center; }
-    .hero-circle { position: absolute; bottom: -60px; width: 120px; height: 120px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-    .hero-circle-inner { width: 80px; height: 80px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
-    .content-part { padding: 80px 24px 32px; text-align: center; }
-    .landing-title { font-size: 28px; font-weight: 800; color: var(--primary-green); margin: 0; }
-    .landing-subtitle { color: #888; margin: 8px 0 24px; }
-    .btn-comenzar { width: 100%; background: var(--primary-green); color: white; padding: 16px; border-radius: 20px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
-    @keyframes m3-fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    body { margin: 0; background-color: #f0f2f5; font-family: var(--font-body); }
+    .mode-landing-wrapper { width: 100%; padding: 24px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 100dvh; }
+    .landing-unified-card { width: min(440px, 100%); background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 80px rgba(0, 0, 0, 0.12); position: relative; animation: m3-fade-up 0.8s var(--m3-easing) forwards; }
+    .hero-part { background: var(--primary-green); height: 200px; position: relative; border-bottom-left-radius: 50% 30%; border-bottom-right-radius: 50% 30%; display: flex; justify-content: center; }
+    .hero-circle { position: absolute; bottom: -75px; width: 150px; height: 150px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+    .hero-circle-inner { width: 96px; height: 96px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+    .content-part { padding: 90px 24px 32px; text-align: center; }
+    .landing-title { font-size: 32px; font-weight: 800; color: var(--primary-green); margin: 0; }
+    .landing-subtitle { color: var(--text-grey); margin-bottom: 24px; }
+    .btn-comenzar { width: 100%; background: var(--primary-green); color: white; font-weight: 700; border-radius: 20px; padding: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; transition: all 0.3s; }
+    @keyframes m3-fade-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     .hidden { display: none !important; }
   </style>
 </head>
 
-<body>
+<body class="body-drive">
   <div id="landing-section" class="mode-landing-wrapper">
     <div class="landing-unified-card">
       <div class="hero-part">
         <div class="hero-circle">
           <div class="hero-circle-inner">
-            <span class="material-symbols-outlined" style="font-size: 40px;">menu_book</span>
+            <span class="material-symbols-outlined" style="font-size: 48px;">menu_book</span>
           </div>
         </div>
       </div>
@@ -92,32 +96,90 @@
     </div>
   </div>
 
+  <!-- DASHBOARD APP STRUCTURE (RESTORED v445) -->
   <div id="dashboard-app" class="dashboard-app hidden">
-    <!-- El dashboard se inyecta por dashboard.js -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
+    <div id="notification-bar" class="m3-notification-bar hidden">
+      <div class="m3-notification-content">
+        <span class="material-symbols-outlined spin" id="notification-icon">sync</span>
+        <span id="notification-text">Sincronizando...</span>
+      </div>
+    </div>
+
+    <aside id="main-sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="assets/icons/icon.svg" width="28" height="28" alt="Logo" />
+          <span class="logo-text">Recipe Pantry</span>
+        </div>
+      </div>
+      <div class="sidebar-user-profile">
+        <div class="user-avatar-m3"><span id="sidebar-user-initials" class="user-initials-m3">CH</span></div>
+        <div class="user-info-m3"><span id="sidebar-user-greeting" class="user-greeting">Chef</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="recipes"><span class="material-symbols-outlined">home</span><span>Recetas</span></a>
+        <a href="#" class="nav-item" data-view="favorites"><span class="material-symbols-outlined">star</span><span>Favoritos</span></a>
+        <a href="#" class="nav-item" onclick="window.location.href='/ocr'"><span class="material-symbols-outlined">document_scanner</span><span>Escanear</span></a>
+        <a href="#" class="nav-item" data-view="shared"><span class="material-symbols-outlined">share</span><span>Compartidas</span></a>
+        <a href="#" class="nav-item" onclick="window.authManager.signOut()"><span class="material-symbols-outlined">logout</span><span>Cerrar Sesión</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar-m3">
+        <button class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)"><span class="material-symbols-outlined">menu</span></button>
+        <div class="search-container-m3">
+          <div class="search-wrapper-m3" id="searchWrapper">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="searchInput" placeholder="Buscar...">
+          </div>
+        </div>
+      </header>
+
+      <div class="dashboard-header">
+        <h3 id="view-title">Mis Recetas</h3>
+      </div>
+
+      <div id="recipesGrid" class="recipes-grid">
+        <div class="loading-inline"><div class="spinner-sm"></div><p>Cargando...</p></div>
+      </div>
+
+      <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
+        <span class="material-symbols-outlined" style="font-size: 80px; color: #E5E7EB;">folder_open</span>
+        <h4 style="margin-top: 16px;">Aún no tienes recetas</h4>
+        <button class="btn-comenzar" style="width: auto; margin: 24px auto;" onclick="window.location.href='/ocr'">
+          <span class="material-symbols-outlined">document_scanner</span>
+          <span>Escanear Receta</span>
+        </button>
+      </div>
+
+      <button class="fab-m3" onclick="window.location.href='/recipe-form'"><span class="material-symbols-outlined">add</span></button>
+    </main>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=444"></script>
-  <script src="js/supabase-client.js?v=444"></script>
-  <script src="js/localdb.js?v=444"></script>
-  <script src="js/sync-manager.js?v=444"></script>
-  <script src="js/utils.js?v=444"></script>
-  <script src="js/i18n.js?v=444"></script>
-  <script src="js/db.js?v=444"></script>
-  <script src="js/auth.js?v=444"></script>
-  <script src="js/dashboard.js?v=444"></script>
-  <script src="js/share-modal.js?v=444"></script>
-  <script src="js/help-modal.js?v=444"></script>
-  <script src="js/notifications.js?v=444"></script>
-  <script src="js/ui.js?v=444"></script>
-  <script src="js/sw-register.js?v=444"></script>
+  <script src="js/config.js?v=445"></script>
+  <script src="js/supabase-client.js?v=445"></script>
+  <script src="js/localdb.js?v=445"></script>
+  <script src="js/sync-manager.js?v=445"></script>
+  <script src="js/utils.js?v=445"></script>
+  <script src="js/i18n.js?v=445"></script>
+  <script src="js/db.js?v=445"></script>
+  <script src="js/auth.js?v=445"></script>
+  <script src="js/dashboard.js?v=445"></script>
+  <script src="js/share-modal.js?v=445"></script>
+  <script src="js/help-modal.js?v=445"></script>
+  <script src="js/notifications.js?v=445"></script>
+  <script src="js/ui.js?v=445"></script>
+  <script src="js/sw-register.js?v=445"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'
     import '@material/web/button/outlined-button.js'
     import '@material/web/textfield/outlined-text-field.js'
-    console.log('✨ Material 3 Loaded v444');
+    console.log('✨ Material 3 Loaded v445');
   </script>
 </body>
 </html>
