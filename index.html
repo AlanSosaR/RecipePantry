@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="438">
+<html lang="es" data-app-version="439">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -20,36 +20,34 @@
         if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
       };
 
-      // 2. ABSOLUTE EXTERNAL SYNC (v438)
+      // 2. SURGICAL EXTERNAL SYNC (v439)
       (async () => {
         try {
-          const stored = localStorage.getItem('recipe_app_v_force') || '0';
-          if (stored === '438') return;
+          const syncKey = 'rp_sync_v439';
+          if (localStorage.getItem(syncKey)) return;
 
           const res = await fetch('/version.json?t=' + Date.now());
           const meta = await res.json();
           
-          if (meta.version === '438') {
-             console.log('🚨 FORCING VERSION UPDATE TO v438');
-             localStorage.clear();
-             localStorage.setItem('recipe_app_v_force', '438');
-             localStorage.setItem('recipe_app_version', '438');
+          if (meta.version === '439') {
+             console.log('🚨 PERFORMING ONE-TIME v439 SYNC');
+             localStorage.setItem(syncKey, 'done');
+             localStorage.setItem('recipe_app_version', '439');
              
-             // Unregister all SWs
-             if ('serviceWorker' in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                for(let r of regs) await r.unregister();
-             }
-             
-             // Delete all caches
+             // Surgical clear (avoiding global clear during loop risk)
              if (window.caches) {
                 const names = await caches.keys();
                 for(let n of names) await caches.delete(n);
              }
              
-             window.location.reload(true);
+             if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for(let r of regs) await r.unregister();
+             }
+             
+             setTimeout(() => window.location.reload(true), 500);
           }
-        } catch(e) { console.error('Sync failed', e); }
+        } catch(e) { console.error('Sync error:', e); }
       })();
     })();
   </script>

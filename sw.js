@@ -1,12 +1,12 @@
 /**
- * RecipePantry Service Worker (v438) - FINAL SCORCHED EARTH
+ * RecipePantry Service Worker (v439) - STABLE
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipe-pantry-v438';
-const BUILD_ID = '438';
-const STATIC_CACHE = 'static-v438';
-const DATA_CACHE = 'data-v438';
+const CACHE_NAME = 'recipe-pantry-v439';
+const BUILD_ID = '439';
+const STATIC_CACHE = 'static-v439';
+const DATA_CACHE = 'data-v439';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -71,15 +71,17 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. Activación: Limpieza Total (v437 Scorch the Earth)
+// 2. Activación: Limpieza y Reclamo (v439)
 self.addEventListener('activate', (event) => {
-    console.log(`[SW] Activado (v${BUILD_ID}) - SCORCHING EARTH...`);
+    console.log(`[SW] Activado (v${BUILD_ID})`);
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    console.log('[SW] Borrando TODO el caché:', cacheName);
-                    return caches.delete(cacheName);
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('[SW] Borrando caché antiguo:', cacheName);
+                        return caches.delete(cacheName);
+                    }
                 })
             );
         }).then(() => {

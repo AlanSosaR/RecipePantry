@@ -1,9 +1,9 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v438)
+// Configuración Global Recipe Pantry (v439)
 
 var APP_CONFIG = {
-    BUILD_ID: '438',
-    APP_VERSION: 'v438',
+    BUILD_ID: '439',
+    APP_VERSION: 'v439',
     LANG: 'es',
     THEME: 'light',
     NUKE_KEY: 'nuclear_v437_' + Date.now()
