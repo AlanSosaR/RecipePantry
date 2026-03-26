@@ -1,12 +1,12 @@
 /**
- * RecipePantry Service Worker (v437) - EMERGENCY SCORCHED EARTH
+ * RecipePantry Service Worker (v438) - FINAL SCORCHED EARTH
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipe-pantry-v437';
-const BUILD_ID = '437';
-const STATIC_CACHE = 'static-v437';
-const DATA_CACHE = 'data-v437';
+const CACHE_NAME = 'recipe-pantry-v438';
+const BUILD_ID = '438';
+const STATIC_CACHE = 'static-v438';
+const DATA_CACHE = 'data-v438';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -95,8 +95,21 @@ self.addEventListener('fetch', (event) => {
 
     if (!request.url.startsWith('http')) return;
 
-    // v241: Bypassear TODO Supabase (Auth/PostgREST) para evitar datos stale en notificaciones/recetas
-    if (url.origin.includes('supabase.co')) {
+    // v438: SIEMPRE intentar Red Primero para index.html y ocr.html
+    const isNavigation = (request.mode === 'navigate' || 
+                          url.pathname.endsWith('/') || 
+                          url.pathname.endsWith('index.html') || 
+                          url.pathname.endsWith('ocr.html'));
+
+    if (isNavigation) {
+        console.log(`[SW] Navigation Request (v${BUILD_ID}): Forcing Network First...`);
+        event.respondWith(
+            fetch(request).then(response => {
+                const copy = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+                return response;
+            }).catch(() => caches.match(request))
+        );
         return;
     }
 

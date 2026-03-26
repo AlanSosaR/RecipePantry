@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="437">
+<html lang="es" data-app-version="438">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -20,34 +20,36 @@
         if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
       };
 
-      // 2. Emergency Clear (v437) - Absolute Scorch
-      const CURRENT_VERSION = '437';
-      const NUKE_KEY = 'v437_absolute_scorch';
-
+      // 2. ABSOLUTE EXTERNAL SYNC (v438)
       (async () => {
-        const storedVersion = localStorage.getItem('recipe_app_version') || localStorage.getItem('recipe_app_version_index');
-        const storedNuke = localStorage.getItem(NUKE_KEY);
+        try {
+          const stored = localStorage.getItem('recipe_app_v_force') || '0';
+          if (stored === '438') return;
 
-        if (storedVersion !== CURRENT_VERSION || !storedNuke) {
-          console.warn(`[System] Forcing update to ${CURRENT_VERSION}...`);
+          const res = await fetch('/version.json?t=' + Date.now());
+          const meta = await res.json();
           
-          localStorage.setItem('recipe_app_version', CURRENT_VERSION);
-          localStorage.setItem('recipe_app_version_index', CURRENT_VERSION);
-          localStorage.setItem(NUKE_KEY, 'true');
-
-          try {
-            if ('serviceWorker' in navigator) {
-              const regs = await navigator.serviceWorker.getRegistrations();
-              for (const r of regs) await r.unregister();
-            }
-            if (window.caches) {
-                const cacheNames = await caches.keys();
-                for (const name of cacheNames) await caches.delete(name);
-            }
-          } catch(e) {}
-          
-          window.location.reload(true);
-        }
+          if (meta.version === '438') {
+             console.log('🚨 FORCING VERSION UPDATE TO v438');
+             localStorage.clear();
+             localStorage.setItem('recipe_app_v_force', '438');
+             localStorage.setItem('recipe_app_version', '438');
+             
+             // Unregister all SWs
+             if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for(let r of regs) await r.unregister();
+             }
+             
+             // Delete all caches
+             if (window.caches) {
+                const names = await caches.keys();
+                for(let n of names) await caches.delete(n);
+             }
+             
+             window.location.reload(true);
+          }
+        } catch(e) { console.error('Sync failed', e); }
       })();
     })();
   </script>
