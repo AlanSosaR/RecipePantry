@@ -1,10 +1,37 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="445">
+<html lang="es" data-app-version="450">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Recipe Pantry Premium</title>
+
+  <!-- NUCLEAR CACHE PURGE v450 -->
+  <script>
+    (async function() {
+        const CURRENT_VERSION = 'v450';
+        const lastCleared = localStorage.getItem('last_cache_purge');
+        
+        if (lastCleared !== CURRENT_VERSION) {
+            console.log('☢️ NUCLEAR PURGE: Clearing all caches and Service Workers...');
+            try {
+                // 1. Unregister all SWs
+                if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for (let r of regs) { await r.unregister(); console.log('✅ SW Unregistered'); }
+                }
+                // 2. Delete all Caches
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    for (let k of keys) { await caches.delete(k); console.log('✅ Cache Deleted:', k); }
+                }
+                localStorage.setItem('last_cache_purge', CURRENT_VERSION);
+                console.log('🏁 Purge Complete. Force Reloading...');
+                window.location.reload(true);
+            } catch (e) { console.error('Purge failed:', e); }
+        }
+    })();
+  </script>
 
   <!-- Material 3 Expressive Infrastructure -->
   <script type="importmap">
@@ -46,7 +73,7 @@
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) document.documentElement.setAttribute('data-auth-likely', 'true');
     document.documentElement.setAttribute('data-theme', 'light');
-    console.log('🏁 UI Boot v445 - Restored');
+    console.log('🏁 UI Boot v450 - Nuclear Clear Active');
   </script>
 
   <style>
@@ -160,26 +187,26 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=445"></script>
-  <script src="js/supabase-client.js?v=445"></script>
-  <script src="js/localdb.js?v=445"></script>
-  <script src="js/sync-manager.js?v=445"></script>
-  <script src="js/utils.js?v=445"></script>
-  <script src="js/i18n.js?v=445"></script>
-  <script src="js/db.js?v=445"></script>
-  <script src="js/auth.js?v=445"></script>
-  <script src="js/dashboard.js?v=445"></script>
-  <script src="js/share-modal.js?v=445"></script>
-  <script src="js/help-modal.js?v=445"></script>
-  <script src="js/notifications.js?v=445"></script>
-  <script src="js/ui.js?v=445"></script>
-  <script src="js/sw-register.js?v=445"></script>
+  <script src="js/config.js?v=450"></script>
+  <script src="js/supabase-client.js?v=450"></script>
+  <script src="js/localdb.js?v=450"></script>
+  <script src="js/sync-manager.js?v=450"></script>
+  <script src="js/utils.js?v=450"></script>
+  <script src="js/i18n.js?v=450"></script>
+  <script src="js/db.js?v=450"></script>
+  <script src="js/auth.js?v=450"></script>
+  <script src="js/dashboard.js?v=450"></script>
+  <script src="js/share-modal.js?v=450"></script>
+  <script src="js/help-modal.js?v=450"></script>
+  <script src="js/notifications.js?v=450"></script>
+  <script src="js/ui.js?v=450"></script>
+  <script src="js/sw-register.js?v=450"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'
     import '@material/web/button/outlined-button.js'
     import '@material/web/textfield/outlined-text-field.js'
-    console.log('✨ Material 3 Loaded v445');
+    console.log('✨ Material 3 Loaded v450');
   </script>
 </body>
 </html>
