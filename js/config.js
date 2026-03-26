@@ -2,11 +2,11 @@
 // Configuración Global Recipe Pantry (v319)
 
 const APP_CONFIG = {
-    BUILD_ID: '390',
-    APP_VERSION: 'v390',
+    BUILD_ID: '400',
+    APP_VERSION: 'v400',
     LANG: 'es',
     THEME: 'light',
-    NUKE_KEY: 'nuclear_v390_' + Date.now()
+    NUKE_KEY: 'nuclear_v400_' + Date.now()
 };
 
 const SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
@@ -23,4 +23,4 @@ window.Config = {
     ...APP_CONFIG
 };
 
-console.log('✅ Configuración v380 inicializada');
+console.log('✅ Configuración v400 inicializada');
