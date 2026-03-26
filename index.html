@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="405">
+<html lang="es" data-app-version="410">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -21,8 +21,8 @@
       };
 
       // 2. Emergency Clear (v167) - Manual Flow Enforcement
-      const CURRENT_VERSION = '405';
-      const NUKE_KEY = 'v405_force_sync';
+      const CURRENT_VERSION = '410';
+      const NUKE_KEY = 'v410_force_sync';
 
       (async () => {
         const storedVersion = localStorage.getItem('recipe_app_version');
@@ -57,11 +57,11 @@
 
   <script>
       // FORCED SYNC v390
-      if (localStorage.getItem('force_sync_v405') !== 'done') {
-          console.warn('Nuclear Update v405 triggered...');
+      if (localStorage.getItem('force_sync_v410') !== 'done') {
+          console.warn('Nuclear Update v410 triggered...');
           localStorage.clear();
           sessionStorage.clear();
-          localStorage.setItem('force_sync_v405', 'done');
+          localStorage.setItem('force_sync_v410', 'done');
           if ('serviceWorker' in navigator) {
               navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
           }
@@ -761,20 +761,20 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=405"></script>
-    <script src="js/supabase-client.js?v=405"></script>
-    <script src="js/localdb.js?v=405"></script>
-    <script src="js/sync-manager.js?v=405"></script>
-    <script src="js/utils.js?v=405"></script>
-    <script src="js/i18n.js?v=405"></script>
-    <script src="js/db.js?v=405"></script>
-    <script src="js/auth.js?v=405"></script>
-    <script src="js/dashboard.js?v=405"></script>
-    <script src="js/share-modal.js?v=405"></script>
-    <script src="js/help-modal.js?v=405"></script>
-    <script src="js/notifications.js?v=405"></script>
-    <script src="js/ui.js?v=405"></script>
-    <script src="js/sw-register.js?v=405"></script>
+    <script src="js/config.js?v=410"></script>
+    <script src="js/supabase-client.js?v=410"></script>
+    <script src="js/localdb.js?v=410"></script>
+    <script src="js/sync-manager.js?v=410"></script>
+    <script src="js/utils.js?v=410"></script>
+    <script src="js/i18n.js?v=410"></script>
+    <script src="js/db.js?v=410"></script>
+    <script src="js/auth.js?v=410"></script>
+    <script src="js/dashboard.js?v=410"></script>
+    <script src="js/share-modal.js?v=410"></script>
+    <script src="js/help-modal.js?v=410"></script>
+    <script src="js/notifications.js?v=410"></script>
+    <script src="js/ui.js?v=410"></script>
+    <script src="js/sw-register.js?v=410"></script>
 
 
     <script>
