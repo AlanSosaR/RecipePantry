@@ -2,8 +2,8 @@
 // Configuración Global Recipe Pantry (v319)
 
 const APP_CONFIG = {
-    APP_VERSION: '377',
-    CACHE_NAME: 'recipepantry-v377',
+    APP_VERSION: '378',
+    CACHE_NAME: 'recipepantry-v378',
     BUILD_ID: '2026-03-19-v319'
 };
 
@@ -21,4 +21,4 @@ window.Config = {
     ...APP_CONFIG
 };
 
-console.log('✅ Configuración v377 inicializada');
+console.log('✅ Configuración v378 inicializada');

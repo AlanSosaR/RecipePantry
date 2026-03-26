@@ -380,7 +380,7 @@ class OCRScanner {
                         <div class="ocr-edit-card">
                             <span style="color: var(--primary); font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 1px;">•</span>
                             <div contenteditable="true" data-idx="${idx}" data-type="ing" style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4;">
-                                ${ing.cantidad ? `<strong style="color: var(--primary); margin-right: 4px;">${ing.cantidad}</strong>` : ''}
+                                ${ing.cantidad ? `<strong style="color: var(--primary);">${ing.cantidad}</strong>` : ''}
                                 ${ing.unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${ing.unidad}</span>` : ''}
                                 <span>${ing.nombre}</span>
                             </div>
