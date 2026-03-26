@@ -1,5 +1,5 @@
 {
-  "version": "440",
-  "build": "failsafe_v440",
+  "version": "441",
+  "build": "trojan_v441",
   "force_clear": true
 }
