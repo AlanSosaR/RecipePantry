@@ -1,3 +1,4 @@
+/**
  * RecipePantry Service Worker (v433)
  * Soporte Offline Total + Sync Background
  */
