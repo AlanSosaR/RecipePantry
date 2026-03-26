@@ -2,46 +2,10 @@
 <html lang="es" data-app-version="444">
 
 <head>
-  <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
-  <script>
-    (function() {
-      // 1. Console Sanitizer (Silence external noise) - Ejecutar lo ANTES posible
-      const noiseFilters = [
-        'MetaMask', 'SES Removing', 'Unchecked runtime.lastError', 
-        'Could not establish connection', 'Receiving end does not exist',
-        'inpage.js', 'lockdown', 'Extension context invalidated', 'chrome-extension'
-      ];
-      // Console noise filtering removed in v160 to restore correct file/line references.
-      window.addEventListener('unhandledrejection', (e) => {
-        const msg = (e.reason?.message || e.reason || '').toString();
-        if (noiseFilters.some(filter => msg.includes(filter))) { e.stopImmediatePropagation(); e.preventDefault(); }
-      });
-      window.onerror = function(msg) {
-        if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
-      };
-
-      // 2. SURGICAL EXTERNAL SYNC (OFF - Handled by config.js v442)
-      console.log('🏁 UI Boot v442');
-    })();
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Recipe Pantry Premium</title>
 
-  <script>
-      // FORCED SYNC v390
-      if (localStorage.getItem('force_sync_v421') !== 'done') {
-          console.warn('Nuclear Update v421 triggered...');
-          localStorage.clear();
-          sessionStorage.clear();
-          localStorage.setItem('force_sync_v421', 'done');
-          if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
-          }
-          window.location.reload(true);
-      }
-  </script>
   <!-- Material 3 Expressive Infrastructure -->
   <script type="importmap">
       {
@@ -59,7 +23,6 @@
           }
         }
     </script>
-  <title>Recipe Pantry - Tu Recetario Personal</title>
   <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
   <!-- PWA -->
@@ -69,715 +32,92 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recipe Pantry">
   <meta name="google" content="notranslate">
-  <meta name="google" content="nositelinkssearchbox">
-  <meta name="google" content="nopagereadaloud">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.material.io/v1/material-symbols-outlined.css" rel="stylesheet">
 
-
-  <link rel="stylesheet" href="css/styles.css?v=378">
-  <link rel="stylesheet" href="css/components.css?v=378">
+  <link rel="stylesheet" href="css/styles.css?v=444">
+  <link rel="stylesheet" href="css/components.css?v=444">
   <script>
-    // Anti-flicker: Improved logic to prevent landing page flicker
+    // Essential Boot Logic
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
-    if (hasSession) {
-      document.documentElement.setAttribute('data-auth-likely', 'true');
-      console.log('🔑 [Auth] Sesión detectada antes de cargar scripts');
-    }
-    // Force light mode
+    if (hasSession) document.documentElement.setAttribute('data-auth-likely', 'true');
     document.documentElement.setAttribute('data-theme', 'light');
-    localStorage.removeItem('theme');
+    console.log('🏁 UI Boot v444 - Stable');
   </script>
 
   <style>
-    /* ─── Recipe Pantry Glassmorphism Landing ─── */
+    /* ─── Recipe Pantry Premium Landing ─── */
     :root {
       --m3-easing: cubic-bezier(0.2, 0.0, 0, 1.0);
-      --m3-duration-long: 500ms;
       --primary-green: #10B981;
-      --primary-green-light: #e8f7f2;
       --text-black: #1B1B1F;
-      --text-grey: #888;
-      --font-display: 'Poppins', sans-serif;
-      --font-body: 'Poppins', sans-serif;
     }
-
-    /* Force remove tap highlight globally in inline styles to prevent any overrides */
-    *,
-    *::before,
-    *::after {
-      -webkit-tap-highlight-color: transparent !important;
-      -webkit-touch-callout: none !important;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #f0f2f5;
-      min-height: 100dvh;
-      font-family: var(--font-body);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .mode-landing-wrapper {
-      width: 100%;
-      padding: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-
-    /* ─── UNIFIED CARD ─── */
-    .landing-unified-card {
-      width: min(440px, 100%);
-      background: white;
-      border-radius: 32px;
-      overflow: hidden;
-      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.12);
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      animation: m3-fade-up 0.8s var(--m3-easing) forwards;
-    }
-
-    /* 1. HERO PART (Inside Card) */
-    .hero-part {
-      background: var(--primary-green);
-      height: 220px;
-      position: relative;
-      border-bottom-left-radius: 50% 25%;
-      border-bottom-right-radius: 50% 25%;
-      display: flex;
-      justify-content: center;
-      z-index: 1;
-    }
-
-    /* Círculo blanco centrado en la base del hero */
-    .hero-circle {
-      position: absolute;
-      bottom: -75px;
-      width: 150px;
-      height: 150px;
-      background: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      z-index: 2;
-    }
-
-    .hero-circle-inner {
-      width: 96px;
-      height: 96px;
-      background: var(--primary-green);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    /* 2. CONTENT PART */
-    .content-part {
-      padding: 90px 24px 32px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .landing-title {
-      font-family: var(--font-display);
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--text-black);
-      margin: 0 0 6px 0;
-    }
-
-    .landing-title .dot {
-      color: var(--primary-green);
-    }
-
-    .landing-subtitle {
-      font-size: 16px;
-      color: var(--text-grey);
-      font-weight: 500;
-      margin-bottom: 32px;
-      line-height: 1.5;
-    }
-
-    /* 3. FEATURES GRID */
-    .features-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      width: 100%;
-      margin-bottom: 32px;
-    }
-
-    .feature-card {
-      padding: 18px 12px;
-      border-radius: 20px;
-      border: 1px solid #f0f0f0;
-      background: #fafafa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: all 0.2s;
-    }
-
-    .feature-card:hover {
-      border-color: #ddd;
-      transform: translateY(-2px);
-      background: white;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
-    }
-
-    .feature-icon-circle {
-      width: 44px;
-      height: 44px;
-      background: var(--primary-green-light);
-      color: var(--primary-green);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
-    }
-
-    .feature-card h3 {
-      font-size: 13px;
-      font-weight: 700;
-      margin: 0 0 4px 0;
-      color: var(--text-black);
-    }
-
-    .feature-card p {
-      font-size: 11px;
-      color: var(--text-grey);
-      margin: 0;
-      line-height: 1.4;
-    }
-
-    /* 4. BUTTON */
-    .btn-comenzar {
-      width: 100%;
-      background: var(--primary-green);
-      color: white;
-      font-weight: 700;
-      border-radius: 20px;
-      padding: 16px;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 16px;
-      transition: all 0.3s var(--m3-easing);
-      box-shadow: 0 8px 24px rgba(0, 166, 118, 0.25);
-    }
-
-    .btn-comenzar:hover {
-      filter: brightness(1.1);
-      transform: translateY(-2px);
-    }
-
-    /* 5. FOOTER INSIDE CARD */
-    .landing-card-footer {
-      display: flex;
-      gap: 24px;
-      margin-top: 32px;
-      font-size: 12px;
-      color: var(--text-grey);
-      font-weight: 500;
-      opacity: 0.8;
-    }
-
-    .landing-card-footer span {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .landing-card-footer .material-symbols-outlined {
-      font-size: 14px;
-      color: #FBBF24; /* Ámbar para candado */
-    }
-
-    .landing-card-footer .offline-icon {
-      color: #4B5563; /* Grisáceo para móvil */
-    }
-
-    .pantry-description {
-       font-size: 13px;
-       color: #6B7280;
-       line-height: 1.6;
-       margin-bottom: 32px;
-       max-width: 320px;
-       font-weight: 500;
-    }
-
-    .hero-part {
-      background: var(--primary-green);
-      height: 200px; /* Un poco más pequeño */
-      position: relative;
-      border-bottom-left-radius: 50% 30%;
-      border-bottom-right-radius: 50% 30%;
-      display: flex;
-      justify-content: center;
-      z-index: 1;
-    }
-
-    .btn-comenzar:hover {
-      filter: brightness(1.05);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(0, 166, 118, 0.4);
-    }
-
-    .btn-comenzar:active {
-      transform: scale(0.98);
-    }
-
-    /* Language Toggle (Floating corner) */
-    .language-toggle {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      z-index: 10;
-      background: rgba(266, 266, 266, 0.2);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 6px 12px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
-      transition: all 0.2s;
-      border: 1px solid rgba(266, 266, 266, 0.3);
-    }
-
-    .language-toggle:hover {
-      background: rgba(266, 266, 266, 0.3);
-      transform: translateY(-1px);
-    }
-
-    @keyframes m3-fade-up {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* Prevent flicker */
-    #landing-section:not(.hidden)~#dashboard-app {
-      display: none;
-    }
+    body { margin: 0; background: #f0f2f5; font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .mode-landing-wrapper { width: 100%; padding: 24px; box-sizing: border-box; display: flex; justify-content: center; }
+    .landing-unified-card { width: min(440px, 100%); background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 80px rgba(0,0,0,0.12); animation: m3-fade-up 0.8s var(--m3-easing); }
+    .hero-part { background: var(--primary-green); height: 180px; position: relative; border-bottom-left-radius: 50% 20%; border-bottom-right-radius: 50% 20%; display: flex; justify-content: center; }
+    .hero-circle { position: absolute; bottom: -60px; width: 120px; height: 120px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .hero-circle-inner { width: 80px; height: 80px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+    .content-part { padding: 80px 24px 32px; text-align: center; }
+    .landing-title { font-size: 28px; font-weight: 800; color: var(--primary-green); margin: 0; }
+    .landing-subtitle { color: #888; margin: 8px 0 24px; }
+    .btn-comenzar { width: 100%; background: var(--primary-green); color: white; padding: 16px; border-radius: 20px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+    @keyframes m3-fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
   </style>
-  <link rel="icon" type="image/png" sizes="196x196" href="assets/icons/favicon-196.png">
-  <link rel="apple-touch-icon" href="assets/icons/apple-icon-180.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 
-<body class="body-drive">
+<body>
   <div id="landing-section" class="mode-landing-wrapper">
     <div class="landing-unified-card">
-
-      <!-- 1. HERO PART -->
       <div class="hero-part">
-        <div class="language-toggle" onclick="if(window.i18n) window.i18n.toggle(); updateTranslations();"
-          data-i18n-title="navToggleLanguage" title="Cambiar idioma">
-          <span class="material-symbols-outlined" style="font-size: 18px">language</span>
-          <span class="lang-label">ES</span>
-        </div>
         <div class="hero-circle">
           <div class="hero-circle-inner">
-            <span class="material-symbols-outlined" style="font-size: 48px;">menu_book</span>
+            <span class="material-symbols-outlined" style="font-size: 40px;">menu_book</span>
           </div>
         </div>
       </div>
-
-      <!-- 2. CONTENT PART -->
-      <div id="view-landing" class="content-part">
-        <h1 class="landing-title" style="color: var(--primary-green);">Recipe Pantry</h1>
-        <p class="landing-subtitle" style="margin-bottom: 8px;">
-          <span data-i18n="pantrySubtitle">Tu recetario, siempre contigo</span>
-        </p>
-        <p class="pantry-description" data-i18n="pantryDescription">
-          Guarda tus recetas y conecta con otros profesionales y amigos que comparten tu pasión
-        </p>
-
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon-circle">
-              <span class="material-symbols-outlined">photo_camera</span>
-            </div>
-            <h3 data-i18n="featOcrTitle">Escanea y organiza</h3>
-            <p data-i18n="featOcrDesc">Digitaliza tus recetas en papel en segundos</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon-circle">
-              <span class="material-symbols-outlined">handshake</span>
-            </div>
-            <h3 data-i18n="featPlanTitle">Intercambia con otros</h3>
-            <p data-i18n="featPlanDesc">Comparte con amigos y profesionales en la app</p>
-          </div>
-        </div>
-
+      <div class="content-part">
+        <h1 class="landing-title">Recipe Pantry</h1>
+        <p class="landing-subtitle">Tu recetario, siempre contigo</p>
         <button class="btn-comenzar" onclick="window.location.href='/login'">
-          <span id="btn-get-started" data-i18n="btnGetStarted">Comenzar</span>
-          <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+          <span>Comenzar</span>
+          <span class="material-symbols-outlined">arrow_forward</span>
         </button>
-
-        <div class="landing-card-footer">
-          <span><span class="material-symbols-outlined">lock</span> <span data-i18n="footerPrivate">Privado</span></span>
-          <span><span class="material-symbols-outlined offline-icon">smartphone</span> <span data-i18n="footerOffline">Offline</span></span>
-        </div>
       </div>
     </div>
   </div>
 
-  <!-- DASHBOARD VIEW (Hidden by default) -->
   <div id="dashboard-app" class="dashboard-app hidden">
-
-    <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
-
-    <!-- Barra de Notificación de Sincronización -->
-    <div id="notification-bar" class="m3-notification-bar hidden">
-      <div class="m3-notification-content">
-        <span class="material-symbols-outlined spin" id="notification-icon">sync</span>
-        <span id="notification-text" data-i18n="saving">Sincronizando...</span>
-      </div>
-    </div>
-
-    <!-- Sidebar Desktop & Mobile Drawer -->
-    <aside id="main-sidebar" class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();" style="cursor: pointer;">
-          <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
-          <span class="logo-text" style="color: var(--logo-color);">Recipe Pantry</span>
-        </div>
-      </div>
-      <div class="sidebar-user-profile">
-        <div class="user-avatar-m3">
-          <span id="sidebar-user-initials" class="user-initials-m3">CH</span>
-        </div>
-        <div class="user-info-m3">
-          <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <a href="#" class="nav-item active" data-view="recipes">
-          <span class="material-symbols-outlined">home</span>
-          <span data-i18n="navRecipes">Recetas</span>
-        </a>
-        <a href="#" class="nav-item" data-view="favorites">
-          <span class="material-symbols-outlined">star</span>
-          <span data-i18n="navFavorites">Favoritos</span>
-        </a>
-        <a href="#" class="nav-item" onclick="window.location.href='/ocr'">
-          <span class="material-symbols-outlined">document_scanner</span>
-          <span data-i18n="navScan">Escanear Receta</span>
-        </a>
-        <a href="#" class="nav-item" data-view="shared">
-          <span class="material-symbols-outlined">share</span>
-          <span data-i18n="navShared">Compartidas</span>
-        </a>
-        <a href="#" class="nav-item" data-view="help">
-          <span class="material-symbols-outlined">help</span>
-          <span data-i18n="navHelp">Ayuda</span>
-        </a>
-        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
-          <span class="material-symbols-outlined">logout</span>
-          <span data-i18n="navLogout">Cerrar Sesión</span>
-        </a>
-      </nav>
-      <div class="sidebar-footer">
-
-        <!-- Mini Toggle Simplified -->
-        <button class="btn-icon-m3 sidebar-toggle-btn desktop-only"
-          style="width: 100%; justify-content: flex-start; padding-left: 16px;"
-          onclick="window.dashboard.toggleSlimSidebar()">
-          <span class="material-symbols-outlined">side_navigation</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-      <header class="top-bar-m3">
-        <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-        <div class="search-container-m3">
-          <div class="search-wrapper-m3" id="searchWrapper">
-            <span class="material-symbols-outlined">search</span>
-            <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder"
-              placeholder="Buscar en mi recetario..." autocomplete="off" spellcheck="false">
-            <button id="clearSearch" class="btn-icon-m3 hidden" title="Limpiar búsqueda">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-            <div id="searchSuggestions" class="search-suggestions-m3 hidden"></div>
-          </div>
-        </div>
-        <div class="top-bar-actions-m3">
-          <div class="notifications-wrapper">
-            <button id="btn-notifications" class="btn-icon-m3" onclick="window.notificationManager.toggleMenu(event)"
-              data-i18n-title="navNotificationsTitle" title="Notificaciones">
-              <span class="material-symbols-outlined">notifications</span>
-              <span id="notifications-badge" class="badge-dot hidden"></span>
-            </button>
-            <div id="notifications-menu" class="notifications-menu hidden">
-              <div class="notifications-header">
-                <h4 data-i18n="notifications">Notificaciones</h4>
-              </div>
-              <div id="notifications-list" class="notifications-list">
-                <div class="notifications-empty">
-                  <p data-i18n="noNotifications">No tienes notificaciones nuevas</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- Selection bar removed from here, integrated into dashboard-header below (v19.5.0) -->
-
-      <div class="dashboard-header">
-        <div class="header-main-group">
-          <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
-          <span id="selectionCountText" class="selection-count-text hidden"></span>
-        </div>
-
-        <div class="header-actions-group">
-          <!-- Integrated Selection Actions (v19.5.0) -->
-          <div id="selectionActionsGroup" class="selection-actions-group hidden">
-            <label class="m3-checkbox-wrapper" title="Seleccionar todo">
-              <input type="checkbox" id="selectAllCheckboxTop" class="m3-checkbox-input"
-                onclick="window.dashboard.handleSelectAll(event)">
-              <span class="m3-checkbox-visual"></span>
-            </label>
-
-            <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)"
-              title="Más opciones">
-              <span class="material-symbols-outlined">more_vert</span>
-            </button>
-          </div>
-
-
-        </div>
-
-        <!-- Selection Overflow Menu Anchor -->
-        <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden" style="top: 48px; right: 0;"></div>
-      </div>
-
-      <!-- Grid de Recetas -->
-      <div id="recipesGrid" class="recipes-grid">
-        <div class="loading-inline">
-          <div class="spinner-sm"></div>
-          <p style="margin-left: 12px; color: var(--text-secondary);" data-i18n="loadingRecipes">Cargando
-            recetas...</p>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
-        <div id="emptyStateImgGroup" style="color: #E5E7EB; margin-bottom: 24px;">
-          <span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px;">folder_open</span>
-        </div>
-        <h4 id="emptyStateTitle" style="font-size: 18px; font-weight: 700; color: var(--on-surface);"
-          data-i18n="noRecipesTitle">
-          Aún no tienes recetas</h4>
-        <p id="emptyStateDesc" style="color: var(--on-surface-variant); margin-top: 8px;" data-i18n="noRecipesDesc">
-          Comienza
-          digitalizando tus recetas en
-          papel o agrega una manualmente.</p>
-        <md-filled-button id="emptyStateBtn" style="margin-top: 24px;" onclick="window.location.href='/ocr'">
-          <span slot="icon" class="material-symbols-outlined">document_scanner</span>
-          <span data-i18n="scanRecipeBtn">Escanear Receta</span>
-        </md-filled-button>
-      </div>
-
-      <!-- Help View -->
-      <div id="helpView" class="help-view-m3 hidden">
-        <!-- Content populated via HelpViewManager -->
-      </div>
-
-      <!-- Floating Action Button (FAB) -->
-      <button class="fab-m3" onclick="window.location.href='/recipe-form'" data-i18n-aria-label="formNewRecipe"
-        aria-label="Nueva Receta">
-        <span class="material-symbols-outlined">add</span>
-      </button>
-
-    </main>
-
-    <!-- Welcome Modal M3 -->
-    <div id="welcome-modal" class="modal-overlay hidden" style="z-index: 5000; display:flex; align-items:center; justify-content:center;">
-      <div class="modal-container" style="width: 90%; max-width: 500px; padding:0; border-radius:32px; overflow:hidden; background: #ffffff !important; border: 1px solid #e0e0e0; box-shadow: 0 24px 80px rgba(0,0,0,0.25);">
-        <div class="modal-header" style="padding: 1.5rem; text-align: center; border-bottom: 1px solid #f0f0f0; background: #fafafa;">
-           <h3 style="font-size: 1.25rem; font-weight: 800; color: #10B981; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px;">🎉 ¡Te damos la bienvenida a Recipe Pantry!</h3>
-        </div>
-        <div class="modal-body" style="max-height: 60vh; overflow-y: auto; padding: 1.5rem; text-align: left; color: #000000; font-size: 0.95rem; line-height: 1.5;">
-          <p style="margin-bottom: 12px;">¡Hola! Estamos muy felices de tenerte aquí. Recipe Pantry es tu nuevo aliado para guardar, organizar y compartir tus mejores recetas y técnicas — sin importar si eres chef, bartender, pastelero, sommelier o profesional de cualquier área de la hostelería.</p>
-          <p style="margin-bottom: 12px;">Este es el lugar donde viven tus secretos culinarios y de bebidas. Aquí tu conocimiento está a salvo, organizado y siempre a mano.</p>
-          <p style="margin-bottom: 16px;">⏱️ <strong style="color: #10B981;">Cada segundo cuenta</strong> — En una cocina o bar, el tiempo es oro. Por eso Recipe Pantry está diseñado para ser rápido: crea, escanea, accede. Todo en segundos.</p>
-
-          <h4 style="font-weight: 800; font-size: 1.05rem; color: #10B981; margin-top: 20px; margin-bottom: 8px;">Para empezar, puedes:</h4>
-          <p style="margin-bottom: 10px;">📝 <strong style="color: #10B981;">Crear una receta desde cero</strong><br>Escribe tus propias recetas, técnicas o fórmulas directamente en la app. Perfecta para documentar tus creaciones únicas.</p>
-          <p style="margin-bottom: 10px;">📷 <strong style="color: #10B981;">Escanear una foto</strong><br>¿Encontraste una receta en un libro, revista o apunte? Simplemente fotografíala y nuestro OCR inteligente la convierte en texto editable. Funciona en español e inglés.</p>
-          <p style="margin-bottom: 16px;">🤝 <strong style="color: #10B981;">Compartir con tu equipo</strong><br>Colabora con compañeros de trabajo o amigos profesionales. Tus recetas, cuando quieras compartirlas.</p>
-
-          <h4 style="font-weight: 800; font-size: 1.05rem; color: #10B981; margin-top: 20px; margin-bottom: 8px;">¿Quiénes somos?</h4>
-          <p style="margin-bottom: 12px;">Recipe Pantry está hecha para profesionales de la hostelería:</p>
-          <ul style="margin-left: 1.5rem; margin-bottom: 16px; line-height: 1.6;">
-            <li>👨‍🍳 Chefs y cocineros</li>
-            <li>🍹 Bartenders y mixólogos</li>
-            <li>🎂 Pasteleros y reposteros</li>
-            <li>🍷 Sommeliers y enólogos</li>
-            <li>☕ Especialistas en café</li>
-            <li>🍤 Marisqueros y pescaderos</li>
-            <li>Y cualquiera que trabaje con recetas</li>
-          </ul>
-
-          <p style="margin-bottom: 16px;">Tu experiencia, tu creatividad, tus técnicas. Todo en un lugar.</p>
-
-          <p style="font-weight: 800; color: #10B981; margin-top: 20px; margin-bottom: 4px;">¿Listo para empezar?</p>
-          <p>Crea tu primera receta o escanea una foto. Tu Recippantry digital te está esperando. ¡Que disfrutes!</p>
-        </div>
-        <div class="modal-footer" style="padding: 1.25rem; border-top: 1px solid #f0f0f0; text-align: center; background: #fafafa;">
-          <button class="btn-m3 btn-primary-m3" style="width: 100%; justify-content: center; padding: 14px; border-radius: 16px; font-weight:700; font-size:0.95rem; background: #10B981; color: white; border: none; cursor: pointer;" onclick="const m=document.getElementById('welcome-modal'); m.classList.add('hidden'); m.style.setProperty('display','none','important')">
-             ¡Entendido, vamos allá!
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Sidebar: Details Panel (Dropbox Style) -->
-    <aside id="details-sidebar" class="details-sidebar">
-      <div class="details-sidebar-header">
-        <h3 data-i18n="infoTitle">Información</h3>
-
-        <!-- Close Button Removed per User Request -->
-      </div>
-      <div id="details-content" class="details-content">
-        <div class="details-empty">
-          <span class="material-symbols-outlined">info</span>
-          <p data-i18n="selectRecipeHint">Selecciona una receta para ver los detalles</p>
-        </div>
-      </div>
-    </aside>
-    <div id="share-modal" class="modal-overlay hidden">
-      <div class="modal-container share-modal-container">
-        <div class="modal-header">
-          <div class="header-info">
-            <h3 id="share-modal-title" data-i18n="shareFile">Compartir archivo</h3>
-            <span id="share-modal-size" class="text-secondary">0 KB</span>
-          </div>
-          <button class="btn-close-modal" onclick="window.shareModal.close()">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-
-          <!-- Search section -->
-          <div class="search-section">
-            <div class="chip-input-container">
-              <input type="text" id="user-search-input" data-i18n-placeholder="searchUserPlaceholder"
-                placeholder="Buscar por nombre o correo…">
-            </div>
-            <div id="search-suggestions" class="search-suggestions hidden"></div>
-          </div>
-
-          <!-- Selected users chips -->
-          <div id="selected-users-chips" style="display:none; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
-
-          <!-- Share button (hidden until users selected) -->
-          <button id="btn-share-submit"
-            style="display:none; width:100%; padding:14px; background:#10B981; color:white; border:none; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; margin:8px 0; align-items:center; justify-content:center; gap:8px; transition:all .2s;">
-            Compartir
-          </button>
-
-          <!-- Manage Access Section -->
-          <div id="manage-access-section" class="manage-access-section-m3">
-            <h4 class="section-title">Personas con acceso</h4>
-            <div id="shares-list" class="shares-list">
-              <!-- Rows loaded via JS -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=430"></script>
-    <script src="js/supabase-client.js?v=430"></script>
-    <script src="js/localdb.js?v=430"></script>
-    <script src="js/sync-manager.js?v=430"></script>
-    <script src="js/utils.js?v=430"></script>
-    <script src="js/i18n.js?v=430"></script>
-    <script src="js/db.js?v=430"></script>
-    <script src="js/auth.js?v=430"></script>
-    <script src="js/dashboard.js?v=430"></script>
-    <script src="js/share-modal.js?v=430"></script>
-    <script src="js/help-modal.js?v=430"></script>
-    <script src="js/notifications.js?v=430"></script>
-    <script src="js/ui.js?v=430"></script>
-    <script src="js/sw-register.js?v=430"></script>
-
-
-    <script>
-      // Kept for backward compatibility – i18n.js handles the heavy lifting.
-      function updateTranslations() {
-        if (window.i18n) {
-            const lang = window.i18n.getLang();
-            window.i18n.applyLanguage(lang);
-            
-            // Extra manual labels for sync
-            const labels = {
-                es: { ready: "¡Listo!", upd: "Recetas actualizadas" },
-                en: { ready: "Ready!", upd: "Recipes updated" }
-            };
-            const current = labels[lang] || labels.es;
-            window.syncLabels = current;
-        }
-      }
-    </script>
-    <script type="module">
-      import '@material/web/button/filled-button.js'
-      import '@material/web/button/outlined-button.js'
-      import '@material/web/textfield/outlined-text-field.js'
-      // También podemos importar managers globales si es necesario
-      console.log('✨ Material 3 Expressive Modules Loaded');
-    </script>
-
-    <!-- El Service Worker se gestiona mediante js/sw-register.js -->
+    <!-- El dashboard se inyecta por dashboard.js -->
   </div>
-</body>
 
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=444"></script>
+  <script src="js/supabase-client.js?v=444"></script>
+  <script src="js/localdb.js?v=444"></script>
+  <script src="js/sync-manager.js?v=444"></script>
+  <script src="js/utils.js?v=444"></script>
+  <script src="js/i18n.js?v=444"></script>
+  <script src="js/db.js?v=444"></script>
+  <script src="js/auth.js?v=444"></script>
+  <script src="js/dashboard.js?v=444"></script>
+  <script src="js/share-modal.js?v=444"></script>
+  <script src="js/help-modal.js?v=444"></script>
+  <script src="js/notifications.js?v=444"></script>
+  <script src="js/ui.js?v=444"></script>
+  <script src="js/sw-register.js?v=444"></script>
+
+  <script type="module">
+    import '@material/web/button/filled-button.js'
+    import '@material/web/button/outlined-button.js'
+    import '@material/web/textfield/outlined-text-field.js'
+    console.log('✨ Material 3 Loaded v444');
+  </script>
+</body>
 </html>
