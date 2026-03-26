@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="376">
+<html lang="es" data-app-version="377">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '376';
-            const NUKE_KEY = 'v376_multilang_support';
+            const CURRENT_VERSION = '377';
+            const NUKE_KEY = 'v377_progress_fix';
 
             (async () => {
                 const storedVersion = localStorage.getItem('recipe_app_version_ocr');
@@ -90,18 +90,18 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=376">
-    <link rel="stylesheet" href="css/components.css?v=376">
+    <link rel="stylesheet" href="css/styles.css?v=377">
+    <link rel="stylesheet" href="css/components.css?v=377">
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://docs.opencv.org/master/opencv.js" type="text/javascript"></script>
 
     <!-- OpenCV Scanner Modules -->
-    <script defer src="js/scanner/documentDetection.js?v=376"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=376"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=376"></script>
-    <script defer src="js/scanner/cameraController.js?v=376"></script>
+    <script defer src="js/scanner/documentDetection.js?v=377"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=377"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=377"></script>
+    <script defer src="js/scanner/cameraController.js?v=377"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1257,20 +1257,20 @@
 
 
     <!-- Scripts -->
-    <script src="js/config.js?v=376"></script>
-    <script src="js/supabase-client.js?v=376"></script>
-    <script src="js/auth.js?v=376"></script>
-    <script src="js/localdb.js?v=376"></script>
-    <script src="js/sync-manager.js?v=376"></script>
-    <script src="js/db.js?v=376"></script>
-    <script src="js/utils.js?v=376"></script>
-    <script src="js/i18n.js?v=376"></script>
-    <script src="js/ui.js?v=376"></script>
+    <script src="js/config.js?v=377"></script>
+    <script src="js/supabase-client.js?v=377"></script>
+    <script src="js/auth.js?v=377"></script>
+    <script src="js/localdb.js?v=377"></script>
+    <script src="js/sync-manager.js?v=377"></script>
+    <script src="js/db.js?v=377"></script>
+    <script src="js/utils.js?v=377"></script>
+    <script src="js/i18n.js?v=377"></script>
+    <script src="js/ui.js?v=377"></script>
     
     <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=376"></script>
-    <script src="js/ocr.js?v=376"></script>
-    <script src="js/url-importer.js?v=376"></script>
+    <script src="js/ocr-processor.js?v=377"></script>
+    <script src="js/ocr.js?v=377"></script>
+    <script src="js/url-importer.js?v=377"></script>
 
 
     <script>
@@ -1354,13 +1354,13 @@
                 if (containerModal) containerModal.classList.add('is-url-preview');
                 
                 if (preview) {
-                    preview.src = 'assets/link.svg?v=376';
+                    preview.src = 'assets/link.svg?v=377';
                     preview.style.display = 'block';
                     preview.style.padding = '20px'; // Reduced padding
                     preview.style.margin = '0 auto';
                 }
                 if (previewModal) {
-                    previewModal.src = 'assets/link.svg?v=376';
+                    previewModal.src = 'assets/link.svg?v=377';
                     previewModal.style.display = 'block';
                     previewModal.style.padding = '20px';
                     previewModal.style.margin = '0 auto';
@@ -1374,8 +1374,13 @@
                 const results = await window.urlImporter.importFromURL(url, (m) => {
                     // Update unified progress UI
                     const p = Math.round((m.progress || 0) * 100);
-                    document.getElementById('processingStatus').textContent = m.message || 'Analizando...';
-                    document.getElementById('progressBar').style.width = p + '%';
+                    const statusEl = document.getElementById('processingStatus');
+                    const barEl = document.getElementById('progressBar');
+                    const percentEl = document.getElementById('ocrPercent');
+                    
+                    if (statusEl) statusEl.textContent = m.message || 'Analizando...';
+                    if (barEl) barEl.style.width = p + '%';
+                    if (percentEl) percentEl.textContent = p + '%';
                 }, lang);
 
                 if (results.success) {
