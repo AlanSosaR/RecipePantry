@@ -1,12 +1,12 @@
 /**
- * RecipePantry Service Worker (v434)
+ * RecipePantry Service Worker (v435)
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipe-pantry-v434';
-const BUILD_ID = '434';
-const STATIC_CACHE = 'static-v434';
-const DATA_CACHE = 'data-v434';
+const CACHE_NAME = 'recipe-pantry-v435';
+const BUILD_ID = '435';
+const STATIC_CACHE = 'static-v435';
+const DATA_CACHE = 'data-v435';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -62,7 +62,7 @@ const createErrorResponse = (message, status = 503) => {
 
 // 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
-    // self.skipWaiting(); // Removido: Dejar que el usuario decida actualizar de forma interactiva (v266+)
+    self.skipWaiting(); // v435: Forzar actualización inmediata
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);

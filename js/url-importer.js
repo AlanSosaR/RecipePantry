@@ -98,8 +98,17 @@ class URLImporter {
    */
   static async importFromDropbox(url) {
     console.log(`📥 [Dropbox] Intentando importar...`);
+    
+    // v435: Convertir a link de descarga directa (?dl=1) si es necesario
+    let directUrl = url;
+    if (url.includes('dropbox.com') && !url.includes('dl=1')) {
+        directUrl = url.includes('?') ? url.replace(/dl=[0-9]/, 'dl=1') : url + '?dl=1';
+        if (!directUrl.includes('dl=1')) directUrl += '&dl=1';
+        console.log(`🔄 [Dropbox] Convertido a descarga directa: ${directUrl}`);
+    }
+
     // Usamos el Supabase Engine v33 (Proxy para evitar CORS)
-    return await this.supabaseProxyImport(url, 'dropbox');
+    return await this.supabaseProxyImport(directUrl, 'dropbox');
   }
 
   /**
