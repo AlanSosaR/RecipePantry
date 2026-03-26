@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="430">
+<html lang="es" data-app-version="433">
 
 <head>
     <meta charset="utf-8" />
@@ -52,8 +52,8 @@
             };
 
             // 2. Emergency Clear
-            const CURRENT_VERSION = '430';
-            const NUKE_KEY = 'v430_force_sync';
+            const CURRENT_VERSION = '433';
+            const NUKE_KEY = 'v433_force_sync';
 
             (async () => {
                 const storedVersion = localStorage.getItem('recipe_app_version_ocr');
@@ -1334,73 +1334,131 @@
 
 
 
-        window.handleUrlImport = async function() {
-            const input = document.getElementById('urlImportInput');
-            const errorEl = document.getElementById('urlImportError');
-            const url = input.value.trim();
 
-            if (!url) return;
-            errorEl.style.display = 'none';
+        // ═══════════════════════════════════════════════════
+        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v433)
+        // ═══════════════════════════════════════════════════
+
+        window.handleUrlImport = async function() {
+            const urlInput = document.getElementById('urlImportInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showNotification('⚠️ Ingresa una URL válida', 'warning');
+                return;
+            }
 
             try {
-                // Show the standard OCR processing screen (Step 2)
-                goToStep(2);
-                const container = document.getElementById('ocrPreviewContainer');
-                const containerModal = document.getElementById('ocrPreviewContainerModal');
-                const preview = document.getElementById('ocrProcessingPreview');
-                const previewModal = document.getElementById('ocrProcessingPreviewModal');
+                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url}`);
+                showLoading(true);
+                showNotification('🔄 Extrayendo contenido...', 'info');
                 
-                if (container) container.classList.add('is-url-preview');
-                if (containerModal) containerModal.classList.add('is-url-preview');
-                
-                if (preview) {
-                    preview.src = 'assets/link.svg?v=430';
-                    preview.style.display = 'block';
-                    preview.style.padding = '20px'; // Reduced padding
-                    preview.style.margin = '0 auto';
-                }
-                if (previewModal) {
-                    previewModal.src = 'assets/link.svg?v=430';
-                    previewModal.style.display = 'block';
-                    previewModal.style.padding = '20px';
-                    previewModal.style.margin = '0 auto';
-                }
-                document.getElementById('processingStatus').textContent = 'Descargando contenido...';
-                document.getElementById('progressBar').style.width = '10%';
-                document.getElementById('ocrPercent').textContent = '0%';
+                // Mostrar UI de procesamiento (Step 2)
+                if (typeof goToStep === 'function') goToStep(2);
 
+                // 1. IMPORTAR DESDE URL
+                const imported = await URLImporter.import(url);
+                console.log(`✅ [handleUrlImport] Importación completada:`, {
+                    type: imported.type,
+                    platform: imported.platform,
+                    sourceType: imported.sourceType
+                });
 
-                const lang = (window.selectedOcrLang === 'eng') ? 'en' : 'es';
-                const results = await window.URLImporter.import(url, (m) => {
-                    // Update unified progress UI
-                    const p = Math.round((m.progress || 0) * 100);
-                    const statusEl = document.getElementById('processingStatus');
-                    const barEl = document.getElementById('progressBar');
-                    const percentEl = document.getElementById('ocrPercent');
+                // 2. PROCESAR SEGÚN TIPO
+                let recipeData;
+
+                if (imported.type === 'structured') {
+                    console.log(`✨ [handleUrlImport] Receta ya estructurada por el servidor.`);
+                    recipeData = imported.content;
+                }
+                else if (imported.type === 'file') {
+                    console.log(`📄 [handleUrlImport] Procesando ARCHIVO...`);
+                    showNotification('📸 Procesando imagen/PDF con OCR...', 'info');
                     
-                    if (statusEl) statusEl.textContent = m.message || 'Analizando...';
-                    if (barEl) barEl.style.width = p + '%';
-                    if (percentEl) percentEl.textContent = p + '%';
-                }, lang);
-
-                if (results.success) {
-                    // Smooth transition to results
-                    await new Promise(r => setTimeout(r, 700));
-                    if (window.ocr) window.ocr.showResults(results);
+                    // Convertir Blob a IMAGE y procesar con Vision
+                    const imageUrl = URL.createObjectURL(imported.content);
+                    try {
+                        recipeData = await processImageWithGemini(imageUrl);
+                    } finally {
+                        URL.revokeObjectURL(imageUrl);
+                    }
+                } 
+                else if (imported.type === 'text') {
+                    console.log(`📝 [handleUrlImport] Procesando TEXTO...`);
+                    showNotification('📝 Extrayendo receta del texto...', 'info');
+                    
+                    // Procesar texto con Gemini (Client-side fallback)
+                    recipeData = await processTextWithGemini(imported.content, imported.metadata);
                 }
 
-            } catch (err) {
-                console.error('URL Import error:', err);
-                resetOcrModal(); // Use the newly defined function
-                errorEl.textContent = err.message;
-                errorEl.style.display = 'block';
-                
-                // Show snackbar as requested
-                if (window.showSnackbar) {
-                    window.showSnackbar(`Error: ${err.message}`);
+                // 3. Resultado final
+                if (recipeData && recipeData.nombre) {
+                    showRecipeEditModal(recipeData, imported.metadata);
+                    urlInput.value = '';
+                    hideModalById('urlImportModal');
+                    showNotification('✅ Receta importada correctamente', 'success');
+                } else {
+                    throw new Error('No se pudo estructurar la receta');
                 }
-                
-                switchOcrTab('url'); // Ensure we stay in URL tab if it failed
+
+            } catch (error) {
+                console.error('❌ URL Import error:', error);
+                showNotification(`❌ ${error.message}`, 'error');
+                if (typeof resetOcrModal === 'function') resetOcrModal();
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        /**
+         * Helpers requeridos por el Blueprint v2-debug
+         */
+        async function processImageWithGemini(imageDataUrl) {
+            console.log(`🖼️ [processImageWithGemini] Enviando imagen a Gemini...`);
+            try {
+                // Reutilizamos el OCRProcessor (v7.1.0) para máxima precisión
+                if (window.ocrProcessor) {
+                    const canvas = await window.ocrProcessor.preprocessImage(await (await fetch(imageDataUrl)).blob());
+                    return await window.ocrProcessor.structureRecipeWithGeminiVision(canvas);
+                }
+                throw new Error("OCRProcessor no disponible.");
+            } catch (e) {
+               console.error('❌ [processImageWithGemini] Error:', e);
+               throw e;
+            }
+        }
+
+        async function processTextWithGemini(text, metadata) {
+            console.log(`✏️ [processTextWithGemini] Extrayendo receta de texto...`);
+            console.log(`📤 [processTextWithGemini] Enviando prompt a Gemini...`);
+            try {
+                if (window.ocrProcessor) {
+                    const recipe = await window.ocrProcessor.structureRecipeWithGemini(text);
+                    console.log(`✅ [processTextWithGemini] Receta estructurada:`, {
+                        nombre: recipe.nombre,
+                        ingredientes: recipe.ingredientes?.length,
+                        pasos: recipe.pasos?.length
+                    });
+                    return recipe;
+                }
+                throw new Error("OCRProcessor no disponible.");
+            } catch (e) {
+                console.error('❌ [processTextWithGemini] Error:', e);
+                throw e;
+            }
+        }
+
+        // Bridge: Mapeo de nombres del Blueprint a funciones reales del Proyecto
+        function showNotification(msg, type) { if (window.showSnackbar) window.showSnackbar(msg, type); }
+        function showLoading(active) { 
+            const el = document.getElementById('ocrLoading');
+            if (el) el.style.display = active ? 'flex' : 'none';
+        }
+        function hideModalById(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+        
+        function showRecipeEditModal(recipeData, metadata) {
+            if (window.ocr && window.ocr.showResults) {
+                window.ocr.showResults(recipeData);
             }
         }
 
