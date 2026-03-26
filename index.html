@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="433">
+<html lang="es" data-app-version="434">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -20,18 +20,19 @@
         if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
       };
 
-      // 2. Emergency Clear (v167) - Manual Flow Enforcement
-      const CURRENT_VERSION = '430';
-      const NUKE_KEY = 'v430_force_sync';
+      // 2. Emergency Clear (v434) - Manual Flow Enforcement
+      const CURRENT_VERSION = '434';
+      const NUKE_KEY = 'v434_force_sync';
 
       (async () => {
-        const storedVersion = localStorage.getItem('recipe_app_version');
+        const storedVersion = localStorage.getItem('recipe_app_version') || localStorage.getItem('recipe_app_version_index');
         const storedNuke = localStorage.getItem(NUKE_KEY);
 
         if (storedVersion !== CURRENT_VERSION || !storedNuke) {
-          console.log(`[System] Forcing update to ${CURRENT_VERSION}...`);
+          console.warn(`[System] Forcing update to ${CURRENT_VERSION}...`);
           
           localStorage.setItem('recipe_app_version', CURRENT_VERSION);
+          localStorage.setItem('recipe_app_version_index', CURRENT_VERSION);
           localStorage.setItem(NUKE_KEY, 'true');
 
           try {
