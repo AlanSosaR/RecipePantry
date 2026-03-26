@@ -2,9 +2,9 @@
 // Configuración Global Recipe Pantry (v319)
 
 const APP_CONFIG = {
-    APP_VERSION: '378',
-    CACHE_NAME: 'recipepantry-v378',
-    BUILD_ID: '2026-03-19-v319'
+    APP_VERSION: '380',
+    CACHE_NAME: 'recipepantry-v380',
+    BUILD_ID: '2026-03-26-v380'
 };
 
 const SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
@@ -21,4 +21,4 @@ window.Config = {
     ...APP_CONFIG
 };
 
-console.log('✅ Configuración v378 inicializada');
+console.log('✅ Configuración v380 inicializada');

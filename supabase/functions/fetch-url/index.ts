@@ -58,26 +58,70 @@ async function fetchYoutubeTranscript(videoUrl: string): Promise<string | null> 
 async function fetchTikTokMetadata(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1' }
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+      }
     });
     const html = await res.text();
     
+    // 1. OG Description
     const ogDescMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
-    const ogDesc = ogDescMatch ? ogDescMatch[1] : null;
+    let content = ogDescMatch ? ogDescMatch[1] : "";
 
-    const jsonMatch = html.match(/<script id="SIGI_STATE" type="application\/json">([\s\S]+?)<\/script>/);
-    let extraData = "";
-    if (jsonMatch) {
+    // 2. Modern React Data (__UNIVERSAL_DATA_FOR_REHYDRATION__)
+    const rehydrationMatch = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application\/json">([\s\S]+?)<\/script>/);
+    if (rehydrationMatch) {
       try {
-        const data = JSON.parse(jsonMatch[1]);
-        for (const key in data.ItemModule) {
-          extraData += data.ItemModule[key].desc + "\n";
+        const fullData = JSON.parse(rehydrationMatch[1]);
+        const videoDetail = fullData?.__DEFAULT_SCOPE__?.["webapp.video-detail"];
+        const itemStruct = videoDetail?.itemInfo?.itemStruct;
+        
+        if (itemStruct) {
+          if (itemStruct.desc) content += "\n" + itemStruct.desc;
+          
+          // Transcription/Subtitles
+          const subtitleInfos = itemStruct.video?.subtitleInfos;
+          if (Array.isArray(subtitleInfos) && subtitleInfos.length > 0) {
+            console.log(`[TikTok] Found ${subtitleInfos.length} subtitle tracks.`);
+            // Priority: Spanish -> English -> First available
+            const subTrack = subtitleInfos.find((s: any) => s.LanguageCode === 'es-US' || s.LanguageCode === 'es') || 
+                             subtitleInfos.find((s: any) => s.LanguageCode?.startsWith('en')) ||
+                             subtitleInfos[0];
+            
+            if (subTrack?.Url) {
+              console.log(`[TikTok] Fetching subtitles from: ${subTrack.Url}`);
+              const subRes = await fetch(subTrack.Url);
+              const subData = await subRes.json();
+              const transcriptText = subData.body?.map((line: any) => line.text).join(' ') || "";
+              if (transcriptText) {
+                content += "\nTRANSCRIPCIÓN DE TIKTOK:\n" + transcriptText;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[TikTok Rehydration Error]', e);
+      }
+    }
+
+    // 3. Legacy SIGI_STATE
+    const sigiMatch = html.match(/<script id="SIGI_STATE" type="application\/json">([\s\S]+?)<\/script>/);
+    if (sigiMatch && !content.includes("TRANSCRIPCIÓN")) {
+      try {
+        const data = JSON.parse(sigiMatch[1]);
+        if (data.ItemModule) {
+          for (const key in data.ItemModule) {
+            content += "\n" + data.ItemModule[key].desc;
+          }
         }
       } catch (e) {}
     }
 
-    return (ogDesc || "") + "\n" + extraData;
+    return content.trim() || null;
   } catch (e) {
+    console.error('[TikTok Error]', e);
     return null;
   }
 }
@@ -89,7 +133,9 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { url: inputUrl } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { url: inputUrl, apiKey, lang = 'es' } = body;
+
     if (!inputUrl) throw new Error('URL required');
 
     let url = inputUrl;
@@ -152,9 +198,89 @@ Deno.serve(async (req: Request) => {
       finalContent = cleanHtml(html);
     }
 
+    // 4. AI STRUCTURING (OpenRouter)
+    if (apiKey && finalContent) {
+      console.log(`[AI] Processing with OpenRouter (Lang: ${lang})...`);
+      try {
+        const systemPrompt = `Eres un experto en extracción de recetas. Extrae la información del texto proporcionado y devuélvela en formato JSON estricto.
+IMPORTANTE: 
+1. La respuesta DEBE estar en ${lang === 'es' ? 'Español' : 'Inglés'}.
+2. Corrige las unidades de medida: asegúrate de que haya un ESPACIO entre el número y la unidad (ej: "100g" -> "100 g", "2l" -> "2 l").
+3. Si el texto es una transcripción de video, ignora el saludo inicial y extrae solo ingredientes y pasos.
+4. Si no se encuentra una receta, devuelve {"error": "No se detectó una receta"}.
+
+Esquema JSON:
+{
+  "nombre": "Título de la receta",
+  "ingredientes": [{"cantidad": "valor", "unidad": "unidad", "nombre": "ingrediente"}],
+  "pasos": ["paso 1", "paso 2"],
+  "servings": 4
+}`;
+
+        const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://recipe-pantry.vercel.app',
+            'X-Title': 'Recipe Pantry'
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-001',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `TEXTO A PROCESAR:\n${finalContent.substring(0, 15000)}` }
+            ],
+            response_format: { type: 'json_object' }
+          })
+        });
+
+        if (!aiResponse.ok) {
+          const aiErr = await aiResponse.text();
+          throw new Error(`OpenRouter API Error: ${aiResponse.status} - ${aiErr}`);
+        }
+
+        const aiResult = await aiResponse.json();
+        const structuredRecipe = JSON.parse(aiResult.choices[0].message.content);
+
+        if (structuredRecipe.error) {
+           throw new Error(structuredRecipe.error);
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            ...structuredRecipe,
+            success: true,
+            url,
+            isVideo,
+            isCloudDoc,
+            source_url: url
+          }),
+          { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        );
+
+      } catch (e) {
+        console.error('[AI Error]', e);
+        // Fallback to raw text if AI fails
+        return new Response(
+          JSON.stringify({ 
+            text: finalContent.substring(0, 10000), 
+            title, 
+            url,
+            isVideo,
+            isCloudDoc,
+            error: "AI Structure Failure",
+            raw_ai: e.message
+          }),
+          { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Default response if no API key
     return new Response(
       JSON.stringify({ 
-        text: finalContent.substring(0, 20000), 
+        text: finalContent.substring(0, 5000), 
         title, 
         url,
         isVideo,
@@ -164,6 +290,7 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (error) {
+    console.error('[Global Error]', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
