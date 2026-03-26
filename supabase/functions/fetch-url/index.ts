@@ -185,12 +185,15 @@ Deno.serve(async (req: Request) => {
 
     // 2. Specialized Fetching
     if (videoType === 'youtube') {
-      const response = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36' }
+      const response = await fetch(url + (url.includes('?') ? '&' : '?') + 'hl=es', {
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+        }
       });
       const htmlBody = await response.text();
-
-      // Extract Description from ytInitialPlayerResponse (Full description)
+      
+      // Attempt 1: ytInitialPlayerResponse (Full description)
       let desc = "";
       const playerResponseMatch = htmlBody.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
       if (playerResponseMatch) {
@@ -200,7 +203,20 @@ Deno.serve(async (req: Request) => {
         } catch (e) {}
       }
       
-      // Fallback to meta tags if JSON failed or is empty
+      // Attempt 2: ytInitialData (Fallback description)
+      if (!desc) {
+          const initialDataMatch = htmlBody.match(/ytInitialData\s*=\s*({.+?});/);
+          if (initialDataMatch) {
+            try {
+              const data = JSON.parse(initialDataMatch[1]);
+              const contents = data?.contents?.twoColumnWatchNextResults?.results?.results?.contents;
+              const videoSecondaryInfoRenderer = contents?.find((c: any) => c.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
+              desc = videoSecondaryInfoRenderer?.description?.runs?.map((r: any) => r.text).join('') || "";
+            } catch (e) {}
+          }
+      }
+      
+      // Attempt 3: meta tags
       if (!desc) {
           const ogDescMatch = htmlBody.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) || 
                               htmlBody.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
@@ -214,6 +230,15 @@ Deno.serve(async (req: Request) => {
       
       const titleMatch = htmlBody.match(/<title[^>]*>([^<]+)<\/title>/i);
       title = titleMatch ? titleMatch[1].replace(' - YouTube', '').trim() : title;
+      
+      // Attempt 4: oEmbed fallback for Title
+      if (!title || title.length < 5) {
+        try {
+           const oRes = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+           const oData = await oRes.json();
+           title = oData.title || title;
+        } catch (e) {}
+      }
 
     } else if (videoType === 'tiktok') {
       const desc = await fetchTikTokMetadata(url);
@@ -299,7 +324,7 @@ Esquema JSON:
         }
 
         if (structuredRecipe.error) {
-           throw new Error(`No se detectó receta. Respuesta IA: ${rawContent.substring(0, 60)}...`);
+           throw new Error(`No se detectó receta. IA dice: ${JSON.stringify(structuredRecipe)}. Texto analizado: ${finalContent.substring(0, 50)}...`);
         }
 
         return new Response(JSON.stringify({ ...structuredRecipe, success: true, url, isVideo, source_url: url }),
