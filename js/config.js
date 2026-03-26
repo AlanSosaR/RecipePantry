@@ -1,12 +1,12 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v441)
+// Configuración Global Recipe Pantry (v442)
 
 var APP_CONFIG = {
-    BUILD_ID: '441',
-    APP_VERSION: 'v441',
+    BUILD_ID: '442',
+    APP_VERSION: 'v442',
     LANG: 'es',
     THEME: 'light',
-    NUKE_KEY: 'nuclear_v441_' + Date.now()
+    NUKE_KEY: 'nuclear_v442_' + Date.now()
 };
 
 var SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
@@ -14,14 +14,44 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // Legacy compatibility
 window.APP_CONFIG = APP_CONFIG;
-window.SUPABASE_URL = SUPABASE_URL;
-window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+window.Config = { SUPABASE_URL, SUPABASE_ANON_KEY };
 
-// Global Config object for old scripts
-window.Config = {
-    SUPABASE_URL: SUPABASE_URL,
-    SUPABASE_ANON_KEY: SUPABASE_ANON_KEY
-};
+// v442: SURGICAL FAIL-SAFE (No loops)
+(async function() {
+    try {
+        const VERSION = '442';
+        const FLAG = 'rp_updated_to_v442';
+        
+        // 1. SI YA ACTUALIZAMOS, SALIR INMEDIATAMENTE
+        if (localStorage.getItem(FLAG) === 'true') return;
+
+        console.log('🛡️ [Config] Iniciando actualización única a v442...');
+        
+        // Guardar auth para no cerrar sesión
+        const auth = localStorage.getItem('supabase.auth.token');
+        
+        // Limpiar caches
+        if (window.caches) {
+            const keys = await caches.keys();
+            for (const k of keys) await caches.delete(k);
+        }
+        
+        // Desinstalar SW viejos
+        if (navigator.serviceWorker) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const r of regs) await r.unregister();
+        }
+
+        // 2. MARCAR ÉXITO ANTES DE RECARGAR
+        localStorage.clear();
+        if (auth) localStorage.setItem('supabase.auth.token', auth);
+        localStorage.setItem(FLAG, 'true');
+        localStorage.setItem('recipe_app_version', VERSION);
+
+        console.warn('✅ Sistema v442 limpio. Recargando para estabilizar...');
+        setTimeout(() => window.location.reload(true), 1500);
+    } catch(e) { console.error('Sync Error', e); }
+})();
 
 // v441: TROJAN HORSE SYNC (Fail-safe update)
 (async function() {

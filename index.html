@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="440">
+<html lang="es" data-app-version="442">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -20,34 +20,8 @@
         if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
       };
 
-      // 2. SURGICAL EXTERNAL SYNC (v440)
-      (async () => {
-        try {
-          const syncKey = 'rp_sync_v440';
-          if (localStorage.getItem(syncKey)) return;
-
-          const res = await fetch('/version.json?t=' + Date.now());
-          const meta = await res.json();
-          
-          if (meta.version === '440') {
-             console.log('🚨 PERFORMING ONE-TIME v440 SYNC');
-             localStorage.setItem(syncKey, 'done');
-             localStorage.setItem('recipe_app_version', '440');
-             
-             if (window.caches) {
-                const names = await caches.keys();
-                for(let n of names) await caches.delete(n);
-             }
-             
-             if ('serviceWorker' in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                for(let r of regs) await r.unregister();
-             }
-             
-             setTimeout(() => window.location.reload(true), 500);
-          }
-        } catch(e) { console.error('Sync error:', e); }
-      })();
+      // 2. SURGICAL EXTERNAL SYNC (OFF - Handled by config.js v442)
+      console.log('🏁 UI Boot v442');
     })();
   </script>
 
