@@ -1,94 +1,88 @@
 /**
- * url-importer.js - Simplified logic delegating AI structuring to the server
- * v376_multilang_support
+ * URLImporter - Extrae recetas de URLs públicas (Dropbox, Drive, YouTube, TikTok)
+ * Versión: v430 (Standardized Class Architecture)
+ * Engine: Supabase fetch-url v33
  */
 
-const URLImporter = {
+class URLImporter {
     /**
-     * Imports a recipe from a URL using a Supabase Edge Function (now handles AI server-side)
-     * @param {string} url - The URL to import from
-     * @param {function} onProgress - Callback for progress updates
-     * @param {string} lang - Language code ('es' or 'en')
+     * Importar receta desde URL
+     * @param {string} url - URL pública
+     * @param {function} onProgress - Callback para progreso
+     * @param {string} lang - Idioma ('es'|'en')
      */
-    importFromURL: async function(url, onProgress, lang = 'es') {
+    static async import(url, onProgress, lang = 'es') {
         try {
-            if (onProgress) onProgress({ status: 'fetching', progress: 0.2, message: 'Conectando con el servidor...' });
+            const platform = this.detectPlatform(url);
+            if (!platform) throw new Error('URL no válida o plataforma no soportada');
 
-            const SUPABASE_URL = window.SUPABASE_URL;
-            const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+            if (onProgress) onProgress({ status: 'fetching', progress: 0.2, message: `Detectada plataforma: ${platform}...` });
+
+            // Supabase Credentials (v422+)
+            const SUPABASE_URL = window.SUPABASE_URL || (window.Config && window.Config.SUPABASE_URL);
+            const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || (window.Config && window.Config.SUPABASE_ANON_KEY);
             
-            const apiKey = typeof getOpenRouterKey === 'function' ? getOpenRouterKey() : null;
-            if (!apiKey) throw new Error("Se requiere una clave de OpenRouter válida.");
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                throw new Error("Configuración de Supabase no encontrada.");
+            }
 
             if (onProgress) onProgress({ status: 'processing', progress: 0.5, message: 'Extrayendo y analizando con IA...' });
 
+            // Llamada al motor v33 de Supabase
             const response = await fetch(`${SUPABASE_URL}/functions/v1/fetch-url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                 },
-                body: JSON.stringify({ url, apiKey, lang })
+                body: JSON.stringify({ url, lang })
             });
 
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.error || `Error del servidor (Status: ${response.status})`);
+                throw new Error(errData.error || `Error del servidor: ${response.status}`);
             }
 
-            const result = await response.json();
+            const data = await response.json();
 
-            // Handle OpenRouter specific errors returned in JSON
-            if (result.error === "OpenRouter Error") {
-                console.error("OpenRouter Error Details:", result.details);
-                throw new Error(`IA Error (${result.status}): ${result.details || 'Error estructurando'}`);
+            // Validar si la IA estructuró la receta
+            if (!data.isStructured || !data.recipe) {
+                console.error("❌ IA No Estructuró:", data.content);
+                throw new Error(data.content || "No se pudo extraer una receta clara.");
             }
 
-            // Handle AI Structure Failure
-            if (result.error === "AI Structure Failure") {
-                console.error("AI returned text but parsing failed:", result.raw_ai);
-                throw new Error(`IA No Estructuró: ${result.raw_ai?.substring(0, 100) || 'Contenido inválido'}`);
-            }
-
-            if (result.success && result.nombre) {
-                if (onProgress) onProgress({ status: 'done', progress: 1.0, message: '¡Receta lista!' });
-                
-                // Construct a text summary for the "Raw View" fallback
-                const textoResumen = [
-                    `RECETA: ${result.nombre}`,
-                    result.servings ? `Porciones: ${result.servings}` : '',
-                    '\nINGREDIENTES:',
-                    ...(result.ingredientes || []).map(i => `- ${i.cantidad || ''} ${i.unidad || ''} ${i.nombre}`),
-                    '\nPASOS:',
-                    ...(result.pasos || []).map((p, idx) => `${idx + 1}. ${p}`)
-                ].filter(Boolean).join('\n');
-
-                return {
-                    ...result,
-                    isStructured: true, // IMPORTANT: fixes the "undefined" display issue
-                    texto: result.texto || textoResumen,
-                    source_url: url,
-                    servings: result.servings || 4
-                };
-            }
-
-            if (result.text) {
-                 if (result.text.includes('"error"')) {
-                    try {
-                        const errObj = JSON.parse(result.text);
-                        if (errObj.error) throw new Error(`IA dice: ${errObj.error}`);
-                    } catch(e) {}
-                 }
-                 throw new Error("El sistema extrajo el contenido pero la IA no detectó una receta clara. Intenta con otro enlace.");
-            }
-
-            throw new Error("No se pudo extraer contenido del enlace. Verifica que sea público.");
+            return {
+                success: true,
+                platform: platform,
+                recipe: data.recipe,
+                metadata: {
+                    url: url,
+                    source: platform,
+                    extracted_at: new Date().toISOString()
+                }
+            };
 
         } catch (error) {
-            console.error('URL Import error:', error);
+            console.error('❌ URLImporter Error:', error);
             throw error;
         }
     }
-};
 
-window.urlImporter = URLImporter;
+    /**
+     * Detectar plataforma desde URL
+     */
+    static detectPlatform(url) {
+        if (!url || typeof url !== 'string') return null;
+        const urlLower = url.toLowerCase().trim();
+
+        if (urlLower.includes('drive.google.com') || urlLower.includes('docs.google.com')) return 'googledrive';
+        if (urlLower.includes('dropbox.com')) return 'dropbox';
+        if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) return 'youtube';
+        if (urlLower.includes('tiktok.com')) return 'tiktok';
+
+        return 'generic';
+    }
+}
+
+// Global exposure for legacy compatibility
+window.URLImporter = URLImporter;

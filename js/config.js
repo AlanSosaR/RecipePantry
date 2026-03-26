@@ -1,12 +1,12 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v422)
+// Configuración Global Recipe Pantry (v430)
 
 var APP_CONFIG = {
-    BUILD_ID: '422',
-    APP_VERSION: 'v422',
+    BUILD_ID: '430',
+    APP_VERSION: 'v430',
     LANG: 'es',
     THEME: 'light',
-    NUKE_KEY: 'nuclear_v422_' + Date.now()
+    NUKE_KEY: 'nuclear_v430_' + Date.now()
 };
 
 var SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
@@ -17,7 +17,7 @@ window.APP_CONFIG = APP_CONFIG;
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
-// Global Config object for old scripts (like url-importer or ocr-processor)
+// Global Config object for old scripts
 window.Config = {
     SUPABASE_URL: SUPABASE_URL,
     SUPABASE_ANON_KEY: SUPABASE_ANON_KEY
