@@ -1,5 +1,5 @@
 {
-  "version": "443",
-  "build": "stable_v443_final",
+  "version": "stable_v444",
+  "build": "disarmed",
   "force_clear": false
 }
