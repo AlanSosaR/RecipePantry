@@ -175,8 +175,25 @@ Deno.serve(async (req: Request) => {
 
     // 2. Specialized Fetching
     if (videoType === 'youtube') {
+      // 2a. Fetch HTML for Description/Title fallback
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36' }
+      });
+      const htmlBody = await response.text();
+      
+      // Extract Description (Standard and ytInitialPlayerResponse)
+      const ogDescMatch = htmlBody.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) || 
+                          htmlBody.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+      const desc = ogDescMatch ? ogDescMatch[1] : "";
+      
       const transcript = await fetchYoutubeTranscript(url);
-      if (transcript) finalContent = `TRANSCRIPCIÓN DE YOUTUBE:\n${transcript}`;
+      
+      finalContent = `DESCRIPCIÓN:\n${desc}\n\n`;
+      if (transcript) finalContent += `TRANSCRIPCIÓN:\n${transcript}`;
+      
+      const titleMatch = htmlBody.match(/<title[^>]*>([^<]+)<\/title>/i);
+      title = titleMatch ? titleMatch[1].replace(' - YouTube', '').trim() : title;
+
     } else if (videoType === 'tiktok') {
       const desc = await fetchTikTokMetadata(url);
       if (desc) finalContent = `DESCRIPCIÓN DE TIKTOK:\n${desc}`;
@@ -206,8 +223,8 @@ Deno.serve(async (req: Request) => {
 IMPORTANTE: 
 1. La respuesta DEBE estar en ${lang === 'es' ? 'Español' : 'Inglés'}.
 2. Corrige las unidades de medida: asegúrate de que haya un ESPACIO entre el número y la unidad (ej: "100g" -> "100 g", "2l" -> "2 l").
-3. Si el texto es una transcripción de video, ignora el saludo inicial y extrae solo ingredientes y pasos.
-4. Si no se encuentra una receta, devuelve {"error": "No se detectó una receta"}.
+3. Analiza tanto la descripción como la transcripción. Prioriza cantidades de la descripción si aparecen.
+4. Si hay instrucciones de cocina o una lista de ingredientes, procésala. Solo devuelve {"error": "..." } si es ABSOLUTAMENTE obvio que no hay una receta (ej: un video musical o noticias).
 
 Esquema JSON:
 {
