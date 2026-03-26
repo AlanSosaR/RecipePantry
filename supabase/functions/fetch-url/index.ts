@@ -20,6 +20,16 @@ function cleanHtml(html: string): string {
     .trim();
 }
 
+function cleanRtf(rtf: string): string {
+  // Very basic RTF to Text (strips common tags)
+  return rtf
+    .replace(/\\rtf1[\s\S]*?\\viewkind4\\uc1\\d\b/g, '') // Strip header
+    .replace(/\\[a-z0-9]+(?:\s|-?\d+)?/gi, ' ') // Strip commands
+    .replace(/\{[\s\S]*?\}/g, (match) => match.replace(/^\{|^\}/g, '')) // Flatten groups
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 async function fetchYoutubeTranscript(videoUrl: string): Promise<string | null> {
   try {
     const videoIdMatch = videoUrl.match(/(?:v=|\/embed\/|\/watch\?v=|\/shorts\/|^v=|^)([\w-]{11})/);
@@ -175,6 +185,11 @@ Deno.serve(async (req: Request) => {
 
     // 2. Specialized Fetching
     if (videoType === 'youtube') {
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36' }
+      });
+      const htmlBody = await response.text();
+
       // Extract Description from ytInitialPlayerResponse (Full description)
       let desc = "";
       const playerResponseMatch = htmlBody.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
@@ -206,7 +221,8 @@ Deno.serve(async (req: Request) => {
     } else if (isCloudDoc) {
       const res = await fetch(url);
       if (!res.ok) throw new Error('No se pudo acceder al documento. Asegúrate de que sea Público.');
-      finalContent = await res.text();
+      const rawText = await res.text();
+      finalContent = url.toLowerCase().includes('.rtf') ? cleanRtf(rawText) : rawText;
     }
 
     // 3. Fallback to HTML Scraping
@@ -226,13 +242,13 @@ Deno.serve(async (req: Request) => {
       console.log(`[AI] Processing with OpenRouter (Lang: ${lang})...`);
       
       const prepareAIRequest = (content: string) => {
-        const systemPrompt = `Eres un experto en extracción de recetas. Extrae la información del texto proporcionado y devuélvela en formato JSON estricto.
+        const systemPrompt = `Eres un experto en extracción de recetas. Extrae INFORMACIÓN CULINARIA del texto.
 IMPORTANTE: 
-1. La respuesta DEBE estar en ${lang === 'es' ? 'Español' : 'Inglés'}.
+1. La respuesta DEBE estar en ${lang === 'es' ? 'Español' : 'Inglés'}. RESPONDE SIEMPRE EN EL IDIOMA SOLICITADO.
 2. Corrige las unidades de medida: asegúrate de que haya un ESPACIO entre el número y la unidad (ej: "100 g", "2 l").
-3. Analiza el texto para encontrar ingredientes y pasos de preparación.
-4. Solo devuelve {"error": "no_recipe" } si el contenido es ABSOLUTAMENTE irrelevante (música, noticias, blogs personales sin cocina).
-5. Si encuentras ingredientes pero no pasos claros, intenta inferir los pasos básicos o inclúyelos como un solo paso general.
+3. NO SEAS ESTRICTO. Si el texto menciona ingredientes y un proceso de cocina, ES UNA RECETA.
+4. Si faltan cantidades o pasos, extrae lo que haya. No inventes, pero no descartes por estar incompleto.
+5. Solo devuelve {"error": "no_recipe" } si el contenido es 100% ajeno a la cocina (ej: política, deportes, música).
 
 Esquema JSON:
 {
@@ -266,26 +282,24 @@ Esquema JSON:
         if (!aiResponse.ok) throw new Error(`AI Error ${aiResponse.status}`);
         
         const aiResult = await aiResponse.json();
-        let structuredRecipe = JSON.parse(aiResult.choices[0].message.content);
+        const rawContent = aiResult.choices[0].message.content;
+        let structuredRecipe = JSON.parse(rawContent);
 
         // Fallback: If AI returned an error (any error), retry with JUST description for YouTube
         if (structuredRecipe.error && videoType === 'youtube' && finalContent.includes('DESCRIPCIÓN:')) {
            console.log("[AI] Initial pass failed, retrying with Description only...");
            const descOnly = finalContent.split('\n\nTRANSCRIPCIÓN:')[0];
-           aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+           const retryRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
              method: 'POST',
-             headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-             },
+             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
              body: JSON.stringify(prepareAIRequest(descOnly))
            });
-           const retryResult = await aiResponse.json();
+           const retryResult = await retryRes.json();
            structuredRecipe = JSON.parse(retryResult.choices[0].message.content);
         }
 
         if (structuredRecipe.error) {
-           throw new Error("No se detectó una receta válida. Intenta con otro enlace.");
+           throw new Error(`No se detectó receta. Respuesta IA: ${rawContent.substring(0, 60)}...`);
         }
 
         return new Response(JSON.stringify({ ...structuredRecipe, success: true, url, isVideo, source_url: url }),
