@@ -52,8 +52,21 @@ const URLImporter = {
 
             if (result.success && result.nombre) {
                 if (onProgress) onProgress({ status: 'done', progress: 1.0, message: '¡Receta lista!' });
+                
+                // Construct a text summary for the "Raw View" fallback
+                const textoResumen = [
+                    `RECETA: ${result.nombre}`,
+                    result.servings ? `Porciones: ${result.servings}` : '',
+                    '\nINGREDIENTES:',
+                    ...(result.ingredientes || []).map(i => `- ${i.cantidad || ''} ${i.unidad || ''} ${i.nombre}`),
+                    '\nPASOS:',
+                    ...(result.pasos || []).map((p, idx) => `${idx + 1}. ${p}`)
+                ].filter(Boolean).join('\n');
+
                 return {
                     ...result,
+                    isStructured: true, // IMPORTANT: fixes the "undefined" display issue
+                    texto: result.texto || textoResumen,
                     source_url: url,
                     servings: result.servings || 4
                 };
