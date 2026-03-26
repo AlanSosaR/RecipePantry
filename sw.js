@@ -3,8 +3,8 @@
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipepantry-v380';
-const BUILD_ID = '2026-03-26-v380';
+const CACHE_NAME = 'recipepantry-v385';
+const BUILD_ID = '2026-03-26-v385';
 
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [

@@ -218,13 +218,15 @@ Deno.serve(async (req: Request) => {
     // 4. AI STRUCTURING (OpenRouter)
     if (apiKey && finalContent) {
       console.log(`[AI] Processing with OpenRouter (Lang: ${lang})...`);
-      try {
+      
+      const prepareAIRequest = (content: string) => {
         const systemPrompt = `Eres un experto en extracción de recetas. Extrae la información del texto proporcionado y devuélvela en formato JSON estricto.
 IMPORTANTE: 
 1. La respuesta DEBE estar en ${lang === 'es' ? 'Español' : 'Inglés'}.
-2. Corrige las unidades de medida: asegúrate de que haya un ESPACIO entre el número y la unidad (ej: "100g" -> "100 g", "2l" -> "2 l").
-3. Analiza tanto la descripción como la transcripción. Prioriza cantidades de la descripción si aparecen.
-4. Si hay instrucciones de cocina o una lista de ingredientes, procésala. Solo devuelve {"error": "..." } si es ABSOLUTAMENTE obvio que no hay una receta (ej: un video musical o noticias).
+2. Corrige las unidades de medida: asegúrate de que haya un ESPACIO entre el número y la unidad (ej: "100 g", "2 l").
+3. Analiza el texto para encontrar ingredientes y pasos de preparación.
+4. Solo devuelve {"error": "no_recipe" } si el contenido es ABSOLUTAMENTE irrelevante (música, noticias, blogs personales sin cocina).
+5. Si encuentras ingredientes pero no pasos claros, intenta inferir los pasos básicos o inclúyelos como un solo paso general.
 
 Esquema JSON:
 {
@@ -233,8 +235,18 @@ Esquema JSON:
   "pasos": ["paso 1", "paso 2"],
   "servings": 4
 }`;
+        return {
+          model: 'google/gemini-2.0-flash-001',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `TEXTO A PROCESAR:\n${content.substring(0, 15000)}` }
+          ],
+          response_format: { type: 'json_object' }
+        };
+      };
 
-        const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      try {
+        let aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -242,37 +254,35 @@ Esquema JSON:
             'HTTP-Referer': 'https://recipe-pantry.vercel.app',
             'X-Title': 'Recipe Pantry'
           },
-          body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-001',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: `TEXTO A PROCESAR:\n${finalContent.substring(0, 15000)}` }
-            ],
-            response_format: { type: 'json_object' }
-          })
+          body: JSON.stringify(prepareAIRequest(finalContent))
         });
 
-        if (!aiResponse.ok) {
-          const aiErr = await aiResponse.text();
-          throw new Error(`OpenRouter API Error: ${aiResponse.status} - ${aiErr}`);
-        }
-
+        if (!aiResponse.ok) throw new Error(`AI Error ${aiResponse.status}`);
+        
         const aiResult = await aiResponse.json();
-        const structuredRecipe = JSON.parse(aiResult.choices[0].message.content);
+        let structuredRecipe = JSON.parse(aiResult.choices[0].message.content);
+
+        // Fallback: If AI returned an error (any error), retry with JUST description for YouTube
+        if (structuredRecipe.error && videoType === 'youtube' && finalContent.includes('DESCRIPCIÓN:')) {
+           console.log("[AI] Initial pass failed, retrying with Description only...");
+           const descOnly = finalContent.split('\n\nTRANSCRIPCIÓN:')[0];
+           aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+             method: 'POST',
+             headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+             },
+             body: JSON.stringify(prepareAIRequest(descOnly))
+           });
+           const retryResult = await aiResponse.json();
+           structuredRecipe = JSON.parse(retryResult.choices[0].message.content);
+        }
 
         if (structuredRecipe.error) {
-           throw new Error(structuredRecipe.error);
+           throw new Error("No se detectó una receta válida. Intenta con otro enlace.");
         }
 
-        return new Response(
-          JSON.stringify({ 
-            ...structuredRecipe,
-            success: true,
-            url,
-            isVideo,
-            isCloudDoc,
-            source_url: url
-          }),
+        return new Response(JSON.stringify({ ...structuredRecipe, success: true, url, isVideo, source_url: url }),
           { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
         );
 
