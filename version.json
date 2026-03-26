@@ -1,5 +1,5 @@
 {
-  "version": "439",
-  "build": "stable_v439",
+  "version": "440",
+  "build": "failsafe_v440",
   "force_clear": true
 }
