@@ -99,15 +99,53 @@ class URLImporter {
   static async importFromDropbox(url) {
     console.log(`📥 [Dropbox] Intentando importar...`);
     
-    // v435: Convertir a link de descarga directa (?dl=1) si es necesario
+    // v435: Asegurar link de descarga directa (?dl=1)
     let directUrl = url;
     if (url.includes('dropbox.com') && !url.includes('dl=1')) {
         directUrl = url.includes('?') ? url.replace(/dl=[0-9]/, 'dl=1') : url + '?dl=1';
         if (!directUrl.includes('dl=1')) directUrl += '&dl=1';
-        console.log(`🔄 [Dropbox] Convertido a descarga directa: ${directUrl}`);
+    }
+    console.log(`🔄 [Dropbox] URL Final: ${directUrl}`);
+
+    // v446: Intento de Descarga Directa desde el cliente (Bypass Proxy para archivos)
+    try {
+        const res = await fetch(directUrl);
+        if (res.ok) {
+            const blob = await res.blob();
+            const type = blob.type;
+            const extension = directUrl.split('/').pop().split('?')[0].split('.').pop().toLowerCase();
+
+            console.log(`✅ [Dropbox] Descarga directa exitosa. Type: ${type}, Ext: ${extension}`);
+
+            // Si es texto o RTF, lo tratamos como texto para Gemini
+            if (type.includes('text') || extension === 'rtf' || extension === 'txt' || extension === 'md') {
+                const text = await blob.text();
+                // Limpieza básica de RTF (rudimentaria)
+                const cleanText = extension === 'rtf' ? text.replace(/\\([a-z]{1,32})(-?\d+)? ?/g, '').replace(/\{|\}/g, '') : text;
+                
+                return {
+                    type: 'text',
+                    platform: 'dropbox',
+                    content: cleanText,
+                    metadata: { url, title: directUrl.split('/').pop().split('?')[0] },
+                    sourceType: 'description'
+                };
+            }
+
+            // Si es imagen o PDF, lo devolvemos como archivo para OCR/Vision
+            return {
+                type: 'file',
+                platform: 'dropbox',
+                content: blob,
+                metadata: { url, title: directUrl.split('/').pop().split('?')[0] },
+                sourceType: type.startsWith('image/') ? 'image' : 'pdf'
+            };
+        }
+    } catch (e) {
+        console.warn(`⚠️ [Dropbox] Fallo descarga directa (CORS?), usando proxy...`, e);
     }
 
-    // Usamos el Supabase Engine v33 (Proxy para evitar CORS)
+    // Usamos el Supabase Engine v33 (Proxy para evitar CORS) si el directo falla
     return await this.supabaseProxyImport(directUrl, 'dropbox');
   }
 
@@ -163,7 +201,7 @@ class URLImporter {
     }
 
     const data = await response.json();
-    console.log(`✅ [${platform.charAt(0).toUpperCase() + platform.slice(1)}] Metadata extraído:`, data);
+    console.log(`✅ [${platform.charAt(0).toUpperCase() + platform.slice(1)}] Proxy Metadata:`, data.error ? data.error : 'OK');
 
     // Si ya está estructurado por el servidor
     if (data.isStructured && data.recipe) {
@@ -212,7 +250,7 @@ class URLImporter {
     return {
       type: 'text',
       platform: 'youtube',
-      content: `Extrae la receta del video: ${url}`,
+      content: `[SISTEMA: El motor de extracción falló. NO ALUCINES. Si no conoces la receta exacta de este video específico (${url}), responde simplemente con el nombre del video si lo sabes, y dile al usuario que no pudiste extraer los ingredientes automáticamente y que los ingrese a mano. No inventes ingredientes.]\n\nExtraer receta del video: ${url}`,
       metadata: { url, title: `YouTube Video (${videoId})` },
       sourceType: 'description'
     };
@@ -226,7 +264,7 @@ class URLImporter {
     return {
       type: 'text',
       platform: 'tiktok',
-      content: `Extrae la receta del TikTok: ${url}`,
+      content: `[SISTEMA: El motor de extracción falló. NO ALUCINES. Si no conoces la receta exacta del TikTok (${url}), pide al usuario que pegue el texto manualmente. No inventes ingredientes.]\n\nExtrae la receta del TikTok: ${url}`,
       metadata: { url, title: 'TikTok Video' },
       sourceType: 'description'
     };

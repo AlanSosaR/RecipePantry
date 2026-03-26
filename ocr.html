@@ -1356,27 +1356,34 @@
                 // Mostrar UI de procesamiento (Step 2)
                 if (typeof goToStep === 'function') goToStep(2);
 
-                // 1. IMPORTAR DESDE URL
-                const imported = await URLImporter.import(url);
-                console.log(`✅ [handleUrlImport] Importación completada:`, {
-                    type: imported.type,
-                    platform: imported.platform,
-                    sourceType: imported.sourceType
-                });
-
-                // v436: Configurar Previsualización (Thumbnail)
+                // v447: Previsualización inicial (Icono de Link)
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    if (imported.platform === 'youtube') {
-                        const vid = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-                        if (vid) previewImg.src = `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`;
-                    } else if (imported.type === 'file' && imported.content.type.startsWith('image/')) {
-                        previewImg.src = URL.createObjectURL(imported.content);
-                    } else {
-                        // Icono por defecto según plataforma
-                        previewImg.src = 'https://img.icons8.com/fluency/96/link.png'; 
-                    }
+                    previewImg.src = 'https://img.icons8.com/fluency/96/link.png';
                     previewImg.style.display = 'block';
+                }
+
+                // 1. IMPORTAR DESDE URL
+                const imported = await URLImporter.import(url);
+                console.log(`✅ [handleUrlImport] Importación completada:`, imported);
+
+                // v447: Actualizar Previsualización según plataforma
+                if (previewImg && imported) {
+                    let thumbnailUrl = 'https://img.icons8.com/fluency/96/link.png';
+                    
+                    if (imported.platform === 'youtube') {
+                        const vid = url.match(/(?:v=|v\/|vi\/|u\/\w\/|embed\/|shorts\/|youtu.be\/|be\/)([a-zA-Z0-9_-]{11})/);
+                        if (vid && vid[1]) {
+                            thumbnailUrl = `https://i.ytimg.com/vi/${vid[1]}/hqdefault.jpg`;
+                        }
+                    } else if (imported.type === 'file' && imported.content.type.startsWith('image/')) {
+                        thumbnailUrl = URL.createObjectURL(imported.content);
+                    } else if (imported.platform === 'dropbox') {
+                        thumbnailUrl = 'https://img.icons8.com/fluency/96/dropbox.png';
+                    }
+
+                    previewImg.src = thumbnailUrl;
+                    previewImg.onerror = () => { previewImg.src = 'https://img.icons8.com/fluency/96/link.png'; };
                 }
 
                 // 2. PROCESAR SEGÚN TIPO
