@@ -1,12 +1,12 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v435)
+// Configuración Global Recipe Pantry (v436)
 
 var APP_CONFIG = {
-    BUILD_ID: '434',
-    APP_VERSION: 'v434',
+    BUILD_ID: '436',
+    APP_VERSION: 'v436',
     LANG: 'es',
     THEME: 'light',
-    NUKE_KEY: 'nuclear_v435_' + Date.now()
+    NUKE_KEY: 'nuclear_v436_' + Date.now()
 };
 
 var SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';

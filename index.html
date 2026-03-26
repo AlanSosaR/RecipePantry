@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="435">
+<html lang="es" data-app-version="436">
 
 <head>
   <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
@@ -20,9 +20,9 @@
         if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
       };
 
-      // 2. Emergency Clear (v435) - Manual Flow Enforcement
-      const CURRENT_VERSION = '435';
-      const NUKE_KEY = 'v435_force_sync';
+      // 2. Emergency Clear (v436) - Manual Flow Enforcement
+      const CURRENT_VERSION = '436';
+      const NUKE_KEY = 'v436_force_sync';
 
       (async () => {
         const storedVersion = localStorage.getItem('recipe_app_version') || localStorage.getItem('recipe_app_version_index');

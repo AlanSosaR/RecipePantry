@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="435">
+<html lang="es" data-app-version="436">
 
 <head>
     <meta charset="utf-8" />
@@ -1364,6 +1364,21 @@
                     sourceType: imported.sourceType
                 });
 
+                // v436: Configurar Previsualización (Thumbnail)
+                const previewImg = document.getElementById('ocrPreview');
+                if (previewImg) {
+                    if (imported.platform === 'youtube') {
+                        const vid = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+                        if (vid) previewImg.src = `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`;
+                    } else if (imported.type === 'file' && imported.content.type.startsWith('image/')) {
+                        previewImg.src = URL.createObjectURL(imported.content);
+                    } else {
+                        // Icono por defecto según plataforma
+                        previewImg.src = 'https://img.icons8.com/fluency/96/link.png'; 
+                    }
+                    previewImg.style.display = 'block';
+                }
+
                 // 2. PROCESAR SEGÚN TIPO
                 let recipeData;
 
@@ -1430,10 +1445,17 @@
 
         async function processTextWithGemini(text, metadata) {
             console.log(`✏️ [processTextWithGemini] Extrayendo receta de texto...`);
-            console.log(`📤 [processTextWithGemini] Enviando prompt a Gemini...`);
+            
+            // v436: Enriquecer prompt para evitar alucinaciones
+            let enrichedText = text;
+            if (metadata && metadata.url) {
+                enrichedText = `URL DE ORIGEN: ${metadata.url}\nCONTENIDO EXTRAÍDO:\n${text}\n\nINSTRUCCIÓN: Extrae ÚNICAMENTE la receta descrita en el video o texto de arriba. Si el contenido no tiene una receta clara, responde con {"error": "No se encontró receta"}.`;
+            }
+
+            console.log(`📤 [processTextWithGemini] Enviando prompt enriquecido...`);
             try {
                 if (window.ocrProcessor) {
-                    const recipe = await window.ocrProcessor.structureRecipeWithGemini(text);
+                    const recipe = await window.ocrProcessor.structureRecipeWithGemini(enrichedText);
                     console.log(`✅ [processTextWithGemini] Receta estructurada:`, {
                         nombre: recipe.nombre,
                         ingredientes: recipe.ingredientes?.length,
