@@ -21,8 +21,8 @@
       };
 
       // 2. Emergency Clear (v167) - Manual Flow Enforcement
-      const CURRENT_VERSION = '420';
-      const NUKE_KEY = 'v420_force_sync';
+      const CURRENT_VERSION = '421';
+      const NUKE_KEY = 'v421_force_sync';
 
       (async () => {
         const storedVersion = localStorage.getItem('recipe_app_version');
@@ -57,11 +57,11 @@
 
   <script>
       // FORCED SYNC v390
-      if (localStorage.getItem('force_sync_v420') !== 'done') {
-          console.warn('Nuclear Update v420 triggered...');
+      if (localStorage.getItem('force_sync_v421') !== 'done') {
+          console.warn('Nuclear Update v421 triggered...');
           localStorage.clear();
           sessionStorage.clear();
-          localStorage.setItem('force_sync_v420', 'done');
+          localStorage.setItem('force_sync_v421', 'done');
           if ('serviceWorker' in navigator) {
               navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
           }
