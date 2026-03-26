@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="438">
+<html lang="es" data-app-version="452">
 
 <head>
     <meta charset="utf-8" />
@@ -24,12 +24,12 @@
     </script>
     <title data-i18n="ocrTitle">Escanear Receta - Recipe Pantry</title>
 
-    <!-- NUCLEAR CACHE PURGE v450 -->
+    <!-- NUCLEAR CACHE PURGE v452 (Consolidated) -->
     <script>
         (async function() {
-            const CURRENT_VERSION = 'v450';
-            const lastCleared = localStorage.getItem('last_cache_purge');
-            if (lastCleared !== CURRENT_VERSION) {
+            const VERSION = 'v452';
+            if (localStorage.getItem('last_cache_purge') !== VERSION) {
+                console.log('☢️ NUCLEAR PURGE v452...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -38,17 +38,17 @@
                     const keys = await caches.keys();
                     for (let k of keys) await caches.delete(k);
                 }
-                localStorage.setItem('last_cache_purge', CURRENT_VERSION);
+                localStorage.setItem('last_cache_purge', VERSION);
+                localStorage.setItem('recipe_app_version_ocr', VERSION);
                 window.location.reload(true);
             }
         })();
     </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- CONSOLE CLEANER & EMERGENCY SW CACHE CLEAR -->
+    <!-- CONSOLE CLEANER v452 -->
     <script>
         (function() {
-            // 1. Console Sanitizer (Silence external noise) - Ejecutar lo ANTES posible
             const noiseFilters = [
                 'MetaMask', 'SES Removing', 'Unchecked runtime.lastError', 
                 'Could not establish connection', 'Receiving end does not exist',
@@ -63,39 +63,6 @@
                     original.apply(console, args);
                 };
             });
-            window.addEventListener('unhandledrejection', (e) => {
-                const msg = (e.reason?.message || e.reason || '').toString();
-                if (noiseFilters.some(filter => msg.includes(filter))) { e.stopImmediatePropagation(); e.preventDefault(); }
-            });
-            window.onerror = function(msg) {
-                if (noiseFilters.some(filter => msg.toString().includes(filter))) return true;
-            };
-
-            // 2. Emergency Clear
-            const CURRENT_VERSION = '450';
-            const NUKE_KEY = 'v450_force_sync';
-
-            (async () => {
-                const storedVersion = localStorage.getItem('recipe_app_version_ocr');
-                const storedNuke = localStorage.getItem(NUKE_KEY);
-
-                if (storedVersion !== CURRENT_VERSION || !storedNuke) {
-                    console.log(`[System] New OCR version: ${CURRENT_VERSION}. Forcing update...`);
-                    localStorage.setItem('recipe_app_version_ocr', CURRENT_VERSION);
-                    localStorage.setItem(NUKE_KEY, 'true');
-
-                    try {
-                        if ('serviceWorker' in navigator) {
-                            const regs = await navigator.serviceWorker.getRegistrations();
-                            for (const r of regs) await r.unregister();
-                        }
-                        const cacheNames = await caches.keys();
-                        for (const name of cacheNames) await caches.delete(name);
-                    } catch(e) {}
-                    
-                    window.location.reload(true);
-                }
-            })();
         })();
     </script>
 
@@ -112,17 +79,29 @@
     <!-- Estilos Base -->
     <link rel="stylesheet" href="css/styles.css?v=450">
     <link rel="stylesheet" href="css/components.css?v=450">
-    <link rel="stylesheet" href="css/ocr.css?v=450">
+    <!-- ocr.css removed because it was a 404 and styles are inline -->
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://docs.opencv.org/master/opencv.js" type="text/javascript"></script>
 
     <!-- OpenCV Scanner Modules -->
-    <script defer src="js/scanner/documentDetection.js?v=450"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=450"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=450"></script>
-    <script defer src="js/scanner/cameraController.js?v=450"></script>
+    <script defer src="js/scanner/documentDetection.js?v=452"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=452"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=452"></script>
+    <script defer src="js/scanner/cameraController.js?v=452"></script>
+
+    <!-- CORE SCRIPTS v452 (Single Load) -->
+    <script src="js/config.js?v=452"></script>
+    <script src="js/supabase-client.js?v=452"></script>
+    <script src="js/utils.js?v=452"></script>
+    <script src="js/i18n.js?v=452"></script>
+    <script src="js/auth.js?v=452"></script>
+    <script src="js/ui.js?v=452"></script>
+    <script src="js/ocr-processor.js?v=452"></script>
+    <script src="js/ocr.js?v=452"></script>
+    <script src="js/url-importer.js?v=452"></script>
+    <script src="js/sw-register.js?v=452"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1277,15 +1256,7 @@
     </main>
 
 
-    <!-- Scripts -->
-    <script src="js/utils.js?v=430"></script>
-    <script src="js/i18n.js?v=430"></script>
-    <script src="js/ui.js?v=430"></script>
-    
-    <!-- OCR Processor v7.0.0 (Simple & Fast) -->
-    <script src="js/ocr-processor.js?v=430"></script>
-    <script src="js/ocr.js?v=430"></script>
-    <script src="js/url-importer.js?v=430"></script>
+    <!-- Scripts replaced by head loads -->
 
 
     <script>
@@ -2057,15 +2028,6 @@
             }
         });
     </script>
-    <!-- Scripts Core v450 -->
-    <script src="js/config.js?v=450"></script>
-    <script src="js/supabase-client.js?v=450"></script>
-    <script src="js/utils.js?v=450"></script>
-    <script src="js/i18n.js?v=450"></script>
-    <script src="js/auth.js?v=450"></script>
-    <script src="js/url-importer.js?v=450"></script>
-    <script src="js/ocr-processor.js?v=450"></script>
-    <script src="js/sw-register.js?v=450"></script>
 </body>
 
 </html>

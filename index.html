@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="450">
+<html lang="es" data-app-version="452">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Recipe Pantry Premium</title>
 
-  <!-- NUCLEAR CACHE PURGE v450 -->
+  <!-- NUCLEAR CACHE PURGE v452 -->
   <script>
     (async function() {
-        const CURRENT_VERSION = 'v450';
+        const CURRENT_VERSION = 'v452';
         const lastCleared = localStorage.getItem('last_cache_purge');
         
         if (lastCleared !== CURRENT_VERSION) {
@@ -26,6 +26,7 @@
                     for (let k of keys) { await caches.delete(k); console.log('✅ Cache Deleted:', k); }
                 }
                 localStorage.setItem('last_cache_purge', CURRENT_VERSION);
+                localStorage.setItem('recipe_app_version', CURRENT_VERSION);
                 console.log('🏁 Purge Complete. Force Reloading...');
                 window.location.reload(true);
             } catch (e) { console.error('Purge failed:', e); }
@@ -73,7 +74,7 @@
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) document.documentElement.setAttribute('data-auth-likely', 'true');
     document.documentElement.setAttribute('data-theme', 'light');
-    console.log('🏁 UI Boot v450 - Nuclear Clear Active');
+    console.log('🏁 UI Boot v452 - Nuclear Clear Active');
   </script>
 
   <style>
@@ -236,20 +237,20 @@
   <script src="js/sync-manager.js?v=450"></script>
   <script src="js/utils.js?v=450"></script>
   <script src="js/i18n.js?v=450"></script>
-  <script src="js/db.js?v=450"></script>
-  <script src="js/auth.js?v=450"></script>
-  <script src="js/dashboard.js?v=450"></script>
-  <script src="js/share-modal.js?v=450"></script>
-  <script src="js/help-modal.js?v=450"></script>
-  <script src="js/notifications.js?v=450"></script>
-  <script src="js/ui.js?v=450"></script>
-  <script src="js/sw-register.js?v=450"></script>
+  <script src="js/db.js?v=452"></script>
+  <script src="js/auth.js?v=452"></script>
+  <script src="js/dashboard.js?v=452"></script>
+  <script src="js/share-modal.js?v=452"></script>
+  <script src="js/help-modal.js?v=452"></script>
+  <script src="js/notifications.js?v=452"></script>
+  <script src="js/ui.js?v=452"></script>
+  <script src="js/sw-register.js?v=452"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'
     import '@material/web/button/outlined-button.js'
     import '@material/web/textfield/outlined-text-field.js'
-    console.log('✨ Material 3 Loaded v450');
+    console.log('✨ Material 3 Loaded v452');
   </script>
 </body>
 </html>
