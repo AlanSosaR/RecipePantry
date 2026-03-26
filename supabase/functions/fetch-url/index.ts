@@ -175,16 +175,22 @@ Deno.serve(async (req: Request) => {
 
     // 2. Specialized Fetching
     if (videoType === 'youtube') {
-      // 2a. Fetch HTML for Description/Title fallback
-      const response = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36' }
-      });
-      const htmlBody = await response.text();
+      // Extract Description from ytInitialPlayerResponse (Full description)
+      let desc = "";
+      const playerResponseMatch = htmlBody.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
+      if (playerResponseMatch) {
+        try {
+          const playerResponse = JSON.parse(playerResponseMatch[1]);
+          desc = playerResponse?.videoDetails?.shortDescription || "";
+        } catch (e) {}
+      }
       
-      // Extract Description (Standard and ytInitialPlayerResponse)
-      const ogDescMatch = htmlBody.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) || 
-                          htmlBody.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
-      const desc = ogDescMatch ? ogDescMatch[1] : "";
+      // Fallback to meta tags if JSON failed or is empty
+      if (!desc) {
+          const ogDescMatch = htmlBody.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i) || 
+                              htmlBody.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+          desc = ogDescMatch ? ogDescMatch[1] : "";
+      }
       
       const transcript = await fetchYoutubeTranscript(url);
       
