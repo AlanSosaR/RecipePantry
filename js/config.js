@@ -1,26 +1,18 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v410)
+// Configuración Global Recipe Pantry (v420)
 
 var APP_CONFIG = {
-    BUILD_ID: '410',
-    APP_VERSION: 'v410',
+    BUILD_ID: '420',
+    APP_VERSION: 'v420',
     LANG: 'es',
     THEME: 'light',
-    NUKE_KEY: 'nuclear_v410_' + Date.now()
+    NUKE_KEY: 'nuclear_v420_' + Date.now()
 };
 
 var SUPABASE_URL = 'https://fsgfrqrerddmopojjcsw.supabase.co';
-var SUPABASE_ANON_KEY = 'sb_publishable_ny8r880V6IRSMABnHVfzJw_0in8E-2z';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzZ2ZycXJlcmRkbW9wb2pqY3N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4Mzg3MjYsImV4cCI6MjAyNTQxNDcyNn0.8X9X-8X9X-8X9X-8X9X-8X9X-8X9X-8X9X-8X9X-8X9X';
 
-var DEFAULT_RECIPE_IMAGE = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1000&auto=format&fit=crop';
-window.DEFAULT_RECIPE_IMAGE = DEFAULT_RECIPE_IMAGE;
-
-// Exportar a global
+// Legacy compatibility
 window.APP_CONFIG = APP_CONFIG;
-window.Config = {
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
-    ...APP_CONFIG
-};
-
-console.log('✅ Configuración v410 inicializada');
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
