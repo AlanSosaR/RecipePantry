@@ -14,8 +14,8 @@ const URLImporter = {
         try {
             if (onProgress) onProgress({ status: 'fetching', progress: 0.2, message: 'Conectando con el servidor...' });
 
-            const SUPABASE_URL = Config.SUPABASE_URL;
-            const SUPABASE_ANON_KEY = Config.SUPABASE_ANON_KEY;
+            const SUPABASE_URL = window.SUPABASE_URL;
+            const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
             
             const apiKey = typeof getOpenRouterKey === 'function' ? getOpenRouterKey() : null;
             if (!apiKey) throw new Error("Se requiere una clave de OpenRouter válida.");
