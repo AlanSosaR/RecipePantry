@@ -1,5 +1,5 @@
-// Lógica específica del Dashboard - v437
-console.log('📄 [File] js/dashboard.js loaded (v437)');
+// Lógica específica del Dashboard - v444
+console.log('📄 [File] js/dashboard.js loaded (v444)');
 
 class DashboardManager {
     constructor() {
@@ -42,7 +42,7 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v437)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v444)', 'color: #10B981; font-weight: bold; font-size: 14px;');
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -62,8 +62,8 @@ class DashboardManager {
                 return;
             }
 
-            const appVersionString = 'v437';
-            console.log(`%cRecipe Pantry Dashboard init - ${appVersionString} - nuclear update flow`, 'color: #10B981; font-weight: bold;');
+            const appVersionString = 'v444';
+            console.log(`%cRecipe Pantry Dashboard init - ${appVersionString} - stable release`, 'color: #10B981; font-weight: bold;');
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');
             if (dashboardEl) dashboardEl.classList.remove('hidden');
