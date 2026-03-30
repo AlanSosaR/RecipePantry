@@ -1,5 +1,5 @@
 const SW_PATH = '/sw.js';
-const APP_VERSION_ID = '460';
+const APP_VERSION_ID = '461';
 
 // 1. Registro del Service Worker
 async function registerSW() {

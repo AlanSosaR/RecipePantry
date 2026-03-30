@@ -11,13 +11,19 @@ const OR_P1 = "YmI5MTkzZjNiNzJhZTk1MDcxNzUzNjUwNzI3NDM1N2Q2ZDcyMD";
 const OR_P2 = "VlOTJmYWEyODQxNjEyN2U4NDYyYTA5ZGNlMi0xdi1yby1rcw==";
 
 const getOpenRouterKey = () => {
+    if (window.APP_SETTINGS && window.APP_SETTINGS['openrouter_api_key']) {
+        return window.APP_SETTINGS['openrouter_api_key'];
+    }
     const combo = OR_P1 + OR_P2;
     const decoded = typeof window !== 'undefined' ? window.atob(combo) : Buffer.from(combo, 'base64').toString();
     return decoded.split('').reverse().join('');
 };
 
 // Expose globally so ES modules (gemini-recipe-structurer.js) can access it
-window.OPENROUTER_API_KEY = getOpenRouterKey();
+Object.defineProperty(window, 'OPENROUTER_API_KEY', {
+    get: function() { return getOpenRouterKey(); },
+    configurable: true
+});
 
 class OCRProcessor {
     constructor() {

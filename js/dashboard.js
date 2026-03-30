@@ -1,4 +1,4 @@
-// Lógica específica del Dashboard - v460
+// Lógica específica del Dashboard - v461
 console.log('📄 [File] js/dashboard.js loaded (v456)');
 
 class DashboardManager {
@@ -62,7 +62,7 @@ class DashboardManager {
                 return;
             }
 
-            const appVersionString = 'v460';
+            const appVersionString = 'v461';
             console.log(`%cRecipe Pantry Dashboard init - ${appVersionString} - stable release`, 'color: #10B981; font-weight: bold;');
             document.documentElement.setAttribute('data-auth-likely', 'true');
             if (landingEl) landingEl.classList.add('hidden');

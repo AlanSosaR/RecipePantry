@@ -1,118 +1,168 @@
 /**
- * URLImporter v4 - Functional Orchestrator
- * Orquesta la extracción de contenido de diversas plataformas y su estructuración con Gemini.
+ * URLImporter v5 - Robust Orchestrator
+ * Orquesta la extracción de contenido y maneja errores sin romper el flujo principal.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=460';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=460';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=460';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=460';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=460';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=461';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=461';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=461';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=461';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=461';
 
 export async function importFromUrl(url) {
-  if (!url) throw new Error('URL es requerida');
-  
-  const platform = detectPlatform(url);
-  console.log(`🔗 [URLImporter] Plataforma detectada: ${platform}`);
-  
-  if (platform === 'unknown') {
-    return {
-      success: false,
-      error: 'Plataforma no soportada',
-      supportedPlatforms: ['YouTube', 'TikTok', 'Google Drive', 'Dropbox']
-    };
-  }
-
-  let extractionResult = null;
-  
-  // Paso 1: Extraer contenido según la plataforma
   try {
-    switch (platform) {
-      case 'youtube':
-        extractionResult = await extractFromYouTube(url);
-        break;
-      case 'tiktok':
-        extractionResult = await extractFromTikTok(url);
-        break;
-      case 'googledrive':
-      case 'googledocs':
-        extractionResult = await extractFromGoogleDrive(url);
-        break;
-      case 'dropbox':
-        extractionResult = await extractFromDropbox(url);
-        break;
+    if (!url) {
+      return {
+        success: false,
+        error: 'URL es requerida',
+        stage: 'url_validation',
+        fallbackAttempted: false
+      };
     }
-  } catch (error) {
-    return {
-      success: false,
-      error: `Error de extracción: ${error.message}`,
-      platform,
-      sourceUrl: url
-    };
-  }
+    
+    // Normalizar URL (quitar comillas, espacios)
+    url = url.replace(/['"]/g, '').trim();
 
-  // Paso 2: Verificar si la extracción fue exitosa
-  if (!extractionResult || extractionResult.success === false) {
-    return {
-      success: false,
-      error: extractionResult?.error || 'Falló la extracción de contenido',
-      platform,
-      sourceUrl: url
-    };
-  }
+    const platform = detectPlatform(url);
+    console.log(`🔗 [URLImporter] Plataforma detectada: ${platform}`);
+    
+    if (platform === 'unknown') {
+      return {
+        success: false,
+        error: 'Plataforma no soportada',
+        stage: 'platform_detection',
+        fallbackAttempted: false,
+        supportedPlatforms: ['YouTube', 'TikTok', 'Google Drive', 'Dropbox']
+      };
+    }
 
-  console.log(`✅ [${platform}] Contenido extraído satisfactoriamente`);
+    let extractionResult = null;
+    
+    // Paso 1: Extraer contenido según la plataforma de forma controlada
+    try {
+      switch (platform) {
+        case 'youtube':
+          extractionResult = await extractFromYouTube(url);
+          break;
+        case 'tiktok':
+          extractionResult = await extractFromTikTok(url);
+          break;
+        case 'googledrive':
+        case 'googledocs':
+          extractionResult = await extractFromGoogleDrive(url);
+          break;
+        case 'dropbox':
+          extractionResult = await extractFromDropbox(url);
+          break;
+      }
+    } catch (extractError) {
+      // Capturar cualquier fallo interno imprevisto en los extractores
+      console.error(`❌ [URLImporter] Error interno en extractor de ${platform}:`, extractError);
+      extractionResult = {
+        success: false,
+        error: extractError.message,
+        stage: `${platform}_extraction`,
+        fallbackAttempted: false
+      };
+    }
 
-  // Paso 3: Si ya viene estructurado (ej. por imagen OCR con Gemini Vision interno)
-  if (extractionResult.structuredRecipe) {
-    console.log('✨ Receta ya estructurada vía OCR');
+    // Paso 2: Evaluar la respuesta del extractor (Regla de capas)
+    if (!extractionResult || !extractionResult.success) {
+      if (extractionResult && extractionResult.partialData) {
+        // Fallback orquestador: usar datos parciales
+        console.warn(`⚠️ [URLImporter] Falló la extracción completa, pero existen datos parciales. Modificando flujo a fallback.`);
+        extractionResult.content = extractionResult.partialData;
+      } else {
+        // Fallo total irreversible de la fuente
+        return {
+          success: false,
+          error: extractionResult?.error || 'Falló la extracción de contenido y no hay datos de fallback',
+          stage: extractionResult?.stage || `${platform}_extraction`,
+          platform,
+          sourceUrl: url,
+          fallbackAttempted: extractionResult?.fallbackAttempted || false,
+          retryCount: extractionResult?.retryCount || 0
+        };
+      }
+    }
+
+    console.log(`✅ [${platform}] Extracción inicial terminada de forma controlada.`);
+
+    // Paso 3: Soporte para estructuración nativa (ej. imágenes pre-procesadas OCR)
+    if (extractionResult.structuredRecipe) {
+      return {
+        success: true,
+        recipe: extractionResult.structuredRecipe,
+        platform,
+        sourceUrl: url,
+        sourceType: extractionResult.type
+      };
+    }
+
+    // Paso 4: Estructurar usando Gemini
+    console.log(`📝 [${platform}] Procesando contenido con Gemini...`);
+    
+    let structureResult;
+    try {
+      structureResult = await structureRecipeFromText(extractionResult.content);
+    } catch (geminiCrash) {
+      console.error(`❌ [URLImporter] Error interno no capturado en Gemini:`, geminiCrash);
+      structureResult = {
+        success: false,
+        error: geminiCrash.message,
+        stage: 'gemini_structuring',
+        fallbackAttempted: true,
+        partialData: extractionResult.content
+      };
+    }
+    
+    // Validar caída oficial de IA
+    if (!structureResult.success) {
+      console.warn(`⚠️ [URLImporter] Estructuración IA fallida. Devolviendo texto crudo para UI.`);
+      return {
+        success: true, 
+        content: structureResult.partialData || extractionResult.content, // Fallback usable para el usuario
+        warning: structureResult.error || 'La IA no pudo procesar el contenido.',
+        platform,
+        sourceUrl: url,
+        isFallbackText: true
+      };
+    }
+
+    // Paso 5: Validar el JSON obtenido
+    const recipe = structureResult.recipe;
+    if (!recipe || !recipe.nombre) {
+      return {
+        success: true, // Éxito parcial para no romper flujo
+        content: extractionResult.content,
+        warning: 'La IA devolvió datos en un formato irreconocible (sin nombre válido).',
+        platform,
+        sourceUrl: url,
+        isFallbackText: true
+      };
+    }
+
+    console.log(`✅ [${platform}] Receta estructurada exitosamente: ${recipe.nombre}`);
+    
     return {
       success: true,
-      recipe: extractionResult.structuredRecipe,
-      platform,
+      recipe: recipe,
+      platform: platform,
       sourceUrl: url,
       sourceType: extractionResult.type
     };
-  }
 
-  // Paso 4: Estructurar contenido con Gemini
-  console.log(`📝 [${platform}] Procesando contenido con Gemini...`);
-  
-  const structureResult = await structureRecipeFromText(extractionResult.content);
-  
-  if (!structureResult.success) {
-    console.error(`❌ Error al estructurar receta:`, structureResult.error);
+  } catch (globalError) {
+    // ❌ [NUNCA USAR THROW EN EL NIVEL SUPERIOR]
+    console.error('❌ [URLImporter] Error Global no controlado (atrapado a nivel raíz):', globalError);
     return {
       success: false,
-      error: 'No se pudo estructurar la receta automáticamente',
-      detail: structureResult.error,
-      platform,
-      sourceUrl: url,
-      fallbackContent: extractionResult.content
+      error: 'Error interno del orquestador: ' + globalError.message,
+      stage: 'orchestrator_global_catch',
+      fallbackAttempted: false,
+      sourceUrl: url
     };
   }
-
-  // Paso 5: Validación final
-  const recipe = structureResult.recipe;
-  if (!recipe.nombre) {
-    return {
-      success: false,
-      error: 'La IA no pudo identificar el nombre de la receta',
-      platform,
-      sourceUrl: url,
-      fallbackContent: extractionResult.content
-    };
-  }
-
-  console.log(`✅ [${platform}] Receta estructurada: ${recipe.nombre}`);
-  
-  return {
-    success: true,
-    recipe: recipe,
-    platform: platform,
-    sourceUrl: url,
-    sourceType: extractionResult.type
-  };
 }
 
 function detectPlatform(url) {
@@ -125,19 +175,32 @@ function detectPlatform(url) {
   return 'unknown';
 }
 
-// Mantener compatibilidad con legacy if needed
 const URLImporter = {
   import: async (url) => {
-    const res = await importFromUrl(url);
-    if (!res.success) throw new Error(res.error);
-    
-    // Mapeo al formato que espera ocr.html/recipe-form.js legacy
-    return {
-      type: 'structured',
-      platform: res.platform,
-      recipe: res.recipe,
-      metadata: { url: res.sourceUrl }
-    };
+    // NUNCA DEBE LANZAR ERRORES FUERA DE AQUÍ
+    try {
+      const res = await importFromUrl(url);
+      if (!res.success && !res.isFallbackText) {
+        // En lugar de throw, devolver un objeto controlable por la capa visual
+        console.error("[URLImporter UI] Error manejado controlado:", res.error);
+        return {
+          type: 'error',
+          error: res.error,
+          stage: res.stage
+        };
+      }
+      
+      return {
+        type: res.isFallbackText ? 'raw_text' : 'structured',
+        platform: res.platform,
+        recipe: res.recipe || null,
+        rawText: res.content || null,
+        metadata: { url: res.sourceUrl, warning: res.warning }
+      };
+    } catch (e) {
+      console.error("[URLImporter UI] Super Fallback - Error Catastrófico Prevenido:", e);
+      return { type: 'error', error: e.message, fallbackAttempted: false };
+    }
   }
 };
 

@@ -58,6 +58,9 @@ class AuthManager {
             this.session = session;
             document.documentElement.setAttribute('data-auth-likely', 'true');
 
+            // Cargar configuración remota silenciosamente
+            if (window.fetchAppSettings) window.fetchAppSettings();
+
             // 2. Intentar obtener el perfil (opcional para considerar "autenticado")
             // v231: Solo saltar si tenemos usuario completo (CON ID real)
             if (this.currentUser && this.currentUser.id && this.currentUser.auth_user_id === session.user.id) {

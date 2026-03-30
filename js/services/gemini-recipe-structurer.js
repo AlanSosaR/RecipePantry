@@ -61,32 +61,35 @@ export async function structureRecipeFromText(content) {
       return { success: true, recipe: JSON.parse(cached), content, cached: true };
     }
 
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.OPENROUTER_API_KEY;
+    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key;
     if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
     
     const prompt = RECIPE_STRUCTURE_PROMPT.replace('{CONTENT}', content);
     
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-001', // Usamos un modelo estable
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.1
-      })
-    });
+    // Asumiendo que importaríamos fetchWithRetry en el master app, pero si no,
+    // usaremos el fetch nativo ya que aquí lo importante es NUNCA LANZAR hacia el orquestador.
+    // Aunque para cumplir con reintentos usaremos fetch normal porque el fallback principal es devolver el contenido original.
+    let response;
+    try {
+        response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-001',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1
+          })
+        });
+    } catch (netErr) {
+        throw new Error(`Fallo de red al contactar IA: ${netErr.message}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Error de Gemini API: ${errorData.error?.message || 'Error desconocido'}`);
+      const errorData = await response.json().catch(()=>({}));
+      throw new Error(`Error de Gemini API (HTTP ${response.status}): ${errorData.error?.message || 'Error desconocido'}`);
     }
     
     const data = await response.json();
@@ -96,22 +99,17 @@ export async function structureRecipeFromText(content) {
     let recipe = null;
     
     try {
-      // Intentar parsear directo
       recipe = JSON.parse(responseText);
     } catch (e) {
-      // Si falla, intentar extraer de bloques markdown
       const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) {
         recipe = JSON.parse(jsonMatch[1].trim());
       } else {
-        throw new Error('No se pudo parsear la respuesta de Gemini como JSON');
+        throw new Error('No se pudo parsear la respuesta de Gemini como JSON válido');
       }
     }
     
-    // Normalizar para evitar undefined
     recipe = validateAndNormalizeRecipe(recipe);
-    
-    // Guardar en cache
     localStorage.setItem(`gemini_extraction_cache_${contentHash}`, JSON.stringify(recipe));
     
     return {
@@ -122,67 +120,70 @@ export async function structureRecipeFromText(content) {
     };
     
   } catch (error) {
-    console.error('❌ Error estructurando receta:', error);
+    console.error('❌ Error controlado estructurando receta en Gemini:', error);
+    
+    // NUNCA throw. Siempre devolver fallback estructurado.
     return {
       success: false,
       error: error.message,
-      recipe: null
+      stage: 'gemini_structuring',
+      fallbackAttempted: true,
+      partialData: content
     };
   }
 }
 
 export async function structureRecipeFromImage(base64Image, mimeType) {
   try {
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.OPENROUTER_API_KEY;
+    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key;
     if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
     
     const imagePrompt = `Analiza esta imagen de una receta y extrae TODA la información visible. Proporciona el contenido de texto completo que puedas leer, incluyendo ingredientes y pasos. Responde en formato texto plano.`;
     
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-001',
-        messages: [
-          {
-            role: 'user',
-            content: [
+    let response;
+    try {
+        response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-001',
+            messages: [
               {
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64Image}` }
-              },
-              {
-                type: 'text',
-                text: imagePrompt
+                role: 'user',
+                content: [
+                  { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } },
+                  { type: 'text', text: imagePrompt }
+                ]
               }
-            ]
-          }
-        ],
-        temperature: 0.1
-      })
-    });
+            ],
+            temperature: 0.1
+          })
+        });
+    } catch (netErr) {
+        throw new Error(`Fallo de red al contactar IA Visión: ${netErr.message}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Error de Gemini Vision: ${errorData.error?.message || 'Error desconocido'}`);
+      const errorData = await response.json().catch(()=>({}));
+      throw new Error(`Error de Gemini Vision (HTTP ${response.status}): ${errorData.error?.message || 'Error desconocido'}`);
     }
     
     const data = await response.json();
     const extractedText = data.choices[0].message.content;
     
-    // Luego estructurar el texto extraído
     return await structureRecipeFromText(extractedText);
     
   } catch (error) {
-    console.error('❌ Error OCR con Gemini:', error);
+    console.error('❌ Error controlado OCR con Gemini Vision:', error);
     return {
       success: false,
       error: error.message,
-      recipe: null,
-      content: null
+      stage: 'gemini_vision_ocr',
+      fallbackAttempted: true,
+      partialData: null
     };
   }
 }
