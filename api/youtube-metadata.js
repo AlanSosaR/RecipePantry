@@ -58,11 +58,39 @@ export default async function handler(req, res) {
       if (fullDesc.length > description.length) description = fullDesc;
     }
 
-    // v476: Detección de Bloqueo / Página de Consentimiento
-    const isGenericTitle = title.toLowerCase().includes('- youtube');
+    // v480: Bypass Móvil - Si la descripción es basura, intentar con m.youtube.com
     const isBotBlock = description.toLowerCase().includes('disfruta de los v') || 
                        description.toLowerCase().includes('enjoy the videos') ||
                        description.length < 50;
+
+    if (isBotBlock) {
+      console.log('🔄 [YouTube] Bloqueo detectado en Desktop. Intentando bypass móvil...');
+      try {
+        const mobileResp = await fetch(`https://m.youtube.com/watch?v=${videoId}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+            'Accept-Language': 'es-MX,es;q=0.9',
+            'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+413'
+          }
+        });
+        if (mobileResp.ok) {
+          const mobileHtml = await mobileResp.text();
+          const mDescMatch = mobileHtml.match(/"shortDescription":"(.*?)"/);
+          if (mDescMatch) {
+            const mFullDesc = mDescMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+            if (mFullDesc.length > 50 && !mFullDesc.toLowerCase().includes('disfruta de los v')) {
+              description = mFullDesc;
+              console.log('✅ [YouTube] Bypass móvil exitoso.');
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ [YouTube] Error bypass móvil:', e.message);
+      }
+    }
+
+    const isGenericTitle = title.toLowerCase().includes('- youtube');
+    const finalBlockCheck = description.toLowerCase().includes('disfruta de los v') || description.length < 10;
 
     // Clean HTML entities
     const clean = (s) => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -73,7 +101,7 @@ export default async function handler(req, res) {
       success: true,
       title,
       description,
-      isPotentialBlock: isBotBlock && isGenericTitle,
+      isPotentialBlock: finalBlockCheck && isGenericTitle,
       source: oembedTitle ? 'oembed+scrape' : 'scrape'
     });
   } catch (error) {

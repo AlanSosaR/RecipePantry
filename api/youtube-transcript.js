@@ -1,4 +1,4 @@
-// api/youtube-transcript.js - Vercel Serverless Function
+// api/youtube-transcript.js - Vercel Serverless Function (v480 Mobile Bypass)
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -8,42 +8,64 @@ export default async function handler(req, res) {
   if (!videoId) return res.status(400).json({ error: 'videoId is required' });
 
   try {
-    const htmlResponse = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-        'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+413'
+    const desktopUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    const mobileUA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1';
+    const consentCookie = 'CONSENT=YES+cb.20210328-17-p0.en+FX+413';
+
+    const extractCaptions = (html) => {
+      // Find ytInitialPlayerResponse
+      const match = html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?});\s*(?:var|script|window)/i) || 
+                    html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?});/i);
+      if (!match) return null;
+      try {
+        const player = JSON.parse(match[1]);
+        return player.captions?.playerCaptionsTracklistRenderer?.captionTracks || null;
+      } catch (e) {
+        return null;
       }
+    };
+
+    // 1. Intentar Desktop
+    const desktopResp = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: { 'User-Agent': desktopUA, 'Cookie': consentCookie }
     });
+    const desktopHtml = await desktopResp.text();
+    let captionTracks = extractCaptions(desktopHtml);
 
-    const html = await htmlResponse.text();
-
-    // Regex to find the ytInitialPlayerResponse object (Tolerant with newlines and varying spacing)
-    const playerResponseMatch = html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?});\s*(?:var|script|window)/i) || 
-                               html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?});/i);
-    
-    if (!playerResponseMatch) {
-      console.warn('⚠️ [Transcript] Initial player response not found via direct regex, attempting fallback search.');
-      // Attempt to find a simpler match if the boundary script tag is different
-      const simplerMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
-      if (!simplerMatch) throw new Error('Could not find player response');
-      playerResponseMatch = simplerMatch;
+    // 2. Si falla, intentar Mobile Bypass (v480)
+    if (!captionTracks) {
+      console.log('🔄 [Transcript] Desktop falló. Intentando Mobile Bypass...');
+      const mobileResp = await fetch(`https://m.youtube.com/watch?v=${videoId}`, {
+        headers: { 'User-Agent': mobileUA, 'Cookie': consentCookie }
+      });
+      if (mobileResp.ok) {
+        const mobileHtml = await mobileResp.text();
+        captionTracks = extractCaptions(mobileHtml);
+        if (captionTracks) console.log('✅ [Transcript] Bypass móvil exitoso.');
+      }
     }
 
-    const playerResponse = JSON.parse(playerResponseMatch[1]);
-    const captions = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-
-    if (!captions || captions.length === 0) {
-      return res.status(200).json({ success: true, transcript: null });
+    if (!captionTracks || captionTracks.length === 0) {
+      // Intentar una búsqueda desesperada de cualquier link timedtext
+      const timedTextMatch = desktopHtml.match(/"baseUrl":"(https:\/\/www\.youtube\.com\/api\/timedtext.*?)"/);
+      if (timedTextMatch) {
+         console.log('🎯 [Transcript] Encontrado link directo de timedtext.');
+         captionTracks = [{ baseUrl: timedTextMatch[1].replace(/\\u0026/g, '&'), languageCode: 'auto' }];
+      }
     }
 
-    // Prefer Spanish (es) or English (en)
-    const track = captions.find(t => t.languageCode === 'es') || 
-                  captions.find(t => t.languageCode === 'en') ||
-                  captions[0];
+    if (!captionTracks || captionTracks.length === 0) {
+      return res.status(200).json({ success: true, transcript: null, error: 'No se encontraron subtítulos (v480 Protected)' });
+    }
 
-    const transcriptResponse = await fetch(track.baseUrl + '&fmt=json3');
-    const transcriptData = await transcriptResponse.json();
+    // Preferir español o inglés
+    const track = captionTracks.find(t => t.languageCode === 'es') || 
+                  captionTracks.find(t => t.languageCode === 'en') ||
+                  captionTracks[0];
+
+    // Fetch actual transcript JSON
+    const transcriptResp = await fetch(track.baseUrl + (track.baseUrl.includes('fmt=json3') ? '' : '&fmt=json3'));
+    const transcriptData = await transcriptResp.json();
 
     const transcript = transcriptData.events
       .filter(e => e.segs)
@@ -56,8 +78,9 @@ export default async function handler(req, res) {
       success: true,
       transcript
     });
+
   } catch (error) {
-    console.error('❌ Error fetching transcript:', error);
+    console.error('❌ Error fatal en transcript:', error);
     return res.status(200).json({ success: true, transcript: null, error: error.message });
   }
 }
