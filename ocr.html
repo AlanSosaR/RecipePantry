@@ -24,12 +24,12 @@
     </script>
     <title data-i18n="ocrTitle">Escanear Receta - Recipe Pantry</title>
 
-    <!-- NUCLEAR CACHE PURGE v458 (Consolidated) -->
+    <!-- NUCLEAR CACHE PURGE v471 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v470';
+            const VERSION = 'v471';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v455...');
+                console.log('☢️ NUCLEAR PURGE v471...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -46,7 +46,7 @@
     </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- CONSOLE CLEANER v452 -->
+    <!-- CONSOLE CLEANER v471 -->
     <script>
         (function() {
             const noiseFilters = [
@@ -91,7 +91,7 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v470 (Single Load) -->
+    <!-- CORE SCRIPTS v471 (Single Load) -->
     <script src="js/config.js?v=470"></script>
     <script src="js/supabase-client.js?v=470"></script>
     <script src="js/utils.js?v=470"></script>
@@ -1324,7 +1324,7 @@
 
 
         // ═══════════════════════════════════════════════════
-        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v433)
+        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v471)
         // ═══════════════════════════════════════════════════
 
         window.handleUrlImport = async function() {
@@ -1344,7 +1344,7 @@
                 // Mostrar UI de procesamiento (Step 2)
                 if (typeof goToStep === 'function') goToStep(2);
 
-                // v457: Previsualización inicial (Icono Local assets/link.svg)
+                // v471: Previsualización inicial (Icono Local assets/link.svg)
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
                     previewImg.src = 'assets/link.svg?v=470';
@@ -1355,7 +1355,7 @@
                 const imported = await URLImporter.import(url, window.selectedOcrLang || 'spa');
                 console.log(`✅ [handleUrlImport] Importación completada:`, imported);
 
-                // v457: Actualizar Previsualización según plataforma
+                // v471: Actualizar Previsualización según plataforma
                 if (previewImg && imported) {
                     let thumbnailUrl = 'assets/link.svg?v=470';
                     
@@ -1465,7 +1465,7 @@
         async function processTextWithGemini(text, metadata) {
             console.log(`✏️ [processTextWithGemini] Extrayendo receta de texto...`);
             
-            // v436: Enriquecer prompt para evitar alucinaciones
+            // v471: Enriquecer prompt para evitar alucinaciones
             let enrichedText = text;
             if (metadata && metadata.url) {
                 enrichedText = `URL DE ORIGEN: ${metadata.url}\nCONTENIDO EXTRAÍDO:\n${text}\n\nINSTRUCCIÓN: Extrae ÚNICAMENTE la receta descrita en el video o texto de arriba. Si el contenido no tiene una receta clara, responde con {"error": "No se encontró receta"}.`;
@@ -1727,31 +1727,33 @@
                 const recipeId = recipeRes.recipe.id;
 
                 // Re-procesar el texto solo si NO viene estructurado de Gemini
+                // 2. Colección de datos final (Priorizar DOM para capturar ediciones manuales)
                 let currentIngs = [];
                 let currentSteps = [];
 
-                if (ocrData.isStructured) {
+                // Intentar leer ingredientes editables del DOM
+                const ingElements = document.querySelectorAll('[data-type="ing"]');
+                if (ingElements.length > 0) {
+                    currentIngs = Array.from(ingElements).map(el => el.innerText.trim()).filter(Boolean);
+                } else if (ocrData.isStructured) {
                     currentIngs = (ocrData.ingredientes || []).map(i => {
                         return `${i.cantidad || ''} ${i.unidad || ''} ${i.nombre || ''}`.trim();
                     }).filter(Boolean);
-                    currentSteps = (ocrData.pasos || []).map(s => typeof s === 'string' ? s : s.instruction || '').filter(Boolean);
-                } else {
-                    const reParsed = window.ocrProcessor.parseRecipeText(fullText);
-                    currentIngs = reParsed.ingredients.map(i => {
-                        if (typeof i === 'string') return i;
-                        if (typeof i === 'object' && i !== null) {
-                            return `${i.quantity || i.cantidad || ''} ${i.unit || i.unidad || ''} ${i.name || i.nombre || ''}`.trim();
-                        }
-                        return null;
-                    }).filter(Boolean);
+                }
 
-                    currentSteps = reParsed.steps.map(s => {
-                        if (typeof s === 'string') return s;
-                        if (typeof s === 'object' && s !== null) {
-                            return s.instruction || '';
-                        }
-                        return null;
-                    }).filter(Boolean);
+                // Intentar leer pasos editables del DOM
+                const stepElements = document.querySelectorAll('[data-type="paso"]');
+                if (stepElements.length > 0) {
+                    currentSteps = Array.from(stepElements).map(el => el.innerText.trim()).filter(Boolean);
+                } else if (ocrData.isStructured) {
+                    currentSteps = (ocrData.pasos || []).map(s => typeof s === 'string' ? s : (s.instruccion || s.instruction || '')).filter(Boolean);
+                }
+
+                // Fallback a parseo básico si todo falla
+                if (currentIngs.length === 0 && currentSteps === 0 && fullText) {
+                    const reParsed = window.ocrProcessor.parseRecipeText(fullText);
+                    currentIngs = reParsed.ingredients.map(i => typeof i === 'string' ? i : (i.nombre || i.name)).filter(Boolean);
+                    currentSteps = reParsed.steps.map(s => typeof s === 'string' ? s : (s.instruccion || s.instruction)).filter(Boolean);
                 }
 
 
