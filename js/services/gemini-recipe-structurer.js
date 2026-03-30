@@ -125,12 +125,22 @@ Si el contenido original está en otro idioma, TRADÚCELO fielmente.`;
       }
     }
     
-    recipe = validateAndNormalizeRecipe(recipe);
-    localStorage.setItem(`gemini_extraction_cache_${contentHash}`, JSON.stringify(recipe));
+    // Validar y Normalizar
+    const formattedRecipe = validateAndNormalizeRecipe(recipe);
     
+    // v477: NO cachear si el resultado es esencialmente vacío (0 ingredientes)
+    // Esto evita que bloqueos temporales de YouTube ensucien la caché permanentemente.
+    const hasIngredients = formattedRecipe.ingredientes && formattedRecipe.ingredientes.length > 0;
+    
+    if (hasIngredients) {
+      localStorage.setItem(`gemini_extraction_cache_${contentHash}`, JSON.stringify(formattedRecipe));
+    } else {
+      console.warn('⚠️ [Gemini] Resultado vacío detectado. No se guardará en caché para permitir reintento.');
+    }
+
     return {
       success: true,
-      recipe: recipe,
+      recipe: formattedRecipe,
       content: content,
       cached: false
     };
