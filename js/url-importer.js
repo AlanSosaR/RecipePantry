@@ -1,7 +1,6 @@
 /**
- * URLImporter v2 - Con debugging y fallback mejorado (v433)
- * Extrae recetas de URLs públicas (Dropbox, Drive, YouTube, TikTok)
- * Versión Literal del Blueprint de Usuario Adaptada para Supabase Engine.
+ * URLImporter v3 - Modular Orchestrator
+ * Extrae recetas de URLs públicas (Dropbox, Drive, YouTube, TikTok) orchestrando servicios específicos.
  */
 
 class URLImporter {
@@ -23,33 +22,71 @@ class URLImporter {
       
       switch (platform) {
         case 'googledrive':
-          result = await this.importFromGoogleDrive(url);
+          const { GDriveExtractor } = await import('./services/gdrive-extractor.js');
+          result = await GDriveExtractor.extract(url);
           break;
         case 'dropbox':
-          result = await this.importFromDropbox(url);
+          const { DropboxExtractor } = await import('./services/dropbox-extractor.js');
+          result = await DropboxExtractor.extract(url);
           break;
         case 'youtube':
-          result = await this.importFromYouTube(url);
+          const { YouTubeExtractor } = await import('./services/youtube-extractor.js');
+          result = await YouTubeExtractor.extract(url);
           break;
         case 'tiktok':
-          result = await this.importFromTikTok(url);
+          const { TikTokExtractor } = await import('./services/tiktok-extractor.js');
+          result = await TikTokExtractor.extract(url);
           break;
         default:
           throw new Error(`Plataforma no soportada: ${platform}`);
       }
 
+      // Map output to what ocr.html handleUrlImport expects: { type: 'text'|'file'|'structured', platform, content, metadata }
+      const mappedResult = this.mapToLegacyFormat(result, url);
+
       console.log(`✅ [URLImporter] Contenido extraído:`, {
-        type: result.type,
-        platform: result.platform,
-        sourceType: result.sourceType,
-        contentLength: (result.content && (result.content.length || result.content.size)) || 0
+        type: mappedResult.type,
+        platform: mappedResult.platform,
+        sourceType: mappedResult.sourceType,
+        contentLength: (mappedResult.content && (mappedResult.content.length || mappedResult.content.size)) || 0
       });
 
-      return result;
+      return mappedResult;
     } catch (error) {
       console.error('❌ [URLImporter] Error:', error);
       throw error;
     }
+  }
+
+  static mapToLegacyFormat(result, originalUrl) {
+    if (result.type === 'video') {
+         // YouTube or TikTok video mapped to text description
+         const contentString = `Título: ${result.title}\nDescripción: ${result.description}\n${result.transcript ? 'Subtítulos: ' + result.transcript : ''}`;
+         return {
+             type: 'text',
+             platform: result.platform,
+             content: contentString,
+             metadata: { url: originalUrl, title: result.title },
+             sourceType: result.transcript ? 'subtitles' : 'description'
+         };
+    } else if (result.type === 'document') {
+         return {
+             type: 'text',
+             platform: result.platform,
+             content: result.content,
+             metadata: { url: originalUrl, title: result.metadata || 'Documento' },
+             sourceType: 'document'
+         };
+    } else if (result.type === 'image' || result.type === 'file') {
+         return {
+             type: 'file',
+             platform: result.platform,
+             content: result.content, // blob or file id
+             metadata: { url: originalUrl, title: result.metadata || 'Archivo' },
+             sourceType: result.type
+         };
+    }
+    return result; // Fallback to whatever it is (e.g. structured)
   }
 
   /**
@@ -74,208 +111,6 @@ class URLImporter {
     }
 
     return null;
-  }
-
-  /**
-   * Importar desde Google Drive
-   */
-  static async importFromGoogleDrive(url) {
-    console.log(`📥 [GoogleDrive] Intentando importar...`);
-    const fileId = this.extractGoogleDriveFileId(url);
-    if (!fileId) throw new Error('ID de archivo de Google Drive no válido');
-
-    // Usamos el Supabase Engine v33 (Proxy para evitar CORS)
-    return await this.supabaseProxyImport(url, 'googledrive');
-  }
-
-  static extractGoogleDriveFileId(url) {
-    const match = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/) || url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    return match ? match[1] : null;
-  }
-
-  /**
-   * Importar desde Dropbox
-   */
-  static async importFromDropbox(url) {
-    console.log(`📥 [Dropbox] Intentando importar...`);
-    
-    // v435: Asegurar link de descarga directa (?dl=1)
-    let directUrl = url;
-    if (url.includes('dropbox.com') && !url.includes('dl=1')) {
-        directUrl = url.includes('?') ? url.replace(/dl=[0-9]/, 'dl=1') : url + '?dl=1';
-        if (!directUrl.includes('dl=1')) directUrl += '&dl=1';
-    }
-    console.log(`🔄 [Dropbox] URL Final: ${directUrl}`);
-
-    // v446: Intento de Descarga Directa desde el cliente (Bypass Proxy para archivos)
-    try {
-        const res = await fetch(directUrl);
-        if (res.ok) {
-            const blob = await res.blob();
-            const type = blob.type;
-            const extension = directUrl.split('/').pop().split('?')[0].split('.').pop().toLowerCase();
-
-            console.log(`✅ [Dropbox] Descarga directa exitosa. Type: ${type}, Ext: ${extension}`);
-
-            // Si es texto o RTF, lo tratamos como texto para Gemini
-            if (type.includes('text') || extension === 'rtf' || extension === 'txt' || extension === 'md') {
-                const text = await blob.text();
-                // Limpieza básica de RTF (rudimentaria)
-                const cleanText = extension === 'rtf' ? text.replace(/\\([a-z]{1,32})(-?\d+)? ?/g, '').replace(/\{|\}/g, '') : text;
-                
-                return {
-                    type: 'text',
-                    platform: 'dropbox',
-                    content: cleanText,
-                    metadata: { url, title: directUrl.split('/').pop().split('?')[0] },
-                    sourceType: 'description'
-                };
-            }
-
-            // Si es imagen o PDF, lo devolvemos como archivo para OCR/Vision
-            return {
-                type: 'file',
-                platform: 'dropbox',
-                content: blob,
-                metadata: { url, title: directUrl.split('/').pop().split('?')[0] },
-                sourceType: type.startsWith('image/') ? 'image' : 'pdf'
-            };
-        }
-    } catch (e) {
-        console.warn(`⚠️ [Dropbox] Fallo descarga directa (CORS?), usando proxy...`, e);
-    }
-
-    // Usamos el Supabase Engine v33 (Proxy para evitar CORS) si el directo falla
-    return await this.supabaseProxyImport(directUrl, 'dropbox');
-  }
-
-  /**
-   * Importar desde YouTube
-   */
-  static async importFromYouTube(url) {
-    console.log(`📥 [YouTube] Intentando importar...`);
-    const videoId = this.extractYouTubeVideoId(url);
-    if (!videoId) throw new Error('ID de video de YouTube no válido');
-    console.log(`🔄 [YouTube] Video ID: ${videoId}`);
-
-    try {
-        // En este proyecto usamos Supabase como backend
-        return await this.supabaseProxyImport(url, 'youtube');
-    } catch (error) {
-        console.warn(`⚠️ [YouTube] API respondió error, usando fallback...`);
-        return await this.youTubeFallback(url, videoId);
-    }
-  }
-
-  /**
-   * Importar desde TikTok
-   */
-  static async importFromTikTok(url) {
-    console.log(`📥 [TikTok] Intentando importar...`);
-    try {
-        return await this.supabaseProxyImport(url, 'tiktok');
-    } catch (error) {
-        console.warn(`⚠️ [TikTok] API respondió error, usando fallback...`);
-        return await this.tiktokFallback(url);
-    }
-  }
-
-  /**
-   * Supabase Proxy Import - El motor real que hace el scraping.
-   */
-  static async supabaseProxyImport(url, platform) {
-    const SUPABASE_URL = window.SUPABASE_URL || 'https://fsgfrqrerddmopojjcsw.supabase.co';
-    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
-
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/fetch-url`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ url })
-    });
-
-    if (!response.ok) {
-        throw new Error(`API respondió ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log(`✅ [${platform.charAt(0).toUpperCase() + platform.slice(1)}] Proxy Metadata:`, data.error ? data.error : 'OK');
-
-    // Si ya está estructurado por el servidor
-    if (data.isStructured && data.recipe) {
-        return {
-            type: 'structured',
-            platform: platform,
-            content: data.recipe,
-            metadata: { url, title: data.recipe.nombre },
-            sourceType: 'ai-server'
-        };
-    }
-
-    // Si devuelve un archivo (PDF/Imagen) para OCR local
-    if (data.downloadUrl && platform !== 'youtube' && platform !== 'tiktok') {
-        const fileRes = await fetch(data.downloadUrl);
-        const blob = await fileRes.blob();
-        return {
-            type: 'file',
-            platform: platform,
-            content: blob,
-            metadata: { url, title: data.title || platform },
-            sourceType: blob.type.startsWith('image/') ? 'image' : 'pdf'
-        };
-    }
-
-    // Si devuelve texto (Descripción/Subtítulos) para IA local
-    if (data.content || data.description) {
-        const textContent = data.content || (data.title ? `Título: ${data.title}\n\n${data.description}` : data.description);
-        return {
-            type: 'text',
-            platform: platform,
-            content: textContent,
-            metadata: { url, title: data.title || platform },
-            sourceType: data.subtitles ? 'subtitles' : 'description'
-        };
-    }
-
-    throw new Error("No se detectó contenido para extraer.");
-  }
-
-  /**
-   * Fallback para YouTube: enviar URL a Gemini directamente
-   */
-  static async youTubeFallback(url, videoId) {
-    console.log(`🔄 [YouTube] Fallback: enviando prompt de texto a Gemini...`);
-    return {
-      type: 'text',
-      platform: 'youtube',
-      content: `[SISTEMA: El motor de extracción falló. NO ALUCINES. Si no conoces la receta exacta de este video específico (${url}), responde simplemente con el nombre del video si lo sabes, y dile al usuario que no pudiste extraer los ingredientes automáticamente y que los ingrese a mano. No inventes ingredientes.]\n\nExtraer receta del video: ${url}`,
-      metadata: { url, title: `YouTube Video (${videoId})` },
-      sourceType: 'description'
-    };
-  }
-
-  /**
-   * Fallback para TikTok
-   */
-  static async tiktokFallback(url) {
-    console.log(`🔄 [TikTok] Fallback: enviando prompt de texto a Gemini...`);
-    return {
-      type: 'text',
-      platform: 'tiktok',
-      content: `[SISTEMA: El motor de extracción falló. NO ALUCINES. Si no conoces la receta exacta del TikTok (${url}), pide al usuario que pegue el texto manualmente. No inventes ingredientes.]\n\nExtrae la receta del TikTok: ${url}`,
-      metadata: { url, title: 'TikTok Video' },
-      sourceType: 'description'
-    };
-  }
-
-  /**
-   * Extraer VIDEO_ID de YouTube
-   */
-  static extractYouTubeVideoId(url) {
-    const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
   }
 }
 

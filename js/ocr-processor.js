@@ -86,17 +86,30 @@ class OCRProcessor {
         }
 
         const prompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
-You will receive OCR text extracted from a recipe photo. This text may contain errors.
-Your job is to reconstruct the recipe with 100% accuracy in Spanish.
+You will receive OCR text extracted from a recipe photo, or scraped text from a webpage/video. This text may contain errors.
+Your job is to structure the recipe with 100% accuracy in Spanish strictly into the required JSON format.
 
 Rules:
 - Fix common OCR misreads (1/2, 1/4, 3/4, g, ml, etc.)
-- Ingredients: quantity + unit + name
-- Steps: dry, clear sentences
-- Default to 4 servings
-- Return ONLY JSON
+- Ingredients must be an array of objects: { "cantidad": "string", "unidad": "string", "nombre": "string" }
+- Steps must be an array of strings.
+- Default to 4 servings if unspecified.
+- If any information is missing, do NOT omit the key. Use null (for properties) or an empty array [] (for lists).
+- Return ONLY valid JSON and nothing else.
 
-OCR TEXT:
+REQUIRED JSON STRUCTURE:
+{
+  "nombre": "string",
+  "porciones": 4,
+  "ingredientes": [
+    { "cantidad": "1", "unidad": "kilo", "nombre": "lomo de cerdo" }
+  ],
+  "pasos": [
+    "string"
+  ]
+}
+
+TEXT TO STRUCTURE:
 ${cleanedText}`;
 
         const apiKey = getOpenRouterKey();
