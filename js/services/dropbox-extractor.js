@@ -17,71 +17,41 @@ export async function extractFromDropbox(dropboxUrl) {
     const downloadUrl = convertToDownloadUrl(dropboxUrl);
     console.log(`📥 [Dropbox] URL de descarga: ${downloadUrl}`);
     
-    // Descargar el archivo
-    console.log('⬇️ [Dropbox] Descargando archivo...');
-    const fileResponse = await fetch(downloadUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    // v457: Descargar el archivo a través del PROXY para evitar CORS
+    console.log('⬇️ [Dropbox] Descargando archivo vía Proxy...');
+    const proxyUrl = `/api/dropbox-metadata?url=${encodeURIComponent(downloadUrl)}&content=true`;
+    
+    const fileResponse = await fetch(proxyUrl);
     
     if (!fileResponse.ok) {
-      throw new Error(`Error descargando archivo: HTTP ${fileResponse.status}`);
+      throw new Error(`Error descargando archivo vía proxy: HTTP ${fileResponse.status}`);
     }
     
-    console.log('✅ [Dropbox] Archivo descargado exitosamente');
+    const proxyData = await fileResponse.json();
+    if (!proxyData.success || !proxyData.content) {
+      throw new Error(proxyData.error || 'No se pudo obtener el contenido del archivo vía proxy');
+    }
+
+    console.log('✅ [Dropbox] Archivo obtenido exitosamente vía Proxy');
     
-    // Procesar según tipo de archivo
+    // v457: Procesar según tipo de archivo usando CONTENIDO DEL PROXY (CORS-friendly)
     let content = '';
     
     if (fileType === 'rtf') {
-      // Archivo RTF (Rich Text Format)
-      const rtfText = await fileResponse.text();
-      content = extractTextFromRTF(rtfText);
+      content = extractTextFromRTF(proxyData.content);
       console.log('✅ [Dropbox] Texto extraído de RTF');
-      
-    } else if (fileType === 'txt') {
-      // Archivo de texto plano
-      content = await fileResponse.text();
-      console.log('✅ [Dropbox] Contenido TXT extraído');
-      
-    } else if (fileType === 'docx') {
-      // Archivo Word (.docx)
-      const arrayBuffer = await fileResponse.arrayBuffer();
-      const { extractTextFromDocx } = await import('../utils/docx-parser.js');
-      content = await extractTextFromDocx(arrayBuffer);
-      console.log('✅ [Dropbox] Contenido DOCX extraído');
-      
-    } else if (fileType === 'pdf') {
-      // Archivo PDF - enviar a Gemini Vision
-      const blob = await fileResponse.blob();
-      const base64Pdf = await blobToBase64(blob);
-      return await extractFromPdfWithVision(base64Pdf, downloadUrl, fileName);
-      
     } else if (['jpg', 'png', 'jpeg', 'gif', 'webp'].includes(fileType)) {
-      // Imagen - usar OCR con Gemini Vision
-      const blob = await fileResponse.blob();
-      const base64Image = await blobToBase64(blob);
+      // Imagen - usar Gemini Vision OCR
       const mimeType = `image/${fileType === 'jpg' ? 'jpeg' : fileType}`;
-      return await extractFromImageWithVision(base64Image, mimeType, downloadUrl, fileName);
-      
-    } else if (fileType === 'csv') {
-      // Archivo CSV
-      content = await fileResponse.text();
-      console.log('✅ [Dropbox] Contenido CSV extraído');
-      
-    } else if (['xls', 'xlsx'].includes(fileType)) {
-      // Archivo Excel
-      const arrayBuffer = await fileResponse.arrayBuffer();
-      const { extractTextFromXlsx } = await import('../utils/xlsx-parser.js');
-      content = await extractTextFromXlsx(arrayBuffer);
-      console.log('✅ [Dropbox] Contenido XLSX extraído');
-      
+      return await extractFromImageWithVision(proxyData.content, mimeType, downloadUrl, fileName);
+    } else if (fileType === 'docx') {
+      // Word: el proxy ya nos dio el texto o base64
+      content = proxyData.content;
+      console.log('✅ [Dropbox] Contenido DOCX obtenido vía Proxy');
     } else {
-      // Tipo de archivo no soportado, intentar como texto
-      console.warn(`⚠️ [Dropbox] Tipo desconocido: ${fileType}, intentando como texto...`);
-      content = await fileResponse.text();
+      // TXT, CSV u otros
+      content = proxyData.content;
+      console.log(`✅ [Dropbox] Contenido ${fileType.toUpperCase()} obtenido vía Proxy`);
     }
     
     if (!content || content.trim().length === 0) {
