@@ -315,7 +315,51 @@
       <button class="fab-m3" onclick="window.location.href='/recipe-form'" aria-label="Nueva Receta">
         <span class="material-symbols-outlined">add</span>
       </button>
+
+      <!-- Pantalla de Ayuda / Instalación PWA (Generado por JS) -->
+      <div id="helpView" class="hidden" style="padding: 0 16px; margin-top: 16px;"></div>
     </main>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="share-modal" class="modal-overlay hidden">
+    <div class="share-modal-container">
+      <div class="modal-header">
+        <div class="header-info">
+          <h3 id="share-modal-title">Administrar permisos</h3>
+          <p id="share-modal-size" class="text-secondary"></p>
+        </div>
+        <button class="btn-close-modal" onclick="window.shareModal.close()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="search-section">
+          <div class="chip-input-container">
+            <div id="selected-users-chips" class="chips-list" style="display: none;"></div>
+            <input type="text" id="user-search-input" placeholder="Buscar por nombre o correo..." autocomplete="off">
+          </div>
+          <div id="search-suggestions" class="search-suggestions hidden"></div>
+        </div>
+        
+        <button id="btn-share-submit" class="btn-share-main" style="display: none; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="margin-right: 8px;">share</span> Compartir
+        </button>
+
+        <div class="permission-section">
+          <label style="font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 12px; display: block;">Personas con acceso</label>
+          <div id="shares-list" style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="text-align:center; padding:12px; opacity:0.6;">Cargando personas...</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-copy-link" onclick="if(window.shareModal.recipeId) window.dashboard.copyLink(window.shareModal.recipeId)">
+          <span class="material-symbols-outlined">link</span>
+          Copiar enlace
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->
