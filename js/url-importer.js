@@ -3,11 +3,11 @@
  * Orquesta la extracción de contenido y maneja errores sin romper el flujo principal.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=470';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=470';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=470';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=470';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=470';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=474';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=474';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=474';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=474';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=474';
 
 export async function importFromUrl(url, lang = 'spa') {
   try {

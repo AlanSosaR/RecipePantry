@@ -19,16 +19,24 @@ export default async function handler(req, res) {
     if (!response.ok) throw new Error(`TikTok fetch failed: ${response.status}`);
     const html = await response.text();
 
-    // Fast Regex Metadata (No Cheerio)
-    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="(.*?)"/i);
-    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="(.*?)"/i);
+    // Helper for flexible attribute order in meta tags
+    const findMeta = (tag) => {
+      const re1 = new RegExp(`<meta[^>]+property=["']${tag}["'][^>]+content=["'](.*?)["']`, 'i');
+      const re2 = new RegExp(`<meta[^>]+content=["'](.*?)["'][^>]+property=["']${tag}["']`, 'i');
+      const re3 = new RegExp(`<meta[^>]+name=["']${tag}["'][^>]+content=["'](.*?)["']`, 'i');
+      const m1 = html.match(re1); if (m1) return m1[1];
+      const m2 = html.match(re2); if (m2) return m2[1];
+      const m3 = html.match(re3); if (m3) return m3[1];
+      return null;
+    };
+
+    let title = findMeta('og:title') || 'TikTok Video';
+    let caption = findMeta('og:description') || findMeta('description') || '';
     
-    let title = (ogTitleMatch ? ogTitleMatch[1] : 'TikTok Video');
-    let caption = (ogDescMatch ? ogDescMatch[1] : '');
-    
-    // Clean HTML entities
-    title = title.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
-    caption = caption.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    // Clean HTML entities efficiently
+    const clean = (s) => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    title = clean(title);
+    caption = clean(caption);
 
     const creator = title.split(' | ')[0] || '';
 
@@ -36,7 +44,7 @@ export default async function handler(req, res) {
       success: true,
       caption,
       creator,
-      hashtags: [] // Simplified for now to avoid complex parsing
+      hashtags: [] 
     });
   } catch (error) {
     console.error('❌ Error fetching TikTok metadata:', error);

@@ -22,18 +22,37 @@ export default async function handler(req, res) {
     
     const html = await response.text();
     
-    // Robust Regex extraction for Metadata (No Cheerio needed)
-    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="(.*?)"/i);
-    const descMatch = html.match(/<meta\s+name="description"\s+content="(.*?)"/i);
-    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="(.*?)"/i);
+    // Helper to find content in a tag by property/name with flexible attribute order
+    const findMeta = (tag) => {
+      // Regex 1: <meta ... property="{tag}" ... content="{value}" ...>
+      const re1 = new RegExp(`<meta[^>]+property=["']${tag}["'][^>]+content=["'](.*?)["']`, 'i');
+      // Regex 2: <meta ... content="{value}" ... property="{tag}" ...>
+      const re2 = new RegExp(`<meta[^>]+content=["'](.*?)["'][^>]+property=["']${tag}["']`, 'i');
+      // Regex 3: <meta ... name="{tag}" ... content="{value}" ...>
+      const re3 = new RegExp(`<meta[^>]+name=["']${tag}["'][^>]+content=["'](.*?)["']`, 'i');
+      
+      const m1 = html.match(re1); if (m1) return m1[1];
+      const m2 = html.match(re2); if (m2) return m2[1];
+      const m3 = html.match(re3); if (m3) return m3[1];
+      return null;
+    };
+
+    let title = findMeta('og:title') || (html.match(/<title>(.*?)<\/title>/i)?.[1] || 'YouTube Video');
+    let description = findMeta('og:description') || findMeta('description') || '';
     
-    let title = (ogTitleMatch ? ogTitleMatch[1] : (titleMatch ? titleMatch[1] : 'YouTube Video'));
-    let description = (ogDescMatch ? ogDescMatch[1] : (descMatch ? descMatch[1] : ''));
-    
-    // Clean HTML entities if any
-    title = title.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
-    description = description.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    // v474: Intentar capturar la descripción COMPLETA de ytInitialData
+    const shortDescMatch = html.match(/"shortDescription":"(.*?)"/);
+    if (shortDescMatch) {
+      const fullDesc = shortDescMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      if (fullDesc.length > description.length) {
+        description = fullDesc;
+      }
+    }
+
+    // Clean HTML entities
+    const clean = (s) => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    title = clean(title);
+    description = clean(description);
 
     return res.status(200).json({
       success: true,

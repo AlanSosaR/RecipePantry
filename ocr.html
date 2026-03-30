@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="459">
+<html lang="es" data-app-version="v474">
 
 <head>
     <meta charset="utf-8" />
@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v473';
+            const VERSION = 'v474';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v473...');
+                console.log('☢️ NUCLEAR PURGE v474...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -46,7 +46,7 @@
     </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- CONSOLE CLEANER v473 -->
+    <!-- CONSOLE CLEANER v474 -->
     <script>
         (function() {
             const noiseFilters = [
@@ -77,8 +77,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=450">
-    <link rel="stylesheet" href="css/components.css?v=450">
+    <link rel="stylesheet" href="css/styles.css?v=474">
+    <link rel="stylesheet" href="css/components.css?v=474">
     <!-- ocr.css removed because it was a 404 and styles are inline -->
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
@@ -91,19 +91,19 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v473 (Single Load) -->
-    <script src="js/config.js?v=470"></script>
-    <script src="js/supabase-client.js?v=470"></script>
-    <script src="js/utils.js?v=470"></script>
-    <script src="js/i18n.js?v=470"></script>
-    <script src="js/auth.js?v=470"></script>
-    <script src="js/localdb.js?v=470"></script>
-    <script src="js/db.js?v=470"></script>
-    <script src="js/ui.js?v=470"></script>
-    <script src="js/ocr-processor.js?v=470"></script>
-    <script src="js/ocr.js?v=470"></script>
-    <script type="module" src="js/url-importer.js?v=470"></script>
-    <script src="js/sw-register.js?v=470"></script>
+    <!-- CORE SCRIPTS v474 (Single Load) -->
+    <script src="js/config.js?v=474"></script>
+    <script src="js/supabase-client.js?v=474"></script>
+    <script src="js/utils.js?v=474"></script>
+    <script src="js/i18n.js?v=474"></script>
+    <script src="js/auth.js?v=474"></script>
+    <script src="js/localdb.js?v=474"></script>
+    <script src="js/db.js?v=474"></script>
+    <script src="js/ui.js?v=474"></script>
+    <script src="js/ocr-processor.js?v=474"></script>
+    <script src="js/ocr.js?v=474"></script>
+    <script type="module" src="js/url-importer.js?v=474"></script>
+    <script src="js/sw-register.js?v=474"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -446,27 +446,35 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* MODO URL: Plano y sin efectos */
+        /* MODO URL: Plano y sin efectos (v474 REFORZADO) */
         #ocrPreviewContainer.is-url-preview {
             box-shadow: none !important;
+            filter: none !important;
             border: 1px solid var(--border) !important;
-            padding: 48px 24px !important;
+            padding: 56px 24px !important;
             background: var(--surface) !important;
+            transform: none !important;
         }
 
         #ocrPreviewContainer.is-url-preview .scanning-line,
-        #ocrPreviewContainer.is-url-preview #ocrGlassOverlay {
+        #ocrPreviewContainer.is-url-preview #ocrGlassOverlay,
+        #ocrPreviewContainer.is-url-preview ::before,
+        #ocrPreviewContainer.is-url-preview ::after {
             display: none !important;
             animation: none !important;
             opacity: 0 !important;
+            visibility: hidden !important;
+            content: none !important;
         }
 
         #ocrPreviewContainer.is-url-preview img {
-            max-width: 110px !important;
+            max-width: 100px !important;
             filter: none !important;
             box-shadow: none !important;
             border: none !important;
             transform: none !important;
+            margin: 0 auto !important;
+            display: block !important;
         }
 
         #ocrGlassOverlay {
@@ -1366,23 +1374,23 @@
                 showLoading(true);
                 showNotification('🔄 Extrayendo contenido...', 'info');
                 
-                // Mostrar UI de procesamiento (Step 2)
-                if (typeof goToStep === 'function') goToStep(2);
-
-                // v473: Previsualización inicial (Icono Local assets/link.svg)
+                // v474: Primero setear imagen para que goToStep la detecte antes de activar la UI
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'assets/link.svg?v=470';
+                    previewImg.src = 'assets/link.svg?v=474';
                     previewImg.style.display = 'block';
                 }
+                
+                // Mostrar UI de procesamiento (Step 2) DESPUÉS de setear la imagen
+                if (typeof goToStep === 'function') goToStep(2);
 
                 // 1. IMPORTAR DESDE URL
                 const imported = await URLImporter.import(url, window.selectedOcrLang || 'spa');
                 console.log(`✅ [handleUrlImport] Importación completada:`, imported);
 
-                // v473: Actualizar Previsualización según plataforma
+                // v474: Actualizar Previsualización según plataforma
                 if (previewImg && imported) {
-                    let thumbnailUrl = 'assets/link.svg?v=470';
+                    let thumbnailUrl = 'assets/link.svg?v=474';
                     
                     if (imported.platform === 'youtube') {
                         const vid = url.match(/(?:v=|v\/|vi\/|u\/\w\/|embed\/|shorts\/|youtu.be\/|be\/)([a-zA-Z0-9_-]{11})/);
@@ -1392,11 +1400,11 @@
                     } else if (imported.type === 'file' && imported.content.type.startsWith('image/')) {
                         thumbnailUrl = URL.createObjectURL(imported.content);
                     } else if (imported.platform === 'dropbox') {
-                        thumbnailUrl = 'assets/link.svg?v=470';
+                        thumbnailUrl = 'assets/link.svg?v=474';
                     }
 
                     previewImg.src = thumbnailUrl;
-                    previewImg.onerror = () => { previewImg.src = 'assets/link.svg?v=470'; };
+                    previewImg.onerror = () => { previewImg.src = 'assets/link.svg?v=474'; };
                 }
 
                 // 2. PROCESAR SEGÚN TIPO
