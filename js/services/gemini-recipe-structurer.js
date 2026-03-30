@@ -55,8 +55,14 @@ export async function structureRecipeFromText(content, lang = 'spa') {
   try {
     // Definir idioma objetivo basado en 'lang'
     if (!content || content.length < 50) {
-      console.warn('⚠️ [Gemini] Contenido demasiado corto o sospechoso para procesar:', content);
-      throw new Error('Contenido insuficiente para extraer una receta (YouTube podría estar bloqueando el acceso).');
+      console.warn('⚠️ [Gemini] Contenido sospechosamente corto para estructurar:', content);
+      return {
+        success: false,
+        error: 'Insufficient content for structured extraction',
+        stage: 'gemini_structuring',
+        fallbackAttempted: true,
+        partialData: content
+      };
     }
 
     const targetLang = (lang === 'eng' || lang === 'en') ? 'ENGLISH' : 'SPANISH (Español)';

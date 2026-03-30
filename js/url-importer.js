@@ -3,11 +3,11 @@
  * Orquesta la extracción de contenido y maneja errores sin romper el flujo principal.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=481';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=481';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=481';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=481';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=481';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=482';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=482';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=482';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=482';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=482';
 
 export async function importFromUrl(url, lang = 'spa') {
   try {
@@ -116,12 +116,12 @@ export async function importFromUrl(url, lang = 'spa') {
       };
     }
     
-    // Validar caída oficial de IA
+    // Validar caída oficial de IA (v482: Tratar como éxito parcial de Raw Text)
     if (!structureResult.success) {
-      console.warn(`⚠️ [URLImporter] Estructuración IA fallida. Devolviendo texto crudo para UI.`);
+      console.warn(`⚠️ [URLImporter] Estructuración IA omitida o fallida. Devolviendo texto crudo.`);
       return {
         success: true, 
-        content: structureResult.partialData || extractionResult.content, // Fallback usable para el usuario
+        content: structureResult.partialData || extractionResult.content,
         warning: structureResult.error || 'La IA no pudo procesar el contenido.',
         platform,
         sourceUrl: url,

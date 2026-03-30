@@ -42,7 +42,7 @@ export async function extractFromYouTube(videoUrl) {
           if (title.toLowerCase().includes('- youtube')) title = '';
         }
 
-        console.log(`📊 [YouTube] Metadatos v478: Title(${title.length}), Desc(${description.length})`);
+        console.log(`📊 [YouTube] Metadatos v482: Title(${title.length}), Desc(${description.length})`);
       } else {
         console.error(`❌ [YouTube] Error en API de Metadatos: ${metaResp.status}`);
       }
@@ -98,7 +98,20 @@ export async function extractFromYouTube(videoUrl) {
     const content = contentParts.join('\n\n');
     
     if (!content) {
-      throw new Error('No se pudo extraer ningún contenido del video de YouTube');
+      console.warn('⚠️ [YouTube] Extracción mínima fallida. Intentando retornar al menos el título.');
+      if (title) {
+        return {
+          type: 'video',
+          platform: 'youtube',
+          title: title,
+          description: '',
+          content: `Título: ${title}`,
+          sourceUrl: videoUrl,
+          success: true,
+          isLowContent: true
+        };
+      }
+      throw new Error('No se pudo extraer ningún contenido (ni título) del video de YouTube');
     }
     
     return {
