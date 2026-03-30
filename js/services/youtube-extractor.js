@@ -26,6 +26,9 @@ export async function extractFromYouTube(videoUrl) {
         const meta = await metaResp.json();
         title = meta.title || '';
         description = meta.description || '';
+        console.log(`📊 [YouTube] Metadatos obtenidos: Title(${title.length}), Desc(${description.length})`);
+      } else {
+        console.error(`❌ [YouTube] Error en API de Metadatos: ${metaResp.status}`);
       }
     } catch (e) {
       console.warn('⚠️ [YouTube] Error al obtener metadatos del servidor:', e);
@@ -42,6 +45,9 @@ export async function extractFromYouTube(videoUrl) {
       if (transcriptResp.ok) {
         const data = await transcriptResp.json();
         transcript = data.transcript;
+        console.log(`📜 [YouTube] Transcripción obtenida: ${transcript ? transcript.length : 0} caracteres`);
+      } else {
+        console.warn(`⚠️ [YouTube] Falló Transcripción: ${transcriptResp.status}`);
       }
     } catch (e) {
       console.warn('⚠️ [YouTube] No se pudo obtener la transcripción:', e);
