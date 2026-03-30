@@ -296,7 +296,24 @@
       <div class="dashboard-header">
         <div class="header-main-group">
           <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
+          <span id="selectionCountText" class="selection-count-text hidden"></span>
         </div>
+
+        <div class="header-actions-group">
+          <div id="selectionActionsGroup" class="selection-actions-group hidden">
+            <label class="m3-checkbox-wrapper" title="Seleccionar todo">
+              <input type="checkbox" id="selectAllCheckboxTop" class="m3-checkbox-input" onclick="window.dashboard.handleSelectAll(event)">
+              <span class="m3-checkbox-visual"></span>
+            </label>
+
+            <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
+              <span class="material-symbols-outlined">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Selection Overflow Menu Anchor -->
+        <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden" style="top: 48px; right: 0;"></div>
       </div>
 
       <div id="recipesGrid" class="recipes-grid">
