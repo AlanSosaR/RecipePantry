@@ -7,7 +7,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function test() {
     console.log('Testing query...');
-    const userId = 'cf5ee75b-7182-v4723-a8a0-fbeae25f4c61';
+    const userId = 'cf5ee75b-7182-v4733-a8a0-fbeae25f4c61';
 
     let query = supabase
         .from('recipes')

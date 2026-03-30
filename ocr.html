@@ -24,12 +24,12 @@
     </script>
     <title data-i18n="ocrTitle">Escanear Receta - Recipe Pantry</title>
 
-    <!-- NUCLEAR CACHE PURGE v472 (Consolidated) -->
+    <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v472';
+            const VERSION = 'v473';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v472...');
+                console.log('☢️ NUCLEAR PURGE v473...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -46,7 +46,7 @@
     </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- CONSOLE CLEANER v472 -->
+    <!-- CONSOLE CLEANER v473 -->
     <script>
         (function() {
             const noiseFilters = [
@@ -91,7 +91,7 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v472 (Single Load) -->
+    <!-- CORE SCRIPTS v473 (Single Load) -->
     <script src="js/config.js?v=470"></script>
     <script src="js/supabase-client.js?v=470"></script>
     <script src="js/utils.js?v=470"></script>
@@ -437,25 +437,36 @@
             position: relative;
             width: 100%;
             max-width: 600px;
-            border-radius: 20px;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1); /* Reducida de 25px/50px */
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1); /* Sombra más suave por defecto */
             margin: 0 auto 24px auto;
             background: #fff;
             border: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* MODO URL: Plano y sin efectos */
         #ocrPreviewContainer.is-url-preview {
             box-shadow: none !important;
-            border: 1px solid var(--border);
-            padding: 40px 20px;
-            background: var(--md-surface-variant);
+            border: 1px solid var(--border) !important;
+            padding: 48px 24px !important;
+            background: var(--surface) !important;
         }
 
         #ocrPreviewContainer.is-url-preview .scanning-line,
         #ocrPreviewContainer.is-url-preview #ocrGlassOverlay {
             display: none !important;
+            animation: none !important;
+            opacity: 0 !important;
+        }
+
+        #ocrPreviewContainer.is-url-preview img {
+            max-width: 110px !important;
+            filter: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            transform: none !important;
         }
 
         #ocrGlassOverlay {
@@ -1338,7 +1349,7 @@
 
 
         // ═══════════════════════════════════════════════════
-        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v472)
+        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v473)
         // ═══════════════════════════════════════════════════
 
         window.handleUrlImport = async function() {
@@ -1358,7 +1369,7 @@
                 // Mostrar UI de procesamiento (Step 2)
                 if (typeof goToStep === 'function') goToStep(2);
 
-                // v472: Previsualización inicial (Icono Local assets/link.svg)
+                // v473: Previsualización inicial (Icono Local assets/link.svg)
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
                     previewImg.src = 'assets/link.svg?v=470';
@@ -1369,7 +1380,7 @@
                 const imported = await URLImporter.import(url, window.selectedOcrLang || 'spa');
                 console.log(`✅ [handleUrlImport] Importación completada:`, imported);
 
-                // v472: Actualizar Previsualización según plataforma
+                // v473: Actualizar Previsualización según plataforma
                 if (previewImg && imported) {
                     let thumbnailUrl = 'assets/link.svg?v=470';
                     
@@ -1479,7 +1490,7 @@
         async function processTextWithGemini(text, metadata) {
             console.log(`✏️ [processTextWithGemini] Extrayendo receta de texto...`);
             
-            // v472: Enriquecer prompt para evitar alucinaciones
+            // v473: Enriquecer prompt para evitar alucinaciones
             let enrichedText = text;
             if (metadata && metadata.url) {
                 enrichedText = `URL DE ORIGEN: ${metadata.url}\nCONTENIDO EXTRAÍDO:\n${text}\n\nINSTRUCCIÓN: Extrae ÚNICAMENTE la receta descrita en el video o texto de arriba. Si el contenido no tiene una receta clara, responde con {"error": "No se encontró receta"}.`;
@@ -1610,14 +1621,25 @@
 
         function goToStep(step) {
             const container = document.getElementById('ocrPreviewContainer');
-            
-            // Si estamos en Step 2 y la fuente es una URL (link.svg), activar modo plano
             const previewImg = document.getElementById('ocrPreview');
-            const isUrl = previewImg && previewImg.src.includes('link.svg');
+            
+            // Detectar si es una URL/Imagen estática (No cámara)
+            // Si el src incluye youtube, tiktok, google, dropbox o es link.svg
+            const isUrlSource = previewImg && (
+                previewImg.src.includes('link.svg') || 
+                previewImg.src.includes('ytimg.com') || 
+                previewImg.src.includes('tiktok') || 
+                previewImg.src.includes('google') || 
+                previewImg.src.includes('dropbox') ||
+                !previewImg.src.startsWith('blob:') // Las fotos de cámara suelen ser blobs
+            );
             
             if (container) {
-                if (isUrl) container.classList.add('is-url-preview');
-                else container.classList.remove('is-url-preview');
+                if (isUrlSource && step === 2) {
+                    container.classList.add('is-url-preview');
+                } else {
+                    container.classList.remove('is-url-preview');
+                }
             }
             
             document.querySelectorAll('.ocr-step').forEach(s => s.classList.remove('active'));

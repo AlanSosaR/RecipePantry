@@ -1,12 +1,12 @@
 /**
- * RecipePantry Service Worker (v472) - PASSIVE
+ * RecipePantry Service Worker (v473) - PASSIVE
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipe-pantry-v472';
-const BUILD_ID = 'v472';
-const STATIC_CACHE = 'static-v472';
-const DATA_CACHE = 'data-v472';
+const CACHE_NAME = 'recipe-pantry-v473';
+const BUILD_ID = 'v473';
+const STATIC_CACHE = 'static-v473';
+const DATA_CACHE = 'data-v473';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -62,7 +62,7 @@ const createErrorResponse = (message, status = 503) => {
 
 // 1. Instalación: Pre-caché
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // v472: Forzar actualización inmediata
+    self.skipWaiting(); // v473: Forzar actualización inmediata
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
@@ -71,7 +71,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. Activación: Limpieza y Reclamo (v472)
+// 2. Activación: Limpieza y Reclamo (v473)
 self.addEventListener('activate', (event) => {
     console.log(`[SW] Activado (v${BUILD_ID})`);
     event.waitUntil(
@@ -97,7 +97,7 @@ self.addEventListener('fetch', (event) => {
 
     if (!request.url.startsWith('http')) return;
 
-    // v472: SIEMPRE intentar Red Primero para index.html y ocr.html
+    // v473: SIEMPRE intentar Red Primero para index.html y ocr.html
     const isNavigation = (request.mode === 'navigate' || 
                           url.pathname.endsWith('/') || 
                           url.pathname.endsWith('index.html') || 

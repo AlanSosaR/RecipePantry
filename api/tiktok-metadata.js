@@ -1,6 +1,4 @@
 // api/tiktok-metadata.js - Vercel Serverless Function
-import * as cheerio from 'cheerio';
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -20,24 +18,25 @@ export default async function handler(req, res) {
 
     if (!response.ok) throw new Error(`TikTok fetch failed: ${response.status}`);
     const html = await response.text();
-    const $ = cheerio.load(html);
 
-    // Get metadata from OG tags
-    const caption = $('meta[property="og:description"]').attr('content') || '';
-    const title = $('meta[property="og:title"]').attr('content') || '';
+    // Fast Regex Metadata (No Cheerio)
+    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="(.*?)"/i);
+    const ogDescMatch = html.match(/<meta\s+property="og:description"\s+content="(.*?)"/i);
+    
+    let title = (ogTitleMatch ? ogTitleMatch[1] : 'TikTok Video');
+    let caption = (ogDescMatch ? ogDescMatch[1] : '');
+    
+    // Clean HTML entities
+    title = title.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    caption = caption.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+
     const creator = title.split(' | ')[0] || '';
-
-    // Get hashtags from the HTML if possible
-    const hashtags = [];
-    $('a[href*="/tag/"]').each((i, el) => {
-      hashtags.push($(el).text());
-    });
 
     return res.status(200).json({
       success: true,
       caption,
       creator,
-      hashtags
+      hashtags: [] // Simplified for now to avoid complex parsing
     });
   } catch (error) {
     console.error('❌ Error fetching TikTok metadata:', error);
