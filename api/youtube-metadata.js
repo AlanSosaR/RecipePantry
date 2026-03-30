@@ -1,4 +1,6 @@
-// api/youtube-metadata.js - Vercel Serverless Function
+// api/youtube-metadata.js (v487)
+import { getFromInvidious } from './youtube-invidious-fallback.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -11,7 +13,7 @@ export default async function handler(req, res) {
   if (!videoId) return res.status(400).json({ error: 'videoId is required' });
 
   try {
-    // v476: Primero intentamos oEmbed para asegurar el Título Real (Casi nunca se bloquea)
+    // 1. oEmbed Fallback (Casi nunca se bloquea)
     let oembedTitle = '';
     try {
       const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
@@ -19,25 +21,47 @@ export default async function handler(req, res) {
       if (oembedResp.ok) {
         const oembedData = await oembedResp.json();
         oembedTitle = oembedData.title || '';
-        console.log(`✅ [oEmbed] Título recuperado: ${oembedTitle}`);
       }
     } catch (e) {
       console.warn('⚠️ [oEmbed] Error fallback:', e.message);
     }
 
-    const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-        'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+413'
+    // 2. Fetch con HEADERS REALISTAS y RETRY EXPONENCIAL
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'es-ES,es;q=0.9',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+      'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+413'
+    };
+
+    let html = '';
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        console.log(`🔄 [Metadata] Intento ${attempt + 1}/3 para ${videoId}`);
+        const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { headers });
+        
+        if (!response.ok) {
+          if (attempt < 2) {
+            const delay = Math.pow(2, attempt) * 1000;
+            console.log(`⏳ Status ${response.status}. Esperando ${delay}ms...`);
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        html = await response.text();
+        console.log(`✅ [Metadata] Headers mejorados funcionaron (v487)`);
+        break;
+      } catch (error) {
+        if (attempt === 2) throw error;
       }
-    });
-    
-    if (!response.ok) throw new Error(`YouTube fetch failed: ${response.status}`);
-    
-    const html = await response.text();
-    
-    // Helper to find content in a tag by property/name with flexible attribute order
+    }
+
+    // 3. Procesar scraping de HTML
     const findMeta = (tag) => {
       const re1 = new RegExp(`<meta[^>]+property=["']${tag}["'][^>]+content=["'](.*?)["']`, 'i');
       const re2 = new RegExp(`<meta[^>]+content=["'](.*?)["'][^>]+property=["']${tag}["']`, 'i');
@@ -51,92 +75,53 @@ export default async function handler(req, res) {
     let title = oembedTitle || findMeta('og:title') || (html.match(/<title>(.*?)<\/title>/i)?.[1] || 'YouTube Video');
     let description = findMeta('og:description') || findMeta('description') || '';
     
-    // v474: Intentar capturar la descripción COMPLETA de ytInitialData
     const shortDescMatch = html.match(/"shortDescription":"(.*?)"/);
     if (shortDescMatch) {
       const fullDesc = shortDescMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
       if (fullDesc.length > description.length) description = fullDesc;
     }
 
-    // v480: Bypass Móvil - Si la descripción es basura, intentar con m.youtube.com
-    const isBotBlock = description.toLowerCase().includes('disfruta de los v') || 
-                       description.toLowerCase().includes('enjoy the videos') ||
-                       description.length < 50;
-
+    // Bypass Invidious si aún está bloqueado
+    const isBotBlock = description.toLowerCase().includes('disfruta de los v') || description.length < 50;
     if (isBotBlock) {
-      console.log('🔄 [YouTube] Bloqueo detectado en Desktop. Intentando bypass móvil...');
-      try {
-        const mobileResp = await fetch(`https://m.youtube.com/watch?v=${videoId}`, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-            'Accept-Language': 'es-MX,es;q=0.9',
-            'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+413'
-          }
+      console.log('🚀 [Metadata] Bloqueo total detectado. Activando Invidious Bypass Robusto...');
+      const invidiousResult = await getFromInvidious(videoId);
+      if (invidiousResult.success) {
+        title = invidiousResult.title || title;
+        description = invidiousResult.description || description;
+        return res.status(200).json({
+          success: true,
+          title,
+          description,
+          source: 'invidious-robust'
         });
-        if (mobileResp.ok) {
-          const mobileHtml = await mobileResp.text();
-          const mDescMatch = mobileHtml.match(/"shortDescription":"(.*?)"/);
-          if (mDescMatch) {
-            const mFullDesc = mDescMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
-            if (mFullDesc.length > 50 && !mFullDesc.toLowerCase().includes('disfruta de los v')) {
-              description = mFullDesc;
-              console.log('✅ [YouTube] Bypass móvil exitoso.');
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('⚠️ [YouTube] Error bypass móvil:', e.message);
       }
     }
-
-    // v481: Bypass Invidious API - Si aún es bloqueado, usar proxy externo
-    const stillBlocked = description.toLowerCase().includes('disfruta de los v') || description.length < 50;
-    if (stillBlocked) {
-      console.log('🚀 [YouTube] Bloqueo total. Usando Invidious API Fallback...');
-      try {
-        // Lista de instancias confiables
-        const instances = [
-          'https://invidious.projectsegfau.lt',
-          'https://inv.riverside.rocks',
-          'https://yewtu.be'
-        ];
-        
-        for (const inst of instances) {
-          try {
-            const invResp = await fetch(`${inst}/api/v1/videos/${videoId}`);
-            if (invResp.ok) {
-              const invData = await invResp.json();
-              if (invData.description && invData.description.length > 50) {
-                description = invData.description;
-                if (!title || title.includes('- YouTube')) title = invData.title;
-                console.log(`✅ [YouTube] Bypass Invidious exitoso (${inst}).`);
-                break;
-              }
-            }
-          } catch (err) { continue; }
-        }
-      } catch (e) {
-        console.warn('⚠️ [YouTube] Fallo total de bypass Invidious.', e.message);
-      }
-    }
-
-    const isGenericTitle = title.toLowerCase().includes('- youtube');
-    const finalBlockCheck = description.toLowerCase().includes('disfruta de los v') || description.length < 10;
 
     // Clean HTML entities
     const clean = (s) => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    title = clean(title);
-    description = clean(description);
-
+    
     return res.status(200).json({
       success: true,
-      title,
-      description,
-      isPotentialBlock: finalBlockCheck && isGenericTitle,
-      source: oembedTitle ? 'oembed+scrape' : 'scrape'
+      title: clean(title),
+      description: clean(description),
+      source: 'scrape-native'
     });
+
   } catch (error) {
-    console.error('❌ Error fetching YouTube metadata:', error);
-    return res.status(200).json({ success: false, error: error.message });
+    console.warn('❌ [Metadata] YouTube falló. Intentando Invidious Fallback (v487)...');
+    try {
+        const invidiousResult = await getFromInvidious(videoId);
+        if (invidiousResult.success) {
+            return res.status(200).json({
+                success: true,
+                title: invidiousResult.title,
+                description: invidiousResult.description,
+                source: 'invidious-emergency'
+            });
+        }
+    } catch (e) {}
+    return res.status(200).json({ success: false, error: 'Bypass fallido totalmente' });
   }
 }
+

@@ -10,10 +10,11 @@ export async function extractFromYouTube(videoUrl) {
     
     console.log(`📥 [YouTube] Procesando video ID: ${videoId}`);
 
-    // Intentar obtener metadatos (título y descripción)
+    // 1. Intentar obtener metadatos (título y descripción)
     let title = '';
     let description = '';
     let transcript = null;
+    let source = 'youtube-api';
 
     try {
       const metaResp = await fetch('/api/youtube-metadata', {
@@ -26,31 +27,23 @@ export async function extractFromYouTube(videoUrl) {
         const meta = await metaResp.json();
         title = meta.title || '';
         description = meta.description || '';
+        source = meta.source || 'scrape';
         
-        // v476-478: Filtrar contenido basura (Consent Page / Google Redirect)
         const lowerDesc = description.toLowerCase();
         const isGeneric = lowerDesc.includes('disfruta de los v') || 
                          lowerDesc.includes('enjoy the videos') ||
-                         lowerDesc.includes('música que te gustan') ||
-                         lowerDesc.includes('familia y el resto del mundo') ||
-                         lowerDesc.includes('youtube consent');
-        
-        if (isGeneric || meta.isPotentialBlock) {
-          console.warn('☢️ [YouTube] BLOQUEO NIVEL 1 DETECTADO. Limpiando metadatos basura...');
-          description = '';
-          // Si el título es genérico también, lo limpiamos
-          if (title.toLowerCase().includes('- youtube')) title = '';
-        }
+                         description.length < 50;
 
-        console.log(`📊 [YouTube] Metadatos v482: Title(${title.length}), Desc(${description.length})`);
-      } else {
-        console.error(`❌ [YouTube] Error en API de Metadatos: ${metaResp.status}`);
+        if (isGeneric) {
+          console.warn('☢️ [YouTube] BLOQUEO DETECTADO. Intentando Invidious Fallback...');
+          description = '';
+        }
       }
     } catch (e) {
-      console.warn('⚠️ [YouTube] Error al obtener metadatos del servidor:', e);
+      console.warn('⚠️ [YouTube] Error metadatos:', e);
     }
 
-    // Intentar obtener la transcripción
+    // 2. Intentar obtener la transcripción
     try {
       const transcriptResp = await fetch('/api/youtube-transcript', {
         method: 'POST',
@@ -61,61 +54,69 @@ export async function extractFromYouTube(videoUrl) {
       if (transcriptResp.ok) {
         const data = await transcriptResp.json();
         transcript = data.transcript;
-        console.log(`📜 [YouTube] Transcripción obtenida: ${transcript ? transcript.length : 0} caracteres`);
-      } else {
-        console.warn(`⚠️ [YouTube] Falló Transcripción: ${transcriptResp.status}`);
+        if (data.source) source = `${source}+${data.source}`;
       }
     } catch (e) {
-      console.warn('⚠️ [YouTube] No se pudo obtener la transcripción:', e);
+      console.warn('⚠️ [YouTube] Error transcripción:', e);
     }
 
-    // Fallback: Si no hay título o descripción del servidor, intentar con YouTube Data API si hay key
-    if (!title && !description) {
+    // 3. FALLBACK ROBUSTO: Si no hay descripción o transcripción, usar Invidious Direct Client Fallback
+    if (!description || !transcript) {
+      console.log('🔄 [YouTube] Contenido insuficiente. Probando Invidious Robust Bypass...');
+      try {
+        const invResp = await fetch(`/api/youtube-invidious-fallback?videoId=${videoId}`);
+        if (invResp.ok) {
+          const invData = await invResp.json();
+          if (invData.success) {
+            if (!title || title.includes('- YouTube')) title = invData.title;
+            if (!description || description.length < 50) description = invData.description;
+            if (!transcript) transcript = invData.captions;
+            source = `fallback-${invData.source}`;
+            console.log(`✅ [YouTube] Invidious fallback exitoso desde ${invData.instance}`);
+          }
+        }
+      } catch (err) {
+        console.error('❌ [YouTube] Invidious fallback también falló');
+      }
+    }
+
+    // Si aún no hay nada técnico, probar Google Data API si el usuario tiene Key
+    if (!description && !transcript) {
       const apiKey = localStorage.getItem('youtube_api_key');
       if (apiKey) {
         try {
-          const apiResp = await fetch(
-            `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`
-          );
+          const apiResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`);
           const data = await apiResp.json();
-          if (data.items && data.items[0]) {
-            const snippet = data.items[0].snippet;
-            title = snippet.title;
-            description = snippet.description;
+          if (data.items?.[0]) {
+            const snip = data.items[0].snippet;
+            title = snip.title;
+            description = snip.description;
+            source = 'google-data-api';
           }
-        } catch (e) {
-          console.warn('⚠️ [YouTube] Falló la API de Google:', e);
-        }
+        } catch (e) {}
       }
     }
 
-    // Combinar todo el contenido extraído
+    // 4. Combinar y Loguear
     const contentParts = [];
     if (title) contentParts.push(`Título: ${title}`);
     if (description) contentParts.push(`Descripción: ${description}`);
     if (transcript) contentParts.push(`Transcripción:\n${transcript}`);
     
     const content = contentParts.join('\n\n');
+    const success = !!title;
+
+    console.log(`📊 [youtube-extractor] Resultado v487:
+      ├─ Plataforma: youtube
+      ├─ VideoID: ${videoId}
+      ├─ Título: ${title?.length || 0} chars
+      ├─ Descripción: ${description?.length || 0} chars
+      ├─ Subtítulos: ${transcript?.length || 0} chars
+      ├─ Fuente: ${source}
+      └─ Status: ${success ? '✅ OK' : '❌ FALLIDO'}`);
     
-    if (!content) {
-      console.warn('⚠️ [YouTube] Extracción mínima fallida. Intentando retornar al menos el título.');
-      if (title) {
-        return {
-          type: 'video',
-          platform: 'youtube',
-          title: title,
-          description: '',
-          content: `Título: ${title}`,
-          sourceUrl: videoUrl,
-          success: true,
-          isLowContent: true
-        };
-      }
-      throw new Error('No se pudo extraer ningún contenido (ni título) del video de YouTube');
-    }
-    
-    console.log(`🔗 [YouTube] Extracción finalizada (v484).`);
-    
+    if (!success) throw new Error('No se pudo extraer contenido de YouTube');
+
     return {
       type: 'video',
       platform: 'youtube',
@@ -125,6 +126,7 @@ export async function extractFromYouTube(videoUrl) {
       content: content,
       sourceUrl: videoUrl,
       success: true,
+      source: source,
       isLowContent: !description && !transcript
     };
     

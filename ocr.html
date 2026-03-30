@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v486">
+<html lang="es" data-app-version="v487">
 
 <head>
     <meta charset="utf-8" />
@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v486';
+            const VERSION = 'v487';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v486...');
+                console.log('☢️ NUCLEAR PURGE v487...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();

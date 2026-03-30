@@ -1,4 +1,6 @@
-// api/youtube-transcript.js - Vercel Serverless Function (v480 Mobile Bypass)
+// api/youtube-transcript.js (v487)
+import { getFromInvidious } from './youtube-invidious-fallback.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -8,81 +10,73 @@ export default async function handler(req, res) {
   if (!videoId) return res.status(400).json({ error: 'videoId is required' });
 
   try {
-    const desktopUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    const mobileUA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1';
-    const consentCookie = 'CONSENT=YES+cb.20210328-17-p0.en+FX+413';
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'es-ES,es;q=0.9',
+      'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+413'
+    };
 
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    let captionTracks = null;
     let html = '';
+    let captionTracks = null;
 
-    for (let attempt = 0; attempt <= 1; attempt++) {
-      console.log(`📜 [Transcript] Intento ${attempt + 1}/2 para videoId: ${videoId}`);
-      
-      // 1. Intentar Desktop
-      const desktopResp = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-        headers: { 'User-Agent': desktopUA, 'Cookie': consentCookie }
-      });
-      html = await desktopResp.text();
-      captionTracks = extractCaptions(html);
-
-      // 2. Si falla, intentar Mobile Bypass (v480)
-      if (!captionTracks) {
-        console.log('🔄 [Transcript] Desktop falló en intento ' + (attempt + 1));
-        const mobileResp = await fetch(`https://m.youtube.com/watch?v=${videoId}`, {
-          headers: { 'User-Agent': mobileUA, 'Cookie': consentCookie }
-        });
-        if (mobileResp.ok) {
-          const mobileHtml = await mobileResp.text();
-          captionTracks = extractCaptions(mobileHtml);
-        }
-      }
-
-      if (captionTracks && captionTracks.length > 0) break;
-      if (attempt === 0) await sleep(500); // Delay antes del reintento
-    }
-
-    // v481: Bypass Invidious API para Transcripciones
-    if (!captionTracks || captionTracks.length === 0) {
-      console.log('🚀 [Transcript] Bloqueo total Google. Probando Invidious API Proxy...');
-      // ... (rest of Invidious code stays the same)
+    // 1. Intentar Scraping Directo con Reintentos
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const instances = ['https://invidious.projectsegfau.lt', 'https://inv.riverside.rocks', 'https://yewtu.be'];
-        for (const inst of instances) {
-          try {
-            const invResp = await fetch(`${inst}/api/v1/videos/${videoId}`);
-            if (invResp.ok) {
-              const invData = await invResp.json();
-              if (invData.captions && invData.captions.length > 0) {
-                captionTracks = invData.captions.map(c => ({
-                  baseUrl: `${inst}${c.url}`,
-                  languageCode: c.label.toLowerCase().includes('span') ? 'es' : 'en'
-                }));
-                break;
-              }
+        console.log(`📜 [Transcript] Intento ${attempt + 1}/3 para ${videoId}`);
+        const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { headers });
+        if (!response.ok) {
+            if (attempt < 2) {
+                await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
+                continue;
             }
-          } catch (e) { continue; }
+            throw new Error(`HTTP ${response.status}`);
         }
-      } catch (e) { console.warn('⚠️ Fallo bypass Invidious transcript'); }
-    }
-
-    if (!captionTracks || captionTracks.length === 0) {
-      const timedTextMatch = html.match(/"baseUrl":"(https:\/\/www\.youtube\.com\/api\/timedtext.*?)"/);
-      if (timedTextMatch) {
-         captionTracks = [{ baseUrl: timedTextMatch[1].replace(/\\u0026/g, '&'), languageCode: 'auto' }];
+        
+        html = await response.text();
+        captionTracks = extractCaptions(html);
+        
+        if (captionTracks && captionTracks.length > 0) {
+            console.log(`✅ [Transcript] TimedText capturado en el intento ${attempt + 1}`);
+            break;
+        }
+        
+        if (attempt < 2) await new Promise(r => setTimeout(r, 500));
+      } catch (e) {
+        if (attempt === 2) throw e;
       }
     }
 
+    // 2. Si falla el scraping directo, EMERGENCIA: Invidious Fallback (VTT Support)
     if (!captionTracks || captionTracks.length === 0) {
-      console.log(`❌ [Transcript] No se encontraron subtítulos para ${videoId}`);
-      return res.status(200).json({ success: true, transcript: null, error: 'No se encontraron subtítulos' });
+      console.log('🚀 [Transcript] Bloqueo total detectado. Intentando Invidious VTT Fallback...');
+      const invResult = await getFromInvidious(videoId);
+      if (invResult.success && invResult.captions) {
+        return res.status(200).json({ 
+            success: true, 
+            transcript: invResult.captions,
+            source: 'invidious-vtt'
+        });
+      }
+    }
+
+    // 3. Procesar TimedText si se encontró
+    if (!captionTracks || captionTracks.length === 0) {
+        const timedTextMatch = html.match(/"baseUrl":"(https:\/\/www\.youtube\.com\/api\/timedtext.*?)"/);
+        if (timedTextMatch) {
+            captionTracks = [{ baseUrl: timedTextMatch[1].replace(/\\u0026/g, '&'), languageCode: 'auto' }];
+        }
+    }
+
+    if (!captionTracks || captionTracks.length === 0) {
+      return res.status(200).json({ success: true, transcript: null, error: 'Subtítulos no encontrados' });
     }
 
     const track = captionTracks.find(t => t.languageCode === 'es') || 
                   captionTracks.find(t => t.languageCode === 'en') ||
                   captionTracks[0];
 
-    const transcriptResp = await fetch(track.baseUrl + (track.baseUrl.includes('fmt=json3') ? '' : '&fmt=json3'));
+    const transcriptResp = await fetch(track.baseUrl + (track.baseUrl.includes('fmt=json3') ? '' : '&fmt=json3'), { headers });
     const transcriptData = await transcriptResp.json();
 
     const transcript = transcriptData.events
@@ -92,11 +86,27 @@ export default async function handler(req, res) {
       .replace(/\s+/g, ' ')
       .trim();
 
-    console.log(`✅ [Transcript] Extraído satisfactoriamente: ${transcript.length} chars`);
-    return res.status(200).json({ success: true, transcript });
+    return res.status(200).json({ success: true, transcript, source: 'youtube-timedtext' });
 
   } catch (error) {
-    console.error('❌ Error fatal en transcript:', error);
+    console.warn('❌ [Transcript] YouTube falló. Intento de emergencia Invidious...');
+    try {
+        const invResult = await getFromInvidious(videoId);
+        if (invResult.success && invResult.captions) {
+           return res.status(200).json({ success: true, transcript: invResult.captions, source: 'invidious-vtt-emergency' });
+        }
+    } catch (e) {}
     return res.status(200).json({ success: true, transcript: null, error: error.message });
+  }
+}
+
+function extractCaptions(html) {
+  try {
+    const jsonStr = html.split('ytInitialPlayerResponse = ')[1]?.split(';</script>')[0];
+    if (!jsonStr) return null;
+    const data = JSON.parse(jsonStr);
+    return data.captions?.playerCaptionsTracklistRenderer?.captionTracks || null;
+  } catch (e) {
+    return null;
   }
 }
