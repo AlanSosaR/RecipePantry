@@ -17,9 +17,17 @@ export default async function handler(req, res) {
 
     const html = await htmlResponse.text();
 
-    // Regex to find the ytInitialPlayerResponse object
-    const playerResponseMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
-    if (!playerResponseMatch) throw new Error('Could not find player response');
+    // Regex to find the ytInitialPlayerResponse object (Tolerant with newlines and varying spacing)
+    const playerResponseMatch = html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?});\s*(?:var|script|window)/i) || 
+                               html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?});/i);
+    
+    if (!playerResponseMatch) {
+      console.warn('⚠️ [Transcript] Initial player response not found via direct regex, attempting fallback search.');
+      // Attempt to find a simpler match if the boundary script tag is different
+      const simplerMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
+      if (!simplerMatch) throw new Error('Could not find player response');
+      playerResponseMatch = simplerMatch;
+    }
 
     const playerResponse = JSON.parse(playerResponseMatch[1]);
     const captions = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;

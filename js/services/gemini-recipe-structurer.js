@@ -61,8 +61,9 @@ export async function structureRecipeFromText(content, lang = 'spa') {
 Asegúrate de que todos los textos (nombre, descripción, ingredientes y pasos) estén en ${targetLang}. 
 Si el contenido original está en otro idioma, TRADÚCELO fielmente.`;
 
-    // Intentar recuperar de cache primero (v473: Incluir lang en el hash para evitar colisiones de idioma)
-    const contentHash = hashString(content + lang);
+    // Intentar recuperar de cache primero (Incluye versión y lang para evitar resultados obsoletos)
+    const appVer = document.documentElement.dataset.appVersion || 'v474';
+    const contentHash = hashString(content + lang + appVer);
     const cached = localStorage.getItem(`gemini_extraction_cache_${contentHash}`);
     if (cached) {
       console.log(`📦 [Gemini] Usando resultado de cache (${lang})`);

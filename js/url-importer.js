@@ -147,6 +147,7 @@ export async function importFromUrl(url, lang = 'spa') {
     return {
       success: true,
       recipe: recipe,
+      content: extractionResult.content, // v474-fix: Incluir contenido crudo para debug
       platform: platform,
       sourceUrl: url,
       sourceType: extractionResult.type

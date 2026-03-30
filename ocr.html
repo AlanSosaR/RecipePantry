@@ -38,6 +38,14 @@
                     const keys = await caches.keys();
                     for (let k of keys) await caches.delete(k);
                 }
+                
+                // v474-fix: Limpiar resultados de IA estancados
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('gemini_extraction_cache_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+
                 localStorage.setItem('last_cache_purge', VERSION);
                 localStorage.setItem('recipe_app_version_ocr', VERSION);
                 window.location.reload(true);
