@@ -3,13 +3,13 @@
  * Orquesta la extracción de contenido y maneja errores sin romper el flujo principal.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=469';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=469';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=469';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=469';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=469';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=470';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=470';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=470';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=470';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=470';
 
-export async function importFromUrl(url) {
+export async function importFromUrl(url, lang = 'spa') {
   try {
     if (!url) {
       return {
@@ -24,7 +24,7 @@ export async function importFromUrl(url) {
     url = url.replace(/['"]/g, '').trim();
 
     const platform = detectPlatform(url);
-    console.log(`🔗 [URLImporter] Plataforma detectada: ${platform}`);
+    console.log(`🔗 [URLImporter] Plataforma detectada: ${platform} (${lang})`);
     
     if (platform === 'unknown') {
       return {
@@ -100,7 +100,7 @@ export async function importFromUrl(url) {
     }
 
     // Paso 4: Estructurar usando Gemini
-    console.log(`📝 [${platform}] Procesando contenido con Gemini...`);
+    console.log(`📝 [${platform}] Procesando contenido con Gemini (${lang})...`);
     
     let structureResult;
     try {
@@ -176,10 +176,10 @@ function detectPlatform(url) {
 }
 
 const URLImporter = {
-  import: async (url) => {
+  import: async (url, lang = 'spa') => {
     // NUNCA DEBE LANZAR ERRORES FUERA DE AQUÍ
     try {
-      const res = await importFromUrl(url);
+      const res = await importFromUrl(url, lang);
       if (!res.success && !res.isFallbackText) {
         // En lugar de throw, devolver un objeto controlable por la capa visual
         console.error("[URLImporter UI] Error manejado controlado:", res.error);
