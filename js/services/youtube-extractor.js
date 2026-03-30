@@ -27,20 +27,22 @@ export async function extractFromYouTube(videoUrl) {
         title = meta.title || '';
         description = meta.description || '';
         
-        // v476-477: Filtrar contenido basura (Consent Page / Google Redirect)
+        // v476-478: Filtrar contenido basura (Consent Page / Google Redirect)
         const lowerDesc = description.toLowerCase();
         const isGeneric = lowerDesc.includes('disfruta de los v') || 
                          lowerDesc.includes('enjoy the videos') ||
                          lowerDesc.includes('música que te gustan') ||
-                         lowerDesc.includes('familia y el resto del mundo');
+                         lowerDesc.includes('familia y el resto del mundo') ||
+                         lowerDesc.includes('youtube consent');
         
         if (isGeneric || meta.isPotentialBlock) {
-          console.warn('☢️ [YouTube] BLOQUEO DETECTADO. La descripción es basura genérica de YouTube. Limpiando...');
+          console.warn('☢️ [YouTube] BLOQUEO NIVEL 1 DETECTADO. Limpiando metadatos basura...');
           description = '';
+          // Si el título es genérico también, lo limpiamos
           if (title.toLowerCase().includes('- youtube')) title = '';
         }
 
-        console.log(`📊 [YouTube] Metadatos finales: Title(${title.length}), Desc(${description.length})`);
+        console.log(`📊 [YouTube] Metadatos v478: Title(${title.length}), Desc(${description.length})`);
       } else {
         console.error(`❌ [YouTube] Error en API de Metadatos: ${metaResp.status}`);
       }
