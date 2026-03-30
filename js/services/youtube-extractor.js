@@ -26,6 +26,17 @@ export async function extractFromYouTube(videoUrl) {
         const meta = await metaResp.json();
         title = meta.title || '';
         description = meta.description || '';
+        
+        // v476: Filtrar contenido basura (Consent Page)
+        const isGeneric = description.toLowerCase().includes('disfruta de los v') || 
+                         description.toLowerCase().includes('enjoy the videos');
+        
+        if (isGeneric || meta.isPotentialBlock) {
+          console.warn('⚠️ [YouTube] Bloqueo detectado o descripción genérica. Descartando metadatos.');
+          description = '';
+          if (title.toLowerCase().includes('- youtube')) title = '';
+        }
+
         console.log(`📊 [YouTube] Metadatos obtenidos: Title(${title.length}), Desc(${description.length})`);
       } else {
         console.error(`❌ [YouTube] Error en API de Metadatos: ${metaResp.status}`);

@@ -54,6 +54,11 @@ REGLAS DE VALIDACIÓN:
 export async function structureRecipeFromText(content, lang = 'spa') {
   try {
     // Definir idioma objetivo basado en 'lang'
+    if (!content || content.length < 50) {
+      console.warn('⚠️ [Gemini] Contenido demasiado corto o sospechoso para procesar:', content);
+      throw new Error('Contenido insuficiente para extraer una receta (YouTube podría estar bloqueando el acceso).');
+    }
+
     const targetLang = (lang === 'eng' || lang === 'en') ? 'ENGLISH' : 'SPANISH (Español)';
     
     // Injectar instrucción de idioma en el prompt base
