@@ -1,4 +1,4 @@
-// api/dropbox-metadata.js - v471 (Definitive Proxy)
+// api/dropbox-metadata.js - v472 (Definitive Proxy)
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');

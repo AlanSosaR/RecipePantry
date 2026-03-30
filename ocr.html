@@ -24,12 +24,12 @@
     </script>
     <title data-i18n="ocrTitle">Escanear Receta - Recipe Pantry</title>
 
-    <!-- NUCLEAR CACHE PURGE v471 (Consolidated) -->
+    <!-- NUCLEAR CACHE PURGE v472 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v471';
+            const VERSION = 'v472';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v471...');
+                console.log('☢️ NUCLEAR PURGE v472...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -46,7 +46,7 @@
     </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- CONSOLE CLEANER v471 -->
+    <!-- CONSOLE CLEANER v472 -->
     <script>
         (function() {
             const noiseFilters = [
@@ -91,7 +91,7 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v471 (Single Load) -->
+    <!-- CORE SCRIPTS v472 (Single Load) -->
     <script src="js/config.js?v=470"></script>
     <script src="js/supabase-client.js?v=470"></script>
     <script src="js/utils.js?v=470"></script>
@@ -439,10 +439,23 @@
             max-width: 600px;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1); /* Reducida de 25px/50px */
             margin: 0 auto 24px auto;
             background: #fff;
             border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        #ocrPreviewContainer.is-url-preview {
+            box-shadow: none !important;
+            border: 1px solid var(--border);
+            padding: 40px 20px;
+            background: var(--md-surface-variant);
+        }
+
+        #ocrPreviewContainer.is-url-preview .scanning-line,
+        #ocrPreviewContainer.is-url-preview #ocrGlassOverlay {
+            display: none !important;
         }
 
         #ocrGlassOverlay {
@@ -997,12 +1010,13 @@
         }
         
         #ocrPreviewContainer.is-url-preview img,
-        #ocrPreviewContainerModal.is-url-preview img {
-            max-width: 140px;
+        #ocrPreviewContainer.is-url-preview img {
+            max-width: 120px; /* Un poco más pequeña para no flotar */
             height: auto;
             margin: 0 auto;
             border-radius: 0;
-            filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.1));
+            filter: none !important; /* Quitar drop-shadow */
+            transform: none !important;
         }
     </style>
 
@@ -1324,7 +1338,7 @@
 
 
         // ═══════════════════════════════════════════════════
-        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v471)
+        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v472)
         // ═══════════════════════════════════════════════════
 
         window.handleUrlImport = async function() {
@@ -1344,7 +1358,7 @@
                 // Mostrar UI de procesamiento (Step 2)
                 if (typeof goToStep === 'function') goToStep(2);
 
-                // v471: Previsualización inicial (Icono Local assets/link.svg)
+                // v472: Previsualización inicial (Icono Local assets/link.svg)
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
                     previewImg.src = 'assets/link.svg?v=470';
@@ -1355,7 +1369,7 @@
                 const imported = await URLImporter.import(url, window.selectedOcrLang || 'spa');
                 console.log(`✅ [handleUrlImport] Importación completada:`, imported);
 
-                // v471: Actualizar Previsualización según plataforma
+                // v472: Actualizar Previsualización según plataforma
                 if (previewImg && imported) {
                     let thumbnailUrl = 'assets/link.svg?v=470';
                     
@@ -1465,7 +1479,7 @@
         async function processTextWithGemini(text, metadata) {
             console.log(`✏️ [processTextWithGemini] Extrayendo receta de texto...`);
             
-            // v471: Enriquecer prompt para evitar alucinaciones
+            // v472: Enriquecer prompt para evitar alucinaciones
             let enrichedText = text;
             if (metadata && metadata.url) {
                 enrichedText = `URL DE ORIGEN: ${metadata.url}\nCONTENIDO EXTRAÍDO:\n${text}\n\nINSTRUCCIÓN: Extrae ÚNICAMENTE la receta descrita en el video o texto de arriba. Si el contenido no tiene una receta clara, responde con {"error": "No se encontró receta"}.`;
@@ -1595,11 +1609,16 @@
         }
 
         function goToStep(step) {
-            // Reset URL preview styling if moving away from it or to it
             const container = document.getElementById('ocrPreviewContainer');
-            const containerModal = document.getElementById('ocrPreviewContainerModal');
-            if (container) container.classList.remove('is-url-preview');
-            if (containerModal) containerModal.classList.remove('is-url-preview');
+            
+            // Si estamos en Step 2 y la fuente es una URL (link.svg), activar modo plano
+            const previewImg = document.getElementById('ocrPreview');
+            const isUrl = previewImg && previewImg.src.includes('link.svg');
+            
+            if (container) {
+                if (isUrl) container.classList.add('is-url-preview');
+                else container.classList.remove('is-url-preview');
+            }
             
             document.querySelectorAll('.ocr-step').forEach(s => s.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
