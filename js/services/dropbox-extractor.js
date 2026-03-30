@@ -39,32 +39,48 @@ export async function extractFromDropbox(dropboxUrl) {
     }
     
     const metadata = await metaResp.json();
-    const { name, mimeType } = metadata;
+    const { name, mimeType, content: proxiedContent } = metadata;
     
     console.log(`📂 [Dropbox] Archivo detectado: ${name} (${mimeType})`);
 
-    // Convertir a link de descarga directa (?dl=1)
+    // SI el proxy ya nos dio el contenido, usarlo directamente (para Texto/RTF)
+    if (proxiedContent) {
+      console.log(`✅ [Dropbox] Contenido obtenido vía proxy`);
+      return {
+        type: 'document',
+        platform: 'dropbox',
+        mimeType: mimeType,
+        fileName: name,
+        content: proxiedContent,
+        sourceUrl: dropboxUrl,
+        success: true
+      };
+    }
+
+    // Convertir a link de descarga directa (?dl=1) si necesitamos fetch local (Docs/Images)
     const downloadUrl = dropboxUrl.includes('?dl=0')
       ? dropboxUrl.replace('?dl=0', '?dl=1')
       : dropboxUrl.includes('?dl=') ? dropboxUrl : dropboxUrl + (dropboxUrl.includes('?') ? '&dl=1' : '?dl=1');
 
     let content = '';
     
-    // Manejar por MimeType
-    if (mimeType === 'text/plain') {
+    // Manejar por MimeType o Extensión
+    const lowName = name.toLowerCase();
+    
+    if (mimeType === 'text/plain' || lowName.endsWith('.txt') || lowName.endsWith('.rtf') || lowName.endsWith('.csv')) {
       const fileResp = await fetch(downloadUrl);
       content = await fileResp.text();
       
-    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || lowName.endsWith('.docx')) {
       const arrayBuffer = await fetch(downloadUrl).then(r => r.arrayBuffer());
       const { extractTextFromDocx } = await import('../utils/docx-parser.js');
       content = await extractTextFromDocx(arrayBuffer);
       
-    } else if (mimeType.includes('spreadsheet') || mimeType === 'text/csv') {
+    } else if (mimeType.includes('spreadsheet') || mimeType === 'text/csv' || lowName.endsWith('.xlsx') || lowName.endsWith('.csv')) {
       const fileResp = await fetch(downloadUrl);
       content = await fileResp.text();
       
-    } else if (mimeType.startsWith('image/')) {
+    } else if (mimeType.startsWith('image/') || lowName.match(/\.(jpg|jpeg|png|webp)$/)) {
       const imageResp = await fetch(downloadUrl);
       const blob = await imageResp.blob();
       const base64Image = await blobToBase64(blob);
@@ -83,7 +99,7 @@ export async function extractFromDropbox(dropboxUrl) {
         success: result.success
       };
     } else {
-      throw new Error(`Tipo de archivo no soportado en Dropbox: ${mimeType}`);
+      throw new Error(`Tipo de archivo no soportado en Dropbox: ${mimeType || name}`);
     }
     
     if (!content) {

@@ -41,12 +41,27 @@ export default async function handler(req, res) {
     
     if (headResponse.ok) {
       const name = url.split('/').pop().split('?')[0];
-      const contentType = headResponse.headers.get('content-type');
+      const contentType = headResponse.headers.get('content-type') || '';
       
+      const isText = contentType.includes('text') || 
+                     name.endsWith('.txt') || 
+                     name.endsWith('.rtf') || 
+                     name.endsWith('.csv');
+                     
+      let content = null;
+      if (isText) {
+        console.log(`📄 [Dropbox Proxy] Fetching text content for: ${name}`);
+        const contentResp = await fetch(downloadUrl);
+        if (contentResp.ok) {
+          content = await contentResp.text();
+        }
+      }
+
       return res.status(200).json({
         success: true,
         name: decodeURIComponent(name),
-        mimeType: contentType
+        mimeType: contentType,
+        content: content
       });
     }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="452">
+<html lang="es" data-app-version="453">
 
 <head>
     <meta charset="utf-8" />
@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v452 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v452';
+            const VERSION = 'v453';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v452...');
+                console.log('☢️ NUCLEAR PURGE v453...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -86,22 +86,22 @@
     <script async src="https://docs.opencv.org/master/opencv.js" type="text/javascript"></script>
 
     <!-- OpenCV Scanner Modules -->
-    <script defer src="js/scanner/documentDetection.js?v=452"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=452"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=452"></script>
-    <script defer src="js/scanner/cameraController.js?v=452"></script>
+    <script defer src="js/scanner/documentDetection.js?v=453"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=453"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
+    <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v452 (Single Load) -->
-    <script src="js/config.js?v=452"></script>
-    <script src="js/supabase-client.js?v=452"></script>
-    <script src="js/utils.js?v=452"></script>
-    <script src="js/i18n.js?v=452"></script>
-    <script src="js/auth.js?v=452"></script>
-    <script src="js/ui.js?v=452"></script>
-    <script src="js/ocr-processor.js?v=452"></script>
-    <script src="js/ocr.js?v=452"></script>
-    <script src="js/url-importer.js?v=452"></script>
-    <script src="js/sw-register.js?v=452"></script>
+    <!-- CORE SCRIPTS v453 (Single Load) -->
+    <script src="js/config.js?v=453"></script>
+    <script src="js/supabase-client.js?v=453"></script>
+    <script src="js/utils.js?v=453"></script>
+    <script src="js/i18n.js?v=453"></script>
+    <script src="js/auth.js?v=453"></script>
+    <script src="js/ui.js?v=453"></script>
+    <script src="js/ocr-processor.js?v=453"></script>
+    <script src="js/ocr.js?v=453"></script>
+    <script src="js/url-importer.js?v=453"></script>
+    <script src="js/sw-register.js?v=453"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1342,10 +1342,10 @@
                 // Mostrar UI de procesamiento (Step 2)
                 if (typeof goToStep === 'function') goToStep(2);
 
-                // v447: Previsualización inicial (Icono de Link)
+                // v453: Previsualización inicial (Icono Local assets/link.svg)
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'https://img.icons8.com/fluency/96/link.png';
+                    previewImg.src = 'assets/link.svg?v=453';
                     previewImg.style.display = 'block';
                 }
 
@@ -1369,7 +1369,7 @@
                     }
 
                     previewImg.src = thumbnailUrl;
-                    previewImg.onerror = () => { previewImg.src = 'https://img.icons8.com/fluency/96/link.png'; };
+                    previewImg.onerror = () => { previewImg.src = 'assets/link.svg?v=453'; };
                 }
 
                 // 2. PROCESAR SEGÚN TIPO
