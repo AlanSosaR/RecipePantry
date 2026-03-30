@@ -45,6 +45,31 @@ export default async function handler(req, res) {
       }
     }
 
+    // v481: Bypass Invidious API para Transcripciones
+    if (!captionTracks || captionTracks.length === 0) {
+      console.log('🚀 [Transcript] Bloqueo total. Probando Invidious API Proxy...');
+      try {
+        const instances = ['https://invidious.projectsegfau.lt', 'https://inv.riverside.rocks', 'https://yewtu.be'];
+        for (const inst of instances) {
+          try {
+            const invResp = await fetch(`${inst}/api/v1/videos/${videoId}`);
+            if (invResp.ok) {
+              const invData = await invResp.json();
+              if (invData.captions && invData.captions.length > 0) {
+                // Mapear formato Invidious a formato YouTube
+                captionTracks = invData.captions.map(c => ({
+                  baseUrl: `${inst}${c.url}`,
+                  languageCode: c.label.toLowerCase().includes('span') ? 'es' : 'en'
+                }));
+                console.log(`✅ [Transcript] Bypass Invidious exitoso (${inst}).`);
+                break;
+              }
+            }
+          } catch (e) { continue; }
+        }
+      } catch (e) { console.warn('⚠️ Fallo bypass Invidious transcript'); }
+    }
+
     if (!captionTracks || captionTracks.length === 0) {
       // Intentar una búsqueda desesperada de cualquier link timedtext
       const timedTextMatch = desktopHtml.match(/"baseUrl":"(https:\/\/www\.youtube\.com\/api\/timedtext.*?)"/);

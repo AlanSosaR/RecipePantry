@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v480">
+<html lang="es" data-app-version="v481">
 
 <head>
     <meta charset="utf-8" />
@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v480';
+            const VERSION = 'v481';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v480...');
+                console.log('☢️ NUCLEAR PURGE v481...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -54,7 +54,7 @@
     </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- CONSOLE CLEANER v480 -->
+    <!-- CONSOLE CLEANER v481 -->
     <script>
         (function() {
             const noiseFilters = [
@@ -85,8 +85,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=480">
-    <link rel="stylesheet" href="css/components.css?v=480">
+    <link rel="stylesheet" href="css/styles.css?v=481">
+    <link rel="stylesheet" href="css/components.css?v=481">
     <!-- ocr.css removed because it was a 404 and styles are inline -->
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
@@ -99,19 +99,19 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v480 (Single Load) -->
-    <script src="js/config.js?v=480"></script>
-    <script src="js/supabase-client.js?v=480"></script>
-    <script src="js/utils.js?v=480"></script>
-    <script src="js/i18n.js?v=480"></script>
-    <script src="js/auth.js?v=480"></script>
-    <script src="js/localdb.js?v=480"></script>
-    <script src="js/db.js?v=480"></script>
-    <script src="js/ui.js?v=480"></script>
-    <script src="js/ocr-processor.js?v=480"></script>
-    <script src="js/ocr.js?v=480"></script>
-    <script type="module" src="js/url-importer.js?v=480"></script>
-    <script src="js/sw-register.js?v=480"></script>
+    <!-- CORE SCRIPTS v481 (Single Load) -->
+    <script src="js/config.js?v=481"></script>
+    <script src="js/supabase-client.js?v=481"></script>
+    <script src="js/utils.js?v=481"></script>
+    <script src="js/i18n.js?v=481"></script>
+    <script src="js/auth.js?v=481"></script>
+    <script src="js/localdb.js?v=481"></script>
+    <script src="js/db.js?v=481"></script>
+    <script src="js/ui.js?v=481"></script>
+    <script src="js/ocr-processor.js?v=481"></script>
+    <script src="js/ocr.js?v=481"></script>
+    <script type="module" src="js/url-importer.js?v=481"></script>
+    <script src="js/sw-register.js?v=481"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">

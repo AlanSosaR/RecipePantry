@@ -89,6 +89,37 @@ export default async function handler(req, res) {
       }
     }
 
+    // v481: Bypass Invidious API - Si aún es bloqueado, usar proxy externo
+    const stillBlocked = description.toLowerCase().includes('disfruta de los v') || description.length < 50;
+    if (stillBlocked) {
+      console.log('🚀 [YouTube] Bloqueo total. Usando Invidious API Fallback...');
+      try {
+        // Lista de instancias confiables
+        const instances = [
+          'https://invidious.projectsegfau.lt',
+          'https://inv.riverside.rocks',
+          'https://yewtu.be'
+        ];
+        
+        for (const inst of instances) {
+          try {
+            const invResp = await fetch(`${inst}/api/v1/videos/${videoId}`);
+            if (invResp.ok) {
+              const invData = await invResp.json();
+              if (invData.description && invData.description.length > 50) {
+                description = invData.description;
+                if (!title || title.includes('- YouTube')) title = invData.title;
+                console.log(`✅ [YouTube] Bypass Invidious exitoso (${inst}).`);
+                break;
+              }
+            }
+          } catch (err) { continue; }
+        }
+      } catch (e) {
+        console.warn('⚠️ [YouTube] Fallo total de bypass Invidious.', e.message);
+      }
+    }
+
     const isGenericTitle = title.toLowerCase().includes('- youtube');
     const finalBlockCheck = description.toLowerCase().includes('disfruta de los v') || description.length < 10;
 
