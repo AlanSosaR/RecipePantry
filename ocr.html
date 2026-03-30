@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v483">
+<html lang="es" data-app-version="v484">
 
 <head>
     <meta charset="utf-8" />
@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v483';
+            const VERSION = 'v484';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v483...');
+                console.log('☢️ NUCLEAR PURGE v484...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -100,18 +100,18 @@
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
     <!-- CORE SCRIPTS v482 (Single Load) -->
-    <script src="js/config.js?v=483"></script>
-    <script src="js/supabase-client.js?v=483"></script>
-    <script src="js/utils.js?v=483"></script>
-    <script src="js/i18n.js?v=483"></script>
-    <script src="js/auth.js?v=483"></script>
-    <script src="js/localdb.js?v=483"></script>
-    <script src="js/db.js?v=483"></script>
-    <script src="js/ui.js?v=483"></script>
-    <script src="js/ocr-processor.js?v=483"></script>
-    <script src="js/ocr.js?v=483"></script>
-    <script type="module" src="js/url-importer.js?v=483"></script>
-    <script src="js/sw-register.js?v=483"></script>
+    <script src="js/config.js?v=484"></script>
+    <script src="js/supabase-client.js?v=484"></script>
+    <script src="js/utils.js?v=484"></script>
+    <script src="js/i18n.js?v=484"></script>
+    <script src="js/auth.js?v=484"></script>
+    <script src="js/localdb.js?v=484"></script>
+    <script src="js/db.js?v=484"></script>
+    <script src="js/ui.js?v=484"></script>
+    <script src="js/ocr-processor.js?v=484"></script>
+    <script src="js/ocr.js?v=484"></script>
+    <script type="module" src="js/url-importer.js?v=484"></script>
+    <script src="js/sw-register.js?v=484"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1442,31 +1442,33 @@
                     recipeData = await processTextWithGemini(imported.content, imported.metadata);
                 }
 
+                const safeById = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) console.warn(`⚠️ [DOM] Elemento no encontrado: #${id}`);
+                    return el;
+                };
+
                 if (imported.type === 'raw_text' || (imported.isFallbackText && imported.rawText)) {
-                    console.log("📝 [handleUrlImport] Manejando como Raw Text Fallback");
+                    console.log("📝 [handleUrlImport] Manejando como Raw Text Fallback (v484)");
                     showNotification('⚠️ Obtenido texto plano. Por favor estructúralo manualmente.', 'warning');
                     
                     const textContent = imported.rawText || imported.content;
                     window.currentOCRResults = { isStructured: false, text: textContent, confidence: 100 };
                     
-                    // v483: Forzar mostrar modal manualmente con texto plano (Protección DOM)
-                    const elUrl = document.getElementById('ocrUrlInputSection');
-                    const elCap = document.getElementById('ocrCaptureSection');
-                    const elRes = document.getElementById('ocrResultSection');
+                    // v484: Forzar mostrar modal manualmente con texto plano (Protección DOM)
+                    safeById('ocrUrlInputSection')?.classList.remove('active');
+                    safeById('ocrCaptureSection')?.classList.remove('active');
+                    safeById('ocrResultSection')?.classList.add('active');
                     
-                    if (elUrl) elUrl.classList.remove('active'); else console.warn('⚠️ ocrUrlInputSection no encontrado');
-                    if (elCap) elCap.classList.remove('active'); else console.warn('⚠️ ocrCaptureSection no encontrado');
-                    if (elRes) elRes.classList.add('active'); else console.warn('⚠️ ocrResultSection no encontrado');
-                    
-                    const elName = document.getElementById('ocrRecipeName');
-                    const elText = document.getElementById('ocrFullText');
+                    const elName = safeById('ocrRecipeName');
+                    const elText = safeById('ocrFullText');
                     
                     if (elName) elName.value = `Receta importada: ${imported.platform || ''}`;
                     if (elText) elText.value = textContent;
                     
-                    if (document.getElementById('ocrResultHeaderStep1')) document.getElementById('ocrResultHeaderStep1').style.display = 'block';
-                    if (document.getElementById('ocrResultBodyStep1')) document.getElementById('ocrResultBodyStep1').style.display = 'block';
-                    if (document.getElementById('ocrTipsSection')) document.getElementById('ocrTipsSection').style.display = 'block';
+                    const h1 = safeById('ocrResultHeaderStep1'); if (h1) h1.style.display = 'block';
+                    const b1 = safeById('ocrResultBodyStep1'); if (b1) b1.style.display = 'block';
+                    const t1 = safeById('ocrTipsSection'); if (t1) t1.style.display = 'block';
                     
                     // Mostrar paso 3
                     if (typeof goToStep === 'function') goToStep(3);

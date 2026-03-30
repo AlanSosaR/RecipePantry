@@ -3,11 +3,12 @@
  * Orquesta la extracción de contenido y maneja errores sin romper el flujo principal.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=482';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=482';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=482';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=482';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=482';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=484';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=484';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=484';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=484';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=484';
+import { detectRecipePatterns } from './services/recipe-validator.js?v=484';
 
 export async function importFromUrl(url, lang = 'spa') {
   try {
@@ -99,12 +100,27 @@ export async function importFromUrl(url, lang = 'spa') {
       };
     }
 
+    // v484: Validación inteligente pre-Gemini
+    const validation = detectRecipePatterns(extractionResult.content);
+    let finalContent = extractionResult.content;
+    let sourceUsed = extractionResult.description ? 'description' : 'transcript';
+    if (extractionResult.description && extractionResult.transcript) sourceUsed = 'description+transcript';
+
+    console.log(`🔗 [importFromUrl] Resumen v484:
+      ├─ Plataforma: ${platform}
+      ├─ Score Receta: ${validation.recipeScore}/100
+      ├─ Fuente: ${sourceUsed}
+      └─ Chars: ${finalContent.length}`);
+
+    // Si el score es muy bajo y es YouTube, quizás no extrajimos bien? 
+    // (Asegurado por los retries en el extractor/api)
+
     // Paso 4: Estructurar usando Gemini
     console.log(`📝 [${platform}] Procesando contenido con Gemini (${lang})...`);
     
     let structureResult;
     try {
-      structureResult = await structureRecipeFromText(extractionResult.content, lang);
+      structureResult = await structureRecipeFromText(finalContent, lang);
     } catch (geminiCrash) {
       console.error(`❌ [URLImporter] Error interno no capturado en Gemini:`, geminiCrash);
       structureResult = {
@@ -112,20 +128,21 @@ export async function importFromUrl(url, lang = 'spa') {
         error: geminiCrash.message,
         stage: 'gemini_structuring',
         fallbackAttempted: true,
-        partialData: extractionResult.content
+        partialData: finalContent
       };
     }
     
-    // Validar caída oficial de IA (v482: Tratar como éxito parcial de Raw Text)
+    // Validar caída oficial de IA (v484: Tratar como éxito parcial de Raw Text)
     if (!structureResult.success) {
       console.warn(`⚠️ [URLImporter] Estructuración IA omitida o fallida. Devolviendo texto crudo.`);
       return {
         success: true, 
-        content: structureResult.partialData || extractionResult.content,
+        content: finalContent,
         warning: structureResult.error || 'La IA no pudo procesar el contenido.',
         platform,
         sourceUrl: url,
-        isFallbackText: true
+        isFallbackText: true,
+        metadata: { validation, source: sourceUsed }
       };
     }
 

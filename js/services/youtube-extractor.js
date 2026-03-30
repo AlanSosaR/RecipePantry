@@ -114,15 +114,18 @@ export async function extractFromYouTube(videoUrl) {
       throw new Error('No se pudo extraer ningún contenido (ni título) del video de YouTube');
     }
     
+    console.log(`🔗 [YouTube] Extracción finalizada (v484).`);
+    
     return {
       type: 'video',
       platform: 'youtube',
-      title: title || 'YouTube Video',
-      description: description || '',
+      title: title,
+      description: description,
       transcript: transcript,
       content: content,
       sourceUrl: videoUrl,
-      success: true
+      success: true,
+      isLowContent: !description && !transcript
     };
     
   } catch (error) {
