@@ -7,18 +7,11 @@ export async function extractFromDropbox(dropboxUrl) {
   try {
     console.log(`📥 [Dropbox] Intentando extraer: ${dropboxUrl}`);
 
-    // ID de archivo (Path)
-    let filePath = null;
+    // La URL de Dropbox puede tener varios formatos (/s/, /scl/fi/, etc.)
+    // No necesitamos extraer el filePath obligatoriamente si el proxy acepta la URL completa.
+    const isDropbox = dropboxUrl.includes('dropbox.com');
     
-    if (dropboxUrl.includes('/dl=0') || dropboxUrl.includes('/dl=1')) {
-      // Shared link format: https://www.dropbox.com/s/FILE_ID/filename?dl=0
-      filePath = dropboxUrl.replace('?dl=0', '').replace('?dl=1', '').split('/s/')[1];
-    } else if (dropboxUrl.includes('/file/')) {
-      // App-specific format
-      filePath = dropboxUrl.split('/file/')[1];
-    }
-    
-    if (!filePath) throw new Error('URL de Dropbox no válida');
+    if (!isDropbox) throw new Error('URL de Dropbox no válida');
     
     // Obtener token
     const accessToken = localStorage.getItem('dropbox_access_token');
