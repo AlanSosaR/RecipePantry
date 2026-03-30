@@ -27,7 +27,7 @@
     <!-- NUCLEAR CACHE PURGE v458 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v465';
+            const VERSION = 'v466';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
                 console.log('☢️ NUCLEAR PURGE v455...');
                 if ('serviceWorker' in navigator) {
@@ -91,7 +91,7 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v465 (Single Load) -->
+    <!-- CORE SCRIPTS v466 (Single Load) -->
     <script src="js/config.js?v=464"></script>
     <script src="js/supabase-client.js?v=464"></script>
     <script src="js/utils.js?v=464"></script>
@@ -1417,12 +1417,19 @@
                     document.getElementById('ocrTipsSection').style.display = 'block';
                 }
                 else if (recipeData && (recipeData.nombre || recipeData.name)) {
-                    // Normalizar
+                    // Normalizar e inyectar flags UI requeridas por ocr.js
                     if (recipeData.name && !recipeData.nombre) recipeData.nombre = recipeData.name;
+                    recipeData.isStructured = true; // Crucial para que ocr.js oculte el raw text y muestre las tarjetas
+                    
                     showRecipeEditModal(recipeData, imported.metadata);
                     urlInput.value = '';
+                    
+                    // Asegurarnos de cerrar el modal de importación de URL limpiamente
                     hideModalById('urlImportModal');
-                    showNotification('✅ Receta importada correctamente', 'success');
+                    const urlBackdrop = document.querySelector('.modal-backdrop');
+                    if(urlBackdrop) urlBackdrop.remove();
+
+                    showNotification('✅ Receta importada y estructurada', 'success');
                 } else {
                     throw new Error('No se pudo estructurar la receta automáticamente');
                 }
