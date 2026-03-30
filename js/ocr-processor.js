@@ -16,6 +16,9 @@ const getOpenRouterKey = () => {
     return decoded.split('').reverse().join('');
 };
 
+// Expose globally so ES modules (gemini-recipe-structurer.js) can access it
+window.OPENROUTER_API_KEY = getOpenRouterKey();
+
 class OCRProcessor {
     constructor() {
         this.worker = null;
