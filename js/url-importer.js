@@ -1,117 +1,145 @@
 /**
- * URLImporter v3 - Modular Orchestrator
- * Extrae recetas de URLs públicas (Dropbox, Drive, YouTube, TikTok) orchestrando servicios específicos.
+ * URLImporter v4 - Functional Orchestrator
+ * Orquesta la extracción de contenido de diversas plataformas y su estructuración con Gemini.
  */
 
-class URLImporter {
-  /**
-   * Importar receta desde URL
-   * @param {string} url - URL pública
-   * @returns {Promise<{type, platform, content, metadata, sourceType}>}
-   */
-  static async import(url) {
-    try {
-      const platform = this.detectPlatform(url);
-      console.log(`🔗 [URLImporter] Plataforma detectada: ${platform}`);
-      
-      if (!platform) {
-        throw new Error('URL no válida o plataforma no soportada');
-      }
+import { extractFromYouTube } from './services/youtube-extractor.js';
+import { extractFromTikTok } from './services/tiktok-extractor.js';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js';
+import { extractFromDropbox } from './services/dropbox-extractor.js';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js';
 
-      let result;
-      
-      switch (platform) {
-        case 'googledrive':
-          const { GDriveExtractor } = await import('./services/gdrive-extractor.js');
-          result = await GDriveExtractor.extract(url);
-          break;
-        case 'dropbox':
-          const { DropboxExtractor } = await import('./services/dropbox-extractor.js');
-          result = await DropboxExtractor.extract(url);
-          break;
-        case 'youtube':
-          const { YouTubeExtractor } = await import('./services/youtube-extractor.js');
-          result = await YouTubeExtractor.extract(url);
-          break;
-        case 'tiktok':
-          const { TikTokExtractor } = await import('./services/tiktok-extractor.js');
-          result = await TikTokExtractor.extract(url);
-          break;
-        default:
-          throw new Error(`Plataforma no soportada: ${platform}`);
-      }
-
-      // Map output to what ocr.html handleUrlImport expects: { type: 'text'|'file'|'structured', platform, content, metadata }
-      const mappedResult = this.mapToLegacyFormat(result, url);
-
-      console.log(`✅ [URLImporter] Contenido extraído:`, {
-        type: mappedResult.type,
-        platform: mappedResult.platform,
-        sourceType: mappedResult.sourceType,
-        contentLength: (mappedResult.content && (mappedResult.content.length || mappedResult.content.size)) || 0
-      });
-
-      return mappedResult;
-    } catch (error) {
-      console.error('❌ [URLImporter] Error:', error);
-      throw error;
-    }
+export async function importFromUrl(url) {
+  if (!url) throw new Error('URL es requerida');
+  
+  const platform = detectPlatform(url);
+  console.log(`🔗 [URLImporter] Plataforma detectada: ${platform}`);
+  
+  if (platform === 'unknown') {
+    return {
+      success: false,
+      error: 'Plataforma no soportada',
+      supportedPlatforms: ['YouTube', 'TikTok', 'Google Drive', 'Dropbox']
+    };
   }
 
-  static mapToLegacyFormat(result, originalUrl) {
-    if (result.type === 'video') {
-         // YouTube or TikTok video mapped to text description
-         const contentString = `Título: ${result.title}\nDescripción: ${result.description}\n${result.transcript ? 'Subtítulos: ' + result.transcript : ''}`;
-         return {
-             type: 'text',
-             platform: result.platform,
-             content: contentString,
-             metadata: { url: originalUrl, title: result.title },
-             sourceType: result.transcript ? 'subtitles' : 'description'
-         };
-    } else if (result.type === 'document') {
-         return {
-             type: 'text',
-             platform: result.platform,
-             content: result.content,
-             metadata: { url: originalUrl, title: result.metadata || 'Documento' },
-             sourceType: 'document'
-         };
-    } else if (result.type === 'image' || result.type === 'file') {
-         return {
-             type: 'file',
-             platform: result.platform,
-             content: result.content, // blob or file id
-             metadata: { url: originalUrl, title: result.metadata || 'Archivo' },
-             sourceType: result.type
-         };
+  let extractionResult = null;
+  
+  // Paso 1: Extraer contenido según la plataforma
+  try {
+    switch (platform) {
+      case 'youtube':
+        extractionResult = await extractFromYouTube(url);
+        break;
+      case 'tiktok':
+        extractionResult = await extractFromTikTok(url);
+        break;
+      case 'googledrive':
+      case 'googledocs':
+        extractionResult = await extractFromGoogleDrive(url);
+        break;
+      case 'dropbox':
+        extractionResult = await extractFromDropbox(url);
+        break;
     }
-    return result; // Fallback to whatever it is (e.g. structured)
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error de extracción: ${error.message}`,
+      platform,
+      sourceUrl: url
+    };
   }
 
-  /**
-   * Detectar plataforma desde URL
-   */
-  static detectPlatform(url) {
-    if (!url || typeof url !== 'string') return null;
-
-    const urlLower = url.toLowerCase().trim();
-
-    if (urlLower.includes('drive.google.com') || urlLower.includes('docs.google.com')) {
-      return 'googledrive';
-    }
-    if (urlLower.includes('dropbox.com')) {
-      return 'dropbox';
-    }
-    if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) {
-      return 'youtube';
-    }
-    if (urlLower.includes('tiktok.com') || urlLower.includes('vt.tiktok.com') || urlLower.includes('vm.tiktok.com')) {
-      return 'tiktok';
-    }
-
-    return null;
+  // Paso 2: Verificar si la extracción fue exitosa
+  if (!extractionResult || extractionResult.success === false) {
+    return {
+      success: false,
+      error: extractionResult?.error || 'Falló la extracción de contenido',
+      platform,
+      sourceUrl: url
+    };
   }
+
+  console.log(`✅ [${platform}] Contenido extraído satisfactoriamente`);
+
+  // Paso 3: Si ya viene estructurado (ej. por imagen OCR con Gemini Vision interno)
+  if (extractionResult.structuredRecipe) {
+    console.log('✨ Receta ya estructurada vía OCR');
+    return {
+      success: true,
+      recipe: extractionResult.structuredRecipe,
+      platform,
+      sourceUrl: url,
+      sourceType: extractionResult.type
+    };
+  }
+
+  // Paso 4: Estructurar contenido con Gemini
+  console.log(`📝 [${platform}] Procesando contenido con Gemini...`);
+  
+  const structureResult = await structureRecipeFromText(extractionResult.content);
+  
+  if (!structureResult.success) {
+    console.error(`❌ Error al estructurar receta:`, structureResult.error);
+    return {
+      success: false,
+      error: 'No se pudo estructurar la receta automáticamente',
+      detail: structureResult.error,
+      platform,
+      sourceUrl: url,
+      fallbackContent: extractionResult.content
+    };
+  }
+
+  // Paso 5: Validación final
+  const recipe = structureResult.recipe;
+  if (!recipe.nombre) {
+    return {
+      success: false,
+      error: 'La IA no pudo identificar el nombre de la receta',
+      platform,
+      sourceUrl: url,
+      fallbackContent: extractionResult.content
+    };
+  }
+
+  console.log(`✅ [${platform}] Receta estructurada: ${recipe.nombre}`);
+  
+  return {
+    success: true,
+    recipe: recipe,
+    platform: platform,
+    sourceUrl: url,
+    sourceType: extractionResult.type
+  };
 }
 
+function detectPlatform(url) {
+  const u = url.toLowerCase();
+  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+  if (u.includes('tiktok.com')) return 'tiktok';
+  if (u.includes('drive.google.com')) return 'googledrive';
+  if (u.includes('docs.google.com')) return 'googledocs';
+  if (u.includes('dropbox.com')) return 'dropbox';
+  return 'unknown';
+}
+
+// Mantener compatibilidad con legacy if needed
+const URLImporter = {
+  import: async (url) => {
+    const res = await importFromUrl(url);
+    if (!res.success) throw new Error(res.error);
+    
+    // Mapeo al formato que espera ocr.html/recipe-form.js legacy
+    return {
+      type: 'structured',
+      platform: res.platform,
+      recipe: res.recipe,
+      metadata: { url: res.sourceUrl }
+    };
+  }
+};
+
 window.URLImporter = URLImporter;
+window.importFromUrl = importFromUrl;

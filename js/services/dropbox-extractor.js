@@ -1,78 +1,121 @@
-export class DropboxExtractor {
-  static async extract(url) {
-    let directUrl = url;
-    if (url.includes('dropbox.com') && !url.includes('dl=1')) {
-        directUrl = url.includes('?') ? url.replace(/dl=[0-9]/, 'dl=1') : url + '?dl=1';
-        if (!directUrl.includes('dl=1')) directUrl += '&dl=1';
+/**
+ * Dropbox Extractor Service
+ * Extrae contenido de archivos de Dropbox (.txt, .docx, spreadsheets, images).
+ */
+
+export async function extractFromDropbox(dropboxUrl) {
+  try {
+    console.log(`📥 [Dropbox] Intentando extraer: ${dropboxUrl}`);
+
+    // ID de archivo (Path)
+    let filePath = null;
+    
+    if (dropboxUrl.includes('/dl=0') || dropboxUrl.includes('/dl=1')) {
+      // Shared link format: https://www.dropbox.com/s/FILE_ID/filename?dl=0
+      filePath = dropboxUrl.replace('?dl=0', '').replace('?dl=1', '').split('/s/')[1];
+    } else if (dropboxUrl.includes('/file/')) {
+      // App-specific format
+      filePath = dropboxUrl.split('/file/')[1];
     }
     
-    // Direct attempt to handle basic text or images
-    try {
-        const res = await fetch(directUrl);
-        if (res.ok) {
-            const blob = await res.blob();
-            const type = blob.type;
-            const extension = directUrl.split('/').pop().split('?')[0].split('.').pop().toLowerCase();
-
-            if (type.includes('text') || ['rtf','txt','md','csv'].includes(extension)) {
-                let text = await blob.text();
-                // Basic cleanup for RTF if needed
-                if (extension === 'rtf') text = text.replace(/\\([a-z]{1,32})(-?\d+)? ?/g, '').replace(/\{|\}/g, '');
-                return {
-                    type: 'document',
-                    platform: 'dropbox',
-                    content: text,
-                    mimeType: type || 'text/plain',
-                    sourceUrl: url
-                };
-            }
-
-            // Non-text file that we might be able to handle (e.g. image for vision OCR)
-            return {
-                type: type.startsWith('image/') ? 'image' : 'document',
-                platform: 'dropbox',
-                content: blob,
-                mimeType: type,
-                sourceUrl: url,
-                downloadUrl: directUrl
-            };
-        }
-    } catch(e) {
-        console.warn("Dropbox direct download failed (CORS), trying proxy...");
-    }
-
-    try {
-        // Fallback to proxy
-        return await this.fetchViaProxy(directUrl);
-    } catch(e) {
-        throw new Error("No se pudo extraer el enlace de Dropbox automáticamente.");
-    }
-  }
-
-  static async fetchViaProxy(url) {
-     const SUPABASE_URL = window.SUPABASE_URL || 'https://fsgfrqrerddmopojjcsw.supabase.co';
-     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
-     if(!SUPABASE_ANON_KEY) throw new Error("No supabase anon key");
-
-     const response = await fetch(`${SUPABASE_URL}/functions/v1/fetch-url`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ url })
+    if (!filePath) throw new Error('URL de Dropbox no válida');
+    
+    // Obtener token
+    const accessToken = localStorage.getItem('dropbox_access_token');
+    if (!accessToken) throw new Error('No se encontró token de acceso de Dropbox. Inicia sesión primero.');
+    
+    // El proxy en /api/dropbox-metadata nos dará el nombre y mimeType
+    const metaResp = await fetch('/api/dropbox-metadata', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ url: dropboxUrl })
     });
     
-    if(!response.ok) throw new Error(`Proxy error ${response.status}`);
-    const data = await response.json();
-    if(data.error) throw new Error(data.error);
+    if (!metaResp.ok) {
+      throw new Error('No se pudo obtener metadatos del archivo desde el servidor');
+    }
+    
+    const metadata = await metaResp.json();
+    const { name, mimeType } = metadata;
+    
+    console.log(`📂 [Dropbox] Archivo detectado: ${name} (${mimeType})`);
 
-    return {
-        type: 'document',
+    // Convertir a link de descarga directa (?dl=1)
+    const downloadUrl = dropboxUrl.includes('?dl=0')
+      ? dropboxUrl.replace('?dl=0', '?dl=1')
+      : dropboxUrl.includes('?dl=') ? dropboxUrl : dropboxUrl + (dropboxUrl.includes('?') ? '&dl=1' : '?dl=1');
+
+    let content = '';
+    
+    // Manejar por MimeType
+    if (mimeType === 'text/plain') {
+      const fileResp = await fetch(downloadUrl);
+      content = await fileResp.text();
+      
+    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      const arrayBuffer = await fetch(downloadUrl).then(r => r.arrayBuffer());
+      const { extractTextFromDocx } = await import('../utils/docx-parser.js');
+      content = await extractTextFromDocx(arrayBuffer);
+      
+    } else if (mimeType.includes('spreadsheet') || mimeType === 'text/csv') {
+      const fileResp = await fetch(downloadUrl);
+      content = await fileResp.text();
+      
+    } else if (mimeType.startsWith('image/')) {
+      const imageResp = await fetch(downloadUrl);
+      const blob = await imageResp.blob();
+      const base64Image = await blobToBase64(blob);
+      
+      const { structureRecipeFromImage } = await import('./gemini-recipe-structurer.js');
+      const result = await structureRecipeFromImage(base64Image, mimeType);
+      
+      return {
+        type: 'image',
         platform: 'dropbox',
-        content: data.content || data.description || '',
-        mimeType: 'text/plain',
-        sourceUrl: url
+        mimeType: mimeType,
+        fileName: name,
+        content: result.content || '',
+        sourceUrl: dropboxUrl,
+        structuredRecipe: result.recipe,
+        success: result.success
+      };
+    } else {
+      throw new Error(`Tipo de archivo no soportado en Dropbox: ${mimeType}`);
+    }
+    
+    if (!content) {
+      throw new Error('No se pudo extraer contenido del archivo de Dropbox');
+    }
+    
+    return {
+      type: 'document',
+      platform: 'dropbox',
+      mimeType: mimeType,
+      fileName: name,
+      content: content,
+      sourceUrl: dropboxUrl,
+      success: true
+    };
+    
+  } catch (error) {
+    console.error('❌ Error en extractor de Dropbox:', error);
+    return {
+      type: 'error',
+      platform: 'dropbox',
+      error: error.message,
+      sourceUrl: dropboxUrl,
+      success: false
     };
   }
+}
+
+async function blobToBase64(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.readAsDataURL(blob);
+  });
 }
