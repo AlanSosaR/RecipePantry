@@ -61,7 +61,7 @@ export async function structureRecipeFromText(content) {
       return { success: true, recipe: JSON.parse(cached), content, cached: true };
     }
 
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key;
+    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
     
     const prompt = RECIPE_STRUCTURE_PROMPT.replace('{CONTENT}', content);
@@ -135,7 +135,7 @@ export async function structureRecipeFromText(content) {
 
 export async function structureRecipeFromImage(base64Image, mimeType) {
   try {
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key;
+    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
     
     const imagePrompt = `Analiza esta imagen de una receta y extrae TODA la información visible. Proporciona el contenido de texto completo que puedas leer, incluyendo ingredientes y pasos. Responde en formato texto plano.`;

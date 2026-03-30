@@ -182,7 +182,7 @@ function extractTextFromRTF(rtfText) {
  */
 async function extractFromImageWithVision(base64Image, mimeType, sourceUrl, fileName) {
   try {
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key;
+    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error('No API key found para OCR Visión');
     
     // Aquí podríamos usar fetchWithRetry, lo actualizamos!
