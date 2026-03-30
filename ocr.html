@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v485">
+<html lang="es" data-app-version="v486">
 
 <head>
     <meta charset="utf-8" />
@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v485';
+            const VERSION = 'v486';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v485...');
+                console.log('☢️ NUCLEAR PURGE v486...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -100,18 +100,18 @@
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
     <!-- CORE SCRIPTS v482 (Single Load) -->
-    <script src="js/config.js?v=485"></script>
-    <script src="js/supabase-client.js?v=485"></script>
-    <script src="js/utils.js?v=485"></script>
-    <script src="js/i18n.js?v=485"></script>
-    <script src="js/auth.js?v=485"></script>
-    <script src="js/localdb.js?v=485"></script>
-    <script src="js/db.js?v=485"></script>
-    <script src="js/ui.js?v=485"></script>
-    <script src="js/ocr-processor.js?v=485"></script>
-    <script src="js/ocr.js?v=485"></script>
-    <script type="module" src="js/url-importer.js?v=485"></script>
-    <script src="js/sw-register.js?v=485"></script>
+    <!-- v486 STABLE LOADED -->
+    <meta name="version-id" content="v486">
+    <link rel="stylesheet" href="css/index.css?v=486">
+    <link rel="stylesheet" href="css/ocr.css?v=486">
+    <script src="js/services/recipe-validator.js?v=486"></script>
+    <script src="js/url-importer.js?v=486"></script>
+    <script src="api/youtube-transcript.js?v=486"></script>
+    <script src="api/youtube-metadata.js?v=486"></script>
+    <script src="js/services/youtube-extractor.js?v=486"></script>
+    <script src="js/services/tiktok-extractor.js?v=486"></script>
+    <script src="js/services/gdrive-extractor.js?v=486"></script>
+    <script src="js/services/dropbox-extractor.js?v=486"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1361,13 +1361,6 @@
             detectPlatformAndSharedUrl();
         });
 
-
-
-
-        // ═══════════════════════════════════════════════════
-        // URL IMPORTER v2-DEBUG (LITERAL BLUEPRINT v485)
-        // ═══════════════════════════════════════════════════
-
         window.handleUrlImport = async function() {
             const urlInput = document.getElementById('urlImportInput');
             const url = urlInput?.value?.trim();
@@ -1378,63 +1371,62 @@
             }
 
             try {
-                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url} (v485)`);
+                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url} (v486)`);
                 showLoading(true);
                 showNotification('🔄 Extrayendo contenido...', 'info');
                 
-                // 1. Mostrar Preview estático (Paso 2)
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'assets/link.svg?v=485';
+                    previewImg.src = 'assets/link.svg?v=486';
                     previewImg.style.display = 'block';
                 }
                 if (typeof goToStep === 'function') goToStep(2);
 
-                // 2. Extraer usando el motor v485
                 const imported = await URLImporter.import(url, window.selectedOcrLang || 'spa');
                 
-                // Actualizar thumbnail si es YouTube
                 if (previewImg && imported.platform === 'youtube') {
                     const vid = url.match(/(?:v=|v\/|vi\/|u\/\w\/|embed\/|shorts\/|youtu.be\/|be\/)([a-zA-Z0-9_-]{11})/);
                     if (vid && vid[1]) previewImg.src = `https://i.ytimg.com/vi/${vid[1]}/hqdefault.jpg`;
                 }
 
-                // 3. Procesar Contenido
                 let recipeData = null;
-
                 if (imported.type === 'structured' || imported.recipe) {
                     recipeData = imported.recipe || imported.content;
                     recipeData.isStructured = true;
                 } else {
-                    // Fallback para texto plano o error Gemini
                     const textContent = imported.rawText || imported.content;
                     recipeData = {
                         nombre: `Importado: ${imported.platform || 'Web'}`,
                         texto: textContent,
-                        isStructured: false,
-                        confidence: 100
+                        isStructured: false
                     };
                 }
+                
+                recipeData.confidence = imported.metadata?.recipeScore || 100;
+                if (!recipeData.nombre && (imported.metadata?.title || imported.rawText)) {
+                    recipeData.nombre = imported.metadata?.title || imported.rawText.split('\n')[0];
+                }
 
-                // 4. PINTAR USANDO ESTRUCTURA EXISTENTE (Dropbox-Style)
+                window.currentOCRResults = recipeData;
+                
+                const titleEl = document.getElementById('ocrRecipeName');
+                if (titleEl) titleEl.value = recipeData.nombre || 'Receta importada';
+                
+                const fullTextEl = document.getElementById('ocrFullText');
+                if (fullTextEl) fullTextEl.value = recipeData.texto || '(Sin contenido)';
+                
+                const confEl = document.getElementById('confidenceBadgeStep1');
+                if (confEl) confEl.textContent = `${recipeData.confidence}%`;
+
                 if (window.ocr && typeof window.ocr.showResults === 'function') {
-                    console.log(`🎨 [handleUrlImport] Delegando renderizado a ocr.js (v485)`);
                     window.ocr.showResults(recipeData);
-                    
-                    // Limpiar input y notificar
+                    if (typeof goToStep === 'function') goToStep(1);
                     urlInput.value = '';
-                    showNotification('✅ Importación completada', 'success');
-                } else {
-                    // Fallback manual si window.ocr fallara
-                    const elName = document.getElementById('ocrRecipeName');
-                    const elText = document.getElementById('ocrFullText');
-                    if (elName) elName.value = recipeData.nombre || '';
-                    if (elText) elText.value = recipeData.texto || '';
-                    if (typeof goToStep === 'function') goToStep(3);
+                    showNotification('✅ Receta cargada desde ' + (imported.platform || 'URL'), 'success');
                 }
 
             } catch (error) {
-                console.error('❌ URL Import error:', error);
+                console.error('❌ Error en handleUrlImport:', error);
                 showNotification(`❌ ${error.message}`, 'error');
                 if (typeof goToStep === 'function') goToStep(1);
             } finally {
