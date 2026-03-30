@@ -27,7 +27,7 @@
     <!-- NUCLEAR CACHE PURGE v458 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v466';
+            const VERSION = 'v467';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
                 console.log('☢️ NUCLEAR PURGE v455...');
                 if ('serviceWorker' in navigator) {
@@ -91,7 +91,7 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v466 (Single Load) -->
+    <!-- CORE SCRIPTS v467 (Single Load) -->
     <script src="js/config.js?v=464"></script>
     <script src="js/supabase-client.js?v=464"></script>
     <script src="js/utils.js?v=464"></script>
@@ -1489,7 +1489,7 @@
         }
 
         // Bridge: Mapeo de nombres del Blueprint a funciones reales del Proyecto
-        function showNotification(msg, type) { if (window.showSnackbar) window.showSnackbar(msg, type); }
+        function showNotification(msg, type) { if (window.showToast) window.showToast(msg, type); }
         function showLoading(active) { 
             const el = document.getElementById('ocrLoading');
             if (el) el.style.display = active ? 'flex' : 'none';

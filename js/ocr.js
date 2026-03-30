@@ -394,12 +394,15 @@ class OCRScanner {
                 const renderSteps = (listId) => {
                     const list = document.getElementById(listId);
                     if (!list) return;
-                    list.innerHTML = (results.pasos || []).map((paso, idx) => `
+                    list.innerHTML = (results.pasos || []).map((paso, idx) => {
+                        const instruccion = typeof paso === 'string' ? paso : (paso.instruccion || paso.instruction || JSON.stringify(paso));
+                        return `
                         <div class="ocr-edit-card" style="gap: 16px;">
                             <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;">${idx + 1}</span>
-                            <div contenteditable="true" data-idx="${idx}" data-type="paso" style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6;">${paso}</div>
+                            <div contenteditable="true" data-idx="${idx}" data-type="paso" style="margin: 0; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6;">${instruccion}</div>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 };
 
 
