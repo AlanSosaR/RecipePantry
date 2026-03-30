@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v487';
+            const VERSION = 'v488';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v487...');
+                console.log('☢️ NUCLEAR PURGE v488...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -99,20 +99,20 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v487-STABLE (Purga de Caché Nuclear Re-Activa) -->
-    <meta name="version-id" content="v487">
-    <script src="js/config.js?v=487"></script>
-    <script src="js/supabase-client.js?v=487"></script>
-    <script src="js/utils.js?v=487"></script>
-    <script src="js/i18n.js?v=487"></script>
-    <script src="js/auth.js?v=487"></script>
-    <script src="js/localdb.js?v=487"></script>
-    <script src="js/db.js?v=487"></script>
-    <script src="js/ui.js?v=487"></script>
-    <script src="js/ocr-processor.js?v=487"></script>
-    <script src="js/ocr.js?v=487"></script>
-    <script type="module" src="js/url-importer.js?v=487"></script>
-    <script src="js/sw-register.js?v=487"></script>
+    <!-- CORE SCRIPTS v488-STABLE (Purga de Caché Nuclear Re-Activa) -->
+    <meta name="version-id" content="v488">
+    <script src="js/config.js?v=488"></script>
+    <script src="js/supabase-client.js?v=488"></script>
+    <script src="js/utils.js?v=488"></script>
+    <script src="js/i18n.js?v=488"></script>
+    <script src="js/auth.js?v=488"></script>
+    <script src="js/localdb.js?v=488"></script>
+    <script src="js/db.js?v=488"></script>
+    <script src="js/ui.js?v=488"></script>
+    <script src="js/ocr-processor.js?v=488"></script>
+    <script src="js/ocr.js?v=488"></script>
+    <script type="module" src="js/url-importer.js?v=488"></script>
+    <script src="js/sw-register.js?v=488"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1372,13 +1372,13 @@
             }
 
             try {
-                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url} (v487)`);
+                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url} (v488)`);
                 showLoading(true);
                 showNotification('🔄 Extrayendo contenido...', 'info');
                 
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'assets/link.svg?v=487';
+                    previewImg.src = 'assets/link.svg?v=488';
                     previewImg.style.display = 'block';
                 }
                 if (typeof goToStep === 'function') goToStep(2);
