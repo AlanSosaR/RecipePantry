@@ -27,7 +27,7 @@
     <!-- NUCLEAR CACHE PURGE v458 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v464';
+            const VERSION = 'v465';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
                 console.log('☢️ NUCLEAR PURGE v455...');
                 if ('serviceWorker' in navigator) {
@@ -91,7 +91,7 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v464 (Single Load) -->
+    <!-- CORE SCRIPTS v465 (Single Load) -->
     <script src="js/config.js?v=464"></script>
     <script src="js/supabase-client.js?v=464"></script>
     <script src="js/utils.js?v=464"></script>
@@ -1377,9 +1377,9 @@
                 // 2. PROCESAR SEGÚN TIPO
                 let recipeData;
 
-                if (imported.type === 'structured') {
-                    console.log(`✨ [handleUrlImport] Receta ya estructurada por el servidor.`);
-                    recipeData = imported.content;
+                if (imported.type === 'structured' || imported.recipe) {
+                    console.log(`✨ [handleUrlImport] Receta ya estructurada por el servidor/importador.`);
+                    recipeData = imported.recipe || imported.content;
                 }
                 else if (imported.type === 'file') {
                     console.log(`📄 [handleUrlImport] Procesando ARCHIVO...`);
@@ -1401,14 +1401,30 @@
                     recipeData = await processTextWithGemini(imported.content, imported.metadata);
                 }
 
-                // 3. Resultado final
-                if (recipeData && recipeData.nombre) {
+                if (imported.isFallbackText && imported.rawText) {
+                    showNotification('⚠️ Obtenido texto plano. Por favor estructúralo manualmente.', 'warning');
+                    window.currentOCRResults = { isStructured: false, text: imported.rawText, confidence: 100 };
+                    
+                    // Forzar mostrar modal manualmente con texto plano
+                    document.getElementById('ocrUrlInputSection').classList.remove('active');
+                    document.getElementById('ocrCaptureSection').classList.remove('active');
+                    document.getElementById('ocrResultSection').classList.add('active');
+                    
+                    document.getElementById('ocrRecipeName').value = recipeData?.nombre || recipeData?.name || `Receta importada`;
+                    document.getElementById('ocrFullText').value = imported.rawText;
+                    document.getElementById('ocrResultHeaderStep1').style.display = 'block';
+                    document.getElementById('ocrResultBodyStep1').style.display = 'block';
+                    document.getElementById('ocrTipsSection').style.display = 'block';
+                }
+                else if (recipeData && (recipeData.nombre || recipeData.name)) {
+                    // Normalizar
+                    if (recipeData.name && !recipeData.nombre) recipeData.nombre = recipeData.name;
                     showRecipeEditModal(recipeData, imported.metadata);
                     urlInput.value = '';
                     hideModalById('urlImportModal');
                     showNotification('✅ Receta importada correctamente', 'success');
                 } else {
-                    throw new Error('No se pudo estructurar la receta');
+                    throw new Error('No se pudo estructurar la receta automáticamente');
                 }
 
             } catch (error) {
