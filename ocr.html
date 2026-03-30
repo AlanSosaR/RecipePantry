@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v488';
+            const VERSION = 'v489';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v488...');
+                console.log('☢️ NUCLEAR PURGE v489...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -99,8 +99,8 @@
     <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
     <script defer src="js/scanner/cameraController.js?v=453"></script>
 
-    <!-- CORE SCRIPTS v488-STABLE (Purga de Caché Nuclear Re-Activa) -->
-    <meta name="version-id" content="v488">
+    <!-- CORE SCRIPTS v489-STABLE (Purga de Caché Nuclear Re-Activa) -->
+    <meta name="version-id" content="v489">
     <script src="js/config.js?v=488"></script>
     <script src="js/supabase-client.js?v=488"></script>
     <script src="js/utils.js?v=488"></script>
@@ -1372,7 +1372,7 @@
             }
 
             try {
-                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url} (v488)`);
+                console.log(`🔗 [handleUrlImport] Iniciando importación de: ${url} (v489)`);
                 showLoading(true);
                 showNotification('🔄 Extrayendo contenido...', 'info');
                 
