@@ -3,11 +3,11 @@
  * Orquesta la extracción de contenido de diversas plataformas y su estructuración con Gemini.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=459';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=459';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=459';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=459';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=459';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=460';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=460';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=460';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=460';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=460';
 
 export async function importFromUrl(url) {
   if (!url) throw new Error('URL es requerida');
