@@ -3,11 +3,11 @@
  * Orquesta la extracción de contenido y maneja errores sin romper el flujo principal.
  */
 
-import { extractFromYouTube } from './services/youtube-extractor.js?v=468';
-import { extractFromTikTok } from './services/tiktok-extractor.js?v=468';
-import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=468';
-import { extractFromDropbox } from './services/dropbox-extractor.js?v=468';
-import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=468';
+import { extractFromYouTube } from './services/youtube-extractor.js?v=469';
+import { extractFromTikTok } from './services/tiktok-extractor.js?v=469';
+import { extractFromGoogleDrive } from './services/gdrive-extractor.js?v=469';
+import { extractFromDropbox } from './services/dropbox-extractor.js?v=469';
+import { structureRecipeFromText } from './services/gemini-recipe-structurer.js?v=469';
 
 export async function importFromUrl(url) {
   try {
@@ -104,7 +104,7 @@ export async function importFromUrl(url) {
     
     let structureResult;
     try {
-      structureResult = await structureRecipeFromText(extractionResult.content);
+      structureResult = await structureRecipeFromText(extractionResult.content, lang);
     } catch (geminiCrash) {
       console.error(`❌ [URLImporter] Error interno no capturado en Gemini:`, geminiCrash);
       structureResult = {

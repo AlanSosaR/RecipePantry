@@ -1,12 +1,12 @@
 /**
- * RecipePantry Service Worker (v468) - PASSIVE
+ * RecipePantry Service Worker (v469) - PASSIVE
  * Soporte Offline Total + Sync Background
  */
 
-const CACHE_NAME = 'recipe-pantry-v468';
-const BUILD_ID = 'v468';
-const STATIC_CACHE = 'static-v468';
-const DATA_CACHE = 'data-v468';
+const CACHE_NAME = 'recipe-pantry-v469';
+const BUILD_ID = 'v469';
+const STATIC_CACHE = 'static-v469';
+const DATA_CACHE = 'data-v469';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',

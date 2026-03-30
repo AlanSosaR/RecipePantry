@@ -51,20 +51,30 @@ REGLAS DE VALIDACIÓN:
 - dificultad: "fácil" | "media" | "difícil" | null
 - categorias: array de strings o []`;
 
-export async function structureRecipeFromText(content) {
+export async function structureRecipeFromText(content, lang = 'spa') {
   try {
-    // Intentar recuperar de cache primero
-    const contentHash = hashString(content);
+    // Definir idioma objetivo basado en 'lang'
+    const targetLang = (lang === 'eng' || lang === 'en') ? 'ENGLISH' : 'SPANISH (Español)';
+    
+    // Injectar instrucción de idioma en el prompt base
+    const customPrompt = `${RECIPE_STRUCTURE_PROMPT}\n\nIDIOMA REQUERIDO: ${targetLang}. 
+Asegúrate de que todos los textos (nombre, descripción, ingredientes y pasos) estén en ${targetLang}. 
+Si el contenido original está en otro idioma, TRADÚCELO fielmente.`;
+
+    // Intentar recuperar de cache primero (v469: Incluir lang en el hash para evitar colisiones de idioma)
+    const contentHash = hashString(content + lang);
     const cached = localStorage.getItem(`gemini_extraction_cache_${contentHash}`);
     if (cached) {
-      console.log('📦 [Gemini] Usando resultado de cache');
+      console.log(`📦 [Gemini] Usando resultado de cache (${lang})`);
       return { success: true, recipe: JSON.parse(cached), content, cached: true };
     }
+
+    console.log(`📡 [Gemini] Consultando IA para estructurar receta (${lang})...`);
 
     const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
     
-    const prompt = RECIPE_STRUCTURE_PROMPT.replace('{CONTENT}', content);
+    const prompt = customPrompt.replace('{CONTENT}', content);
     
     // Asumiendo que importaríamos fetchWithRetry en el master app, pero si no,
     // usaremos el fetch nativo ya que aquí lo importante es NUNCA LANZAR hacia el orquestador.
