@@ -4,13 +4,13 @@
  */
 
 export const INVIDIOUS_INSTANCES = [
-  'https://invidious.projectsegfau.lt',
-  'https://inv.nadeko.net',
+  'https://invidious.flokinet.to',
+  'https://inv.tux.pizza',
+  'https://invidious.privacydev.net',
+  'https://invidious.perennialte.ch',
   'https://invidious.namazso.eu',
-  'https://yt.artemislena.eu',
-  'https://inv.zzls.xyz',
+  'https://vid.plus.dy.fi',
   'https://y.com.sb',
-  'https://inv.riverside.rocks',
 ];
 
 const TIMEOUT = 8000; // 8 segundos por instancia

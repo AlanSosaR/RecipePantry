@@ -1,6 +1,6 @@
-// api/youtube-extract.js (v494)
-// SOLUTION DEFINITIVE: Sistema multi-estrategia con scrapers rotativos y TimedText directo.
-// v494: Integra el motor robusto de 'youtube-transcript.js' para garantizar descripción + audio.
+// api/youtube-extract.js (v495)
+// SUPER-BYPASS: InnerTube → Scraper → RSS Feed → Invidious
+// v495: Añade extracción via RSS Feed (feeds/videos.xml) como bypass de alta fiabilidad.
 
 const INNERTUBE_ENDPOINT = 'https://www.youtube.com/youtubei/v1/player';
 // Clave pública del cliente web de YouTube (documentada públicamente, no es secreta)
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const { videoId } = req.body;
   if (!videoId) return res.status(400).json({ error: 'videoId requerido' });
 
-  console.log(`🎬 [v494] Extrayendo video: ${videoId}`);
+  console.log(`🎬 [v495] Extrayendo video: ${videoId}`);
 
   let title = '';
   let description = '';
@@ -87,7 +87,33 @@ export default async function handler(req, res) {
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 3: Transcript Fetching (v494)
+  // ESTRATEGIA 3: RSS Feed Fallback (v495)
+  // Muy útil para descripciones cuando el HTML está bloqueado
+  // ────────────────────────────────────────────────
+  if (!title || !description) {
+    try {
+      console.log('🔄 [RSS v495] Intentando bypass por RSS Feed...');
+      const rssUrl = `https://www.youtube.com/feeds/videos.xml?video_id=${videoId}`;
+      const rssResp = await fetch(rssUrl, { signal: AbortSignal.timeout(6000) });
+      if (rssResp.ok) {
+        const xml = await rssResp.text();
+        const rssTitle = xml.match(/<title>([^<]+)<\/title>/);
+        const rssDesc = xml.match(/<media:description>([^<]+)<\/media:description>/);
+        
+        if (rssTitle) title = rssTitle[1] || title;
+        if (rssDesc) {
+          description = rssDesc[1] || description;
+          source += '+rss';
+          console.log(`✅ [RSS] Recuperada descripción: ${description.length} chars`);
+        }
+      }
+    } catch (e) {
+      console.warn(`⚠️ [RSS] Falló: ${e.message}`);
+    }
+  }
+
+  // ────────────────────────────────────────────────
+  // ESTRATEGIA 4: Transcript Fetching (v495)
   // ────────────────────────────────────────────────
   if (captionBaseUrl) {
     try {
@@ -99,11 +125,11 @@ export default async function handler(req, res) {
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 4: Invidious fallback si todo falló
+  // ESTRATEGIA 5: Invidious fallback si todo falló
   // ────────────────────────────────────────────────
-  if (!title && !description && !transcript) {
+  if (!title || (!description && !transcript)) {
     try {
-      console.log('🔄 [InnerTube] Todo falló. Intentando Invidious...');
+      console.log('🔄 [v495] Todo falló. Intentando Invidious (Instancias Premium)...');
       const { getFromInvidious } = await import('./youtube-invidious-fallback.js');
       const inv = await getFromInvidious(videoId);
       if (inv.success) {
@@ -111,7 +137,7 @@ export default async function handler(req, res) {
         description = inv.description || description;
         transcript = inv.captions || transcript;
         source = `invidious:${inv.instance}`;
-        console.log(`✅ [Invidious] Datos recuperados de ${inv.instance}`);
+        console.log(`✅ [Invidious] Datos de ${inv.instance}`);
       }
     } catch (e) {
       console.warn(`⚠️ [Invidious] Error: ${e.message}`);
@@ -119,28 +145,19 @@ export default async function handler(req, res) {
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 5: Consolidar y Validar (v494)
-  // EVITAR Alucinaciones: Si tenemos Título pero no hay CUERPO (descrip o transcript) con contenido real, abortar.
+  // ESTRATEGIA 6: Consolidar y Validar (v495)
   // ────────────────────────────────────────────────
   const descriptionActual = description || '';
   const transcriptActual = transcript || '';
   
-  // Scoring de contenido para evitar falsos positivos
-  const hasSubstantialBody = (descriptionActual.length > 250 || transcriptActual.length > 400);
-  const looksLikeRecipe = descriptionLooksLikeRecipe(descriptionActual) || transcriptActual.length > 1200;
-  
-  const hasContent = !!(title && (hasSubstantialBody || looksLikeRecipe));
+  // Scraper de emergencia si solo tenemos título
+  const hasContent = !!(title && (descriptionActual.length > 100 || transcriptActual.length > 200));
   
   if (!hasContent) {
-    console.log(`📊 [YouTube v494] Diagnóstico:
-      ├─ Title: ${title ? title.length : 0} chars
-      ├─ Desc: ${descriptionActual.length} chars (IsRecipe: ${descriptionLooksLikeRecipe(descriptionActual)})
-      ├─ Transcript: ${transcriptActual.length} chars
-      ├─ Source: ${source}
-      └─ Result: ❌ INSUFICIENTE PARA GEMINI`);
+    console.log(`📊 [YouTube v495] Diagnóstico de Fallo: Title=${!!title}, Desc=${descriptionActual.length}, Trans=${transcriptActual.length}`);
     return res.status(200).json({
       success: false,
-      error: 'Contenido extraído insuficiente. La descripción o audio no contienen detalles claros de la receta.',
+      error: 'YouTube ha bloqueado el acceso automático a este video. Por favor, copia la descripción del video y pégala manualmente en la pestaña de Texto para procesarla con la IA.',
       videoId, 
       title, 
       descriptionLength: descriptionActual.length, 
