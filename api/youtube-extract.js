@@ -60,10 +60,9 @@ export default async function handler(req, res) {
 
   let transcript = null;
 
-  if (!descHasRecipe && captionBaseUrl) {
+  if (captionBaseUrl) {
     // ────────────────────────────────────────────────
-    // ESTRATEGIA 3: Obtener transcripción de la URL de subtítulos
-    // que InnerTube nos dio (URL directa, sin scraping adicional)
+    // ESTRATEGIA 3: Obtener transcripción SIEMPRE si está disponible (v491)
     // ────────────────────────────────────────────────
     try {
       transcript = await fetchCaptionFromUrl(captionBaseUrl);
@@ -96,12 +95,25 @@ export default async function handler(req, res) {
     }
   }
 
-  const hasContent = !!(title || description || transcript);
+  // ────────────────────────────────────────────────
+  // ESTRATEGIA 5: Consolidar y Validar
+  // ────────────────────────────────────────────────
+  const hasContent = !!(title || (description && description.length > 300) || (transcript && transcript.length > 50));
+  
   if (!hasContent) {
+    console.log(`📊 [YouTube v491] Diagnóstico:
+      ├─ Title: ${title ? title.length : 0} chars
+      ├─ Desc: ${description ? description.length : 0} chars (Recipe: ${descHasRecipe})
+      ├─ Transcript: ${transcript ? transcript.length : 0} chars
+      ├─ Source: ${source}
+      └─ Content Total: ${(title + description + (transcript || '')).length} chars`);
     return res.status(200).json({
       success: false,
-      error: 'No se pudo extraer contenido de este video',
-      videoId, title, description, transcript
+      error: 'Contenido extraído insuficiente',
+      videoId, 
+      title, 
+      descriptionLength: description.length, 
+      transcriptLength: transcript ? transcript.length : 0 
     });
   }
 
@@ -156,12 +168,18 @@ async function fetchInnerTube(videoId) {
 
   const data = await response.json();
 
-  // Extraer título y descripción del videoDetails
+  // Extraer título y descripción
   const videoDetails = data.videoDetails || {};
   const title = videoDetails.title || '';
-  const description = videoDetails.shortDescription || '';
+  
+  // v490: Buscar descripción COMPLETA (InnerTube shortDescription es limitada)
+  let description = videoDetails.shortDescription || '';
+  const microDescription = data.microformat?.playerMicroformatRenderer?.description?.simpleText;
+  if (microDescription && microDescription.length > description.length) {
+    description = microDescription;
+  }
 
-  // Extraer URL de subtítulos (prioridad: español > inglés > cualquiera)
+  // Extraer URL de subtítulos (prioridad: español > inglés > cualquiera) (v490)
   let captionBaseUrl = null;
   try {
     const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
@@ -173,6 +191,20 @@ async function fetchInnerTube(videoId) {
       captionBaseUrl = selected?.baseUrl || null;
     }
   } catch (e) {}
+
+  // v490: Fallback directo a TimedText si no hay captions en InnerTube
+  if (!captionBaseUrl) {
+    try {
+      const directTranscriptUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=es&fmt=json3&kind=asr`;
+      const directResp = await fetch(directTranscriptUrl, { signal: AbortSignal.timeout(5000) });
+      if (directResp.ok) {
+        const testJson = await directResp.clone().json().catch(()=>null);
+        if (testJson && testJson.events) {
+            captionBaseUrl = directTranscriptUrl;
+        }
+      }
+    } catch (e) {}
+  }
 
   return { success: true, title, description, captionBaseUrl };
 }

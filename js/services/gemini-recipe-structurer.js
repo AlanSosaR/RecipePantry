@@ -6,50 +6,32 @@
 const RECIPE_STRUCTURE_PROMPT = `Eres un experto en análisis de recetas culinarias. Tu tarea es EXTRAER UNA RECETA del contenido proporcionado.
 
 INSTRUCCIONES CRÍTICAS:
-1. Responde ÚNICAMENTE con JSON válido. SIN markdown, SIN explicaciones, SIN texto adicional.
-2. COMPLETA todos los campos. Usa null para campos no disponibles, NUNCA omitas campos.
-3. Los arrays (ingredientes, pasos, categorias) DEBEN existir y pueden estar vacíos.
-4. Si hay múltiples recetas, extrae la PRINCIPAL (la más desarrollada).
+1. Responde ÚNICAMENTE con JSON válido (sin markdown, sin explicaciones). 
+2. Si el contenido proviene de una TRANSCRIPCIÓN de un video, presta mucha atención a lo que el orador dice que va a hacer ("agregamos la leche", "batimos los huevos") para extraer los ingredientes y pasos, incluso si no están en una lista formal.
+3. COMPLETA todos los campos del JSON (usa null si no están disponibles).
+4. Si hay varias versiones de la receta, usa la más detallada.
 
 CONTENIDO A ANALIZAR:
 ---
 {CONTENT}
 ---
 
-RESPONDE EXACTAMENTE CON ESTE JSON (sin cambios de estructura):
+RESPONDE EXACTAMENTE CON ESTE FORMATO JSON:
 {
-  "nombre": "nombre exacto de la receta",
-  "descripcion": "descripción breve máximo 200 caracteres, o null si no hay",
+  "nombre": "nombre de la receta",
+  "descripcion": "descripción breve (máx 200 chars) o null",
   "ingredientes": [
-    {
-      "nombre": "nombre del ingrediente",
-      "cantidad": 1,
-      "unidad": "g o ml o taza o piezas o null",
-      "notes": "notas adicionales o null"
-    }
+    { "nombre": "ingrediente", "cantidad": 1, "unidad": "unidad o null", "notes": "notas o null" }
   ],
   "pasos": [
-    {
-      "numero": 1,
-      "instruccion": "descripción clara y detallada del paso",
-      "tiempo_minutos": 5
-    }
+    { "numero": 1, "instruccion": "detalle del paso", "tiempo_minutos": null }
   ],
-  "tiempo_preparacion": 15,
-  "tiempo_coccion": 30,
-  "porciones": 4,
-  "dificultad": "fácil",
-  "categorias": ["postres", "sin gluten"]
-}
-
-REGLAS DE VALIDACIÓN:
-- nombre: string no vacío o null
-- descripcion: string o null
-- ingredientes: array (puede estar vacío [])
-- pasos: array (puede estar vacío [])
-- tiempo_preparacion, tiempo_coccion, porciones: números o null
-- dificultad: "fácil" | "media" | "difícil" | null
-- categorias: array de strings o []`;
+  "tiempo_preparacion": null,
+  "tiempo_coccion": null,
+  "porciones": null,
+  "dificultad": "fácil/media/difícil",
+  "categorias": ["etiqueta1", "etiqueta2"]
+}`;
 
 export async function structureRecipeFromText(content, lang = 'spa') {
   try {

@@ -448,11 +448,10 @@
             max-width: 600px;
             border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1); /* Sombra más suave por defecto */
             margin: 0 auto 24px auto;
             background: #fff;
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            transition: none;
         }
 
         /* MODO URL: Plano y sin efectos (v474 REFORZADO) */
@@ -487,13 +486,7 @@
         }
 
         #ocrGlassOverlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.01);
-            backdrop-filter: blur(0.2px);
-            -webkit-backdrop-filter: blur(0.2px);
-            transition: all 0.4s ease;
-            z-index: 5;
+            display: none !important;
         }
 
         .progress-container {
@@ -604,16 +597,7 @@
         }
 
         .scanning-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100px;
-            background: linear-gradient(to bottom, transparent, var(--primary));
-            opacity: 0.4;
-            animation: scan 3s ease-in-out infinite;
-            z-index: 10;
-            pointer-events: none;
+            display: none !important;
         }
 
         @keyframes scan {
@@ -1229,26 +1213,16 @@
                         <!-- Image preview with frosted glass overlay -->
                         <div id="ocrPreviewContainer">
                             <img id="ocrPreview" class="preview-image" alt="Preview">
-                            
-                            <!-- Barely visible blur overlay for identification context -->
-                            <div id="ocrGlassOverlay"></div>
-
-                            <!-- High-speed scanning line -->
-                            <div class="scanning-line" style="height: 40px; background: linear-gradient(to bottom, transparent, var(--primary)); opacity: 0.5;"></div>
                         </div>
 
                         <!-- Unified M3 Expressive Morphing Loader -->
                         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom: 24px;">
                             <style>
-                                @keyframes m3Morph {
-                                    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-                                    33% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-                                    66% { border-radius: 60% 40% 50% 50% / 40% 60% 40% 60%; }
-                                    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+                                 @keyframes m3Morph {
+                                    0%, 100% { border-radius: 50%; }
                                 }
                                 @keyframes m3Pulse {
-                                    0%, 100% { box-shadow: 0 4px 12px rgba(0,200,83,0.3); transform: scale(0.98); }
-                                    50% { box-shadow: 0 8px 24px rgba(0,200,83,0.5); transform: scale(1.02); }
+                                    0%, 100% { box-shadow: none; transform: scale(1); }
                                 }
                                 .m3-blob {
                                     width: 52px;
@@ -1410,20 +1384,23 @@
 
                 window.currentOCRResults = recipeData;
                 
-                const titleEl = document.getElementById('ocrRecipeName');
-                if (titleEl) titleEl.value = recipeData.nombre || 'Receta importada';
-                
-                const fullTextEl = document.getElementById('ocrFullText');
-                if (fullTextEl) fullTextEl.value = recipeData.texto || '(Sin contenido)';
-                
-                const confEl = document.getElementById('confidenceBadgeStep1');
-                if (confEl) confEl.textContent = `${recipeData.confidence}%`;
-
                 if (window.ocr && typeof window.ocr.showResults === 'function') {
                     window.ocr.showResults(recipeData);
-                    if (typeof goToStep === 'function') goToStep(1);
                     urlInput.value = '';
                     showNotification('✅ Receta cargada desde ' + (imported.platform || 'URL'), 'success');
+                } else {
+                    // Fallback directo si ocr.js no responde perfectamente
+                    const titleEl = document.getElementById('ocrRecipeName');
+                    if (titleEl) titleEl.value = recipeData.nombre || 'Receta importada';
+                    const fullTextEl = document.getElementById('ocrFullText');
+                    if (fullTextEl) fullTextEl.value = (recipeData.texto || recipeData.rawText || '(Sin contenido)');
+                    
+                    const resHeader = document.getElementById('ocrResultHeaderStep1');
+                    const resBody = document.getElementById('ocrResultBodyStep1');
+                    const captSect = document.getElementById('ocrCaptureSection');
+                    if (resHeader) resHeader.classList.remove('hidden');
+                    if (resBody) resBody.classList.remove('hidden');
+                    if (captSect) captSect.classList.add('hidden');
                 }
 
             } catch (error) {
@@ -1586,20 +1563,21 @@
         }
 
         function goToStep(step) {
-            const container = document.getElementById('ocrPreviewContainer');
+            if (!step || !document.getElementById('step' + step)) return;
+
             const previewImg = document.getElementById('ocrPreview');
-            
-            // Detectar si es una URL/Imagen estática (No cámara)
-            // Si el src incluye youtube, tiktok, google, dropbox o es link.svg
+            const container = document.getElementById('ocrPreviewContainer');
+
+            // Detectar origen URL/Imagen estática
             const isUrlSource = previewImg && (
                 previewImg.src.includes('link.svg') || 
                 previewImg.src.includes('ytimg.com') || 
                 previewImg.src.includes('tiktok') || 
                 previewImg.src.includes('google') || 
                 previewImg.src.includes('dropbox') ||
-                !previewImg.src.startsWith('blob:') // Las fotos de cámara suelen ser blobs
+                !previewImg.src.startsWith('blob:')
             );
-            
+
             if (container) {
                 if (isUrlSource && step === 2) {
                     container.classList.add('is-url-preview');
@@ -1607,9 +1585,35 @@
                     container.classList.remove('is-url-preview');
                 }
             }
-            
+
             document.querySelectorAll('.ocr-step').forEach(s => s.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
+
+            // Si volvemos al paso 1, restaurar visibilidad de la sección de captura 
+            // solo si NO hay resultados activos siendo mostrados (v255)
+            if (step === 1) {
+                const resHeader = document.getElementById('ocrResultHeaderStep1');
+                const isShowingResults = resHeader && !resHeader.classList.contains('hidden');
+
+                if (!isShowingResults) {
+                    const captureSection = document.getElementById('ocrCaptureSection');
+                    const tipsSection = document.getElementById('ocrTipsSection');
+                    const resBody = document.getElementById('ocrResultBodyStep1');
+
+                    if (captureSection) captureSection.classList.remove('hidden');
+                    if (tipsSection) tipsSection.classList.remove('hidden');
+                    if (resHeader) resHeader.classList.add('hidden');
+                    if (resBody) resBody.classList.add('hidden');
+
+                    const fileInput = document.getElementById('fileInput');
+                    if (fileInput) fileInput.value = '';
+                }
+            }
+
+            // Update step dots (v256)
+            document.querySelectorAll('.step-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === (step - 1));
+            });
         }
 
         function setupDragAndDrop() {
@@ -1818,49 +1822,6 @@
         }
 
 
-        function goToStep(s) {
-            document.querySelectorAll('.ocr-step').forEach((el, i) => el.classList.toggle('active', i === (s - 1)));
-
-            // Scroll to top to ensure visibility
-            const modalContent = document.querySelector('.ocr-modal-content');
-            if (modalContent) modalContent.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Si volvemos al paso 1, resetear estado e inputs
-            if (s === 1) {
-                // Reset internal visibility states (v207 Fix)
-                const captureSection = document.getElementById('ocrCaptureSection');
-                const resultHeader = document.getElementById('ocrResultHeaderStep1');
-                const resultBody = document.getElementById('ocrResultBodyStep1');
-                const tipsSection = document.getElementById('ocrTipsSection');
-
-                if (captureSection) captureSection.classList.remove('hidden');
-                if (tipsSection) tipsSection.classList.remove('hidden');
-                if (resultHeader) resultHeader.classList.add('hidden');
-                if (resultBody) resultBody.classList.add('hidden');
-
-                const fileInput = document.getElementById('fileInput');
-                if (fileInput) fileInput.value = '';
-                currentImageFile = null;
-                ocrResults = { text: '', confidence: 0 };
-                parsedData = { name: '', ingredients: [], steps: [] };
-
-                const pr1 = document.getElementById('ocrProcessingPreview');
-                if (pr1) pr1.src = '';
-                const pr2 = document.getElementById('ocrProcessingPreviewModal');
-                if (pr2) pr2.src = '';
-
-                const status = document.getElementById('processingStatus');
-                if (status) status.textContent = window.i18n ? window.i18n.t('ocrProcessing') : 'Iniciando OCR...';
-
-                const bar = document.getElementById('progressBar');
-                if (bar) bar.style.width = '0%';
-            }
-
-            // Update dots
-            document.querySelectorAll('.step-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === (s - 1));
-            });
-        }
 
         function goBack() {
             window.location.href = '/';
@@ -1990,24 +1951,17 @@
 
                 <!-- Image preview with frosted glass overlay -->
                 <div id="ocrPreviewContainerModal"
-                    style="position:relative;width:100%;max-width:400px;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);margin-bottom:32px;background:#fff;">
+                    style="position:relative;width:100%;max-width:400px;border-radius:20px;overflow:hidden;margin-bottom:32px;background:#fff;border:1px solid var(--border);">
                     <img id="ocrProcessingPreviewModal" style="width:100%;display:block;height:auto;max-height:60vh;object-fit:contain;" alt="Preview">
-                    <div id="ocrGlassOverlayModal"
-                        style="position:absolute;inset:0;background:rgba(255,255,255,0.01);backdrop-filter:blur(0.2px);-webkit-backdrop-filter:blur(0.2px);transition:all 0.4s ease;">
-                    </div>
                 </div>
 
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom: 24px;">
                     <style>
                         @keyframes m3Morph {
-                            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-                            33% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-                            66% { border-radius: 60% 40% 50% 50% / 40% 60% 40% 60%; }
-                            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+                            0%, 100% { border-radius: 50%; }
                         }
                         @keyframes m3Pulse {
-                            0%, 100% { box-shadow: 0 4px 12px rgba(0,200,83,0.3); transform: scale(0.98); }
-                            50% { box-shadow: 0 8px 24px rgba(0,200,83,0.5); transform: scale(1.02); }
+                            0%, 100% { box-shadow: none; transform: scale(1); }
                         }
                         .m3-blob {
                             width: 52px;
