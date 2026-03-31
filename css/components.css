@@ -6074,22 +6074,23 @@ input:checked~.m3-ingredient-text {
 }
 
 
-/* TABLA VERDADERA: Grid robusto para alineación perfecta Header-Rem (v20.5) */
+/* PC Grid: Estructura Proporcional Fluida (v20.6) */
 .file-row-m3,
 .list-header-m3 {
     display: grid !important;
-    /* Estructura de 5 columnas bien definidas */
-    grid-template-columns: 50px 1fr 180px 180px 100px !important;
+    /* Distribución proporcional (Suma total ~11fr) para evitar huecos masivos */
+    grid-template-columns: 48px 4fr 2.5fr 2.5fr 1.5fr !important;
     align-items: center !important;
-    gap: 0 !important; /* Usamos paddings internos para mayor control de alineación */
-    padding: 0 24px !important;
+    gap: 16px !important; /* Gap consistente solicitado */
+    padding: 0 16px !important;
     width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
+    max-width: 1280px !important; /* Límite para pantallas UltraWide */
+    margin: 0 auto !important;
     box-sizing: border-box !important;
-    height: 56px !important;
+    height: 52px !important;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
+    transition: all 0.2s ease-in-out;
 }
 
 .list-view-m3 {
