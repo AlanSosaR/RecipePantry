@@ -6074,28 +6074,55 @@ input:checked~.m3-ingredient-text {
 }
 
 
-/* PC Grid Alignment & Hierarchy */
+/* PC Grid Alignment & Hierarchy - Refined for compact layout (v20.4) */
 .file-row-m3,
 .list-header-m3 {
     display: grid !important;
-    grid-template-columns: 48px 1fr 120px 180px 84px 48px !important;
+    /* [order:-1]Checkbox(44px) | Icon(40px) | Name(1fr) | Access(120px) | Date(140px) | Actions(44px) */
+    grid-template-columns: 44px 40px minmax(250px, 1fr) 120px 150px 48px !important;
     align-items: center !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
+    gap: 8px !important; /* Gap reducido para mayor proximidad */
+    padding: 0 16px !important;
     width: 100%;
+    max-width: 1100px !important;
+    margin: 0 auto !important;
     box-sizing: border-box !important;
+    height: 52px !important; /* Filas más compactas y profesionales */
+}
+
+/* Ensure no stretching beyond max-width */
+.list-view-m3 {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Agrupamiento compacto de Icono + Nombre */
+.file-row-m3 .col-icon,
+.list-header-m3 .col-icon {
+    display: flex;
+    justify-content: flex-end !important; /* Icono pegado a la derecha de su celda */
+    padding-right: 4px;
+    opacity: 0.9;
+}
+
+.file-row-m3 .col-name,
+.list-header-m3 .col-name {
+    padding-left: 0 !important;
+    font-weight: 600;
 }
 
 .list-header-m3 {
     background: transparent !important;
-    font-weight: 800 !important; /* Más negrita */
+    font-weight: 800 !important;
     font-size: 11px !important;
     letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
-    color: #1a1a1a !important; /* Más oscuro/negro */
+    color: #1a1a1a !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
     margin-bottom: 4px;
-    height: 48px;
+    height: 44px !important; /* Header un poco más bajo */
     opacity: 0.8;
 }
 
