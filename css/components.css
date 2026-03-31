@@ -6074,23 +6074,22 @@ input:checked~.m3-ingredient-text {
 }
 
 
-/* PC Grid: Estructura Proporcional Fluida (v20.6) */
+/* PC Grid: Alineación de Precisión Icono/Menú (v20.7) */
 .file-row-m3,
 .list-header-m3 {
     display: grid !important;
-    /* Distribución proporcional (Suma total ~11fr) para evitar huecos masivos */
-    grid-template-columns: 48px 4fr 2.5fr 2.5fr 1.5fr !important;
+    /* Estructura solicitada: Checkbox(40) | Icon/Menu(40) | Name(1fr) | Access(200) | Date(200) | Actions(100) */
+    grid-template-columns: 40px 40px 1fr 200px 200px 100px !important;
     align-items: center !important;
-    gap: 16px !important; /* Gap consistente solicitado */
+    gap: 12px !important; 
     padding: 0 16px !important;
     width: 100% !important;
-    max-width: 1280px !important; /* Límite para pantallas UltraWide */
+    max-width: 1350px !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;
     height: 52px !important;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
-    transition: all 0.2s ease-in-out;
 }
 
 .list-view-m3 {
@@ -6100,27 +6099,21 @@ input:checked~.m3-ingredient-text {
     align-items: stretch !important; /* Ocupar todo el ancho */
 }
 
-/* Columna de Información Principal (Icono + Nombre) */
-.col-main-info {
+/* Columnas de Icono/Menú alineadas */
+.col-selection-menu,
+.col-icon {
+    width: 40px !important;
     display: flex !important;
+    justify-content: center !important;
     align-items: center !important;
-    gap: 12px !important;
-    padding-right: 16px;
-    overflow: hidden;
-    height: 100%;
 }
 
-.col-main-info .col-icon {
-    flex-shrink: 0;
-    width: 32px;
-    display: flex;
-    justify-content: center;
-}
-
-.col-main-info .col-name {
-    flex: 1;
-    min-width: 0;
+.col-name {
+    padding-left: 4px;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .list-header-m3 {
@@ -6326,23 +6319,25 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        /* Mobile Layout: [Checkbox] [Main Info] [Actions] */
-        grid-template-columns: 48px 1fr 48px !important;
+        /* Mobile Layout: [Checkbox] [Icon/Menu] [Name] [Actions] */
+        grid-template-columns: 48px 40px 1fr 48px !important;
         gap: 0 !important;
-        padding: 0 8px !important;
+        padding: 0 4px !important;
         align-items: center;
         width: 100% !important;
-        height: 64px !important; /* Un poco más alto en mobile para touch */
+        height: 64px !important; 
     }
 
-    /* Hide Access and Date on mobile as requested implicitly by 'compact' and explicitly here */
+    /* Hide Access and Date on mobile */
     .col-access,
     .col-date {
         display: none !important;
     }
 
-    .col-main-info {
-        padding-right: 8px;
+    /* Selection menu on mobile (col 2) */
+    .col-selection-menu {
+        display: flex !important;
+        justify-content: center;
     }
 
     /* Reset reordering since physical order is now correct */

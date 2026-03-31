@@ -1103,7 +1103,12 @@ class DashboardManager {
                         <span class="m3-checkbox-visual"></span>
                     </label>
                 </div>
-                <div class="col-main-info">${colName}</div>
+                <div class="col-selection-menu">
+                    <button class="btn-icon-m3" id="selectionMoreBtnHeader" onclick="window.dashboard.toggleSelectionMenu(event)" style="display: none;" title="Más opciones">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">more_vert</span>
+                    </button>
+                </div>
+                <div class="col-name">${colName}</div>
                 <div class="col-access">${colAccess}</div>
                 <div class="col-date">${colDate}</div>
                 <div class="col-actions"></div>
@@ -1142,13 +1147,12 @@ class DashboardManager {
                     </label>
                 </div>
 
-                <div class="col-main-info">
-                    <div class="col-icon">
-                        <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
-                    </div>
-                    <div class="col-name text-ellipsis">
-                        <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
-                    </div>
+                <div class="col-icon">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
+                </div>
+
+                <div class="col-name text-ellipsis">
+                    <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
                 </div>
 
                 <div class="col-access">
