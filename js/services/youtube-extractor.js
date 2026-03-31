@@ -1,75 +1,78 @@
 /**
- * YouTube Extractor Service (v498)
- * ARQUITECTURA GRACEFUL PARTIAL: Prioriza obtener ALGO antes que fallar.
- * v498: Validación ultra-relajada (solo requiere título) y logs de diagnóstico por fuente.
+ * YouTube Extractor Service (v499)
+ * ARQUITECTURA DIRECT BROWSER SCRAPER: Intenta obtener el HTML directamente del cliente.
+ * v499: Prioriza fetch directo de YouTube.com desde el navegador del usuario.
  */
-
-const INVIDIOUS_CLIENT_NODES = [
-  'https://invidious.flokinet.to',
-  'https://inv.tux.pizza',
-  'https://invidious.privacydev.net',
-  'https://invidious.perennialte.ch',
-  'https://invidious.namazso.eu',
-  'https://inv.ggc-project.de'
-];
 
 export async function extractFromYouTube(videoUrl) {
   try {
     const videoId = extractVideoId(videoUrl);
     if (!videoId) throw new Error('URL de YouTube no válida');
 
-    console.log(`📡 [YouTube v498] Master Orchestrator: ${videoId}`);
+    console.log(`📡 [YouTube v499] Iniciando Direct Scraper: ${videoId}`);
 
-    // 1. INTENTO CLIENTE (Browser IP)
-    let clientData = await extractYouTubeClientSide(videoId);
-    console.log(`🔍 [Diagnóstico Cliente] Title=${!!clientData.title}, Desc=${clientData.description.length}, Trans=${clientData.transcript.length}`);
-
-    // 2. INTENTO SERVIDOR (Vercel Cloud - si falta contenido de cuerpo)
-    if (!clientData.description && !clientData.transcript) {
-      console.warn('⚠️ [v498] Cliente sin contenido de cuerpo. Consultando Vercel Fallback...');
-      const serverResult = await fetchYouTubeFromServer(videoId);
-      if (serverResult && serverResult.success) {
-        console.log(`🔍 [Diagnóstico Servidor] Title=${!!serverResult.title}, Desc=${serverResult.description?.length || 0}, Source=${serverResult.source}`);
-        
-        // Mezclar con inteligencia: preferir el que tenga contenido
-        if ((serverResult.description?.length || 0) > clientData.description.length) {
-            clientData.description = serverResult.description;
-            clientData.source += `+server-desc:${serverResult.source}`;
+    // 1. oEmbed (Título - Casi infalible via CORS)
+    let title = '';
+    try {
+        const oembed = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+        if (oembed.ok) {
+            const data = await oembed.json();
+            title = data.title;
+            console.log(`✅ [oEmbed] Título: ${title}`);
         }
-        if ((serverResult.transcript?.length || 0) > clientData.transcript.length) {
-            clientData.transcript = serverResult.transcript;
-            clientData.source += `+server-trans`;
-        }
-        clientData.title = serverResult.title || clientData.title;
-      }
+    } catch (e) {
+        console.warn('⚠️ [oEmbed] Error de red:', e.message);
     }
 
-    const title       = clientData.title || '';
-    const description = clientData.description || '';
-    const transcript  = clientData.transcript || '';
-    const source      = clientData.source || 'hybrid';
+    // 2. SCRAPER DIRECTO DESDE EL NAVEGADOR (IP del usuario)
+    let description = '';
+    let transcript = '';
+    let source = 'client-direct';
 
-    // Consolidar contenido (v498)
+    try {
+        console.log('🔄 [v499] Intentando fetch directo a YouTube.com...');
+        const directData = await fetchYouTubeDescriptionDirect(videoId);
+        if (directData && directData.description) {
+            description = directData.description;
+            title = directData.title || title;
+            console.log(`✅ [DirectScraper] Descripción recuperada: ${description.length} chars`);
+        } else {
+            console.warn('⚠️ [DirectScraper] No se pudo obtener descripción directa (posible bloqueo de CORS)');
+        }
+    } catch (e) {
+        console.error('❌ [DirectScraper] Error fatal:', e.message);
+    }
+
+    // 3. FALLBACK SERVIDOR (Si el cliente falló totalmente)
+    if (!description) {
+        console.warn('⚠️ [v499] Scraper directo falló. Recurriendo a Vercel Cloud Bypass...');
+        const serverResult = await fetchYouTubeFromServer(videoId);
+        if (serverResult && serverResult.success) {
+            description = serverResult.description || '';
+            transcript = serverResult.transcript || '';
+            title = serverResult.title || title;
+            source += `+server-fallback`;
+            console.log('✅ [Vercel Fallback] Datos recuperados del servidor');
+        }
+    }
+
+    // Consolidación
     const contentParts = [];
     if (title) contentParts.push(`Título: ${title}`);
-    if (description) contentParts.push(`Descripción:\n${description}`);
-    if (transcript)  contentParts.push(`Transcripción/Audio:\n${transcript}`);
+    if (description) contentParts.push(`Descripción Detallada:\n${description}`);
+    if (transcript)  contentParts.push(`Audio Extraído:\n${transcript}`);
 
     const content = contentParts.join('\n\n');
-    
-    // v498 VALIDACIÓN ULTRA-RELAJADA: Si hay título, hay esperanza.
-    const hasSuccess = !!title; 
-    const hasBody = description.length > 50 || transcript.length > 100;
+    const hasContent = !!title;
 
-    console.log(`📊 [YouTube v498] Resultado:
-      ├─ Title: ${title || 'N/A'} (${title.length} chars)
-      ├─ Body: ${hasBody ? '✅ Detectado' : '❌ Vacío (Necesita pegado manual)'}
-      ├─ Source Chain: ${source}
-      └─ Status: ${hasSuccess ? '✅ OK (Parcial/Total)' : '❌ ERROR'}`);
+    console.log(`📊 [YouTube v499] Resultado Diagnóstico:
+      ├─ Title: ${title || 'N/A'}
+      ├─ Desc: ${description?.length || 0} chars
+      ├─ Audio: ${transcript?.length || 0} chars
+      ├─ Source: ${source}
+      └─ Status: ${hasContent ? '✅ OK' : '❌ FALLIDO'}`);
 
-    if (!hasSuccess) {
-        throw new Error('No se pudo identificar el video. Verifica la URL.');
-    }
+    if (!hasContent) throw new Error('No se pudo identificar el video.');
 
     return {
       type: 'video',
@@ -82,12 +85,12 @@ export async function extractFromYouTube(videoUrl) {
       sourceUrl: videoUrl,
       success: true,
       source,
-      isPartial: !hasBody,
-      metadata: { title, isPartial: !hasBody }
+      isPartial: !description && !transcript,
+      metadata: { title, isPartial: !description && !transcript }
     };
 
   } catch (error) {
-    console.error('❌ [YouTube v498] Error:', error);
+    console.error('❌ [YouTube v499] Error Crítico:', error);
     return {
       type: 'error',
       platform: 'youtube',
@@ -99,57 +102,63 @@ export async function extractFromYouTube(videoUrl) {
 }
 
 /**
- * CLIENT MASTER (v498)
+ * EL MOTOR v499: Fetch directo y parseo de ytInitialData
  */
-async function extractYouTubeClientSide(videoId) {
-  let res = { success: false, title: '', description: '', transcript: '', source: 'client' };
-
-  // A. oEmbed (Rápido, siempre CORS Ok)
-  try {
-    const oembed = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-    if (oembed.ok) {
-      const d = await oembed.json();
-      res.title = d.title;
-      console.log(`✅ [Source: oEmbed] Title="${res.title}"`);
-    }
-  } catch (e) {
-    console.warn('⚠️ [Source: oEmbed] Error CORS o Red');
-  }
-
-  // B. Invidious (Descripción + Audio)
-  console.log('🔄 [Source: Invidious] Intentando descripción/audio...');
-  for (const node of INVIDIOUS_CLIENT_NODES) {
+async function fetchYouTubeDescriptionDirect(videoId) {
     try {
-      const api = `${node}/api/v1/videos/${videoId}?fields=title,description,captions`;
-      const resp = await fetch(api, { signal: AbortSignal.timeout(6000) });
-      if (resp.ok) {
-        const d = await resp.json();
-        res.title = d.title || res.title;
-        res.description = d.description || '';
-        res.source = `inv:${node.split('//')[1]}`;
+        const url = `https://www.youtube.com/watch?v=${videoId}&hl=es&gl=ES`;
         
-        if (d.captions?.length > 0) {
-            const cap = d.captions.find(c => c.label.includes('Español')) || d.captions[0];
-            const curl = cap.url.startsWith('http') ? cap.url : `${node}${cap.url}`;
-            const cr = await fetch(curl, { signal: AbortSignal.timeout(4000) });
-            if (cr.ok) {
-                const text = await cr.text();
-                res.transcript = text.replace(/WEBVTT[\s\S]*?-->.*?\n/g, '').replace(/<[^>]*>/g, '').trim();
-                console.log(`✅ [Source: Invidious] Audio OK (${res.transcript.length} chars)`);
+        // El navegador intentará esto. Si hay CORS activado por el usuario o entorno:
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language': 'es-ES,es;q=0.9'
+            },
+            signal: AbortSignal.timeout(10000)
+        });
+
+        if (!response.ok) return null;
+        const html = await response.text();
+
+        // Extraer JSON ytInitialData
+        const jsonMatch = html.match(/var ytInitialData = ({.*?});/s);
+        if (!jsonMatch) return null;
+
+        const data = JSON.parse(jsonMatch[1]);
+        
+        let title = '';
+        let description = '';
+
+        // Título desde metadata
+        try { title = data.metadata.videoDetails.title; } catch (e) {}
+
+        // Descripción - Ruta 1: videoSecondaryInfoRenderer (Más fiable)
+        try {
+            const results = data.contents.twoColumnWatchNextResults.results.results.contents;
+            const secondaryInfo = results.find(c => c.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
+            if (secondaryInfo) {
+                // AtributedDescription (Nuevo formato)
+                if (secondaryInfo.attributedDescription) {
+                    description = secondaryInfo.attributedDescription.content;
+                } 
+                // Description normal
+                else if (secondaryInfo.description) {
+                    description = secondaryInfo.description.runs.map(r => r.text).join('');
+                }
             }
+        } catch (e) {}
+
+        // Descripción - Ruta 2: videoDetails (Short description)
+        if (!description) {
+            try { description = data.metadata.videoDetails.shortDescription; } catch (e) {}
         }
 
-        if (res.description || res.transcript) {
-          res.success = true;
-          break;
-        }
-      }
-    } catch (e) {
-      console.warn(`❌ [Source: Invidious] Nodo ${node} fallido`);
+        return { title, description };
+
+    } catch (err) {
+        console.warn('⚠️ [fetchDirect] CORS bloqueó el acceso directo o error de parseo:', err.message);
+        return null;
     }
-  }
-
-  return res;
 }
 
 async function fetchYouTubeFromServer(videoId) {
