@@ -36,8 +36,8 @@ RESPONDE EXACTAMENTE CON ESTE FORMATO JSON:
 export async function structureRecipeFromText(content, lang = 'spa') {
   try {
     // Definir idioma objetivo basado en 'lang'
-    if (!content || content.length < 50) {
-      console.warn('⚠️ [Gemini] Contenido sospechosamente corto para estructurar:', content);
+    if (!content || content.length < 150) {
+      console.warn('⚠️ [Gemini] Contenido insuficiente para estructurar:', content);
       return {
         success: false,
         error: 'Insufficient content for structured extraction',

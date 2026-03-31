@@ -1,6 +1,6 @@
-// api/youtube-extract.js (v489)
-// Extractor unificado usando la API InnerTube interna de YouTube
-// Estrategia: descripción primero → si hay receta, listo. Si no, transcripción.
+// api/youtube-extract.js (v492)
+// Extractor unificado usando: 1. InnerTube API → 2. HTML Scraping → 3. Invidious
+// Estrategia de v492: Fallback de scraping robusto para evitar "0 chars" cuando la API es bloqueada.
 
 const INNERTUBE_ENDPOINT = 'https://www.youtube.com/youtubei/v1/player';
 // Clave pública del cliente web de YouTube (documentada públicamente, no es secreta)
@@ -38,7 +38,39 @@ export default async function handler(req, res) {
     console.warn(`⚠️ [InnerTube] Error: ${e.message}`);
   }
 
-  // Si InnerTube falla, intentar oEmbed como fallback de título
+  // ────────────────────────────────────────────────
+  // ESTRATEGIA 2: HTML Scraping (Fallback si InnerTube falla o IP bloqueada)
+  // ────────────────────────────────────────────────
+  if (!title || (!description && !captionBaseUrl)) {
+    try {
+      console.log(`🔄 [Scraper v492] Intentando scraping de HTML para ${videoId}...`);
+      const htmlUrl = `https://www.youtube.com/watch?v=${videoId}&hl=es&gl=ES`;
+      const htmlResp = await fetch(htmlUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'es-MX,es;q=0.9',
+          'Cookie': 'CONSENT=YES+42',
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+      
+      if (htmlResp.ok) {
+        const html = await htmlResp.text();
+        const scraped = extractFromHtml(html);
+        if (scraped.success) {
+          title = scraped.title || title;
+          description = scraped.description || description;
+          captionBaseUrl = scraped.captionBaseUrl || captionBaseUrl;
+          source = (source === 'innertube' ? 'scraper' : source + '+scraper');
+          console.log(`✅ [Scraper] Recuperado: Title: "${title}", Desc: ${description?.length}, Captions: ${!!captionBaseUrl}`);
+        }
+      }
+    } catch (e) {
+      console.warn(`⚠️ [Scraper] Error: ${e.message}`);
+    }
+  }
+
+  // ESTRATEGIA 3: oEmbed como último recurso para título
   if (!title) {
     try {
       const oembed = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
@@ -96,24 +128,32 @@ export default async function handler(req, res) {
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 5: Consolidar y Validar
+  // ESTRATEGIA 5: Consolidar y Validar (v492)
+  // EVITAR Alucinaciones: Si tenemos Título pero no hay CUERPO (descrip o transcript) con contenido real, abortar.
   // ────────────────────────────────────────────────
-  const hasContent = !!(title || (description && description.length > 300) || (transcript && transcript.length > 50));
+  const descriptionActual = description || '';
+  const transcriptActual = transcript || '';
+  
+  // Scoring de contenido para evitar falsos positivos
+  const hasSubstantialBody = (descriptionActual.length > 200 || transcriptActual.length > 300);
+  const looksLikeRecipe = descriptionLooksLikeRecipe(descriptionActual) || transcriptActual.length > 800;
+  
+  const hasContent = !!(title && (hasSubstantialBody || looksLikeRecipe));
   
   if (!hasContent) {
-    console.log(`📊 [YouTube v491] Diagnóstico:
+    console.log(`📊 [YouTube v492] Diagnóstico:
       ├─ Title: ${title ? title.length : 0} chars
-      ├─ Desc: ${description ? description.length : 0} chars (Recipe: ${descHasRecipe})
-      ├─ Transcript: ${transcript ? transcript.length : 0} chars
+      ├─ Desc: ${descriptionActual.length} chars (Score: ${descriptionLooksLikeRecipe(descriptionActual)})
+      ├─ Transcript: ${transcriptActual.length} chars
       ├─ Source: ${source}
-      └─ Content Total: ${(title + description + (transcript || '')).length} chars`);
+      └─ Result: ❌ INSUFICIENTE PARA GEMINI`);
     return res.status(200).json({
       success: false,
-      error: 'Contenido extraído insuficiente',
+      error: 'Contenido extraído insuficiente para encontrar una receta. Verifica que el video no sea privado.',
       videoId, 
       title, 
-      descriptionLength: description.length, 
-      transcriptLength: transcript ? transcript.length : 0 
+      descriptionLength: descriptionActual.length, 
+      transcriptLength: transcriptActual.length 
     });
   }
 
@@ -241,6 +281,44 @@ async function fetchCaptionFromUrl(baseUrl) {
 }
 
 // ─────────────────────────────────────────────────────
+// SCRAPER: Extraer metadatos del HTML bruto de la página
+// ─────────────────────────────────────────────────────
+function extractFromHtml(html) {
+  try {
+    const marker = 'ytInitialPlayerResponse = ';
+    const startIdx = html.indexOf(marker);
+    if (startIdx === -1) return { success: false };
+
+    const jsonStr = html.substring(startIdx + marker.length, startIdx + marker.length + 5000000);
+    // Balanceo de llaves para un JSON seguro
+    let depth = 0, end = -1;
+    for (let i = 0; i < jsonStr.length; i++) {
+        if (jsonStr[i] === '{') depth++;
+        else if (jsonStr[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end === -1) return { success: false };
+
+    const data = JSON.parse(jsonStr.substring(0, end + 1));
+    const videoDetails = data.videoDetails || {};
+    const title = videoDetails.title || '';
+    const description = videoDetails.shortDescription || '';
+    
+    // Captions del scraper
+    let captionBaseUrl = null;
+    const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    if (tracks.length > 0) {
+        const esTrack = tracks.find(t => t.languageCode?.startsWith('es'));
+        const selected = esTrack || tracks[0];
+        captionBaseUrl = selected?.baseUrl || null;
+    }
+
+    return { success: true, title, description, captionBaseUrl };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ─────────────────────────────────────────────────────
 // DETECCIÓN: ¿La descripción del video parece una receta?
 // ─────────────────────────────────────────────────────
 function descriptionLooksLikeRecipe(description) {
@@ -260,3 +338,4 @@ function descriptionLooksLikeRecipe(description) {
   // Si tiene palabras de ingredientes + medidas O tiene sección de pasos → es receta
   return (hasIngredients && hasMeasures) || hasSteps || (hasIngredients && description.length > 200);
 }
+

@@ -9,7 +9,7 @@ export async function extractFromYouTube(videoUrl) {
     const videoId = extractVideoId(videoUrl);
     if (!videoId) throw new Error('URL de YouTube no válida');
 
-    console.log(`📥 [YouTube v489] Procesando video ID: ${videoId}`);
+    console.log(`📥 [YouTube v492] Procesando video ID: ${videoId}`);
 
     // Llamada única al endpoint unificado InnerTube
     const resp = await fetch('/api/youtube-extract', {
