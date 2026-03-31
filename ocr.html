@@ -27,9 +27,9 @@
     <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
     <script>
         (async function() {
-            const VERSION = 'v499';
+            const VERSION = 'v500';
             if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v499...');
+                console.log('☢️ NUCLEAR PURGE v500...');
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (let r of regs) await r.unregister();
@@ -1431,7 +1431,9 @@
                     window.ocr.showResults(recipeData);
                     urlInput.value = '';
                     
-                    if (imported.isPartial) {
+                    if (imported.isAiOnly) {
+                        showNotification('🧠 IA en Modo Profundo: Reconstruyendo receta desde conocimiento global...', 'info');
+                    } else if (imported.isPartial) {
                         showNotification('⚠️ Importación parcial: Solo se obtuvo el título. Por favor completa los detalles manualmente.', 'warning');
                     } else {
                         showNotification('✅ Receta cargada desde ' + (imported.platform || 'URL'), 'success');

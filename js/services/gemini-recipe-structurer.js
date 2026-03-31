@@ -35,8 +35,12 @@ RESPONDE EXACTAMENTE CON ESTE FORMATO JSON:
 
 export async function structureRecipeFromText(content, lang = 'spa') {
   try {
-    // Definir idioma objetivo basado en 'lang'
-    if (!content || content.length < 150) {
+    const isYouTubeUrl = content.includes('youtube.com/') || content.includes('youtu.be/');
+    
+    // v500: Relaxing constraint if it's a video source
+    const minLength = isYouTubeUrl ? 30 : 150; 
+
+    if (!content || content.length < minLength) {
       console.warn('⚠️ [Gemini] Contenido insuficiente para estructurar:', content);
       return {
         success: false,
@@ -49,13 +53,19 @@ export async function structureRecipeFromText(content, lang = 'spa') {
 
     const targetLang = (lang === 'eng' || lang === 'en') ? 'ENGLISH' : 'SPANISH (Español)';
     
-    // Injectar instrucción de idioma en el prompt base
-    const customPrompt = `${RECIPE_STRUCTURE_PROMPT}\n\nIDIOMA REQUERIDO: ${targetLang}. 
-Asegúrate de que todos los textos (nombre, descripción, ingredientes y pasos) estén en ${targetLang}. 
-Si el contenido original está en otro idioma, TRADÚCELO fielmente.`;
+    // v500 MASTER PROMPT: Inyectar capacidad de inferencia para videos
+    let customPrompt = `${RECIPE_STRUCTURE_PROMPT}\n\nIDIOMA REQUERIDO: ${targetLang}.`;
+    
+    if (isYouTubeUrl && content.length < 500) {
+        customPrompt += `\n⚠️ NOTA CRÍTICA: El contenido es un enlace de YouTube que no pudimos leer completamente. 
+Usa tu conocimiento interno (entrenamiento) sobre este video o canal para ESTRUCTURAR LA RECETA REAL. 
+Si no conoces el video exacto, infierela basándote en el título y el tipo de cocina del canal.`;
+    }
 
-    // Intentar recuperar de cache primero (Incluye versión y lang para evitar resultados obsoletos)
-    const appVer = document.documentElement.dataset.appVersion || 'v474';
+    customPrompt += `\nAsegúrate de que todos los textos estén en ${targetLang}. Si el contenido está en otro idioma, TRADÚCELO.`;
+
+    // Intentar recuperar de cache primero
+    const appVer = document.documentElement.dataset.appVersion || 'v500';
     const contentHash = hashString(content + lang + appVer);
     const cached = localStorage.getItem(`gemini_extraction_cache_${contentHash}`);
     if (cached) {

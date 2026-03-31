@@ -1,7 +1,7 @@
 /**
- * YouTube Extractor Service (v499)
- * ARQUITECTURA DIRECT BROWSER SCRAPER: Intenta obtener el HTML directamente del cliente.
- * v499: Prioriza fetch directo de YouTube.com desde el navegador del usuario.
+ * YouTube Extractor Service (v500)
+ * ARQUITECTURA AI-DIRECT BYPASS: El extractor entrega la URL incluso si falla el scraper.
+ * v500: Permite que Gemini use su propio conocimiento si no hay descripción.
  */
 
 export async function extractFromYouTube(videoUrl) {
@@ -9,9 +9,9 @@ export async function extractFromYouTube(videoUrl) {
     const videoId = extractVideoId(videoUrl);
     if (!videoId) throw new Error('URL de YouTube no válida');
 
-    console.log(`📡 [YouTube v499] Iniciando Direct Scraper: ${videoId}`);
+    console.log(`📡 [YouTube v500] Modo AI-Direct Pilot: ${videoId}`);
 
-    // 1. oEmbed (Título - Casi infalible via CORS)
+    // 1. oEmbed (Título)
     let title = '';
     try {
         const oembed = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
@@ -20,59 +20,56 @@ export async function extractFromYouTube(videoUrl) {
             title = data.title;
             console.log(`✅ [oEmbed] Título: ${title}`);
         }
-    } catch (e) {
-        console.warn('⚠️ [oEmbed] Error de red:', e.message);
-    }
+    } catch (e) {}
 
-    // 2. SCRAPER DIRECTO DESDE EL NAVEGADOR (IP del usuario)
+    // 2. Direct Scraper
     let description = '';
     let transcript = '';
     let source = 'client-direct';
 
     try {
-        console.log('🔄 [v499] Intentando fetch directo a YouTube.com...');
         const directData = await fetchYouTubeDescriptionDirect(videoId);
         if (directData && directData.description) {
             description = directData.description;
             title = directData.title || title;
-            console.log(`✅ [DirectScraper] Descripción recuperada: ${description.length} chars`);
-        } else {
-            console.warn('⚠️ [DirectScraper] No se pudo obtener descripción directa (posible bloqueo de CORS)');
+            console.log(`✅ [DirectScraper] Cuerpo obtenido: ${description.length} chars`);
         }
-    } catch (e) {
-        console.error('❌ [DirectScraper] Error fatal:', e.message);
-    }
+    } catch (e) {}
 
-    // 3. FALLBACK SERVIDOR (Si el cliente falló totalmente)
+    // 3. Fallback Servidor
     if (!description) {
-        console.warn('⚠️ [v499] Scraper directo falló. Recurriendo a Vercel Cloud Bypass...');
         const serverResult = await fetchYouTubeFromServer(videoId);
         if (serverResult && serverResult.success) {
             description = serverResult.description || '';
             transcript = serverResult.transcript || '';
             title = serverResult.title || title;
-            source += `+server-fallback`;
-            console.log('✅ [Vercel Fallback] Datos recuperados del servidor');
+            source += `+server`;
+            console.log('✅ [Vercel Fallback] Datos recuperados');
         }
     }
 
-    // Consolidación
-    const contentParts = [];
-    if (title) contentParts.push(`Título: ${title}`);
-    if (description) contentParts.push(`Descripción Detallada:\n${description}`);
-    if (transcript)  contentParts.push(`Audio Extraído:\n${transcript}`);
+    // 4. v500 MODIFICACIÓN: Si NO HAY descripción, NO fallamos.
+    // Enviamos el link para que Gemini lo deduzca.
+    const contentParts = [
+        `URL SOURCE: ${videoUrl}`,
+        `VIDEO ID: ${videoId}`
+    ];
+    if (title) contentParts.push(`TITLE: ${title}`);
+    if (description) contentParts.push(`DESCRIPTION FOUND:\n${description}`);
+    if (transcript)  contentParts.push(`TRANSCRIPT FOUND:\n${transcript}`);
 
     const content = contentParts.join('\n\n');
-    const hasContent = !!title;
+    
+    // v500: Si hay título, el éxito es suficiente para intentar IA
+    const success = !!title; 
 
-    console.log(`📊 [YouTube v499] Resultado Diagnóstico:
-      ├─ Title: ${title || 'N/A'}
-      ├─ Desc: ${description?.length || 0} chars
-      ├─ Audio: ${transcript?.length || 0} chars
+    console.log(`📊 [YouTube v500] Diagnóstico:
+      ├─ Title: ${title || 'Unknown'}
+      ├─ Body Length: ${description.length + transcript.length}
       ├─ Source: ${source}
-      └─ Status: ${hasContent ? '✅ OK' : '❌ FALLIDO'}`);
+      └─ Result: ${success ? '✅ PASSED TO AI' : '❌ REJECTED'}`);
 
-    if (!hasContent) throw new Error('No se pudo identificar el video.');
+    if (!success) throw new Error('No se pudo identificar el video.');
 
     return {
       type: 'video',
@@ -85,12 +82,12 @@ export async function extractFromYouTube(videoUrl) {
       sourceUrl: videoUrl,
       success: true,
       source,
-      isPartial: !description && !transcript,
-      metadata: { title, isPartial: !description && !transcript }
+      isAiOnly: !description && !transcript,
+      metadata: { title, videoId, isAiOnly: !description && !transcript }
     };
 
   } catch (error) {
-    console.error('❌ [YouTube v499] Error Crítico:', error);
+    console.error('❌ [YouTube v500] Error:', error);
     return {
       type: 'error',
       platform: 'youtube',
@@ -101,62 +98,25 @@ export async function extractFromYouTube(videoUrl) {
   }
 }
 
-/**
- * EL MOTOR v499: Fetch directo y parseo de ytInitialData
- */
 async function fetchYouTubeDescriptionDirect(videoId) {
     try {
-        const url = `https://www.youtube.com/watch?v=${videoId}&hl=es&gl=ES`;
-        
-        // El navegador intentará esto. Si hay CORS activado por el usuario o entorno:
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept-Language': 'es-ES,es;q=0.9'
-            },
-            signal: AbortSignal.timeout(10000)
-        });
-
+        const url = `https://www.youtube.com/watch?v=${videoId}&hl=es`;
+        const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
         if (!response.ok) return null;
         const html = await response.text();
-
-        // Extraer JSON ytInitialData
         const jsonMatch = html.match(/var ytInitialData = ({.*?});/s);
         if (!jsonMatch) return null;
-
         const data = JSON.parse(jsonMatch[1]);
-        
         let title = '';
         let description = '';
-
-        // Título desde metadata
         try { title = data.metadata.videoDetails.title; } catch (e) {}
-
-        // Descripción - Ruta 1: videoSecondaryInfoRenderer (Más fiable)
         try {
             const results = data.contents.twoColumnWatchNextResults.results.results.contents;
-            const secondaryInfo = results.find(c => c.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
-            if (secondaryInfo) {
-                // AtributedDescription (Nuevo formato)
-                if (secondaryInfo.attributedDescription) {
-                    description = secondaryInfo.attributedDescription.content;
-                } 
-                // Description normal
-                else if (secondaryInfo.description) {
-                    description = secondaryInfo.description.runs.map(r => r.text).join('');
-                }
-            }
+            const sec = results.find(c => c.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
+            if (sec) description = sec.attributedDescription?.content || sec.description?.runs.map(r => r.text).join('') || '';
         } catch (e) {}
-
-        // Descripción - Ruta 2: videoDetails (Short description)
-        if (!description) {
-            try { description = data.metadata.videoDetails.shortDescription; } catch (e) {}
-        }
-
         return { title, description };
-
     } catch (err) {
-        console.warn('⚠️ [fetchDirect] CORS bloqueó el acceso directo o error de parseo:', err.message);
         return null;
     }
 }
