@@ -6119,15 +6119,18 @@ input:checked~.m3-ingredient-text {
 .list-header-m3 {
     background: var(--bg) !important;
     font-weight: 700 !important;
-    font-size: 12px !important;
-    letter-spacing: 0.05em !important;
+    font-size: 11px !important;
+    letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
     color: var(--on-surface-variant) !important;
-    height: 48px !important;
-    border-bottom: 2px solid var(--border) !important;
+    height: 52px !important; /* Altura incrementada para visibilidad */
+    border-bottom: 2px solid #00A676 !important; /* Línea verde corporativa */
+    padding-bottom: 4px !important;
     position: sticky;
     top: 0;
     z-index: 10;
+    opacity: 1 !important;
+    margin-bottom: 8px !important;
 }
 
 /* Alineación consistente de todas las celdas */
