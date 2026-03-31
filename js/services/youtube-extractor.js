@@ -1,5 +1,5 @@
 /**
- * YouTube Extractor Service (v489)
+ * YouTube Extractor Service (v496)
  * Usa el nuevo endpoint unificado /api/youtube-extract basado en InnerTube
  * Estrategia: descripción primero → transcripción solo si no hay receta en desc
  */
@@ -22,7 +22,8 @@ export async function extractFromYouTube(videoUrl) {
     const data = await resp.json();
 
     if (!data.success) {
-      console.warn(`⚠️ [YouTube v494] Extracción incompleta: ${data.error}`);
+      console.warn(`⚠️ [YouTube v496] Extracción incompleta: ${data.error}`);
+      console.log(`🔍 [Diagnóstico] ${data.diagnosis || 'No disponible'}`);
     }
 
     const title       = data.title || '';

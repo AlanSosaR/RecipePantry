@@ -1,6 +1,6 @@
-// api/youtube-extract.js (v495)
-// SUPER-BYPASS: InnerTube → Scraper → RSS Feed → Invidious
-// v495: Añade extracción via RSS Feed (feeds/videos.xml) como bypass de alta fiabilidad.
+// api/youtube-extract.js (v496)
+// UNSTOPPABLE: InnerTube → Scraper → RSS → TimedText → Invidious
+// v496: Logging detallado, validación relajada y fallback de captions manual.
 
 const INNERTUBE_ENDPOINT = 'https://www.youtube.com/youtubei/v1/player';
 // Clave pública del cliente web de YouTube (documentada públicamente, no es secreta)
@@ -16,120 +16,154 @@ export default async function handler(req, res) {
   const { videoId } = req.body;
   if (!videoId) return res.status(400).json({ error: 'videoId requerido' });
 
-  console.log(`🎬 [v495] Extrayendo video: ${videoId}`);
+  console.log(`🎬 [v496] Iniciando Extracción Master: ${videoId}`);
 
   let title = '';
   let description = '';
   let transcript = '';
   let captionBaseUrl = null;
-  let source = 'innertube';
+  let source = 'none';
 
+  // ────────────────────────────────────────────────
+  // ESTRATEGIA 1: InnerTube (API Interna)
+  // ────────────────────────────────────────────────
   try {
-    const innertubeResult = await fetchInnerTube(videoId);
-    if (innertubeResult.success) {
-      title = innertubeResult.title;
-      description = innertubeResult.description;
-      captionBaseUrl = innertubeResult.captionBaseUrl;
-      console.log(`✅ [InnerTube] Título: "${title}", Desc: ${description.length} chars, Captions: ${!!captionBaseUrl}`);
+    const it = await fetchInnerTube(videoId);
+    if (it.success && it.title) {
+        title = it.title || '';
+        description = it.description || '';
+        captionBaseUrl = it.captionBaseUrl || null;
+        source = 'innertube';
+        console.log(`✅ [Strategy 1 OK] InnerTube: Title=${title.length}, Desc=${description.length}, CaptUrl=${!!captionBaseUrl}`);
+    } else {
+        console.warn(`⚠️ [Strategy 1 Fail] InnerTube no devolvió datos.`);
     }
   } catch (e) {
-    console.warn(`⚠️ [InnerTube] Error: ${e.message}`);
+    console.error(`❌ [Strategy 1 Error] ${e.message}`);
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 2: Mega-Scraper (v494)
-  // Basado en el motor de 'youtube-transcript.js'
+  // ESTRATEGIA 2: Scraper HTML (Desktop/Mobile)
   // ────────────────────────────────────────────────
   if (!title || !description || !captionBaseUrl) {
     const headerSets = [
       { // Chrome Desktop
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept-Language': 'es-ES,es;q=0.9',
-        'Cookie': 'CONSENT=YES+42; SOCS=CAESEwgDEgk0OTczMDg1MTUaAmVzIAEaBgiAi5KoBg',
+        'Cookie': 'CONSENT=YES+42',
       },
-      { // Mobile Safari (Often less restricted)
+      { // Mobile
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         'Accept-Language': 'es-MX,es;q=0.9',
         'Cookie': 'CONSENT=YES+cb',
       }
     ];
 
-    for (const headers of headerSets) {
+    for (const [idx, headers] of headerSets.entries()) {
       if (title && description && captionBaseUrl) break;
       try {
-        console.log(`🔄 [Scraper v494] Intento con UA: ${headers['User-Agent'].substring(0, 20)}...`);
+        console.log(`🔄 [Strategy 2] Scraper HTML #${idx+1} [${headers['User-Agent'].substring(0, 15)}...]`);
         const url = `https://www.youtube.com/watch?v=${videoId}&hl=es&gl=ES&persist_hl=1`;
-        const resp = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
-        
+        const resp = await fetch(url, { headers, signal: AbortSignal.timeout(6000) });
         if (resp.ok) {
           const html = await resp.text();
-          const scraped = extractFromHtml(html);
-          if (scraped.success) {
-            title = scraped.title || title;
-            description = scraped.description || description;
-            captionBaseUrl = scraped.captionBaseUrl || captionBaseUrl;
-            source = `scrape:${headers['User-Agent'].includes('iPhone') ? 'mobile' : 'desktop'}`;
+          const scr = extractFromHtml(html);
+          if (scr.success) {
+            title = scr.title || title;
+            description = scr.description || description;
+            captionBaseUrl = scr.captionBaseUrl || captionBaseUrl;
+            source = `scrape:${idx === 1 ? 'mobile' : 'desktop'}`;
             
-            // Intento de emergencia de TimedText URL directa
+            // Emergency TimedText extraction from HTML string
             if (!captionBaseUrl) {
-              const emergencyUrl = extractTimedTextUrlFromHtml(html);
-              if (emergencyUrl) {
-                captionBaseUrl = emergencyUrl;
+              const ttUrl = extractTimedTextUrlFromHtml(html);
+              if (ttUrl) {
+                captionBaseUrl = ttUrl;
                 source += '+emergency-tt';
               }
             }
+            console.log(`✅ [Strategy 2 OK] ${source}: Title=${title.length}, Desc=${description.length}, CaptUrl=${!!captionBaseUrl}`);
           }
         }
       } catch (e) {
-        console.warn(`⚠️ [Scraper v494] Error: ${e.message}`);
+        console.warn(`⚠️ [Strategy 2 Fail] ${e.message}`);
       }
     }
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 3: RSS Feed Fallback (v495)
-  // Muy útil para descripciones cuando el HTML está bloqueado
+  // ESTRATEGIA 3: RSS Feed (feeds/videos.xml)
   // ────────────────────────────────────────────────
   if (!title || !description) {
     try {
-      console.log('🔄 [RSS v495] Intentando bypass por RSS Feed...');
+      console.log('🔄 [Strategy 3] Intentando RSS Feed Bypass...');
       const rssUrl = `https://www.youtube.com/feeds/videos.xml?video_id=${videoId}`;
-      const rssResp = await fetch(rssUrl, { signal: AbortSignal.timeout(6000) });
+      const rssResp = await fetch(rssUrl, { signal: AbortSignal.timeout(5000) });
       if (rssResp.ok) {
         const xml = await rssResp.text();
         const rssTitle = xml.match(/<title>([^<]+)<\/title>/);
         const rssDesc = xml.match(/<media:description>([^<]+)<\/media:description>/);
-        
         if (rssTitle) title = rssTitle[1] || title;
         if (rssDesc) {
           description = rssDesc[1] || description;
           source += '+rss';
-          console.log(`✅ [RSS] Recuperada descripción: ${description.length} chars`);
+          console.log(`✅ [Strategy 3 OK] RSS: Title=${title?.length}, Desc=${description?.length}`);
         }
       }
     } catch (e) {
-      console.warn(`⚠️ [RSS] Falló: ${e.message}`);
+      console.warn(`⚠️ [Strategy 3 Fail] ${e.message}`);
     }
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 4: Transcript Fetching (v495)
+  // ESTRATEGIA 4: Transcripts Fetching (v496)
   // ────────────────────────────────────────────────
   if (captionBaseUrl) {
     try {
+      console.log('🔄 [Strategy 4] Descargando Audio/Transcripción...');
       transcript = await fetchCaptionFromUrl(captionBaseUrl);
-      if (transcript) source += '+captions';
+      if (transcript) {
+        source += '+captions';
+        console.log(`✅ [Strategy 4 OK] Transcripción: ${transcript.length} chars`);
+      }
     } catch (e) {
-      console.warn(`⚠️ [Transcript] Falló: ${e.message}`);
+      console.warn(`⚠️ [Strategy 4 Fail] No se pudieron bajar los captions.`);
     }
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 5: Invidious fallback si todo falló
+  // ESTRATEGIA 5: Manual TimedText Search (v496)
+  // ────────────────────────────────────────────────
+  if (!transcript) {
+    try {
+      console.log('🔄 [Strategy 5] Manual TimedText Fallback (v496)...');
+      const langs = ['es', 'a.es', 'en'];
+      for (const lang of langs) {
+        const ttUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=${lang}&fmt=json3`;
+        const ttResp = await fetch(ttUrl, { signal: AbortSignal.timeout(4000) });
+        if (ttResp.ok) {
+          const testJson = await ttResp.clone().json().catch(()=>null);
+          if (testJson && testJson.events) {
+              transcript = await fetchCaptionFromUrl(ttUrl);
+              if (transcript) {
+                source += `+manual-tt:${lang}`;
+                console.log(`✅ [Strategy 5 OK] TimedText (${lang}): ${transcript.length} chars`);
+                break;
+              }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`⚠️ [Strategy 5 Fail] ${e.message}`);
+    }
+  }
+
+  // ────────────────────────────────────────────────
+  // ESTRATEGIA 6: Invidious Instances (Final Hope)
   // ────────────────────────────────────────────────
   if (!title || (!description && !transcript)) {
     try {
-      console.log('🔄 [v495] Todo falló. Intentando Invidious (Instancias Premium)...');
+      console.log('🔄 [Strategy 6] Invidious Bypass (Final Hope)...');
       const { getFromInvidious } = await import('./youtube-invidious-fallback.js');
       const inv = await getFromInvidious(videoId);
       if (inv.success) {
@@ -137,42 +171,42 @@ export default async function handler(req, res) {
         description = inv.description || description;
         transcript = inv.captions || transcript;
         source = `invidious:${inv.instance}`;
-        console.log(`✅ [Invidious] Datos de ${inv.instance}`);
+        console.log(`✅ [Strategy 6 OK] Invidious (${inv.instance}): Title=${title.length}, Desc=${description.length}`);
       }
     } catch (e) {
-      console.warn(`⚠️ [Invidious] Error: ${e.message}`);
+      console.error(`❌ [Strategy 6 Fail] ${e.message}`);
     }
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 6: Consolidar y Validar (v495)
+  // VALIDACIÓN FINAL RELAJADA (v496)
   // ────────────────────────────────────────────────
   const descriptionActual = description || '';
   const transcriptActual = transcript || '';
   
-  // Scraper de emergencia si solo tenemos título
-  const hasContent = !!(title && (descriptionActual.length > 100 || transcriptActual.length > 200));
+  const hasContent = !!(title && (descriptionActual.length > 50 || transcriptActual.length > 100 || !!captionBaseUrl));
+  const detailedDiagnosis = `Title=${title?.length || 0}, Desc=${descriptionActual.length}, Trans=${transcriptActual.length}, Captions=${!!captionBaseUrl}, Source=${source}`;
   
-  if (!hasContent) {
-    console.log(`📊 [YouTube v495] Diagnóstico de Fallo: Title=${!!title}, Desc=${descriptionActual.length}, Trans=${transcriptActual.length}`);
+  if (!hasContent && !title) {
+    console.log(`📊 [YouTube v496] Diagnóstico Crítico Fallido: ${detailedDiagnosis}`);
     return res.status(200).json({
       success: false,
-      error: 'YouTube ha bloqueado el acceso automático a este video. Por favor, copia la descripción del video y pégala manualmente en la pestaña de Texto para procesarla con la IA.',
-      videoId, 
-      title, 
-      descriptionLength: descriptionActual.length, 
-      transcriptLength: transcriptActual.length 
+      error: 'Extracción fallida: YouTube ha bloqueado los intentos automáticos. Copia la descripción manualmente.',
+      videoId,
+      diagnosis: detailedDiagnosis
     });
   }
+
+  console.log(`🏁 [YouTube v496] Éxito Parcial/Total: ${detailedDiagnosis}`);
 
   return res.status(200).json({
     success: true,
     videoId,
     title,
-    description,
-    transcript,
-    descHasRecipe,
+    description: descriptionActual,
+    transcript: transcriptActual,
     source,
+    diagnosis: detailedDiagnosis
   });
 }
 

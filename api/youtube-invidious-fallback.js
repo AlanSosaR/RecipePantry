@@ -13,7 +13,7 @@ export const INVIDIOUS_INSTANCES = [
   'https://y.com.sb',
 ];
 
-const TIMEOUT = 8000; // 8 segundos por instancia
+const TIMEOUT = 12000; // 12 segundos por instancia (v496)
 
 async function fetchWithTimeout(url, timeout = TIMEOUT) {
   const controller = new AbortController();
