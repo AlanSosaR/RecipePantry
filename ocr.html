@@ -1182,7 +1182,7 @@
                         <div style="display: flex; gap: 12px; margin-top: 32px; margin-bottom: 32px;">
                             <button class="m3-expressive-card secondary" 
                                 style="flex: 1; padding: 16px; border-radius: 16px; min-height: 60px; flex-direction: row; gap: 8px;"
-                                onclick="goToStep(1)">
+                                onclick="goToStep(1, true)">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">refresh</span>
                                 <span style="font-size: 14px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
                             </button>
@@ -1562,7 +1562,7 @@
             goToStep(3);
         }
 
-        function goToStep(step) {
+        function goToStep(step, forceReset = false) {
             if (!step || !document.getElementById('step' + step)) return;
 
             const previewImg = document.getElementById('ocrPreview');
@@ -1595,7 +1595,7 @@
                 const resHeader = document.getElementById('ocrResultHeaderStep1');
                 const isShowingResults = resHeader && !resHeader.classList.contains('hidden');
 
-                if (!isShowingResults) {
+                if (!isShowingResults || forceReset) {
                     const captureSection = document.getElementById('ocrCaptureSection');
                     const tipsSection = document.getElementById('ocrTipsSection');
                     const resBody = document.getElementById('ocrResultBodyStep1');
@@ -1606,7 +1606,9 @@
                     if (resBody) resBody.classList.add('hidden');
 
                     const fileInput = document.getElementById('fileInput');
+                    const urlInput = document.getElementById('urlImportInput');
                     if (fileInput) fileInput.value = '';
+                    if (urlInput) urlInput.value = '';
                 }
             }
 
