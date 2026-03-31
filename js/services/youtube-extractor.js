@@ -176,16 +176,3 @@ function extractVideoId(url) {
   }
   return null;
 }
-
-function extractVideoId(url) {
-  const p = [
-    /(?:v=|v\/|vi\/|u\/\w\/|embed\/|shorts\/|youtu.be\/|be\/)([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-    /https:\/\/m\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/
-  ];
-  for (const reg of p) {
-    const m = url.match(reg);
-    if (m) return m[1];
-  }
-  return null;
-}
