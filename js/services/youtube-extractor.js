@@ -48,26 +48,20 @@ export async function extractFromYouTube(videoUrl) {
         }
     }
 
-    // 4. v500 MODIFICACIÓN: Si NO HAY descripción, NO fallamos.
-    // Enviamos el link para que Gemini lo deduzca.
+    // 4. v501 MODIFICACIÓN: Deterministic Data Packing
     const contentParts = [
-        `URL SOURCE: ${videoUrl}`,
-        `VIDEO ID: ${videoId}`
+        `URL: ${videoUrl}`,
+        `TITLE: ${title || 'Unknown'}`
     ];
-    if (title) contentParts.push(`TITLE: ${title}`);
     if (description) contentParts.push(`DESCRIPTION FOUND:\n${description}`);
     if (transcript)  contentParts.push(`TRANSCRIPT FOUND:\n${transcript}`);
 
     const content = contentParts.join('\n\n');
     
-    // v500: Si hay título, el éxito es suficiente para intentar IA
-    const success = !!title; 
-
-    console.log(`📊 [YouTube v500] Diagnóstico:
+    console.log(`📊 [YouTube v501] Status:
       ├─ Title: ${title || 'Unknown'}
-      ├─ Body Length: ${description.length + transcript.length}
-      ├─ Source: ${source}
-      └─ Result: ${success ? '✅ PASSED TO AI' : '❌ REJECTED'}`);
+      ├─ Data Present: ${!!(description || transcript)}
+      └─ Result: Proceed to Deterministic Engine`);
 
     if (!success) throw new Error('No se pudo identificar el video.');
 

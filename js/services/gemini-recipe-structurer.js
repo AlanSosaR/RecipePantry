@@ -3,35 +3,43 @@
  * Convierte cualquier texto o imagen en una receta estructurada usando Gemini.
  */
 
-const RECIPE_STRUCTURE_PROMPT = `Eres un experto en análisis de recetas culinarias. Tu tarea es EXTRAER UNA RECETA del contenido proporcionado.
+const RECIPE_STRUCTURE_PROMPT = `You are a deterministic data extraction engine, not a creative assistant.
 
-INSTRUCCIONES CRÍTICAS:
-1. Responde ÚNICAMENTE con JSON válido (sin markdown, sin explicaciones). 
-2. Si el contenido proviene de una TRANSCRIPCIÓN de un video, presta mucha atención a lo que el orador dice que va a hacer ("agregamos la leche", "batimos los huevos") para extraer los ingredientes y pasos, incluso si no están en una lista formal.
-3. COMPLETA todos los campos del JSON (usa null si no están disponibles).
-4. Si hay varias versiones de la receta, usa la más detallada.
+INPUT DATA:
+* Video Title: {TITLE}
+* Video URL: {URL}
+* Video Description (optional): {CONTENT}
 
-CONTENIDO A ANALIZAR:
----
-{CONTENT}
----
+STRICT RULES:
+1. You MUST NOT invent, infer, or assume any ingredient, quantity, or step that is not explicitly present in the provided description.
+2. If the description is missing, incomplete, or does not contain a recipe:
+   * You MUST return ONLY the string: "NO_RECIPE_DATA_AVAILABLE"
+3. If only partial data exists:
+   * Extract ONLY what is explicitly written.
+   * Do NOT complete missing steps or ingredients.
+4. Ignore your general knowledge about the dish.
+5. Do NOT generate a "typical recipe".
 
-RESPONDE EXACTAMENTE CON ESTE FORMATO JSON:
+EXTRACTION TARGET (JSON FORMAT):
 {
-  "nombre": "nombre de la receta",
-  "descripcion": "descripción breve (máx 200 chars) o null",
+  "nombre": "string",
+  "descripcion": "string or null",
   "ingredientes": [
-    { "nombre": "ingrediente", "cantidad": 1, "unidad": "unidad o null", "notes": "notas o null" }
+    { "nombre": "string", "cantidad": "string or null", "unidad": "string or null", "notes": "string or null" }
   ],
   "pasos": [
-    { "numero": 1, "instruccion": "detalle del paso", "tiempo_minutos": null }
+    { "numero": number, "instruccion": "string" }
   ],
-  "tiempo_preparacion": null,
-  "tiempo_coccion": null,
-  "porciones": null,
-  "dificultad": "fácil/media/difícil",
-  "categorias": ["etiqueta1", "etiqueta2"]
-}`;
+  "metadata": {
+    "source": "description",
+    "completeness": "full" | "partial" | "none"
+  }
+}
+
+OUTPUT REQUIREMENTS:
+* Return ONLY valid JSON if data is available.
+* Return ONLY "NO_RECIPE_DATA_AVAILABLE" if no recipe is found in the description.
+* No explanations. No markdown blocks.`;
 
 export async function structureRecipeFromText(content, lang = 'spa') {
   try {
@@ -53,19 +61,19 @@ export async function structureRecipeFromText(content, lang = 'spa') {
 
     const targetLang = (lang === 'eng' || lang === 'en') ? 'ENGLISH' : 'SPANISH (Español)';
     
-    // v500 MASTER PROMPT: Inyectar capacidad de inferencia para videos
-    let customPrompt = `${RECIPE_STRUCTURE_PROMPT}\n\nIDIOMA REQUERIDO: ${targetLang}.`;
+    // v501: Inject accurate variables for the prompt
+    let titleParts = content.match(/TITLE:\s*(.*)/);
+    let urlParts = content.match(/URL:\s*(.*)/);
     
-    if (isYouTubeUrl && content.length < 500) {
-        customPrompt += `\n⚠️ NOTA CRÍTICA: El contenido es un enlace de YouTube que no pudimos leer completamente. 
-Usa tu conocimiento interno (entrenamiento) sobre este video o canal para ESTRUCTURAR LA RECETA REAL. 
-Si no conoces el video exacto, infierela basándote en el título y el tipo de cocina del canal.`;
-    }
+    let prompt = RECIPE_STRUCTURE_PROMPT
+        .replace('{TITLE}', titleParts ? titleParts[1] : 'Unknown')
+        .replace('{URL}', urlParts ? urlParts[1] : 'Unknown')
+        .replace('{CONTENT}', content);
 
-    customPrompt += `\nAsegúrate de que todos los textos estén en ${targetLang}. Si el contenido está en otro idioma, TRADÚCELO.`;
+    prompt += `\n\nFINAL INSTRUCTION: Respond in ${targetLang}. If translating from another language, be precise.`;
 
     // Intentar recuperar de cache primero
-    const appVer = document.documentElement.dataset.appVersion || 'v500';
+    const appVer = document.documentElement.dataset.appVersion || 'v501';
     const contentHash = hashString(content + lang + appVer);
     const cached = localStorage.getItem(`gemini_extraction_cache_${contentHash}`);
     if (cached) {
@@ -73,16 +81,11 @@ Si no conoces el video exacto, infierela basándote en el título y el tipo de c
       return { success: true, recipe: JSON.parse(cached), content, cached: true };
     }
 
-    console.log(`📡 [Gemini] Consultando IA para estructurar receta (${lang})...`);
+    console.log(`📡 [Gemini v501] Mode: Deterministic Engine...`);
 
     const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
     
-    const prompt = customPrompt.replace('{CONTENT}', content);
-    
-    // Asumiendo que importaríamos fetchWithRetry en el master app, pero si no,
-    // usaremos el fetch nativo ya que aquí lo importante es NUNCA LANZAR hacia el orquestador.
-    // Aunque para cumplir con reintentos usaremos fetch normal porque el fallback principal es devolver el contenido original.
     let response;
     try {
         response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -108,18 +111,28 @@ Si no conoces el video exacto, infierela basándote en el título y el tipo de c
     
     const data = await response.json();
     const responseText = data.choices[0].message.content.trim();
+
+    // v501 Check for exact "NO_RECIPE_DATA_AVAILABLE"
+    if (responseText.includes('NO_RECIPE_DATA_AVAILABLE')) {
+        console.warn('🛑 [Gemini v501] Engine signal: NO_RECIPE_DATA_AVAILABLE');
+        return {
+            success: false,
+            error: 'No se detectó una receta real en el contenido. Por favor intenta pegar la descripción manualmente.',
+            noDataSignal: true,
+            stage: 'gemini_structuring'
+        };
+    }
     
     // VALIDACIÓN: Parsear y validar JSON
     let recipe = null;
-    
     try {
       recipe = JSON.parse(responseText);
     } catch (e) {
       const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) {
-        recipe = JSON.parse(jsonMatch[1].trim());
+         recipe = JSON.parse(jsonMatch[1].trim());
       } else {
-        throw new Error('No se pudo parsear la respuesta de Gemini como JSON válido');
+         throw new Error('La IA no pudo generar un JSON válido. Revisa el contenido original.');
       }
     }
     
