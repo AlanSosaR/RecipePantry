@@ -6074,56 +6074,76 @@ input:checked~.m3-ingredient-text {
 }
 
 
-/* PC Grid Alignment & Hierarchy - Refined for compact layout (v20.4) */
+/* TABLA VERDADERA: Grid robusto para alineación perfecta Header-Rem (v20.5) */
 .file-row-m3,
 .list-header-m3 {
     display: grid !important;
-    /* [order:-1]Checkbox(44px) | Icon(40px) | Name(1fr) | Access(120px) | Date(140px) | Actions(44px) */
-    grid-template-columns: 44px 40px minmax(250px, 1fr) 120px 150px 48px !important;
+    /* Estructura de 5 columnas bien definidas */
+    grid-template-columns: 50px 1fr 180px 180px 100px !important;
     align-items: center !important;
-    gap: 8px !important; /* Gap reducido para mayor proximidad */
-    padding: 0 16px !important;
-    width: 100%;
-    max-width: 1100px !important;
-    margin: 0 auto !important;
+    gap: 0 !important; /* Usamos paddings internos para mayor control de alineación */
+    padding: 0 24px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
-    height: 52px !important; /* Filas más compactas y profesionales */
+    height: 56px !important;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
 }
 
-/* Ensure no stretching beyond max-width */
 .list-view-m3 {
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch !important; /* Ocupar todo el ancho */
 }
 
-/* Agrupamiento compacto de Icono + Nombre */
-.file-row-m3 .col-icon,
-.list-header-m3 .col-icon {
+/* Columna de Información Principal (Icono + Nombre) */
+.col-main-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding-right: 16px;
+    overflow: hidden;
+    height: 100%;
+}
+
+.col-main-info .col-icon {
+    flex-shrink: 0;
+    width: 32px;
     display: flex;
-    justify-content: flex-end !important; /* Icono pegado a la derecha de su celda */
-    padding-right: 4px;
-    opacity: 0.9;
+    justify-content: center;
 }
 
-.file-row-m3 .col-name,
-.list-header-m3 .col-name {
-    padding-left: 0 !important;
+.col-main-info .col-name {
+    flex: 1;
+    min-width: 0;
     font-weight: 600;
 }
 
 .list-header-m3 {
-    background: transparent !important;
-    font-weight: 800 !important;
-    font-size: 11px !important;
-    letter-spacing: 0.08em !important;
+    background: var(--bg) !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    letter-spacing: 0.05em !important;
     text-transform: uppercase !important;
-    color: #1a1a1a !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-    margin-bottom: 4px;
-    height: 44px !important; /* Header un poco más bajo */
-    opacity: 0.8;
+    color: var(--on-surface-variant) !important;
+    height: 48px !important;
+    border-bottom: 2px solid var(--border) !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Alineación consistente de todas las celdas */
+.col-access, 
+.col-date, 
+.col-actions {
+    padding: 0 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
 
 .list-header-m3 .col-checkbox {
@@ -6247,8 +6267,8 @@ input:checked~.m3-ingredient-text {
 
 /* 2. Trailing Checkbox (Positioning) */
 .col-checkbox {
-    /* DEFAULT (PC/Desktop): LEFT SIDE */
-    order: -1;
+    /* physical position in domestic handles this */
+    width: 50px;
     width: 48px;
     height: 48px;
     display: flex;
@@ -6305,48 +6325,40 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        /* Stable Mobile Layout: [32px Icon] [Name] [48px Checkbox] [48px Actions] */
-        grid-template-columns: 32px 1fr 48px 48px !important;
-        gap: 8px !important;
-        padding: 12px 16px !important;
+        /* Mobile Layout: [Checkbox] [Main Info] [Actions] */
+        grid-template-columns: 48px 1fr 48px !important;
+        gap: 0 !important;
+        padding: 0 8px !important;
         align-items: center;
         width: 100% !important;
+        height: 64px !important; /* Un poco más alto en mobile para touch */
     }
 
-    /* Force columns to hide in BOTH rows and headers to prevent misalignment */
-    .col-category,
+    /* Hide Access and Date on mobile as requested implicitly by 'compact' and explicitly here */
     .col-access,
     .col-date {
         display: none !important;
     }
 
-    /* Column Reordering for consistency */
+    .col-main-info {
+        padding-right: 8px;
+    }
+
+    /* Reset reordering since physical order is now correct */
     .file-row-m3 .col-icon,
-    .list-header-m3 .col-icon {
-        order: 1;
-    }
-
+    .list-header-m3 .col-icon,
     .file-row-m3 .col-name,
-    .list-header-m3 .col-name {
-        order: 2;
-        flex: 1;
-    }
-
-    /* MOBILE: CHECKBOX BEFORE ACTIONS */
+    .list-header-m3 .col-name,
     .file-row-m3 .col-checkbox,
-    .list-header-m3 .col-checkbox {
-        order: 3 !important;
-        display: flex !important;
-        width: 48px;
-        justify-content: center;
-    }
-
-    /* MOBILE: ACTION BUTTONS ON THE FAR RIGHT (to the edge) */
+    .list-header-m3 .col-checkbox,
     .file-row-m3 .col-actions,
     .list-header-m3 .col-actions {
-        order: 4;
+        order: unset !important;
+    }
+
+    .file-row-m3 .col-actions,
+    .list-header-m3 .col-actions {
         display: flex !important;
-        width: 48px;
         justify-content: center;
     }
 

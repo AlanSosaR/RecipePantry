@@ -1097,19 +1097,15 @@ class DashboardManager {
 
         const header = `
             <div class="list-header-m3">
-                <div class="col-icon"></div>
-                <div class="col-name">${colName}</div>
-                <div class="col-access">${colAccess}</div>
-                <div class="col-date">${colDate}</div>
                 <div class="col-checkbox">
                     <label class="m3-checkbox-wrapper" style="pointer-events: auto !important; opacity: 1 !important;">
                         <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
                         <span class="m3-checkbox-visual"></span>
                     </label>
-                    <button class="btn-icon-m3" id="selectionMoreBtnHeader" onclick="window.dashboard.toggleSelectionMenu(event)" style="display: none; margin-left: 8px;" title="Más opciones">
-                        <span class="material-symbols-outlined">more_vert</span>
-                    </button>
                 </div>
+                <div class="col-main-info">${colName}</div>
+                <div class="col-access">${colAccess}</div>
+                <div class="col-date">${colDate}</div>
                 <div class="col-actions"></div>
             </div>
         `;
@@ -1139,12 +1135,20 @@ class DashboardManager {
                  ontouchstart="window.dashboard.handleRowTouchStart(event, '${recipe.id}')"
                  ontouchend="window.dashboard.handleRowTouchEnd(event)">
                 
-                <div class="col-icon">
-                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
+                <div class="col-checkbox" onclick="event.stopPropagation()">
+                    <label class="m3-checkbox-wrapper">
+                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
+                        <span class="m3-checkbox-visual"></span>
+                    </label>
                 </div>
 
-                <div class="col-name text-ellipsis">
-                    <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
+                <div class="col-main-info">
+                    <div class="col-icon">
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
+                    </div>
+                    <div class="col-name text-ellipsis">
+                        <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
+                    </div>
                 </div>
 
                 <div class="col-access">
@@ -1160,13 +1164,6 @@ class DashboardManager {
                 </div>
 
                 <div class="col-date">${date}</div>
-
-                <div class="col-checkbox" onclick="event.stopPropagation()">
-                    <label class="m3-checkbox-wrapper">
-                        <input type="checkbox" class="m3-checkbox-input" ${isSelected ? 'checked' : ''} onchange="window.dashboard.toggleSelection('${recipe.id}')">
-                        <span class="m3-checkbox-visual"></span>
-                    </label>
-                </div>
 
                 <div class="col-actions">
                     <div class="row-actions-dropbox">
@@ -1193,7 +1190,7 @@ class DashboardManager {
                             <span class="material-symbols-outlined">more_vert</span>
                         </button>
                     </div>
-                    <!-- Mobile Actions (only visible in mobile media query) -->
+                    <!-- Mobile Actions -->
                     <button class="btn-icon-m3 mobile-action-btn" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}', event)">
                         <span class="material-symbols-outlined">more_vert</span>
                     </button>
