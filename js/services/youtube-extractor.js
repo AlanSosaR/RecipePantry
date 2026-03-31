@@ -22,7 +22,7 @@ export async function extractFromYouTube(videoUrl) {
     const data = await resp.json();
 
     if (!data.success) {
-      console.warn(`⚠️ [YouTube v489] Extracción incompleta: ${data.error}`);
+      console.warn(`⚠️ [YouTube v494] Extracción incompleta: ${data.error}`);
     }
 
     const title       = data.title || '';

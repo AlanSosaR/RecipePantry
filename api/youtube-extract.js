@@ -1,6 +1,6 @@
-// api/youtube-extract.js (v492)
-// Extractor unificado usando: 1. InnerTube API → 2. HTML Scraping → 3. Invidious
-// Estrategia de v492: Fallback de scraping robusto para evitar "0 chars" cuando la API es bloqueada.
+// api/youtube-extract.js (v494)
+// SOLUTION DEFINITIVE: Sistema multi-estrategia con scrapers rotativos y TimedText directo.
+// v494: Integra el motor robusto de 'youtube-transcript.js' para garantizar descripción + audio.
 
 const INNERTUBE_ENDPOINT = 'https://www.youtube.com/youtubei/v1/player';
 // Clave pública del cliente web de YouTube (documentada públicamente, no es secreta)
@@ -16,13 +16,11 @@ export default async function handler(req, res) {
   const { videoId } = req.body;
   if (!videoId) return res.status(400).json({ error: 'videoId requerido' });
 
-  console.log(`🎬 [InnerTube v489] Extrayendo video: ${videoId}`);
+  console.log(`🎬 [v494] Extrayendo video: ${videoId}`);
 
-  // ────────────────────────────────────────────────
-  // ESTRATEGIA 1: InnerTube API (más fiable que scraping)
-  // ────────────────────────────────────────────────
   let title = '';
   let description = '';
+  let transcript = '';
   let captionBaseUrl = null;
   let source = 'innertube';
 
@@ -39,71 +37,64 @@ export default async function handler(req, res) {
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 2: HTML Scraping (Fallback si InnerTube falla o IP bloqueada)
+  // ESTRATEGIA 2: Mega-Scraper (v494)
+  // Basado en el motor de 'youtube-transcript.js'
   // ────────────────────────────────────────────────
-  if (!title || (!description && !captionBaseUrl)) {
-    try {
-      console.log(`🔄 [Scraper v492] Intentando scraping de HTML para ${videoId}...`);
-      const htmlUrl = `https://www.youtube.com/watch?v=${videoId}&hl=es&gl=ES`;
-      const htmlResp = await fetch(htmlUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept-Language': 'es-MX,es;q=0.9',
-          'Cookie': 'CONSENT=YES+42',
-        },
-        signal: AbortSignal.timeout(10000)
-      });
-      
-      if (htmlResp.ok) {
-        const html = await htmlResp.text();
-        const scraped = extractFromHtml(html);
-        if (scraped.success) {
-          title = scraped.title || title;
-          description = scraped.description || description;
-          captionBaseUrl = scraped.captionBaseUrl || captionBaseUrl;
-          source = (source === 'innertube' ? 'scraper' : source + '+scraper');
-          console.log(`✅ [Scraper] Recuperado: Title: "${title}", Desc: ${description?.length}, Captions: ${!!captionBaseUrl}`);
-        }
+  if (!title || !description || !captionBaseUrl) {
+    const headerSets = [
+      { // Chrome Desktop
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'es-ES,es;q=0.9',
+        'Cookie': 'CONSENT=YES+42; SOCS=CAESEwgDEgk0OTczMDg1MTUaAmVzIAEaBgiAi5KoBg',
+      },
+      { // Mobile Safari (Often less restricted)
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        'Accept-Language': 'es-MX,es;q=0.9',
+        'Cookie': 'CONSENT=YES+cb',
       }
-    } catch (e) {
-      console.warn(`⚠️ [Scraper] Error: ${e.message}`);
+    ];
+
+    for (const headers of headerSets) {
+      if (title && description && captionBaseUrl) break;
+      try {
+        console.log(`🔄 [Scraper v494] Intento con UA: ${headers['User-Agent'].substring(0, 20)}...`);
+        const url = `https://www.youtube.com/watch?v=${videoId}&hl=es&gl=ES&persist_hl=1`;
+        const resp = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
+        
+        if (resp.ok) {
+          const html = await resp.text();
+          const scraped = extractFromHtml(html);
+          if (scraped.success) {
+            title = scraped.title || title;
+            description = scraped.description || description;
+            captionBaseUrl = scraped.captionBaseUrl || captionBaseUrl;
+            source = `scrape:${headers['User-Agent'].includes('iPhone') ? 'mobile' : 'desktop'}`;
+            
+            // Intento de emergencia de TimedText URL directa
+            if (!captionBaseUrl) {
+              const emergencyUrl = extractTimedTextUrlFromHtml(html);
+              if (emergencyUrl) {
+                captionBaseUrl = emergencyUrl;
+                source += '+emergency-tt';
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn(`⚠️ [Scraper v494] Error: ${e.message}`);
+      }
     }
   }
 
-  // ESTRATEGIA 3: oEmbed como último recurso para título
-  if (!title) {
-    try {
-      const oembed = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-      if (oembed.ok) {
-        const data = await oembed.json();
-        title = data.title || '';
-        source = 'oembed-fallback';
-        console.log(`✅ [oEmbed] Título recuperado: "${title}"`);
-      }
-    } catch (e) {}
-  }
-
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 2: ¿La descripción tiene receta?
-  // Si sí → no necesitamos transcripción
+  // ESTRATEGIA 3: Transcript Fetching (v494)
   // ────────────────────────────────────────────────
-  const descHasRecipe = descriptionLooksLikeRecipe(description);
-  console.log(`🔍 [InnerTube] ¿Descripción contiene receta? ${descHasRecipe}`);
-
-  let transcript = null;
-
   if (captionBaseUrl) {
-    // ────────────────────────────────────────────────
-    // ESTRATEGIA 3: Obtener transcripción SIEMPRE si está disponible (v491)
-    // ────────────────────────────────────────────────
     try {
       transcript = await fetchCaptionFromUrl(captionBaseUrl);
-      if (transcript) {
-        console.log(`✅ [InnerTube] Transcripción: ${transcript.length} chars`);
-        source += '+captions';
-      }
+      if (transcript) source += '+captions';
     } catch (e) {
-      console.warn(`⚠️ [InnerTube] Error en captions: ${e.message}`);
+      console.warn(`⚠️ [Transcript] Falló: ${e.message}`);
     }
   }
 
@@ -128,28 +119,28 @@ export default async function handler(req, res) {
   }
 
   // ────────────────────────────────────────────────
-  // ESTRATEGIA 5: Consolidar y Validar (v492)
+  // ESTRATEGIA 5: Consolidar y Validar (v494)
   // EVITAR Alucinaciones: Si tenemos Título pero no hay CUERPO (descrip o transcript) con contenido real, abortar.
   // ────────────────────────────────────────────────
   const descriptionActual = description || '';
   const transcriptActual = transcript || '';
   
   // Scoring de contenido para evitar falsos positivos
-  const hasSubstantialBody = (descriptionActual.length > 200 || transcriptActual.length > 300);
-  const looksLikeRecipe = descriptionLooksLikeRecipe(descriptionActual) || transcriptActual.length > 800;
+  const hasSubstantialBody = (descriptionActual.length > 250 || transcriptActual.length > 400);
+  const looksLikeRecipe = descriptionLooksLikeRecipe(descriptionActual) || transcriptActual.length > 1200;
   
   const hasContent = !!(title && (hasSubstantialBody || looksLikeRecipe));
   
   if (!hasContent) {
-    console.log(`📊 [YouTube v492] Diagnóstico:
+    console.log(`📊 [YouTube v494] Diagnóstico:
       ├─ Title: ${title ? title.length : 0} chars
-      ├─ Desc: ${descriptionActual.length} chars (Score: ${descriptionLooksLikeRecipe(descriptionActual)})
+      ├─ Desc: ${descriptionActual.length} chars (IsRecipe: ${descriptionLooksLikeRecipe(descriptionActual)})
       ├─ Transcript: ${transcriptActual.length} chars
       ├─ Source: ${source}
       └─ Result: ❌ INSUFICIENTE PARA GEMINI`);
     return res.status(200).json({
       success: false,
-      error: 'Contenido extraído insuficiente para encontrar una receta. Verifica que el video no sea privado.',
+      error: 'Contenido extraído insuficiente. La descripción o audio no contienen detalles claros de la receta.',
       videoId, 
       title, 
       descriptionLength: descriptionActual.length, 
@@ -305,10 +296,13 @@ function extractFromHtml(html) {
     
     // Captions del scraper
     let captionBaseUrl = null;
-    const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    const captions = data.captions?.playerCaptionsTracklistRenderer || data.captions?.playerCaptionsTracklistRenderer;
+    const tracks = captions?.captionTracks || [];
+    
     if (tracks.length > 0) {
         const esTrack = tracks.find(t => t.languageCode?.startsWith('es'));
-        const selected = esTrack || tracks[0];
+        const enTrack = tracks.find(t => t.languageCode?.startsWith('en'));
+        const selected = esTrack || enTrack || tracks[0];
         captionBaseUrl = selected?.baseUrl || null;
     }
 
@@ -316,6 +310,23 @@ function extractFromHtml(html) {
   } catch (e) {
     return { success: false, error: e.message };
   }
+}
+
+// ─────────────────────────────────────────────────────
+// EMERGENCIA: Buscar URL de TimedText directamente en el HTML
+// ─────────────────────────────────────────────────────
+function extractTimedTextUrlFromHtml(html) {
+  try {
+    const regex = /"https:\/\/www\.youtube\.com\/api\/timedtext[^"]+"/;
+    const match = html.match(regex);
+    if (match) {
+      let url = match[0].replace(/"/g, '');
+      url = url.replace(/\\u0026/g, '&');
+      if (!url.includes('fmt=vtt')) url += '&fmt=vtt';
+      return url;
+    }
+  } catch (e) {}
+  return null;
 }
 
 // ─────────────────────────────────────────────────────
