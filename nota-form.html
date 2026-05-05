@@ -32,6 +32,21 @@
     <script defer src="js/notas.js?v=493"></script>
 
     <script>document.documentElement.setAttribute('data-theme', 'light');</script>
+    <script>
+        // Pre-render: si es editar nota, mostrar spinner; si es nueva, mostrar editor
+        (function() {
+            var p = new URLSearchParams(window.location.search);
+            if (p.get('id')) {
+                // Editing: show spinner, hide form until JS loads note
+                document.addEventListener('DOMContentLoaded', function() {
+                    var l = document.getElementById('loading-state');
+                    var f = document.getElementById('editor-form');
+                    if (l) l.style.display = 'flex';
+                    if (f) f.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 
     <style>
         /* ═══════════════════════════════════════════
@@ -671,13 +686,13 @@
         <div class="nf-scroll-area">
         <div class="nf-editor-wrap">
 
-        <!-- Loading -->
-        <div class="nf-loading" id="loading-state">
+        <!-- Loading (solo se muestra al editar nota existente) -->
+        <div class="nf-loading" id="loading-state" style="display:none;">
             <div class="nf-spinner"></div>
         </div>
 
-        <!-- Form -->
-        <div id="editor-form" style="display: none; flex-direction: column; flex-grow: 1;">
+        <!-- Form (visible inmediatamente para nueva nota) -->
+        <div id="editor-form" style="display: flex; flex-direction: column; flex-grow: 1;">
 
             <!-- Type badge -->
             <div class="nf-type-badge" id="nf-type-badge">

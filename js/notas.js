@@ -25,9 +25,21 @@
                 return;
             }
 
+            // ── Update sidebar avatar with photo or initials ──
+            this.updateAvatar(user);
+
             const path = window.location.pathname;
-            
-            // Wait for dbManager to be initialized
+
+            // If on nota-form and no dbManager yet, show editor immediately for new notes
+            if (path.includes('nota-form.html')) {
+                if (!window.dbManager) {
+                    // Retry once after short delay; if still absent, show editor anyway
+                    await new Promise(r => setTimeout(r, 600));
+                }
+                this.initFormView();
+                return;
+            }
+
             if (!window.dbManager) {
                 console.error("dbManager not initialized yet.");
                 return;
@@ -35,9 +47,56 @@
 
             if (path.includes('notas.html') || path.includes('/notas')) {
                 this.initListView();
-            } else if (path.includes('nota-form.html')) {
-                this.initFormView();
             }
+        }
+
+        // ── Avatar: photo or initials ──────────────────────────────────────
+        updateAvatar(user) {
+            const avatarContainer = document.getElementById('notas-avatar-container');
+            const initialsEl = document.getElementById('sidebar-user-initials');
+            const greetingEl = document.getElementById('sidebar-user-greeting');
+
+            if (!avatarContainer) return;
+
+            const displayName = user.user_metadata?.full_name
+                || user.user_metadata?.name
+                || user.email
+                || 'Chef';
+
+            // Short name for greeting
+            const firstName = displayName.split(' ')[0];
+            if (greetingEl) greetingEl.textContent = firstName;
+
+            const photoUrl = user.user_metadata?.avatar_url
+                || user.user_metadata?.picture
+                || null;
+
+            if (photoUrl) {
+                // Show photo
+                avatarContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = photoUrl;
+                img.alt = displayName;
+                img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
+                img.onerror = () => {
+                    // Fallback to initials if image fails
+                    avatarContainer.innerHTML = `<span class="user-initials-m3 notas-initials">${this.getInitials(displayName)}</span>`;
+                };
+                avatarContainer.appendChild(img);
+            } else {
+                // Show initials
+                if (initialsEl) {
+                    initialsEl.textContent = this.getInitials(displayName);
+                }
+            }
+        }
+
+        getInitials(name) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
         }
 
         // --- List View Methods ---
