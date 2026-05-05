@@ -358,8 +358,6 @@
                 if (!hasContent) {
                     if (window.uiManager) {
                         window.uiManager.showToast('Escribe un título o contenido antes de guardar.', 'warning');
-                    } else {
-                        alert('Escribe un título o contenido antes de guardar.');
                     }
                     return; // No guardar
                 }
