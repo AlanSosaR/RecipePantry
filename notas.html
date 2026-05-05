@@ -1,164 +1,185 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v500">
+<html lang="es" data-theme="light" data-app-version="v491">
 
 <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 
-    <title data-i18n="navNotes">Notas - Recipe Pantry</title>
+    <title>Notas - Recipe Pantry</title>
 
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
     <!-- Fuentes e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=500">
-    <link rel="stylesheet" href="css/components.css?v=500">
-    <link rel="stylesheet" href="css/notas.css?v=500">
+    <link rel="stylesheet" href="css/styles.css?v=491">
+    <link rel="stylesheet" href="css/components.css?v=491">
+    <link rel="stylesheet" href="css/notas.css?v=491">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CORE SCRIPTS -->
-    <script src="js/config.js?v=500"></script>
-    <script src="js/supabase-client.js?v=500"></script>
-    <script src="js/utils.js?v=500"></script>
-    <script src="js/i18n.js?v=500"></script>
-    <script src="js/auth.js?v=500"></script>
-    <script src="js/localdb.js?v=500"></script>
-    <script src="js/db.js?v=500"></script>
-    <script src="js/ui.js?v=500"></script>
-    
+    <script src="js/config.js?v=491"></script>
+    <script src="js/supabase-client.js?v=491"></script>
+    <script src="js/utils.js?v=491"></script>
+    <script src="js/i18n.js?v=491"></script>
+    <script src="js/auth.js?v=491"></script>
+    <script src="js/localdb.js?v=491"></script>
+    <script src="js/db.js?v=491"></script>
+    <script src="js/ui.js?v=491"></script>
+
     <!-- Notas Specific Scripts -->
-    <script defer src="js/notas.js?v=500"></script>
+    <script defer src="js/notas.js?v=491"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
     </script>
 </head>
 
-<body class="body-drive">
-    <div id="dashboard-app" class="dashboard-app">
-        <!-- Sidebar Overlay for mobile -->
+<body class="body-drive notas-body">
+    <div id="dashboard-app" class="dashboard-app notas-layout">
+
+        <!-- Sidebar Overlay (mobile) -->
         <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
-        
-        <!-- Sidebar -->
-        <aside id="main-sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();" style="cursor: pointer;">
-                    <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
-                    <span class="logo-text">Recipe Pantry</span>
+
+        <!-- ═══════════════════════════════════════
+             SIDEBAR — M3 Expressive Navigation Drawer
+             ═══════════════════════════════════════ -->
+        <aside id="main-sidebar" class="sidebar notas-sidebar">
+
+            <!-- Profile Header (Stitch Design) -->
+            <div class="notas-sidebar-profile">
+                <div class="notas-avatar-ring">
+                    <div class="notas-avatar-circle" id="notas-avatar-container">
+                        <span id="sidebar-user-initials" class="user-initials-m3 notas-initials">?</span>
+                    </div>
                 </div>
+                <h3 id="sidebar-user-greeting" class="notas-sidebar-username">Chef</h3>
             </div>
-            <div class="sidebar-user-profile">
-                <div class="user-avatar-m3">
-                    <span id="sidebar-user-initials" class="user-initials-m3"></span>
-                </div>
-                <div class="user-info-m3">
-                    <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
-                </div>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/" class="nav-item">
+
+            <!-- Navigation Links -->
+            <nav class="notas-sidebar-nav">
+                <a href="/" class="notas-nav-item">
                     <span class="material-symbols-outlined">home</span>
                     <span data-i18n="navRecipes">Recetas</span>
                 </a>
-                <a href="/#favorites" class="nav-item">
+                <a href="/#favorites" class="notas-nav-item">
                     <span class="material-symbols-outlined">star</span>
                     <span data-i18n="navFavorites">Favoritos</span>
                 </a>
-                <a href="/ocr" class="nav-item">
+                <a href="/ocr" class="notas-nav-item">
                     <span class="material-symbols-outlined">document_scanner</span>
                     <span data-i18n="navScan">Escanear Receta</span>
                 </a>
-                <a href="/notas" class="nav-item active">
-                    <span class="material-symbols-outlined">edit_note</span>
-                    <span data-i18n="navNotes">Notas</span>
-                </a>
-                <a href="/#shared" class="nav-item">
+                <!-- Notas — Active -->
+                <div class="notas-nav-item-active-wrapper">
+                    <div class="notas-nav-active-indicator"></div>
+                    <a href="/notas" class="notas-nav-item notas-nav-item--active">
+                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">edit_note</span>
+                        <span data-i18n="navNotes">Notas</span>
+                    </a>
+                </div>
+                <a href="/#shared" class="notas-nav-item">
                     <span class="material-symbols-outlined">share</span>
                     <span data-i18n="navShared">Compartidas</span>
                 </a>
-                <a href="/#help" class="nav-item">
+                <a href="/#help" class="notas-nav-item notas-nav-item--gap-top">
                     <span class="material-symbols-outlined">help</span>
                     <span data-i18n="navHelp">Ayuda</span>
                 </a>
-                <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+                <a href="#" class="notas-nav-item notas-nav-item--logout" onclick="window.authManager.signOut()">
                     <span class="material-symbols-outlined">logout</span>
                     <span data-i18n="navLogout">Cerrar Sesión</span>
                 </a>
             </nav>
-            <div class="sidebar-footer">
-                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only" style="width: 100%; justify-content: flex-start; padding-left: 16px;" onclick="window.toggleSlimSidebar()">
-                    <span class="material-symbols-outlined">side_navigation</span>
-                </button>
-            </div>
+
         </aside>
 
-        <!-- Main Content Canvas -->
-        <main class="main-content relative">
-            <header class="top-bar-m3">
-                <div class="header-left-group">
-                    <!-- M3 Expressive Back Button -->
-                    <button class="btn-back-m3" onclick="history.back()" title="Regresar" aria-label="Regresar">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                    </button>
-                    <button id="hamburger-menu" class="btn-icon-m3 mobile-only" onclick="window.toggleSidebar(true)">
+        <!-- ═══════════════════════════════════════
+             MAIN CONTENT
+             ═══════════════════════════════════════ -->
+        <main class="notas-main">
+
+            <!-- TOP APP BAR -->
+            <header class="notas-topbar">
+                <div class="notas-topbar-left">
+                    <!-- Hamburger (mobile only) -->
+                    <button id="hamburger-menu" class="notas-hamburger mobile-only" onclick="window.toggleSidebar(true)" aria-label="Abrir menú">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
-                    <div class="header-title-wrapper">
-                        <h1 class="header-title-m3" data-i18n="navNotes">Kitchen Notes</h1>
-                        <p class="header-subtitle-m3" data-i18n="navNotesSubtitle">Your culinary ideas, organized and fresh.</p>
+                    <!-- Search bar -->
+                    <div class="notas-search-wrapper">
+                        <span class="material-symbols-outlined notas-search-icon">search</span>
+                        <input class="notas-search-input" type="text" placeholder="Buscar en mis notas..." aria-label="Buscar notas">
+                    </div>
+                </div>
+                <div class="notas-topbar-right">
+                    <!-- Notifications -->
+                    <button class="notas-topbar-icon-btn" title="Notificaciones">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                    <!-- User Avatar chip -->
+                    <div class="notas-topbar-avatar" id="notas-topbar-avatar">
+                        <span id="notas-topbar-initials" class="notas-topbar-initials">?</span>
                     </div>
                 </div>
             </header>
 
-            <div class="background-accent">
-                <div class="accent-blob"></div>
-            </div>
+            <!-- SCROLLABLE CONTENT AREA -->
+            <div class="notas-scroll-area">
 
-            <div class="notas-container" id="notas-main-container">
-                
-                <div class="loading-spinner-container" id="loading-state">
-                    <!-- Se eliminó el texto cargando que ofende, solo se deja el spinner minimalista -->
-                    <div class="loading-spinner"></div>
+                <!-- Page Header -->
+                <div class="notas-page-header">
+                    <h1 class="notas-page-title" data-i18n="navNotes">Kitchen Notes</h1>
+                    <p class="notas-page-subtitle" data-i18n="navNotesSubtitle">Your culinary ideas, organized and fresh.</p>
                 </div>
 
-                <!-- Empty State (Material 3 Expressive) -->
-                <div class="notas-empty-state" id="empty-state" style="display: none;">
-                    <div class="empty-state-content">
-                        <div class="empty-state-visual-wrapper">
-                            <div class="empty-state-icon-m3">
-                                <span class="material-symbols-outlined">menu_book</span>
-                            </div>
-                            <div class="accent-blob-mini"></div>
+                <!-- Main Container -->
+                <div class="notas-container" id="notas-main-container">
+
+                    <!-- Loading State -->
+                    <div class="loading-spinner-container" id="loading-state">
+                        <div class="loading-spinner"></div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="notas-empty-state-stitch" id="empty-state" style="display: none;">
+                        <div class="notas-empty-icon-circle">
+                            <span class="material-symbols-outlined">menu_book</span>
                         </div>
-                        
-                        <h2 class="empty-title-m3" data-i18n="notesEmptyTitle">Your culinary journey starts here</h2>
-                        <p class="empty-desc-m3" data-i18n="notesEmptyDesc">Capture your recipes and ideas to build your personal digital cookbook.</p>
-                        
-                        <div class="notas-quick-actions-m3">
-                            <button class="chip-action-m3" onclick="window.notasManager.createNewNote('checklist')">
-                                <span data-i18n="actionChecklist">Capture Ingredients</span>
+                        <h2 class="notas-empty-title" data-i18n="notesEmptyTitle">Tu viaje culinario comienza aquí</h2>
+                        <p class="notas-empty-desc" data-i18n="notesEmptyDesc">
+                            Captura tus recetas e ideas para construir tu recetario digital personal.
+                        </p>
+                        <div class="notas-empty-actions">
+                            <button class="notas-btn-primary" onclick="window.notasManager.createNewNote('checklist')">
+                                <span class="material-symbols-outlined">checklist</span>
+                                <span data-i18n="actionChecklist">Capturar ingredientes</span>
                             </button>
-                            <button class="chip-action-m3" onclick="window.notasManager.createNewNote('text')">
-                                <span data-i18n="actionQuickNote">Quick Note</span>
+                            <button class="notas-btn-tonal" onclick="window.notasManager.createNewNote('text')">
+                                <span data-i18n="actionQuickNote">Nota rápida</span>
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Masonry-style Grid -->
-                <div class="recipe-masonry" id="notes-grid" style="display: none;">
-                    <!-- Notes will be populated here by JS -->
-                </div>
+                    <!-- Notes Grid (Masonry) -->
+                    <div class="recipe-masonry" id="notes-grid" style="display: none;"></div>
 
+                </div>
             </div>
 
-            <!-- Floating Action Button Cluster -->
+            <!-- FAB — Add Note -->
+            <button class="notas-fab-main" id="main-fab-btn"
+                onclick="document.getElementById('fab-container').classList.toggle('active')"
+                aria-label="Nueva nota">
+                <span class="material-symbols-outlined">add</span>
+            </button>
+
+            <!-- FAB Action Cluster -->
             <div class="fab-container" id="fab-container">
                 <div class="fab-actions">
                     <button class="fab-action-btn" onclick="window.notasManager.createNewNote('checklist')">
@@ -174,17 +195,49 @@
                         </div>
                     </button>
                 </div>
-                
-                <button class="main-fab" id="main-fab-btn" onclick="document.getElementById('fab-container').classList.toggle('active')">
-                    <span class="material-symbols-outlined">add</span>
-                </button>
             </div>
 
             <!-- Pin Anchor FAB (fixed right side) -->
-            <button class="pin-anchor-fab" id="pin-anchor-btn" title="Anclar nota" aria-label="Anclar nota" onclick="window.notasManager && window.notasManager.togglePinSelected && window.notasManager.togglePinSelected()">
+            <button class="pin-anchor-fab" id="pin-anchor-btn" title="Anclar nota" aria-label="Anclar nota"
+                onclick="window.notasManager && window.notasManager.togglePinSelected && window.notasManager.togglePinSelected()">
                 <span class="material-symbols-outlined">push_pin</span>
             </button>
+
         </main>
     </div>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="notas-mobile-nav mobile-only">
+        <a href="/" class="notas-mobile-nav-item">
+            <span class="material-symbols-outlined">book_4</span>
+            <span>Recetas</span>
+        </a>
+        <a href="/notas" class="notas-mobile-nav-item notas-mobile-nav-item--active">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">edit_note</span>
+            <span>Notas</span>
+        </a>
+        <a href="/ocr" class="notas-mobile-nav-item">
+            <span class="material-symbols-outlined">document_scanner</span>
+            <span>Escanear</span>
+        </a>
+    </nav>
+
+    <!-- Sync bridge: replicate initials from sidebar to topbar avatar -->
+    <script>
+        (function() {
+            const observer = new MutationObserver(() => {
+                const src = document.getElementById('sidebar-user-initials');
+                const tgt = document.getElementById('notas-topbar-initials');
+                if (src && tgt && src.textContent) {
+                    tgt.textContent = src.textContent;
+                }
+            });
+            document.addEventListener('DOMContentLoaded', () => {
+                const src = document.getElementById('sidebar-user-initials');
+                if (src) observer.observe(src, { childList: true, subtree: true, characterData: true });
+            });
+        })();
+    </script>
+
 </body>
 </html>
