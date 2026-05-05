@@ -724,19 +724,7 @@
         </div>
         </div><!-- /nf-editor-wrap -->
         </div><!-- /nf-scroll-area -->
-
-        <!-- BOTTOM SAVE BAR -->
-        <div class="nf-save-bar hidden" id="nf-save-bar">
-            <div class="nf-save-status" id="nf-save-status">
-                <span class="material-symbols-outlined">cloud_done</span>
-                <span>Guardado automáticamente</span>
-            </div>
-            <button class="nf-btn-save-go" onclick="window.nfSaveAndGo()">
-                <span class="material-symbols-outlined">arrow_forward</span>
-                Ir a Notas
-            </button>
-        </div>
-
+        </div><!-- /nf-scroll-area -->
         </div><!-- /nf-main-area -->
     </div><!-- /nf-shell -->
 
@@ -751,32 +739,7 @@
             }
         };
 
-        // Botón "Ir a Notas" en la barra inferior
-        window.nfSaveAndGo = async function() {
-            if (window.notasManager && window.notasManager.saveNote) {
-                await window.notasManager.saveNote();
-            }
-        };
-
-
-        // Show the save bar
-        window.nfShowSaveBar = function(message) {
-            const bar = document.getElementById('nf-save-bar');
-            const status = document.getElementById('nf-save-status');
-            if (message) {
-                status.querySelector('span:last-child').textContent = message;
-            }
-            if (bar) bar.classList.remove('hidden');
-        };
-
-        // Auto-show save bar on any input (debounced)
-        let nfSaveTimer;
-        function nfOnInput() {
-            clearTimeout(nfSaveTimer);
-            nfSaveTimer = setTimeout(() => {
-                window.nfShowSaveBar('Guardado automáticamente');
-            }, 2000);
-        }
+        // Eliminado: nfSaveAndGo, nfShowSaveBar, nfOnInput (el usuario solo quiere guardar con el botón superior)
 
         document.addEventListener('DOMContentLoaded', () => {
             // Dynamic page title: Nueva Nota vs Editar Nota
@@ -790,10 +753,7 @@
             const deleteBtn = document.getElementById('delete-note-btn');
             if (deleteBtn && noteId) deleteBtn.style.display = 'flex';
 
-            const titleEl = document.getElementById('note-title');
-            const contentEl = document.getElementById('note-content');
-            if (titleEl) titleEl.addEventListener('input', nfOnInput);
-            if (contentEl) contentEl.addEventListener('input', nfOnInput);
+            // Event listeners removidos para no mostrar auto-guardado fake
 
             // Update type badge based on hidden input
             const typeInput = document.getElementById('note-type');
