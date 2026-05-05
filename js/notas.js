@@ -19,33 +19,25 @@
         }
 
         async setup() {
-            const user = await window.authManager.getCurrentUser();
-            if (!user) {
-                window.location.href = '/';
-                return;
-            }
+            const ok = await window.authManager.requireAuth();
+            if (!ok) return;
+            const user = window.authManager.currentUser;
 
-            // ── Update sidebar avatar with photo or initials ──
             this.updateAvatar(user);
 
             const path = window.location.pathname;
 
-            // If on nota-form and no dbManager yet, show editor immediately for new notes
-            if (path.includes('nota-form.html')) {
-                if (!window.dbManager) {
-                    // Retry once after short delay; if still absent, show editor anyway
-                    await new Promise(r => setTimeout(r, 600));
-                }
+            if (path.includes('nota-form')) {
                 this.initFormView();
                 return;
             }
 
-            if (!window.dbManager) {
-                console.error("dbManager not initialized yet.");
-                return;
-            }
-
+            // List view logic
             if (path.includes('notas.html') || path.includes('/notas')) {
+                // We don't strictly need window.db for notes, but we log if it's missing for recipes
+                if (!window.db) {
+                    console.warn("DatabaseManager (db) not yet ready, but proceeding with notes fetch.");
+                }
                 this.initListView();
             }
         }
@@ -56,11 +48,15 @@
 
             // Intentar obtener perfil extendido desde la BD (igual que dashboard.js)
             try {
-                const { data: profile } = await window.supabase
-                    .from('profiles')
+                const { data: profile, error: profileError } = await window.supabaseClient
+                    .from('users')
                     .select('first_name, last_name, prefix, avatar_url')
-                    .eq('id', user.id)
-                    .single();
+                    .eq('auth_user_id', user.id)
+                    .maybeSingle();
+
+                if (profileError) {
+                    console.warn("⚠️ Error recuperando perfil extendido:", profileError);
+                }
 
                 if (profile) {
                     // Montar el objeto que espera updateGlobalUserUI
@@ -76,6 +72,9 @@
                     let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
                     if (!fName && !lName) fullName = prefix;
                     if (greetingEl) greetingEl.textContent = fullName;
+                } else {
+                    // Lanzamos error controlado para caer en el catch de abajo y usar user_metadata
+                    throw new Error('NO_DB_PROFILE');
                 }
             } catch (e) {
                 // Sin perfil extendido: usar user_metadata de Auth
@@ -145,17 +144,25 @@
 
         async initListView() {
             this.showLoading(true);
+            const user = window.authManager.currentUser;
+            if (!user) {
+                console.error("No user found in authManager");
+                this.showLoading(false);
+                return;
+            }
+
+            console.log('📝 Fetching notes for user:', user.id);
+
             try {
-                // Fetch notes from Supabase
-                const { data: notes, error } = await window.supabase
+                const { data: notes, error } = await window.supabaseClient
                     .from('notes')
                     .select('*')
+                    .eq('user_id', user.auth_user_id || user.id)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
+                console.log(`✅ Fetched ${notes ? notes.length : 0} notes.`);
                 this.notes = notes || [];
-
-                // Render
                 this.renderNotesList();
             } catch (err) {
                 console.error('Error fetching notes:', err);
@@ -221,7 +228,7 @@
         async deleteNotePrompt(id) {
             if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
                 try {
-                    const { error } = await window.supabase.from('notes').delete().eq('id', id);
+                    const { error } = await window.supabaseClient.from('notes').delete().eq('id', id);
                     if (error) throw error;
                     
                     if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
@@ -249,7 +256,7 @@
                 document.getElementById('delete-note-btn').style.display = 'block';
                 this.showLoading(true);
                 try {
-                    const { data: note, error } = await window.supabase
+                    const { data: note, error } = await window.supabaseClient
                         .from('notes')
                         .select('*')
                         .eq('id', noteId)
@@ -263,7 +270,7 @@
                     
                     if (note.type === 'checklist') {
                         // Fetch items
-                        const { data: items, error: itemsErr } = await window.supabase
+                        const { data: items, error: itemsErr } = await window.supabaseClient
                             .from('note_items')
                             .select('*')
                             .eq('note_id', noteId)
@@ -405,14 +412,28 @@
                 }
 
                 this.showLoading(true);
-                const { data: authData } = await window.supabase.auth.getUser();
-                const user = authData?.user;
-                if (!user) throw new Error('Usuario no autenticado');
+
+                // Obtener user_id de forma segura: memoria → sesión activa de Supabase
+                let authUserId = window.authManager.session?.user?.id
+                    || window.authManager.currentUser?.auth_user_id
+                    || window.authManager.currentUser?.id;
+
+                if (!authUserId) {
+                    // Fallback: consultar sesión activa directamente a Supabase
+                    try {
+                        const { data: sd } = await window.supabaseClient.auth.getSession();
+                        authUserId = sd?.session?.user?.id;
+                        // Actualizar sesión en authManager para futuras llamadas
+                        if (sd?.session) window.authManager.session = sd.session;
+                    } catch (_) {}
+                }
+
+                if (!authUserId) throw new Error('Usuario no autenticado');
 
                 const noteData = {
                     title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
                     type: type,
-                    user_id: user.id,
+                    user_id: authUserId,
                     updated_at: new Date().toISOString()
                 };
 
@@ -424,14 +445,14 @@
 
                 if (noteId) {
                     // Update
-                    const { error } = await window.supabase
+                    const { error } = await window.supabaseClient
                         .from('notes')
                         .update(noteData)
                         .eq('id', noteId);
                     if (error) throw error;
                 } else {
                     // Insert
-                    const { data, error } = await window.supabase
+                    const { data, error } = await window.supabaseClient
                         .from('notes')
                         .insert([noteData])
                         .select()
@@ -446,7 +467,7 @@
                 if (type === 'checklist') {
                     const itemsToDelete = this.checklistItems.filter(i => i._deleted && i.id).map(i => i.id);
                     if (itemsToDelete.length > 0) {
-                        await window.supabase.from('note_items').delete().in('id', itemsToDelete);
+                        await window.supabaseClient.from('note_items').delete().in('id', itemsToDelete);
                     }
 
                     const activeItems = this.checklistItems.filter(i => !i._deleted && i.content.trim() !== '');
@@ -460,9 +481,9 @@
                         };
 
                         if (item.id && item.isModified) {
-                            await window.supabase.from('note_items').update(itemData).eq('id', item.id);
+                            await window.supabaseClient.from('note_items').update(itemData).eq('id', item.id);
                         } else if (item.isNew) {
-                            await window.supabase.from('note_items').insert([itemData]);
+                            await window.supabaseClient.from('note_items').insert([itemData]);
                         }
                     }
                 }
