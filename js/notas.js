@@ -405,7 +405,9 @@
                 }
 
                 this.showLoading(true);
-                const user = await window.authManager.getCurrentUser();
+                const { data: authData } = await window.supabase.auth.getUser();
+                const user = authData?.user;
+                if (!user) throw new Error('Usuario no autenticado');
 
                 const noteData = {
                     title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
