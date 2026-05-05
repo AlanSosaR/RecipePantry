@@ -1381,3 +1381,65 @@
         height: 44px;
     }
 }
+
+/* ══════════════════════════════════════════════
+   MOBILE RESPONSIVE — Sidebar drawer behavior
+   ══════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+
+    /* Sidebar: hidden off-screen to the left */
+    .notas-layout .notas-sidebar {
+        position: fixed !important;
+        top: 0;
+        left: -300px;
+        height: 100dvh;
+        width: 280px;
+        z-index: 1100;
+        transition: left 0.3s cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    }
+
+    /* Slide in when active */
+    .notas-layout .notas-sidebar.active {
+        left: 0 !important;
+    }
+
+    /* Overlay: full screen dark background */
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 1050;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    /* Main area takes full width */
+    .notas-main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Show hamburger button */
+    .notas-hamburger {
+        display: flex !important;
+    }
+}
+
+/* Desktop: sidebar always visible, hamburger hidden */
+@media (min-width: 1024px) {
+    .notas-hamburger {
+        display: none !important;
+    }
+    .sidebar-overlay {
+        display: none !important;
+    }
+}
+
