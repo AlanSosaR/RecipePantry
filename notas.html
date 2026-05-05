@@ -118,13 +118,9 @@
                     </div>
                 </div>
                 <div class="notas-topbar-right">
-                    <!-- Notifications -->
-                    <button class="notas-topbar-icon-btn" title="Notificaciones">
-                        <span class="material-symbols-outlined">notifications</span>
-                    </button>
-                    <!-- User Avatar chip -->
-                    <div class="notas-topbar-avatar" id="notas-topbar-avatar">
-                        <span id="notas-topbar-initials" class="notas-topbar-initials">?</span>
+                    <!-- User Avatar chip (sync'd from sidebar initials via JS) -->
+                    <div class="notas-topbar-avatar" id="notas-topbar-avatar" title="Perfil">
+                        <span id="notas-topbar-initials" class="notas-topbar-initials">...</span>
                     </div>
                 </div>
             </header>
@@ -172,33 +168,33 @@
                 </div>
             </div>
 
-            <!-- FAB — Add Note -->
-            <button class="notas-fab-main" id="main-fab-btn"
-                onclick="document.getElementById('fab-container').classList.toggle('active')"
-                aria-label="Nueva nota">
-                <span class="material-symbols-outlined">add</span>
-            </button>
-
-            <!-- FAB Action Cluster -->
+            <!-- FAB Cluster (main-fab inside for rotation animation) -->
             <div class="fab-container" id="fab-container">
                 <div class="fab-actions">
                     <button class="fab-action-btn" onclick="window.notasManager.createNewNote('checklist')">
-                        <span class="fab-action-label" data-i18n="actionChecklist">Lista</span>
+                        <span class="fab-action-label" data-i18n="actionChecklist">Lista de ingredientes</span>
                         <div class="fab-action-icon">
                             <span class="material-symbols-outlined">checklist</span>
                         </div>
                     </button>
                     <button class="fab-action-btn" onclick="window.notasManager.createNewNote('text')">
-                        <span class="fab-action-label" data-i18n="actionTextNote">Nota de Texto</span>
+                        <span class="fab-action-label" data-i18n="actionTextNote">Nota de texto</span>
                         <div class="fab-action-icon">
                             <span class="material-symbols-outlined">description</span>
                         </div>
                     </button>
                 </div>
+                <!-- Main FAB (rota 135° al activar) -->
+                <button class="main-fab" id="main-fab-btn"
+                    onclick="this.closest('.fab-container').classList.toggle('active')"
+                    aria-label="Nueva nota">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
             </div>
 
-            <!-- Pin Anchor FAB (fixed right side) -->
+            <!-- Pin Anchor FAB: hidden on list view, shown only inside note editor -->
             <button class="pin-anchor-fab" id="pin-anchor-btn" title="Anclar nota" aria-label="Anclar nota"
+                style="display:none"
                 onclick="window.notasManager && window.notasManager.togglePinSelected && window.notasManager.togglePinSelected()">
                 <span class="material-symbols-outlined">push_pin</span>
             </button>
