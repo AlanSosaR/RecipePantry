@@ -40,72 +40,145 @@
     </script>
 </head>
 
-<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col">
-    <!-- TopAppBar -->
-    <header class="app-header-m3">
-        <div class="header-left">
-            <button class="icon-btn-m3" onclick="window.location.href='/'">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 class="header-title-m3" data-i18n="navNotes">Notas Culinarias</h1>
-        </div>
-    </header>
-
-    <div class="background-accent">
-        <div class="accent-blob"></div>
-    </div>
-
-    <!-- Main Content Canvas -->
-    <main class="notas-container" id="notas-main-container">
+<body class="body-drive">
+    <div id="dashboard-app" class="dashboard-app">
+        <!-- Sidebar Overlay for mobile -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
         
-        <div class="loading-spinner-container" id="loading-state">
-            <div class="loading-spinner"></div>
-            <span data-i18n="loading">Cargando...</span>
-        </div>
-
-        <!-- Empty State -->
-        <div class="notas-empty-state" id="empty-state" style="display: none;">
-            <span class="material-symbols-outlined empty-icon">edit_document</span>
-            <h2 data-i18n="notesEmptyTitle">Tu viaje culinario comienza aquí</h2>
-            <p data-i18n="notesEmptyDesc">Captura tus recetas, ideas o listas de compras para construir tu libro de cocina digital personal.</p>
-            
-            <div class="notas-quick-chips">
-                <span class="chip" onclick="window.notasManager.createNewNote('checklist')" data-i18n="actionChecklist">Lista de Compras</span>
-                <span class="chip" onclick="window.notasManager.createNewNote('text')" data-i18n="actionQuickNote">Nota Rápida</span>
+        <!-- Sidebar -->
+        <aside id="main-sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();" style="cursor: pointer;">
+                    <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
+                    <span class="logo-text">Recipe Pantry</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Masonry-style Grid -->
-        <div class="recipe-masonry" id="notes-grid" style="display: none;">
-            <!-- Notes will be populated here by JS -->
-        </div>
-
-    </main>
-
-    <!-- Floating Action Button Cluster -->
-    <div class="fab-container" id="fab-container">
-        <div class="fab-actions">
-            <!-- Action Item 1 -->
-            <button class="fab-action-btn" onclick="window.notasManager.createNewNote('checklist')">
-                <span class="fab-action-label" data-i18n="actionChecklist">Lista</span>
-                <div class="fab-action-icon">
-                    <span class="material-symbols-outlined">checklist</span>
+            <div class="sidebar-user-profile">
+                <div class="user-avatar-m3">
+                    <span id="sidebar-user-initials" class="user-initials-m3">CH</span>
                 </div>
-            </button>
-            <!-- Action Item 2 -->
-            <button class="fab-action-btn" onclick="window.notasManager.createNewNote('text')">
-                <span class="fab-action-label" data-i18n="actionTextNote">Nota de Texto</span>
-                <div class="fab-action-icon">
-                    <span class="material-symbols-outlined">description</span>
+                <div class="user-info-m3">
+                    <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
                 </div>
-            </button>
-        </div>
-        
-        <!-- Primary FAB -->
-        <button class="main-fab" id="main-fab-btn" onclick="document.getElementById('fab-container').classList.toggle('active')">
-            <span class="material-symbols-outlined">add</span>
-        </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <span class="material-symbols-outlined">home</span>
+                    <span data-i18n="navRecipes">Recetas</span>
+                </a>
+                <a href="/#favorites" class="nav-item">
+                    <span class="material-symbols-outlined">star</span>
+                    <span data-i18n="navFavorites">Favoritos</span>
+                </a>
+                <a href="/ocr" class="nav-item">
+                    <span class="material-symbols-outlined">document_scanner</span>
+                    <span data-i18n="navScan">Escanear Receta</span>
+                </a>
+                <a href="/notas" class="nav-item active">
+                    <span class="material-symbols-outlined">edit_note</span>
+                    <span data-i18n="navNotes">Notas</span>
+                </a>
+                <a href="/#shared" class="nav-item">
+                    <span class="material-symbols-outlined">share</span>
+                    <span data-i18n="navShared">Compartidas</span>
+                </a>
+                <a href="/#help" class="nav-item">
+                    <span class="material-symbols-outlined">help</span>
+                    <span data-i18n="navHelp">Ayuda</span>
+                </a>
+                <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span data-i18n="navLogout">Cerrar Sesión</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only" style="width: 100%; justify-content: flex-start; padding-left: 16px;" onclick="window.dashboard.toggleSlimSidebar()">
+                    <span class="material-symbols-outlined">side_navigation</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Canvas -->
+        <main class="main-content relative">
+            <header class="top-bar-m3">
+                <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div class="header-title-wrapper" style="display: flex; align-items: center; gap: 8px;">
+                    <h1 class="header-title-m3" data-i18n="navNotes" style="font-size: 20px; font-weight: 600; color: var(--primary-green); margin: 0;">Notas Culinarias</h1>
+                </div>
+                <div class="top-bar-actions-m3">
+                    <div class="user-profile-m3" id="topbar-user-profile">
+                        <div class="user-avatar-m3">
+                            <span id="topbar-user-initials" class="user-initials-m3">CH</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="background-accent">
+                <div class="accent-blob"></div>
+            </div>
+
+            <div class="notas-container" id="notas-main-container">
+                
+                <div class="loading-spinner-container" id="loading-state">
+                    <div class="loading-spinner"></div>
+                    <span data-i18n="loading">Cargando...</span>
+                </div>
+
+                <!-- Empty State -->
+                <div class="notas-empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-state-illustration-m3">
+                        <span class="material-symbols-outlined icon-main">edit_note</span>
+                        <div class="accent-sparkle sparkle-1"></div>
+                        <div class="accent-sparkle sparkle-2"></div>
+                    </div>
+                    
+                    <h2 class="empty-title-m3" data-i18n="notesEmptyTitle">Sin ninguna nota</h2>
+                    <p class="empty-desc-m3" data-i18n="notesEmptyDesc">Captura tus recetas, listas de compras e ideas culinarias para construir tu recetario digital personal.</p>
+                    
+                    <div class="notas-quick-actions-m3">
+                        <button class="btn-filled-tonal-m3" onclick="window.notasManager.createNewNote('text')">
+                            <span class="material-symbols-outlined">description</span>
+                            <span data-i18n="actionQuickNote">Crear Nota</span>
+                        </button>
+                        <button class="btn-outlined-m3" onclick="window.notasManager.createNewNote('checklist')">
+                            <span class="material-symbols-outlined">checklist</span>
+                            <span data-i18n="actionChecklist">Lista de Compras</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Masonry-style Grid -->
+                <div class="recipe-masonry" id="notes-grid" style="display: none;">
+                    <!-- Notes will be populated here by JS -->
+                </div>
+
+            </div>
+
+            <!-- Floating Action Button Cluster -->
+            <div class="fab-container" id="fab-container">
+                <div class="fab-actions">
+                    <button class="fab-action-btn" onclick="window.notasManager.createNewNote('checklist')">
+                        <span class="fab-action-label" data-i18n="actionChecklist">Lista</span>
+                        <div class="fab-action-icon">
+                            <span class="material-symbols-outlined">checklist</span>
+                        </div>
+                    </button>
+                    <button class="fab-action-btn" onclick="window.notasManager.createNewNote('text')">
+                        <span class="fab-action-label" data-i18n="actionTextNote">Nota de Texto</span>
+                        <div class="fab-action-icon">
+                            <span class="material-symbols-outlined">description</span>
+                        </div>
+                    </button>
+                </div>
+                
+                <button class="main-fab" id="main-fab-btn" onclick="document.getElementById('fab-container').classList.toggle('active')">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
+            </div>
+        </main>
     </div>
-
 </body>
 </html>
