@@ -1,161 +1,744 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v500">
+<html lang="es" data-app-version="v493">
 
 <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
     <title data-i18n="editNote">Editar Nota - Recipe Pantry</title>
-
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
     <!-- Fuentes e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700&family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=500">
-    <link rel="stylesheet" href="css/components.css?v=500">
-    <link rel="stylesheet" href="css/notas.css?v=500">
+    <link rel="stylesheet" href="css/styles.css?v=493">
+    <link rel="stylesheet" href="css/components.css?v=493">
+    <link rel="stylesheet" href="css/notas.css?v=493">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CORE SCRIPTS -->
-    <script src="js/config.js?v=500"></script>
-    <script src="js/supabase-client.js?v=500"></script>
-    <script src="js/utils.js?v=500"></script>
-    <script src="js/i18n.js?v=500"></script>
-    <script src="js/auth.js?v=500"></script>
-    <script src="js/localdb.js?v=500"></script>
-    <script src="js/db.js?v=500"></script>
-    <script src="js/ui.js?v=500"></script>
-    
-    <!-- Notas Specific Scripts -->
-    <script defer src="js/notas.js?v=500"></script>
+    <script src="js/config.js?v=493"></script>
+    <script src="js/supabase-client.js?v=493"></script>
+    <script src="js/utils.js?v=493"></script>
+    <script src="js/i18n.js?v=493"></script>
+    <script src="js/auth.js?v=493"></script>
+    <script src="js/localdb.js?v=493"></script>
+    <script src="js/db.js?v=493"></script>
+    <script src="js/ui.js?v=493"></script>
+    <script defer src="js/notas.js?v=493"></script>
 
-    <script>
-        document.documentElement.setAttribute('data-theme', 'light');
-    </script>
+    <script>document.documentElement.setAttribute('data-theme', 'light');</script>
+
+    <style>
+        /* ═══════════════════════════════════════════
+           NOTA-FORM — M3 Expressive Clean Editor
+           ═══════════════════════════════════════════ */
+
+        :root {
+            --editor-primary: #10B981;
+            --editor-primary-dark: #059669;
+            --editor-primary-light: #E6F6F1;
+            --editor-primary-mid: #D1ECE3;
+        }
+
+        /* ── Body / Shell ── */
+        .nota-form-body {
+            background: #f9fafb;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* ── Top Bar ── */
+        .nf-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: #ffffff;
+            border-bottom: 1px solid #f0f4f1;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            gap: 12px;
+            box-shadow: 0 1px 6px rgba(16, 185, 129, 0.07);
+        }
+
+        .nf-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ── Back Button — Green M3 Expressive ── */
+        .nf-btn-back {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: none;
+            background: var(--editor-primary-light);
+            color: var(--editor-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition:
+                background 0.25s cubic-bezier(0.2, 0, 0, 1),
+                color 0.25s ease,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease;
+        }
+
+        .nf-btn-back .material-symbols-outlined {
+            font-size: 22px;
+            font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .nf-btn-back:hover {
+            background: var(--editor-primary);
+            color: white;
+            transform: scale(1.1) translateX(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.30);
+        }
+
+        .nf-btn-back:hover .material-symbols-outlined {
+            transform: translateX(-3px);
+        }
+
+        .nf-btn-back:active {
+            transform: scale(0.93);
+            transition: transform 0.1s ease;
+        }
+
+        /* ── Page title in bar ── */
+        .nf-bar-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Top Bar Actions ── */
+        .nf-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* ── Delete button ── */
+        .nf-btn-delete {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: none;
+            background: #FEF2F2;
+            color: #EF4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .nf-btn-delete .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .nf-btn-delete:hover {
+            background: #FEE2E2;
+            transform: scale(1.1);
+        }
+
+        /* ── Pin Button — Green M3 Expressive ── */
+        .nf-btn-pin {
+            height: 44px;
+            padding: 0 20px;
+            border-radius: 22px;
+            border: none;
+            background: var(--editor-primary-light);
+            color: var(--editor-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            transition:
+                background 0.25s cubic-bezier(0.2, 0, 0, 1),
+                color 0.25s ease,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease;
+            border: 1.5px solid var(--editor-primary-mid);
+        }
+
+        .nf-btn-pin .material-symbols-outlined {
+            font-size: 18px;
+            font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+            transition:
+                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                font-variation-settings 0.2s ease;
+        }
+
+        .nf-btn-pin:hover {
+            background: var(--editor-primary);
+            color: white;
+            border-color: var(--editor-primary);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.30);
+        }
+
+        .nf-btn-pin:hover .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+            transform: rotate(-15deg) scale(1.15);
+        }
+
+        .nf-btn-pin:active {
+            transform: scale(0.94);
+            transition: transform 0.1s ease;
+        }
+
+        .nf-btn-pin.pinned {
+            background: var(--editor-primary);
+            color: white;
+            border-color: var(--editor-primary);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.30);
+        }
+
+        .nf-btn-pin.pinned .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+            transform: rotate(-45deg);
+        }
+
+        /* ── Editor Content Area ── */
+        .nf-editor-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 32px 120px;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            .nf-editor-wrap {
+                padding: 28px 20px 100px;
+            }
+        }
+
+        /* ── Note type badge ── */
+        .nf-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--editor-primary-light);
+            color: var(--editor-primary);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+            align-self: flex-start;
+        }
+
+        .nf-type-badge .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+        /* ── Title input ── */
+        .nf-title-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: 'Epilogue', 'Poppins', sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            color: #111827;
+            padding: 0;
+            margin-bottom: 20px;
+            outline: none;
+            letter-spacing: -0.025em;
+            line-height: 1.25;
+            box-sizing: border-box;
+            caret-color: var(--editor-primary);
+        }
+
+        .nf-title-input::placeholder {
+            color: #D1D5DB;
+        }
+
+        /* ── Divider ── */
+        .nf-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, var(--editor-primary-mid), transparent);
+            margin-bottom: 24px;
+            border: none;
+        }
+
+        /* ── Content textarea ── */
+        .nf-content-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: 'Inter', 'Poppins', sans-serif;
+            font-size: 17px;
+            line-height: 1.8;
+            color: #374151;
+            resize: none;
+            flex-grow: 1;
+            outline: none;
+            min-height: 400px;
+            box-sizing: border-box;
+            caret-color: var(--editor-primary);
+        }
+
+        .nf-content-input::placeholder {
+            color: #9CA3AF;
+        }
+
+        /* ── Checklist editor ── */
+        .nf-checklist-wrap {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 0;
+        }
+
+        .nf-checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #F3F4F6;
+            background: #ffffff;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .nf-checklist-item:focus-within {
+            border-color: var(--editor-primary-mid);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .nf-checklist-item.completed {
+            opacity: 0.6;
+        }
+
+        .nf-checklist-item.completed .nf-ci-input {
+            text-decoration: line-through;
+            color: #9CA3AF;
+        }
+
+        .nf-ci-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #D1D5DB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            background: transparent;
+        }
+
+        .nf-checklist-item.completed .nf-ci-checkbox {
+            background: var(--editor-primary);
+            border-color: var(--editor-primary);
+            color: white;
+        }
+
+        .nf-ci-checkbox .material-symbols-outlined {
+            font-size: 14px;
+            display: none;
+        }
+
+        .nf-checklist-item.completed .nf-ci-checkbox .material-symbols-outlined {
+            display: block;
+        }
+
+        .nf-ci-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: #111827;
+            outline: none;
+        }
+
+        .nf-ci-delete {
+            background: none;
+            border: none;
+            color: #D1D5DB;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .nf-ci-delete:hover {
+            color: #EF4444;
+            background: #FEE2E2;
+        }
+
+        .nf-ci-delete .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        .nf-add-item-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--editor-primary);
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 12px 4px;
+            margin-top: 4px;
+            border-radius: 10px;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .nf-add-item-btn:hover {
+            background: var(--editor-primary-light);
+            padding-left: 12px;
+        }
+
+        .nf-add-item-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        /* ── Loading ── */
+        .nf-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 24px;
+            flex-direction: column;
+            gap: 16px;
+            color: var(--editor-primary);
+        }
+
+        .nf-spinner {
+            width: 44px;
+            height: 44px;
+            border: 3.5px solid var(--editor-primary-light);
+            border-top-color: var(--editor-primary);
+            border-radius: 50%;
+            animation: nf-spin 0.8s linear infinite;
+        }
+
+        @keyframes nf-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Bottom Save Bar ── */
+        .nf-save-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow:
+                0 8px 32px rgba(16, 185, 129, 0.15),
+                0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid var(--editor-primary-mid);
+            padding: 10px 20px 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            max-width: 480px;
+            width: calc(100vw - 48px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+        }
+
+        .nf-save-bar.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(80px);
+            pointer-events: none;
+        }
+
+        .nf-save-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6B7280;
+            font-size: 13px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .nf-save-status .material-symbols-outlined {
+            font-size: 16px;
+            color: var(--editor-primary);
+        }
+
+        .nf-btn-save-go {
+            height: 40px;
+            padding: 0 20px;
+            border-radius: 20px;
+            border: none;
+            background: var(--editor-primary);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition:
+                background 0.2s ease,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nf-btn-save-go .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .nf-btn-save-go:hover {
+            background: var(--editor-primary-dark);
+            transform: scale(1.04);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+        }
+
+        .nf-btn-save-go:active {
+            transform: scale(0.96);
+            transition: transform 0.1s ease;
+        }
+
+        /* Mobile only */
+        @media (max-width: 600px) {
+            .nf-btn-pin-label {
+                display: none;
+            }
+            .nf-btn-pin {
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                border-radius: 14px;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 
-<body class="body-drive">
-    <div id="dashboard-app" class="dashboard-app">
-        <!-- Sidebar Overlay for mobile -->
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
-        
-        <!-- Sidebar -->
-        <aside id="main-sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();" style="cursor: pointer;">
-                    <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
-                    <span class="logo-text">Recipe Pantry</span>
-                </div>
+<body class="nota-form-body">
+
+    <!-- TOP APP BAR -->
+    <header class="nf-topbar">
+        <div class="nf-topbar-left">
+            <!-- Back button — Green M3 Expressive -->
+            <button class="nf-btn-back" onclick="window.history.back()" aria-label="Volver a Notas">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1 class="nf-bar-title" data-i18n="editNote" id="page-title">Editar Nota</h1>
+        </div>
+        <div class="nf-topbar-right">
+            <!-- Delete (only shown when editing) -->
+            <button class="nf-btn-delete" id="delete-note-btn" style="display:none;"
+                onclick="window.notasManager.deleteCurrentNote()" title="Eliminar nota">
+                <span class="material-symbols-outlined">delete</span>
+            </button>
+            <!-- Pin — Green, saves and goes to /notas -->
+            <button class="nf-btn-pin" id="pin-save-btn"
+                onclick="window.nfPinAndSave()" title="Fijar y guardar en notas">
+                <span class="material-symbols-outlined">push_pin</span>
+                <span class="nf-btn-pin-label">Guardar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- EDITOR AREA -->
+    <div class="nf-editor-wrap">
+
+        <!-- Loading -->
+        <div class="nf-loading" id="loading-state">
+            <div class="nf-spinner"></div>
+        </div>
+
+        <!-- Form -->
+        <div id="editor-form" style="display: none; flex-direction: column; flex-grow: 1;">
+
+            <!-- Type badge -->
+            <div class="nf-type-badge" id="nf-type-badge">
+                <span class="material-symbols-outlined" id="nf-type-icon">description</span>
+                <span id="nf-type-label">Nota de texto</span>
             </div>
-            <div class="sidebar-user-profile">
-                <div class="user-avatar-m3">
-                    <span id="sidebar-user-initials" class="user-initials-m3"></span>
+
+            <!-- Title -->
+            <input type="text" id="note-title" class="nf-title-input"
+                placeholder="Título de la nota..."
+                data-i18n-placeholder="noteTitlePlaceholder"
+                autocomplete="off">
+
+            <hr class="nf-divider">
+
+            <!-- Type hidden -->
+            <input type="hidden" id="note-type" value="text">
+
+            <!-- Text content -->
+            <textarea id="note-content" class="nf-content-input"
+                placeholder="Escribe tu nota aquí..."
+                data-i18n-placeholder="noteContentPlaceholder"></textarea>
+
+            <!-- Checklist content -->
+            <div id="checklist-container" class="nf-checklist-wrap">
+                <div class="checklist-editor" id="checklist-items">
+                    <!-- Items via JS -->
                 </div>
-                <div class="user-info-m3">
-                    <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
-                </div>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/" class="nav-item">
-                    <span class="material-symbols-outlined">home</span>
-                    <span data-i18n="navRecipes">Recetas</span>
-                </a>
-                <a href="/#favorites" class="nav-item">
-                    <span class="material-symbols-outlined">star</span>
-                    <span data-i18n="navFavorites">Favoritos</span>
-                </a>
-                <a href="/ocr" class="nav-item">
-                    <span class="material-symbols-outlined">document_scanner</span>
-                    <span data-i18n="navScan">Escanear Receta</span>
-                </a>
-                <a href="/notas" class="nav-item active">
-                    <span class="material-symbols-outlined">edit_note</span>
-                    <span data-i18n="navNotes">Notas</span>
-                </a>
-                <a href="/#shared" class="nav-item">
-                    <span class="material-symbols-outlined">share</span>
-                    <span data-i18n="navShared">Compartidas</span>
-                </a>
-                <a href="/#help" class="nav-item">
-                    <span class="material-symbols-outlined">help</span>
-                    <span data-i18n="navHelp">Ayuda</span>
-                </a>
-                <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span data-i18n="navLogout">Cerrar Sesión</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only" style="width: 100%; justify-content: flex-start; padding-left: 16px;" onclick="window.toggleSlimSidebar()">
-                    <span class="material-symbols-outlined">side_navigation</span>
+                <button class="nf-add-item-btn" onclick="window.notasManager.addChecklistItem()">
+                    <span class="material-symbols-outlined">add</span>
+                    <span data-i18n="addChecklistItem">Agregar elemento</span>
                 </button>
             </div>
-        </aside>
 
-        <!-- Main Content Canvas -->
-        <main class="main-content relative">
-            <header class="top-bar-m3">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)">
-                        <span class="material-symbols-outlined">menu</span>
-                    </button>
-                    <button class="icon-btn-m3 btn-square-gray" onclick="window.history.back()">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                    </button>
-                    <h1 class="header-title-m3" data-i18n="editNote" style="font-size: 20px; font-weight: 600; color: var(--primary-green); margin: 0;">Editar Nota</h1>
-                </div>
-                <div class="top-bar-actions-m3">
-                    <button class="icon-btn-m3 text-error" id="delete-note-btn" style="display: none;" onclick="window.notasManager.deleteCurrentNote()">
-                        <span class="material-symbols-outlined">delete</span>
-                    </button>
-                    <button class="icon-btn-m3 btn-square-gray" onclick="window.notasManager.saveNote()" title="Fijar y Guardar">
-                        <span class="material-symbols-outlined">push_pin</span>
-                    </button>
-                </div>
-            </header>
-
-            <div class="background-accent">
-                <div class="accent-blob" style="top: 50%; left: 80%; transform: translate(-50%, -50%); opacity: 0.5;"></div>
-            </div>
-
-            <!-- Editor Content -->
-            <div class="note-editor-container" id="editor-container" style="flex-grow: 1; margin: 0;">
-                
-                <div class="loading-spinner-container" id="loading-state">
-                    <div class="loading-spinner"></div>
-                </div>
-
-                <div id="editor-form" style="display: none; display: flex; flex-direction: column; flex-grow: 1;">
-                    <!-- Title -->
-                    <input type="text" id="note-title" class="note-title-input" placeholder="Título de la nota..." data-i18n-placeholder="noteTitlePlaceholder" autocomplete="off">
-                    
-                    <!-- Type Toggle hidden logically, we decide type by URL param or fetch -->
-                    <input type="hidden" id="note-type" value="text">
-                    
-                    <!-- Text Content -->
-                    <textarea id="note-content" class="note-content-input" placeholder="Escribe tu nota aquí..." data-i18n-placeholder="noteContentPlaceholder"></textarea>
-
-                    <!-- Checklist Content -->
-                    <div id="checklist-container" style="display: none; flex-direction: column; flex-grow: 1;">
-                        <div class="checklist-editor" id="checklist-items">
-                            <!-- Items populated via JS -->
-                        </div>
-                        
-                        <button class="add-checklist-item-btn" onclick="window.notasManager.addChecklistItem()">
-                            <span class="material-symbols-outlined">add</span>
-                            <span data-i18n="addChecklistItem">Agregar elemento</span>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+        </div>
     </div>
+
+    <!-- BOTTOM SAVE BAR -->
+    <div class="nf-save-bar hidden" id="nf-save-bar">
+        <div class="nf-save-status" id="nf-save-status">
+            <span class="material-symbols-outlined">cloud_done</span>
+            <span>Guardado automáticamente</span>
+        </div>
+        <button class="nf-btn-save-go" onclick="window.nfSaveAndGo()">
+            <span class="material-symbols-outlined">arrow_forward</span>
+            Ir a Notas
+        </button>
+    </div>
+
+    <script>
+        // ── Pin & Save logic ──────────────────────────────────────────────
+        // Called when user taps the green pin button in the header
+        window.nfPinAndSave = async function() {
+            const pinBtn = document.getElementById('pin-save-btn');
+            pinBtn.classList.add('pinned');
+
+            // Trigger save in notasManager
+            if (window.notasManager && window.notasManager.saveNote) {
+                try {
+                    await window.notasManager.saveNote();
+                } catch(e) {
+                    console.warn('saveNote error', e);
+                }
+            }
+
+            // Show save bar then redirect
+            window.nfShowSaveBar();
+
+            // Navigate to /notas after brief feedback
+            setTimeout(() => {
+                window.location.href = '/notas';
+            }, 900);
+        };
+
+        // Called when user taps "Ir a Notas" in save bar
+        window.nfSaveAndGo = async function() {
+            if (window.notasManager && window.notasManager.saveNote) {
+                try { await window.notasManager.saveNote(); } catch(e) {}
+            }
+            window.location.href = '/notas';
+        };
+
+        // Show the save bar
+        window.nfShowSaveBar = function(message) {
+            const bar = document.getElementById('nf-save-bar');
+            const status = document.getElementById('nf-save-status');
+            if (message) {
+                status.querySelector('span:last-child').textContent = message;
+            }
+            if (bar) bar.classList.remove('hidden');
+        };
+
+        // Auto-show save bar on any input (debounced)
+        let nfSaveTimer;
+        function nfOnInput() {
+            clearTimeout(nfSaveTimer);
+            nfSaveTimer = setTimeout(() => {
+                window.nfShowSaveBar('Guardado automáticamente');
+            }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const titleEl = document.getElementById('note-title');
+            const contentEl = document.getElementById('note-content');
+            if (titleEl) titleEl.addEventListener('input', nfOnInput);
+            if (contentEl) contentEl.addEventListener('input', nfOnInput);
+
+            // Update type badge based on hidden input
+            const typeInput = document.getElementById('note-type');
+            const badge = document.getElementById('nf-type-badge');
+            const icon = document.getElementById('nf-type-icon');
+            const label = document.getElementById('nf-type-label');
+
+            function updateBadge(type) {
+                if (!badge) return;
+                if (type === 'checklist') {
+                    icon.textContent = 'checklist';
+                    label.textContent = 'Lista de ingredientes';
+                    badge.style.display = 'inline-flex';
+                } else if (type === 'text') {
+                    icon.textContent = 'description';
+                    label.textContent = 'Nota de texto';
+                    badge.style.display = 'inline-flex';
+                }
+            }
+
+            // Watch type input for changes
+            if (typeInput) {
+                const obs = new MutationObserver(() => updateBadge(typeInput.value));
+                obs.observe(typeInput, { attributes: true, childList: true, subtree: true });
+                updateBadge(typeInput.value);
+            }
+
+            // Watch editor-form display
+            const form = document.getElementById('editor-form');
+            if (form) {
+                const visObs = new MutationObserver(() => {
+                    if (form.style.display !== 'none') {
+                        if (typeInput) updateBadge(typeInput.value);
+                    }
+                });
+                visObs.observe(form, { attributes: true, attributeFilter: ['style'] });
+            }
+        });
+    </script>
+
 </body>
 </html>
