@@ -58,6 +58,10 @@
             "destination": "/ocr.html"
         },
         {
+            "source": "/notas",
+            "destination": "/notas.html"
+        },
+        {
             "source": "/((?!api|assets|js|css|sw\\.js|favicon\\.ico|manifest\\.webmanifest).*)",
             "destination": "/index.html"
         }

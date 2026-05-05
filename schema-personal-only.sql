@@ -152,3 +152,33 @@ BEGIN
   WHERE id = recipe_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 9. Notes Table
+CREATE TABLE public.notes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    title VARCHAR(255),
+    content TEXT,
+    type VARCHAR(50) DEFAULT 'text', -- 'text' or 'checklist'
+    color VARCHAR(50),
+    is_pinned BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 10. Note Items (Checklist) Table
+CREATE TABLE public.note_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    note_id UUID REFERENCES public.notes(id) ON DELETE CASCADE,
+    content TEXT,
+    is_completed BOOLEAN DEFAULT FALSE,
+    order_index INTEGER DEFAULT 0
+);
+
+-- Indexes for Notes
+CREATE INDEX idx_notes_user ON public.notes(user_id);
+CREATE INDEX idx_note_items_note ON public.note_items(note_id);
+
+-- Enable RLS for Notes
+ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.note_items ENABLE ROW LEVEL SECURITY;
