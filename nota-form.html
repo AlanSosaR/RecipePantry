@@ -555,37 +555,121 @@
                 justify-content: center;
             }
         }
+        /* ── Layout integration with notas sidebar ── */
+        .nota-form-body {
+            overflow: hidden;
+        }
+        .nf-shell {
+            display: flex;
+            height: 100dvh;
+            overflow: hidden;
+        }
+        /* Reuse notas sidebar styles — sidebar floats on mobile, fixed on desktop */
+        .nf-shell .notas-sidebar {
+            flex-shrink: 0;
+        }
+        .nf-main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .nf-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
     </style>
 </head>
 
-<body class="nota-form-body">
+<body class="nota-form-body body-drive notas-body">
 
-    <!-- TOP APP BAR -->
-    <header class="nf-topbar">
-        <div class="nf-topbar-left">
-            <!-- Back button — Green M3 Expressive -->
-            <button class="nf-btn-back" onclick="window.history.back()" aria-label="Volver a Notas">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 class="nf-bar-title" data-i18n="editNote" id="page-title">Editar Nota</h1>
-        </div>
-        <div class="nf-topbar-right">
-            <!-- Delete (only shown when editing) -->
-            <button class="nf-btn-delete" id="delete-note-btn" style="display:none;"
-                onclick="window.notasManager.deleteCurrentNote()" title="Eliminar nota">
-                <span class="material-symbols-outlined">delete</span>
-            </button>
-            <!-- Pin — Green, saves and goes to /notas -->
-            <button class="nf-btn-pin" id="pin-save-btn"
-                onclick="window.nfPinAndSave()" title="Fijar y guardar en notas">
-                <span class="material-symbols-outlined">push_pin</span>
-                <span class="nf-btn-pin-label">Guardar</span>
-            </button>
-        </div>
-    </header>
+    <div class="nf-shell">
 
-    <!-- EDITOR AREA -->
-    <div class="nf-editor-wrap">
+        <!-- Sidebar Overlay (mobile) -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
+
+        <!-- SIDEBAR — idéntico a notas.html -->
+        <aside id="main-sidebar" class="sidebar notas-sidebar">
+            <div class="notas-sidebar-profile">
+                <div class="notas-avatar-ring">
+                    <div class="notas-avatar-circle" id="notas-avatar-container">
+                        <span id="sidebar-user-initials" class="user-initials-m3 notas-initials">?</span>
+                    </div>
+                </div>
+                <h3 id="sidebar-user-greeting" class="notas-sidebar-username">Chef</h3>
+            </div>
+            <nav class="notas-sidebar-nav">
+                <a href="/" class="notas-nav-item">
+                    <span class="material-symbols-outlined">home</span>
+                    <span data-i18n="navRecipes">Recetas</span>
+                </a>
+                <a href="/#favorites" class="notas-nav-item">
+                    <span class="material-symbols-outlined">star</span>
+                    <span data-i18n="navFavorites">Favoritos</span>
+                </a>
+                <a href="/ocr" class="notas-nav-item">
+                    <span class="material-symbols-outlined">document_scanner</span>
+                    <span data-i18n="navScan">Escanear Receta</span>
+                </a>
+                <div class="notas-nav-item-active-wrapper">
+                    <div class="notas-nav-active-indicator"></div>
+                    <a href="/notas" class="notas-nav-item notas-nav-item--active">
+                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">edit_note</span>
+                        <span data-i18n="navNotes">Notas</span>
+                    </a>
+                </div>
+                <a href="/#shared" class="notas-nav-item">
+                    <span class="material-symbols-outlined">share</span>
+                    <span data-i18n="navShared">Compartidas</span>
+                </a>
+                <a href="/#help" class="notas-nav-item notas-nav-item--gap-top">
+                    <span class="material-symbols-outlined">help</span>
+                    <span data-i18n="navHelp">Ayuda</span>
+                </a>
+                <a href="#" class="notas-nav-item notas-nav-item--logout" onclick="window.authManager.signOut()">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span data-i18n="navLogout">Cerrar Sesión</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <div class="nf-main-area">
+
+        <!-- TOP APP BAR -->
+        <header class="nf-topbar">
+            <div class="nf-topbar-left">
+                <!-- Hamburger mobile only -->
+                <button class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)" style="margin-right:4px;">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <!-- Back button — Green M3 Expressive -->
+                <button class="nf-btn-back" onclick="window.history.back()" aria-label="Volver a Notas">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1 class="nf-bar-title" id="page-title">Nueva Nota</h1>
+            </div>
+            <div class="nf-topbar-right">
+                <!-- Delete (only shown when editing) -->
+                <button class="nf-btn-delete" id="delete-note-btn" style="display:none;"
+                    onclick="window.notasManager.deleteCurrentNote()" title="Eliminar nota">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+                <!-- Pin — Green, saves and goes to /notas -->
+                <button class="nf-btn-pin" id="pin-save-btn"
+                    onclick="window.nfPinAndSave()" title="Guardar y volver a Notas">
+                    <span class="material-symbols-outlined">push_pin</span>
+                    <span class="nf-btn-pin-label">Guardar</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- EDITOR AREA (scrollable) -->
+        <div class="nf-scroll-area">
+        <div class="nf-editor-wrap">
 
         <!-- Loading -->
         <div class="nf-loading" id="loading-state">
@@ -629,19 +713,23 @@
             </div>
 
         </div>
-    </div>
+        </div><!-- /nf-editor-wrap -->
+        </div><!-- /nf-scroll-area -->
 
-    <!-- BOTTOM SAVE BAR -->
-    <div class="nf-save-bar hidden" id="nf-save-bar">
-        <div class="nf-save-status" id="nf-save-status">
-            <span class="material-symbols-outlined">cloud_done</span>
-            <span>Guardado automáticamente</span>
+        <!-- BOTTOM SAVE BAR -->
+        <div class="nf-save-bar hidden" id="nf-save-bar">
+            <div class="nf-save-status" id="nf-save-status">
+                <span class="material-symbols-outlined">cloud_done</span>
+                <span>Guardado automáticamente</span>
+            </div>
+            <button class="nf-btn-save-go" onclick="window.nfSaveAndGo()">
+                <span class="material-symbols-outlined">arrow_forward</span>
+                Ir a Notas
+            </button>
         </div>
-        <button class="nf-btn-save-go" onclick="window.nfSaveAndGo()">
-            <span class="material-symbols-outlined">arrow_forward</span>
-            Ir a Notas
-        </button>
-    </div>
+
+        </div><!-- /nf-main-area -->
+    </div><!-- /nf-shell -->
 
     <script>
         // ── Pin & Save logic ──────────────────────────────────────────────
@@ -696,6 +784,17 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Dynamic page title: Nueva Nota vs Editar Nota
+            const params = new URLSearchParams(window.location.search);
+            const noteId = params.get('id');
+            const pageTitle = document.getElementById('page-title');
+            if (pageTitle) {
+                pageTitle.textContent = noteId ? 'Editar Nota' : 'Nueva Nota';
+            }
+            // Also show delete btn only when editing
+            const deleteBtn = document.getElementById('delete-note-btn');
+            if (deleteBtn && noteId) deleteBtn.style.display = 'flex';
+
             const titleEl = document.getElementById('note-title');
             const contentEl = document.getElementById('note-content');
             if (titleEl) titleEl.addEventListener('input', nfOnInput);
