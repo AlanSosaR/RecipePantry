@@ -50,53 +50,95 @@
             }
         }
 
-        // ── Avatar: photo or initials ──────────────────────────────────────
-        updateAvatar(user) {
-            const avatarContainer = document.getElementById('notas-avatar-container');
-            const initialsEl = document.getElementById('sidebar-user-initials');
+        // ── Avatar: reusar la misma lógica de Recetas (ui.js) ─────────────
+        async updateAvatar(user) {
             const greetingEl = document.getElementById('sidebar-user-greeting');
 
-            if (!avatarContainer) return;
+            // Intentar obtener perfil extendido desde la BD (igual que dashboard.js)
+            try {
+                const { data: profile } = await window.supabase
+                    .from('profiles')
+                    .select('first_name, last_name, prefix, avatar_url')
+                    .eq('id', user.id)
+                    .single();
 
-            const displayName = user.user_metadata?.full_name
-                || user.user_metadata?.name
-                || user.email
-                || 'Chef';
+                if (profile) {
+                    // Montar el objeto que espera updateGlobalUserUI
+                    window.authManager.currentUser = {
+                        ...window.authManager.currentUser,
+                        ...profile
+                    };
 
-            // Short name for greeting
-            const firstName = displayName.split(' ')[0];
-            if (greetingEl) greetingEl.textContent = firstName;
-
-            const photoUrl = user.user_metadata?.avatar_url
-                || user.user_metadata?.picture
-                || null;
-
-            if (photoUrl) {
-                // Show photo
-                avatarContainer.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = photoUrl;
-                img.alt = displayName;
-                img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
-                img.onerror = () => {
-                    // Fallback to initials if image fails
-                    avatarContainer.innerHTML = `<span class="user-initials-m3 notas-initials">${this.getInitials(displayName)}</span>`;
-                };
-                avatarContainer.appendChild(img);
-            } else {
-                // Show initials
-                if (initialsEl) {
-                    initialsEl.textContent = this.getInitials(displayName);
+                    // Nombre en el saludo
+                    const prefix = profile.prefix || 'Chef';
+                    const fName  = profile.first_name || '';
+                    const lName  = profile.last_name  || '';
+                    let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
+                    if (!fName && !lName) fullName = prefix;
+                    if (greetingEl) greetingEl.textContent = fullName;
                 }
+            } catch (e) {
+                // Sin perfil extendido: usar user_metadata de Auth
+                const meta = user.user_metadata || {};
+                const displayName = meta.full_name || meta.name || user.email || 'Chef';
+                if (greetingEl) greetingEl.textContent = displayName.split(' ')[0];
+
+                // Montar datos mínimos en currentUser para que updateGlobalUserUI funcione
+                if (!window.authManager.currentUser.avatar_url) {
+                    window.authManager.currentUser.avatar_url = meta.avatar_url || meta.picture || null;
+                }
+                const parts = displayName.trim().split(/\s+/);
+                if (!window.authManager.currentUser.first_name) {
+                    window.authManager.currentUser.first_name = parts[0] || '';
+                    window.authManager.currentUser.last_name  = parts[1] || '';
+                }
+            }
+
+            // Disparar el updater global (maneja foto e iniciales para .user-avatar-m3)
+            if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+
+            // También actualizar el círculo propio de notas si no tiene clase user-avatar-m3
+            this._updateNotasAvatarCircle();
+        }
+
+        _updateNotasAvatarCircle() {
+            const container  = document.getElementById('notas-avatar-container');
+            const initialsEl = document.getElementById('sidebar-user-initials');
+            if (!container) return;
+
+            const cu = window.authManager?.currentUser || {};
+            const avatarUrl = cu.avatar_url || null;
+
+            if (avatarUrl) {
+                container.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = avatarUrl;
+                img.alt = 'avatar';
+                img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
+                img.onerror = () => this._setInitialsCircle(container, initialsEl, cu);
+                container.appendChild(img);
+            } else {
+                this._setInitialsCircle(container, initialsEl, cu);
             }
         }
 
-        getInitials(name) {
-            const parts = name.trim().split(/\s+/);
-            if (parts.length >= 2) {
-                return (parts[0][0] + parts[1][0]).toUpperCase();
+        _setInitialsCircle(container, initialsEl, cu) {
+            const fName = cu.first_name || '';
+            const lName = cu.last_name  || '';
+            const email = cu.email || '';
+            let initials = '?';
+            if (fName || lName) {
+                initials = ((fName[0] || '') + (lName[0] || '')).toUpperCase();
+            } else if (email) {
+                initials = email[0].toUpperCase();
             }
-            return name.substring(0, 2).toUpperCase();
+            // Remove any img, set initials span
+            const img = container.querySelector('img');
+            if (img) img.remove();
+            if (initialsEl) {
+                initialsEl.textContent = initials;
+                initialsEl.style.display = 'block';
+            }
         }
 
         // --- List View Methods ---
