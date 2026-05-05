@@ -64,7 +64,7 @@ window.updateGlobalUserUI = function () {
         const fName = user.first_name || '';
         const lName = user.last_name || '';
         
-        // Robust name display: fallback to 'Chef' if first_name is missing
+        // Robust name display: fallback to 'Chef' or the prefix if names are missing
         let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
         if (!fName && !lName) fullName = prefix;
         
@@ -73,31 +73,38 @@ window.updateGlobalUserUI = function () {
 
     // Update initials or image in all avatar circles (sidebar and header)
     const avatarContainers = document.querySelectorAll('.user-avatar-m3');
-    const initials = (user.first_name?.[0] || 'C') + (user.last_name?.[0] || 'H');
     
+    // Improved dynamic initials: fallback to first letter of prefix or '?' if everything is missing
+    let initialsStr = '?';
+    if (user.first_name || user.last_name) {
+        initialsStr = (user.first_name?.[0] || '') + (user.last_name?.[0] || '');
+    } else if (user.prefix) {
+        initialsStr = user.prefix[0];
+    } else if (user.email) {
+        initialsStr = user.email[0];
+    }
+
     avatarContainers.forEach(container => {
         const initialsSpan = container.querySelector('.user-initials-m3');
         const imgTag = container.querySelector('img');
         
         if (user.avatar_url) {
-            // Option 1: If there's an <img> tag, update its src
             if (imgTag) {
                 imgTag.src = user.avatar_url;
                 imgTag.style.display = 'block';
-                container.style.backgroundImage = 'none'; // Clear bg if img is used
+                container.style.backgroundImage = 'none';
             } else {
-                // Option 2: Use background image (sidebar default)
                 container.style.backgroundImage = `url(${user.avatar_url})`;
                 container.style.backgroundSize = 'cover';
                 container.style.backgroundPosition = 'center';
             }
             if (initialsSpan) initialsSpan.style.display = 'none';
         } else {
-            // Fallback to initials
+            // Fallback to initials or person icon
             container.style.backgroundImage = 'none';
             if (imgTag) imgTag.style.display = 'none';
             if (initialsSpan) {
-                initialsSpan.textContent = initials.toUpperCase();
+                initialsSpan.textContent = initialsStr.toUpperCase();
                 initialsSpan.style.display = 'block';
             }
         }

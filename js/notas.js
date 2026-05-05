@@ -82,11 +82,14 @@
 
             this.notes.forEach(note => {
                 const card = document.createElement('a');
-                card.href = `/nota-form.html?id=${note.id}`;
-                card.className = 'note-card group';
+                card.href = `nota-form.html?id=${note.id}`;
+                card.className = 'note-card';
                 card.innerHTML = `
                     <div class="note-header">
-                        <span class="note-type-badge">${note.type === 'checklist' ? 'Lista' : 'Nota'}</span>
+                        <div class="note-type-indicator">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">${note.type === 'checklist' ? 'checklist' : 'description'}</span>
+                            <span>${note.type === 'checklist' ? 'Lista' : 'Nota'}</span>
+                        </div>
                         <button class="note-menu-btn" onclick="event.preventDefault(); window.notasManager.deleteNotePrompt('${note.id}')">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
@@ -94,11 +97,16 @@
                     <h3>${this.escapeHTML(note.title || 'Sin Título')}</h3>
                     ${note.type === 'text' 
                         ? `<p class="note-text">${this.escapeHTML(note.content || '')}</p>` 
-                        : `<div class="checklist-preview"><span class="item-text" style="color: var(--md-on-surface-var); font-style: italic;">Toque para ver los elementos...</span></div>`
+                        : `<div class="checklist-preview">
+                            <div class="checklist-item-preview">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--md-outline);">check_box_outline_blank</span>
+                                <span class="item-text" style="font-style: italic;">Toque para ver lista...</span>
+                            </div>
+                           </div>`
                     }
                     <div class="note-footer">
-                        <span class="material-symbols-outlined">schedule</span>
-                        ${new Date(note.updated_at).toLocaleDateString()}
+                        <span class="material-symbols-outlined">calendar_today</span>
+                        <span>${new Date(note.updated_at).toLocaleDateString()}</span>
                     </div>
                 `;
                 grid.appendChild(card);

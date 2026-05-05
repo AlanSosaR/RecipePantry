@@ -14,6 +14,8 @@
             navRecipes: 'Recetas',
             navFavorites: 'Favoritos',
             navScan: 'Escanear Receta',
+            navNotes: 'Notas',
+            navNotesSubtitle: 'Tus ideas culinarias, organizadas y frescas.',
             navShared: 'Compartidas',
             navHelp: 'Ayuda',
             navLogout: 'Cerrar Sesión',
@@ -109,6 +111,11 @@
             noFavoritesTitle: 'Tu lista de favoritos está vacía',
             noFavoritesDesc: 'Guarda tus recetas preferidas aquí para tenerlas siempre a mano.',
             scanRecipeBtn: 'Escanear Receta',
+            notesEmptyTitle: 'Tu bloc de notas culinario está vacío',
+            notesEmptyDesc: 'Captura tus ideas, listas de ingredientes o notas rápidas para tu recetario digital.',
+            actionChecklist: 'Lista de ingredientes',
+            actionQuickNote: 'Nota rápida',
+            actionTextNote: 'Nota de texto',
 
             // ── Landing page ──────────────────────────────────────────────
             pantrySubtitle: 'Tu recetario, siempre contigo',
@@ -340,6 +347,8 @@
             navRecipes: 'Recipes',
             navFavorites: 'Favorites',
             navScan: 'Scan Recipe',
+            navNotes: 'Notes',
+            navNotesSubtitle: 'Your culinary ideas, organized and fresh.',
             navShared: 'Shared',
             navHelp: 'Help',
             navLogout: 'Log Out',
@@ -435,6 +444,11 @@
             noFavoritesTitle: 'Your favorites list is empty',
             noFavoritesDesc: 'Save your favorite recipes here to always have them at hand.',
             scanRecipeBtn: 'Scan Recipe',
+            notesEmptyTitle: 'Your culinary notepad is empty',
+            notesEmptyDesc: 'Capture your ideas, ingredient lists, or quick notes for your digital cookbook.',
+            actionChecklist: 'Ingredient list',
+            actionQuickNote: 'Quick note',
+            actionTextNote: 'Text note',
 
             // ── Landing page ──────────────────────────────────────────────
             pantrySubtitle: 'Your cookbook, always with you',

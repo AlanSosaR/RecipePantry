@@ -43,7 +43,7 @@
 <body class="body-drive">
     <div id="dashboard-app" class="dashboard-app">
         <!-- Sidebar Overlay for mobile -->
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
         
         <!-- Sidebar -->
         <aside id="main-sidebar" class="sidebar">
@@ -55,7 +55,7 @@
             </div>
             <div class="sidebar-user-profile">
                 <div class="user-avatar-m3">
-                    <span id="sidebar-user-initials" class="user-initials-m3">CH</span>
+                    <span id="sidebar-user-initials" class="user-initials-m3"></span>
                 </div>
                 <div class="user-info-m3">
                     <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
@@ -92,7 +92,7 @@
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only" style="width: 100%; justify-content: flex-start; padding-left: 16px;" onclick="window.dashboard.toggleSlimSidebar()">
+                <button class="btn-icon-m3 sidebar-toggle-btn desktop-only" style="width: 100%; justify-content: flex-start; padding-left: 16px;" onclick="window.toggleSlimSidebar()">
                     <span class="material-symbols-outlined">side_navigation</span>
                 </button>
             </div>
@@ -101,17 +101,20 @@
         <!-- Main Content Canvas -->
         <main class="main-content relative">
             <header class="top-bar-m3">
-                <div class="header-title-wrapper" style="display: flex; align-items: center; gap: 8px;">
-                    <button class="icon-btn-m3" onclick="window.history.back()">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <button class="icon-btn-m3 btn-square-gray" onclick="window.history.back()">
                         <span class="material-symbols-outlined">arrow_back</span>
                     </button>
                     <h1 class="header-title-m3" data-i18n="editNote" style="font-size: 20px; font-weight: 600; color: var(--primary-green); margin: 0;">Editar Nota</h1>
                 </div>
-                <div class="top-bar-actions-m3" style="display: flex; gap: 8px; align-items: center;">
+                <div class="top-bar-actions-m3">
                     <button class="icon-btn-m3 text-error" id="delete-note-btn" style="display: none;" onclick="window.notasManager.deleteCurrentNote()">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
-                    <button class="icon-btn-m3" onclick="window.notasManager.saveNote()" style="color: var(--primary-green);" title="Guardar">
+                    <button class="icon-btn-m3 btn-square-gray" onclick="window.notasManager.saveNote()" title="Fijar y Guardar">
                         <span class="material-symbols-outlined">push_pin</span>
                     </button>
                 </div>
