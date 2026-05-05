@@ -102,6 +102,10 @@
         <main class="main-content relative">
             <header class="top-bar-m3">
                 <div class="header-left-group">
+                    <!-- M3 Expressive Back Button -->
+                    <button class="btn-back-m3" onclick="history.back()" title="Regresar" aria-label="Regresar">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
                     <button id="hamburger-menu" class="btn-icon-m3 mobile-only" onclick="window.toggleSidebar(true)">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
@@ -175,6 +179,11 @@
                     <span class="material-symbols-outlined">add</span>
                 </button>
             </div>
+
+            <!-- Pin Anchor FAB (fixed right side) -->
+            <button class="pin-anchor-fab" id="pin-anchor-btn" title="Anclar nota" aria-label="Anclar nota" onclick="window.notasManager && window.notasManager.togglePinSelected && window.notasManager.togglePinSelected()">
+                <span class="material-symbols-outlined">push_pin</span>
+            </button>
         </main>
     </div>
 </body>

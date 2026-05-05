@@ -3923,6 +3923,19 @@ select.input-field {
     position: relative;
 }
 
+/* ─── User Initials inside Avatar ─── */
+.user-initials-m3 {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1;
+    user-select: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    display: block;
+}
+
 .user-status-dot {
     position: absolute;
     bottom: 4px;
