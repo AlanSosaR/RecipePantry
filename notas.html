@@ -43,7 +43,7 @@
 <body class="body-drive">
     <div id="dashboard-app" class="dashboard-app">
         <!-- Sidebar Overlay for mobile -->
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.dashboard.toggleSidebar(false)"></div>
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
         
         <!-- Sidebar -->
         <aside id="main-sidebar" class="sidebar">
@@ -101,13 +101,13 @@
         <!-- Main Content Canvas -->
         <main class="main-content relative">
             <header class="top-bar-m3">
-                <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)">
+                <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
                 <div class="header-title-wrapper" style="display: flex; align-items: center; gap: 8px;">
                     <h1 class="header-title-m3" data-i18n="navNotes" style="font-size: 20px; font-weight: 600; color: var(--primary-green); margin: 0;">Notas Culinarias</h1>
                 </div>
-                <div class="top-bar-actions-m3">
+                <div class="top-bar-actions-m3 desktop-only">
                     <div class="user-profile-m3" id="topbar-user-profile">
                         <div class="user-avatar-m3">
                             <span id="topbar-user-initials" class="user-initials-m3">CH</span>
