@@ -129,23 +129,19 @@
 
                 <!-- Empty State -->
                 <div class="notas-empty-state" id="empty-state" style="display: none;">
-                    <div class="empty-state-illustration-m3">
-                        <span class="material-symbols-outlined icon-main">edit_note</span>
-                        <div class="accent-sparkle sparkle-1"></div>
-                        <div class="accent-sparkle sparkle-2"></div>
+                    <div class="empty-state-icon-m3">
+                        <span class="material-symbols-outlined">menu_book</span>
                     </div>
                     
-                    <h2 class="empty-title-m3" data-i18n="notesEmptyTitle">Sin ninguna nota</h2>
-                    <p class="empty-desc-m3" data-i18n="notesEmptyDesc">Captura tus recetas, listas de compras e ideas culinarias para construir tu recetario digital personal.</p>
+                    <h2 class="empty-title-m3" data-i18n="notesEmptyTitle">Tu viaje culinario comienza aquí</h2>
+                    <p class="empty-desc-m3" data-i18n="notesEmptyDesc">Captura tus recetas e ideas para construir tu recetario digital personal.</p>
                     
                     <div class="notas-quick-actions-m3">
-                        <button class="btn-filled-tonal-m3" onclick="window.notasManager.createNewNote('text')">
-                            <span class="material-symbols-outlined">description</span>
-                            <span data-i18n="actionQuickNote">Crear Nota</span>
+                        <button class="btn-primary-m3" onclick="window.notasManager.createNewNote('checklist')">
+                            <span data-i18n="actionChecklist">Capturar ingredientes</span>
                         </button>
-                        <button class="btn-outlined-m3" onclick="window.notasManager.createNewNote('checklist')">
-                            <span class="material-symbols-outlined">checklist</span>
-                            <span data-i18n="actionChecklist">Lista de Compras</span>
+                        <button class="btn-tonal-m3" onclick="window.notasManager.createNewNote('text')">
+                            <span data-i18n="actionQuickNote">Nota rápida</span>
                         </button>
                     </div>
                 </div>
