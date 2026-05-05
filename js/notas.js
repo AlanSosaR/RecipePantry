@@ -347,10 +347,24 @@
 
         async saveNote() {
             try {
-                this.showLoading(true);
                 const title = document.getElementById('note-title').value.trim();
                 const type = document.getElementById('note-type').value;
                 const content = type === 'text' ? document.getElementById('note-content').value.trim() : null;
+
+                // ── Validación: no guardar si está vacía ──
+                const hasContent = title !== '' || (type === 'text' && content !== '') ||
+                    (type === 'checklist' && this.checklistItems.some(i => !i._deleted && i.content.trim() !== ''));
+
+                if (!hasContent) {
+                    if (window.uiManager) {
+                        window.uiManager.showToast('Escribe un título o contenido antes de guardar.', 'warning');
+                    } else {
+                        alert('Escribe un título o contenido antes de guardar.');
+                    }
+                    return; // No guardar
+                }
+
+                this.showLoading(true);
                 const user = await window.authManager.getCurrentUser();
 
                 const noteData = {
@@ -382,17 +396,17 @@
                         .single();
                     if (error) throw error;
                     noteId = data.id;
+                    // Guardar ID en currentNote para re-uso
+                    this.currentNote = { ...this.currentNote, id: noteId };
                 }
 
                 // Handle Checklist Items
                 if (type === 'checklist') {
-                    // 1. Delete marked items
                     const itemsToDelete = this.checklistItems.filter(i => i._deleted && i.id).map(i => i.id);
                     if (itemsToDelete.length > 0) {
                         await window.supabase.from('note_items').delete().in('id', itemsToDelete);
                     }
 
-                    // 2. Insert/Update active items
                     const activeItems = this.checklistItems.filter(i => !i._deleted && i.content.trim() !== '');
                     for (let i = 0; i < activeItems.length; i++) {
                         const item = activeItems[i];
@@ -411,8 +425,10 @@
                     }
                 }
 
-                if (window.uiManager) window.uiManager.showToast('Nota guardada con éxito', 'success');
-                setTimeout(() => window.history.back(), 500);
+                if (window.uiManager) window.uiManager.showToast('Nota guardada ✅', 'success');
+
+                // Redirigir a /notas forzando reload para que aparezca la nota
+                setTimeout(() => { window.location.href = '/notas'; }, 500);
 
             } catch (err) {
                 console.error('Error saving note:', err);

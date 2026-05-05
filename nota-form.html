@@ -741,37 +741,23 @@
     </div><!-- /nf-shell -->
 
     <script>
-        // ── Pin & Save logic ──────────────────────────────────────────────
-        // Called when user taps the green pin button in the header
+        // ── Pin & Save — delega todo a notasManager.saveNote() ────────────
         window.nfPinAndSave = async function() {
             const pinBtn = document.getElementById('pin-save-btn');
-            pinBtn.classList.add('pinned');
-
-            // Trigger save in notasManager
+            if (pinBtn) pinBtn.classList.add('pinned');
+            // saveNote() ya valida, guarda y redirige a /notas
             if (window.notasManager && window.notasManager.saveNote) {
-                try {
-                    await window.notasManager.saveNote();
-                } catch(e) {
-                    console.warn('saveNote error', e);
-                }
+                await window.notasManager.saveNote();
             }
-
-            // Show save bar then redirect
-            window.nfShowSaveBar();
-
-            // Navigate to /notas after brief feedback
-            setTimeout(() => {
-                window.location.href = '/notas';
-            }, 900);
         };
 
-        // Called when user taps "Ir a Notas" in save bar
+        // Botón "Ir a Notas" en la barra inferior
         window.nfSaveAndGo = async function() {
             if (window.notasManager && window.notasManager.saveNote) {
-                try { await window.notasManager.saveNote(); } catch(e) {}
+                await window.notasManager.saveNote();
             }
-            window.location.href = '/notas';
         };
+
 
         // Show the save bar
         window.nfShowSaveBar = function(message) {
