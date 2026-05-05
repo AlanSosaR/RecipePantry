@@ -111,9 +111,8 @@
                     <button class="icon-btn-m3 text-error" id="delete-note-btn" style="display: none;" onclick="window.notasManager.deleteCurrentNote()">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
-                    <button class="btn-primary-m3" onclick="window.notasManager.saveNote()">
-                        <span class="material-symbols-outlined">save</span>
-                        <span data-i18n="save">Guardar</span>
+                    <button class="icon-btn-m3" onclick="window.notasManager.saveNote()" style="color: var(--primary-green);" title="Guardar">
+                        <span class="material-symbols-outlined">push_pin</span>
                     </button>
                 </div>
             </header>
@@ -127,7 +126,6 @@
                 
                 <div class="loading-spinner-container" id="loading-state">
                     <div class="loading-spinner"></div>
-                    <span data-i18n="loading">Cargando...</span>
                 </div>
 
                 <div id="editor-form" style="display: none; display: flex; flex-direction: column; flex-grow: 1;">
