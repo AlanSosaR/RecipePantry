@@ -124,8 +124,9 @@
             try {
                 const { data: notes, error } = await window.supabaseClient
                     .from('notes')
-                    .select('*')
+                    .select('*, note_items(*)')
                     .eq('user_id', user.auth_user_id || user.id)
+                    .order('is_pinned', { ascending: false })
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -165,10 +166,10 @@
                 if (note.type === 'text') {
                     contentHtml = `<p class="note-text">${this.escapeHTML(note.content || '')}</p>`;
                 } else {
-                    const items = note.note_items || [];
+                    const items = (note.note_items || []).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
                     if (items.length > 0) {
                         contentHtml = `<div class="note-items-preview">
-                            ${items.slice(0, 8).map(item => `
+                            ${items.slice(0, 15).map(item => `
                                 <div class="note-item-preview">
                                     <span class="material-symbols-outlined">
                                         ${item.is_completed ? 'check_box' : 'check_box_outline_blank'}
@@ -178,7 +179,7 @@
                                     </span>
                                 </div>
                             `).join('')}
-                            ${items.length > 8 ? `<div class="note-more-items">+ ${items.length - 8} más...</div>` : ''}
+                            ${items.length > 15 ? `<div class="note-more-items">+ ${items.length - 15} más...</div>` : ''}
                         </div>`;
                     } else {
                         contentHtml = `<div class="note-items-preview">

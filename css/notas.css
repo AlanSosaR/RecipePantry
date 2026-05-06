@@ -807,7 +807,7 @@
     font-size: 14px;
     line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 8;
+    -webkit-line-clamp: 15;
     -webkit-box-orient: vertical;
     overflow: hidden;
     white-space: pre-wrap;
