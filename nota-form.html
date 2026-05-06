@@ -569,6 +569,10 @@
                 border-radius: 14px;
                 justify-content: center;
             }
+            /* Hide hamburger in nota-form on mobile — back arrow is enough */
+            .btn-menu-m3-premium.mobile-only {
+                display: none !important;
+            }
         }
         /* ── Layout integration with notas sidebar ── */
         .nota-form-body {
@@ -641,7 +645,7 @@
         <aside id="main-sidebar" class="sidebar notas-sidebar">
             <div class="notas-sidebar-profile">
                 <div class="notas-avatar-ring">
-                    <div class="notas-avatar-circle" id="notas-avatar-container">
+                    <div class="notas-avatar-circle user-avatar-m3" id="notas-avatar-container">
                         <span id="sidebar-user-initials" class="user-initials-m3 notas-initials">?</span>
                     </div>
                 </div>
@@ -824,9 +828,21 @@
             if (pageTitle) {
                 pageTitle.textContent = noteId ? 'Editar Nota' : 'Nueva Nota';
             }
-            // Also show delete btn only when editing
+            // Also show delete btn only when editing, and change pin to update icon
             const deleteBtn = document.getElementById('delete-note-btn');
             if (deleteBtn && noteId) deleteBtn.style.display = 'flex';
+
+            // Change pin icon to update icon when editing an existing note
+            if (noteId) {
+                const pinBtn = document.getElementById('pin-save-btn');
+                if (pinBtn) {
+                    const pinIcon = pinBtn.querySelector('.material-symbols-outlined');
+                    const pinLabel = pinBtn.querySelector('.nf-btn-pin-label');
+                    if (pinIcon) pinIcon.textContent = 'save';
+                    if (pinLabel) pinLabel.textContent = 'Actualizar';
+                    pinBtn.title = 'Actualizar nota';
+                }
+            }
 
             // Event listeners removidos para no mostrar auto-guardado fake
 
