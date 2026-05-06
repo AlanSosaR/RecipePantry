@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v500';
-const BUILD_ID = 'v500';
-const CACHE_NAME = `recipe-pantry-v500`;
-const STATIC_CACHE = 'static-v500';
-const DATA_CACHE = 'data-v500';
+const VERSION = 'v501';
+const BUILD_ID = 'v501';
+const CACHE_NAME = `recipe-pantry-v501`;
+const STATIC_CACHE = 'static-v501';
+const DATA_CACHE = 'data-v501';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -15,6 +15,8 @@ const STATIC_RESOURCES = [
     '/profile.html',
     '/recipe-detail.html',
     '/recipe-form.html',
+    '/nota-form.html',
+    '/notas.html',
     '/manifest.webmanifest',
     '/js/auth.js',
     '/js/db.js',
@@ -107,23 +109,13 @@ self.addEventListener('fetch', (event) => {
     if (isNavigation) {
         console.log(`[SW] Navigation Request (v${BUILD_ID}): Forcing Network First...`);
         event.respondWith(
-            fetch(request).then(response => {
-                const copy = response.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-                return response;
-            }).catch(() => caches.match(request))
-        );
-        return;
-    }
-
-    // Estrategia para Navegación (HTML): Network First
-    if (request.mode === 'navigate') {
-        event.respondWith(
             fetch(request, { cache: 'no-store' })
                 .then(async (response) => {
                     if (response && response.status === 200 && response.type !== 'opaqueredirect') {
                         const copy = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                        // Cache by pathname only (ignoreSearch) so /nota-form?type=text and /nota-form?id=x share the same cache entry
+                        const cacheKey = new Request(url.pathname, { headers: request.headers });
+                        caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, copy));
                         return cleanResponse(response);
                     }
                     return response;
@@ -132,12 +124,16 @@ self.addEventListener('fetch', (event) => {
                     const cache = await caches.open(CACHE_NAME);
                     const pathname = url.pathname;
                     const rootFallback = (await cache.match('/index.html', { ignoreSearch: true })) || (await cache.match('/', { ignoreSearch: true }));
-                    
+
                     let fallback;
                     if (pathname.includes('recipe-detail')) {
                         fallback = (await cache.match('/recipe-detail.html', { ignoreSearch: true })) || (await cache.match('/recipe-detail', { ignoreSearch: true })) || rootFallback;
                     } else if (pathname.includes('recipe-form')) {
                         fallback = (await cache.match('/recipe-form.html', { ignoreSearch: true })) || (await cache.match('/recipe-form', { ignoreSearch: true })) || rootFallback;
+                    } else if (pathname.includes('nota-form')) {
+                        fallback = (await cache.match('/nota-form.html', { ignoreSearch: true })) || (await cache.match('/nota-form', { ignoreSearch: true })) || rootFallback;
+                    } else if (pathname.includes('notas')) {
+                        fallback = (await cache.match('/notas.html', { ignoreSearch: true })) || (await cache.match('/notas', { ignoreSearch: true })) || rootFallback;
                     } else {
                         fallback = rootFallback || createErrorResponse('Offline: Resource not in cache');
                     }

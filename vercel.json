@@ -62,6 +62,10 @@
             "destination": "/notas.html"
         },
         {
+            "source": "/nota-form",
+            "destination": "/nota-form.html"
+        },
+        {
             "source": "/((?!api|assets|js|css|sw\\.js|favicon\\.ico|manifest\\.webmanifest).*)",
             "destination": "/index.html"
         }
