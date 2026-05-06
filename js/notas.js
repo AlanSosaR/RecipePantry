@@ -162,10 +162,7 @@
                 card.className = 'note-card';
                 card.innerHTML = `
                     <div class="note-header">
-                        <div class="note-type-indicator">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">${note.type === 'checklist' ? 'checklist' : 'description'}</span>
-                            <span>${note.type === 'checklist' ? 'Lista' : 'Nota'}</span>
-                        </div>
+                        <div class="note-spacer"></div>
                         <button class="note-menu-btn" onclick="event.preventDefault(); window.notasManager.deleteNotePrompt('${note.id}')">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
