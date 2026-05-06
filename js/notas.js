@@ -186,19 +186,36 @@
             window.location.href = `/nota-form.html?type=${type}`;
         }
 
-        async deleteNotePrompt(id) {
-            if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
-                try {
-                    const { error } = await window.supabaseClient.from('notes').delete().eq('id', id);
-                    if (error) throw error;
-                    
-                    if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
+        deleteNotePrompt(id, isCurrent = false) {
+            if (window.showActionSnackbar) {
+                window.showActionSnackbar(
+                    '¿Eliminar nota?',
+                    'Eliminar',
+                    async () => {
+                        await this._performDelete(id, isCurrent);
+                    }
+                );
+            } else if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
+                this._performDelete(id, isCurrent);
+            }
+        }
+
+        async _performDelete(id, isCurrent) {
+            try {
+                const { error } = await window.supabaseClient.from('notes').delete().eq('id', id);
+                if (error) throw error;
+                
+                if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
+                
+                if (isCurrent) {
+                    setTimeout(() => window.history.back(), 500);
+                } else {
                     this.notes = this.notes.filter(n => n.id !== id);
                     this.renderNotesList();
-                } catch (err) {
-                    console.error('Error deleting note:', err);
-                    if (window.uiManager) window.uiManager.showToast('Error al eliminar', 'error');
                 }
+            } catch (err) {
+                console.error('Error deleting note:', err);
+                if (window.uiManager) window.uiManager.showToast('Error al eliminar', 'error');
             }
         }
 
@@ -463,8 +480,7 @@
 
         async deleteCurrentNote() {
             if (this.currentNote && this.currentNote.id) {
-                await this.deleteNotePrompt(this.currentNote.id);
-                window.history.back();
+                this.deleteNotePrompt(this.currentNote.id, true);
             }
         }
 
