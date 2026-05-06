@@ -803,14 +803,55 @@
 }
 
 .note-card p.note-text {
-    color: #000000;
-    font-size: 15px;
-    line-height: 1.6;
+    color: #3c4043;
+    font-size: 14px;
+    line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 6;
+    -webkit-line-clamp: 8;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    opacity: 0.85;
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+/* Checklist items preview like Google Keep */
+.note-items-preview {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.note-item-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #3c4043;
+}
+
+.note-item-preview .material-symbols-outlined {
+    font-size: 16px;
+    color: #5f6368;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}
+
+.note-item-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note-item-text.checked {
+    text-decoration: line-through;
+    color: #80868b;
+}
+
+.note-more-items {
+    font-size: 12px;
+    color: #5f6368;
+    margin-top: 4px;
+    font-weight: 500;
 }
 
 .note-card .note-footer {

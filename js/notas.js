@@ -160,6 +160,34 @@
                 const card = document.createElement('a');
                 card.href = `nota-form.html?id=${note.id}`;
                 card.className = 'note-card';
+                
+                let contentHtml = '';
+                if (note.type === 'text') {
+                    contentHtml = `<p class="note-text">${this.escapeHTML(note.content || '')}</p>`;
+                } else {
+                    const items = note.note_items || [];
+                    if (items.length > 0) {
+                        contentHtml = `<div class="checklist-preview">
+                            ${items.slice(0, 8).map(item => `
+                                <div class="checklist-item-preview ${item.is_completed ? 'completed' : ''}">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">
+                                        ${item.is_completed ? 'check_box' : 'check_box_outline_blank'}
+                                    </span>
+                                    <span class="item-text">${this.escapeHTML(item.content || '')}</span>
+                                </div>
+                            `).join('')}
+                            ${items.length > 8 ? `<div class="checklist-more">+ ${items.length - 8} más...</div>` : ''}
+                        </div>`;
+                    } else {
+                        contentHtml = `<div class="checklist-preview">
+                            <div class="checklist-item-preview">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--md-outline);">check_box_outline_blank</span>
+                                <span class="item-text" style="font-style: italic;">Lista vacía</span>
+                            </div>
+                        </div>`;
+                    }
+                }
+
                 card.innerHTML = `
                     <div class="note-header">
                         <div class="note-spacer"></div>
@@ -167,16 +195,8 @@
                             <span class="material-symbols-outlined">delete</span>
                         </button>
                     </div>
-                    <h3>${this.escapeHTML(note.title || 'Sin Título')}</h3>
-                    ${note.type === 'text' 
-                        ? `<p class="note-text">${this.escapeHTML(note.content || '')}</p>` 
-                        : `<div class="checklist-preview">
-                            <div class="checklist-item-preview">
-                                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--md-outline);">check_box_outline_blank</span>
-                                <span class="item-text" style="font-style: italic;">Toque para ver lista...</span>
-                            </div>
-                           </div>`
-                    }
+                    ${note.title ? `<h3>${this.escapeHTML(note.title)}</h3>` : ''}
+                    ${contentHtml}
                 `;
                 grid.appendChild(card);
             });
