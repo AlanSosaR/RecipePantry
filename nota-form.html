@@ -569,11 +569,6 @@
                 border-radius: 14px;
                 justify-content: center;
             }
-            /* Hide hamburger in nota-form on mobile — back arrow is enough */
-            .btn-menu-m3-premium.mobile-only {
-                display: none !important;
-            }
-        }
         /* ── Layout integration with notas sidebar ── */
         .nota-form-body {
             overflow: hidden;
@@ -646,6 +641,7 @@
             <div class="notas-sidebar-profile">
                 <div class="notas-avatar-ring">
                     <div class="notas-avatar-circle user-avatar-m3" id="notas-avatar-container">
+                        <img id="sidebar-user-avatar" src="" alt="Profile" style="display:none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                         <span id="sidebar-user-initials" class="user-initials-m3 notas-initials">?</span>
                     </div>
                 </div>
@@ -692,10 +688,7 @@
         <!-- TOP APP BAR -->
         <header class="nf-topbar">
             <div class="nf-topbar-left">
-                <!-- Hamburger mobile only -->
-                <button class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)" style="margin-right:4px;">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
+
                 <!-- Back button — Green M3 Expressive -->
                 <button class="nf-btn-back" onclick="window.history.back()" aria-label="Volver a Notas">
                     <span class="material-symbols-outlined">arrow_back</span>
@@ -708,11 +701,11 @@
                     onclick="window.notasManager.deleteCurrentNote()" title="Eliminar nota">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
-                <!-- Pin — Green, saves and goes to /notas -->
+                <!-- Pin/Update — Green, saves and goes to /notas -->
                 <button class="nf-btn-pin" id="pin-save-btn"
-                    onclick="window.nfPinAndSave()" title="Guardar y volver a Notas">
-                    <span class="material-symbols-outlined">push_pin</span>
-                    <span class="nf-btn-pin-label">Guardar</span>
+                    onclick="window.notasManager.saveNote()" title="Guardar y volver a Notas">
+                    <span class="material-symbols-outlined" id="pin-save-icon">push_pin</span>
+                    <span class="nf-btn-pin-label" id="pin-save-label">Guardar</span>
                 </button>
             </div>
         </header>
@@ -759,63 +752,10 @@
         </div>
         </div><!-- /nf-editor-wrap -->
         </div><!-- /nf-scroll-area -->
-        </div><!-- /nf-scroll-area -->
         </div><!-- /nf-main-area -->
     </div><!-- /nf-shell -->
 
     <script>
-        // ── Pin & Save — intenta notasManager.saveNote(), luego fallback directo ─
-        window.nfPinAndSave = async function() {
-            const pinBtn = document.getElementById('pin-save-btn');
-            if (pinBtn) pinBtn.classList.add('pinned');
-
-            // Intento 1: delegamos a notasManager si está disponible
-            if (window.notasManager && typeof window.notasManager.saveNote === 'function') {
-                try {
-                    await window.notasManager.saveNote();
-                    return;
-                } catch (e) {
-                    console.warn('[nfPinAndSave] notasManager.saveNote falló, usando fallback directo:', e);
-                }
-            }
-
-            // Intento 2: guardar DIRECTAMENTE con supabaseClient (no depende de auth.js cacheado)
-            try {
-                const client = window.supabaseClient;
-                if (!client) throw new Error('supabaseClient no disponible');
-
-                const { data: { session } } = await client.auth.getSession();
-                const userId = session?.user?.id;
-                if (!userId) { alert('Sesión expirada. Por favor inicia sesión de nuevo.'); return; }
-
-                const params = new URLSearchParams(window.location.search);
-                const noteId = params.get('id');
-                const noteType = document.getElementById('note-type')?.value || 'text';
-                const title = document.getElementById('note-title')?.value?.trim() || '';
-
-                let content = '';
-                if (noteType === 'text') {
-                    content = document.getElementById('note-content')?.value?.trim() || '';
-                } else if (noteType === 'checklist') {
-                    const items = document.querySelectorAll('#checklist-items .checklist-item-input');
-                    const list = Array.from(items).map(i => ({ text: i.value, checked: false }));
-                    content = JSON.stringify(list);
-                }
-
-                let error;
-                if (noteId) {
-                    ({ error } = await client.from('notas').update({ title, content, type: noteType, updated_at: new Date().toISOString() }).eq('id', noteId).eq('user_id', userId));
-                } else {
-                    ({ error } = await client.from('notas').insert({ user_id: userId, title, content, type: noteType, pinned: false }));
-                }
-
-                if (error) throw error;
-                window.location.href = '/notas';
-            } catch (err) {
-                console.error('[nfPinAndSave] Error al guardar:', err);
-                if (pinBtn) pinBtn.classList.remove('pinned');
-                alert('Error al guardar la nota: ' + (err.message || err));
-            }
         };
 
         // Eliminado: nfSaveAndGo, nfShowSaveBar, nfOnInput (el usuario solo quiere guardar con el botón superior)

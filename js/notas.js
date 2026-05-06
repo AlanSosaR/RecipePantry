@@ -47,64 +47,39 @@
             const greetingEl = document.getElementById('sidebar-user-greeting');
             const authUser = window.authManager.session?.user;
 
-            // Intentar obtener perfil extendido desde la BD si no lo tenemos completo
             try {
-                // Si el perfil ya tiene avatar_url y nombres, no necesitamos re-consultar
-                if (user && user.avatar_url && user.first_name) {
-                     if (window.updateGlobalUserUI) window.updateGlobalUserUI();
-                     return;
+                // Ensure we have the user profile
+                if (!user || (!user.avatar_url && !user.first_name)) {
+                    const searchId = user?.auth_user_id || user?.id || authUser?.id;
+                    if (searchId) {
+                        const { data: profile } = await window.supabaseClient
+                            .from('users')
+                            .select('first_name, last_name, prefix, avatar_url')
+                            .eq('auth_user_id', searchId)
+                            .maybeSingle();
+
+                        if (profile) {
+                            window.authManager.currentUser = {
+                                ...window.authManager.currentUser,
+                                ...profile
+                            };
+                            user = window.authManager.currentUser;
+                        }
+                    }
                 }
 
-                const searchId = user.auth_user_id || user.id || authUser?.id;
-                if (!searchId) throw new Error('NO_USER_ID');
-
-                const { data: profile, error: profileError } = await window.supabaseClient
-                    .from('users')
-                    .select('first_name, last_name, prefix, avatar_url')
-                    .eq('auth_user_id', searchId)
-                    .maybeSingle();
-
-                if (profileError) {
-                    console.warn("⚠️ Error recuperando perfil extendido:", profileError);
-                }
-
-                if (profile) {
-                    // Montar el objeto que espera updateGlobalUserUI
-                    window.authManager.currentUser = {
-                        ...window.authManager.currentUser,
-                        ...profile
-                    };
-
-                    // Nombre en el saludo
-                    const prefix = profile.prefix || 'Chef';
-                    const fName  = profile.first_name || '';
-                    const lName  = profile.last_name  || '';
+                if (user) {
+                    const prefix = user.prefix || 'Chef';
+                    const fName  = user.first_name || '';
+                    const lName  = user.last_name  || '';
                     let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
                     if (!fName && !lName) fullName = prefix;
                     if (greetingEl) greetingEl.textContent = fullName;
-                } else {
-                    throw new Error('NO_DB_PROFILE');
                 }
             } catch (e) {
-                // Sin perfil extendido: usar user_metadata de Auth (el objeto real de Supabase Auth)
-                const meta = authUser?.user_metadata || {};
-                const displayName = meta.full_name || meta.name || authUser?.email || 'Chef';
-                if (greetingEl) greetingEl.textContent = displayName.split(' ')[0];
-
-                // Montar datos mínimos en currentUser para que updateGlobalUserUI funcione
-                if (window.authManager.currentUser) {
-                    if (!window.authManager.currentUser.avatar_url) {
-                        window.authManager.currentUser.avatar_url = meta.avatar_url || meta.picture || null;
-                    }
-                    const parts = displayName.trim().split(/\s+/);
-                    if (!window.authManager.currentUser.first_name) {
-                        window.authManager.currentUser.first_name = parts[0] || '';
-                        window.authManager.currentUser.last_name  = parts[1] || '';
-                    }
-                }
+                console.warn("Avatar update error:", e);
             }
 
-            // Disparar el updater global (maneja foto e iniciales para .user-avatar-m3)
             if (window.updateGlobalUserUI) window.updateGlobalUserUI();
         }
 
@@ -169,7 +144,7 @@
                     const items = (note.note_items || []).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
                     if (items.length > 0) {
                         contentHtml = `<div class="note-items-preview">
-                            ${items.slice(0, 15).map(item => `
+                            ${items.map(item => `
                                 <div class="note-item-preview">
                                     <span class="material-symbols-outlined">
                                         ${item.is_completed ? 'check_box' : 'check_box_outline_blank'}
@@ -179,7 +154,6 @@
                                     </span>
                                 </div>
                             `).join('')}
-                            ${items.length > 15 ? `<div class="note-more-items">+ ${items.length - 15} más...</div>` : ''}
                         </div>`;
                     } else {
                         contentHtml = `<div class="note-items-preview">
@@ -191,15 +165,31 @@
                     }
                 }
 
+                const bgColor = note.color || 'transparent';
+                if (bgColor !== 'transparent') {
+                    card.style.backgroundColor = bgColor;
+                    card.style.borderColor = 'transparent';
+                }
+
                 card.innerHTML = `
                     <div class="note-header">
                         <div class="note-spacer"></div>
-                        <button class="note-menu-btn" onclick="event.preventDefault(); window.notasManager.deleteNotePrompt('${note.id}')">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
+                        ${note.is_pinned ? '<span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary);">push_pin</span>' : ''}
                     </div>
-                    ${note.title ? `<h3>${this.escapeHTML(note.title)}</h3>` : ''}
-                    ${contentHtml}
+                    ${note.title ? `<h3 style="${bgColor !== 'transparent' ? 'color: inherit;' : ''}">${this.escapeHTML(note.title)}</h3>` : ''}
+                    <div class="note-content-wrapper" style="${bgColor !== 'transparent' ? 'color: inherit;' : ''}">
+                        ${contentHtml}
+                    </div>
+                    <div class="note-card-footer">
+                        <div class="note-actions">
+                            <button class="note-action-btn color-btn" title="Cambiar color" onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.showColorPalette(event, '${note.id}')">
+                                <span class="material-symbols-outlined">palette</span>
+                            </button>
+                            <button class="note-action-btn" title="Eliminar" onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.deleteNotePrompt('${note.id}')">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
@@ -209,17 +199,101 @@
             window.location.href = `/nota-form.html?type=${type}`;
         }
 
+        showColorPalette(event, noteId) {
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            
+            let palette = document.getElementById('note-color-palette');
+            if (!palette) {
+                palette = document.createElement('div');
+                palette.id = 'note-color-palette';
+                palette.className = 'note-color-palette';
+                document.body.appendChild(palette);
+            }
+
+            const colors = [
+                { name: 'Default', value: 'transparent' },
+                { name: 'Red', value: '#f28b82' },
+                { name: 'Orange', value: '#fbbc04' },
+                { name: 'Yellow', value: '#fff475' },
+                { name: 'Green', value: '#ccff90' },
+                { name: 'Teal', value: '#a7ffeb' },
+                { name: 'Blue', value: '#cbf0f8' },
+                { name: 'Dark Blue', value: '#aecbfa' },
+                { name: 'Purple', value: '#d7aefb' },
+                { name: 'Pink', value: '#fdcfe8' },
+                { name: 'Brown', value: '#e6c9a8' },
+                { name: 'Gray', value: '#e8eaed' }
+            ];
+
+            palette.innerHTML = colors.map(c => `
+                <div class="color-option ${c.name}" 
+                     style="background-color: ${c.value === 'transparent' ? '#ffffff' : c.value}; ${c.value === 'transparent' ? 'border: 1px solid #dadce0;' : ''}"
+                     onclick="window.notasManager.updateNoteColor('${noteId}', '${c.value}')"
+                     title="${c.name}">
+                     ${c.value === 'transparent' ? '<span class="material-symbols-outlined" style="font-size: 14px; color: #5f6368;">format_color_reset</span>' : ''}
+                </div>
+            `).join('');
+
+            palette.style.display = 'flex';
+            
+            // Calculate position
+            const paletteWidth = 140; 
+            const left = rect.left + (rect.width / 2) - (paletteWidth / 2);
+            const top = rect.bottom + 5 + window.scrollY; 
+
+            palette.style.top = `${top}px`;
+            palette.style.left = `${Math.max(10, left)}px`; // Prevent going off-screen left
+
+            const closePalette = (e) => {
+                if (!palette.contains(e.target) && !btn.contains(e.target)) {
+                    palette.style.display = 'none';
+                    document.removeEventListener('mousedown', closePalette);
+                }
+            };
+            
+            // Remove previous listener if exists to avoid duplication
+            document.removeEventListener('mousedown', closePalette);
+            setTimeout(() => {
+                document.addEventListener('mousedown', closePalette);
+            }, 10);
+        }
+
+
+        async updateNoteColor(noteId, color) {
+            try {
+                const { error } = await window.supabaseClient
+                    .from('notes')
+                    .update({ color: color })
+                    .eq('id', noteId);
+
+                if (error) throw error;
+                
+                // Update local note and re-render
+                const note = this.notes.find(n => n.id === noteId);
+                if (note) note.color = color;
+                this.renderNotesList();
+                
+                const palette = document.getElementById('note-color-palette');
+                if (palette) palette.style.display = 'none';
+            } catch (err) {
+                console.error('Error updating color:', err);
+            }
+        }
+
         deleteNotePrompt(id, isCurrent = false) {
+            const deleteAction = async () => {
+                await this._performDelete(id, isCurrent);
+            };
+
             if (window.showActionSnackbar) {
                 window.showActionSnackbar(
-                    '¿Eliminar nota?',
+                    '¿Eliminar nota permanentemente?',
                     'Eliminar',
-                    async () => {
-                        await this._performDelete(id, isCurrent);
-                    }
+                    deleteAction
                 );
             } else if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
-                this._performDelete(id, isCurrent);
+                deleteAction();
             }
         }
 
@@ -282,6 +356,18 @@
                     } else {
                         document.getElementById('note-content').value = note.content || '';
                     }
+
+                    // Update UI for editing
+                    const pinBtn = document.getElementById('pin-save-btn');
+                    if (pinBtn) {
+                        const icon = pinBtn.querySelector('.material-symbols-outlined');
+                        const label = pinBtn.querySelector('.nf-btn-pin-label');
+                        if (icon) icon.textContent = 'published_with_changes';
+                        if (label) label.textContent = 'Actualizar';
+                        pinBtn.title = 'Actualizar nota';
+                    }
+                    const pageTitle = document.getElementById('page-title');
+                    if (pageTitle) pageTitle.textContent = 'Editar Nota';
 
                 } catch (err) {
                     console.error('Error loading note:', err);

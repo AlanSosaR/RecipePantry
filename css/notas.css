@@ -189,7 +189,6 @@
     align-items: center;
     gap: 12px;
     flex: 1;
-    max-width: 900px;
 }
 
 .notas-search-wrapper {
@@ -1427,3 +1426,104 @@
     }
 }
 
+/* Note Card Footer & Actions */
+.note-card-footer {
+    margin-top: 16px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.note-card:hover .note-card-footer {
+    opacity: 1;
+}
+
+.note-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: -8px; /* Align with content padding */
+}
+
+.note-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.note-action-btn:hover {
+    background: rgba(60, 64, 67, 0.08);
+    color: #202124;
+}
+
+.note-action-btn .material-symbols-outlined {
+    font-size: 18px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}
+
+/* Floating Color Palette */
+.note-color-palette {
+    position: absolute;
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #ffffff;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 1500;
+    width: 140px;
+    justify-content: center;
+    animation: fadeInScale 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.color-option {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1.5px solid rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.2);
+    border-color: #5f6368;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.color-option.default {
+    background: #ffffff;
+    border: 1.5px solid #dadce0;
+}
+
+/* Mobile specific: Always show actions */
+@media (max-width: 768px) {
+    .note-card-footer {
+        opacity: 1;
+    }
+}
