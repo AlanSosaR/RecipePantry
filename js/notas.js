@@ -177,10 +177,6 @@
                             </div>
                            </div>`
                     }
-                    <div class="note-footer">
-                        <span class="material-symbols-outlined">calendar_today</span>
-                        <span>${new Date(note.updated_at).toLocaleDateString()}</span>
-                    </div>
                 `;
                 grid.appendChild(card);
             });
