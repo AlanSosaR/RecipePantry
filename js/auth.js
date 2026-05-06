@@ -5,6 +5,7 @@ class AuthManager {
     constructor() {
         this.currentUser = null;
         this.session = null;
+        this.initialized = false;
     }
 
     // Verificar si hay sesión activa
@@ -433,5 +434,9 @@ class AuthManager {
 
 // Instancia global
 window.authManager = new AuthManager();
+
+// Marcar como inicializado y disparar evento para que otros módulos (notas.js) puedan arrancar
+window.authManager.initialized = true;
+window.dispatchEvent(new Event('auth-ready'));
 
 console.log('✅ AuthManager inicializado');

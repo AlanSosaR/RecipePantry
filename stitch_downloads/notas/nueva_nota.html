@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kitchen Notes - Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#002114",
+                        "surface-variant": "#e1e3e4",
+                        "tertiary-fixed": "#e4e2e4",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-bright": "#f8f9fa",
+                        "tertiary": "#5f5e60",
+                        "primary-fixed-dim": "#5bdda8",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#939194",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#2b2a2d",
+                        "inverse-surface": "#2e3132",
+                        "primary-container": "#00a676",
+                        "on-secondary-container": "#596764",
+                        "surface": "#f8f9fa",
+                        "surface-dim": "#d9dadb",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#003221",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#53615e",
+                        "primary-fixed": "#7afac3",
+                        "surface-container": "#edeeef",
+                        "on-primary-fixed-variant": "#005138",
+                        "on-tertiary-fixed-variant": "#474649",
+                        "on-surface-variant": "#3d4a42",
+                        "secondary-container": "#d6e6e1",
+                        "on-background": "#191c1d",
+                        "secondary-fixed": "#d6e6e1",
+                        "on-secondary-fixed": "#101e1b",
+                        "surface-container-highest": "#e1e3e4",
+                        "secondary-fixed-dim": "#bacac5",
+                        "outline-variant": "#bccac0",
+                        "error-container": "#ffdad6",
+                        "primary": "#006c4b",
+                        "background": "#f8f9fa",
+                        "tertiary-fixed-dim": "#c8c6c8",
+                        "surface-tint": "#006c4b",
+                        "surface-container-high": "#e7e8e9",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#5bdda8",
+                        "outline": "#6d7a72",
+                        "on-surface": "#191c1d",
+                        "on-secondary-fixed-variant": "#3b4a46",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary-fixed": "#1b1b1d",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xl": "48px",
+                        "margin-desktop": "40px",
+                        "lg": "32px",
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "xs": "8px",
+                        "sm": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Epilogue"],
+                        "title-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Epilogue"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f8f9fa;
+        }
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-auto-rows: 10px;
+        }
+        .editor-focus:focus {
+            outline: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #bccac0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-background shadow-sm flex items-center justify-between px-4 h-16 w-full sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<button class="text-primary dark:text-primary-fixed-dim hover:bg-secondary-container dark:hover:bg-on-secondary-fixed-variant transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-semibold text-primary dark:text-primary-fixed-dim">Kitchen Notes</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-on-surface-variant dark:text-surface-variant hover:bg-secondary-container dark:hover:bg-on-secondary-fixed-variant transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">push_pin</span>
+</button>
+<button class="text-on-surface-variant dark:text-surface-variant hover:bg-secondary-container dark:hover:bg-on-secondary-fixed-variant transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<main class="max-w-[720px] mx-auto px-margin-mobile md:px-0 pt-lg min-h-[calc(100vh-128px)] flex flex-col pb-32">
+<!-- Editor Canvas -->
+<div class="flex-grow">
+<!-- Title Area -->
+<div class="mb-sm">
+<input class="w-full bg-transparent border-none font-display-lg text-display-lg text-on-surface placeholder:text-outline-variant editor-focus p-0 focus:ring-0" placeholder="Title" type="text"/>
+</div>
+<!-- Meta Tags / Chips Row -->
+<!-- Body Area -->
+<div class="relative">
+<textarea class="w-full bg-transparent border-none font-body-md text-body-md text-on-surface-variant placeholder:text-outline-variant editor-focus p-0 focus:ring-0 min-h-[400px] resize-none leading-relaxed" placeholder="Start typing your culinary masterpiece..."></textarea>
+</div>
+<!-- Inline Image Preview (Premium Card) -->
+</div>
+<!-- Persisting Floating Culinary Timer (Themed Component) -->
+</main>
+<!-- Bottom Utility Toolbar & Status -->
+<!-- Side Navigation Drawer (Hidden on mobile via trigger if needed, persistent on Desktop if requested) -->
+<div class="fixed top-0 left-0 h-full w-80 bg-surface-bright dark:bg-inverse-surface shadow-xl rounded-r-[28px] -translate-x-full transition-transform duration-300 z-[60]" id="drawer">
+<div class="flex flex-col h-full py-4">
+<div class="px-6 py-6 mb-4 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="A portrait of a professional head chef wearing a crisp white double-breasted culinary jacket with subtle emerald green embroidery. The lighting is professional and warm, showcasing a friendly and knowledgeable expression. The background is a slightly out-of-focus, high-end modern kitchen with stainless steel accents and warm ambient lighting." src="https://lh3.googleusercontent.com/aida/ADBb0uhvazODptWDNRLglgrkH3038m83D9vMarp5O1lvJPHZOnB_TVf4wfwYuSSVkfGFI-W12ai5pT7f4lBfWrOGO4_D4iwBg83NsAbX2yLh-ZzKbnTIqguVUR1e-g0DTkA88B2z-N16wOSkSpBHsSDsVBfgcxz1w3IsQ4JIh05M2RHc6R1kowMFQCIfgFN6zobWUAas91itLc5lyyHvL4u-rPgSGslUdlVgxIN-vDVGHg2OilP07tZuv4LnqGpg6Wf5P8pXHlG5ovfWnQ"/>
+</div>
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">Head Chef</h3>
+<p class="text-body-md text-on-surface-variant text-[12px]">culinary.pro@notes.com</p>
+</div>
+</div>
+<nav class="flex-grow overflow-y-auto px-3">
+<div class="bg-primary-container dark:bg-on-primary-fixed-variant text-on-primary-container dark:text-primary-fixed rounded-full my-1 px-4 py-3 flex items-center gap-3">
+<span class="material-symbols-outlined">description</span>
+<span class="font-body-md text-body-md">All Notes</span>
+</div>
+<div class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full my-1 px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-body-md text-body-md">Cookbook</span>
+</div>
+<div class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full my-1 px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-body-md text-body-md">Groceries</span>
+</div>
+<div class="h-[1px] bg-outline-variant my-4 mx-4"></div>
+<div class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full my-1 px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-body-md text-body-md">Archive</span>
+</div>
+<div class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full my-1 px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</div>
+</nav>
+</div>
+</div>
+</body></html>

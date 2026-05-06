@@ -45,13 +45,23 @@
         // ── Avatar: reusar la misma lógica de Recetas (ui.js) ─────────────
         async updateAvatar(user) {
             const greetingEl = document.getElementById('sidebar-user-greeting');
+            const authUser = window.authManager.session?.user;
 
-            // Intentar obtener perfil extendido desde la BD (igual que dashboard.js)
+            // Intentar obtener perfil extendido desde la BD si no lo tenemos completo
             try {
+                // Si el perfil ya tiene avatar_url y nombres, no necesitamos re-consultar
+                if (user && user.avatar_url && user.first_name) {
+                     if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+                     return;
+                }
+
+                const searchId = user.auth_user_id || user.id || authUser?.id;
+                if (!searchId) throw new Error('NO_USER_ID');
+
                 const { data: profile, error: profileError } = await window.supabaseClient
                     .from('users')
                     .select('first_name, last_name, prefix, avatar_url')
-                    .eq('auth_user_id', user.id)
+                    .eq('auth_user_id', searchId)
                     .maybeSingle();
 
                 if (profileError) {
@@ -73,71 +83,29 @@
                     if (!fName && !lName) fullName = prefix;
                     if (greetingEl) greetingEl.textContent = fullName;
                 } else {
-                    // Lanzamos error controlado para caer en el catch de abajo y usar user_metadata
                     throw new Error('NO_DB_PROFILE');
                 }
             } catch (e) {
-                // Sin perfil extendido: usar user_metadata de Auth
-                const meta = user.user_metadata || {};
-                const displayName = meta.full_name || meta.name || user.email || 'Chef';
+                // Sin perfil extendido: usar user_metadata de Auth (el objeto real de Supabase Auth)
+                const meta = authUser?.user_metadata || {};
+                const displayName = meta.full_name || meta.name || authUser?.email || 'Chef';
                 if (greetingEl) greetingEl.textContent = displayName.split(' ')[0];
 
                 // Montar datos mínimos en currentUser para que updateGlobalUserUI funcione
-                if (!window.authManager.currentUser.avatar_url) {
-                    window.authManager.currentUser.avatar_url = meta.avatar_url || meta.picture || null;
-                }
-                const parts = displayName.trim().split(/\s+/);
-                if (!window.authManager.currentUser.first_name) {
-                    window.authManager.currentUser.first_name = parts[0] || '';
-                    window.authManager.currentUser.last_name  = parts[1] || '';
+                if (window.authManager.currentUser) {
+                    if (!window.authManager.currentUser.avatar_url) {
+                        window.authManager.currentUser.avatar_url = meta.avatar_url || meta.picture || null;
+                    }
+                    const parts = displayName.trim().split(/\s+/);
+                    if (!window.authManager.currentUser.first_name) {
+                        window.authManager.currentUser.first_name = parts[0] || '';
+                        window.authManager.currentUser.last_name  = parts[1] || '';
+                    }
                 }
             }
 
             // Disparar el updater global (maneja foto e iniciales para .user-avatar-m3)
             if (window.updateGlobalUserUI) window.updateGlobalUserUI();
-
-            // También actualizar el círculo propio de notas si no tiene clase user-avatar-m3
-            this._updateNotasAvatarCircle();
-        }
-
-        _updateNotasAvatarCircle() {
-            const container  = document.getElementById('notas-avatar-container');
-            const initialsEl = document.getElementById('sidebar-user-initials');
-            if (!container) return;
-
-            const cu = window.authManager?.currentUser || {};
-            const avatarUrl = cu.avatar_url || null;
-
-            if (avatarUrl) {
-                container.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = avatarUrl;
-                img.alt = 'avatar';
-                img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
-                img.onerror = () => this._setInitialsCircle(container, initialsEl, cu);
-                container.appendChild(img);
-            } else {
-                this._setInitialsCircle(container, initialsEl, cu);
-            }
-        }
-
-        _setInitialsCircle(container, initialsEl, cu) {
-            const fName = cu.first_name || '';
-            const lName = cu.last_name  || '';
-            const email = cu.email || '';
-            let initials = '?';
-            if (fName || lName) {
-                initials = ((fName[0] || '') + (lName[0] || '')).toUpperCase();
-            } else if (email) {
-                initials = email[0].toUpperCase();
-            }
-            // Remove any img, set initials span
-            const img = container.querySelector('img');
-            if (img) img.remove();
-            if (initialsEl) {
-                initialsEl.textContent = initials;
-                initialsEl.style.display = 'block';
-            }
         }
 
         // --- List View Methods ---

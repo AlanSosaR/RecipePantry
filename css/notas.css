@@ -55,7 +55,7 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: var(--primary, #10B981);
+    background-color: var(--primary, #10B981);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -567,45 +567,11 @@
     color: var(--primary, #10B981);
 }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 768px) {
-    .notas-sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        height: 100dvh;
-        transform: translateX(-100%);
-    }
 
-    .notas-sidebar.sidebar--open {
-        transform: translateX(0);
-    }
-
+/* ── RESPONSIVE BASE (CLEANED) ── */
+@media (max-width: 1023px) {
     .notas-mobile-nav {
         display: flex;
-    }
-
-    .notas-fab-main {
-        bottom: 90px;
-        right: 20px;
-    }
-
-    .pin-anchor-fab {
-        right: 14px;
-    }
-
-    .notas-topbar {
-        padding: 0 16px;
-    }
-}
-
-@media (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
-    }
-
-    .notas-sidebar {
-        transform: translateX(0) !important;
     }
 }
 
@@ -1387,8 +1353,9 @@
    ══════════════════════════════════════════════ */
 @media (max-width: 1023px) {
 
-    /* Sidebar: hidden off-screen to the left */
-    .notas-layout .notas-sidebar {
+    /* Sidebar: hidden off-screen to the left — aplica a notas.html (.notas-layout) y nota-form.html (.nf-shell) */
+    .notas-layout .notas-sidebar,
+    .nf-shell .notas-sidebar {
         position: fixed !important;
         top: 0;
         left: -300px;
@@ -1400,7 +1367,8 @@
     }
 
     /* Slide in when active */
-    .notas-layout .notas-sidebar.active {
+    .notas-layout .notas-sidebar.active,
+    .nf-shell .notas-sidebar.active {
         left: 0 !important;
     }
 
@@ -1430,6 +1398,14 @@
     /* Show hamburger button */
     .notas-hamburger {
         display: flex !important;
+    }
+
+    /* Additional mobile tweaks from cleanup */
+    .pin-anchor-fab {
+        right: 14px;
+    }
+    .notas-topbar {
+        padding: 0 16px;
     }
 }
 

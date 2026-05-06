@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#191c1d",
+                        "primary": "#006c4b",
+                        "on-secondary-container": "#596764",
+                        "secondary-fixed": "#d6e6e1",
+                        "on-primary-fixed-variant": "#005138",
+                        "secondary-container": "#d6e6e1",
+                        "surface-tint": "#006c4b",
+                        "primary-fixed-dim": "#5bdda8",
+                        "on-tertiary-fixed-variant": "#474649",
+                        "on-primary-container": "#003221",
+                        "inverse-primary": "#5bdda8",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary-container": "#2b2a2d",
+                        "background": "#f8f9fa",
+                        "secondary": "#53615e",
+                        "on-secondary-fixed": "#101e1b",
+                        "primary-fixed": "#7afac3",
+                        "on-primary-fixed": "#002114",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-container": "#edeeef",
+                        "on-tertiary-fixed": "#1b1b1d",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary": "#5f5e60",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#bacac5",
+                        "outline-variant": "#bccac0",
+                        "surface-dim": "#d9dadb",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary-fixed-dim": "#c8c6c8",
+                        "on-surface-variant": "#3d4a42",
+                        "outline": "#6d7a72",
+                        "inverse-surface": "#2e3132",
+                        "surface": "#f8f9fa",
+                        "surface-container-low": "#f3f4f5",
+                        "on-background": "#191c1d",
+                        "tertiary-fixed": "#e4e2e4",
+                        "tertiary-container": "#939194",
+                        "primary-container": "#00a676",
+                        "on-secondary-fixed-variant": "#3b4a46"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "16px",
+                        "md": "24px",
+                        "xl": "48px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "margin-mobile": "20px",
+                        "lg": "32px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "title-sm": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Epilogue"],
+                        "headline-md": ["Epilogue"]
+                    },
+                    "fontSize": {
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-fab-state .fab-action-buttons {
+            display: flex;
+        }
+        .recipe-masonry {
+            column-count: 2;
+            column-gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .recipe-masonry {
+                column-count: 3;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-emerald-50/50 dark:border-emerald-900/20 shadow-sm shadow-emerald-900/5 fixed top-0 w-full z-50 h-16 flex justify-between items-center px-4">
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400" data-icon="menu">menu</span>
+</button>
+<h1 class="font-epilogue font-bold text-lg tracking-tight text-emerald-700 dark:text-emerald-500">Culinary Notes</h1>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-emerald-100/50">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a young chef with a warm smile, wearing a clean white culinary jacket. The lighting is soft and bright, emphasizing a clean and organized kitchen environment in the blurred background. The image has a fresh, high-key aesthetic with subtle emerald green tones throughout, maintaining the brand's premium and approachable identity." src="https://lh3.googleusercontent.com/aida/ADBb0uiI_ie3x7TkwEayug0j8OimS4reE60zv3Jg8JEGOI7onF-grcLfiwaII3WSdcbnpRCu05EU2WHUifg1dxcsQWgGfUxP-Fs-37yaTL7hDvwvyGeH_LBUzjnqr_m-tr-K1NhGaSmm4NQtpb2qW23TpMudL8cNfNKNVXNRF7bC5E5oZHFjHXwZMBoZvk15aNepPKOO8OWg5oKYn_Dn0NQZewQV9_nM_63wDAdJtX0ggnFyN2jL_nfEaaaEz4iDj4NZyva9ERJsoMabeg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas (Empty State) -->
+<main class="flex-grow flex flex-col items-center justify-center px-gutter pb-32">
+<div class="max-w-md w-full text-center space-y-8">
+<!-- Central Illustration -->
+<!-- Empty State Text -->
+<div class="space-y-3">
+<h2 class="font-headline-md text-headline-md text-on-surface">Your culinary journey starts here</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs mx-auto">Capture your recipes and ideas to build your personal digital cookbook.</p>
+</div>
+<!-- Quick Suggestion Chip (Extra interaction hint) -->
+<div class="flex flex-wrap justify-center gap-2 mt-6">
+<span class="px-4 py-1.5 bg-secondary-container text-primary font-label-caps text-label-caps rounded-full cursor-pointer hover:bg-secondary-fixed transition-colors">Capture Ingredients</span>
+<span class="px-4 py-1.5 bg-secondary-container text-primary font-label-caps text-label-caps rounded-full cursor-pointer hover:bg-secondary-fixed transition-colors">Quick Note</span>
+</div>
+</div>
+</main>
+<!-- Floating Action Button Cluster (Simulated Active State) -->
+<div class="fixed bottom-8 right-8 flex flex-col items-end gap-4 z-50">
+<!-- Floating Labels & Buttons (Active State Visibility) -->
+<div class="flex flex-col items-end gap-3 fab-action-buttons">
+<!-- Action Item 1 -->
+<div class="flex items-center gap-3 group cursor-pointer active:scale-95 transition-transform">
+<span class="bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-emerald-50 text-emerald-800 font-title-sm text-sm">Checklist</span>
+<div class="w-12 h-12 bg-secondary-container text-primary rounded-2xl shadow-lg flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+</div>
+</div>
+<!-- Action Item 2 -->
+<div class="flex items-center gap-3 group cursor-pointer active:scale-95 transition-transform">
+<span class="bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-emerald-50 text-emerald-800 font-title-sm text-sm">Text Note</span>
+<div class="w-12 h-12 bg-secondary-container text-primary rounded-2xl shadow-lg flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+</div>
+</div>
+</div>
+<!-- Primary FAB -->
+<button class="w-16 h-16 bg-primary-container text-on-primary-container rounded-2xl shadow-[0_8px_32px_rgba(0,166,118,0.25)] flex items-center justify-center hover:bg-primary transition-all duration-300 transform hover:rotate-90 active:scale-90">
+<span class="material-symbols-outlined text-3xl font-bold" data-icon="add">add</span>
+</button>
+</div>
+<!-- Hidden Layout Section for Decorative Tactile Accents (Background) -->
+<div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+<div class="absolute -top-24 -left-24 w-96 h-96 bg-emerald-50/30 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-40 left-10 opacity-10">
+<img alt="" class="w-32 h-32 grayscale" data-alt="A detailed macro photograph of a single vanilla bean and a cinnamon stick resting on a clean white linen surface. The lighting is bright and high-key, creating a fresh and methodical feel. The textures are sharp and tactile, contributing to a sense of high-end editorial culinary photography." src="https://lh3.googleusercontent.com/aida/ADBb0uiEH5pmS0I-FOJfF4IjCY7M2Yphg7CEer02VesqkjtGWhXFc19WSBPHokOO8rKItkVjHspo07jHcaq-nRUvhtSRYFrh5TUv7XD7-uGje7xQyY6504E5-m13zC7wDpgeHzak776TrC1ZWWGLt9GhPnfBlFhTNEAIPuMGsXWW6dL2AAvp82P8BgU4aqXOTH5YQIEsP0Kt7ilHPQd9U6bYrbHf924miBbEFnwt7epxY2PBtpZM18Y-El6IYqxepPdvyW7QanZ-UU5EsA"/>
+</div>
+<div class="absolute top-1/2 -right-16 opacity-10 transform -rotate-12">
+<img alt="" class="w-48 h-48 grayscale" data-alt="A soft-focus artistic shot of fresh mint leaves with tiny water droplets, captured on a clean marble countertop. The image is bright and airy with an emphasis on freshness and natural textures. The color palette is dominated by whites and very subtle green hues, perfectly matching a clean minimalist digital environment." src="https://lh3.googleusercontent.com/aida/ADBb0uhvazODptWDNRLglgrkH3038m83D9vMarp5O1lvJPHZOnB_TVf4wfwYuSSVkfGFI-W12ai5pT7f4lBfWrOGO4_D4iwBg83NsAbX2yLh-ZzKbnTIqguVUR1e-g0DTkA88B2z-N16wOSkSpBHsSDsVBfgcxz1w3IsQ4JIh05M2RHc6R1kowMFQCIfgFN6zobWUAas91itLc5lyyHvL4u-rPgSGslUdlVgxIN-vDVGHg2OilP07tZuv4LnqGpg6Wf5P8pXHlG5ovfWnQ"/>
+</div>
+</div>
+</body></html>

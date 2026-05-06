@@ -3906,7 +3906,7 @@ select.input-field {
     width: 96px;
     height: 96px;
     border-radius: 32px; /* Expressive M3 Shape */
-    background: var(--primary);
+    background-color: var(--primary);
     color: white;
     display: flex;
     align-items: center;

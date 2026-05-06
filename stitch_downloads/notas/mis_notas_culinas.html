@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#006c4b",
+                        "surface-container": "#edeeef",
+                        "primary-container": "#00a676",
+                        "outline-variant": "#bccac0",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#939194",
+                        "surface-variant": "#e1e3e4",
+                        "primary-fixed-dim": "#5bdda8",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "inverse-primary": "#5bdda8",
+                        "secondary-container": "#d6e6e1",
+                        "on-secondary-fixed-variant": "#3b4a46",
+                        "on-background": "#191c1d",
+                        "surface-dim": "#d9dadb",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#d6e6e1",
+                        "on-tertiary-fixed-variant": "#474649",
+                        "surface": "#f8f9fa",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary-container": "#2b2a2d",
+                        "tertiary-fixed-dim": "#c8c6c8",
+                        "on-secondary-fixed": "#101e1b",
+                        "surface-container-low": "#f3f4f5",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#006c4b",
+                        "outline": "#6d7a72",
+                        "on-tertiary-fixed": "#1b1b1d",
+                        "on-primary-container": "#003221",
+                        "on-surface": "#191c1d",
+                        "error-container": "#ffdad6",
+                        "secondary": "#53615e",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-fixed": "#e4e2e4",
+                        "on-surface-variant": "#3d4a42",
+                        "secondary-fixed-dim": "#bacac5",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#596764",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#002114",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e7e8e9",
+                        "primary-fixed": "#7afac3",
+                        "background": "#f8f9fa",
+                        "tertiary": "#5f5e60",
+                        "on-primary-fixed-variant": "#005138",
+                        "inverse-on-surface": "#f0f1f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "16px",
+                        "margin-mobile": "20px",
+                        "lg": "32px",
+                        "md": "24px",
+                        "base": "4px",
+                        "margin-desktop": "40px",
+                        "xl": "48px",
+                        "xs": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Epilogue"],
+                        "display-lg": ["Epilogue"],
+                        "title-sm": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-md": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "26px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .masonry-grid {
+                column-count: 3;
+            }
+        }
+        .note-card {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-emerald-50/50 dark:border-emerald-900/20 shadow-sm shadow-emerald-900/5 docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-4 h-16 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors rounded-full Active: scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-epilogue font-bold text-lg tracking-tight text-emerald-700 dark:text-emerald-500">Culinary Notes</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors rounded-full Active: scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-emerald-100">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A clean, professional headshot of a person with a warm expression, set against a soft-focus kitchen background with warm, ambient lighting. The style is consistent with high-end culinary editorial photography, using a bright, light-mode aesthetic that highlights natural textures and soft emerald green tones in the background details." src="https://lh3.googleusercontent.com/aida/ADBb0uiEH5pmS0I-FOJfF4IjCY7M2Yphg7CEer02VesqkjtGWhXFc19WSBPHokOO8rKItkVjHspo07jHcaq-nRUvhtSRYFrh5TUv7XD7-uGje7xQyY6504E5-m13zC7wDpgeHzak776TrC1ZWWGLt9GhPnfBlFhTNEAIPuMGsXWW6dL2AAvp82P8BgU4aqXOTH5YQIEsP0Kt7ilHPQd9U6bYrbHf924miBbEFnwt7epxY2PBtpZM18Y-El6IYqxepPdvyW7QanZ-UU5EsA"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 py-8">
+<!-- Masonry-style Grid -->
+<div class="masonry-grid">
+<!-- Sourdough Text Note -->
+<div class="note-card bg-surface-container-lowest border border-emerald-50 p-6 rounded-[28px] shadow-sm shadow-emerald-900/5 hover:shadow-md transition-shadow group">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps text-primary px-3 py-1 bg-secondary-container rounded-full">Fermentation</span>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-zinc-400" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<h3 class="font-title-sm text-title-sm mb-3">Sourdough</h3>
+<p class="text-on-surface-variant font-body-md leading-relaxed">
+                    Check the starter tonight at 8 PM. It should be bubbly and smelling slightly sweet and yeasty. If it hasn't doubled in size, feed it another 50g flour/50g water and wait 4 hours. Remember to use filtered water at room temp.
+                </p>
+<div class="mt-4 flex items-center text-xs text-zinc-400">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="schedule">schedule</span>
+                    Edited 2h ago
+                </div>
+</div>
+<!-- Pesto Recipe Card with Thumbnail -->
+<div class="note-card bg-surface-container-lowest border border-emerald-50 rounded-[28px] shadow-sm shadow-emerald-900/5 hover:shadow-md transition-shadow overflow-hidden group">
+<div class="h-48 relative">
+<img class="w-full h-full object-cover" data-alt="Close-up overhead shot of fresh, vibrant green pesto in a stone mortar and pestle. Scattered around are toasted pine nuts, fresh basil leaves with water droplets, and shards of aged parmesan cheese. The lighting is bright and airy, typical of a professional cookbook, emphasizing the fresh emerald greens and textures of the ingredients." src="https://lh3.googleusercontent.com/aida/ADBb0ujZBWFYgHTosLJXULN3eOeENsnZj8xuktiXwbxR_BGTuIVIcZSEemmK_JWwke5j-HBO_zc8BF9b10DVLj6MrviyB-SbCbQ9zEOdthhY9sBloWU1EvPNPFcVdJ9Iz60Z78brNIbH8RnzOye1ctQ5D0tTgpA1E-taBwsDn_il8dupNelnf6obzX7d8St3gMGpN_97AqYtfqCCiRdyw1HWXV4uzNKPDq4Ovsb52EOwULBByfAUVxqYgsTLglFOy-vvaCLnDK50vSWo_u8"/>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-2xl shadow-lg">
+<span class="material-symbols-outlined text-primary-container" data-icon="timer" data-weight="fill" style="font-variation-settings: 'FILL' 1;">timer</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-3">
+<span class="font-label-caps text-label-caps text-primary px-3 py-1 bg-secondary-container rounded-full">Sauces</span>
+</div>
+<h3 class="font-title-sm text-title-sm mb-2">Pesto Recipe</h3>
+<p class="text-on-surface-variant font-body-md line-clamp-2">
+                        Authentic Genovese style with fresh basil, pine nuts, garlic, and high-quality olive oil.
+                    </p>
+<div class="mt-4 pt-4 border-t border-emerald-50 flex gap-2">
+<span class="px-2 py-0.5 rounded-md bg-surface text-[10px] font-bold text-emerald-800">15 MIN</span>
+<span class="px-2 py-0.5 rounded-md bg-surface text-[10px] font-bold text-emerald-800">VEGAN OPTION</span>
+</div>
+</div>
+</div>
+<!-- Grocery List Checklist -->
+<div class="note-card bg-surface-container-lowest border border-emerald-50 p-6 rounded-[28px] shadow-sm shadow-emerald-900/5 hover:shadow-md transition-shadow">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-title-sm text-title-sm">Grocery List</h3>
+<span class="material-symbols-outlined text-primary" data-icon="shopping_basket">shopping_basket</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="check">check</span>
+</div>
+<span class="line-through opacity-40">Maldon sea salt</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 border-2 border-outline rounded"></div>
+<span>Whole milk (organic)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 border-2 border-outline rounded"></div>
+<span>Tahini paste</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 border-2 border-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="check">check</span>
+</div>
+<span class="line-through opacity-40">Fresh rosemary</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-5 h-5 border-2 border-outline rounded"></div>
+<span>Shallots</span>
+</div>
+</div>
+</div>
+<!-- Coffee Brew Note -->
+<div class="note-card bg-surface-container-lowest border border-emerald-50 p-6 rounded-[28px] shadow-sm shadow-emerald-900/5 hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 mb-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="coffee">coffee</span>
+</div>
+<h3 class="font-title-sm text-title-sm">V60 Morning Brew</h3>
+</div>
+<p class="text-on-surface-variant font-body-md italic border-l-4 border-emerald-200 pl-4">
+                    "The Ethiopian Yirgacheffe beans bloom beautifully at 92°C. 1:16 ratio is the sweet spot."
+                </p>
+</div>
+<!-- Quick Tip Card -->
+<div class="note-card bg-primary-container p-6 rounded-[28px] shadow-lg shadow-emerald-900/10 text-white">
+<span class="material-symbols-outlined mb-2" data-icon="lightbulb" data-weight="fill" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+<h3 class="font-title-sm text-title-sm mb-2 text-on-primary-container">Kitchen Secret</h3>
+<p class="font-body-md opacity-90">
+                    Always toast your spices before grinding. It releases essential oils and creates a much deeper flavor profile for any curry or dry rub.
+                </p>
+</div>
+<!-- Pasta Image Card -->
+<div class="note-card bg-surface-container-lowest border border-emerald-50 rounded-[28px] shadow-sm shadow-emerald-900/5 hover:shadow-md transition-shadow overflow-hidden group">
+<img class="w-full aspect-[0.79] object-cover" data-alt="A beautifully plated dish of fresh handmade tagliatelle pasta with a slow-cooked ragu. The scene is set on a rustic wooden table with natural morning light streaming in from a side window. The overall aesthetic is warm and inviting, using a sophisticated palette of earthy tones and deep emerald green accents from fresh herbs. High-end culinary photography style." src="https://lh3.googleusercontent.com/aida/ADBb0uiLvElcB_Cu1wn2VMISzogh4-2HiNLyE3uWqrj3eTISgjDrfxuRzIGlb1uPHtAZ6L2x0fvWXpvKLc5frVtH73iwJyZv8UHiFfdd065ukeYMbxuKrQZN9BQkyu498reOXn7PUH07v_UDjVVnETiyH4_LS3AY7MFeILhInOMyzhxBWmOVKWCkmldjrm1my8Sn73_Yl_fZ90Ec6OrpWM4cI3m5qD6gr9weA5M8aehAxKJh30WJzpvvyoMMANsOIr8TESw4_5WQw_39tBA"/>
+<div class="p-6">
+<h3 class="font-title-sm text-title-sm mb-1">Handmade Tagliatelle</h3>
+<p class="text-on-surface-variant text-sm">Sunday project batch #3</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary-container text-white rounded-2xl shadow-xl shadow-emerald-900/20 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-[28px]" data-icon="add">add</span>
+</button>
+<!-- Culinary Timer (Contextual Overlay) -->
+</body></html>
