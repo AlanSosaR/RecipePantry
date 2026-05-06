@@ -167,22 +167,24 @@
                 } else {
                     const items = note.note_items || [];
                     if (items.length > 0) {
-                        contentHtml = `<div class="checklist-preview">
+                        contentHtml = `<div class="note-items-preview">
                             ${items.slice(0, 8).map(item => `
-                                <div class="checklist-item-preview ${item.is_completed ? 'completed' : ''}">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">
+                                <div class="note-item-preview">
+                                    <span class="material-symbols-outlined">
                                         ${item.is_completed ? 'check_box' : 'check_box_outline_blank'}
                                     </span>
-                                    <span class="item-text">${this.escapeHTML(item.content || '')}</span>
+                                    <span class="note-item-text ${item.is_completed ? 'checked' : ''}">
+                                        ${this.escapeHTML(item.content || '')}
+                                    </span>
                                 </div>
                             `).join('')}
-                            ${items.length > 8 ? `<div class="checklist-more">+ ${items.length - 8} más...</div>` : ''}
+                            ${items.length > 8 ? `<div class="note-more-items">+ ${items.length - 8} más...</div>` : ''}
                         </div>`;
                     } else {
-                        contentHtml = `<div class="checklist-preview">
-                            <div class="checklist-item-preview">
-                                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--md-outline);">check_box_outline_blank</span>
-                                <span class="item-text" style="font-style: italic;">Lista vacía</span>
+                        contentHtml = `<div class="note-items-preview">
+                            <div class="note-item-preview">
+                                <span class="material-symbols-outlined">check_box_outline_blank</span>
+                                <span class="note-item-text" style="font-style: italic;">Lista vacía</span>
                             </div>
                         </div>`;
                     }
