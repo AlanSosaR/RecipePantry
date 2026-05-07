@@ -353,9 +353,7 @@
         }
 
         deleteNotePrompt(id, isCurrent = false) {
-            const deleteAction = async () => {
-                await this._performDelete(id, isCurrent);
-            };
+            const deleteAction = () => this._performDelete(id, isCurrent);
 
             if (window.showActionSnackbar) {
                 window.showActionSnackbar(
@@ -368,23 +366,36 @@
             }
         }
 
-        async _performDelete(id, isCurrent) {
-            try {
-                const { error } = await window.supabaseClient.from('notes').delete().eq('id', id);
-                if (error) throw error;
-                
-                if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
-                
-                if (isCurrent) {
-                    setTimeout(() => window.history.back(), 500);
-                } else {
-                    this.notes = this.notes.filter(n => n.id !== id);
-                    this.renderNotesList();
-                }
-            } catch (err) {
-                console.error('Error deleting note:', err);
-                if (window.uiManager) window.uiManager.showToast('Error al eliminar', 'error');
+        _performDelete(id, isCurrent) {
+            if (isCurrent) {
+                // Navegamos de vuelta INMEDIATAMENTE y borramos en fondo
+                window.history.back();
+                window.supabaseClient.from('notes').delete().eq('id', id)
+                    .then(({ error }) => {
+                        if (error) console.error('Error al eliminar nota:', error);
+                    });
+                return;
             }
+
+            // Lista de notas: quitar tarjeta de UI al instante (optimista)
+            const removed = this.notes.find(n => n.id === id);
+            this.notes = this.notes.filter(n => n.id !== id);
+            this.renderNotesList();
+            if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
+
+            // Confirmar en Supabase en segundo plano
+            window.supabaseClient.from('notes').delete().eq('id', id)
+                .then(({ error }) => {
+                    if (error) {
+                        // Rollback: devolver la nota a la lista
+                        console.error('Error al eliminar nota:', error);
+                        if (removed) {
+                            this.notes.unshift(removed);
+                            this.renderNotesList();
+                        }
+                        if (window.uiManager) window.uiManager.showToast('Error al eliminar', 'error');
+                    }
+                });
         }
 
         // --- Form View Methods ---
@@ -621,35 +632,35 @@
                     this.currentNote = { ...this.currentNote, id: noteId };
                 }
 
-                // Handle Checklist Items
+                // Handle Checklist Items en paralelo (más rápido)
                 if (type === 'checklist') {
+                    const ops = [];
                     const itemsToDelete = this.checklistItems.filter(i => i._deleted && i.id).map(i => i.id);
                     if (itemsToDelete.length > 0) {
-                        await window.supabaseClient.from('note_items').delete().in('id', itemsToDelete);
+                        ops.push(window.supabaseClient.from('note_items').delete().in('id', itemsToDelete));
                     }
 
                     const activeItems = this.checklistItems.filter(i => !i._deleted && i.content.trim() !== '');
-                    for (let i = 0; i < activeItems.length; i++) {
-                        const item = activeItems[i];
+                    activeItems.forEach((item, i) => {
                         const itemData = {
                             note_id: noteId,
                             content: item.content,
                             is_completed: item.is_completed,
                             order_index: i
                         };
-
                         if (item.id && item.isModified) {
-                            await window.supabaseClient.from('note_items').update(itemData).eq('id', item.id);
+                            ops.push(window.supabaseClient.from('note_items').update(itemData).eq('id', item.id));
                         } else if (item.isNew) {
-                            await window.supabaseClient.from('note_items').insert([itemData]);
+                            ops.push(window.supabaseClient.from('note_items').insert([itemData]));
                         }
-                    }
+                    });
+                    await Promise.all(ops);
                 }
 
                 if (window.uiManager) window.uiManager.showToast('Nota guardada ✅', 'success');
 
-                // Redirigir a /notas forzando reload para que aparezca la nota
-                setTimeout(() => { window.location.href = '/notas'; }, 500);
+                // Redirigir inmediatamente sin delay artificial
+                window.location.href = '/notas';
 
             } catch (err) {
                 console.error('Error saving note:', err);
