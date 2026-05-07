@@ -14,22 +14,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=494">
-    <link rel="stylesheet" href="css/components.css?v=494">
-    <link rel="stylesheet" href="css/notas.css?v=494">
+    <link rel="stylesheet" href="css/styles.css?v=502">
+    <link rel="stylesheet" href="css/components.css?v=502">
+    <link rel="stylesheet" href="css/notas.css?v=502">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CORE SCRIPTS -->
-    <script src="js/config.js?v=494"></script>
-    <script src="js/supabase-client.js?v=494"></script>
-    <script src="js/utils.js?v=494"></script>
-    <script src="js/i18n.js?v=494"></script>
-    <script src="js/auth.js?v=494"></script>
-    <script src="js/localdb.js?v=494"></script>
-    <script src="js/db.js?v=494"></script>
-    <script src="js/ui.js?v=494"></script>
-    <script defer src="js/notas.js?v=494"></script>
+    <script src="js/config.js?v=502"></script>
+    <script src="js/supabase-client.js?v=502"></script>
+    <script src="js/utils.js?v=502"></script>
+    <script src="js/i18n.js?v=502"></script>
+    <script src="js/auth.js?v=502"></script>
+    <script src="js/localdb.js?v=502"></script>
+    <script src="js/db.js?v=502"></script>
+    <script src="js/ui.js?v=502"></script>
+    <script defer src="js/notas.js?v=502"></script>
 
     <script>document.documentElement.setAttribute('data-theme', 'light');</script>
     <script>
@@ -567,8 +567,8 @@
                 height: 44px;
                 padding: 0;
                 border-radius: 14px;
-                justify-content: center;
             }
+        }
         /* ── Layout integration with notas sidebar ── */
         .nota-form-body {
             overflow: hidden;
@@ -578,9 +578,18 @@
             height: 100dvh;
             overflow: hidden;
         }
-        /* Reuse notas sidebar styles — sidebar floats on mobile, fixed on desktop */
-        .nf-shell .notas-sidebar {
-            flex-shrink: 0;
+
+        /* ── DESKTOP: sidebar is a fixed-width flex column ── */
+        @media (min-width: 1024px) {
+            .nf-shell .notas-sidebar {
+                position: relative !important;
+                flex-shrink: 0;
+                width: 240px;
+                height: 100dvh;
+                z-index: 10;
+                left: auto !important;
+                box-shadow: 1px 0 0 #e5e7eb;
+            }
         }
 
         /* ── MOBILE SIDEBAR DRAWER (inline override, bypasses SW cache) ── */
@@ -615,6 +624,7 @@
         }
         .nf-main-area {
             flex: 1;
+            min-width: 0;   /* evita que el textarea desborde en flex */
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -625,6 +635,12 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+        }
+        /* ── Textarea siempre interactivo ── */
+        .nf-content-input {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 1;
         }
     </style>
 </head>
@@ -756,8 +772,6 @@
     </div><!-- /nf-shell -->
 
     <script>
-        };
-
         // Eliminado: nfSaveAndGo, nfShowSaveBar, nfOnInput (el usuario solo quiere guardar con el botón superior)
 
         document.addEventListener('DOMContentLoaded', () => {
