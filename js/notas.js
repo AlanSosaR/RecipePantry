@@ -247,7 +247,7 @@
                         <div class="note-spacer"></div>
                         ${note.is_pinned ? '<span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary);">push_pin</span>' : ''}
                     </div>
-                    ${note.title ? `<h3 style="${bgColor !== 'transparent' ? 'color: inherit;' : ''}">${this.escapeHTML(note.title)}</h3>` : ''}
+                    ${note.title ? `<h3>${this.escapeHTML(note.title)}</h3>` : ''}
                     <div class="note-content-wrapper" style="${bgColor !== 'transparent' ? 'color: inherit;' : ''}">
                         ${contentHtml}
                     </div>
