@@ -6,6 +6,7 @@
             this.currentNote = null;
             this.checklistItems = [];
             this.loading = true;
+            this.searchQuery = '';
             this.init();
         }
 
@@ -114,13 +115,44 @@
             } finally {
                 this.showLoading(false);
             }
+
+            // ── Wire up search input ──
+            const searchInput = document.querySelector('.notas-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.searchQuery = e.target.value.trim().toLowerCase();
+                    this.renderNotesList();
+                });
+                // Clear on Escape
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        searchInput.value = '';
+                        this.searchQuery = '';
+                        this.renderNotesList();
+                        searchInput.blur();
+                    }
+                });
+            }
         }
 
         renderNotesList() {
             const grid = document.getElementById('notes-grid');
             const emptyState = document.getElementById('empty-state');
-            
+
             if (!grid || !emptyState) return;
+
+            // Filter by search query
+            const q = this.searchQuery;
+            const filtered = q
+                ? this.notes.filter(n => {
+                    const inTitle   = (n.title   || '').toLowerCase().includes(q);
+                    const inContent = (n.content || '').toLowerCase().includes(q);
+                    const inItems   = (n.note_items || []).some(i =>
+                        (i.content || '').toLowerCase().includes(q)
+                    );
+                    return inTitle || inContent || inItems;
+                })
+                : this.notes;
 
             if (this.notes.length === 0) {
                 grid.style.display = 'none';
@@ -128,11 +160,50 @@
                 return;
             }
 
+            if (filtered.length === 0) {
+                // No search results
+                grid.style.display = 'none';
+                emptyState.style.display = 'flex';
+                emptyState.innerHTML = `
+                    <div class="notas-empty-icon-circle">
+                        <span class="material-symbols-outlined">search_off</span>
+                    </div>
+                    <h2 class="notas-empty-title">Sin resultados</h2>
+                    <p class="notas-empty-desc">No encontramos notas para "${this.escapeHTML(q)}"</p>
+                `;
+                return;
+            }
+
+            // Restore empty state in case it was replaced by search message
+            if (!emptyState.querySelector('.notas-empty-actions') && this.notes.length > 0) {
+                emptyState.innerHTML = `
+                    <div class="notas-empty-icon-circle">
+                        <span class="material-symbols-outlined">menu_book</span>
+                    </div>
+                    <h2 class="notas-empty-title" data-i18n="notesEmptyTitle">Tu viaje culinario comienza aquí</h2>
+                    <p class="notas-empty-desc" data-i18n="notesEmptyDesc">
+                        Captura tus recetas e ideas para construir tu recetario digital personal.
+                    </p>
+                    <div class="notas-empty-actions">
+                        <button class="notas-btn-primary" onclick="window.notasManager.createNewNote('checklist')">
+                            <span class="material-symbols-outlined">checklist</span>
+                            <span>Capturar ingredientes</span>
+                        </button>
+                        <button class="notas-btn-tonal" onclick="window.notasManager.createNewNote('text')">
+                            <span>Nota rápida</span>
+                        </button>
+                    </div>
+                `;
+            }
+
             emptyState.style.display = 'none';
             grid.style.display = 'block'; // Masonry relies on column-count
             grid.innerHTML = '';
 
-            this.notes.forEach(note => {
+            // Use filtered list
+            const notesToRender = filtered;
+
+            notesToRender.forEach(note => {
                 const card = document.createElement('a');
                 card.href = `nota-form.html?id=${note.id}`;
                 card.className = 'note-card';
