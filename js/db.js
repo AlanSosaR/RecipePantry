@@ -369,31 +369,45 @@ class DatabaseManager {
     async getRecipeById(recipeId, forceRefresh = false) {
         console.log('📦 db.getRecipeById: Iniciando para', recipeId, 'forceRefresh:', forceRefresh);
         await this._checkLocalDB();
+        const isOnline = this._isOnline || (typeof navigator !== 'undefined' && navigator.onLine);
+
         if (!forceRefresh) {
             console.log('📦 db.getRecipeById: Buscando en localDB.recipes_full...');
             let recipe = await window.localDB.get('recipes_full', recipeId);
             
-            // Fallback: Si no está en full, buscar en index (metadatos básicos)
-            if (!recipe) {
-                console.log('📦 db.getRecipeById: No encontrado en full, buscando en index...');
-                const indexRecipe = await window.localDB.get('recipes_index', recipeId);
-                if (indexRecipe) {
-                    console.warn(`⚠️ Receta ${recipeId} no encontrada en full. Usando datos básicos del índice.`);
-                    return { success: true, recipe: { ...indexRecipe, isPartial: true }, fromCache: true };
-                }
-            }
-
-            if (recipe) {
-                console.log(`ℹ️ Cargando receta ${recipeId} (Modo Offline-Ready)`);
-                if (this._isOnline) this._revalidateRecipeInBackground(recipeId, recipe.updated_at);
+            // Validar si la receta en caché está completa (no es parcial y tiene ingredientes o pasos)
+            if (recipe && !recipe.isPartial && Array.isArray(recipe.ingredients) && (recipe.ingredients.length > 0 || (Array.isArray(recipe.steps) && recipe.steps.length > 0))) {
+                console.log(`ℹ️ Cargando receta completa ${recipeId} (Caché local)`);
+                if (isOnline) this._revalidateRecipeInBackground(recipeId, recipe.updated_at);
                 return { success: true, recipe: recipe, fromCache: true };
             }
         } else {
             console.log(`🚀 Forzando carga de red para receta ${recipeId}...`);
         }
 
-        if (!this._isOnline) return { success: false, error: "Sin conexión y no hay copia local" };
-        return this._fetchFullRecipeFromServer(recipeId, forceRefresh);
+        // Si estamos online, SIEMPRE consultar al servidor de forma transparente e inmediata
+        if (isOnline) {
+            console.log(`📡 Consultando receta completa ${recipeId} desde Supabase...`);
+            const serverResult = await this._fetchFullRecipeFromServer(recipeId, forceRefresh);
+            if (serverResult.success) {
+                return serverResult;
+            }
+            console.warn(`⚠️ Error de red para receta ${recipeId}, usando fallback local:`, serverResult.error);
+        }
+
+        // Fallback para cuando estemos 100% offline o falle el servidor
+        const cachedFull = await window.localDB.get('recipes_full', recipeId);
+        if (cachedFull) {
+            return { success: true, recipe: cachedFull, fromCache: true };
+        }
+
+        const indexRecipe = await window.localDB.get('recipes_index', recipeId);
+        if (indexRecipe) {
+            console.warn(`⚠️ Receta ${recipeId} sin conexión previa: usando metadatos básicos del índice.`);
+            return { success: true, recipe: { ...indexRecipe, isPartial: true, ingredients: [], steps: [] }, fromCache: true };
+        }
+
+        return { success: false, error: isOnline ? "Error al cargar la receta" : "Sin conexión y no hay copia local" };
     }
 
     async _revalidateRecipeInBackground(recipeId, lastUpdated) {
@@ -435,6 +449,9 @@ class DatabaseManager {
                 if (error.code === 'PGRST116') throw new Error('Recipe not found');
                 throw error;
             }
+
+            recipe.ingredients = recipe.ingredients || [];
+            recipe.steps = recipe.steps || recipe.preparation_steps || [];
 
             const localMeta = await window.localDB.get('recipes_index', recipeId);
             if (localMeta) {

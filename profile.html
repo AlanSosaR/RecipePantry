@@ -1,4 +1,5 @@
-<html lang="es" data-app-version="378">
+<!DOCTYPE html>
+<html lang="es" data-app-version="505">
 
 <head>
     <meta charset="utf-8" />
@@ -6,36 +7,15 @@
     <title data-i18n="profileTitle">Mi Perfil - Recipe Pantry</title>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
-    <!-- Material 3 Expressive Infrastructure -->
-    <script type="importmap">
-        {
-          "imports": {
-            "lit": "https://cdn.jsdelivr.net/npm/lit@3/index.js",
-            "lit/": "https://cdn.jsdelivr.net/npm/lit@3/",
-            "@lit/localize": "https://cdn.jsdelivr.net/npm/@lit/localize/lit-localize.js",
-            "@lit/reactive-element": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@1/reactive-element.js",
-            "@lit/reactive-element/": "https://cdn.jsdelivr.net/npm/@lit/reactive-element@1/",
-            "lit-element/lit-element.js": "https://cdn.jsdelivr.net/npm/lit-element@4/lit-element.js",
-            "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3/lit-html.js",
-            "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3/",
-            "tslib": "https://cdn.jsdelivr.net/npm/tslib@2.6.2/tslib.es6.js",
-            "@material/web/": "https://cdn.jsdelivr.net/npm/@material/web@1.0.1/"
-          }
-        }
-    </script>
-
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=378">
-    <link rel="stylesheet" href="css/components.css?v=378">
+    <link rel="stylesheet" href="css/styles.css?v=505">
+    <link rel="stylesheet" href="css/components.css?v=505">
 
     <style>
         body {
@@ -97,7 +77,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 48px;
+            margin-bottom: 36px;
             text-align: center;
         }
 
@@ -133,10 +113,27 @@
             display: none;
         }
 
+        /* ─── Material 3 Expressive Outlined Floating Labels ─── */
         .m3-field-container {
             position: relative;
             margin-bottom: 28px;
             width: 100%;
+        }
+
+        .m3-field-container label,
+        .m3-field-label {
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            transform: translateY(-50%);
+            font-size: 15px;
+            color: var(--on-surface-variant);
+            background: var(--bg);
+            padding: 0 6px;
+            pointer-events: none;
+            transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            line-height: 1;
         }
 
         .m3-field-input,
@@ -147,10 +144,11 @@
             border: 1.5px solid var(--outline-variant);
             border-radius: 12px;
             padding: 0 16px;
-            font-size: 16px;
+            font-size: 15px;
+            font-family: var(--font-body);
             color: var(--on-surface);
             outline: none;
-            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            transition: border .2s, box-shadow .2s;
             box-sizing: border-box;
             appearance: none;
             -webkit-appearance: none;
@@ -158,32 +156,50 @@
 
         .m3-field-input:focus,
         .m3-field-select:focus {
-            border-color: var(--secondary);
+            border-color: var(--primary, #10B981);
             border-width: 2px;
         }
 
-        .m3-field-label {
-            position: absolute;
-            left: 12px;
-            top: 18px;
-            padding: 0 4px;
-            font-size: 16px;
-            color: var(--on-surface-variant);
-            pointer-events: none;
-            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-            background: transparent;
+        /* Material 3 Expressive Floating State */
+        .m3-field-input:focus+label,
+        .m3-field-input:focus+.m3-field-label,
+        .m3-field-input:not(:placeholder-shown)+label,
+        .m3-field-input:not(:placeholder-shown)+.m3-field-label,
+        .m3-field-select:focus+label,
+        .m3-field-select:focus+.m3-field-label,
+        .m3-field-select:not([value=""])+label,
+        .m3-field-select:not([value=""])+.m3-field-label,
+        .m3-field-select.has-value+label,
+        .m3-field-select.has-value+.m3-field-label {
+            top: 0;
+            transform: translateY(-50%) scale(0.85);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary, #10B981);
+            background: var(--bg);
         }
 
-        .m3-field-input:focus+.m3-field-label,
-        .m3-field-input:not(:placeholder-shown)+.m3-field-label,
-        .m3-field-select:focus+.m3-field-label,
-        .m3-field-select:not([value=""])+.m3-field-label {
-            top: -10px;
-            left: 12px;
-            font-size: 12px;
+        .m3-field-select+label,
+        .m3-field-select+.m3-field-label {
+            top: 0;
+            transform: translateY(-50%) scale(0.85);
+            font-size: 14px;
             font-weight: 700;
-            color: var(--secondary);
-            background: var(--bg);
+        }
+
+        .m3-field-input:not(:focus):not(:placeholder-shown)+label,
+        .m3-field-input:not(:focus):not(:placeholder-shown)+.m3-field-label,
+        .m3-field-select:not(:focus)+label,
+        .m3-field-select:not(:focus)+.m3-field-label {
+            color: var(--on-surface-variant);
+        }
+
+        .m3-field-select {
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%23857570'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            cursor: pointer;
         }
 
         .m3-field-trailing {
@@ -199,13 +215,20 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            z-index: 15;
+            transition: color .2s, background .2s;
+        }
+
+        .m3-field-trailing:hover {
+            color: var(--primary, #10B981);
+            background: var(--primary-light);
         }
 
         .section-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 36px;
+            margin-bottom: 28px;
             color: var(--on-surface);
         }
 
@@ -248,64 +271,48 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
+        .validation-status {
+            display: block;
+            font-size: 12px;
+            margin-top: 4px;
+            margin-left: 12px;
+            font-weight: 600;
+        }
+
         .btn-save-m3 {
             width: 100%;
-            height: 56px;
-            background: var(--primary);
-            color: white;
-            font-weight: 700;
-            border-radius: 28px;
+            height: 52px;
+            background: var(--primary, #10B981);
+            color: #FFFFFF;
             border: none;
+            border-radius: 16px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            font-size: 17px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
-            margin-top: 12px;
+            gap: 8px;
+            margin-top: 16px;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+            transition: all 0.2s;
         }
 
         .btn-save-m3:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
-            filter: brightness(1.1);
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(16, 185, 129, 0.35);
         }
 
-        .validation-status {
-            font-size: 11px;
-            font-weight: 700;
-            display: block;
-            margin-top: 4px;
-            transition: all 0.3s;
-            height: 16px;
-            margin-left: 4px;
-        }
-
-        /* State color for verified password */
-        .m3-field-container.verified .m3-field-label {
-            color: var(--primary) !important;
-        }
-        
-        .m3-field-container.verified .m3-field-input {
-            border-color: var(--primary);
-        }
-
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .btn-save-m3:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -314,47 +321,55 @@
     <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleSidebar(false)"></div>
 
     <aside id="main-sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();"
-                style="cursor: pointer;">
-                <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
-                <span class="logo-text" style="color: var(--logo-color);">Recipe Pantry</span>
-            </div>
+      <div class="sidebar-header">
+        <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();" style="cursor: pointer;">
+          <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
+          <span class="logo-text">Recipe Pantry</span>
         </div>
-        <div class="sidebar-user-profile active">
-            <div class="user-avatar-m3">
-                <span id="sidebar-user-initials" class="user-initials-m3">..</span>
-            </div>
-            <div class="user-info-m3">
-                <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Cargando...</span>
-            </div>
+      </div>
+      <div class="sidebar-user-profile" onclick="window.location.href='/profile'; window.closeSidebar();" style="cursor: pointer;" title="Editar Perfil">
+        <div class="user-avatar-m3">
+          <span id="sidebar-user-initials" class="user-initials-m3"></span>
         </div>
-        <nav class="sidebar-nav">
-            <a href="/" class="nav-item">
-                <span class="material-symbols-outlined">home</span>
-                <span data-i18n="navRecipes">Recetas</span>
-            </a>
-            <a href="/?view=favorites" class="nav-item">
-                <span class="material-symbols-outlined">star</span>
-                <span data-i18n="navFavorites">Favoritos</span>
-            </a>
-            <a href="/ocr" class="nav-item">
-                <span class="material-symbols-outlined">document_scanner</span>
-                <span data-i18n="navScan">Escanear Receta</span>
-            </a>
-            <a href="/?view=shared" class="nav-item">
-                <span class="material-symbols-outlined">share</span>
-                <span data-i18n="navShared">Compartidas</span>
-            </a>
-            <a href="/?view=help" class="nav-item">
-                <span class="material-symbols-outlined">help</span>
-                <span data-i18n="navHelp">Ayuda</span>
-            </a>
-            <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
-                <span class="material-symbols-outlined">logout</span>
-                <span data-i18n="navLogout">Cerrar Sesión</span>
-            </a>
-        </nav>
+        <div class="user-info-m3">
+          <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/" class="nav-item">
+          <span class="material-symbols-outlined">home</span>
+          <span data-i18n="navRecipes">Recetas</span>
+        </a>
+        <a href="/#favorites" class="nav-item">
+          <span class="material-symbols-outlined">star</span>
+          <span data-i18n="navFavorites">Favoritos</span>
+        </a>
+        <a href="/ocr" class="nav-item">
+          <span class="material-symbols-outlined">document_scanner</span>
+          <span data-i18n="navScan">Escanear Receta</span>
+        </a>
+        <a href="/notas" class="nav-item">
+          <span class="material-symbols-outlined">edit_note</span>
+          <span data-i18n="navNotes">Notas</span>
+        </a>
+        <a href="/#shared" class="nav-item">
+          <span class="material-symbols-outlined">share</span>
+          <span data-i18n="navShared">Compartidas</span>
+        </a>
+        <a href="/#help" class="nav-item">
+          <span class="material-symbols-outlined">help</span>
+          <span data-i18n="navHelp">Ayuda</span>
+        </a>
+        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+          <span class="material-symbols-outlined">logout</span>
+          <span data-i18n="navLogout">Cerrar Sesión</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-icon-m3 sidebar-toggle-btn desktop-only" style="width: 100%; justify-content: flex-start; padding-left: 16px;" onclick="window.toggleSlimSidebar()">
+          <span class="material-symbols-outlined">side_navigation</span>
+        </button>
+      </div>
     </aside>
 
     <main class="m3-main">
@@ -409,7 +424,7 @@
                             </select>
                             <label class="m3-field-label" data-i18n="profilePrefix">Título</label>
                         </div>
-                        <button type="button" id="btn-delete-prefix" class="btn-icon-m3" style="display: none; background: rgba(266,0,0,0.1); color: #ff5252;" onclick="window.profileManager.handleDeletePrefix()" title="Eliminar este prefijo">
+                        <button type="button" id="btn-delete-prefix" class="btn-icon-m3" style="display: none; background: rgba(239,68,68,0.1); color: #EF4444;" onclick="window.profileManager.handleDeletePrefix()" title="Eliminar este prefijo">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
                     </div>
@@ -435,6 +450,7 @@
                             style="opacity: 0.6; cursor: not-allowed;" />
                         <label class="m3-field-label">Email</label>
                     </div>
+
                     <!-- Security -->
                     <div class="section-header clickable" style="margin-top: 32px;"
                         onclick="window.profileManager.toggleSecurity()">
@@ -472,6 +488,39 @@
                         </div>
                     </div>
 
+                    <!-- Offline Storage Section -->
+                    <div class="section-header clickable" style="margin-top: 32px;"
+                        onclick="window.profileManager.toggleOfflineSection()">
+                        <span class="material-symbols-outlined">cloud_download</span>
+                        <h3>Uso Offline y Almacenamiento</h3>
+                        <span id="offline-chevron" class="material-symbols-outlined">expand_more</span>
+                    </div>
+
+                    <div id="offline-content" class="security-content">
+                        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 16px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span class="material-symbols-outlined" style="color: #10B981;">offline_pin</span>
+                                <span style="font-weight: 700; font-size: 14px;">Descarga local (Opcional)</span>
+                            </div>
+                            <p style="font-size: 13px; color: var(--on-surface-variant); margin: 0 0 12px 0; line-height: 1.4;">
+                                Puedes acceder a tus recetas directamente con internet sin necesidad de descargar nada. Si planeas cocinar o viajar sin conexión, puedes descargar todas tus recetas completas a este dispositivo.
+                            </p>
+                            <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;" id="offline-status-text">
+                                Estado: Verificando datos locales...
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button type="button" id="btn-download-offline" onclick="window.profileManager.handleDownloadOffline()" style="padding: 12px 16px; background: #10B981; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+                                    <span>Descargar todas las recetas para offline</span>
+                                </button>
+                                <button type="button" id="btn-clear-offline" onclick="window.profileManager.handleClearOffline()" style="padding: 10px 16px; background: transparent; color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">delete_outline</span>
+                                    <span>Liberar espacio local</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" id="btn-save-profile" class="btn-save-m3">
                         <span class="material-symbols-outlined">check</span>
                         <span data-i18n="profileSaveBtn">Guardar cambios</span>
@@ -483,19 +532,24 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=378"></script>
-    <script src="js/supabase-client.js?v=378"></script>
-    <script src="js/auth.js?v=378"></script>
-    <script src="js/utils.js?v=378"></script>
-    <script src="js/i18n.js?v=378"></script>
-    <script src="js/ui.js?v=378"></script>
-    <script src="js/profile.js?v=378"></script>
+    <script src="js/config.js?v=505"></script>
+    <script src="js/supabase-client.js?v=505"></script>
+    <script src="js/localdb.js?v=505"></script>
+    <script src="js/db.js?v=505"></script>
+    <script src="js/sync-manager.js?v=505"></script>
+    <script src="js/auth.js?v=505"></script>
+    <script src="js/utils.js?v=505"></script>
+    <script src="js/i18n.js?v=505"></script>
+    <script src="js/ui.js?v=505"></script>
+    <script src="js/profile.js?v=505"></script>
+    <script src="js/pwa-install.js?v=505"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
         window.addEventListener('load', () => {
             if (window.updateGlobalUserUI) window.updateGlobalUserUI();
             if (window.setupMobileMenu) window.setupMobileMenu();
+            if (window.initSidebarState) window.initSidebarState();
         });
     </script>
 </body>

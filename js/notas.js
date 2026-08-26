@@ -87,34 +87,56 @@
         // --- List View Methods ---
 
         async initListView() {
-            this.showLoading(true);
             const user = window.authManager.currentUser;
             if (!user) {
                 console.error("No user found in authManager");
-                this.showLoading(false);
                 return;
             }
 
-            console.log('📝 Fetching notes for user:', user.id);
-
+            // ── Mostrar nota guardada INSTANTÁNEAMENTE (sessionStorage) ──
             try {
-                const { data: notes, error } = await window.supabaseClient
-                    .from('notes')
-                    .select('*, note_items(*)')
-                    .eq('user_id', user.auth_user_id || user.id)
-                    .order('is_pinned', { ascending: false })
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                console.log(`✅ Fetched ${notes ? notes.length : 0} notes.`);
-                this.notes = notes || [];
-                this.renderNotesList();
-            } catch (err) {
-                console.error('Error fetching notes:', err);
-                if (window.uiManager) window.uiManager.showToast('Error al cargar las notas.', 'error');
-            } finally {
-                this.showLoading(false);
+                const savedStr = sessionStorage.getItem('__nota_guardada');
+                if (savedStr) {
+                    const saved = JSON.parse(savedStr);
+                    sessionStorage.removeItem('__nota_guardada');
+                    // Pintar lista provisional con esa nota al frente
+                    this.notes = [saved];
+                    this.showLoading(false);
+                    this.renderNotesList();
+                } else {
+                    this.showLoading(true);
+                }
+            } catch (_) {
+                this.showLoading(true);
             }
+
+            // ── Función de carga real desde Supabase ──
+            const fetchNotes = async () => {
+                try {
+                    const { data: notes, error } = await window.supabaseClient
+                        .from('notes')
+                        .select('*, note_items(*)')
+                        .eq('user_id', user.auth_user_id || user.id)
+                        .order('is_pinned', { ascending: false })
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    this.notes = notes || [];
+                    this.renderNotesList();
+                } catch (err) {
+                    console.error('Error fetching notes:', err);
+                    if (window.uiManager) window.uiManager.showToast('Error al cargar las notas.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            };
+
+            await fetchNotes();
+
+            // ── bfcache: re-cargar si el navegador restaura la página desde memoria ──
+            window.addEventListener('pageshow', (e) => {
+                if (e.persisted) fetchNotes();
+            });
 
             // ── Wire up search input ──
             const searchInput = document.querySelector('.notas-search-input');
@@ -123,7 +145,6 @@
                     this.searchQuery = e.target.value.trim().toLowerCase();
                     this.renderNotesList();
                 });
-                // Clear on Escape
                 searchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         searchInput.value = '';
@@ -658,6 +679,30 @@
                 }
 
                 if (window.uiManager) window.uiManager.showToast('Nota guardada ✅', 'success');
+
+                // Guardar en sessionStorage para mostrarla al instante en /notas
+                try {
+                    const preview = {
+                        id: noteId,
+                        title: noteData.title,
+                        type: type,
+                        content: type === 'text' ? (content || '') : '',
+                        note_items: type === 'checklist'
+                            ? this.checklistItems
+                                .filter(i => !i._deleted && i.content.trim() !== '')
+                                .map((item, idx) => ({
+                                    content: item.content,
+                                    is_completed: item.is_completed,
+                                    order_index: idx
+                                }))
+                            : [],
+                        is_pinned: this.currentNote?.is_pinned || false,
+                        color: this.currentNote?.color || null,
+                        updated_at: noteData.updated_at,
+                        created_at: this.currentNote?.created_at || noteData.updated_at
+                    };
+                    sessionStorage.setItem('__nota_guardada', JSON.stringify(preview));
+                } catch (_) {}
 
                 // Redirigir inmediatamente sin delay artificial
                 window.location.href = '/notas';

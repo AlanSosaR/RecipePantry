@@ -321,6 +321,10 @@ class NotificationManager {
                                         style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
                                         🔄 ${btnText}
                                     </button>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.dismissNotification('${n.id}')"
+                                        style="padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:none; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
+                                        ✕
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -331,9 +335,10 @@ class NotificationManager {
             if (n.type === 'offline_sync') {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const msg = isEn 
-                    ? 'Download your recipes to use them without internet.' 
-                    : 'Descarga tus recetas para usarlas sin internet.';
+                    ? 'Download your recipes to use them without internet (Optional).' 
+                    : 'Descarga tus recetas para usarlas sin internet (Opcional).';
                 const btnText = isEn ? 'Download Now' : 'Descargar ahora';
+                const dismissText = isEn ? 'Dismiss' : 'Omitir';
                 return `
                     <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
@@ -350,6 +355,10 @@ class NotificationManager {
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleSyncDownload('${n.id}')"
                                         style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
                                         ⚡ ${btnText}
+                                    </button>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.dismissNotification('${n.id}')"
+                                        style="padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
+                                        ${dismissText}
                                     </button>
                                 </div>
                             </div>
@@ -414,6 +423,7 @@ class NotificationManager {
 
     handleUpdateApp() {
         console.log('🔄 [Notifications] Intentando actualizar app...', this.updateWorker);
+        window._manualAppUpdateTriggered = true;
         
         if (this.updateWorker && this.updateWorker.state !== 'redundant') {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
@@ -443,6 +453,15 @@ class NotificationManager {
             this.renderMenu();
             this.menu.classList.add('hidden');
         }
+    }
+
+    dismissNotification(notificationId) {
+        if (notificationId && notificationId.startsWith('sync-')) {
+            localStorage.setItem('recipepantry_offline_prompt_dismissed', 'true');
+        }
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        this.updateBadge();
+        this.renderMenu();
     }
 
     /**

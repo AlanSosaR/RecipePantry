@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="v487">
+<html lang="es" data-app-version="505">
 
 <head>
     <meta charset="utf-8" />
@@ -24,34 +24,6 @@
     </script>
     <title data-i18n="ocrTitle">Escanear Receta - Recipe Pantry</title>
 
-    <!-- NUCLEAR CACHE PURGE v473 (Consolidated) -->
-    <script>
-        (async function() {
-            const VERSION = 'v501';
-            if (localStorage.getItem('last_cache_purge') !== VERSION) {
-                console.log('☢️ NUCLEAR PURGE v501...');
-                if ('serviceWorker' in navigator) {
-                    const regs = await navigator.serviceWorker.getRegistrations();
-                    for (let r of regs) await r.unregister();
-                }
-                if ('caches' in window) {
-                    const keys = await caches.keys();
-                    for (let k of keys) await caches.delete(k);
-                }
-                
-                // v474-fix: Limpiar resultados de IA estancados
-                Object.keys(localStorage).forEach(key => {
-                    if (key.startsWith('gemini_extraction_cache_')) {
-                        localStorage.removeItem(key);
-                    }
-                });
-
-                localStorage.setItem('last_cache_purge', VERSION);
-                localStorage.setItem('recipe_app_version_ocr', VERSION);
-                window.location.reload(true);
-            }
-        })();
-    </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
     <!-- CONSOLE CLEANER v482 -->
@@ -85,8 +57,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=482">
-    <link rel="stylesheet" href="css/components.css?v=482">
+    <link rel="stylesheet" href="css/styles.css?v=505">
+    <link rel="stylesheet" href="css/components.css?v=505">
     <!-- ocr.css removed because it was a 404 and styles are inline -->
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
@@ -94,25 +66,25 @@
     <script async src="https://docs.opencv.org/master/opencv.js" type="text/javascript"></script>
 
     <!-- Recipe Pantry v485 - OCR Module -->
-    <script defer src="js/scanner/documentDetection.js?v=453"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=453"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=453"></script>
-    <script defer src="js/scanner/cameraController.js?v=453"></script>
+    <script defer src="js/scanner/documentDetection.js?v=505"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=505"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=505"></script>
+    <script defer src="js/scanner/cameraController.js?v=505"></script>
 
     <!-- CORE SCRIPTS v500-STABLE (Purga de Caché Nuclear Re-Activa) -->
     <meta name="version-id" content="v500">
-    <script src="js/config.js?v=500"></script>
-    <script src="js/supabase-client.js?v=500"></script>
-    <script src="js/utils.js?v=500"></script>
-    <script src="js/i18n.js?v=500"></script>
-    <script src="js/auth.js?v=500"></script>
-    <script src="js/localdb.js?v=500"></script>
-    <script src="js/db.js?v=500"></script>
-    <script src="js/ui.js?v=500"></script>
-    <script src="js/ocr-processor.js?v=500"></script>
-    <script src="js/ocr.js?v=500"></script>
-    <script type="module" src="js/url-importer.js?v=500"></script>
-    <script src="js/sw-register.js?v=500"></script>
+    <script src="js/config.js?v=505"></script>
+    <script src="js/supabase-client.js?v=505"></script>
+    <script src="js/utils.js?v=505"></script>
+    <script src="js/i18n.js?v=505"></script>
+    <script src="js/auth.js?v=505"></script>
+    <script src="js/localdb.js?v=505"></script>
+    <script src="js/db.js?v=505"></script>
+    <script src="js/ui.js?v=505"></script>
+    <script src="js/ocr-processor.js?v=505"></script>
+    <script src="js/ocr.js?v=505"></script>
+    <script type="module" src="js/url-importer.js?v=505"></script>
+    <script src="js/sw-register.js?v=505"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -1395,7 +1367,7 @@
                 
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'assets/link.svg?v=488';
+                    previewImg.src = 'assets/link.svg?v=505';
                     previewImg.style.display = 'block';
                 }
                 if (typeof goToStep === 'function') goToStep(2);

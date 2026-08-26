@@ -1,5 +1,4 @@
 {
-  "version": "stable_v444",
-  "build": "disarmed",
-  "force_clear": false
+  "version": "505",
+  "build": "v505"
 }

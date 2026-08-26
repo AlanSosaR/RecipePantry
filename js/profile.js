@@ -189,6 +189,7 @@ class ProfileManager {
 
         if (this.fields.prefix) {
             this.fields.prefix.value = prefix;
+            if (prefix) this.fields.prefix.classList.add('has-value');
             this.updateDeleteButtonVisibility();
         }
 
@@ -426,6 +427,65 @@ class ProfileManager {
             if (chevron) {
                 chevron.textContent = content.classList.contains('expanded') ? 'expand_less' : 'expand_more';
             }
+        }
+    }
+
+    toggleOfflineSection() {
+        const content = document.getElementById('offline-content');
+        const chevron = document.getElementById('offline-chevron');
+        if (content) {
+            content.classList.toggle('expanded');
+            if (chevron) {
+                chevron.textContent = content.classList.contains('expanded') ? 'expand_less' : 'expand_more';
+            }
+            if (content.classList.contains('expanded')) {
+                this.loadOfflineStatus();
+            }
+        }
+    }
+
+    async loadOfflineStatus() {
+        const statusEl = document.getElementById('offline-status-text');
+        if (!statusEl) return;
+        try {
+            if (window.localDB) {
+                await window.localDB.init();
+                const fullRecipes = await window.localDB.getAll('recipes_full');
+                const completeCount = (fullRecipes || []).filter(r => Array.isArray(r.ingredients)).length;
+                const indexRecipes = await window.localDB.getAll('recipes_index');
+                const totalIndex = (indexRecipes || []).length;
+                statusEl.innerHTML = `Disponibles offline: <strong style="color: #10B981;">${completeCount}</strong> de ${totalIndex || completeCount} recetas completas.`;
+            } else {
+                statusEl.textContent = 'Almacenamiento local listo.';
+            }
+        } catch (e) {
+            statusEl.textContent = 'Almacenamiento local disponible.';
+        }
+    }
+
+    async handleDownloadOffline() {
+        if (!window.syncManager) {
+            window.utils?.showToast?.('Sincronizador no disponible', 'error');
+            return;
+        }
+        window.utils?.showToast?.('Iniciando descarga de recetas...', 'info');
+        await window.syncManager.preloadOfflineRecipes({ silent: false });
+        await this.loadOfflineStatus();
+    }
+
+    async handleClearOffline() {
+        if (!confirm('¿Deseas liberar el espacio de recetas descargadas en este dispositivo? (Tus recetas seguirán intactas en tu cuenta en la nube)')) {
+            return;
+        }
+        try {
+            if (window.localDB) {
+                await window.localDB.clear('recipes_full');
+                localStorage.removeItem('recipepantry_initial_sync_completed');
+                window.utils?.showToast?.('Espacio local liberado', 'success');
+                await this.loadOfflineStatus();
+            }
+        } catch (err) {
+            window.utils?.showToast?.('Error al limpiar caché', 'error');
         }
     }
 }

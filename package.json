@@ -4,7 +4,7 @@
   "description": "Recipe Scanner with Edge API and CDN Caching",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "node dev-server.cjs",
     "deploy": "vercel --prod"
   },
   "dependencies": {

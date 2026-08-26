@@ -51,6 +51,11 @@ class SyncManager {
     showInitialSyncNotification() {
         if (this.isPreloading) return;
         
+        // No mostrar si el usuario ya le dio a Omitir
+        if (localStorage.getItem('recipepantry_offline_prompt_dismissed') === 'true') {
+            return;
+        }
+
         // Solo mostrar si el usuario está logueado
         if (!window.authManager?.currentUser) return;
 

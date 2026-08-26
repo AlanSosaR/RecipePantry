@@ -65,6 +65,8 @@ class RecipeDetailManager {
             }
 
             this.currentRecipe = result.recipe;
+            this.currentRecipe.ingredients = this.currentRecipe.ingredients || [];
+            this.currentRecipe.steps = this.currentRecipe.steps || this.currentRecipe.preparation_steps || [];
             this.baseServings = this.currentRecipe.servings || 2;
             this.currentPortions = this.baseServings;
             this.currentScale = 1;
@@ -108,9 +110,9 @@ class RecipeDetailManager {
 
             this.renderRecipe();
 
-            // Si es parcial, mostrar aviso
-            if (this.currentRecipe.isPartial) {
-                const bannerMsg = window.i18n ? window.i18n.t('limitedData') : 'Datos limitados - Conectarse para ver receta completa';
+            // Solo mostrar aviso si realmente estamos offline y los datos son parciales
+            if (this.currentRecipe.isPartial && !navigator.onLine) {
+                const bannerMsg = window.i18n ? window.i18n.t('limitedData') : 'Modo sin conexión: Datos limitados.';
                 window.showToast?.(bannerMsg, 'info');
             }
 

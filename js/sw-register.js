@@ -1,5 +1,4 @@
-const SW_PATH = '/sw.js';
-const APP_VERSION_ID = 'v489';
+const APP_VERSION_ID = 'v505';
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -9,36 +8,22 @@ async function registerSW() {
         const registration = await navigator.serviceWorker.register(SW_PATH);
         console.log('[SW] Registrado (v' + APP_VERSION_ID + '):', registration.scope);
 
-        // Forzar chequeo inmediatamente al cargar
-        registration.update();
-
-        // Chequear cada vez que la página vuelve a estar visible
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                registration.update();
-            }
-        });
-
-        // Si hay una actualización esperando, informar al usuario
+        // Si hay una actualización esperando y el usuario la activó
         if (registration.waiting) {
             console.log('[SW] Worker en espera detectado al inicio.');
-            notifyUpdateReady(registration.waiting);
         }
 
         // Si se encuentra una actualización
         registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
+            if (!newWorker) return;
             console.log('[SW] Nueva actualización detectada. Estado inicial:', newWorker.state);
             
             newWorker.addEventListener('statechange', () => {
                 console.log('[SW] Cambio de estado del worker:', newWorker.state);
-                if (newWorker.state === 'installed') {
-                    if (navigator.serviceWorker.controller) {
-                        console.log('[SW] Nueva versión lista (Update).');
-                        notifyUpdateReady(newWorker);
-                    } else {
-                        console.log('[SW] Instalación inicial completada.');
-                    }
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[SW] Nueva versión lista en segundo plano.');
+                    notifyUpdateReady(newWorker);
                 }
             });
         });
@@ -47,12 +32,13 @@ async function registerSW() {
         console.error('[SW] Error:', error);
     }
 
-    // 2. Recarga automática cuando el nuevo SW tome el control
+    // 2. Recarga SOLO cuando el usuario presione el botón de actualizar
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
+        if (window._manualAppUpdateTriggered && !refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
     });
 }
 
