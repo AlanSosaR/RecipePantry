@@ -103,6 +103,76 @@ window.showToast = (message, type = 'info') => {
     }, 3000);
 };
 
+/**
+ * Muestra un Snackbar / Toast interactivo con botones de acción (Confirmar / Cancelar)
+ */
+window.showActionToast = ({
+    message,
+    actionText = 'Confirmar',
+    cancelText = 'Cancelar',
+    type = 'info',
+    actionColor = '#EF4444',
+    onConfirm = () => {},
+    onCancel = () => {}
+}) => {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} toast-actionable`;
+    toast.style.cssText = `
+        max-width: 480px;
+        width: calc(100vw - 32px);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #FFFFFF;
+        border-radius: 16px;
+        padding: 12px 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.08);
+    `;
+    
+    toast.innerHTML = `
+        <span class="material-symbols-outlined" style="color: ${actionColor}; font-size: 22px; flex-shrink: 0;">
+            ${type === 'error' ? 'delete_sweep' : type === 'success' ? 'check_circle' : 'info'}
+        </span>
+        <span class="toast-message" style="font-size: 13px; font-weight: 600; color: #1F2937; flex: 1; line-height: 1.4;">${message}</span>
+        <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+            <button type="button" class="toast-btn-cancel" style="background: transparent; border: none; font-size: 12px; font-weight: 600; color: #6B7280; cursor: pointer; padding: 6px 10px; border-radius: 8px;">
+                ${cancelText}
+            </button>
+            <button type="button" class="toast-btn-action" style="background: ${actionColor}; color: white; border: none; font-size: 12px; font-weight: 700; cursor: pointer; padding: 6px 14px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                ${actionText}
+            </button>
+        </div>
+    `;
+
+    const closeToast = () => {
+        toast.classList.add('slide-out');
+        setTimeout(() => toast.remove(), 300);
+    };
+
+    toast.querySelector('.toast-btn-action').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        closeToast();
+        await onConfirm();
+    });
+
+    toast.querySelector('.toast-btn-cancel').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeToast();
+        onCancel();
+    });
+
+    toastContainer.appendChild(toast);
+};
+
 
 /**
  * Maneja el estado de carga de un botón

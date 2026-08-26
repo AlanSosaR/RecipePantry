@@ -473,7 +473,33 @@ class ProfileManager {
         await this.loadOfflineStatus();
     }
 
-    async handleClearOffline() {
+    handleClearOffline() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const confirmMsg = isEn 
+            ? 'Free up offline storage on this device?' 
+            : '¿Liberar el espacio de recetas en este dispositivo?';
+        const actionBtn = isEn ? 'Liberar' : 'Liberar';
+        const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
+
+        const triggerAction = window.showActionToast || window.utils?.showActionToast;
+
+        if (triggerAction) {
+            triggerAction({
+                message: confirmMsg,
+                actionText: actionBtn,
+                cancelText: cancelBtn,
+                actionColor: '#EF4444',
+                type: 'error',
+                onConfirm: async () => {
+                    await this._executeClearOffline();
+                }
+            });
+        } else {
+            this._executeClearOffline();
+        }
+    }
+
+    async _executeClearOffline() {
         try {
             if (window.localDB) {
                 await window.localDB.clear('recipes_full');
