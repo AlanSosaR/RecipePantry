@@ -474,18 +474,31 @@ class ProfileManager {
     }
 
     async handleClearOffline() {
-        if (!confirm('¿Deseas liberar el espacio de recetas descargadas en este dispositivo? (Tus recetas seguirán intactas en tu cuenta en la nube)')) {
-            return;
-        }
         try {
             if (window.localDB) {
                 await window.localDB.clear('recipes_full');
                 localStorage.removeItem('recipepantry_initial_sync_completed');
-                window.utils?.showToast?.('Espacio local liberado', 'success');
+                localStorage.removeItem('recipepantry_offline_prompt_dismissed');
+                
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const msg = isEn ? 'Local storage freed successfully' : 'Espacio local liberado con éxito';
+                if (window.utils && window.utils.showToast) {
+                    window.utils.showToast(msg, 'success');
+                } else if (window.showToast) {
+                    window.showToast(msg, 'success');
+                }
+                
                 await this.loadOfflineStatus();
             }
         } catch (err) {
-            window.utils?.showToast?.('Error al limpiar caché', 'error');
+            console.error('Error al limpiar caché:', err);
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const errorMsg = isEn ? 'Error clearing local storage' : 'Error al liberar espacio local';
+            if (window.utils && window.utils.showToast) {
+                window.utils.showToast(errorMsg, 'error');
+            } else if (window.showToast) {
+                window.showToast(errorMsg, 'error');
+            }
         }
     }
 }
