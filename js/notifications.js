@@ -244,10 +244,142 @@ class NotificationManager {
             this.renderMenu();
         }
 
-        // Mostrar un Toast discreto
-        if (window.utils && window.utils.showToast) {
-            window.utils.showToast(isEn ? '🔔 Access your recipes offline!' : '🔔 ¡Accede a tus recetas sin conexión!', 'info', 5000);
+        // Mostrar el aviso directamente debajo de la campana una sola vez al ingresar
+        if (!sessionStorage.getItem('pantry_offline_toast_shown')) {
+            sessionStorage.setItem('pantry_offline_toast_shown', 'true');
+            const title = isEn ? 'Access recipes offline' : '¡Accede a tus recetas sin conexión!';
+            const desc = isEn ? 'Tap the bell to download or manage them.' : 'Toca la campana para descargarlas u omitir.';
+            setTimeout(() => this.showBellTooltip(title, desc), 1000);
         }
+    }
+
+    showBellTooltip(title, subtitle) {
+        if (document.getElementById('bell-tooltip-offline')) return;
+        const bellWrapper = document.querySelector('.notifications-wrapper');
+        const bellBtn = document.getElementById('btn-notifications');
+        if (!bellWrapper || !bellBtn) return;
+
+        // Inyectar estilos una sola vez
+        if (!document.getElementById('bell-tooltip-styles')) {
+            const style = document.createElement('style');
+            style.id = 'bell-tooltip-styles';
+            style.textContent = `
+                .bell-offline-tooltip {
+                    position: absolute;
+                    top: calc(100% + 12px);
+                    right: -6px;
+                    z-index: 99999;
+                    background: #FFFFFF;
+                    border: 1.5px solid rgba(16, 185, 129, 0.35);
+                    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(16, 185, 129, 0.15);
+                    border-radius: 18px;
+                    padding: 12px 14px;
+                    min-width: 250px;
+                    max-width: 290px;
+                    cursor: pointer;
+                    animation: bellTooltipFadeIn 0.3s cubic-bezier(0.2, 0, 0, 1);
+                    box-sizing: border-box;
+                }
+                @keyframes bellTooltipFadeIn {
+                    from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                .bell-offline-tooltip.slide-out {
+                    opacity: 0;
+                    transform: translateY(-6px) scale(0.95);
+                    transition: all 0.25s ease;
+                }
+                .bell-tooltip-arrow {
+                    position: absolute;
+                    top: -7px;
+                    right: 18px;
+                    width: 12px;
+                    height: 12px;
+                    background: #FFFFFF;
+                    border-top: 1.5px solid rgba(16, 185, 129, 0.35);
+                    border-left: 1.5px solid rgba(16, 185, 129, 0.35);
+                    transform: rotate(45deg);
+                }
+                .bell-tooltip-body {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+                .bell-tooltip-icon {
+                    color: #10B981;
+                    font-size: 22px;
+                    flex-shrink: 0;
+                    margin-top: 1px;
+                }
+                .bell-tooltip-text {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .bell-tooltip-title {
+                    font-size: 12.5px;
+                    font-weight: 700;
+                    color: #111827;
+                    display: block;
+                    line-height: 1.3;
+                }
+                .bell-tooltip-desc {
+                    font-size: 11px;
+                    color: #6B7280;
+                    margin-top: 2px;
+                    display: block;
+                    line-height: 1.35;
+                }
+                .bell-tooltip-close {
+                    background: transparent;
+                    border: none;
+                    color: #9CA3AF;
+                    cursor: pointer;
+                    font-size: 14px;
+                    padding: 0 0 0 4px;
+                    line-height: 1;
+                }
+                .bell-tooltip-close:hover {
+                    color: #111827;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const tooltip = document.createElement('div');
+        tooltip.id = 'bell-tooltip-offline';
+        tooltip.className = 'bell-offline-tooltip';
+        tooltip.innerHTML = `
+            <div class="bell-tooltip-arrow"></div>
+            <div class="bell-tooltip-body">
+                <span class="material-symbols-outlined bell-tooltip-icon">download_for_offline</span>
+                <div class="bell-tooltip-text">
+                    <span class="bell-tooltip-title">${title}</span>
+                    <span class="bell-tooltip-desc">${subtitle}</span>
+                </div>
+                <button type="button" class="bell-tooltip-close" title="Cerrar">✕</button>
+            </div>
+        `;
+
+        // Al tocar la burbuja, abre el menú de notificaciones
+        tooltip.addEventListener('click', (e) => {
+            if (e.target.classList.contains('bell-tooltip-close')) {
+                tooltip.classList.add('slide-out');
+                setTimeout(() => tooltip.remove(), 250);
+                return;
+            }
+            tooltip.remove();
+            this.toggleMenu(e);
+        });
+
+        bellWrapper.appendChild(tooltip);
+
+        // Auto ocultar después de 6 segundos
+        setTimeout(() => {
+            if (document.getElementById('bell-tooltip-offline')) {
+                tooltip.classList.add('slide-out');
+                setTimeout(() => tooltip.remove(), 250);
+            }
+        }, 6000);
     }
 
     toggleMenu(event) {

@@ -468,7 +468,6 @@ class ProfileManager {
             window.utils?.showToast?.('Sincronizador no disponible', 'error');
             return;
         }
-        window.utils?.showToast?.('Iniciando descarga de recetas...', 'info');
         await window.syncManager.preloadOfflineRecipes({ silent: false });
         await this.loadOfflineStatus();
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="507">
+<html lang="es" data-app-version="514">
 
 <head>
     <meta charset="UTF-8">
@@ -42,8 +42,8 @@
         rel="stylesheet" />
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=507">
-    <link rel="stylesheet" href="css/components.css?v=507">
+    <link rel="stylesheet" href="css/styles.css?v=514">
+    <link rel="stylesheet" href="css/components.css?v=514">
 
     <style>
         :root {
@@ -856,9 +856,11 @@
             </div>
         </div>
 
-        <div class="sidebar-user-profile">
-            <div class="user-avatar-m3">
-                <span id="sidebar-user-initials" class="user-initials-m3">CH</span>
+        <div class="sidebar-user-profile" onclick="window.location.href='/profile'; window.closeSidebar();" style="cursor: pointer;" title="Editar Perfil">
+            <div class="user-avatar-ring">
+                <div class="user-avatar-m3">
+                    <span id="sidebar-user-initials" class="user-initials-m3">CH</span>
+                </div>
             </div>
             <div class="user-info-m3">
                 <span id="sidebar-user-greeting" class="user-greeting" data-i18n="chefGreeting">Chef</span>
@@ -1002,18 +1004,18 @@
 
     <!-- Scripts (classic, NO type=module) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=507"></script>
-    <script src="js/supabase-client.js?v=507"></script>
-    <script src="js/auth.js?v=507"></script>
-    <script src="js/localdb.js?v=507"></script>
-    <script src="js/sync-manager.js?v=507"></script>
-    <script src="js/db.js?v=507"></script>
-    <script src="js/utils.js?v=507"></script>
-    <script src="js/ui.js?v=507"></script>
-    <script src="js/i18n.js?v=507"></script>
-    <script src="js/recipe-form.js?v=507"></script>
-    <script src="js/sw-register.js?v=507"></script>
-    <script src="js/pwa-install.js?v=507"></script>
+    <script src="js/config.js?v=514"></script>
+    <script src="js/supabase-client.js?v=514"></script>
+    <script src="js/auth.js?v=514"></script>
+    <script src="js/localdb.js?v=514"></script>
+    <script src="js/sync-manager.js?v=514"></script>
+    <script src="js/db.js?v=514"></script>
+    <script src="js/utils.js?v=514"></script>
+    <script src="js/ui.js?v=514"></script>
+    <script src="js/i18n.js?v=514"></script>
+    <script src="js/recipe-form.js?v=514"></script>
+    <script src="js/sw-register.js?v=514"></script>
+    <script src="js/pwa-install.js?v=514"></script>
 
     <script>
         (async () => {
