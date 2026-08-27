@@ -3,7 +3,17 @@
 // que se carga antes que este script. Solo creamos el cliente aquí.
 
 const { createClient } = window.supabase;
-window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        // Evita que navigator.locks se congele en navegadores móviles o contextos HTTP
+        lock: async (name, acquireTimeout, fn) => {
+            return await fn();
+        }
+    }
+});
 
 window.APP_SETTINGS = {};
 

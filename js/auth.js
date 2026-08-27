@@ -193,8 +193,8 @@ class AuthManager {
     async signUp(email, password, firstName, lastName) {
         try {
             await this.clearLocalCache();
-            // 1. Crear usuario en auth
-            const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+            // 1. Crear usuario en auth con timeout de seguridad
+            const signUpPromise = window.supabaseClient.auth.signUp({
                 email,
                 password,
                 options: {
@@ -204,6 +204,11 @@ class AuthManager {
                     }
                 }
             });
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Tiempo de espera agotado. Revisa tu conexión de red.')), 12000)
+            );
+
+            const { data: authData, error: authError } = await Promise.race([signUpPromise, timeoutPromise]);
 
             if (authError) throw authError;
             if (!authData.user) throw new Error('No se pudo crear el usuario de autenticación');
@@ -212,8 +217,6 @@ class AuthManager {
             const profileCreated = await this.createProfile(authData.user);
 
             if (!profileCreated) {
-                // Si falla la creación del perfil pero el usuario de auth ya existe, 
-                // el usuario podrá intentar loguearse y el signIn manejará la creación del perfil.
                 console.warn('Usuario de auth creado pero falló el perfil inicial. Se reintentará en el login.');
             }
 
@@ -229,31 +232,59 @@ class AuthManager {
     async signIn(email, password) {
         try {
             await this.clearLocalCache();
-            const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+
+            const signInPromise = window.supabaseClient.auth.signInWithPassword({
                 email,
                 password
             });
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Tiempo de espera agotado al conectar con el servidor. Revisa tu conexión a internet.')), 12000)
+            );
+
+            const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
 
             if (error) throw error;
 
-            // Obtener datos de usuario
-            const { data: userData, error: userError } = await window.supabaseClient
+            // Obtener datos de usuario con timeout de protección
+            const userFetchPromise = window.supabaseClient
                 .from('users')
                 .select('*')
                 .eq('auth_user_id', data.user.id)
                 .single();
+            const userTimeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT_USER_FETCH')), 8000)
+            );
 
-            if (userError && userError.code === 'PGRST116') {
-                console.log('Perfil no encontrado en login, creando uno nuevo...');
-                const profileCreated = await this.createProfile(data.user);
-                if (!profileCreated) throw new Error('No se pudo crear el perfil de usuario');
-                return { success: true, user: this.currentUser };
-            } else if (userError) {
-                throw userError;
+            let userData = null;
+            try {
+                const { data: uData, error: userError } = await Promise.race([userFetchPromise, userTimeoutPromise]);
+                if (userError && userError.code === 'PGRST116') {
+                    console.log('Perfil no encontrado en login, creando uno nuevo...');
+                    const profileCreated = await this.createProfile(data.user);
+                    if (!profileCreated) throw new Error('No se pudo crear el perfil de usuario');
+                    return { success: true, user: this.currentUser };
+                } else if (userError) {
+                    console.warn('Advertencia cargando perfil:', userError);
+                } else {
+                    userData = uData;
+                }
+            } catch (uErr) {
+                console.warn('Aviso: continuando con perfil básico de sesión:', uErr);
+            }
+
+            if (!userData) {
+                userData = {
+                    auth_user_id: data.user.id,
+                    email: data.user.email,
+                    first_name: data.user.user_metadata?.first_name || data.user.email.split('@')[0],
+                    last_name: data.user.user_metadata?.last_name || '',
+                    is_partial: true
+                };
             }
 
             this.currentUser = userData;
             this.session = data.session;
+            localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
 
             console.log('✅ Login exitoso:', email);
             return { success: true, user: userData };
