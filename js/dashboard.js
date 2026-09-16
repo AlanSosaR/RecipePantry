@@ -2053,18 +2053,12 @@ class DashboardManager {
                             <span class="material-symbols-outlined">shield_with_heart</span>
                         </div>
                         <div>
-                            <h3>${isEn ? 'Filter based on your saved recipes for Safe Diner (Multiple Allergies)' : 'Filtro en base a tus recetas guardadas para Comensal Seguro (Alergias Múltiples)'}</h3>
+                            <h3>${isEn ? 'Filter based on your saved recipes for (Multiple Allergies)' : 'Filtro en base a tus recetas guardadas sobre (Alergias Múltiples)'}</h3>
                             <p>${isEn 
                                 ? 'Select diner allergies to inspect ingredients across recipes and show only 100% safe options.'
                                 : 'Marca las alergias para examinar ingredientes y mostrar únicamente platos 100% libres de dichos alérgenos.'}</p>
                         </div>
                     </div>
-                    ${this.selectedSafeExclusions.size > 0 ? `
-                        <button class="btn-clear-exclusions" onclick="window.dashboard.clearSafeExclusions()">
-                            <span class="material-symbols-outlined">restart_alt</span>
-                            <span>${isEn ? `Clear (${this.selectedSafeExclusions.size})` : `Limpiar (${this.selectedSafeExclusions.size})`}</span>
-                        </button>
-                    ` : ''}
                 </div>
 
                 <!-- Barra de Split Buttons: Filtro de Alergias (en lista) + Recetas Seguras + Recetas Excluidas -->
@@ -2188,23 +2182,31 @@ class DashboardManager {
                     ` : ''}
                 </div>
 
-                <!-- Píldoras de exclusión activa si hay seleccionadas, o prompt de ayuda -->
+                <!-- Píldoras de exclusión activa con botón Limpiar a la par -->
                 ${this.selectedSafeExclusions.size > 0 ? `
                     <div class="active-exclusions-pills-row">
-                        <span class="active-exclusions-label">
-                            <span class="material-symbols-outlined" style="font-size: 15px; color: #DC2626;">block</span>
-                            <span>${isEn ? 'Excluding:' : 'Excluyendo:'}</span>
-                        </span>
-                        ${Array.from(this.selectedSafeExclusions).map(id => {
-                            const a = allergens.find(x => x.id === id);
-                            const name = a ? a.name_en : id;
-                            return `
-                                <button class="active-exclusion-pill" onclick="window.dashboard.toggleSafeAllergenExclusion('${id}', event)" title="${isEn ? 'Remove exclusion' : 'Quitar exclusión'}">
-                                    <span>${name}</span>
-                                    <span class="material-symbols-outlined pill-remove-icon">close</span>
-                                </button>
-                            `;
-                        }).join('')}
+                        <div class="active-exclusions-left">
+                            <span class="active-exclusions-label">
+                                <span class="material-symbols-outlined">do_not_disturb_on</span>
+                                <span>${isEn ? 'Excluding recipes with:' : 'Excluyendo recetas con:'}</span>
+                            </span>
+                            <div class="active-exclusions-pills-list">
+                                ${Array.from(this.selectedSafeExclusions).map(id => {
+                                    const a = allergens.find(x => x.id === id);
+                                    const name = a ? a.name_en : id;
+                                    return `
+                                        <button class="active-exclusion-pill" onclick="window.dashboard.toggleSafeAllergenExclusion('${id}', event)" title="${isEn ? 'Remove from filter' : 'Quitar del filtro'}">
+                                            <span>${name}</span>
+                                            <span class="material-symbols-outlined pill-remove-icon">close</span>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <button class="btn-clear-exclusions-m3" onclick="window.dashboard.clearSafeExclusions()" type="button" title="${isEn ? 'Clear all filters' : 'Limpiar filtro'}">
+                            <span class="material-symbols-outlined">restart_alt</span>
+                            <span>${isEn ? `Clear (${this.selectedSafeExclusions.size})` : `Limpiar (${this.selectedSafeExclusions.size})`}</span>
+                        </button>
                     </div>
 
                     <!-- Recetas Seguras Directamente Visibles en la Página -->

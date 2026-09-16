@@ -4133,34 +4133,18 @@ html[data-auth-likely="true"] #dashboard-app {
     overflow-y: auto;
 }
 
-/* Premium Material 3 Expressive Scrollbar for main content */
+/* Main content scrollbar hidden for PC and Mobile */
+.main-content,
+.main-content-scroll {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
 .main-content::-webkit-scrollbar,
 .main-content-scroll::-webkit-scrollbar {
-    width: 8px;
-}
-
-.main-content::-webkit-scrollbar-track,
-.main-content-scroll::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.main-content::-webkit-scrollbar-thumb,
-.main-content-scroll::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-    border: 2px solid transparent;
-    background-clip: content-box;
-    border-radius: 100px;
-    transition: background 0.2s;
-}
-
-.main-content:hover::-webkit-scrollbar-thumb,
-.main-content-scroll:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.25);
-}
-
-.main-content::-webkit-scrollbar-thumb:hover,
-.main-content-scroll::-webkit-scrollbar-thumb:hover {
-    background-color: var(--primary) !important;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 /* Sidebar Sequence Fixes */
@@ -5090,6 +5074,31 @@ html[data-auth-likely="true"] #dashboard-app {
 
     75% {
         transform: rotate(2deg);
+    }
+}
+
+/* Pulso continuo en la campana cuando hay una actualización disponible */
+.bell-update-pulse {
+    animation: bell-update-pulse 2s ease-in-out infinite;
+    color: #10B981 !important;
+}
+
+@keyframes bell-update-pulse {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 0px #10B981);
+    }
+    25% {
+        transform: scale(1.15) rotate(12deg);
+        filter: drop-shadow(0 0 6px #10B981);
+    }
+    50% {
+        transform: scale(1.1) rotate(-8deg);
+        filter: drop-shadow(0 0 8px #10B981);
+    }
+    75% {
+        transform: scale(1.05) rotate(4deg);
+        filter: drop-shadow(0 0 4px #10B981);
     }
 }
 
@@ -6451,23 +6460,16 @@ input:checked~.m3-ingredient-text {
     }
 }
 
-/* Custom Thin Scrollbar */
+/* Custom Scrollbar Hidden */
+.recipes-grid {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
 .recipes-grid::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.recipes-grid::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.recipes-grid::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-}
-
-.recipes-grid::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 
@@ -8250,18 +8252,43 @@ input:checked~.m3-ingredient-text {
 .active-exclusions-pills-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 12px;
     flex-wrap: wrap;
-    padding: 6px 0 0 0;
+    padding: 8px 14px;
+    background: #FEF2F2;
+    border: 1.5px solid #FEE2E2;
+    border-radius: 16px;
+    margin-top: 6px;
+}
+
+.active-exclusions-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.active-exclusions-pills-list {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .active-exclusions-label {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 12.5px;
+    gap: 6px;
+    font-size: 13px;
     font-weight: 700;
-    color: #475569;
+    color: #991B1B;
+}
+
+.active-exclusions-label .material-symbols-outlined {
+    font-size: 17px;
+    color: #DC2626;
 }
 
 .active-exclusion-pill {
@@ -8269,8 +8296,8 @@ input:checked~.m3-ingredient-text {
     align-items: center;
     gap: 5px;
     padding: 4px 10px;
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
+    background: #FFFFFF;
+    border: 1.5px solid #FECACA;
     border-radius: 9999px;
     color: #DC2626;
     font-size: 12px;
@@ -8280,6 +8307,7 @@ input:checked~.m3-ingredient-text {
     transition: all 0.15s ease;
     user-select: none;
     outline: none;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08);
 }
 
 .active-exclusion-pill:hover {
@@ -8294,16 +8322,40 @@ input:checked~.m3-ingredient-text {
     font-weight: 800;
 }
 
-.btn-clear-exclusions:hover {
-    background: #FEF2F2;
-    border-color: #FCA5A5;
+.btn-clear-exclusions-m3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: #FFFFFF;
+    border: 1.5px solid #FECACA;
     color: #DC2626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08);
+    white-space: nowrap;
+    outline: none;
+    margin-left: auto;
 }
 
-.btn-clear-exclusions .material-symbols-outlined {
-    font-size: 18px;
+.btn-clear-exclusions-m3:hover {
+    background: #DC2626;
+    border-color: #DC2626;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.btn-clear-exclusions-m3:active {
+    transform: scale(0.97);
+}
+
+.btn-clear-exclusions-m3 .material-symbols-outlined {
+    font-size: 16px;
 }
 
 /* Material 3 Expressive Filter Chips Grid */
@@ -9584,13 +9636,23 @@ input:checked~.m3-ingredient-text {
     }
 
     .active-exclusions-pills-row {
-        gap: 6px;
-        padding: 2px 0 4px 0;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 14px;
+    }
+
+    .active-exclusions-label {
+        font-size: 12px;
     }
 
     .active-exclusion-pill {
         font-size: 11.5px;
         padding: 3px 8px;
+    }
+
+    .btn-clear-exclusions-m3 {
+        padding: 4px 10px;
+        font-size: 11.5px;
     }
 
     .safe-banner-prompt {

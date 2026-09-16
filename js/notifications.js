@@ -226,9 +226,10 @@ class NotificationManager {
             this.renderMenu();
         }
 
-        // Mostrar un Toast para asegurar que el usuario lo vea
-        if (window.utils && window.utils.showToast) {
-            window.utils.showToast(isEn ? '🔔 New update available!' : '🔔 ¡Nueva actualización disponible!', 'info', 5000);
+        // Animar la campana de forma llamativa para que el usuario lo note
+        const btn = document.getElementById('btn-notifications');
+        if (btn) {
+            btn.classList.add('bell-update-pulse');
         }
     }
 
