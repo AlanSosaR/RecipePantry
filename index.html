@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="514">
+<html lang="es" data-app-version="541">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=514">
-  <link rel="stylesheet" href="css/components.css?v=514">
+  <link rel="stylesheet" href="css/styles.css?v=541">
+  <link rel="stylesheet" href="css/components.css?v=541">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -75,54 +75,186 @@
       font-family: var(--font-body); display: flex; align-items: center; justify-content: center;
     }
 
-    .mode-landing-wrapper { width: 100%; padding: 24px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
-
-    .landing-unified-card {
-      width: min(440px, 100%); background: white; border-radius: 32px; overflow: hidden;
-      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.12); display: flex; flex-direction: column;
-      position: relative; animation: m3-fade-up 0.8s var(--m3-easing) forwards;
+    .mode-landing-wrapper {
+      width: 100%;
+      min-height: 100dvh;
+      padding: clamp(12px, 3vh, 24px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
     }
 
+    .landing-unified-card {
+      width: min(420px, 100%);
+      max-height: min(92vh, 660px);
+      background: white;
+      border-radius: 28px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.10);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      animation: m3-fade-up 0.8s var(--m3-easing) forwards;
+      scrollbar-width: none;
+    }
+    .landing-unified-card::-webkit-scrollbar { display: none; }
+
     .hero-part {
-      background: var(--primary-green); height: 200px; position: relative;
-      border-bottom-left-radius: 50% 30%; border-bottom-right-radius: 50% 30%;
-      display: flex; justify-content: center; z-index: 1;
+      background: var(--primary-green);
+      height: clamp(110px, 16vh, 145px);
+      min-height: 100px;
+      position: relative;
+      border-bottom-left-radius: 50% 30%;
+      border-bottom-right-radius: 50% 30%;
+      display: flex;
+      justify-content: center;
+      z-index: 1;
+      flex-shrink: 0;
     }
 
     .hero-circle {
-      position: absolute; bottom: -75px; width: 150px; height: 150px; background: white;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); z-index: 2;
+      position: absolute;
+      bottom: clamp(-50px, -6.5vh, -40px);
+      width: clamp(90px, 13vh, 110px);
+      height: clamp(90px, 13vh, 110px);
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      z-index: 2;
     }
 
     .hero-circle-inner {
-      width: 96px; height: 96px; background: var(--primary-green); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; color: white;
+      width: clamp(62px, 8.5vh, 76px);
+      height: clamp(62px, 8.5vh, 76px);
+      background: var(--primary-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .hero-circle-inner .material-symbols-outlined {
+      font-size: clamp(30px, 4.2vh, 38px) !important;
     }
 
-    .content-part { padding: 90px 24px 32px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-    .landing-title { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--primary-green); margin: 0 0 6px 0; }
-    .landing-subtitle { font-size: 16px; color: var(--text-grey); font-weight: 500; margin-bottom: 8px; line-height: 1.5; }
-    .pantry-description { font-size: 13px; color: #6B7280; line-height: 1.6; margin-bottom: 32px; max-width: 320px; font-weight: 500; }
+    .content-part {
+      padding: clamp(52px, 7.5vh, 64px) clamp(16px, 4vw, 24px) clamp(16px, 2.2vh, 22px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+    .landing-title {
+      font-family: var(--font-display);
+      font-size: clamp(23px, 3.2vh, 28px);
+      font-weight: 800;
+      color: var(--primary-green);
+      margin: 0 0 4px 0;
+    }
+    .landing-subtitle {
+      font-size: clamp(13px, 1.7vh, 15px);
+      color: var(--text-grey);
+      font-weight: 500;
+      margin: 0 0 6px 0;
+      line-height: 1.4;
+    }
+    .pantry-description {
+      font-size: clamp(11.5px, 1.4vh, 12.5px);
+      color: #6B7280;
+      line-height: 1.5;
+      margin: 0 0 clamp(14px, 2vh, 20px) 0;
+      max-width: 320px;
+      font-weight: 500;
+    }
 
-    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 32px; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: clamp(14px, 2.2vh, 22px);
+    }
     .feature-card {
-      padding: 18px 12px; border-radius: 20px; border: 1px solid #f0f0f0; background: #fafafa;
-      display: flex; flex-direction: column; align-items: center; transition: all 0.2s;
+      padding: clamp(10px, 1.4vh, 13px) 8px;
+      border-radius: 16px;
+      border: 1px solid #f0f0f0;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.2s;
     }
-    .feature-card:hover { border-color: #ddd; transform: translateY(-2px); background: white; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04); }
-    .feature-icon-circle { width: 44px; height: 44px; background: var(--primary-green-light); color: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-    .feature-card h3 { font-size: 13px; font-weight: 700; margin: 0 0 4px 0; color: var(--text-black); }
-    .feature-card p { font-size: 11px; color: var(--text-grey); margin: 0; line-height: 1.4; }
+    .feature-card:hover {
+      border-color: #ddd;
+      transform: translateY(-2px);
+      background: white;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+    }
+    .feature-icon-circle {
+      width: clamp(34px, 4.2vh, 38px);
+      height: clamp(34px, 4.2vh, 38px);
+      background: var(--primary-green-light);
+      color: var(--primary-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+    .feature-icon-circle .material-symbols-outlined {
+      font-size: clamp(18px, 2.2vh, 20px) !important;
+    }
+    .feature-card h3 {
+      font-size: clamp(11.5px, 1.5vh, 12.5px);
+      font-weight: 700;
+      margin: 0 0 2px 0;
+      color: var(--text-black);
+    }
+    .feature-card p {
+      font-size: clamp(10px, 1.25vh, 11px);
+      color: var(--text-grey);
+      margin: 0;
+      line-height: 1.3;
+    }
 
     .btn-comenzar {
-      width: 100%; background: var(--primary-green); color: white; font-weight: 700; border-radius: 20px;
-      padding: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      gap: 12px; font-size: 16px; transition: all 0.3s; box-shadow: 0 8px 24px rgba(0, 166, 118, 0.25);
+      width: 100%;
+      background: var(--primary-green);
+      color: white;
+      font-weight: 700;
+      border-radius: 16px;
+      padding: clamp(10px, 1.5vh, 13px);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: clamp(14px, 1.7vh, 15px);
+      transition: all 0.3s;
+      box-shadow: 0 8px 24px rgba(0, 166, 118, 0.25);
     }
-    .btn-comenzar:hover { filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 166, 118, 0.4); }
+    .btn-comenzar:hover {
+      filter: brightness(1.05);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0, 166, 118, 0.4);
+    }
 
-    .landing-card-footer { display: flex; gap: 24px; margin-top: 32px; font-size: 12px; color: var(--text-grey); font-weight: 500; opacity: 0.8; }
+    .landing-card-footer {
+      display: flex;
+      gap: 18px;
+      margin-top: clamp(12px, 1.8vh, 18px);
+      font-size: clamp(10.5px, 1.3vh, 11.5px);
+      color: var(--text-grey);
+      font-weight: 500;
+      opacity: 0.8;
+    }
     .landing-card-footer span { display: flex; align-items: center; gap: 6px; }
     .landing-card-footer .material-symbols-outlined { font-size: 14px; color: #FBBF24; }
     .landing-card-footer .offline-icon { color: #4B5563; }
@@ -213,6 +345,10 @@
         <a href="#" class="nav-item active" data-view="recipes">
           <span class="material-symbols-outlined">home</span>
           <span data-i18n="navRecipes">Recetas</span>
+        </a>
+        <a href="#" class="nav-item" data-view="allergens">
+          <span class="material-symbols-outlined">health_and_safety</span>
+          <span data-i18n="navAllergies">Alergias</span>
         </a>
         <a href="#" class="nav-item" data-view="favorites">
           <span class="material-symbols-outlined">star</span>
@@ -315,6 +451,9 @@
 
       <!-- Pantalla de Ayuda / Instalación PWA (Generado por JS) -->
       <div id="helpView" class="hidden" style="padding: 0 16px; margin-top: 16px;"></div>
+
+      <!-- Pantalla de Alergias (Generado por JS) -->
+      <div id="allergensView" class="hidden"></div>
     </main>
   </div>
 
@@ -336,24 +475,40 @@
             <div id="selected-users-chips" class="chips-list" style="display: none;"></div>
             <input type="text" id="user-search-input" placeholder="Buscar por nombre o correo..." autocomplete="off">
           </div>
-          <div id="search-suggestions" class="search-suggestions hidden"></div>
         </div>
-        
-        <button id="btn-share-submit" class="btn-share-main" style="display: none; align-items: center; justify-content: center;">
-          <span class="material-symbols-outlined" style="margin-right: 8px;">share</span> Compartir
-        </button>
-
-        <div class="permission-section">
+        <div class="permissions-section">
+          <label class="section-label">Permisos predeterminados</label>
+          <div class="permission-options">
+            <label class="radio-option">
+              <input type="radio" name="share-permission" value="view" checked>
+              <div class="radio-content">
+                <span class="radio-title">Solo ver</span>
+                <span class="radio-description">Los usuarios pueden ver la receta y marcar ingredientes</span>
+              </div>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="share-permission" value="view_and_copy">
+              <div class="radio-content">
+                <span class="radio-title">Ver y copiar</span>
+                <span class="radio-description">Los usuarios pueden ver y agregar una copia editable a su recetario</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="current-shares">
           <label style="font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 12px; display: block;">Personas con acceso</label>
-          <div id="shares-list" style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="text-align:center; padding:12px; opacity:0.6;">Cargando personas...</div>
+          <div id="current-shares-list" class="shares-list">
+            <!-- Renderizado dinámicamente -->
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-copy-link" onclick="if(window.shareModal.recipeId) window.dashboard.copyLink(window.shareModal.recipeId)">
-          <span class="material-symbols-outlined">link</span>
-          Copiar enlace
+        <button class="btn-secondary" onclick="window.shareModal.copyPublicLink()">
+          <span class="material-symbols-outlined" style="font-size: 18px;">link</span>
+          <span data-i18n="copyLinkLabel">Copiar enlace</span>
+        </button>
+        <button class="btn-primary" onclick="window.shareModal.shareWithSelected()">
+          <span>Compartir</span>
         </button>
       </div>
     </div>
@@ -361,22 +516,23 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=514"></script>
-  <script src="js/supabase-client.js?v=514"></script>
-  <script src="js/localdb.js?v=514"></script>
-  <script src="js/sync-manager.js?v=514"></script>
-  <script src="js/utils.js?v=514"></script>
-  <script src="js/i18n.js?v=514"></script>
-  <script src="js/db.js?v=514"></script>
-  <script src="js/auth.js?v=514"></script>
-  <script src="js/dashboard.js?v=514"></script>
-  <script src="js/share-modal.js?v=514"></script>
-  <script src="js/help-modal.js?v=514"></script>
-  <script src="js/notifications.js?v=514"></script>
-  <script src="js/ui.js?v=514"></script>
-  <script src="js/sw-register.js?v=514"></script>
-  <script src="js/pwa-install.js?v=514"></script>
-  <script type="module" src="js/url-importer.js?v=514"></script>
+  <script src="js/config.js?v=541"></script>
+  <script src="js/supabase-client.js?v=541"></script>
+  <script src="js/localdb.js?v=541"></script>
+  <script src="js/sync-manager.js?v=541"></script>
+  <script src="js/utils.js?v=541"></script>
+  <script src="js/i18n.js?v=541"></script>
+  <script src="js/allergen-data.js?v=541"></script>
+  <script src="js/db.js?v=541"></script>
+  <script src="js/auth.js?v=541"></script>
+  <script src="js/dashboard.js?v=541"></script>
+  <script src="js/share-modal.js?v=541"></script>
+  <script src="js/help-modal.js?v=541"></script>
+  <script src="js/notifications.js?v=541"></script>
+  <script src="js/ui.js?v=541"></script>
+  <script src="js/sw-register.js?v=541"></script>
+  <script src="js/pwa-install.js?v=541"></script>
+  <script type="module" src="js/url-importer.js?v=541"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

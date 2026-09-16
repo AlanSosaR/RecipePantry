@@ -14,9 +14,42 @@ class DashboardManager {
         this.longPressTimer = null;
         this.ignoreNextClick = false;
         this.lastSelectedIndex = undefined;
+        this.selectedSafeExclusions = new Set();
+        this.activeDietaryProfile = null;
+        this.showExcludedRecipes = false;
+        this.safeFilterDropdownOpen = false;
+        this.safeRecipesDropdownOpen = false;
+        this.excludedRecipesDropdownOpen = false;
 
-        // Cierre de selección al hacer click fuera
+        // Cierre de dropdowns y selección al hacer click fuera
         document.addEventListener('click', (e) => {
+            const allergenSplit = document.getElementById('allergenFilterSplitWrapper');
+            if (allergenSplit && !allergenSplit.contains(e.target)) {
+                const dd = document.getElementById('safeAllergenDropdown');
+                if (dd && !dd.classList.contains('hidden')) {
+                    dd.classList.add('hidden');
+                    this.safeFilterDropdownOpen = false;
+                    const arrow = allergenSplit.querySelector('.arrow-icon');
+                    if (arrow) arrow.classList.remove('open');
+                }
+            }
+            const safeSplit = document.getElementById('safeRecipesSplitWrapper');
+            if (safeSplit && !safeSplit.contains(e.target)) {
+                const dd = document.getElementById('safeRecipesDropdown');
+                if (dd && !dd.classList.contains('hidden')) {
+                    dd.classList.add('hidden');
+                    this.safeRecipesDropdownOpen = false;
+                }
+            }
+            const excludedSplit = document.getElementById('excludedRecipesSplitWrapper');
+            if (excludedSplit && !excludedSplit.contains(e.target)) {
+                const dd = document.getElementById('excludedRecipesDropdown');
+                if (dd && !dd.classList.contains('hidden')) {
+                    dd.classList.add('hidden');
+                    this.excludedRecipesDropdownOpen = false;
+                }
+            }
+
             if (!this.isSelectionMode) return;
 
             // Si el click es fuera de cualquier fila de receta y fuera de la barra de acciones
@@ -75,7 +108,7 @@ class DashboardManager {
             // 2. Cargar datos iniciales según la vista guardada o URL
             const urlParams = new URLSearchParams(window.location.search);
             const viewParam = urlParams.get('view');
-            if (viewParam && ['recipes', 'favorites', 'shared', 'help'].includes(viewParam)) {
+            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
             this.currentOffset = 0;
@@ -253,18 +286,28 @@ class DashboardManager {
 
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
-                    this.loadRecipes({ search: query });
-                    if (query.length > 2) {
-                        this.searchHistory.save(query);
+                    if (this.currentView === 'allergens') {
+                        this.handleAllergenSearch(query);
+                    } else {
+                        this.loadRecipes({ search: query });
+                        if (query.length > 2) {
+                            this.searchHistory.save(query);
+                        }
                     }
-                }, 300);
+                }, 200);
 
-                // Update suggestions
-                this.searchHistory.showSuggestions(query);
+                if (this.currentView !== 'allergens') {
+                    // Update suggestions only for recipes
+                    this.searchHistory.showSuggestions(query);
+                } else {
+                    this.searchHistory.hideSuggestions();
+                }
             });
 
             searchInput.addEventListener('focus', () => {
-                this.searchHistory.showSuggestions(searchInput.value.trim());
+                if (this.currentView !== 'allergens') {
+                    this.searchHistory.showSuggestions(searchInput.value.trim());
+                }
             });
 
             // Close suggestions when clicking outside
@@ -278,7 +321,11 @@ class DashboardManager {
                 clearBtn.addEventListener('click', () => {
                     searchInput.value = '';
                     clearBtn.classList.add('hidden');
-                    this.loadRecipes({ search: '' });
+                    if (this.currentView === 'allergens') {
+                        this.handleAllergenSearch('');
+                    } else {
+                        this.loadRecipes({ search: '' });
+                    }
                     searchInput.focus();
                 });
             }
@@ -373,6 +420,18 @@ class DashboardManager {
             this.loadRecipes({ shared: true });
         } else if (view === 'help') {
             this.showHelpView();
+        } else if (view === 'allergens') {
+            this.showAllergensView();
+        }
+
+        if (view !== 'allergens') {
+            this.allergenSearchQuery = '';
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.placeholder = (window.i18n && window.i18n.t) 
+                    ? window.i18n.t('searchPlaceholder', 'Buscar en mi recetario...') 
+                    : 'Buscar en mi recetario...';
+            }
         }
     }
 
@@ -381,10 +440,14 @@ class DashboardManager {
         const grid = document.getElementById('recipesGrid');
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
+        const allergensView = document.getElementById('allergensView');
         const titleEl = document.getElementById('view-title');
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
+        if (allergensView) allergensView.classList.add('hidden');
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.add('hidden');
 
         if (help) {
             console.log('[Dashboard] Showing helpView container');
@@ -444,6 +507,12 @@ class DashboardManager {
 
         const helpView = document.getElementById('helpView');
         if (helpView) helpView.classList.add('hidden');
+
+        const allergensView = document.getElementById('allergensView');
+        if (allergensView) allergensView.classList.add('hidden');
+
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.remove('hidden');
 
         const recipesGrid = document.getElementById('recipesGrid');
         if (recipesGrid) recipesGrid.classList.remove('hidden');
@@ -1653,6 +1722,874 @@ class DashboardManager {
             console.error('Save shared recipe error:', err);
             window.utils.showToast(window.i18n ? window.i18n.t('saveError') : 'Error al guardar la receta', 'error');
         }
+    }
+
+    // ==========================================
+    // Módulo de Alergias (UK Food Standards Agency) - Material 3 Expressive
+    // ==========================================
+
+    showAllergensView() {
+        console.log('[Dashboard] Executing showAllergensView');
+        this.currentView = 'allergens';
+        const grid = document.getElementById('recipesGrid');
+        const empty = document.getElementById('emptyState');
+        const help = document.getElementById('helpView');
+        const allergensView = document.getElementById('allergensView');
+        const titleEl = document.getElementById('view-title');
+
+        if (grid) grid.classList.add('hidden');
+        if (empty) empty.classList.add('hidden');
+        if (help) help.classList.add('hidden');
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.add('hidden');
+
+        if (this.isSelectionMode) this.clearSelection();
+
+        if (allergensView) {
+            allergensView.classList.remove('hidden');
+            this.renderAllergensView();
+        }
+
+        if (titleEl) {
+            titleEl.textContent = (window.i18n && window.i18n.t) ? (window.i18n.t('navAllergies') || 'Alergias') : 'Alergias';
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            searchInput.placeholder = isEn 
+                ? 'Search allergen, hidden ingredient, or sauce...' 
+                : 'Buscar alérgeno, salsa o ingrediente oculto...';
+            searchInput.value = this.allergenSearchQuery || '';
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !this.allergenSearchQuery);
+            }
+        }
+
+        // Cargar recetas en segundo plano si aún no se han cargado para alimentar comensal seguro y matriz
+        if (!this.currentRecipes || this.currentRecipes.length === 0) {
+            window.db.getMyRecipes({ orderBy: 'name_es', ascending: true }).then(res => {
+                if (res.success && res.recipes) {
+                    this.currentRecipes = res.recipes;
+                    if (this.currentAllergenTab && this.currentAllergenTab !== 'guide') {
+                        this.renderAllergensView();
+                    }
+                }
+            }).catch(e => console.warn('No se pudieron precargar recetas para vista de alergias:', e));
+        }
+    }
+
+    setAllergenTab(tabName) {
+        this.currentAllergenTab = tabName;
+        this.renderAllergensView();
+    }
+
+    renderAllergensView() {
+        const container = document.getElementById('allergensView');
+        if (!container) return;
+
+        if (!this.currentAllergenTab) this.currentAllergenTab = 'safe';
+        if (!this.selectedSafeExclusions) this.selectedSafeExclusions = new Set();
+        if (this.allergenSearchQuery === undefined) this.allergenSearchQuery = '';
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
+
+        container.innerHTML = `
+            <div class="allergens-module">
+                <!-- Hero Header Material 3 Expressive -->
+                <div class="allergens-hero-m3">
+                    <span class="m3-uk-fsa-badge hero-corner-badge">
+                        <span class="material-symbols-outlined" style="font-size: 15px;">verified</span>
+                        <span>FSA UK Compliance</span>
+                    </span>
+                    <div class="allergens-hero-top-row">
+                        <div class="allergens-hero-icon">
+                            <span class="material-symbols-outlined">health_and_safety</span>
+                        </div>
+                        <div class="allergens-hero-heading-block">
+                            <h2>${isEn ? 'Food Allergens & Cross-Contamination' : 'Alergias y Contaminación Cruzada'}</h2>
+                            <p class="allergens-hero-desc">
+                                ${isEn 
+                                    ? 'Official guidance in accordance with UK FSA regulations. Learn about the 14 mandatory allergens, uncover hidden risks in stocks and sauces, and prevent cross-contact.' 
+                                    : 'Guía oficial conforme a las normativas de la FSA de Reino Unido. Conoce los 14 alérgenos obligatorios, aprende dónde se esconden en salsas y caldos cotidianos, y previene la contaminación cruzada.'}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="allergens-hero-bottom-row">
+                        <div class="allergens-meta-chips allergens-hero-badges">
+                            <span class="m3-badge-pill">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span>
+                                ${isEn ? '14 UK Allergens' : '14 Alérgenos UK'}
+                            </span>
+                            <span class="m3-badge-pill">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">kitchen</span>
+                                ${isEn ? 'Hidden Ingredients' : 'Ingredientes Ocultos'}
+                            </span>
+                            <span class="m3-badge-pill">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">warning</span>
+                                ${isEn ? 'Cross-Contact Risks' : 'Protocolos Contaminación'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Material 3 Expressive Segmented Tabs -->
+                <div class="allergens-tabs-m3">
+                    <button class="m3-nav-tab ${this.currentAllergenTab === 'safe' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('safe')">
+                        <span class="material-symbols-outlined">shield</span>
+                        <span class="tab-label-text">
+                            <span>${isEn ? 'Safe Diner' : 'Comensal Seguro'}</span>
+                        </span>
+                        ${this.selectedSafeExclusions.size > 0 ? `<span class="tab-counter-badge">${this.selectedSafeExclusions.size}</span>` : ''}
+                    </button>
+                    <button class="m3-nav-tab ${this.currentAllergenTab === 'guide' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('guide')">
+                        <span class="material-symbols-outlined">menu_book</span>
+                        <span class="tab-label-text">
+                            <span>${isEn ? 'Guide' : 'Guía'}</span><span class="tab-label-desktop">${isEn ? ' & Risks' : ' y Contaminación'}</span>
+                        </span>
+                    </button>
+                    <button class="m3-nav-tab ${this.currentAllergenTab === 'matrix' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('matrix')">
+                        <span class="material-symbols-outlined">table_chart</span>
+                        <span class="tab-label-text">
+                            <span>${isEn ? 'FSA Matrix' : 'Matriz FSA'}</span><span class="tab-label-desktop">${isEn ? ' (Official)' : ' Oficial'}</span>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Tab Mount Point -->
+                <div id="allergenTabContent"></div>
+            </div>
+        `;
+
+        if (this.currentAllergenTab === 'guide') {
+            this.renderAllergenGuideTab(isEn, t);
+        } else if (this.currentAllergenTab === 'safe') {
+            this.renderAllergenSafeTab(isEn, t);
+        } else if (this.currentAllergenTab === 'matrix') {
+            this.renderAllergenMatrixTab(isEn, t);
+        }
+    }
+
+    renderAllergenGuideTab(isEn, t) {
+        const tabMount = document.getElementById('allergenTabContent');
+        if (!tabMount) return;
+
+        const allergens = window.UK_ALLERGENS || [];
+        const q = (this.allergenSearchQuery || '').toLowerCase().trim();
+
+        const getStr = (val) => {
+            if (!val) return '';
+            if (Array.isArray(val)) return val.join(' ').toLowerCase();
+            return String(val).toLowerCase();
+        };
+
+        const toItems = (val) => {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            return String(val).split(',').map(s => s.trim()).filter(Boolean);
+        };
+
+        const filtered = allergens.filter(a => {
+            if (!q) return true;
+            const nameEs = (a.name_es || '').toLowerCase();
+            const nameEn = (a.name_en || '').toLowerCase();
+            const desc = isEn ? (a.desc_en || '').toLowerCase() : (a.desc_es || '').toLowerCase();
+            const hides = getStr(isEn ? a.whereItHides_en : a.whereItHides_es);
+            const risks = getStr(isEn ? a.contaminationRisks_en : a.contaminationRisks_es);
+            const kws = (a.keywords || []).join(' ').toLowerCase();
+            return nameEs.includes(q) || nameEn.includes(q) || desc.includes(q) || hides.includes(q) || risks.includes(q) || kws.includes(q);
+        });
+
+        tabMount.innerHTML = `
+            ${q ? `
+                <div class="guide-toolbar-m3" style="justify-content: flex-end; margin-bottom: 14px;">
+                    <div class="guide-stats-chip">
+                        <span>${filtered.length} / ${allergens.length} ${isEn ? 'matching allergens' : 'alérgenos encontrados'}</span>
+                    </div>
+                </div>
+            ` : ''}
+
+            <div class="allergens-cards-grid">
+                ${filtered.length === 0 ? `
+                    <div class="allergens-empty-state">
+                        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--md-sys-color-outline);">search_off</span>
+                        <p>${isEn ? 'No allergens or ingredients matched your search.' : 'No se encontraron alérgenos o ingredientes para esa búsqueda.'}</p>
+                        <button class="btn-m3-tonal" onclick="window.dashboard.handleAllergenSearch('')">${isEn ? 'Clear search' : 'Limpiar búsqueda'}</button>
+                    </div>
+                ` : filtered.map(item => `
+                    <div class="allergen-card-expressive" style="--allergen-accent: ${item.color};">
+                        <div class="allergen-card-header">
+                            <div class="allergen-avatar" style="background: ${item.color}18; color: ${item.color};">
+                                <span class="material-symbols-outlined">${item.icon}</span>
+                            </div>
+                            <div class="allergen-title-block">
+                                <h3>${item.name_en}</h3>
+                                <div class="allergen-official-name">
+                                    <span class="allergen-fsa-label">FSA UK</span>
+                                    <span>${item.name_es}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="allergen-description">${isEn ? (item.desc_en || '') : (item.desc_es || '')}</p>
+
+                        <!-- Caja 1: Dónde se esconde (Ejemplos Reales) -->
+                        <div class="allergen-hides-box">
+                            <div class="box-title">
+                                <span class="material-symbols-outlined">kitchen</span>
+                                <span>${isEn ? 'Where it hides in daily cooking:' : '¿Dónde se esconde en la cocina diaria?'}</span>
+                            </div>
+                            <ul class="box-list">
+                                ${toItems(isEn ? item.whereItHides_en : item.whereItHides_es).map(ex => `
+                                    <li>${ex}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <!-- Caja 2: Riesgos de Contaminación Cruzada -->
+                        <div class="allergen-risk-box">
+                            <div class="box-title">
+                                <span class="material-symbols-outlined">warning</span>
+                                <span>${isEn ? 'Cross-contamination critical points:' : 'Puntos críticos de contaminación cruzada:'}</span>
+                            </div>
+                            <ul class="box-list">
+                                ${toItems(isEn ? item.contaminationRisks_en : item.contaminationRisks_es).map(rk => `
+                                    <li>${rk}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    handleAllergenSearch(val) {
+        this.allergenSearchQuery = val;
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput && searchInput.value !== val) {
+            searchInput.value = val;
+        }
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', !val);
+        }
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
+        this.renderAllergenGuideTab(isEn, t);
+    }
+
+    filterRecipesByAllergen(allergenId) {
+        const allergen = (window.UK_ALLERGENS || []).find(a => a.id === allergenId);
+        const name = allergen ? allergen.name_es : allergenId;
+        const recipesNavItem = document.querySelector('.nav-item[data-view="recipes"]');
+        this.switchView('recipes', recipesNavItem);
+        this.loadRecipes({ search: name });
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = name;
+            const clearBtn = document.getElementById('clearSearch');
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        }
+    }
+
+    renderAllergenSafeTab(isEn, t) {
+        const tabMount = document.getElementById('allergenTabContent');
+        if (!tabMount) return;
+
+        const allergens = window.UK_ALLERGENS || [];
+        const dietaryProfiles = window.UK_DIETARY_PROFILES || [];
+        const userRecipes = this.currentRecipes || [];
+        const isUsingDemo = userRecipes.length === 0;
+        const allRecipes = isUsingDemo ? (window.DEMO_UK_RECIPES || []) : userRecipes;
+
+        const activeProfile = dietaryProfiles.find(p => p.id === this.activeDietaryProfile);
+
+        let safeRecipes = [];
+        let excludedRecipes = [];
+        let excludedCount = 0;
+
+        if (this.selectedSafeExclusions.size > 0) {
+            allRecipes.forEach(recipe => {
+                const detectedRaw = window.detectRecipeAllergens ? window.detectRecipeAllergens(recipe) : [];
+                const detectedIds = detectedRaw.map(d => (typeof d === 'object' ? d.id : d));
+                const offendingAllergens = detectedIds.filter(id => this.selectedSafeExclusions.has(id));
+                if (offendingAllergens.length === 0) {
+                    safeRecipes.push({ recipe, detectedIds });
+                } else {
+                    excludedCount++;
+                    excludedRecipes.push({ recipe, detectedIds, offendingAllergens });
+                }
+            });
+        }
+
+        tabMount.innerHTML = `
+            ${isUsingDemo ? `
+                <div class="demo-notice-banner-m3">
+                    <div class="demo-notice-left">
+                        <div class="demo-notice-icon">
+                            <span class="material-symbols-outlined">lightbulb</span>
+                        </div>
+                        <div>
+                            <div class="demo-notice-title">${isEn ? 'Interactive Demonstration Mode' : 'Modo Demostración Interactivo'}</div>
+                            <div class="demo-notice-sub">${isEn 
+                                ? 'Testing safe diner exclusion with 7 classic UK menu dishes (Fish & Chips, Pad Thai, Minestrone...). Save your own recipes to filter your real menu.'
+                                : 'Probando exclusión de comensal seguro con 7 platos de cocina británica e internacional (Fish & Chips, Pad Thai, Minestrone...). Guarda tus recetas para filtrar tus propios platos.'}</div>
+                        </div>
+                    </div>
+                    <a href="recipe-form.html" class="btn-m3-tonal" style="text-decoration:none;">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>${isEn ? 'New Recipe' : 'Crear Receta'}</span>
+                    </a>
+                </div>
+            ` : ''}
+
+            <div class="safe-filter-panel">
+                <div class="safe-filter-header">
+                    <div class="safe-filter-title">
+                        <div class="safe-title-icon">
+                            <span class="material-symbols-outlined">shield_with_heart</span>
+                        </div>
+                        <div>
+                            <h3>${isEn ? 'Filter based on your saved recipes for Safe Diner (Multiple Allergies)' : 'Filtro en base a tus recetas guardadas para Comensal Seguro (Alergias Múltiples)'}</h3>
+                            <p>${isEn 
+                                ? 'Select diner allergies to inspect ingredients across recipes and show only 100% safe options.'
+                                : 'Marca las alergias para examinar ingredientes y mostrar únicamente platos 100% libres de dichos alérgenos.'}</p>
+                        </div>
+                    </div>
+                    ${this.selectedSafeExclusions.size > 0 ? `
+                        <button class="btn-clear-exclusions" onclick="window.dashboard.clearSafeExclusions()">
+                            <span class="material-symbols-outlined">restart_alt</span>
+                            <span>${isEn ? `Clear (${this.selectedSafeExclusions.size})` : `Limpiar (${this.selectedSafeExclusions.size})`}</span>
+                        </button>
+                    ` : ''}
+                </div>
+
+                <!-- Barra de Split Buttons: Filtro de Alergias (en lista) + Recetas Seguras + Recetas Excluidas -->
+                <div class="safe-split-buttons-bar">
+                    <!-- 1. Split Button: Filtro de Alergias en Lista -->
+                    <div class="m3-split-button-wrapper" id="allergenFilterSplitWrapper">
+                        <div class="m3-split-button filter-split-button ${this.selectedSafeExclusions.size > 0 ? 'has-active-filter' : ''}">
+                            <button class="m3-split-btn-main" onclick="window.dashboard.toggleSafeAllergenDropdown(event)" type="button">
+                                <span class="material-symbols-outlined">${this.selectedSafeExclusions.size > 0 ? 'filter_alt' : 'tune'}</span>
+                                <span class="split-btn-title">${isEn ? 'Filter by Allergens' : 'Filtro en base a tus recetas'}</span>
+                                ${this.selectedSafeExclusions.size > 0 ? `
+                                    <span class="split-count-badge">${this.selectedSafeExclusions.size}</span>
+                                ` : ''}
+                            </button>
+                            <button class="m3-split-btn-arrow" onclick="window.dashboard.toggleSafeAllergenDropdown(event)" type="button" aria-label="${isEn ? 'Open allergen list' : 'Abrir lista de alérgenos'}">
+                                <span class="material-symbols-outlined arrow-icon ${this.safeFilterDropdownOpen ? 'open' : ''}">expand_more</span>
+                            </button>
+                        </div>
+
+                        <!-- Dropdown con las 14 Alergias UK EN FORMATO LISTA -->
+                        <div id="safeAllergenDropdown" class="m3-split-dropdown allergen-list-dropdown ${this.safeFilterDropdownOpen ? '' : 'hidden'}">
+                            <div class="m3-split-dropdown-header">
+                                <div class="filter-header-left">
+                                    <span class="material-symbols-outlined" style="color: #059669; font-size: 18px;">shield</span>
+                                    <span>${isEn ? 'The 14 UK Allergens' : 'Las 14 Alergias UK'}</span>
+                                </div>
+                                ${this.selectedSafeExclusions.size > 0 ? `
+                                    <button class="filter-clear-link" onclick="window.dashboard.clearSafeExclusions()">
+                                        <span class="material-symbols-outlined">restart_alt</span>
+                                        <span>${isEn ? 'Clear' : 'Limpiar'}</span>
+                                    </button>
+                                ` : ''}
+                            </div>
+
+                            <!-- Lista vertical de las 14 alergias -->
+                            <div class="allergen-vertical-list">
+                                ${allergens.map(a => {
+                                    const isSelected = this.selectedSafeExclusions.has(a.id);
+                                    return `
+                                        <div 
+                                            class="allergen-list-item ${isSelected ? 'selected' : ''}" 
+                                            onclick="window.dashboard.toggleSafeAllergenExclusion('${a.id}', event)"
+                                            role="button"
+                                            tabindex="0"
+                                        >
+                                            <div class="allergen-list-item-left">
+                                                <div class="allergen-list-icon-wrap" style="background: ${isSelected ? '#FEE2E2' : a.color + '18'}; color: ${isSelected ? '#DC2626' : a.color};">
+                                                    <span class="material-symbols-outlined">${a.icon}</span>
+                                                </div>
+                                                <span class="allergen-list-name">${a.name_en}</span>
+                                            </div>
+                                            <div class="allergen-list-checkbox ${isSelected ? 'checked' : ''}">
+                                                <span class="material-symbols-outlined">${isSelected ? 'check' : ''}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <div class="m3-filter-dropdown-footer">
+                                <span class="footer-hint">
+                                    ${this.selectedSafeExclusions.size === 0 
+                                        ? (isEn ? 'Tap allergens to exclude' : 'Toca alérgenos para excluir')
+                                        : (isEn ? `${this.selectedSafeExclusions.size} selected for exclusion` : `${this.selectedSafeExclusions.size} seleccionada(s)`)}
+                                </span>
+                                <button class="btn-close-filter" onclick="window.dashboard.toggleSafeAllergenDropdown(event)" type="button">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">check</span>
+                                    <span>${isEn ? 'Done' : 'Listo'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Split Button: Recetas con Alérgenos (Excluidas) si las hay -->
+                    ${this.selectedSafeExclusions.size > 0 && excludedCount > 0 ? `
+                        <div class="m3-split-button-wrapper" id="excludedRecipesSplitWrapper">
+                            <div class="m3-split-button danger-split-button">
+                                <button class="m3-split-btn-main" onclick="window.dashboard.toggleExcludedRecipesDropdown(event)" type="button">
+                                    <span class="material-symbols-outlined" style="color: #DC2626; font-size: 20px;">warning</span>
+                                    <span class="split-btn-title">${isEn ? `${excludedCount} Excluded Dishes` : `${excludedCount} Recetas con Alérgenos`}</span>
+                                </button>
+                                <button class="m3-split-btn-arrow" onclick="window.dashboard.toggleExcludedRecipesDropdown(event)" type="button" aria-label="${isEn ? 'Open excluded recipes' : 'Ver recetas con alérgenos'}">
+                                    <span class="material-symbols-outlined arrow-icon ${this.excludedRecipesDropdownOpen ? 'open' : ''}">expand_more</span>
+                                </button>
+                            </div>
+
+                            <!-- Dropdown con las Recetas Excluidas DENTRO del Split Button -->
+                            <div id="excludedRecipesDropdown" class="m3-split-dropdown excluded-recipes-dropdown ${this.excludedRecipesDropdownOpen ? '' : 'hidden'}">
+                                <div class="m3-split-dropdown-header danger-header">
+                                    <div class="filter-header-left">
+                                        <span class="material-symbols-outlined" style="color: #DC2626; font-size: 18px;">crisis_alert</span>
+                                        <span>${isEn ? `${excludedCount} Excluded Dishes` : `${excludedCount} Recetas con Alérgenos`}</span>
+                                    </div>
+                                </div>
+                                <div class="split-recipes-scroll-list">
+                                    ${excludedRecipes.map(({ recipe, detectedIds, offendingAllergens }) => {
+                                        const offendingNames = offendingAllergens.map(id => {
+                                            const found = allergens.find(a => a.id === id);
+                                            return found ? found.name_en : id;
+                                        });
+
+                                        return `
+                                            <div class="split-recipe-item danger-item" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
+                                                <div class="split-recipe-item-info">
+                                                    <div class="split-recipe-item-title-row">
+                                                        <span class="split-recipe-name">${recipe.name_es || recipe.name_en || (isEn ? 'Untitled Recipe' : 'Receta sin título')}</span>
+                                                        <span class="split-danger-badge">${isEn ? 'Contains' : 'Contiene'}</span>
+                                                    </div>
+                                                    <div class="split-offending-tags">
+                                                        <span class="offending-label">${isEn ? 'Contaminants:' : 'Alérgenos:'}</span>
+                                                        ${offendingNames.map(n => `<span class="split-offending-pill">${n}</span>`).join('')}
+                                                    </div>
+                                                </div>
+                                                <span class="material-symbols-outlined split-item-arrow">chevron_right</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Píldoras de exclusión activa si hay seleccionadas, o prompt de ayuda -->
+                ${this.selectedSafeExclusions.size > 0 ? `
+                    <div class="active-exclusions-pills-row">
+                        <span class="active-exclusions-label">
+                            <span class="material-symbols-outlined" style="font-size: 15px; color: #DC2626;">block</span>
+                            <span>${isEn ? 'Excluding:' : 'Excluyendo:'}</span>
+                        </span>
+                        ${Array.from(this.selectedSafeExclusions).map(id => {
+                            const a = allergens.find(x => x.id === id);
+                            const name = a ? a.name_en : id;
+                            return `
+                                <button class="active-exclusion-pill" onclick="window.dashboard.toggleSafeAllergenExclusion('${id}', event)" title="${isEn ? 'Remove exclusion' : 'Quitar exclusión'}">
+                                    <span>${name}</span>
+                                    <span class="material-symbols-outlined pill-remove-icon">close</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Recetas Seguras Directamente Visibles en la Página -->
+                    <div class="safe-recipes-section">
+                        <div class="safe-section-header">
+                            <div class="safe-header-left">
+                                <span class="material-symbols-outlined" style="color: #059669; font-size: 22px;">verified</span>
+                                <span class="safe-header-count">${isEn ? `${safeRecipes.length} Safe Recipes Available` : `${safeRecipes.length} Recetas 100% Seguras`}</span>
+                            </div>
+                            <span class="safe-header-sub">${isEn ? 'Showing dishes completely free from your selected exclusions' : 'Platos 100% libres de los alérgenos marcados'}</span>
+                        </div>
+
+                        <div class="safe-recipes-list">
+                            ${safeRecipes.length === 0 ? `
+                                <div class="allergens-empty-state">
+                                    <span class="material-symbols-outlined" style="font-size: 44px; color: #94A3B8;">no_meals</span>
+                                    <p>${isEn ? 'No recipes in your pantry match this safe combination.' : 'No se encontraron recetas libres de los alérgenos marcados.'}</p>
+                                </div>
+                            ` : safeRecipes.map(({ recipe, detectedIds }) => {
+                                const otherAllergens = (detectedIds || []).filter(id => !this.selectedSafeExclusions.has(id));
+                                const otherNames = otherAllergens.map(id => {
+                                    const found = allergens.find(a => a.id === id);
+                                    return found ? found.name_en : id;
+                                });
+                                const firstIngredients = (recipe.ingredients || []).map(i => i.name || i).slice(0, 5).join(', ');
+
+                                return `
+                                    <div class="safe-recipe-card" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
+                                        <div class="safe-recipe-info">
+                                            <div class="safe-recipe-header-row">
+                                                <h4 class="safe-recipe-title">${recipe.name_es || recipe.name_en || (isEn ? 'Untitled Recipe' : 'Receta sin título')}</h4>
+                                                <span class="safe-tag-badge">
+                                                    <span class="material-symbols-outlined">verified</span>
+                                                    <span>${isEn ? 'Safe' : 'Segura'}</span>
+                                                </span>
+                                                ${recipe.is_demo ? `<span class="split-demo-tag">${isEn ? 'Demo' : 'Ejemplo'}</span>` : ''}
+                                            </div>
+                                            ${recipe.description ? `<p class="safe-recipe-desc">${recipe.description}</p>` : ''}
+                                            <div class="safe-recipe-ingredients-preview">
+                                                <strong>${isEn ? 'Ingredients: ' : 'Ingredientes: '}</strong>${firstIngredients}${(recipe.ingredients || []).length > 5 ? '...' : ''}
+                                            </div>
+                                            ${otherNames.length > 0 ? `
+                                                <div class="split-other-allergens" style="margin-top: 8px;">
+                                                    <span class="other-label">${isEn ? 'Other allergens:' : 'Otros alérgenos:'}</span>
+                                                    ${otherNames.map(n => `<span class="split-sub-pill">${n}</span>`).join('')}
+                                                </div>
+                                            ` : `
+                                                <div class="split-clean-tag" style="margin-top: 8px;">
+                                                    <span class="material-symbols-outlined" style="font-size: 13px;">eco</span>
+                                                    <span>${isEn ? 'Free from all 14 UK allergens' : 'Libre de los 14 alérgenos de UK'}</span>
+                                                </div>
+                                            `}
+                                        </div>
+                                        <div class="safe-recipe-action">
+                                            <button class="btn-m3-tonal" title="${isEn ? 'View recipe' : 'Ver receta'}" type="button">
+                                                <span class="material-symbols-outlined">arrow_forward</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : `
+                    <div class="safe-banner-prompt">
+                        <span class="material-symbols-outlined" style="color: #059669;">tune</span>
+                        <span>${isEn 
+                            ? 'Open "Filter by Allergens" above to select allergens from the list and find 100% safe dishes.' 
+                            : 'Abre "Filtro en base a tus recetas" arriba para seleccionar alérgenos en lista y encontrar platos 100% seguros.'}</span>
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    toggleSafeRecipesDropdown(event) {
+        if (event) event.stopPropagation();
+        this.safeRecipesDropdownOpen = !this.safeRecipesDropdownOpen;
+        this.safeFilterDropdownOpen = false;
+        this.excludedRecipesDropdownOpen = false;
+        const dd = document.getElementById('safeRecipesDropdown');
+        if (dd) dd.classList.toggle('hidden', !this.safeRecipesDropdownOpen);
+        const otherDd = document.getElementById('excludedRecipesDropdown');
+        if (otherDd) otherDd.classList.add('hidden');
+        const filterDd = document.getElementById('safeAllergenDropdown');
+        if (filterDd) filterDd.classList.add('hidden');
+        const filterArrow = document.querySelector('#allergenFilterSplitWrapper .arrow-icon');
+        if (filterArrow) filterArrow.classList.remove('open');
+    }
+
+    toggleExcludedRecipesDropdown(event) {
+        if (event) event.stopPropagation();
+        this.excludedRecipesDropdownOpen = !this.excludedRecipesDropdownOpen;
+        this.safeFilterDropdownOpen = false;
+        this.safeRecipesDropdownOpen = false;
+        const dd = document.getElementById('excludedRecipesDropdown');
+        if (dd) dd.classList.toggle('hidden', !this.excludedRecipesDropdownOpen);
+        const otherDd = document.getElementById('safeRecipesDropdown');
+        if (otherDd) otherDd.classList.add('hidden');
+        const filterDd = document.getElementById('safeAllergenDropdown');
+        if (filterDd) filterDd.classList.add('hidden');
+        const filterArrow = document.querySelector('#allergenFilterSplitWrapper .arrow-icon');
+        if (filterArrow) filterArrow.classList.remove('open');
+    }
+
+    toggleSafeAllergenDropdown(event) {
+        if (event) event.stopPropagation();
+        this.safeFilterDropdownOpen = !this.safeFilterDropdownOpen;
+        this.safeRecipesDropdownOpen = false;
+        this.excludedRecipesDropdownOpen = false;
+        const dropdown = document.getElementById('safeAllergenDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden', !this.safeFilterDropdownOpen);
+        }
+        const arrow = document.querySelector('#allergenFilterSplitWrapper .arrow-icon');
+        if (arrow) {
+            arrow.classList.toggle('open', this.safeFilterDropdownOpen);
+        }
+        const safeDd = document.getElementById('safeRecipesDropdown');
+        if (safeDd) safeDd.classList.add('hidden');
+        const exclDd = document.getElementById('excludedRecipesDropdown');
+        if (exclDd) exclDd.classList.add('hidden');
+    }
+
+    closeSafeAllergenDropdown(event) {
+        if (event) event.stopPropagation();
+        this.safeFilterDropdownOpen = false;
+        const dropdown = document.getElementById('safeAllergenDropdown');
+        if (dropdown) {
+            dropdown.classList.add('hidden');
+        }
+        const arrow = document.querySelector('#allergenFilterSplitWrapper .arrow-icon');
+        if (arrow) {
+            arrow.classList.remove('open');
+        }
+    }
+
+    toggleSafeAllergenExclusion(id, event) {
+        if (event) event.stopPropagation();
+        if (!this.selectedSafeExclusions) this.selectedSafeExclusions = new Set();
+        if (this.selectedSafeExclusions.has(id)) {
+            this.selectedSafeExclusions.delete(id);
+        } else {
+            this.selectedSafeExclusions.add(id);
+        }
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
+        this.renderAllergenSafeTab(isEn, t);
+    }
+
+    clearSafeExclusions() {
+        this.showExcludedRecipes = false;
+        if (this.selectedSafeExclusions) this.selectedSafeExclusions.clear();
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
+        this.renderAllergenSafeTab(isEn, t);
+    }
+
+    setMatrixSource(source) {
+        this.matrixShowDemo = (source === 'demo');
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
+        this.renderAllergenMatrixTab(isEn, t);
+    }
+
+    renderAllergenMatrixTab(isEn, t) {
+        const tabMount = document.getElementById('allergenTabContent');
+        if (!tabMount) return;
+
+        const allergens = window.UK_ALLERGENS || [];
+        const userRecipes = this.currentRecipes || [];
+        const demoRecipes = window.DEMO_UK_RECIPES || [];
+
+        // Si el usuario no especificó fuente, usar recetas de usuario si tiene, o de demostración si tiene 0
+        const isDemoActive = this.matrixShowDemo !== undefined ? this.matrixShowDemo : (userRecipes.length === 0);
+        const recipes = isDemoActive ? demoRecipes : userRecipes;
+
+        const recipesWithAllergens = recipes.map(recipe => {
+            const detected = window.detectRecipeAllergens ? window.detectRecipeAllergens(recipe) : [];
+            const detectedIds = new Set(detected.map(d => (typeof d === 'object' ? d.id : d)));
+            return {
+                id: recipe.id,
+                name: recipe.name_es || recipe.name_en || (isEn ? 'Untitled' : 'Sin nombre'),
+                is_demo: !!recipe.is_demo,
+                detectedIds
+            };
+        });
+
+        tabMount.innerHTML = `
+            ${isDemoActive ? `
+                <div class="demo-notice-banner-m3">
+                    <div class="demo-notice-left">
+                        <div class="demo-notice-icon">
+                            <span class="material-symbols-outlined">lightbulb</span>
+                        </div>
+                        <div>
+                            <div class="demo-notice-title">${isEn ? 'Demonstration Kitchen Matrix (UK FSA Compliance)' : 'Matriz de Demostración (Cumplimiento UK FSA)'}</div>
+                            <div class="demo-notice-sub">${isEn 
+                                ? 'Showing 7 classic UK hospitality menu dishes (Fish & Chips, Carbonara, Pad Thai...) with 14 mandatory allergen declarations. When you save recipes, they will integrate here automatically.'
+                                : 'Mostrando 7 platos estándar de hostelería británica (Fish & Chips, Carbonara, Pad Thai...) con la declaración de los 14 alérgenos obligatorios. Al guardar tus recetas, se integrarán aquí automáticamente.'}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${userRecipes.length > 0 ? `
+                            <button class="btn-m3-tonal" onclick="window.dashboard.setMatrixSource('user')">
+                                <span class="material-symbols-outlined">restaurant_menu</span>
+                                <span>${isEn ? `My Recipes (${userRecipes.length})` : `Mis Recetas (${userRecipes.length})`}</span>
+                            </button>
+                        ` : `
+                            <a href="recipe-form.html" class="btn-m3-filled" style="text-decoration:none;">
+                                <span class="material-symbols-outlined">add</span>
+                                <span>${isEn ? 'Create Recipe' : 'Crear Receta'}</span>
+                            </a>
+                        `}
+                    </div>
+                </div>
+            ` : `
+                ${demoRecipes.length > 0 ? `
+                    <div style="display:flex; justify-content:flex-end; margin-bottom: 12px;">
+                        <button class="btn-m3-tonal" onclick="window.dashboard.setMatrixSource('demo')">
+                            <span class="material-symbols-outlined">visibility</span>
+                            <span>${isEn ? 'View UK Demo Dishes (7)' : 'Ver Platos de Ejemplo UK (7)'}</span>
+                        </button>
+                    </div>
+                ` : ''}
+            `}
+
+            <div class="matrix-header-bar">
+                <div class="matrix-title-block">
+                    <h3>${isEn ? 'UK FSA 14 Allergen Declarations Matrix' : 'Matriz Oficial de Declaración de Alérgenos (FSA UK)'}</h3>
+                    <p>${isEn 
+                        ? 'Mandatory kitchen chart. Meets Food Standards Agency (FSA) compliance requirements for hospitality.' 
+                        : 'Cuadro de control obligatorio de cocina. Cumple con los requisitos legales de la Food Standards Agency (FSA).'}</p>
+                </div>
+                <div class="matrix-actions">
+                    <button class="btn-m3-tonal" onclick="window.print()">
+                        <span class="material-symbols-outlined">print</span>
+                        <span>${isEn ? 'Print Matrix' : 'Imprimir Matriz'}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="matrix-table-wrapper">
+                <table class="fsa-matrix-table">
+                    <thead>
+                        <tr>
+                            <th class="col-recipe-name">${isEn ? 'Dish / Recipe Name' : 'Plato / Nombre de Receta'}</th>
+                            ${allergens.map(a => `
+                                <th class="col-allergen" title="${a.name_en}">
+                                    <div class="th-allergen-inner" style="color: ${a.color};">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
+                                        <span class="th-name">${a.name_en}</span>
+                                    </div>
+                                </th>
+                            `).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${recipesWithAllergens.length === 0 ? `
+                            <tr>
+                                <td colspan="${allergens.length + 1}" style="text-align:center; padding: 32px;">
+                                    ${isEn ? 'No recipes loaded. Save recipes to populate this matrix.' : 'No hay recetas cargadas en este momento.'}
+                                </td>
+                            </tr>
+                        ` : recipesWithAllergens.map(item => `
+                            <tr>
+                                <td class="col-recipe-name-cell" onclick="window.dashboard.openRecipeDetails('${item.id}')">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <strong>${item.name}</strong>
+                                        ${item.is_demo ? `<span class="demo-tag-pill-table">${isEn ? 'Demo' : 'Ejemplo'}</span>` : ''}
+                                    </div>
+                                </td>
+                                ${allergens.map(a => {
+                                    const hasIt = item.detectedIds.has(a.id);
+                                    return `
+                                        <td class="col-allergen-cell ${hasIt ? 'has-allergen' : 'free-allergen'}">
+                                            ${hasIt 
+                                                ? `<span class="allergen-dot-badge" style="background:${a.color};" title="${isEn ? `Contains ${a.name_en}` : `Contiene ${a.name_es}`}">●</span>` 
+                                                : `<span class="allergen-none-dash">-</span>`}
+                                        </td>
+                                    `;
+                                }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    openRecipeDetails(recipeId) {
+        if (!recipeId) return;
+
+        // Si es una receta de demostración, mostrar modal especial informativo
+        if (typeof recipeId === 'string' && recipeId.startsWith('demo-')) {
+            const demoList = window.DEMO_UK_RECIPES || [];
+            const dish = demoList.find(d => d.id === recipeId);
+            if (dish) {
+                this.showDemoRecipeModal(dish);
+                return;
+            }
+        }
+
+        if (this.handleRecipeClick) {
+            this.handleRecipeClick(recipeId);
+        }
+    }
+
+    showDemoRecipeModal(dish) {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const detected = window.detectRecipeAllergens ? window.detectRecipeAllergens(dish) : [];
+        const detectedIds = detected.map(d => (typeof d === 'object' ? d.id : d));
+        const allergens = window.UK_ALLERGENS || [];
+
+        // Remover modal existente si hubiera
+        const existing = document.getElementById('demoRecipeModal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'demoRecipeModal';
+        modal.className = 'demo-recipe-modal-backdrop';
+        modal.innerHTML = `
+            <div class="demo-recipe-modal-card">
+                <div class="demo-modal-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-outlined" style="color: #059669; font-size: 28px;">restaurant</span>
+                        <div>
+                            <h3 style="margin: 0; font-size: 18px; color: #0F172A;">${isEn ? (dish.name_en || dish.name_es) : dish.name_es}</h3>
+                            <span class="demo-tag-pill" style="margin-top: 4px; display: inline-block;">${isEn ? 'Demo Menu Dish (FSA UK)' : 'Plato de Demostración (FSA UK)'}</span>
+                        </div>
+                    </div>
+                    <button class="btn-close-modal-m3" onclick="document.getElementById('demoRecipeModal').remove()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <div class="demo-modal-body">
+                    <p style="font-size: 14px; color: #475569; line-height: 1.5; margin-bottom: 16px;">
+                        ${isEn ? (dish.description_en || dish.description_es) : (dish.description_es || '')}
+                    </p>
+
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: #64748B; margin-bottom: 8px;">
+                            ${isEn ? 'Ingredients:' : 'Ingredientes:'}
+                        </h4>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13.5px; color: #334155; line-height: 1.6;">
+                            ${(dish.ingredients || []).map(i => `<li>${i.name || i}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: #64748B; margin-bottom: 8px;">
+                            ${isEn ? 'Detected UK Allergens:' : 'Alérgenos Detectados (FSA UK):'}
+                        </h4>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            ${detectedIds.map(id => {
+                                const found = allergens.find(a => a.id === id);
+                                if (!found) return '';
+                                return `
+                                    <div class="allergen-pill-detected" style="background: ${found.bg}; border: 1px solid ${found.border}; color: ${found.color};">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">${found.icon}</span>
+                                        <span>${isEn ? found.name_en : found.name_es}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                            ${detectedIds.length === 0 ? `
+                                <span style="color: #059669; font-weight: 700; font-size: 13px;">${isEn ? 'Free from all 14 UK allergens' : 'Libre de los 14 alérgenos de UK'}</span>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-modal-footer">
+                    <button class="btn-m3-tonal" onclick="document.getElementById('demoRecipeModal').remove()">
+                        ${isEn ? 'Close' : 'Cerrar'}
+                    </button>
+                    <a href="recipe-form.html" class="btn-m3-filled" style="text-decoration:none;">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>${isEn ? 'Create My Own Recipe' : 'Crear Mi Propia Receta'}</span>
+                    </a>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
 }
 

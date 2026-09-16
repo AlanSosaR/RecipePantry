@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="514">
+<html lang="es" data-app-version="541">
 
 <head>
     <meta charset="utf-8" />
@@ -48,8 +48,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=514">
-    <link rel="stylesheet" href="css/components.css?v=514">
+    <link rel="stylesheet" href="css/styles.css?v=541">
+    <link rel="stylesheet" href="css/components.css?v=541">
 
     <style>
         :root {
@@ -59,91 +59,99 @@
 
         body {
             margin: 0;
-            padding: 0;
-            background-color: #FFFFFF;
+            padding: clamp(12px, 3vh, 24px);
+            background-color: #f0f2f5;
             background-image: none;
             min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-y: auto;
+            box-sizing: border-box;
             font-family: var(--font-body);
         }
 
         .login-container {
             position: relative;
-            width: 90%;
-            max-width: 420px;
+            width: 100%;
+            max-width: 390px;
             z-index: 10;
+            display: flex;
+            justify-content: center;
         }
 
         .login-card-expressive {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px) saturate(180%);
-            border-radius: 32px;
+            border-radius: 28px;
             box-shadow:
-                0 24px 48px -12px rgba(0, 0, 0, 0.12),
+                0 20px 48px -12px rgba(0, 0, 0, 0.12),
                 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-            padding: 4.8rem 2.8rem 3.2rem; /* Increased top padding */
+            padding: clamp(24px, 3.8vh, 32px) clamp(20px, 5vw, 28px) clamp(20px, 3.2vh, 26px);
             border: 1px solid var(--outline-variant);
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: clamp(12px, 1.8vh, 16px);
             transition: all var(--m3-duration-long) var(--m3-easing);
-            width: min(400px, 92vw);
-            max-width: 400px;
-            margin: auto;
+            width: 100%;
+            max-width: 390px;
+            max-height: min(94vh, 640px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            position: relative;
+            box-sizing: border-box;
         }
+        .login-card-expressive::-webkit-scrollbar { display: none; }
 
         .login-header {
             text-align: center;
         }
 
         .login-icon-m3 {
-            width: clamp(56px, 10vw, 72px);
-            height: clamp(56px, 10vw, 72px);
+            width: clamp(48px, 8vw, 60px);
+            height: clamp(48px, 8vw, 60px);
             background: var(--primary-light);
             color: var(--secondary);
-            border-radius: 20px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto clamp(16px, 2vh, 24px) auto;
+            margin: 0 auto clamp(10px, 1.5vh, 16px) auto;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .login-title {
             font-family: var(--font-display);
-            font-size: clamp(24px, 4vw, 32px);
+            font-size: clamp(22px, 3.2vh, 26px);
             font-weight: 800;
             color: #111827;
-            margin: 0 0 8px 0;
+            margin: 0 0 4px 0;
             letter-spacing: -0.02em;
         }
 
         .login-subtitle {
-            font-size: clamp(13px, 1.5vw, 15px);
+            font-size: clamp(12px, 1.5vh, 13px);
             color: var(--on-surface-variant);
             margin: 0;
-            line-height: 1.6;
+            line-height: 1.4;
         }
 
 
         /* M3 Outlined TextFields */
         .m3-field-container {
             position: relative;
-            margin-bottom: 24px;
+            margin-bottom: clamp(12px, 1.8vh, 16px);
             width: 100%;
         }
 
         .m3-field-input {
             width: 100%;
-            height: 56px;
+            height: clamp(46px, 5.8vh, 50px);
             background: transparent;
             border: 1.5px solid var(--outline-variant);
             border-radius: 12px;
-            padding: 0 16px;
-            font-size: 16px;
+            padding: 0 14px;
+            font-size: 14.5px;
             color: var(--on-surface);
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
@@ -153,15 +161,16 @@
         .m3-field-input:focus {
             border-color: var(--secondary);
             border-width: 2px;
-            padding: 0 15px;
+            padding: 0 13.5px;
         }
 
         .m3-field-label {
             position: absolute;
             left: 12px;
-            top: 18px;
+            top: 50%;
+            transform: translateY(-50%);
             padding: 0 4px;
-            font-size: 16px;
+            font-size: 14px;
             color: var(--on-surface-variant);
             pointer-events: none;
             transition: all 0.2s var(--m3-easing);
@@ -170,9 +179,10 @@
 
         .m3-field-input:focus+.m3-field-label,
         .m3-field-input:not(:placeholder-shown)+.m3-field-label {
-            top: -10px;
-            left: 12px;
-            font-size: 12px;
+            top: 0;
+            transform: translateY(-50%);
+            left: 10px;
+            font-size: 11px;
             font-weight: 700;
             color: var(--secondary);
             background: white;
@@ -180,7 +190,7 @@
 
         .m3-field-trailing {
             position: absolute;
-            right: 12px;
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
@@ -188,25 +198,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             transition: background 0.2s;
             user-select: none;
         }
 
         .m3-field-input.has-trailing {
-            padding-right: 52px;
+            padding-right: 46px;
         }
 
         .m3-field-error {
             color: var(--error);
-            font-size: 12px;
-            margin-top: 4px;
-            margin-left: 12px;
+            font-size: 11px;
+            margin-top: 2px;
+            margin-left: 8px;
             display: none;
             position: absolute;
-            bottom: -20px;
+            bottom: -16px;
         }
 
         .m3-field-container.has-error .m3-field-input {
@@ -222,50 +232,44 @@
             animation: fadeIn 0.3s ease;
         }
 
-        .m3-field-container {
-            margin-bottom: 32px;
-            /* Aumentado para dejar espacio al error text */
-            margin-top: 12px;
-            position: relative;
-        }
-
         .btn-m3-full {
             width: 100%;
             height: auto;
-            min-height: 48px;
-            padding: clamp(8px, 1vw, 12px) clamp(14px, 2vw, 24px);
-            border-radius: 28px;
+            min-height: clamp(42px, 5.2vh, 46px);
+            padding: clamp(8px, 1.2vh, 10px) 16px;
+            border-radius: 14px;
             border: none;
             font-weight: 700;
-            font-size: clamp(14px, 1.2vw, 17px);
+            font-size: clamp(14px, 1.6vh, 15px);
             cursor: pointer;
             transition: all 0.3s var(--m3-easing);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
             background: var(--primary);
             color: white;
-            box-shadow: 0 12px 24px -6px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+            margin-top: 4px;
         }
 
         .btn-m3-full:hover {
             transform: translateY(-2px);
-            box-shadow: 0 16px 32px -6px rgba(5, 150, 105, 0.5);
-            filter: brightness(1.1);
+            box-shadow: 0 12px 24px -4px rgba(5, 150, 105, 0.5);
+            filter: brightness(1.08);
         }
 
         .btn-m3-text {
             background: transparent;
             color: var(--secondary);
-            font-size: 15px;
+            font-size: clamp(13px, 1.5vh, 14px);
             font-weight: 600;
-            margin-top: 8px;
+            margin-top: 0;
             width: 100%;
             border: none;
             cursor: pointer;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 6px 10px;
+            border-radius: 10px;
             transition: background 0.2s;
         }
 
@@ -307,10 +311,10 @@
                     <span class="material-symbols-outlined" style="font-size: 16px">language</span>
                     <span class="lang-label">ES</span>
                 </div>
-                <div class="login-brand" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                    <img src="assets/icons/icon.svg" width="48" height="48" alt="Logo" />
+                <div class="login-brand" style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                    <img src="assets/icons/icon.svg" width="40" height="40" alt="Logo" />
                     <h1
-                        style="color: var(--logo-color); font-weight: 800; font-size: 32px; letter-spacing: -1px; margin: 0;">
+                        style="color: var(--logo-color); font-weight: 800; font-size: clamp(22px, 3vh, 26px); letter-spacing: -0.5px; margin: 0;">
                         Recipe Pantry</h1>
                 </div>
                 <h2 id="auth-title" class="login-title" style="display:none;"></h2>
@@ -318,7 +322,7 @@
                     privada de recetas.</p>
             </div>
 
-            <form id="unified-form" novalidate>
+            <form id="unified-form" novalidate style="display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 14px); margin: 0;">
                 <div id="name-group" class="m3-field-container hidden-m3">
                     <input class="m3-field-input" id="name" type="text" placeholder=" " autocomplete="name" />
                     <label class="m3-field-label" id="lbl-name" for="name" data-i18n="lblName">Nombre Completo</label>
@@ -360,19 +364,19 @@
                 </button>
             </form>
 
-            <div id="forgot-password-container" style="text-align: center; margin-top: 8px;">
-                <a href="recovery.html" data-i18n="forgotPasswordLink" style="color: #000; font-size: 14px; text-decoration: underline; font-weight: 500;">
+            <div id="forgot-password-container" style="text-align: center; margin-top: 2px;">
+                <a href="recovery.html" data-i18n="forgotPasswordLink" style="color: #4B5563; font-size: 13px; text-decoration: underline; font-weight: 500;">
                     ¿Olvidaste tu contraseña?
                 </a>
             </div>
 
-            <div class="btn-m3-text" id="switch-text-container" style="color: #000; font-size: 15px; font-weight: 500;">
+            <div class="btn-m3-text" id="switch-text-container" style="color: #000; font-size: 13.5px; font-weight: 500; padding: 4px;">
                 <span id="switch-text-prefix">¿No tienes cuenta? </span>
                 <span id="switch-text-action" style="color: var(--primary); font-weight: 700; cursor: pointer;">Regístrate ahora</span>
             </div>
 
             <button type="button" onclick="window.location.href='/'" class="btn-m3-text"
-                style="color: var(--on-surface-variant); font-size: 13px;">
+                style="color: var(--on-surface-variant); font-size: 12.5px; padding: 4px;">
                 <span id="btn-back" data-i18n="btnBack">Volver al inicio</span>
             </button>
         </div>
@@ -380,11 +384,11 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=514"></script>
-    <script src="js/supabase-client.js?v=514"></script>
-    <script src="js/i18n.js?v=514"></script>
-    <script src="js/auth.js?v=514"></script>
-    <script src="js/utils.js?v=514"></script>
+    <script src="js/config.js?v=541"></script>
+    <script src="js/supabase-client.js?v=541"></script>
+    <script src="js/i18n.js?v=541"></script>
+    <script src="js/auth.js?v=541"></script>
+    <script src="js/utils.js?v=541"></script>
 
     <script>
         let isLogin = true;

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const VERSION = '514';
-const V_TAG = 'v514';
+const VERSION = '541';
+const V_TAG = 'v541';
 
 // 1. Update config.js
 const configPath = path.join(__dirname, 'js', 'config.js');
@@ -26,6 +26,15 @@ if (fs.existsSync(swPath)) {
     content = content.replace(/const DATA_CACHE = '[^']+';/g, `const DATA_CACHE = 'data-${V_TAG}';`);
     fs.writeFileSync(swPath, content, 'utf8');
     console.log('✅ Updated sw.js');
+}
+
+// 2.5 Update js/sw-register.js
+const swRegPath = path.join(__dirname, 'js', 'sw-register.js');
+if (fs.existsSync(swRegPath)) {
+    let content = fs.readFileSync(swRegPath, 'utf8');
+    content = content.replace(/const APP_VERSION_ID = '[^']+';/g, `const APP_VERSION_ID = '${V_TAG}';`);
+    fs.writeFileSync(swRegPath, content, 'utf8');
+    console.log('✅ Updated js/sw-register.js');
 }
 
 // 3. Update HTML files

@@ -37,6 +37,21 @@ class NotificationManager {
                 }
             }
         });
+
+        // Comprobar si acabamos de actualizar para mostrar confirmación de éxito
+        if (sessionStorage.getItem('recipe_pantry_just_updated')) {
+            sessionStorage.removeItem('recipe_pantry_just_updated');
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            setTimeout(() => {
+                if (window.utils && window.utils.showToast) {
+                    window.utils.showToast(
+                        isEn ? '✨ Recipe Pantry updated to the latest version!' : '✨ ¡Recipe Pantry se ha actualizado a la última versión!',
+                        'success',
+                        4500
+                    );
+                }
+            }, 700);
+        }
     }
 
     async fetchNotifications() {
@@ -449,7 +464,7 @@ class NotificationManager {
                                 
                                 <!-- Action buttons -->
                                 <div style="display:flex; gap:8px; margin-top:10px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleUpdateApp()"
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleUpdateApp('${n.id}')"
                                         style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
                                         🔄 ${btnText}
                                     </button>
@@ -553,26 +568,172 @@ class NotificationManager {
         }
     }
 
-    handleUpdateApp() {
+    handleUpdateApp(notificationId = 'update-1') {
         console.log('🔄 [Notifications] Intentando actualizar app...', this.updateWorker);
         window._manualAppUpdateTriggered = true;
-        
-        if (this.updateWorker && this.updateWorker.state !== 'redundant') {
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
-            if (window.utils && window.utils.showToast) {
-                window.utils.showToast(isEn ? 'Updating app...' : 'Actualizando la app...', 'info');
+        window._progressHandlingReload = true;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        // 1. Cerrar inmediatamente el menú de notificaciones para no obstruir la vista
+        if (this.menu) {
+            this.menu.classList.add('hidden');
+        }
+
+        // 2. Quitar la tarjeta de actualización de la lista y actualizar contador de campana
+        this.notifications = this.notifications.filter(n => n.id !== notificationId && n.type !== 'app_update');
+        this.updateBadge();
+        this.renderMenu();
+
+        // 3. Mostrar barra de progreso interactiva Material 3 Expressive
+        this.showUpdateProgressUI(isEn);
+    }
+
+    showUpdateProgressUI(isEn) {
+        // Remover si ya existe
+        const oldEl = document.getElementById('app-update-progress-modal');
+        if (oldEl) oldEl.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'app-update-progress-modal';
+        modal.style.cssText = `
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #18181B;
+            color: #FFFFFF;
+            padding: 18px 24px;
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100000;
+            width: 90%;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            animation: m3UpdateSlideUp 0.35s cubic-bezier(0.2, 0, 0, 1) forwards;
+        `;
+
+        if (!document.getElementById('m3-update-progress-style')) {
+            const style = document.createElement('style');
+            style.id = 'm3-update-progress-style';
+            style.textContent = `
+                @keyframes m3UpdateSlideUp {
+                    from { opacity: 0; transform: translate(-50%, 40px) scale(0.96); }
+                    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+                }
+                .m3-update-track {
+                    width: 100%;
+                    height: 8px;
+                    background: rgba(255, 255, 255, 0.12);
+                    border-radius: 999px;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .m3-update-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+                    width: 0%;
+                    border-radius: 999px;
+                    transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        modal.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="m3-update-icon-wrap" style="width: 36px; height: 36px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); display: flex; align-items: center; justify-content: center; color: #34D399;">
+                        <span class="material-symbols-outlined" style="font-size: 22px; animation: spin 2s linear infinite;">sync</span>
+                    </div>
+                    <div>
+                        <div id="m3-update-title" style="font-size: 14px; font-weight: 700; color: #FFFFFF;">
+                            ${isEn ? 'Downloading update...' : 'Descargando actualización...'}
+                        </div>
+                        <div id="m3-update-sub" style="font-size: 12px; color: #A1A1AA; margin-top: 1px;">
+                            ${isEn ? 'Preparing newest features' : 'Descargando recursos y mejoras'}
+                        </div>
+                    </div>
+                </div>
+                <span id="m3-update-percent" style="font-size: 15px; font-weight: 800; color: #34D399;">0%</span>
+            </div>
+            <div class="m3-update-track">
+                <div id="m3-update-fill" class="m3-update-fill"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const fillEl = document.getElementById('m3-update-fill');
+        const percentEl = document.getElementById('m3-update-percent');
+        const titleEl = document.getElementById('m3-update-title');
+        const subEl = document.getElementById('m3-update-sub');
+        const iconWrap = document.getElementById('m3-update-icon-wrap');
+
+        let currentPercent = 12;
+        if (fillEl) fillEl.style.width = '12%';
+        if (percentEl) percentEl.textContent = '12%';
+
+        const interval = setInterval(() => {
+            if (currentPercent < 90) {
+                currentPercent += Math.floor(Math.random() * 16) + 10;
+                if (currentPercent > 90) currentPercent = 90;
+                if (fillEl) fillEl.style.width = currentPercent + '%';
+                if (percentEl) percentEl.textContent = currentPercent + '%';
+                if (currentPercent > 50 && subEl) {
+                    subEl.textContent = isEn ? 'Installing components...' : 'Instalando componentes y vistas...';
+                }
             }
-            
+        }, 120);
+
+        let completed = false;
+        const finishUpdate = () => {
+            if (completed) return;
+            completed = true;
+            clearInterval(interval);
+
+            if (fillEl) fillEl.style.width = '100%';
+            if (percentEl) percentEl.textContent = '100%';
+            if (titleEl) titleEl.textContent = isEn ? '✅ App Updated!' : '✅ ¡Actualizado con éxito!';
+            if (subEl) subEl.textContent = isEn ? 'Reloading application...' : 'Reiniciando aplicación...';
+            if (iconWrap) {
+                iconWrap.style.background = 'rgba(16, 185, 129, 0.3)';
+                iconWrap.innerHTML = '<span class="material-symbols-outlined" style="font-size: 22px; color: #34D399;">check_circle</span>';
+            }
+
+            sessionStorage.setItem('recipe_pantry_just_updated', 'true');
+
+            // Dar tiempo a ver el estado "Actualizado" y recargar
+            setTimeout(() => {
+                modal.style.animation = 'm3UpdateSlideUp 0.3s cubic-bezier(0.2, 0, 0, 1) reverse forwards';
+                setTimeout(() => {
+                    modal.remove();
+                    window.location.reload();
+                }, 300);
+            }, 750);
+        };
+
+        // Solicitar al worker activar la nueva versión
+        if (this.updateWorker && this.updateWorker.state !== 'redundant') {
             try {
                 this.updateWorker.postMessage({ type: 'SKIP_WAITING' });
             } catch (err) {
-                console.error('❌ Error postMessage to worker:', err);
-                window.location.reload();
+                console.warn('postMessage failed:', err);
             }
-        } else {
-            console.warn('⚠️ No hay worker activo para actualizar o está redundante. Recargando...');
-            window.location.reload();
         }
+
+        // Si el Service Worker cambia de controlador, finalizar con éxito
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            finishUpdate();
+        }, { once: true });
+
+        // Fallback de seguridad por si el worker ya estaba activo o tarda
+        setTimeout(() => {
+            finishUpdate();
+        }, 1300);
     }
 
     handleSyncDownload(notificationId) {

@@ -7120,3 +7120,2848 @@ input:checked~.m3-ingredient-text {
 .list-header-m3 .col-date {
     white-space: nowrap !important;
 }
+
+/* =========================================================
+   Material 3 Expressive - Módulo de Alergias (UK FSA)
+   ========================================================= */
+
+.allergens-module {
+    max-width: 1240px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 10px 4px 60px 4px;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Hero Header Material 3 Expressive */
+.allergens-hero-m3 {
+    background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 55%, #ECFDF5 100%);
+    border: 1.5px solid rgba(16, 185, 129, 0.22);
+    border-radius: 28px;
+    padding: 28px 36px;
+    box-shadow: 0 12px 36px -10px rgba(16, 185, 129, 0.12), 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.allergens-hero-m3::after {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.m3-uk-fsa-badge.hero-corner-badge {
+    position: absolute;
+    top: 26px;
+    right: 32px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.06);
+}
+
+.allergens-hero-top-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.allergens-hero-heading-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.allergens-hero-heading-block h2 {
+    font-size: clamp(20px, 2.5vw, 26px);
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
+.allergens-hero-icon {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    flex-shrink: 0;
+}
+
+.allergens-hero-content {
+    width: 100%;
+}
+
+.allergens-hero-desc,
+.allergens-hero-content p {
+    font-size: 14.5px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 4px 0 14px 0;
+    max-width: 960px;
+}
+
+.allergens-meta-chips,
+.allergens-hero-badges {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding: 2px 2px 6px 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.allergens-meta-chips::-webkit-scrollbar,
+.allergens-hero-badges::-webkit-scrollbar {
+    display: none;
+}
+
+.m3-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(16, 185, 129, 0.09);
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #065F46;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab-label-text {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Material 3 Segmented Navigation Tabs */
+.allergens-tabs-m3 {
+    display: inline-flex;
+    background: #F1F5F9;
+    padding: 6px;
+    border-radius: 9999px;
+    gap: 6px;
+    border: 1px solid #E2E8F0;
+    align-self: flex-start;
+    flex-wrap: wrap;
+}
+
+.m3-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    user-select: none;
+}
+
+.m3-nav-tab:hover {
+    color: #0F172A;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.m3-nav-tab.active {
+    background: #FFFFFF;
+    color: #047857;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.m3-nav-tab .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.tab-counter-badge {
+    background: #EF4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    margin-left: 2px;
+}
+
+/* Guide Toolbar (Search & Stats) */
+.guide-toolbar-m3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.search-field-m3 {
+    position: relative;
+    max-width: 520px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.search-field-m3 input {
+    width: 100%;
+    height: 48px;
+    border-radius: 9999px;
+    border: 1.5px solid #E2E8F0;
+    background: #FFFFFF;
+    padding: 0 44px 0 48px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #0F172A;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.search-field-m3 input:focus {
+    border-color: #10B981;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+}
+
+.search-field-m3 .material-symbols-outlined {
+    position: absolute;
+    left: 16px;
+    font-size: 22px;
+    color: #94A3B8;
+    pointer-events: none;
+}
+
+.clear-search-m3 {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.clear-search-m3:hover {
+    color: #0F172A;
+    background: #F1F5F9;
+}
+
+.clear-search-m3 .material-symbols-outlined {
+    position: static;
+    font-size: 18px;
+}
+
+.guide-stats-chip {
+    padding: 8px 16px;
+    background: #F1F5F9;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+    border: 1px solid #E2E8F0;
+}
+
+/* Material 3 Expressive Allergen Cards */
+.allergens-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+}
+
+.allergen-card-expressive {
+    background: #FFFFFF;
+    border-radius: 26px;
+    border: 1.5px solid #E2E8F0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.allergen-card-expressive:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
+    border-color: #CBD5E1;
+}
+
+.allergen-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.allergen-avatar {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.allergen-avatar .material-symbols-outlined {
+    font-size: 26px;
+}
+
+.allergen-title-block {
+    flex: 1;
+    min-width: 0;
+}
+
+.allergen-title-block h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0;
+    line-height: 1.25;
+}
+
+.allergen-official-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+.allergen-fsa-label {
+    background: #EEF2F6;
+    color: #334155;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+}
+
+.allergen-description {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* Callout Box 1: Where it hides */
+.allergen-hides-box {
+    background: #F0F9FF;
+    border: 1.5px solid #BAE6FD;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.allergen-hides-box .box-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #0369A1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.allergen-hides-box .box-title .material-symbols-outlined {
+    font-size: 17px;
+    color: #0284C7;
+}
+
+.allergen-hides-box .box-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 12.5px;
+    color: #0C4A6E;
+    line-height: 1.55;
+}
+
+.allergen-hides-box .box-list li {
+    margin-bottom: 4px;
+}
+
+.allergen-hides-box .box-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* Callout Box 2: Cross Contamination Risks */
+.allergen-risk-box {
+    background: #FFFBEB;
+    border: 1.5px solid #FDE68A;
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.allergen-risk-box .box-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #B45309;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.allergen-risk-box .box-title .material-symbols-outlined {
+    font-size: 17px;
+    color: #D97706;
+}
+
+.allergen-risk-box .box-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 12.5px;
+    color: #78350F;
+    line-height: 1.55;
+}
+
+.allergen-risk-box .box-list li {
+    margin-bottom: 4px;
+}
+
+.allergen-risk-box .box-list li:last-child {
+    margin-bottom: 0;
+}
+
+.allergen-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.law-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748B;
+}
+
+.law-badge .material-symbols-outlined {
+    font-size: 16px;
+    color: #94A3B8;
+}
+
+.btn-check-recipes {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    color: #1E293B;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.btn-check-recipes:hover {
+    background: #10B981;
+    border-color: #10B981;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-check-recipes .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* =========================================================
+   Safe Diner Filter (Comensal Seguro) - Material 3 Expressive
+   ========================================================= */
+
+.safe-filter-panel {
+    background: #FFFFFF;
+    border-radius: 28px;
+    border: 1.5px solid #E2E8F0;
+    padding: 32px 32px 64px 32px;
+    margin-bottom: 90px;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+}
+
+.safe-filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.safe-filter-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 280px;
+}
+
+.safe-title-icon {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.08) 100%);
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px !important;
+}
+
+.safe-filter-title h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.02em;
+}
+
+.safe-filter-title p {
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Material 3 Expressive Safe Filter Action Bar & 14 Allergens Dropdown */
+/* Material 3 Expressive Safe Filter Split Buttons Bar & Dropdowns */
+.safe-split-buttons-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 10;
+}
+
+.m3-split-button-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.m3-split-button {
+    display: inline-flex;
+    align-items: stretch;
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    user-select: none;
+}
+
+/* 1. Filter Split Button */
+.m3-split-button.filter-split-button {
+    background: #F0FDF4;
+    border: 1.5px solid #BBF7D0;
+    color: #166534;
+}
+
+.m3-split-button.filter-split-button:hover {
+    background: #DCFCE7;
+    border-color: #86EFAC;
+    box-shadow: 0 4px 14px rgba(22, 101, 52, 0.12);
+    transform: translateY(-1px);
+}
+
+.m3-split-button.filter-split-button.has-active-filter {
+    background: #059669;
+    border-color: #047857;
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+}
+
+.m3-split-button.filter-split-button.has-active-filter:hover {
+    background: #047857;
+    border-color: #065F46;
+}
+
+/* 2. Safe Recipes Split Button */
+.m3-split-button.safe-split-button {
+    background: #ECFDF5;
+    border: 1.5px solid #A7F3D0;
+    color: #065F46;
+}
+
+.m3-split-button.safe-split-button:hover {
+    background: #D1FAE5;
+    border-color: #6EE7B7;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.16);
+    transform: translateY(-1px);
+}
+
+/* 3. Danger (Excluded) Recipes Split Button */
+.m3-split-button.danger-split-button {
+    background: #FEF2F2;
+    border: 1.5px solid #FECACA;
+    color: #991B1B;
+}
+
+.m3-split-button.danger-split-button:hover {
+    background: #FEE2E2;
+    border-color: #FCA5A5;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.16);
+    transform: translateY(-1px);
+}
+
+/* Split Button Parts */
+.m3-split-btn-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    outline: none;
+}
+
+.m3-split-btn-main:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.m3-split-btn-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    outline: none;
+}
+
+.m3-split-btn-arrow:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.filter-split-button.has-active-filter .m3-split-btn-arrow {
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.filter-split-button.has-active-filter .m3-split-btn-main:hover,
+.filter-split-button.has-active-filter .m3-split-btn-arrow:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.split-btn-title {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.split-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 9999px;
+    background: #FFFFFF;
+    color: #059669;
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.m3-split-button .arrow-icon {
+    font-size: 20px;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-split-button .arrow-icon.open {
+    transform: rotate(180deg);
+}
+
+/* =========================================================
+   M3 Split Dropdowns (Allergen List & Recipe Lists)
+   ========================================================= */
+.m3-split-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 1000;
+    width: 400px;
+    max-width: min(400px, calc(100vw - 36px));
+    max-height: 380px;
+    background: #FFFFFF;
+    border-radius: 24px;
+    border: 1.5px solid #E2E8F0;
+    box-shadow: 0 18px 40px -8px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 18px 16px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+    animation: m3DropFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes m3DropFade {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.m3-split-dropdown.hidden {
+    display: none !important;
+}
+
+.m3-split-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 4px 10px 4px;
+    margin-bottom: 2px;
+    border-bottom: 1.5px dashed #F1F5F9;
+    flex-shrink: 0;
+}
+
+.m3-split-dropdown-header.danger-header {
+    border-bottom-color: #FEE2E2;
+}
+
+.filter-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.filter-clear-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: #DC2626;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.filter-clear-link:hover {
+    background: #FEF2F2;
+}
+
+.filter-clear-link .material-symbols-outlined {
+    font-size: 15px;
+}
+
+/* =========================================================
+   Vertical Allergen List (14 Alergias en Lista)
+   ========================================================= */
+.allergen-vertical-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    max-height: 210px;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 1px;
+    flex: 1 1 auto;
+}
+
+.allergen-vertical-list::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.allergen-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 15px;
+    border-radius: 16px;
+    background: #F8FAFC;
+    border: 1.5px solid #F1F5F9;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+}
+
+.allergen-list-item:hover {
+    background: #F1F5F9;
+    border-color: #E2E8F0;
+    transform: translateX(2px);
+}
+
+.allergen-list-item.selected {
+    background: #FEF2F2 !important;
+    border-color: #FECACA !important;
+}
+
+.allergen-list-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.allergen-list-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.allergen-list-icon-wrap .material-symbols-outlined {
+    font-size: 20px !important;
+}
+
+.allergen-list-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.allergen-list-item.selected .allergen-list-name {
+    color: #991B1B;
+}
+
+.allergen-list-checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 1.5px solid #CBD5E1;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    color: #FFFFFF;
+}
+
+.allergen-list-checkbox.checked {
+    background: #DC2626;
+    border-color: #DC2626;
+}
+
+.allergen-list-checkbox .material-symbols-outlined {
+    font-size: 17px !important;
+    font-weight: 800;
+}
+
+.m3-filter-dropdown-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    margin-top: 4px;
+    border-top: 1.5px solid #F1F5F9;
+}
+
+.footer-hint {
+    font-size: 12.5px;
+    color: #64748B;
+    font-weight: 600;
+}
+
+.btn-close-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background: #059669;
+    border: none;
+    border-radius: 9999px;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+}
+
+.btn-close-filter:hover {
+    background: #047857;
+}
+
+/* =========================================================
+   Recipes inside Split Dropdown (Safe & Excluded Lists)
+   ========================================================= */
+.safe-recipes-dropdown,
+.excluded-recipes-dropdown {
+    width: 420px;
+    max-width: 94vw;
+}
+
+.split-recipes-scroll-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    max-height: min(260px, 36vh);
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    -webkit-overflow-scrolling: touch;
+}
+
+.split-recipes-scroll-list::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.split-empty-hint {
+    padding: 20px 14px;
+    text-align: center;
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 500;
+    background: #F8FAFC;
+    border-radius: 14px;
+}
+
+.split-recipe-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.2, 0, 0, 1);
+    gap: 12px;
+}
+
+.split-recipe-item:hover {
+    background: #FFFFFF;
+    border-color: #10B981;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12);
+    transform: translateY(-1px);
+}
+
+.split-recipe-item.danger-item {
+    border-left: 4px solid #EF4444;
+}
+
+.split-recipe-item.danger-item:hover {
+    border-color: #EF4444;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);
+}
+
+.split-recipe-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.split-recipe-item-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.split-recipe-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.split-demo-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #EFF6FF;
+    color: #2563EB;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.split-danger-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #FEE2E2;
+    color: #DC2626;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.split-recipe-item-sub {
+    font-size: 11.5px;
+    color: #64748B;
+    margin-top: 2px;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.split-other-allergens {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.split-other-allergens .other-label {
+    font-size: 11px;
+    color: #64748B;
+    font-weight: 600;
+}
+
+.split-sub-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #F1F5F9;
+    color: #475569;
+    font-size: 10.5px;
+    font-weight: 600;
+}
+
+.split-clean-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #059669;
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-top: 3px;
+}
+
+.split-offending-tags {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.split-offending-tags .offending-label {
+    font-size: 11px;
+    color: #991B1B;
+    font-weight: 700;
+}
+
+.split-offending-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1.5px 7px;
+    border-radius: 6px;
+    background: #FEE2E2;
+    color: #DC2626;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.split-item-arrow {
+    font-size: 18px;
+    color: #94A3B8;
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   Active Exclusion Pills Row (Compact feedback under buttons)
+   ========================================================= */
+.active-exclusions-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px 0 0 0;
+}
+
+.active-exclusions-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.active-exclusion-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 9999px;
+    color: #DC2626;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    user-select: none;
+    outline: none;
+}
+
+.active-exclusion-pill:hover {
+    background: #FEE2E2;
+    border-color: #EF4444;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+}
+
+.pill-remove-icon {
+    font-size: 14px !important;
+    font-weight: 800;
+}
+
+.btn-clear-exclusions:hover {
+    background: #FEF2F2;
+    border-color: #FCA5A5;
+    color: #DC2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+}
+
+.btn-clear-exclusions .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Material 3 Expressive Filter Chips Grid */
+.allergen-chips-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.allergen-toggle-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px 0 14px;
+    border-radius: 9999px;
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    color: #334155;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    user-select: none;
+    outline: none;
+}
+
+.allergen-toggle-chip:hover {
+    background: #FFFFFF;
+    border-color: #CBD5E1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.allergen-toggle-chip:active {
+    transform: scale(0.96);
+}
+
+.allergen-toggle-chip .material-symbols-outlined {
+    font-size: 19px !important;
+}
+
+/* Selected chip state (Excluded allergen) */
+.allergen-toggle-chip.selected {
+    background: #FEF2F2 !important;
+    border-color: #EF4444 !important;
+    color: #DC2626 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.18) !important;
+}
+
+.allergen-toggle-chip.selected .material-symbols-outlined {
+    color: #DC2626 !important;
+}
+
+/* Status Banners */
+.safe-results-status {
+    width: 100%;
+}
+
+.safe-banner-prompt {
+    background: #F8FAFC;
+    border: 1.5px dashed #CBD5E1;
+    border-radius: 20px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #64748B;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.safe-banner-prompt .material-symbols-outlined {
+    font-size: 22px;
+    color: #94A3B8;
+}
+
+.safe-banner-active {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%);
+    border: 1.5px solid rgba(16, 185, 129, 0.32);
+    border-radius: 22px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: #065F46;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+}
+
+.safe-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.safe-banner-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: rgba(16, 185, 129, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #059669;
+    flex-shrink: 0;
+}
+
+.safe-banner-active .material-symbols-outlined {
+    font-size: 26px;
+    color: #059669;
+}
+
+.safe-banner-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #065F46;
+}
+
+.safe-banner-sub {
+    font-size: 13px;
+    color: #047857;
+    margin-top: 2px;
+}
+
+.btn-toggle-excluded {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: #FEF2F2;
+    border: 1.5px solid #FCA5A5;
+    border-radius: 9999px;
+    color: #B91C1C;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.08);
+    user-select: none;
+    outline: none;
+    margin-left: auto;
+}
+
+.btn-toggle-excluded:hover {
+    background: #FEE2E2;
+    border-color: #EF4444;
+    color: #991B1B;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.16);
+}
+
+.btn-toggle-excluded:active {
+    transform: scale(0.97);
+}
+
+.btn-toggle-excluded.active {
+    background: #EF4444;
+    border-color: #DC2626;
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+.btn-toggle-excluded .material-symbols-outlined {
+    font-size: 18px !important;
+}
+
+.btn-toggle-excluded.active .material-symbols-outlined {
+    color: #FFFFFF !important;
+}
+
+/* Excluded Recipes Section */
+.excluded-recipes-section {
+    background: #FFFBFB;
+    border: 1.5px solid #FCA5A5;
+    border-radius: 26px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    animation: m3DropFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.08);
+}
+
+.excluded-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1.5px dashed #FECACA;
+    padding-bottom: 14px;
+}
+
+.excluded-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.excluded-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #FEE2E2;
+    color: #DC2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.excluded-icon-wrap .material-symbols-outlined {
+    font-size: 22px;
+    color: #DC2626;
+}
+
+.excluded-header-title h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #991B1B;
+    letter-spacing: -0.01em;
+}
+
+.excluded-header-title p {
+    margin: 2px 0 0 0;
+    font-size: 12.5px;
+    color: #B91C1C;
+}
+
+.excluded-badge-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: #FEE2E2;
+    color: #991B1B;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid #FCA5A5;
+}
+
+.excluded-recipes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+}
+
+.excluded-recipe-card {
+    background: #FFFFFF;
+    border: 1.5px solid #FECACA;
+    border-left: 5px solid #EF4444;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.04);
+}
+
+.excluded-recipe-card:hover {
+    border-color: #EF4444;
+    border-left-color: #DC2626;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(239, 68, 68, 0.12);
+}
+
+.excluded-recipe-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.excluded-recipe-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1E293B;
+    margin: 0;
+}
+
+.danger-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+    border-radius: 9999px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.danger-tag-badge .material-symbols-outlined {
+    font-size: 14px;
+    color: #DC2626;
+}
+
+.offending-alert-box {
+    margin-top: 10px;
+    background: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.offending-alert-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #B91C1C;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.offending-alert-label .material-symbols-outlined {
+    font-size: 15px;
+    color: #DC2626;
+}
+
+.offending-pills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.offending-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #FFFFFF;
+    border: 1px solid #F87171;
+    color: #B91C1C;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.08);
+}
+
+.offending-pill .material-symbols-outlined {
+    font-size: 13px;
+    color: #DC2626;
+}
+
+.btn-excluded-action {
+    background: #FEF2F2 !important;
+    color: #DC2626 !important;
+}
+
+.excluded-recipe-card:hover .btn-excluded-action {
+    background: #DC2626 !important;
+    color: #FFFFFF !important;
+    transform: translateX(3px);
+}
+
+.safe-section-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid #E2E8F0;
+    margin-bottom: 4px;
+}
+
+.safe-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    background: #ECFDF5;
+    color: #065F46;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid #A7F3D0;
+}
+
+/* Safe Recipes List & Cards */
+.safe-recipes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.safe-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 4px 6px 4px;
+    border-bottom: 1.5px dashed #E2E8F0;
+}
+
+.safe-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.safe-header-count {
+    font-size: 16px;
+    font-weight: 800;
+    color: #065F46;
+}
+
+.safe-header-sub {
+    font-size: 13px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+.safe-recipes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 18px;
+    margin-top: 6px;
+}
+
+.safe-recipe-card {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 24px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.safe-recipe-card:hover {
+    border-color: #10B981;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.14);
+}
+
+.safe-recipe-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.safe-recipe-header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.safe-recipe-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.safe-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border-radius: 9999px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.safe-tag-badge .material-symbols-outlined {
+    font-size: 15px;
+}
+
+.safe-recipe-desc {
+    font-size: 13px;
+    color: #64748B;
+    line-height: 1.45;
+    margin: 0 0 10px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.safe-recipe-ingredients-preview {
+    font-size: 12.5px;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.safe-recipe-ingredients-preview strong {
+    color: #1E293B;
+    font-weight: 700;
+}
+
+.safe-recipe-action {
+    flex-shrink: 0;
+}
+
+.safe-recipe-action .btn-m3-tonal {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    border: none;
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.safe-recipe-card:hover .safe-recipe-action .btn-m3-tonal {
+    background: #10B981;
+    color: #FFFFFF;
+    transform: translateX(3px);
+}
+
+.safe-recipe-action .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Empty State */
+.allergens-empty-state {
+    grid-column: 1 / -1;
+    padding: 48px 24px;
+    text-align: center;
+    background: #F8FAFC;
+    border: 1.5px dashed #CBD5E1;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.allergens-empty-state p {
+    font-size: 15px;
+    color: #64748B;
+    margin: 0;
+    font-weight: 600;
+}
+
+.btn-m3-tonal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 9999px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0F172A;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-m3-tonal:hover {
+    background: #E2E8F0;
+}
+
+/* =========================================================
+   Official FSA Matrix (Printable & Interactive)
+   ========================================================= */
+
+.matrix-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.matrix-title-block h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.02em;
+}
+
+.matrix-title-block p {
+    font-size: 13.5px;
+    color: #64748B;
+    margin: 0;
+}
+
+.matrix-table-wrapper {
+    background: #FFFFFF;
+    border-radius: 26px;
+    border: 1.5px solid #E2E8F0;
+    overflow-x: auto;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.fsa-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: center;
+}
+
+.fsa-matrix-table th,
+.fsa-matrix-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #F1F5F9;
+    border-right: 1px solid #F1F5F9;
+}
+
+.fsa-matrix-table th {
+    background: #F8FAFC;
+    font-weight: 700;
+    color: #334155;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    min-width: 54px;
+}
+
+.th-allergen-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.th-name {
+    font-size: 10.5px;
+    white-space: nowrap;
+}
+
+.col-recipe-name,
+.col-recipe-name-cell {
+    text-align: left;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    min-width: 200px;
+    max-width: 280px;
+    position: sticky;
+    left: 0;
+    background: #FFFFFF;
+    z-index: 6;
+    font-weight: 700;
+    color: #0F172A;
+    box-shadow: 3px 0 8px rgba(0, 0, 0, 0.03);
+}
+
+.col-recipe-name-cell {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.col-recipe-name-cell:hover {
+    color: #10B981;
+}
+
+.fsa-matrix-table th.col-recipe-name {
+    background: #F8FAFC;
+    z-index: 7;
+}
+
+.fsa-matrix-table tr:hover td {
+    background-color: #F8FAFC;
+}
+
+.fsa-matrix-table tr:hover td.col-recipe-name-cell {
+    background-color: #F8FAFC;
+}
+
+.col-allergen-cell.has-allergen {
+    background: rgba(239, 68, 68, 0.04);
+}
+
+.allergen-dot-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.allergen-none-dash {
+    color: #CBD5E1;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Print Optimization */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #allergensView,
+    #allergensView * {
+        visibility: visible;
+    }
+    #allergensView {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 0 !important;
+    }
+    .allergens-tabs-m3,
+    .matrix-actions,
+    .search-field-m3,
+    .guide-toolbar-m3,
+    .btn-check-recipes {
+        display: none !important;
+    }
+    .fsa-matrix-table {
+        font-size: 9px !important;
+    }
+    .fsa-matrix-table th,
+    .fsa-matrix-table td {
+        padding: 4px !important;
+    }
+}
+
+/* ==========================================================================
+   DEMO RECIPES & FSA MATRIX EXPRESSIVE NOTICES
+   ========================================================================== */
+.demo-notice-banner-m3 {
+    background: linear-gradient(135deg, rgba(238, 242, 255, 0.9) 0%, rgba(240, 253, 250, 0.9) 100%);
+    border: 1.5px solid rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.05);
+}
+
+.demo-notice-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.demo-notice-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #4F46E5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.demo-notice-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1E1B4B;
+}
+
+.demo-notice-sub {
+    font-size: 13px;
+    color: #4B5563;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.demo-tag-pill {
+    background: rgba(99, 102, 241, 0.12);
+    color: #4338CA;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.demo-tag-pill-table {
+    background: #EEF2FF;
+    color: #4338CA;
+    border: 1px solid #C7D2FE;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 6px;
+}
+
+/* Modal Demo Dish */
+.demo-recipe-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 16px;
+    animation: modalFadeIn 0.25s ease-out forwards;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.demo-recipe-modal-card {
+    background: #FFFFFF;
+    width: 100%;
+    max-width: 520px;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    animation: cardZoomIn 0.3s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes cardZoomIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.demo-modal-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.btn-close-modal-m3 {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #F1F5F9;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-close-modal-m3:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+}
+
+.demo-modal-body {
+    padding: 24px;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.demo-modal-footer {
+    padding: 16px 24px;
+    background: #F8FAFC;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.allergen-pill-detected {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   MATERIAL 3 EXPRESSIVE - MOBILE OPTIMIZATION (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Aprovechar al máximo el ancho de pantalla en el teléfono */
+    body:has(#allergensView:not(.hidden)) .main-content,
+    .main-content:has(#allergensView:not(.hidden)) {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    #allergensView {
+        padding: 0 !important;
+        margin: 4px 0 0 0 !important;
+        width: 100% !important;
+    }
+
+    /* Ocultar botón flotante de crear receta en vista de alergias en móvil */
+    body:has(#allergensView:not(.hidden)) .fab-m3,
+    body[data-view="allergens"] .fab-m3 {
+        display: none !important;
+    }
+
+    .allergens-module {
+        padding: 0 0 80px 0 !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 1. Compact Hero Card */
+    .allergens-hero-m3 {
+        padding: 16px 14px 14px 14px !important;
+        border-radius: 18px !important;
+        gap: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .allergens-hero-m3::after {
+        display: none;
+    }
+
+    .m3-uk-fsa-badge.hero-corner-badge {
+        position: static;
+        align-self: flex-start;
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+
+    .allergens-hero-top-row {
+        gap: 12px;
+        margin-bottom: 0;
+    }
+
+    .allergens-hero-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 14px;
+    }
+
+    .allergens-hero-icon .material-symbols-outlined {
+        font-size: 24px !important;
+    }
+
+    .allergens-hero-heading-block h2 {
+        font-size: 17px;
+        line-height: 1.25;
+    }
+
+    .m3-uk-fsa-badge {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+
+    .allergens-hero-desc,
+    .allergens-hero-content p {
+        font-size: 12px;
+        line-height: 1.45;
+        margin: 6px 0 10px 0;
+        color: #475569;
+    }
+
+    /* Horizontal scrollable chips in Hero on mobile (Carrusel) */
+    .allergens-meta-chips,
+    .allergens-hero-badges {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+        padding: 2px 0 4px 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        width: 100%;
+    }
+
+    .allergens-meta-chips::-webkit-scrollbar,
+    .allergens-hero-badges::-webkit-scrollbar {
+        display: none;
+    }
+
+    .m3-badge-pill {
+        white-space: nowrap !important;
+        font-size: 11px;
+        padding: 4px 10px;
+        flex-shrink: 0 !important;
+        gap: 5px;
+    }
+
+    /* 2. Responsive Segmented Tab Bar - No awkward egg shape */
+    .allergens-tabs-m3 {
+        display: flex;
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 16px;
+        padding: 4px;
+        gap: 4px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        background: #F1F5F9;
+    }
+
+    .allergens-tabs-m3::-webkit-scrollbar {
+        display: none;
+    }
+
+    .m3-nav-tab {
+        flex: 1 1 0;
+        justify-content: center;
+        padding: 9px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        border-radius: 12px;
+        gap: 5px;
+    }
+
+    .m3-nav-tab .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+    .tab-label-desktop {
+        display: none;
+    }
+
+    .tab-counter-badge {
+        font-size: 10px;
+        padding: 1px 5px;
+    }
+
+    /* 3. Guide Search & Toolbar */
+    .guide-toolbar-m3 {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .search-field-m3 {
+        max-width: 100%;
+    }
+
+    .search-field-m3 input {
+        height: 42px;
+        font-size: 12.5px;
+        padding: 0 38px 0 42px;
+    }
+
+    .guide-stats-chip {
+        align-self: flex-start;
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    /* 4. Single-column Expressive Allergen Cards */
+    .allergens-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .allergen-card-expressive {
+        padding: 16px 14px;
+        border-radius: 20px;
+        gap: 12px;
+    }
+
+    .allergen-card-header {
+        gap: 12px;
+    }
+
+    .allergen-avatar {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 14px;
+    }
+
+    .allergen-avatar .material-symbols-outlined {
+        font-size: 22px;
+    }
+
+    .allergen-title-block h3 {
+        font-size: 16px;
+    }
+
+    .allergen-description {
+        font-size: 12.5px;
+        line-height: 1.45;
+    }
+
+    .allergen-hides-box,
+    .allergen-risk-box {
+        padding: 10px 12px;
+        border-radius: 14px;
+        gap: 6px;
+    }
+
+    .allergen-hides-box .box-title,
+    .allergen-risk-box .box-title {
+        font-size: 11px;
+    }
+
+    .allergen-hides-box .box-list,
+    .allergen-risk-box .box-list {
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .allergen-card-footer {
+        display: none !important;
+    }
+
+    /* 5. Safe Diner Filter Panel */
+    .safe-filter-panel {
+        padding: 18px 14px 70px 14px;
+        border-radius: 20px;
+        gap: 14px;
+        min-height: 440px;
+        margin-bottom: 90px;
+        box-sizing: border-box;
+    }
+
+    .safe-filter-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .safe-filter-title {
+        min-width: 0;
+        gap: 10px;
+    }
+
+    .safe-title-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 12px;
+        font-size: 20px !important;
+    }
+
+    .safe-filter-title h3 {
+        font-size: 16px;
+    }
+
+    .safe-filter-title p {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .safe-filter-header .btn-clear-exclusions {
+        display: inline-flex !important;
+        margin-top: 4px;
+        align-self: flex-start;
+    }
+
+    /* 5. Safe Diner Filter Panel en Móvil: Split Buttons y Dropdowns */
+    .safe-split-buttons-bar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .m3-split-button-wrapper {
+        width: 100%;
+    }
+
+    .m3-split-button {
+        width: 100%;
+        display: flex;
+    }
+
+    .m3-split-btn-main {
+        flex: 1;
+        justify-content: flex-start;
+        padding: 10px 14px;
+        font-size: 13.5px;
+    }
+
+    .m3-split-btn-arrow {
+        padding: 0 14px;
+    }
+
+    .m3-split-dropdown,
+    .safe-recipes-dropdown,
+    .excluded-recipes-dropdown {
+        width: 100%;
+        max-width: calc(100vw - 32px);
+        max-height: 360px;
+        left: 0;
+        right: 0;
+        border-radius: 22px;
+        padding: 16px 14px 12px 14px;
+        top: calc(100% + 8px);
+        gap: 8px;
+        box-sizing: border-box;
+    }
+
+    .m3-split-dropdown-header {
+        padding: 2px 2px 8px 2px;
+        margin-bottom: 2px;
+    }
+
+    .allergen-vertical-list {
+        max-height: 200px;
+        gap: 6px;
+        padding: 2px 1px;
+    }
+
+    .allergen-list-item {
+        padding: 8px 12px;
+        border-radius: 12px;
+    }
+
+    .allergen-list-name {
+        font-size: 13.5px;
+    }
+
+    .allergen-list-icon-wrap {
+        width: 32px;
+        height: 32px;
+    }
+
+    .allergen-list-checkbox {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+    }
+
+    .split-recipes-scroll-list {
+        max-height: 200px;
+        gap: 6px;
+    }
+
+    .split-recipe-item {
+        padding: 11px 14px;
+        border-radius: 14px;
+    }
+
+    .m3-filter-dropdown-footer {
+        padding-top: 12px;
+        margin-top: 4px;
+    }
+
+    .active-exclusions-pills-row {
+        gap: 6px;
+        padding: 2px 0 4px 0;
+    }
+
+    .active-exclusion-pill {
+        font-size: 11.5px;
+        padding: 3px 8px;
+    }
+
+    .safe-banner-prompt {
+        padding: 14px 16px;
+        border-radius: 18px;
+        font-size: 13px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .excluded-recipes-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .excluded-recipe-card {
+        padding: 14px;
+        border-radius: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .excluded-recipe-title {
+        font-size: 15px;
+    }
+
+    .safe-recipes-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .safe-recipe-card {
+        padding: 14px;
+        border-radius: 18px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .safe-recipe-title {
+        font-size: 15px;
+    }
+
+    .safe-recipe-action {
+        align-self: flex-end;
+    }
+
+    .safe-recipe-action .btn-m3-tonal {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* 6. FSA Matrix Mobile Table */
+    .matrix-header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .matrix-title-block h3 {
+        font-size: 16.5px;
+    }
+
+    .matrix-title-block p {
+        font-size: 12px;
+    }
+
+    .matrix-actions {
+        width: 100%;
+    }
+
+    .matrix-actions .btn-m3-tonal {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .matrix-table-wrapper {
+        border-radius: 16px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .col-recipe-name,
+    .col-recipe-name-cell {
+        min-width: 130px;
+        max-width: 145px;
+        padding-left: 10px !important;
+        padding-right: 8px !important;
+        font-size: 11.5px;
+    }
+
+    .fsa-matrix-table th,
+    .fsa-matrix-table td {
+        padding: 8px 5px;
+    }
+
+    .th-name {
+        font-size: 9px;
+    }
+
+    .allergen-dot-badge {
+        width: 19px;
+        height: 19px;
+        font-size: 9.5px;
+    }
+
+    /* 7. Demo Notice Banner Mobile */
+    .demo-notice-banner-m3 {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px;
+        border-radius: 18px;
+        gap: 10px;
+    }
+
+    .demo-notice-left {
+        gap: 10px;
+    }
+
+    .demo-notice-icon {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border-radius: 12px;
+    }
+
+    .demo-notice-title {
+        font-size: 13.5px;
+    }
+
+    .demo-notice-sub {
+        font-size: 11.5px;
+    }
+
+    .demo-notice-banner-m3 .btn-m3-filled,
+    .demo-notice-banner-m3 .btn-m3-tonal {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 8. Demo Modal Mobile */
+    .demo-recipe-modal-card {
+        border-radius: 22px;
+        max-height: 88vh;
+    }
+
+    .demo-modal-header {
+        padding: 16px;
+    }
+
+    .demo-modal-body {
+        padding: 16px;
+    }
+
+    .demo-modal-footer {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .demo-modal-footer button,
+    .demo-modal-footer a {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Floating Material 3 App Update Banner (Mobile & Desktop)
+   ========================================================================== */
+.m3-floating-update-banner {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    max-width: 440px;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--surface-container-high, #252830);
+    color: var(--on-surface, #ffffff);
+    border-radius: 18px;
+    border: 1px solid var(--outline-variant, rgba(255, 255, 255, 0.14));
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38), 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    animation: m3UpdateSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.m3-floating-update-banner.dismissing {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+}
+
+.update-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.update-banner-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 12px;
+    background: var(--primary, #0284c7);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.update-banner-icon .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.update-banner-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.update-banner-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--on-surface, #ffffff);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.3;
+}
+
+.update-banner-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: rgba(2, 132, 199, 0.2);
+    color: var(--primary, #38bdf8);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.update-banner-sub {
+    font-size: 12px;
+    color: var(--on-surface-variant, #94a3b8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.update-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-update-now {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--primary, #0284c7);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-update-now:hover {
+    transform: scale(1.03);
+    background: var(--primary-dark, #0369a1);
+}
+
+.btn-update-now:active {
+    transform: scale(0.97);
+}
+
+.btn-update-dismiss {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--on-surface-variant, #94a3b8);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-update-dismiss:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--on-surface, #ffffff);
+}
+
+.btn-update-dismiss .material-symbols-outlined {
+    font-size: 19px;
+}
+
+.update-banner-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 6px 4px;
+}
+
+.update-banner-loading .rotating {
+    animation: m3UpdateSpin 0.9s linear infinite;
+    color: var(--primary, #38bdf8);
+}
+
+@keyframes m3UpdateSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes m3UpdateSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Safe positioning on mobile: floats right above the bottom nav bar */
+@media (max-width: 600px) {
+    .m3-floating-update-banner {
+        left: 14px;
+        right: 14px;
+        bottom: 84px; /* Above mobile bottom-nav */
+        max-width: none;
+        width: auto;
+        padding: 10px 14px;
+    }
+    
+    .update-banner-sub {
+        font-size: 11.5px;
+    }
+    
+    .btn-update-now {
+        padding: 8px 12px;
+        font-size: 12.5px;
+    }
+}
+
+
+
