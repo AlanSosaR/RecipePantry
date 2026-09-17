@@ -293,6 +293,10 @@ class DashboardManager {
                 timeout = setTimeout(() => {
                     if (this.currentView === 'allergens') {
                         this.handleAllergenSearch(query);
+                    } else if (this.currentView === 'menu') {
+                        if (window.restaurantMenu) {
+                            window.restaurantMenu.setSearchQuery(query);
+                        }
                     } else {
                         this.loadRecipes({ search: query });
                         if (query.length > 2) {
@@ -301,7 +305,7 @@ class DashboardManager {
                     }
                 }, 200);
 
-                if (this.currentView !== 'allergens') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu') {
                     // Update suggestions only for recipes
                     this.searchHistory.showSuggestions(query);
                 } else {
@@ -310,7 +314,7 @@ class DashboardManager {
             });
 
             searchInput.addEventListener('focus', () => {
-                if (this.currentView !== 'allergens') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu') {
                     this.searchHistory.showSuggestions(searchInput.value.trim());
                 }
             });
@@ -328,6 +332,10 @@ class DashboardManager {
                     clearBtn.classList.add('hidden');
                     if (this.currentView === 'allergens') {
                         this.handleAllergenSearch('');
+                    } else if (this.currentView === 'menu') {
+                        if (window.restaurantMenu) {
+                            window.restaurantMenu.setSearchQuery('');
+                        }
                     } else {
                         this.loadRecipes({ search: '' });
                     }
@@ -505,6 +513,19 @@ class DashboardManager {
 
         if (titleEl) {
             titleEl.textContent = (window.i18n && window.i18n.t) ? (window.i18n.t('navMenu') || 'Menú') : 'Menú';
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            searchInput.placeholder = isEn 
+                ? 'Search any dish, roast, burger, pizza or ingredient...' 
+                : 'Buscar plato, pizza, asado, hamburguesa o ingrediente...';
+            searchInput.value = (window.restaurantMenu && window.restaurantMenu.searchQuery) || '';
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !searchInput.value);
+            }
         }
     }
 

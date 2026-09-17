@@ -104,6 +104,14 @@
         setSearchQuery(q) {
             this.searchQuery = (q || '').trim().toLowerCase();
             this.render();
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value !== (q || '')) {
+                searchInput.value = q || '';
+            }
+            const clearBtn = document.getElementById('clearSearch');
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !q);
+            }
         }
 
         searchInPantry(dishName) {
@@ -453,22 +461,25 @@
                                 <span class="chip-count">${c.count}</span>
                             </button>
                         `).join('')}
-                    </div>
-
-                    <!-- Search Bar & 86 Counter -->
-                    <div class="menu-search-row">
-                        <div class="search-wrapper-m3 menu-search-input-wrap">
-                            <span class="material-symbols-outlined">search</span>
-                            <input type="text" id="menuLocalSearch" placeholder="${isEn ? 'Search any dish, burger, roast, pizza or ingredient...' : 'Buscar plato, pizza, asado de domingo, hamburguesa o ingrediente...'}" value="${this.searchQuery}" oninput="window.restaurantMenu.setSearchQuery(this.value)">
-                            ${this.searchQuery ? `<button class="btn-clear-search" onclick="window.restaurantMenu.setSearchQuery(''); document.getElementById('menuLocalSearch').value='';"><span class="material-symbols-outlined">close</span></button>` : ''}
-                        </div>
                         ${outOfStockCount > 0 ? `
-                            <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}">
+                            <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}" style="white-space: nowrap;">
                                 <span class="material-symbols-outlined" style="font-size: 16px; color: #DC2626;">do_not_disturb_on</span>
-                                <span>${outOfStockCount} ${isEn ? 'Out of stock (86)' : 'Agotados (86)'}</span>
+                                <span>${outOfStockCount} ${isEn ? '86 Out' : '86 Agotados'}</span>
                             </div>
                         ` : ''}
                     </div>
+
+                    ${this.searchQuery ? `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 14px; background: #ECFDF5; border-radius: 12px; border: 1px solid #A7F3D0; margin: 4px 0 10px 0;">
+                            <span style="font-size: 13px; color: #065F46; font-weight: 600;">
+                                ${isEn ? `Filtering by: "<strong>${this.searchQuery}</strong>"` : `Filtrando por: "<strong>${this.searchQuery}</strong>"`}
+                            </span>
+                            <button onclick="window.restaurantMenu.setSearchQuery(''); const si=document.getElementById('searchInput'); if(si) si.value='';" style="background: none; border: none; color: #047857; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                                <span>${isEn ? 'Clear' : 'Limpiar'}</span>
+                            </button>
+                        </div>
+                    ` : ''}
             `;
 
             // Render all sections and categories
