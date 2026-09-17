@@ -9076,15 +9076,93 @@ input:checked~.m3-ingredient-text {
 /* ==========================================================================
    MATRIX TABLE CONTAINER & DISCREET MATERIAL 3 SCROLLBAR (IN THE TABLE)
    ========================================================================== */
-.matrix-table-wrapper {
+.matrix-card-container {
     background: #FFFFFF;
     border-radius: 20px;
     border: 1.5px solid #E2E8F0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+/* Discreet M3 top scrollbar directly attached to the allergen header */
+.matrix-top-scroll-rail-container {
+    background: #F8FAFC;
+    border-bottom: 1.5px solid #E2E8F0;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+}
+
+.matrix-top-scroll-hint {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.matrix-top-scroll-hint.right {
+    color: #059669;
+}
+
+.matrix-top-scroll-track {
+    position: relative;
+    flex: 1;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.matrix-top-scroll-track::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: #E2E8F0;
+    border-radius: 999px;
+    transition: background 0.15s ease;
+}
+
+.matrix-top-scroll-track:hover::before {
+    background: #CBD5E1;
+}
+
+.matrix-top-scroll-thumb {
+    position: absolute;
+    left: 0;
+    height: 8px;
+    border-radius: 999px;
+    background: #10B981;
+    cursor: grab;
+    transition: height 0.15s ease, background 0.15s ease;
+    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.35);
+}
+
+.matrix-top-scroll-thumb:hover,
+.matrix-top-scroll-thumb.is-active {
+    height: 10px;
+    background: #059669;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+}
+
+.matrix-top-scroll-thumb.is-active {
+    cursor: grabbing;
+}
+
+.matrix-table-wrapper {
+    background: #FFFFFF;
+    border: none;
+    border-radius: 0;
     overflow-x: auto;
     overflow-y: auto;
     max-height: 72vh;
     scroll-behavior: smooth;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     /* Discreet Material 3 Scrollbar directly inside the table */
     scrollbar-width: thin;
     scrollbar-color: #CBD5E1 #F8FAFC;

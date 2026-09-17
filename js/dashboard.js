@@ -2432,6 +2432,110 @@ class DashboardManager {
         }
     }
 
+    setupMatrixTopScrollbar() {
+        const wrapper = document.getElementById('officialMatrixTableWrapper');
+        const track = document.getElementById('matrixTopScrollTrack');
+        const thumb = document.getElementById('matrixTopScrollThumb');
+        if (!wrapper || !track || !thumb) return;
+
+        const updateThumb = () => {
+            const scrollLeft = wrapper.scrollLeft;
+            const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+            const trackWidth = track.clientWidth;
+
+            if (maxScroll <= 0 || trackWidth <= 0) {
+                thumb.style.width = '100%';
+                thumb.style.transform = 'translateX(0px)';
+                return;
+            }
+
+            const visibleRatio = Math.min(1, Math.max(0.15, wrapper.clientWidth / wrapper.scrollWidth));
+            const thumbWidth = Math.max(60, visibleRatio * trackWidth);
+            const availableTrack = Math.max(0, trackWidth - thumbWidth);
+
+            const scrollRatio = Math.min(1, Math.max(0, scrollLeft / maxScroll));
+            const thumbLeft = scrollRatio * availableTrack;
+
+            thumb.style.width = `${thumbWidth}px`;
+            thumb.style.transform = `translateX(${thumbLeft}px)`;
+        };
+
+        if (track.dataset.bound !== 'true') {
+            track.dataset.bound = 'true';
+
+            // 1. Click track to jump/scroll
+            track.addEventListener('click', (e) => {
+                if (e.target.closest('#matrixTopScrollThumb')) return;
+                const rect = track.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const trackWidth = track.clientWidth;
+                const thumbWidth = thumb.clientWidth;
+                const availableTrack = Math.max(1, trackWidth - thumbWidth);
+                const targetLeft = Math.max(0, Math.min(availableTrack, clickX - thumbWidth / 2));
+                const ratio = targetLeft / availableTrack;
+                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+                wrapper.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
+            });
+
+            // 2. Drag thumb
+            let isDragging = false;
+            let startX = 0;
+            let startScrollLeft = 0;
+
+            const onMouseDown = (e) => {
+                e.preventDefault();
+                isDragging = true;
+                thumb.classList.add('is-active');
+                document.body.classList.add('m3-scrollbar-dragging');
+                startX = e.clientX;
+                startScrollLeft = wrapper.scrollLeft;
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            };
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - startX;
+                const trackWidth = track.clientWidth;
+                const thumbWidth = thumb.clientWidth;
+                const availableTrack = Math.max(1, trackWidth - thumbWidth);
+                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+
+                const scrollDelta = (deltaX / availableTrack) * maxScroll;
+                wrapper.scrollLeft = startScrollLeft + scrollDelta;
+                updateThumb();
+            };
+
+            const onMouseUp = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                thumb.classList.remove('is-active');
+                document.body.classList.remove('m3-scrollbar-dragging');
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+            };
+
+            thumb.addEventListener('mousedown', onMouseDown);
+
+            // 3. Sync when table scrolls
+            wrapper.addEventListener('scroll', updateThumb);
+
+            // 4. Mouse wheel over table headers scrolls horizontally!
+            wrapper.addEventListener('wheel', (e) => {
+                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+                if (maxScroll > 0 && (e.target.closest('thead') || e.shiftKey)) {
+                    e.preventDefault();
+                    wrapper.scrollLeft += (e.deltaY || e.deltaX);
+                    updateThumb();
+                }
+            }, { passive: false });
+
+            window.addEventListener('resize', updateThumb);
+        }
+
+        updateThumb();
+    }
+
 
 
     filterMatrixBySearch(query) {
@@ -2568,35 +2672,54 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Official FSA Matrix Table -->
-            <div class="matrix-table-wrapper" id="officialMatrixTableWrapper">
-                <table class="fsa-matrix-table" id="officialFsaMatrixTable">
-                    <thead>
-                        <tr>
-                            <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
-                            ${allergens.map(a => `
-                                <th class="col-allergen" title="${a.name_en} (${a.name_es})">
-                                    <div class="th-allergen-inner" style="color: ${a.color};">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
-                                        <span class="th-name">${a.name_en}</span>
-                                    </div>
-                                </th>
-                            `).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredDishes.length === 0 ? `
+            <!-- Table Card with Discreet M3 Top Scrollbar -->
+            <div class="matrix-card-container">
+                <div class="matrix-top-scroll-rail-container" id="matrixTopScrollRailContainer">
+                    <span class="matrix-top-scroll-hint left">
+                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_back</span>
+                        <span>Celery, Gluten...</span>
+                    </span>
+                    <div class="matrix-top-scroll-track" id="matrixTopScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
+                        <div class="matrix-top-scroll-thumb" id="matrixTopScrollThumb"></div>
+                    </div>
+                    <span class="matrix-top-scroll-hint right">
+                        <span>...Soya, Sulphur Dioxide</span>
+                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span>
+                    </span>
+                </div>
+                <div class="matrix-table-wrapper" id="officialMatrixTableWrapper">
+                    <table class="fsa-matrix-table" id="officialFsaMatrixTable">
+                        <thead>
                             <tr>
-                                <td colspan="${allergens.length + 1}" style="text-align:center; padding: 36px; color: #64748B;">
-                                    <span class="material-symbols-outlined" style="font-size: 36px; color: #94A3B8; display: block; margin-bottom: 8px;">search_off</span>
-                                    ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
-                                </td>
+                                <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
+                                ${allergens.map(a => `
+                                    <th class="col-allergen" title="${a.name_en} (${a.name_es})">
+                                        <div class="th-allergen-inner" style="color: ${a.color};">
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
+                                            <span class="th-name">${a.name_en}</span>
+                                        </div>
+                                    </th>
+                                `).join('')}
                             </tr>
-                        ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${filteredDishes.length === 0 ? `
+                                <tr>
+                                    <td colspan="${allergens.length + 1}" style="text-align:center; padding: 36px; color: #64748B;">
+                                        <span class="material-symbols-outlined" style="font-size: 36px; color: #94A3B8; display: block; margin-bottom: 8px;">search_off</span>
+                                        ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
+                                    </td>
+                                </tr>
+                            ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
+
+        setTimeout(() => {
+            this.setupMatrixTopScrollbar();
+        }, 50);
     }
 
     renderMatrixTableRows(dishes, allergens, isEn) {
