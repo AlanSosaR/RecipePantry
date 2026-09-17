@@ -9181,6 +9181,184 @@ input:checked~.m3-ingredient-text {
     font-size: 14px;
 }
 
+/* Stanley's Official Kitchen Matrix Badges & Enhancements */
+.matrix-badge-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #EF4444;
+    color: #FFFFFF;
+    font-weight: 900;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.28);
+    cursor: default;
+    transition: transform 0.15s ease;
+}
+
+.matrix-badge-x:hover {
+    transform: scale(1.15);
+}
+
+.matrix-badge-o {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #F59E0B;
+    color: #FFFFFF;
+    font-weight: 900;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.28);
+    cursor: default;
+    transition: transform 0.15s ease;
+}
+
+.matrix-badge-o:hover {
+    transform: scale(1.15);
+}
+
+.matrix-badge-dash {
+    color: #CBD5E1;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.col-allergen-cell.has-x {
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.col-allergen-cell.has-o {
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.matrix-section-row td {
+    background: linear-gradient(90deg, #F1F5F9 0%, #F8FAFC 100%) !important;
+    text-align: left !important;
+    padding: 10px 20px !important;
+    font-weight: 800 !important;
+    font-size: 12.5px !important;
+    letter-spacing: 0.06em !important;
+    color: #1E293B !important;
+    border-top: 2px solid #CBD5E1 !important;
+    border-bottom: 1.5px solid #E2E8F0 !important;
+}
+
+.matrix-section-pill-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #E2E8F0;
+    color: #475569;
+    margin-left: 8px;
+    letter-spacing: normal;
+}
+
+.matrix-legend-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.matrix-legend-items {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.matrix-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.matrix-controls-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.matrix-sections-scroll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.matrix-section-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #475569;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.matrix-section-filter-btn:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #0F172A;
+}
+
+.matrix-section-filter-btn.active {
+    background: #0F172A;
+    border-color: #0F172A;
+    color: #FFFFFF;
+}
+
+.matrix-search-input-wrap {
+    display: flex;
+    align-items: center;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 8px 14px;
+    gap: 10px;
+    max-width: 380px;
+    transition: border-color 0.2s ease;
+}
+
+.matrix-search-input-wrap:focus-within {
+    border-color: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.matrix-search-input-wrap input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 13px;
+    color: #0F172A;
+    background: transparent;
+}
+
 /* Print Optimization */
 @media print {
     body * {

@@ -1256,6 +1256,18 @@
                    </div>`
                 : '';
 
+            // Render cross-contamination (O) mini pills from official kitchen sheet
+            const crossHtml = (item.crossContamination && item.crossContamination.length > 0)
+                ? `<div class="menu-item-allergens" style="margin-top: 4px;">
+                    <span class="allergen-hint" style="color: #D97706;">${isEn ? 'Cross-risk (O):' : 'Riesgo cruzado (O):'}</span>
+                    ${item.crossContamination.map(c => {
+                        const allInfo = (window.UK_ALLERGENS || []).find(all => all.id === c);
+                        const allName = allInfo ? (isEn ? allInfo.name_en : allInfo.name_es) : c;
+                        return `<span class="menu-allergen-pill" style="background:#FEF3C7; color:#B45309; border:1px solid #FDE68A;" title="${isEn ? `Shared equipment: ${allName}` : `Equipo compartido con: ${allName}`}">${allName}</span>`;
+                    }).join('')}
+                   </div>`
+                : '';
+
             return `
                 <div class="menu-item-card ${!isAvail ? 'is-out-of-stock' : ''}" id="card_${item.id}">
                     <div class="menu-item-card-top">
@@ -1272,6 +1284,7 @@
                         <p class="menu-item-desc">${desc || (isEn ? 'Chef preparation from Stanley’s SW16' : 'Elaboración artesanal de Stanley’s SW16')}</p>
 
                         ${allergensHtml}
+                        ${crossHtml}
                     </div>
 
                     <div class="menu-item-card-footer">

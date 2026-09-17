@@ -34,7 +34,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pollo frito estilo Nashville crujiente con suero de leche y cayena, pepinillos encurtidos y salsa ranch.',
                             desc_en: 'Crispy buttermilk & cayenne Nashville-style fried chicken, house pickles, and ranch sauce.',
                             tags: ['hot', 'chicken'],
-                            allergens: ['gluten', 'eggs', 'milk', 'mustard']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: ['eggs']
                         },
                         {
                             id: 'ff_2',
@@ -44,7 +45,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Nachos para compartir con salsa de queso, guacamole, crema agria, salsa fresca y jalapeños (V). Opción con Chilli con Carne (+£4).',
                             desc_en: 'Tortilla chips with cheese sauce, guac, sour cream, fresh salsa and jalapeños (V). Add Chilli con Carne +£4.',
                             tags: ['V', 'sharing'],
-                            allergens: ['milk']
+                            allergens: ['gluten', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'ff_3',
@@ -53,7 +55,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Costillitas de cerdo melosas con salsa barbacoa de la casa, cebolleta y semillas de sésamo.',
                             desc_en: 'Sticky pork ribs tossed in house BBQ sauce, spring onions and sesame.',
                             tags: ['pork'],
-                            allergens: ['sesame', 'soya', 'mustard']
+                            allergens: ['gluten', 'soya', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'ff_4',
@@ -62,7 +65,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Alitas de pollo glaseadas en salsa Buffalo con dip de queso azul o salsa BBQ dulce.',
                             desc_en: 'Chicken wings tossed in spicy Buffalo with blue cheese dip, or sweet sticky BBQ.',
                             tags: ['chicken'],
-                            allergens: ['milk', 'celery']
+                            allergens: ['celery', 'milk'],
+                            crossContamination: ['gluten', 'eggs', 'molluscs', 'mustard']
                         },
                         {
                             id: 'ff_padron',
@@ -89,7 +93,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Tiras 100% vegetales crujientes con mayonesa suave de sriracha.',
                             desc_en: 'Crispy plant-based tenders served with spicy sriracha mayo.',
                             tags: ['VE'],
-                            allergens: ['gluten', 'soya', 'mustard']
+                            allergens: ['gluten'],
+                            crossContamination: ['soya']
                         },
                         {
                             id: 'ff_6',
@@ -98,7 +103,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Calamares y calabacín crujientes con limón fresco y alioli.',
                             desc_en: 'Crisp calamari & courgette fritti with fresh lemon & garlic aioli.',
                             tags: ['seafood'],
-                            allergens: ['molluscs', 'gluten', 'eggs']
+                            allergens: ['gluten', 'eggs', 'milk', 'molluscs', 'mustard', 'sulphites'],
+                            crossContamination: ['fish']
                         },
                         {
                             id: 'ff_7',
@@ -107,7 +113,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Bastones de mozzarella crujientes con salsa de tomate picante.',
                             desc_en: 'Golden breaded mozzarella sticks with spicy tomato dipping sauce.',
                             tags: ['V'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'eggs', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'ff_8',
@@ -117,7 +124,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pan tostado con mantequilla de ajo y hierbas. Con mozzarella gratinada £8.',
                             desc_en: 'Toasted sourdough with garlic butter. With melted mozzarella £8.',
                             tags: ['V'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'ff_9',
@@ -144,7 +152,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Costillar entero o medio costillar de cerdo glaseado en barbacoa lenta, servido con patatas fritas y ensalada coleslaw.',
                             desc_en: 'Slow-cooked whole or half rack of pork ribs in rich BBQ glaze, served with skin-on fries and house slaw.',
                             tags: ['pork', 'classic'],
-                            allergens: ['soya', 'mustard', 'eggs']
+                            allergens: ['gluten', 'soya', 'sulphites'],
+                            crossContamination: ['eggs', 'milk']
                         },
                         {
                             id: 'main_2',
@@ -153,7 +162,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Entrecot de ternera madurado 28 días (300g), patatas fritas, tomate asado, champiñón a la parrilla y salsa pimienta verde.',
                             desc_en: '28-day aged British sirloin steak (300g), skin-on fries, roasted tomato, portobello mushroom and peppercorn sauce.',
                             tags: ['beef', 'premium'],
-                            allergens: ['milk', 'gluten', 'celery']
+                            allergens: ['mustard', 'sulphites'],
+                            crossContamination: ['milk']
                         },
                         {
                             id: 'main_3',
@@ -162,7 +172,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Lomo de bacalao rebozado crujiente en masa de cerveza, puré de guisantes (mushy peas), salsa tártara y limón.',
                             desc_en: 'Fresh beer-battered Atlantic cod, thick cut chips, crushed mushy peas, homemade tartare and fresh lemon.',
                             tags: ['fish', 'british_classic'],
-                            allergens: ['fish', 'gluten', 'eggs']
+                            allergens: ['gluten', 'eggs', 'milk', 'mustard', 'sulphites'],
+                            crossContamination: ['molluscs']
                         },
                         {
                             id: 'main_4',
@@ -180,7 +191,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Medio pollo asado a elegir: estilo Limón & Hierbas o Peri Peri picante, servido con patatas fritas y ensalada coleslaw.',
                             desc_en: 'Half roast chicken marinated in Lemon & Herb or Spicy Peri Peri, served with fries and crunchy house coleslaw.',
                             tags: ['chicken'],
-                            allergens: ['mustard', 'eggs']
+                            allergens: ['mustard'],
+                            crossContamination: []
                         },
                         {
                             id: 'main_6',
@@ -190,7 +202,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Hamburguesa 100% vacuno británico (6oz), salsa especial de la casa, lechuga crujiente, tomate, pepinillos y queso fundido.',
                             desc_en: '6oz British prime beef patty, secret burger sauce, crisp lettuce, tomato, pickles and melted Monterey Jack. Add smoked bacon +£2.50.',
                             tags: ['beef', 'burger'],
-                            allergens: ['gluten', 'milk', 'eggs', 'mustard', 'sesame']
+                            allergens: ['gluten', 'eggs', 'milk', 'mustard', 'sesame', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'main_7',
@@ -199,7 +212,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pechuga de pollo frito crujiente bañada en salsa Buffalo picante, aderezo cremoso de queso azul, lechuga y pepinillos.',
                             desc_en: 'Crispy fried chicken breast drenched in spicy Buffalo glaze, creamy blue cheese dressing, lettuce and pickles in a brioche bun.',
                             tags: ['chicken', 'burger', 'hot'],
-                            allergens: ['gluten', 'milk', 'eggs']
+                            allergens: ['celery', 'gluten', 'eggs', 'milk', 'mustard', 'sesame', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'main_risotto',
@@ -227,7 +241,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pastel artesanal del día con hojaldre dorado, puré o patatas y verduras a la mantequilla con salsa gravy.',
                             desc_en: 'Chef’s freshly baked pie in golden crust with buttered greens, mash or chips and gravy.',
                             tags: ['pie', 'classic'],
-                            allergens: ['gluten', 'milk', 'celery']
+                            allergens: ['celery', 'gluten', 'eggs', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'ess_2',
@@ -263,7 +278,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Hamburguesa 100% vegetal con queso Cheddar fundido (VEO) y patatas fritas.',
                             desc_en: 'Plant-based burger patty, melted Cheddar (VEO) and skin-on chips.',
                             tags: ['V', 'VEO', 'burger'],
-                            allergens: ['gluten', 'milk', 'soya']
+                            allergens: ['gluten', 'eggs', 'milk', 'mustard', 'nuts', 'sesame', 'soya', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'ess_4',
@@ -337,7 +353,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Salsa de tomate San Marzano, mozzarella Fior di Latte, albahaca fresca y aceite de oliva virgen.',
                             desc_en: 'San Marzano tomato base, Fior di Latte mozzarella, fresh basil and extra virgin olive oil.',
                             tags: ['V'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_2',
@@ -346,7 +363,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Berenjena asada al horno, parmesano, mozzarella Fior di Latte y aceite aromatizado de albahaca.',
                             desc_en: 'Roasted seasoned aubergine, shaved parmesan, Fior di Latte mozzarella and fragrant basil oil.',
                             tags: ['V', 'VE*'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_3',
@@ -355,7 +373,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Prosciutto cotto italiano, champiñones salteados, mozzarella y aceite de trufa blanca.',
                             desc_en: 'Italian prosciutto cotto ham, sautéed mushrooms, creamy mozzarella and aromatic truffle oil.',
                             tags: ['pork', 'pizza'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_4',
@@ -364,7 +383,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Nduja calabresa picante, queso Gorgonzola cremoso, mozzarella y un toque de miel silvestre.',
                             desc_en: 'Spicy soft nduja sausage, tangy Gorgonzola cheese, Fior di Latte mozzarella and wild honey drizzle.',
                             tags: ['hot', 'pork'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_5',
@@ -373,7 +393,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pimientos dulces asados, calabacín a la parrilla, cebolla roja, aceitunas negras y mozzarella vegana opcional.',
                             desc_en: 'Roasted sweet peppers, grilled courgettes, red onions, black kalamata olives and vegan mozzarella.',
                             tags: ['V', 'VE', 'VE*'],
-                            allergens: ['gluten']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_6',
@@ -382,7 +403,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pepperoni picante prémium, rodajas de jalapeño encurtido, chile rojo fresco y mozzarella.',
                             desc_en: 'Double spicy pepperoni, pickled jalapeños, fresh red chillies and rich mozzarella.',
                             tags: ['hot', 'pork'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_7',
@@ -391,7 +413,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pepperoni crujiente con rocío de miel picante Hot Honey y copos de guindilla.',
                             desc_en: 'Crispy cup pepperoni drizzled with artisanal hot chilli honey and crushed pepper flakes.',
                             tags: ['hot', 'pork', 'bestseller'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'pz_8',
@@ -426,7 +449,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Patatas fritas crujientes con sal marina.',
                             desc_en: 'Crispy skin-on potato fries with sea salt.',
                             tags: ['VE', 'GF*'],
-                            allergens: []
+                            allergens: [],
+                            crossContamination: ['gluten', 'eggs', 'milk', 'molluscs']
                         },
                         {
                             id: 'sd_2',
@@ -453,7 +477,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Verduras verdes de temporada salteadas a la mantequilla.',
                             desc_en: 'Steamed seasonal greens tossed in melted garlic butter.',
                             tags: ['V'],
-                            allergens: ['milk']
+                            allergens: ['milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'sd_5',
@@ -462,7 +487,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Hojas verdes frescas con vinagreta de la casa.',
                             desc_en: 'Crisp mixed salad leaves with house dressing.',
                             tags: ['VE'],
-                            allergens: ['mustard']
+                            allergens: ['mustard', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'sd_6',
@@ -471,7 +497,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Tomates maduros, cebolla morada fina y vinagreta balsámica.',
                             desc_en: 'Ripe vine tomatoes, thinly sliced red onion and balsamic dressing.',
                             tags: ['VE'],
-                            allergens: []
+                            allergens: ['mustard', 'sulphites'],
+                            crossContamination: []
                         }
                     ]
                 },
@@ -490,7 +517,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Tiras tiernas de pollo rebozado casero con patatas fritas.',
                             desc_en: 'Tender crumbed chicken goujons served with chips.',
                             tags: ['kids', 'chicken'],
-                            allergens: ['gluten', 'eggs']
+                            allergens: ['gluten', 'eggs', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'kd_2',
@@ -499,7 +527,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pizza infantil de masa madre con jamón cocido y mozzarella suave.',
                             desc_en: 'Small sourdough pizza topped with cooked ham and mild mozzarella.',
                             tags: ['kids', 'pizza'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'kd_3',
@@ -508,7 +537,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pizza clásica infantil con salsa de tomate suave y queso mozzarella.',
                             desc_en: 'Classic small pizza with tomato sauce and melted cheese.',
                             tags: ['kids', 'V', 'pizza'],
-                            allergens: ['gluten', 'milk']
+                            allergens: ['gluten', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'kd_4',
@@ -543,7 +573,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Esponjoso bizcocho de dátiles bañado en salsa toffee caliente de caramelo, servido con helado de vainilla de Madagascar.',
                             desc_en: 'Warm date sponge drenched in rich sticky toffee sauce, served with artisan vanilla pod ice cream.',
                             tags: ['V', 'dessert', 'bestseller'],
-                            allergens: ['gluten', 'milk', 'eggs']
+                            allergens: ['gluten', 'eggs', 'milk'],
+                            crossContamination: []
                         },
                         {
                             id: 'ds_biscoff',
@@ -599,7 +630,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Ternera británica madurada 28 días servida en su punto medio-rosado, con rábano picante (horseradish).',
                             desc_en: '28 day dry aged British beef topside served tender medium-rare with fresh creamed horseradish.',
                             tags: ['beef', 'roast', 'bestseller'],
-                            allergens: ['gluten', 'milk', 'eggs', 'celery']
+                            allergens: ['celery', 'gluten', 'eggs', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'sun_2',
@@ -608,7 +640,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Pierna de cordero asada lentamente con romero y ajo, acompañada de salsa tradicional de menta inglesa.',
                             desc_en: 'Slow-roasted succulent leg of lamb with garlic & rosemary rub, served with sweet mint sauce.',
                             tags: ['lamb', 'roast'],
-                            allergens: ['gluten', 'milk', 'eggs', 'celery']
+                            allergens: ['celery', 'gluten', 'eggs', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'sun_3',
@@ -617,7 +650,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Medio pollo campero alimentado con maíz asado al punto, servido con salsa de pan (bread sauce) y relleno.',
                             desc_en: 'Succulent grain-fed half roast chicken served with traditional bread sauce and herb stuffing.',
                             tags: ['chicken', 'roast'],
-                            allergens: ['gluten', 'milk', 'eggs', 'celery']
+                            allergens: ['celery', 'gluten', 'eggs', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'sun_4',
@@ -626,7 +660,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Panceta de cerdo de raza Old Spot con corteza súper crujiente (crackling) y salsa compota de manzana.',
                             desc_en: 'Slow-braised British Old Spot pork belly with super crisp crackling and spiced Bramley apple sauce.',
                             tags: ['pork', 'roast'],
-                            allergens: ['gluten', 'milk', 'eggs', 'celery']
+                            allergens: ['celery', 'gluten', 'eggs', 'milk', 'sulphites'],
+                            crossContamination: []
                         },
                         {
                             id: 'sun_5',
@@ -635,7 +670,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Wellington vegetal artesanal envuelto en hojaldre crujiente con setas silvestres, espinacas tiernas, lentejas y gravy vegetal.',
                             desc_en: 'Artisan mushroom, spinach & lentil Wellington wrapped in crisp golden puff pastry with vegetable red wine gravy.',
                             tags: ['V', 'roast'],
-                            allergens: ['gluten', 'milk', 'eggs', 'celery']
+                            allergens: ['celery', 'gluten', 'nuts', 'sulphites'],
+                            crossContamination: []
                         }
                     ]
                 },
@@ -723,7 +759,8 @@ window.STANLEYS_MENU_DATA = {
                             desc_es: 'Clásico pudin caliente de toffee con helado de vainilla.',
                             desc_en: 'Classic hot date sponge with toffee drizzle and vanilla ice cream.',
                             tags: ['V', 'dessert'],
-                            allergens: ['gluten', 'milk', 'eggs']
+                            allergens: ['gluten', 'eggs', 'milk'],
+                            crossContamination: []
                         }
                     ]
                 },
