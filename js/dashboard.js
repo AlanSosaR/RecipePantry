@@ -2460,6 +2460,8 @@ class DashboardManager {
             document.body.appendChild(tooltip);
         }
 
+        window._m3TooltipState = window._m3TooltipState || { currentTarget: null, lastTouchTime: 0 };
+
         const showTooltip = (el) => {
             const title = el.getAttribute('data-m3-tooltip-title') || '';
             const desc = el.getAttribute('data-m3-tooltip-desc') || '';
@@ -2501,18 +2503,29 @@ class DashboardManager {
             tooltip.classList.add(arrowClass);
             tooltip.style.top = `${top}px`;
             tooltip.style.left = `${left}px`;
+            window._m3TooltipState.currentTarget = el;
         };
 
         const hideTooltip = () => {
             if (tooltip) {
                 tooltip.classList.add('hidden');
             }
+            window._m3TooltipState.currentTarget = null;
         };
 
         if (document.body.dataset.m3TooltipBound !== 'true') {
             document.body.dataset.m3TooltipBound = 'true';
 
+            // Track touch timestamps on mobile/touch screens
+            document.addEventListener('touchstart', () => {
+                window._m3TooltipState.lastTouchTime = Date.now();
+            }, { passive: true });
+
+            // Desktop hover
             document.addEventListener('mouseover', (e) => {
+                // Disregard simulated mouseover right after a touch
+                if (Date.now() - (window._m3TooltipState.lastTouchTime || 0) < 800) return;
+
                 const target = e.target.closest('[data-m3-tooltip-title]');
                 if (target) {
                     showTooltip(target);
@@ -2520,6 +2533,8 @@ class DashboardManager {
             });
 
             document.addEventListener('mouseout', (e) => {
+                if (Date.now() - (window._m3TooltipState.lastTouchTime || 0) < 800) return;
+
                 const target = e.target.closest('[data-m3-tooltip-title]');
                 if (target) {
                     if (e.relatedTarget && target.contains(e.relatedTarget)) return;
@@ -2527,7 +2542,29 @@ class DashboardManager {
                 }
             });
 
-            window.addEventListener('scroll', hideTooltip, { passive: true });
+            // Mobile & Click Toggle: Tap once to show, tap again to close, tap outside to close
+            document.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-m3-tooltip-title]') || 
+                              (e.target.classList && e.target.classList.contains('col-allergen-cell') ? e.target.querySelector('[data-m3-tooltip-title]') : null);
+
+                if (target) {
+                    const isVisible = tooltip && !tooltip.classList.contains('hidden');
+                    if (isVisible && window._m3TooltipState.currentTarget === target) {
+                        // Tapped the same element again -> close it
+                        hideTooltip();
+                    } else {
+                        // Tapped on an element for the first time or switched element -> show it
+                        showTooltip(target);
+                    }
+                } else {
+                    // Tapped outside any tooltip item -> close if currently visible
+                    if (tooltip && !tooltip.classList.contains('hidden')) {
+                        hideTooltip();
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', hideTooltip, { passive: true, capture: true });
         }
     }
 

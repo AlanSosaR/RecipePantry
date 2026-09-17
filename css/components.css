@@ -9121,6 +9121,11 @@ input:checked~.m3-ingredient-text {
    MATERIAL 3 WHITE TOOLTIP / SNACKBAR FOR ALLERGEN MATRIX
    Replaces native black title tooltip with crisp white background & black text
    ========================================================================== */
+[data-m3-tooltip-title], .col-allergen-cell {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
 .m3-white-matrix-tooltip {
     position: fixed;
     z-index: 999999;
