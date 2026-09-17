@@ -167,121 +167,18 @@
     position: relative;
 }
 
-/* ── TOP APP BAR ── */
-.notas-topbar {
-    height: 64px;
-    background: #ffffff;
-    border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    gap: 16px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+/* ── TOP APP BAR (Standard M3 Expressive Header) ── */
+.notas-main .top-bar-m3 {
+    padding: 32px 40px 16px;
+    background: var(--bg);
 }
 
-.notas-topbar-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-}
-
-.notas-search-wrapper {
-    position: relative;
-    flex: 1;
-}
-
-.notas-search-icon {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 20px;
-    color: var(--on-surface-variant, #555);
-    pointer-events: none;
-    transition: color 0.2s ease;
-}
-
-.notas-search-input {
-    width: 100%;
-    height: 44px;
-    background: #f3f4f5;
-    border: none;
-    border-radius: 22px;
-    padding: 0 20px 0 44px;
-    font-family: var(--font-body, 'Poppins', sans-serif);
-    font-size: 14px;
-    color: var(--on-surface, #1a1a1a);
-    outline: none;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-    box-sizing: border-box;
-}
-
-.notas-search-input::placeholder {
-    color: #999;
-}
-
-.notas-search-input:focus {
-    background: #eaf6f1;
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-}
-
-.notas-search-input:focus ~ .notas-search-icon,
-.notas-search-wrapper:focus-within .notas-search-icon {
-    color: var(--primary, #10B981);
-}
-
-.notas-topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.notas-topbar-icon-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: var(--on-surface-variant, #555);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.notas-topbar-icon-btn:hover {
-    background: #f3f4f5;
-}
-
-.notas-topbar-icon-btn .material-symbols-outlined {
-    font-size: 22px;
-}
-
-
-.notas-hamburger {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    border: none;
-    background: transparent;
-    color: var(--on-surface, #1a1a1a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.2s ease;
-}
-
-.notas-hamburger:hover {
-    background: #f3f4f5;
+@media (max-width: 768px) {
+    .notas-main .top-bar-m3 {
+        padding: 12px 16px !important;
+        height: 64px !important;
+        background: #fff;
+    }
 }
 
 /* ── SCROLL AREA ── */
@@ -289,12 +186,12 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 32px 40px 120px;
+    padding: 16px 40px 120px;
 }
 
 @media (max-width: 768px) {
     .notas-scroll-area {
-        padding: 24px 20px 140px;
+        padding: 16px 16px 140px;
     }
 }
 
@@ -1421,25 +1318,14 @@ body.notes-is-reordering {
         min-width: 0;
     }
 
-    /* Show hamburger button */
-    .notas-hamburger {
-        display: flex !important;
-    }
-
     /* Additional mobile tweaks from cleanup */
     .pin-anchor-fab {
         right: 14px;
     }
-    .notas-topbar {
-        padding: 0 16px;
-    }
 }
 
-/* Desktop: sidebar always visible, hamburger hidden */
+/* Desktop: sidebar always visible */
 @media (min-width: 1024px) {
-    .notas-hamburger {
-        display: none !important;
-    }
     .sidebar-overlay {
         display: none !important;
     }

@@ -26,6 +26,10 @@
 
             this.updateAvatar(user);
 
+            if (window.notificationManager && typeof window.notificationManager.init === 'function') {
+                window.notificationManager.init().catch(e => console.warn('Notif init:', e));
+            }
+
             const path = window.location.pathname;
 
             if (path.includes('nota-form')) {
@@ -215,7 +219,7 @@
             });
 
             // ── Wire up search input ──
-            const searchInput = document.querySelector('.notas-search-input');
+            const searchInput = document.getElementById('searchInput') || document.querySelector('.notas-search-input');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
                     this.searchQuery = e.target.value.trim().toLowerCase();

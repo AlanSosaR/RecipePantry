@@ -65,6 +65,9 @@
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Buscar en mi recetario...',
+            searchNotesPlaceholder: 'Buscar en mis notas...',
+            newRecipeBtn: 'Nuevo',
+            newNoteBtn: 'Nueva Nota',
             recentSearches: 'Búsquedas recientes',
             suggestions: 'Sugerencias',
 
@@ -431,6 +434,9 @@
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Search my cookbook...',
+            searchNotesPlaceholder: 'Search my notes...',
+            newRecipeBtn: 'New',
+            newNoteBtn: 'New Note',
             recentSearches: 'Recent searches',
             suggestions: 'Suggestions',
 
