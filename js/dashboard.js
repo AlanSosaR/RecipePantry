@@ -2981,8 +2981,43 @@ class DashboardManager {
                     </div>
                 </div>
 
-                <!-- Split Buttons Bar -->
-                <div class="safe-split-buttons-bar">
+                <!-- Direct Allergen Pills Selector Grid (Desktop PC Only) -->
+                <div class="safe-pc-pills-container desktop-only">
+                    <div class="safe-pc-pills-header">
+                        <div class="safe-pc-pills-title">
+                            <span class="material-symbols-outlined" style="color: #059669;">shield</span>
+                            <span>${isEn ? 'The 14 UK FSA Allergens (Click to exclude)' : 'Los 14 Alérgenos UK FSA (Haz clic para excluir)'}</span>
+                        </div>
+                        ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
+                            <button class="filter-clear-link" onclick="window.dashboard.clearSafeExclusions()" type="button">
+                                <span class="material-symbols-outlined">restart_alt</span>
+                                <span>${isEn ? 'Clear filters' : 'Limpiar filtros'}</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div class="allergen-chips-selector">
+                        ${allergens.map(a => {
+                            const isSelected = this.selectedSafeExclusions && this.selectedSafeExclusions.has(a.id);
+                            return `
+                                <button 
+                                    type="button"
+                                    class="allergen-toggle-chip ${isSelected ? 'selected' : ''}" 
+                                    onclick="window.dashboard.toggleSafeAllergenExclusion('${a.id}', event)"
+                                    title="${isSelected ? (isEn ? `Remove exclusion for ${a.name_en}` : `Quitar exclusión de ${a.name_es}`) : (isEn ? `Exclude ${a.name_en}` : `Excluir ${a.name_es}`)}"
+                                >
+                                    <span class="material-symbols-outlined" style="color: ${isSelected ? '#DC2626' : a.color}; font-size: 20px;">
+                                        ${isSelected ? 'check_circle' : a.icon}
+                                    </span>
+                                    <span>${a.name_en} (${a.name_es})</span>
+                                    ${isSelected ? `<span class="chip-action-cross"><span class="material-symbols-outlined" style="font-size: 16px;">close</span></span>` : ''}
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <!-- Split Buttons Bar (Mobile Only) -->
+                <div class="safe-split-buttons-bar mobile-only">
                     <!-- Filter Split Button -->
                     <div class="m3-split-button-wrapper" id="allergenFilterSplitWrapper">
                         <div class="m3-split-button filter-split-button ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? 'has-active-filter' : ''}">
@@ -3225,8 +3260,8 @@ class DashboardManager {
                     <div class="safe-banner-prompt">
                         <span class="material-symbols-outlined" style="color: #059669;">tune</span>
                         <span>${isEn 
-                            ? 'Select allergens from "Filter by Allergens" above to inspect dishes and find safe menu options.' 
-                            : 'Selecciona alérgenos en "Filtro de Alérgenos" arriba para clasificar los platos y encontrar opciones seguras.'}</span>
+                            ? 'Select allergens above to inspect dishes and find safe menu options.' 
+                            : 'Selecciona los alérgenos arriba para clasificar los platos y encontrar opciones seguras.'}</span>
                     </div>
                 `}
             </div>
