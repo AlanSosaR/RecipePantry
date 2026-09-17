@@ -126,28 +126,38 @@ window.showActionToast = ({
     const toast = document.createElement('div');
     toast.className = `toast toast-${type} toast-actionable`;
     toast.style.cssText = `
-        max-width: 480px;
-        width: calc(100vw - 32px);
+        max-width: 460px;
+        width: min(460px, calc(100vw - 32px));
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: 12px;
         background: #FFFFFF;
-        border-radius: 16px;
-        padding: 12px 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 18px;
+        padding: 16px 18px 14px 18px;
+        box-shadow: 0 14px 38px rgba(0,0,0,0.18), 0 3px 10px rgba(0,0,0,0.06);
         border: 1px solid rgba(0,0,0,0.08);
+        box-sizing: border-box;
     `;
     
     toast.innerHTML = `
-        <span class="material-symbols-outlined" style="color: ${actionColor}; font-size: 22px; flex-shrink: 0;">
-            ${type === 'error' ? 'delete_sweep' : type === 'success' ? 'check_circle' : 'info'}
-        </span>
-        <span class="toast-message" style="font-size: 13px; font-weight: 600; color: #1F2937; flex: 1; line-height: 1.4;">${message}</span>
-        <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
-            <button type="button" class="toast-btn-cancel" style="background: transparent; border: none; font-size: 12px; font-weight: 600; color: #6B7280; cursor: pointer; padding: 6px 10px; border-radius: 8px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
+            <span class="material-symbols-outlined" style="color: ${actionColor}; font-size: 24px; flex-shrink: 0; margin-top: 1px;">
+                ${type === 'error' ? 'delete_sweep' : type === 'success' ? 'check_circle' : 'info'}
+            </span>
+            <div class="toast-message" style="font-size: 14px; font-weight: 600; color: #1F2937; line-height: 1.45; flex: 1;">
+                ${message}
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; justify-content: flex-end; width: 100%; border-top: 1px solid #F1F5F9; padding-top: 10px; margin-top: 2px;">
+            <button type="button" class="toast-btn-cancel" style="background: transparent; border: 1px solid #E2E8F0; font-size: 13px; font-weight: 600; color: #64748B; cursor: pointer; padding: 7px 16px; border-radius: 10px; transition: all 0.2s;"
+                onmouseover="this.style.background='#F8FAFC'"
+                onmouseout="this.style.background='transparent'">
                 ${cancelText}
             </button>
-            <button type="button" class="toast-btn-action" style="background: ${actionColor}; color: white; border: none; font-size: 12px; font-weight: 700; cursor: pointer; padding: 6px 14px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <button type="button" class="toast-btn-action" style="background: ${actionColor}; color: white; border: none; font-size: 13px; font-weight: 700; cursor: pointer; padding: 7px 18px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: opacity 0.2s;"
+                onmouseover="this.style.opacity='0.9'"
+                onmouseout="this.style.opacity='1'">
                 ${actionText}
             </button>
         </div>

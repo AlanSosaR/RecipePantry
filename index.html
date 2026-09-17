@@ -366,9 +366,9 @@
           <span class="material-symbols-outlined">share</span>
           <span data-i18n="navShared">Compartidas</span>
         </a>
-        <a href="#" class="nav-item" data-view="help">
-          <span class="material-symbols-outlined">help</span>
-          <span data-i18n="navHelp">Ayuda</span>
+        <a href="#" class="nav-item" data-view="help" title="Configuración">
+          <span class="material-symbols-outlined">settings</span>
+          <span data-i18n="navHelp">Configuración</span>
         </a>
         <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
           <span class="material-symbols-outlined">logout</span>
@@ -386,6 +386,11 @@
       <header class="top-bar-m3">
         <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)">
           <span class="material-symbols-outlined">menu</span>
+        </button>
+        <!-- Botón + Nuevo estilo Dropbox — solo PC -->
+        <button class="btn-new-dropbox desktop-only" onclick="window.location.href='/recipe-form'" id="btnNewRecipeTop">
+          <span class="material-symbols-outlined">add</span>
+          <span data-i18n="newRecipeBtn">Nuevo</span>
         </button>
         <div class="search-container-m3">
           <div class="search-wrapper-m3" id="searchWrapper">
@@ -445,12 +450,13 @@
         </button>
       </div>
 
-      <button class="fab-m3" onclick="window.location.href='/recipe-form'" aria-label="Nueva Receta">
+      <!-- FAB solo para móvil -->
+      <button class="fab-m3 mobile-only" onclick="window.location.href='/recipe-form'" aria-label="Nueva Receta">
         <span class="material-symbols-outlined">add</span>
       </button>
 
-      <!-- Pantalla de Ayuda / Instalación PWA (Generado por JS) -->
-      <div id="helpView" class="hidden" style="padding: 0 16px; margin-top: 16px;"></div>
+      <!-- Pantalla de Configuración / Ajustes (Generado por JS) -->
+      <div id="helpView" class="hidden"></div>
 
       <!-- Pantalla de Alergias (Generado por JS) -->
       <div id="allergensView" class="hidden"></div>

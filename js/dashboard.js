@@ -105,9 +105,14 @@ class DashboardManager {
             this.updateUserUI();
 
 
-            // 2. Cargar datos iniciales según la vista guardada o URL
+            // 2. Cargar datos iniciales según la vista guardada, URL o hash
             const urlParams = new URLSearchParams(window.location.search);
-            const viewParam = urlParams.get('view');
+            let viewParam = urlParams.get('view');
+            const rawHash = (window.location.hash || '').replace('#', '').toLowerCase();
+            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens'].includes(rawHash)) {
+                viewParam = rawHash;
+            }
+            if (viewParam === 'settings') viewParam = 'help';
             if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
@@ -418,7 +423,7 @@ class DashboardManager {
             this.loadRecipes({ orderBy: 'name_es', ascending: true });
         } else if (view === 'shared') {
             this.loadRecipes({ shared: true });
-        } else if (view === 'help') {
+        } else if (view === 'help' || view === 'settings') {
             this.showHelpView();
         } else if (view === 'allergens') {
             this.showAllergensView();
@@ -464,7 +469,7 @@ class DashboardManager {
         }
 
         if (titleEl) {
-            titleEl.textContent = (window.i18n && window.i18n.t) ? window.i18n.t('navHelp') : 'Ayuda';
+            titleEl.textContent = (window.i18n && window.i18n.t) ? window.i18n.t('navHelp', 'Configuración') : 'Configuración';
         }
     }
 
@@ -1320,17 +1325,295 @@ class DashboardManager {
     }
 
     handleRecipeClick(recipeId) {
-        // Redirección directa al detalle (v11.0: modo puro)
-
-
-        // Navegación directa al detalle pasando permiso si existe (para compartidas)
+        // En PC (viewport >= 768px) mostrar el detalle en el panel principal sin navegar
+        const isDesktop = window.innerWidth >= 768;
         const recipe = this.currentRecipes.find(r => r.id === recipeId);
         const permission = recipe?.sharedPermission;
+
+        if (isDesktop) {
+            this.openDetailInPanel(recipeId, recipe, permission);
+            return;
+        }
+
+        // Móvil: navegación directa al detalle pasando permiso si existe (para compartidas)
         const url = permission
             ? `/recipe-detail?id=${recipeId}&permission=${permission}`
             : `/recipe-detail?id=${recipeId}`;
-
         window.location.href = url;
+    }
+
+    async openDetailInPanel(recipeId, recipe, permission) {
+        const container = document.getElementById('recipesGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        if (!container) return;
+
+        // Actualizar URL del navegador sin navegar (SPA style)
+        // Esto evita que el botón Atrás del navegador vaya a recipe-detail?id=...
+        history.pushState({ panelRecipe: recipeId }, '', '/');
+
+        // Listener para el botón Atrás del navegador: cierra el panel
+        this._panelPopstateHandler = () => {
+            if (document.getElementById('panelDetailBody')) {
+                this._closeDetailPanelInternal();
+            }
+        };
+        window.addEventListener('popstate', this._panelPopstateHandler, { once: true });
+
+        // Ocultar header de dashboard y empty state mientras se muestra detalle
+        if (emptyState) emptyState.classList.add('hidden');
+        const dashHeader = document.querySelector('.dashboard-header');
+        if (dashHeader) dashHeader.classList.add('hidden');
+
+        // Mostrar skeleton de carga en el panel
+        container.innerHTML = `
+            <div class="pc-detail-panel">
+                <div class="pc-detail-topbar">
+                    <button class="m3-icon-btn" id="btnPanelBack" onclick="window.dashboard.closeDetailPanel()" title="Volver">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <div style="display:flex; gap:10px;" id="panelActionBtns">
+                        <button class="m3-icon-btn" id="panelBtnFavorite" title="Favorito">
+                            <span class="material-symbols-outlined">favorite</span>
+                        </button>
+                        <button class="m3-icon-btn" id="panelBtnEdit" title="Editar">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="m3-icon-btn" id="panelBtnDelete" style="color:var(--error);" title="Eliminar">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="pc-detail-body" id="panelDetailBody">
+                    <div class="loading-inline"><div class="spinner-sm"></div><p>Cargando receta...</p></div>
+                </div>
+            </div>
+        `;
+
+        try {
+            // Cargar datos completos de la receta (ingredientes + pasos)
+            const result = await window.db.getRecipeById(recipeId);
+            if (!result.success || !result.recipe) {
+                document.getElementById('panelDetailBody').innerHTML = `<p style="padding:24px;color:var(--error);">No se pudo cargar la receta.</p>`;
+                return;
+            }
+
+            const rec = result.recipe;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const name = isEn ? (rec.name_en || rec.name_es) : rec.name_es;
+            const description = isEn ? (rec.description_en || rec.description_es) : rec.description_es;
+            const titleParts = (name || 'Receta').split(' ');
+            const firstWord = titleParts[0];
+            const restTitle = titleParts.slice(1).join(' ');
+
+            const ingredients = rec.ingredients || [];
+            const steps = rec.steps || rec.preparation_steps || [];
+            const baseServings = rec.servings || 2;
+
+            // Estado de escala para el panel
+            this._panelScale = 1;
+            this._panelRecipe = rec;
+            this._panelRecipeId = recipeId;
+            this._panelPermission = permission;
+
+            const renderIngredients = (scale) => ingredients.map(ing => {
+                const unit = isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es;
+                const ingName = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
+                const originalText = `${ing.quantity || ''} ${unit || ''} ${ingName}`.trim();
+                const text = (window.utils?.scaleText) ? window.utils.scaleText(originalText, scale) : originalText;
+                return `
+                    <label class="m3-ingredient-item">
+                        <input class="hidden" type="checkbox" onchange="this.parentElement.classList.toggle('checked')"/>
+                        <div class="m3-checkbox-premium">
+                            <span class="material-symbols-outlined">check</span>
+                        </div>
+                        <span class="m3-ingredient-text">${text}</span>
+                    </label>`;
+            }).join('');
+
+            const renderSteps = () => steps.map((step, idx) => {
+                const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
+                return `
+                    <label class="m3-step-item m3-step-checkable">
+                        <input class="hidden" type="checkbox" onchange="this.closest('.m3-step-checkable').classList.toggle('step-done',this.checked)"/>
+                        <div class="m3-step-badge">
+                            <span class="step-num">${idx + 1}</span>
+                            <span class="step-check material-symbols-outlined">check</span>
+                        </div>
+                        <p class="m3-step-text">${instruction}</p>
+                    </label>`;
+            }).join('');
+
+            const isFav = rec.is_favorite;
+            const currentUserId = window.authManager?.currentUser?.id;
+            const isOwner = rec.user_id === currentUserId;
+
+            document.getElementById('panelDetailBody').innerHTML = `
+                <div class="pc-detail-scroll">
+                    <header class="recipe-hero-header">
+                        <h1 class="recipe-hero-title">
+                            <span class="text-primary">${firstWord}</span> ${restTitle}
+                        </h1>
+                        <div class="m3-stepper-selector" id="panelServingSelector">
+                            <div class="stepper-pill-horizontal">
+                                <span class="stepper-label-text">SELECCIONAR PORCIONES</span>
+                                <div class="stepper-controls">
+                                    <button class="stepper-btn" id="panelBtnDecrease">
+                                        <span class="material-symbols-outlined">remove</span>
+                                    </button>
+                                    <span id="panelPortionDisplay" class="portion-value">1</span>
+                                    <button class="stepper-btn" id="panelBtnIncrease">
+                                        <span class="material-symbols-outlined">add</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <span id="panelPortionText" class="recipe-portion-text">Receta original</span>
+                        </div>
+                    </header>
+
+                    <div class="content-sections">
+                        ${description ? `
+                        <section class="section-group">
+                            <div class="section-header" style="justify-content:flex-start;">
+                                <span class="material-symbols-outlined section-icon">description</span>
+                                <h2 class="section-title">Description</h2>
+                            </div>
+                            <p class="recipe-story">${description}</p>
+                        </section>` : ''}
+
+                        ${ingredients.length > 0 ? `
+                        <section class="section-group">
+                            <div class="section-header" style="justify-content:flex-start;">
+                                <span class="material-symbols-outlined section-icon">grocery</span>
+                                <div style="display:flex;flex-direction:column;">
+                                    <h2 class="section-title">Ingredients</h2>
+                                    <span class="section-subtitle">${ingredients.length} ITEMS</span>
+                                </div>
+                            </div>
+                            <div id="panelIngredientsList" style="display:flex;flex-direction:column;gap:8px;">
+                                ${renderIngredients(1)}
+                            </div>
+                        </section>` : ''}
+
+                        ${steps.length > 0 ? `
+                        <section class="section-group">
+                            <div class="section-header" style="justify-content:flex-start;">
+                                <span class="material-symbols-outlined section-icon">format_list_numbered</span>
+                                <h2 class="section-title">Preparation</h2>
+                            </div>
+                            <div id="panelStepsList" style="position:relative;display:flex;flex-direction:column;gap:48px;">
+                                ${renderSteps()}
+                            </div>
+                        </section>` : ''}
+                    </div>
+                </div>
+            `;
+
+            // Botón favorito
+            const favBtn = document.getElementById('panelBtnFavorite');
+            if (favBtn) {
+                if (isFav) {
+                    favBtn.classList.add('active');
+                    favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+                }
+                favBtn.addEventListener('click', async () => {
+                    const result = await window.db.toggleFavorite(recipeId, this._panelRecipe.is_favorite);
+                    if (result.success) {
+                        this._panelRecipe.is_favorite = result.isFavorite;
+                        if (result.isFavorite) {
+                            favBtn.classList.add('active');
+                            favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+                        } else {
+                            favBtn.classList.remove('active');
+                            favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+                        }
+                        window.utils?.showToast(result.isFavorite ? '❤️ Añadido a favoritos' : 'Eliminado de favoritos', 'success');
+                    }
+                });
+            }
+
+            // Botones editar y eliminar — solo para propietario
+            const editBtn = document.getElementById('panelBtnEdit');
+            const deleteBtn = document.getElementById('panelBtnDelete');
+            if (!isOwner || permission) {
+                if (editBtn) editBtn.style.display = 'none';
+                if (deleteBtn) deleteBtn.style.display = 'none';
+            } else {
+                if (editBtn) editBtn.addEventListener('click', () => {
+                    window.location.href = `/recipe-form?id=${recipeId}`;
+                });
+                if (deleteBtn) deleteBtn.addEventListener('click', async () => {
+                    const confirmMsg = window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?';
+                    window.showActionSnackbar?.(confirmMsg, 'ELIMINAR', async () => {
+                        const res = await window.db.deleteRecipe(recipeId);
+                        if (res.success) {
+                            window.utils?.showToast('Receta eliminada', 'success');
+                            setTimeout(() => this.closeDetailPanel(), 800);
+                        }
+                    });
+                });
+            }
+
+            // Escalado de porciones en el panel
+            const fractionalSteps = [0.125, 0.25, 0.5, 0.75, 1];
+            const updatePanelScale = (newScale) => {
+                if (newScale < 0.125) return;
+                this._panelScale = newScale;
+                let label = '';
+                if (newScale === 0.125) label = '1/8';
+                else if (newScale === 0.25) label = '1/4';
+                else if (newScale === 0.5) label = '1/2';
+                else if (newScale === 0.75) label = '3/4';
+                else label = newScale % 1 === 0 ? String(newScale) : newScale.toFixed(2).replace(/\.?0+$/, '');
+
+                const portionDisplay = document.getElementById('panelPortionDisplay');
+                const portionText = document.getElementById('panelPortionText');
+                const ingList = document.getElementById('panelIngredientsList');
+                if (portionDisplay) portionDisplay.textContent = label;
+                if (portionText) {
+                    if (newScale === 1) portionText.textContent = 'Receta original';
+                    else if (newScale > 1) portionText.textContent = `Receta multiplicada × ${label}`;
+                    else portionText.textContent = `Receta reducida ÷ ${Math.round(1/newScale)}`;
+                }
+                if (ingList) ingList.innerHTML = renderIngredients(newScale);
+            };
+
+            document.getElementById('panelBtnIncrease')?.addEventListener('click', () => {
+                let next;
+                if (this._panelScale < 1) next = fractionalSteps.find(s => s > this._panelScale + 0.001) || 2;
+                else next = Math.floor(this._panelScale) + 1;
+                updatePanelScale(next);
+            });
+            document.getElementById('panelBtnDecrease')?.addEventListener('click', () => {
+                let prev;
+                if (this._panelScale <= 1) prev = [...fractionalSteps].reverse().find(s => s < this._panelScale - 0.001) || 0.125;
+                else prev = Math.ceil(this._panelScale) - 1;
+                updatePanelScale(prev);
+            });
+
+        } catch (err) {
+            console.error('Error cargando detalle en panel:', err);
+            const body = document.getElementById('panelDetailBody');
+            if (body) body.innerHTML = `<p style="padding:24px;color:var(--error);">Error al cargar la receta.</p>`;
+        }
+    }
+
+    closeDetailPanel() {
+        // Actualizar URL del navegador y limpiar listener
+        if (this._panelPopstateHandler) {
+            window.removeEventListener('popstate', this._panelPopstateHandler);
+            this._panelPopstateHandler = null;
+        }
+        history.pushState({}, '', '/');
+        this._closeDetailPanelInternal();
+    }
+
+    _closeDetailPanelInternal() {
+        // Restaurar el header del dashboard
+        const dashHeader = document.querySelector('.dashboard-header');
+        if (dashHeader) dashHeader.classList.remove('hidden');
+        // Restaurar la lista de recetas en el panel
+        this.renderRecipesGrid(this.currentRecipes);
     }
 
     updateSelectionUI() {
