@@ -92,41 +92,47 @@
         // ─── PERSISTENCIA: localStorage (caché offline) + Supabase (fuente de verdad) ───
 
         /**
-         * Sincroniza los datos del menú desde Supabase.
-         * Se llama al iniciar. Si Supabase tiene datos más recientes, los usa y
-         * actualiza el localStorage. Así el estado sobrevive aunque se borre el caché.
+         * Sincroniza los datos del menú desde Supabase (columna settings en tabla users).
+         * Se llama al iniciar. Si Supabase tiene datos, los usa y actualiza el localStorage.
+         * Así el estado sobrevive aunque se borre el caché.
          */
         async syncFromSupabase() {
             try {
                 const sb = window.supabaseClient;
                 if (!sb) return;
-                const { data, error } = await sb.from('app_settings')
-                    .select('setting_key, setting_value')
-                    .in('setting_key', ['menu_availability', 'menu_removed_items', 'menu_custom_items']);
-                if (error || !data || data.length === 0) return;
 
+                // Obtener el usuario autenticado
+                const { data: { user } } = await sb.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await sb.from('users')
+                    .select('settings')
+                    .eq('auth_user_id', user.id)
+                    .single();
+
+                if (error || !data || !data.settings) return;
+
+                const s = data.settings;
                 let changed = false;
-                data.forEach(row => {
-                    try {
-                        const val = typeof row.setting_value === 'string'
-                            ? JSON.parse(row.setting_value) : row.setting_value;
-                        if (row.setting_key === 'menu_availability') {
-                            this.availability = val || {};
-                            localStorage.setItem('stanleys_menu_availability', JSON.stringify(this.availability));
-                            changed = true;
-                        } else if (row.setting_key === 'menu_removed_items') {
-                            this.removedItemIds = Array.isArray(val) ? val : [];
-                            localStorage.setItem('stanleys_removed_items', JSON.stringify(this.removedItemIds));
-                            changed = true;
-                        } else if (row.setting_key === 'menu_custom_items') {
-                            this.customItems = Array.isArray(val) ? val : [];
-                            localStorage.setItem('stanleys_custom_items', JSON.stringify(this.customItems));
-                            changed = true;
-                        }
-                    } catch (e) {}
-                });
+
+                if (s.menu_removed_items !== undefined) {
+                    this.removedItemIds = Array.isArray(s.menu_removed_items) ? s.menu_removed_items : [];
+                    localStorage.setItem('stanleys_removed_items', JSON.stringify(this.removedItemIds));
+                    changed = true;
+                }
+                if (s.menu_availability !== undefined) {
+                    this.availability = s.menu_availability || {};
+                    localStorage.setItem('stanleys_menu_availability', JSON.stringify(this.availability));
+                    changed = true;
+                }
+                if (s.menu_custom_items !== undefined) {
+                    this.customItems = Array.isArray(s.menu_custom_items) ? s.menu_custom_items : [];
+                    localStorage.setItem('stanleys_custom_items', JSON.stringify(this.customItems));
+                    changed = true;
+                }
+
                 if (changed) {
-                    console.log('[Menu] Datos sincronizados desde Supabase.');
+                    console.log('[Menu] Datos sincronizados desde Supabase (users.settings).');
                     this.render();
                 }
             } catch (e) {
@@ -135,17 +141,28 @@
         }
 
         /**
-         * Guarda un valor en Supabase app_settings usando upsert.
+         * Guarda los datos del menú en users.settings (merge parcial con JSONB).
          * No bloquea la UI — falla silenciosamente si no hay conexión.
          */
         async saveToSupabase(key, value) {
             try {
                 const sb = window.supabaseClient;
                 if (!sb) return;
-                await sb.from('app_settings').upsert(
-                    { setting_key: key, setting_value: JSON.stringify(value) },
-                    { onConflict: 'setting_key' }
-                );
+                const { data: { user } } = await sb.auth.getUser();
+                if (!user) return;
+
+                // Leer settings actuales, hacer merge y guardar
+                const { data: existing } = await sb.from('users')
+                    .select('settings')
+                    .eq('auth_user_id', user.id)
+                    .single();
+
+                const currentSettings = (existing && existing.settings) ? existing.settings : {};
+                currentSettings[key] = value;
+
+                await sb.from('users')
+                    .update({ settings: currentSettings })
+                    .eq('auth_user_id', user.id);
             } catch (e) {
                 console.warn('[Menu] No se pudo guardar en Supabase:', e);
             }
