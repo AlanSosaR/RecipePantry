@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v550';
-const BUILD_ID = 'v550';
-const CACHE_NAME = `recipe-pantry-v550`;
-const STATIC_CACHE = 'static-v550';
-const DATA_CACHE = 'data-v550';
+const VERSION = 'v551';
+const BUILD_ID = 'v551';
+const CACHE_NAME = `recipe-pantry-v551`;
+const STATIC_CACHE = 'static-v551';
+const DATA_CACHE = 'data-v551';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -45,6 +45,7 @@ const STATIC_RESOURCES = [
     '/css/styles.css',
     '/css/components.css',
     '/assets/icons/icon.svg',
+    '/assets/images/stanleys-logo.png',
     'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
     'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap'

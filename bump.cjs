@@ -26,6 +26,8 @@ const FILES = [
   'js/sync-manager.js',
   'js/notifications.js',
   'js/sw-register.js',
+  'js/restaurant-menu.js',
+  'js/menu-data.js',
 ];
 
 // 1. Detectar versión actual desde sw.js

@@ -12,6 +12,7 @@
             this.activeTab = 'all'; // 'all' (todo) | 'main' | 'sunday'
             this.activeCategory = 'all';
             this.searchQuery = '';
+            this.isAddingDish = false; // Vista de formulario completo para nuevo plato
             this.availability = this.loadAvailability();
             this.customItems = this.loadCustomItems(); // Platos agregados por el usuario
             this.removedItemIds = this.loadRemovedItems(); // Platos eliminados
@@ -246,8 +247,35 @@
             }
         }
 
-        // Modal para agregar un nuevo plato cuando la web del restaurante estrene algo
+        showAddDishForm() {
+            this.isAddingDish = true;
+            this.render();
+            const main = document.querySelector('.main-content') || window;
+            if (main.scrollTo) {
+                main.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
         showAddDishModal() {
+            // Reemplazado para no abrir modal flotante, sino cargar el formulario en vista completa
+            this.showAddDishForm();
+        }
+
+        cancelAddDish() {
+            this.isAddingDish = false;
+            this.render();
+        }
+
+        updateDishTagsFromChips() {
+            const activeChips = document.querySelectorAll('#dishDietaryChips .filter-chip.active');
+            const tags = Array.from(activeChips).map(c => c.getAttribute('data-diet')).filter(Boolean);
+            const tagsInput = document.getElementById('newDishTags');
+            if (tagsInput) {
+                tagsInput.value = tags.join(', ');
+            }
+        }
+
+        renderAddDishForm(container) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const sections = this.getAllSections();
 
@@ -260,75 +288,134 @@
                 categoriesOptions += `</optgroup>`;
             });
 
-            const modalHtml = `
-                <div id="addDishModal" class="modal-overlay" style="display: flex; z-index: 99999; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
-                    <div class="menu-modal-card" style="max-width: 480px; width: 92%;">
-                        <div class="modal-header">
-                            <div class="header-info">
-                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                                    <span class="material-symbols-outlined" style="color: #10B981;">add_circle</span>
+            container.innerHTML = `
+                <div class="menu-form-view-container" style="max-width: 820px; margin: 0 auto; padding: 16px 16px 60px 16px;">
+                    <!-- Top Navigation Bar / Breadcrumb -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.cancelAddDish()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #374151;">arrow_back</span>
+                            </button>
+                            <div>
+                                <h1 style="margin: 0; font-size: clamp(20px, 3.2vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
+                                    <span class="material-symbols-outlined" style="color: #10B981; font-size: 26px;">restaurant</span>
                                     <span>${isEn ? 'Add New Dish to Menu' : 'Agregar Nuevo Plato a la Carta'}</span>
-                                </h3>
-                                <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #666;">
-                                    ${isEn ? 'Add items updated on Stanley’s website or seasonal specials.' : 'Añade novedades que salgan en la web de Stanley’s o especiales del chef.'}
+                                </h1>
+                                <p style="margin: 3px 0 0 0; font-size: 13.5px; color: #6B7280;">
+                                    ${isEn ? 'Add seasonal specials, new creations or web updates to Stanley’s food menu.' : 'Añade novedades que salgan en la web de Stanley’s o especiales del chef.'}
                                 </p>
                             </div>
-                            <button class="btn-close-modal" onclick="document.getElementById('addDishModal').remove()">
-                                <span class="material-symbols-outlined">close</span>
-                            </button>
                         </div>
-                        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 20px 24px; max-height: 75vh; overflow-y: auto;">
-                            <div>
-                                <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
-                                    ${isEn ? 'Dish Name *' : 'Nombre del Plato *'}
-                                </label>
-                                <input type="text" id="newDishName" placeholder="Ej: Truffle Mac & Cheese" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                <div>
-                                    <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
-                                        ${isEn ? 'Price (£) *' : 'Precio (£) *'}
-                                    </label>
-                                    <input type="number" step="0.5" id="newDishPrice" placeholder="14.50" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
-                                </div>
-                                <div>
-                                    <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
-                                        ${isEn ? 'Category *' : 'Categoría *'}
-                                    </label>
-                                    <select id="newDishCategory" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 10px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
-                                        ${categoriesOptions}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
-                                    ${isEn ? 'Description & Ingredients' : 'Descripción e Ingredientes'}
-                                </label>
-                                <textarea id="newDishDesc" placeholder="Detalles de preparación o guarniciones..." rows="2" style="width: 100%; border-radius: 10px; border: 1px solid #D1D5DB; padding: 10px 12px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: #FFFFFF; color: #111827;"></textarea>
-                            </div>
-
-                            <div>
-                                <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
-                                    ${isEn ? 'Dietary Tags (comma separated)' : 'Etiquetas dietéticas (V, VE, GF*, Hot)'}
-                                </label>
-                                <input type="text" id="newDishTags" placeholder="V, bestseller" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
-                            </div>
-                        </div>
-                        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px;">
-                            <button class="btn-secondary" onclick="document.getElementById('addDishModal').remove()">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <button type="button" class="btn-secondary" onclick="window.restaurantMenu.cancelAddDish()" style="border-radius: 999px; height: 40px; padding: 0 20px; font-size: 13.5px; font-weight: 600;">
                                 <span>${isEn ? 'Cancel' : 'Cancelar'}</span>
                             </button>
-                            <button class="btn-primary" onclick="window.restaurantMenu.saveNewDish()">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+                            <button type="button" class="btn-primary" onclick="window.restaurantMenu.saveNewDish()" style="border-radius: 999px; height: 40px; padding: 0 22px; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                <span class="material-symbols-outlined" style="font-size: 19px;">save</span>
                                 <span>${isEn ? 'Save Dish' : 'Guardar Plato'}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Clean Form Container with M3 Cards -->
+                    <div style="display: flex; flex-direction: column; gap: 18px;">
+                        <!-- Card 1: Datos principales -->
+                        <div style="padding: 24px; border-radius: 20px; border: 1px solid var(--outline-variant, #E5E7EB); background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #1F2937; display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">info</span>
+                                <span>${isEn ? 'Dish Details' : 'Información del Plato'}</span>
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div>
+                                    <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 6px;">
+                                        ${isEn ? 'Dish Name *' : 'Nombre del Plato *'}
+                                    </label>
+                                    <input type="text" id="newDishName" placeholder="Ej: Truffle Mac & Cheese, Wagyu Steak Tartare..." style="width: 100%; height: 44px; border-radius: 12px; border: 1px solid #D1D5DB; padding: 0 14px; font-family: inherit; font-size: 14px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                                    <div>
+                                        <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 6px;">
+                                            ${isEn ? 'Price in Pounds (£) *' : 'Precio (£ Libras) *'}
+                                        </label>
+                                        <div style="position: relative;">
+                                            <span style="position: absolute; left: 14px; top: 12px; font-weight: 800; color: #059669; font-size: 15px;">£</span>
+                                            <input type="number" step="0.5" id="newDishPrice" placeholder="14.50" style="width: 100%; height: 44px; border-radius: 12px; border: 1px solid #D1D5DB; padding: 0 14px 0 30px; font-family: inherit; font-size: 14.5px; font-weight: 600; box-sizing: border-box; background: #FFFFFF; color: #111827;">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 6px;">
+                                            ${isEn ? 'Category in Menu *' : 'Categoría en la Carta *'}
+                                        </label>
+                                        <select id="newDishCategory" style="width: 100%; height: 44px; border-radius: 12px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 13.5px; box-sizing: border-box; background: #FFFFFF; color: #111827; cursor: pointer;">
+                                            ${categoriesOptions}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Descripción y Preparación -->
+                        <div style="padding: 24px; border-radius: 20px; border: 1px solid var(--outline-variant, #E5E7EB); background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #1F2937; display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">menu_book</span>
+                                <span>${isEn ? 'Description & Ingredients' : 'Descripción, Preparación y Guarniciones'}</span>
+                            </h3>
+                            <div>
+                                <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 6px;">
+                                    ${isEn ? 'Preparation details, ingredients or garnishes' : 'Detalles de la preparación, ingredientes o guarniciones'}
+                                </label>
+                                <textarea id="newDishDesc" placeholder="${isEn ? 'E.g. Served with roasted rosemary potatoes, red wine jus and seasonal greens...' : 'Ej: Servido con patatas asadas al romero, reducción de vino tinto y verduras de temporada...'}" rows="3" style="width: 100%; border-radius: 12px; border: 1px solid #D1D5DB; padding: 12px 14px; font-family: inherit; font-size: 13.5px; line-height: 1.5; box-sizing: border-box; background: #FFFFFF; color: #111827;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Preferencias Dietéticas -->
+                        <div style="padding: 24px; border-radius: 20px; border: 1px solid var(--outline-variant, #E5E7EB); background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #1F2937; display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">local_florist</span>
+                                <span>${isEn ? 'Dietary Preferences & Tags' : 'Preferencias Dietéticas y Etiquetas'}</span>
+                            </h3>
+                            <div>
+                                <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
+                                    ${isEn ? 'Select tags (click to toggle):' : 'Selecciona insignias (haz clic para activar o desactivar):'}
+                                </label>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;" id="dishDietaryChips">
+                                    <button type="button" class="filter-chip" data-diet="V" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                        <span>🌱 Vegetariano (V)</span>
+                                    </button>
+                                    <button type="button" class="filter-chip" data-diet="VE" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                        <span>🌿 Vegano (VE)</span>
+                                    </button>
+                                    <button type="button" class="filter-chip" data-diet="GF*" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                        <span>🌾 Opción Sin Gluten (GF*)</span>
+                                    </button>
+                                    <button type="button" class="filter-chip" data-diet="GF" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                        <span>✨ Sin Gluten (GF)</span>
+                                    </button>
+                                    <button type="button" class="filter-chip" data-diet="Hot" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                        <span>🔥 Picante (Hot)</span>
+                                    </button>
+                                    <button type="button" class="filter-chip" data-diet="Bestseller" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                        <span>⭐ Especial / Popular</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" id="newDishTags" value="">
+                            </div>
+                        </div>
+
+                        <!-- Bottom Actions -->
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 10px;">
+                            <button type="button" class="btn-secondary" onclick="window.restaurantMenu.cancelAddDish()" style="border-radius: 999px; height: 44px; padding: 0 24px; font-size: 14px; font-weight: 600;">
+                                <span>${isEn ? 'Cancel' : 'Cancelar'}</span>
+                            </button>
+                            <button type="button" class="btn-primary" onclick="window.restaurantMenu.saveNewDish()" style="border-radius: 999px; height: 44px; padding: 0 26px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">save</span>
+                                <span>${isEn ? 'Save Dish to Menu' : 'Guardar Plato en la Carta'}</span>
                             </button>
                         </div>
                     </div>
                 </div>
             `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
         saveNewDish() {
@@ -345,7 +432,15 @@
             const rawTags = tagsEl ? tagsEl.value : '';
 
             if (!name) {
-                alert('Por favor ingresa el nombre del plato.');
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: 'Por favor ingresa el nombre del plato.',
+                        type: 'error'
+                    });
+                } else {
+                    alert('Por favor ingresa el nombre del plato.');
+                }
+                if (nameEl) nameEl.focus();
                 return;
             }
 
@@ -366,16 +461,70 @@
             this.customItems.push(newDish);
             this.saveCustomItems();
 
-            const modal = document.getElementById('addDishModal');
-            if (modal) modal.remove();
+            // Cerrar formulario
+            this.isAddingDish = false;
+
+            // Seleccionar la categoría del plato para que el usuario lo vea inmediatamente
+            this.activeCategory = categoryId;
 
             this.render();
+
             if (window.showActionToast) {
                 window.showActionToast({
-                    message: `✅ Plato "${name}" agregado al menú`,
+                    message: `✅ Plato "${name}" agregado exitosamente a la carta`,
                     type: 'success'
                 });
             }
+        }
+
+        scrollChips(distance) {
+            const container = document.getElementById('menuCategoryChips');
+            if (container) {
+                container.scrollBy({ left: distance, behavior: 'smooth' });
+            }
+        }
+
+        handleChipsWheel(e) {
+            const container = document.getElementById('menuCategoryChips');
+            if (container && (e.deltaY !== 0 || e.deltaX !== 0)) {
+                e.preventDefault();
+                container.scrollLeft += (e.deltaY || e.deltaX);
+            }
+        }
+
+        setupChipsDrag() {
+            const chips = document.getElementById('menuCategoryChips');
+            if (!chips || chips.dataset.dragInitialized) return;
+            chips.dataset.dragInitialized = 'true';
+
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            chips.addEventListener('mousedown', (e) => {
+                isDown = true;
+                chips.classList.add('is-dragging');
+                startX = e.pageX - chips.offsetLeft;
+                scrollLeft = chips.scrollLeft;
+            });
+
+            chips.addEventListener('mouseleave', () => {
+                isDown = false;
+                chips.classList.remove('is-dragging');
+            });
+
+            chips.addEventListener('mouseup', () => {
+                isDown = false;
+                chips.classList.remove('is-dragging');
+            });
+
+            chips.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - chips.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                chips.scrollLeft = scrollLeft - walk;
+            });
         }
 
         showHelpModal() {
@@ -478,6 +627,11 @@
             const container = document.getElementById(this.containerId);
             if (!container) return;
 
+            if (this.isAddingDish) {
+                this.renderAddDishForm(container);
+                return;
+            }
+
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const data = window.STANLEYS_MENU_DATA || {};
             const info = data.info || {};
@@ -520,19 +674,13 @@
                     <!-- Modern Header Banner -->
                     <div class="menu-hero-card">
                         <div class="allergens-hero-top-row" style="align-items: center;">
-                            <div class="menu-hero-icon" style="background: linear-gradient(135deg, #10B981 0%, #047857 100%);">
-                                <span class="material-symbols-outlined" style="font-size: 30px;">restaurant_menu</span>
+                            <div class="menu-hero-logo" title="Stanley's of Streatham">
+                                <img src="assets/images/stanleys-logo.png" alt="Stanley's of Streatham">
                             </div>
                             <div class="allergens-hero-heading-block" style="flex: 1;">
                                 <div class="menu-hero-badge-row">
-                                    <span class="m3-uk-fsa-badge" style="background: #ECFDF5; color: #065F46; font-weight: 800;">
-                                        ${info.location || 'Streatham, London'}
-                                    </span>
-                                    <span class="m3-uk-fsa-badge" style="background: #FEF3C7; color: #92400E; font-weight: 800;">
-                                        Domingos 12:00 – 20:00 (Roasts)
-                                    </span>
                                     <span class="m3-uk-fsa-badge" style="background: #EFF6FF; color: #1E40AF; font-weight: 800;">
-                                        ${totalDishes} Platos Activos
+                                        ${totalDishes} ${isEn ? 'Active Dishes' : 'Platos Activos'}
                                     </span>
                                 </div>
                                 <h1 style="margin: 4px 0 2px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
@@ -546,11 +694,6 @@
 
                         <!-- Header Action Buttons -->
                         <div class="menu-hero-actions">
-                            <button class="btn-new-dropbox" onclick="window.restaurantMenu.showAddDishModal()" style="border-radius: 999px; height: 38px; padding: 0 16px; font-size: 13px;">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-                                <span>${isEn ? 'Add New Dish' : 'Agregar Plato'}</span>
-                            </button>
-
                             <a href="${info.website}" target="_blank" rel="noopener" class="menu-action-pill" title="Visitar web oficial">
                                 <span class="material-symbols-outlined" style="font-size: 17px;">public</span>
                                 <span>stanleyssw16.com/food</span>
@@ -593,25 +736,33 @@
                         </button>
                     </div>
 
-                    <!-- Horizontal Scrollable Category Chips -->
-                    <div class="menu-category-chips">
-                        <button class="menu-category-chip ${this.activeCategory === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('all')">
-                            <span>${isEn ? 'All Categories' : 'Todas las Secciones'}</span>
-                            <span class="chip-count">${totalDishes}</span>
+                    <!-- Horizontal Scrollable Category Chips Carousel -->
+                    <div class="menu-category-carousel-wrapper">
+                        <button type="button" class="menu-carousel-arrow left" onclick="window.restaurantMenu.scrollChips(-260)" title="${isEn ? 'Previous categories' : 'Categorías anteriores'}">
+                            <span class="material-symbols-outlined">chevron_left</span>
                         </button>
-                        ${categoryList.map(c => `
-                            <button class="menu-category-chip ${this.activeCategory === c.id ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('${c.id}')">
-                                <span class="material-symbols-outlined" style="font-size: 16px;">${c.icon}</span>
-                                <span>${c.name}</span>
-                                <span class="chip-count">${c.count}</span>
+                        <div class="menu-category-chips" id="menuCategoryChips" onwheel="window.restaurantMenu.handleChipsWheel(event)">
+                            <button class="menu-category-chip ${this.activeCategory === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('all')">
+                                <span>${isEn ? 'All Categories' : 'Todas las Secciones'}</span>
+                                <span class="chip-count">${totalDishes}</span>
                             </button>
-                        `).join('')}
-                        ${outOfStockCount > 0 ? `
-                            <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}" style="white-space: nowrap;">
-                                <span class="material-symbols-outlined" style="font-size: 16px; color: #DC2626;">do_not_disturb_on</span>
-                                <span>${outOfStockCount} ${isEn ? '86 Out' : '86 Agotados'}</span>
-                            </div>
-                        ` : ''}
+                            ${categoryList.map(c => `
+                                <button class="menu-category-chip ${this.activeCategory === c.id ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('${c.id}')">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">${c.icon}</span>
+                                    <span>${c.name}</span>
+                                    <span class="chip-count">${c.count}</span>
+                                </button>
+                            `).join('')}
+                            ${outOfStockCount > 0 ? `
+                                <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}" style="white-space: nowrap;">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; color: #DC2626;">do_not_disturb_on</span>
+                                    <span>${outOfStockCount} ${isEn ? '86 Out' : '86 Agotados'}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <button type="button" class="menu-carousel-arrow right" onclick="window.restaurantMenu.scrollChips(260)" title="${isEn ? 'Next categories' : 'Siguientes categorías'}">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
                     </div>
 
                     ${this.searchQuery ? `
@@ -722,6 +873,7 @@
             `;
 
             container.innerHTML = html;
+            this.setupChipsDrag();
         }
 
         renderMenuItemCard(item, isEn) {

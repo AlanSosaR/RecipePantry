@@ -439,6 +439,31 @@ class DashboardManager {
             this.showMenuView();
         }
 
+        // Actualizar botón "+ Nuevo" en la barra superior según la vista
+        const btnNew = document.getElementById('btnNewRecipeTop');
+        if (btnNew) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (view === 'menu') {
+                btnNew.innerHTML = `
+                    <span class="material-symbols-outlined">add</span>
+                    <span>${isEn ? 'Add Dish' : 'Agregar Plato'}</span>
+                `;
+                btnNew.onclick = () => {
+                    if (window.restaurantMenu) {
+                        window.restaurantMenu.showAddDishForm();
+                    }
+                };
+                btnNew.title = isEn ? 'Add dish to menu' : 'Agregar plato a la carta';
+            } else {
+                btnNew.innerHTML = `
+                    <span class="material-symbols-outlined">add</span>
+                    <span data-i18n="newRecipeBtn">${(window.i18n && window.i18n.t) ? window.i18n.t('newRecipeBtn', 'Nuevo') : 'Nuevo'}</span>
+                `;
+                btnNew.onclick = () => { window.location.href = '/recipe-form'; };
+                btnNew.title = (window.i18n && window.i18n.t) ? window.i18n.t('newRecipe', 'Nueva Receta') : 'Nueva Receta';
+            }
+        }
+
         if (view !== 'allergens' && view !== 'menu') {
             this.allergenSearchQuery = '';
             const searchInput = document.getElementById('searchInput');
@@ -507,6 +532,7 @@ class DashboardManager {
         if (menuView) {
             menuView.classList.remove('hidden');
             if (window.restaurantMenu) {
+                window.restaurantMenu.isAddingDish = false;
                 window.restaurantMenu.render();
             }
         }

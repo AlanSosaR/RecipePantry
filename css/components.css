@@ -10251,6 +10251,32 @@ input:checked~.m3-ingredient-text {
     color: #FFFFFF;
 }
 
+.menu-hero-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.menu-hero-logo img {
+    height: 54px;
+    width: auto;
+    max-width: 130px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.14));
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), filter 0.25s ease;
+    user-select: none;
+}
+
+.menu-hero-logo img:hover {
+    transform: translateY(-2px) scale(1.04);
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.22));
+}
+
 .menu-hero-badge-row {
     display: flex;
     align-items: center;
@@ -10349,14 +10375,66 @@ input:checked~.m3-ingredient-text {
     font-weight: 800;
 }
 
-/* Category Filter Chips */
+/* Category Filter Chips & Carousel */
+.menu-category-carousel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 6px;
+    gap: 4px;
+}
+
 .menu-category-chips {
     display: flex;
     align-items: center;
     gap: 8px;
     overflow-x: auto;
-    padding: 4px 2px 8px 2px;
+    padding: 6px 4px 8px 4px;
     scrollbar-width: none;
+    scroll-behavior: smooth;
+    cursor: grab;
+    user-select: none;
+    flex: 1;
+}
+
+.menu-category-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.menu-category-chips.is-dragging {
+    cursor: grabbing;
+    scroll-behavior: auto;
+}
+
+.menu-carousel-arrow {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid var(--outline-variant, #E5E7EB);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #4B5563;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    flex-shrink: 0;
+    z-index: 2;
+    user-select: none;
+}
+
+.menu-carousel-arrow:hover {
+    background: #10B981;
+    color: #FFFFFF;
+    border-color: #10B981;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transform: scale(1.08);
+}
+
+.menu-carousel-arrow:active {
+    transform: scale(0.95);
 }
 
 .menu-category-chip {
