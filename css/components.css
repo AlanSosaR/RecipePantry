@@ -10885,5 +10885,100 @@ input:checked~.m3-ingredient-text {
     color: #4B5563;
 }
 
+/* ==========================================================================
+   WHITE MODAL FOR RESTAURANT MENU (HELP & ADD DISH)
+   ========================================================================== */
+.menu-modal-card {
+    background: #FFFFFF !important;
+    color: #111827 !important;
+    width: calc(100% - 32px);
+    max-width: 520px;
+    border-radius: 24px !important;
+    border: 1px solid #E5E7EB !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16) !important;
+    overflow: hidden;
+    animation: modalEntry 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+.menu-modal-card .modal-header {
+    background: #FFFFFF !important;
+    border-bottom: 1px solid #F3F4F6 !important;
+    padding: 20px 24px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.menu-modal-card .header-info h3 {
+    color: #111827 !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+}
+
+.menu-modal-card .header-info p {
+    color: #6B7280 !important;
+    font-size: 13px !important;
+}
+
+.menu-modal-card .btn-close-modal {
+    background: #F3F4F6 !important;
+    color: #4B5563 !important;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.menu-modal-card .btn-close-modal:hover {
+    background: #E5E7EB !important;
+    color: #111827 !important;
+}
+
+.menu-modal-card .modal-body {
+    background: #FFFFFF !important;
+    color: #111827 !important;
+    padding: 20px 24px !important;
+}
+
+.menu-modal-card .modal-footer {
+    background: #FAFAFA !important;
+    border-top: 1px solid #F3F4F6 !important;
+    padding: 16px 24px !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.menu-help-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px;
+    background: #F9FAFB;
+    border: 1px solid #F3F4F6;
+    border-radius: 16px;
+    transition: background 0.2s ease;
+}
+
+.menu-help-item:hover {
+    background: #F3F4F6;
+}
+
+.menu-help-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+
 
 

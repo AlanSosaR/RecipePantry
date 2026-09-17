@@ -163,42 +163,73 @@
         deleteMenuItem(itemId, itemName) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const confirmMsg = isEn 
-                ? `Do you want to remove "${itemName}" from the active menu?` 
+                ? `¿Remove "${itemName}" from the active menu?` 
                 : `¿Deseas quitar "${itemName}" de la carta activa?`;
-            
-            if (!confirm(confirmMsg)) return;
 
-            // Si es un plato creado localmente, removerlo de customItems
-            this.customItems = this.customItems.filter(i => i.id !== itemId);
-            this.saveCustomItems();
+            const doDelete = () => {
+                // Si es un plato creado localmente, removerlo de customItems
+                this.customItems = this.customItems.filter(i => i.id !== itemId);
+                this.saveCustomItems();
 
-            // Si es un plato de la lista base, agregarlo a removedItemIds
-            if (!this.removedItemIds.includes(itemId)) {
-                this.removedItemIds.push(itemId);
-                this.saveRemovedItems();
-            }
+                // Si es un plato de la lista base, agregarlo a removedItemIds
+                if (!this.removedItemIds.includes(itemId)) {
+                    this.removedItemIds.push(itemId);
+                    this.saveRemovedItems();
+                }
 
-            this.render();
-            if (window.showActionToast) {
-                window.showActionToast({
-                    message: isEn ? `"${itemName}" removed from menu` : `"${itemName}" retirado de la carta`,
-                    type: 'info'
+                this.render();
+                const notify = window.showToast || (window.utils && window.utils.showToast);
+                if (notify) {
+                    notify(isEn ? `"${itemName}" removed from menu` : `"${itemName}" retirado de la carta`, 'info');
+                }
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: isEn ? 'Remove' : 'Eliminar',
+                    cancelText: isEn ? 'Cancel' : 'Cancelar',
+                    type: 'error',
+                    actionColor: '#EF4444',
+                    onConfirm: doDelete
                 });
+            } else {
+                if (confirm(confirmMsg)) {
+                    doDelete();
+                }
             }
         }
 
         // Restaurar menú original completo
         resetOriginalMenu() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
-            if (!confirm(isEn ? 'Restore all original menu items?' : '¿Restaurar todos los platos originales de la carta oficial?')) return;
-            this.removedItemIds = [];
-            this.saveRemovedItems();
-            this.render();
-            if (window.showActionToast) {
-                window.showActionToast({
-                    message: isEn ? 'Original menu restored' : 'Menú original restaurado',
-                    type: 'success'
+            const confirmMsg = isEn ? '¿Restore all original menu items?' : '¿Restaurar todos los platos originales de la carta oficial?';
+
+            const doReset = () => {
+                this.removedItemIds = [];
+                this.saveRemovedItems();
+                this.render();
+                const notify = window.showToast || (window.utils && window.utils.showToast);
+                if (notify) {
+                    notify(isEn ? 'Original menu restored' : 'Menú original restaurado', 'success');
+                }
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: isEn ? 'Restore' : 'Restaurar',
+                    cancelText: isEn ? 'Cancel' : 'Cancelar',
+                    type: 'info',
+                    actionColor: '#2563EB',
+                    onConfirm: doReset
                 });
+            } else {
+                if (confirm(confirmMsg)) {
+                    doReset();
+                }
             }
         }
 
@@ -217,8 +248,8 @@
             });
 
             const modalHtml = `
-                <div id="addDishModal" class="modal-overlay" style="display: flex; z-index: 99999;">
-                    <div class="share-modal-container" style="max-width: 480px; width: 92%;">
+                <div id="addDishModal" class="modal-overlay" style="display: flex; z-index: 99999; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
+                    <div class="menu-modal-card" style="max-width: 480px; width: 92%;">
                         <div class="modal-header">
                             <div class="header-info">
                                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
@@ -233,46 +264,46 @@
                                 <span class="material-symbols-outlined">close</span>
                             </button>
                         </div>
-                        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 20px;">
+                        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 20px 24px; max-height: 75vh; overflow-y: auto;">
                             <div>
-                                <label style="font-size: 12px; font-weight: 700; color: #444; display: block; margin-bottom: 4px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
                                     ${isEn ? 'Dish Name *' : 'Nombre del Plato *'}
                                 </label>
-                                <input type="text" id="newDishName" placeholder="Ej: Truffle Mac & Cheese" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 14px; box-sizing: border-box;">
+                                <input type="text" id="newDishName" placeholder="Ej: Truffle Mac & Cheese" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                 <div>
-                                    <label style="font-size: 12px; font-weight: 700; color: #444; display: block; margin-bottom: 4px;">
+                                    <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
                                         ${isEn ? 'Price (£) *' : 'Precio (£) *'}
                                     </label>
-                                    <input type="number" step="0.5" id="newDishPrice" placeholder="14.50" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 14px; box-sizing: border-box;">
+                                    <input type="number" step="0.5" id="newDishPrice" placeholder="14.50" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
                                 </div>
                                 <div>
-                                    <label style="font-size: 12px; font-weight: 700; color: #444; display: block; margin-bottom: 4px;">
+                                    <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
                                         ${isEn ? 'Category *' : 'Categoría *'}
                                     </label>
-                                    <select id="newDishCategory" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 10px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: white;">
+                                    <select id="newDishCategory" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 10px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
                                         ${categoriesOptions}
                                     </select>
                                 </div>
                             </div>
 
                             <div>
-                                <label style="font-size: 12px; font-weight: 700; color: #444; display: block; margin-bottom: 4px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
                                     ${isEn ? 'Description & Ingredients' : 'Descripción e Ingredientes'}
                                 </label>
-                                <textarea id="newDishDesc" placeholder="Detalles de preparación o guarniciones..." rows="2" style="width: 100%; border-radius: 10px; border: 1px solid #D1D5DB; padding: 10px 12px; font-family: inherit; font-size: 13px; box-sizing: border-box;"></textarea>
+                                <textarea id="newDishDesc" placeholder="Detalles de preparación o guarniciones..." rows="2" style="width: 100%; border-radius: 10px; border: 1px solid #D1D5DB; padding: 10px 12px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: #FFFFFF; color: #111827;"></textarea>
                             </div>
 
                             <div>
-                                <label style="font-size: 12px; font-weight: 700; color: #444; display: block; margin-bottom: 4px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #374151; display: block; margin-bottom: 5px;">
                                     ${isEn ? 'Dietary Tags (comma separated)' : 'Etiquetas dietéticas (V, VE, GF*, Hot)'}
                                 </label>
-                                <input type="text" id="newDishTags" placeholder="V, bestseller" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 13px; box-sizing: border-box;">
+                                <input type="text" id="newDishTags" placeholder="V, bestseller" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #D1D5DB; padding: 0 12px; font-family: inherit; font-size: 13px; box-sizing: border-box; background: #FFFFFF; color: #111827;">
                             </div>
                         </div>
-                        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px;">
+                        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px;">
                             <button class="btn-secondary" onclick="document.getElementById('addDishModal').remove()">
                                 <span>${isEn ? 'Cancel' : 'Cancelar'}</span>
                             </button>
@@ -337,8 +368,8 @@
         showHelpModal() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const modalHtml = `
-                <div id="menuHelpModal" class="modal-overlay" style="display: flex; z-index: 99999;">
-                    <div class="share-modal-container" style="max-width: 520px; width: 92%;">
+                <div id="menuHelpModal" class="modal-overlay" style="display: flex; z-index: 99999; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
+                    <div class="menu-modal-card" style="max-width: 520px; width: 92%;">
                         <div class="modal-header">
                             <div class="header-info">
                                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
@@ -353,9 +384,9 @@
                                 <span class="material-symbols-outlined">close</span>
                             </button>
                         </div>
-                        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
-                            <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
+                            <div class="menu-help-item">
+                                <div class="menu-help-icon-wrap" style="background: #ECFDF5; color: #059669;">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
                                 </div>
                                 <div>
@@ -370,8 +401,8 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <div class="menu-help-item">
+                                <div class="menu-help-icon-wrap" style="background: #FEF2F2; color: #DC2626;">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
                                 </div>
                                 <div>
@@ -386,8 +417,8 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #FFFBEB; color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <div class="menu-help-item">
+                                <div class="menu-help-icon-wrap" style="background: #FFFBEB; color: #D97706;">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">do_not_disturb_on</span>
                                 </div>
                                 <div>
@@ -402,8 +433,8 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <div class="menu-help-item">
+                                <div class="menu-help-icon-wrap" style="background: #EFF6FF; color: #2563EB;">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">restore</span>
                                 </div>
                                 <div>
@@ -418,7 +449,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer" style="display: flex; justify-content: flex-end; padding: 16px 20px;">
+                        <div class="modal-footer" style="display: flex; justify-content: flex-end; padding: 16px 24px;">
                             <button class="btn-primary" onclick="document.getElementById('menuHelpModal').remove()">
                                 <span>${isEn ? 'Got It' : 'Entendido'}</span>
                             </button>
