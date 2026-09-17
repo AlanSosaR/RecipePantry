@@ -79,6 +79,11 @@
             this.availability = this.loadAvailability();
             this.customItems = this.loadCustomItems(); // Platos agregados por el usuario
             this.removedItemIds = this.loadRemovedItems(); // Platos eliminados
+
+            this.closeDocumentViewer = this.closeDocumentViewer.bind(this);
+            this.openDocumentViewer = this.openDocumentViewer.bind(this);
+            this.cancelAddDish = this.cancelAddDish.bind(this);
+            this.render = this.render.bind(this);
         }
 
         loadAvailability() {
@@ -606,7 +611,16 @@
 
         closeDocumentViewer() {
             this.isViewingDocument = false;
-            this.render();
+            this.isAddingDish = false;
+            if (window.dashboard && typeof window.dashboard.showMenuView === 'function') {
+                window.dashboard.showMenuView();
+            } else {
+                this.render();
+            }
+            const main = document.querySelector('.main-content') || window;
+            if (main.scrollTo) {
+                main.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         renderDocumentView(container) {
@@ -617,8 +631,8 @@
                     <!-- Top Navigation Bar / Breadcrumb -->
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
-                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.closeDocumentViewer()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                                <span class="material-symbols-outlined" style="font-size: 20px; color: #374151;">arrow_back</span>
+                            <button type="button" id="btnBackDocViewer" class="btn-icon-m3" onclick="window.restaurantMenu.closeDocumentViewer();" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 42px; height: 42px; min-width: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; z-index: 10;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: #1F2937; pointer-events: none;">arrow_back</span>
                             </button>
                             <div>
                                 <h1 style="margin: 0; font-size: clamp(19px, 3vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
@@ -687,6 +701,15 @@
                     </div>
                 </div>
             `;
+
+            const backBtn = container.querySelector('#btnBackDocViewer');
+            if (backBtn) {
+                backBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.closeDocumentViewer();
+                });
+            }
 
             this.loadCurrentDocument();
         }
@@ -1291,4 +1314,5 @@
     }
 
     window.restaurantMenu = new RestaurantMenuManager();
+    window.closeMenuDocumentViewer = () => window.restaurantMenu?.closeDocumentViewer();
 })();
