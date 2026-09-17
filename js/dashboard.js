@@ -2432,6 +2432,95 @@ class DashboardManager {
         }
     }
 
+    scrollMatrixTable(distance) {
+        const container = document.getElementById('officialMatrixTableWrapper');
+        if (container) {
+            container.scrollBy({ left: distance, behavior: 'smooth' });
+            setTimeout(() => this.updateMatrixCarouselState(), 200);
+        }
+    }
+
+    updateMatrixCarouselState() {
+        const container = document.getElementById('officialMatrixTableWrapper');
+        if (!container) return;
+        const leftBtn = document.getElementById('matrixTableScrollLeftBtn');
+        const rightBtn = document.getElementById('matrixTableScrollRightBtn');
+        const floatingLeft = document.getElementById('matrixFloatingArrowLeft');
+        const floatingRight = document.getElementById('matrixFloatingArrowRight');
+        const indicator = document.getElementById('matrixCarouselPill');
+
+        const scrollLeft = container.scrollLeft;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+
+        const atStart = scrollLeft <= 12;
+        const atEnd = maxScroll <= 15 || scrollLeft >= maxScroll - 15;
+
+        if (leftBtn) leftBtn.disabled = atStart;
+        if (rightBtn) rightBtn.disabled = atEnd;
+
+        if (floatingLeft) {
+            floatingLeft.classList.toggle('visible', !atStart);
+        }
+        if (floatingRight) {
+            floatingRight.classList.toggle('visible', !atEnd);
+        }
+
+        if (indicator) {
+            if (atEnd) {
+                indicator.textContent = 'Alérgenos finales: Soya, Sulfitos ✓';
+                indicator.style.background = '#ECFDF5';
+                indicator.style.color = '#059669';
+                indicator.style.borderColor = '#10B981';
+            } else if (atStart) {
+                indicator.textContent = '14 Alérgenos FSA';
+                indicator.style.background = '';
+                indicator.style.color = '';
+                indicator.style.borderColor = '';
+            } else {
+                indicator.textContent = 'Alérgenos (Deslizando...)';
+                indicator.style.background = '#EFF6FF';
+                indicator.style.color = '#2563EB';
+                indicator.style.borderColor = '#93C5FD';
+            }
+        }
+    }
+
+    setupMatrixTableDrag() {
+        const slider = document.getElementById('officialMatrixTableWrapper');
+        if (!slider || slider.dataset.dragAttached === 'true') return;
+        slider.dataset.dragAttached = 'true';
+
+        let isDown = false;
+        let startX = 0;
+        let scrollLeft = 0;
+
+        slider.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button') || e.target.closest('a')) return;
+            isDown = true;
+            slider.classList.add('is-dragging');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        const stopDrag = () => {
+            if (!isDown) return;
+            isDown = false;
+            slider.classList.remove('is-dragging');
+        };
+
+        slider.addEventListener('mouseleave', stopDrag);
+        slider.addEventListener('mouseup', stopDrag);
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            slider.scrollLeft = scrollLeft - walk;
+            this.updateMatrixCarouselState();
+        });
+    }
+
     filterMatrixBySearch(query) {
         this.matrixSearchQuery = (query || '').trim().toLowerCase();
         const rows = document.querySelectorAll('.matrix-dish-row');
@@ -2566,35 +2655,71 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Matrix Table -->
-            <div class="matrix-table-wrapper">
-                <table class="fsa-matrix-table" id="officialFsaMatrixTable">
-                    <thead>
-                        <tr>
-                            <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
-                            ${allergens.map(a => `
-                                <th class="col-allergen" title="${a.name_en} (${a.name_es})">
-                                    <div class="th-allergen-inner" style="color: ${a.color};">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
-                                        <span class="th-name">${a.name_en}</span>
-                                    </div>
-                                </th>
-                            `).join('')}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredDishes.length === 0 ? `
+            <!-- Allergen Matrix Carousel Toolbar -->
+            <div class="matrix-table-carousel-bar">
+                <div class="matrix-carousel-badge">
+                    <span class="material-symbols-outlined">view_column</span>
+                    <span>${isEn ? 'Allergens Carousel (FSA 14)' : 'Carrusel de Alérgenos (14 FSA)'}</span>
+                </div>
+                <div class="matrix-carousel-hint">
+                    <span class="material-symbols-outlined">swipe</span>
+                    <span>${isEn ? 'Use arrows or swipe table to view all 14 allergens (Soya & Sulphites at the end)' : 'Usa las flechas o desliza para ver los 14 alérgenos (Soya y Sulfitos al final)'}</span>
+                </div>
+                <div class="matrix-carousel-actions">
+                    <button type="button" class="matrix-table-carousel-btn prev" id="matrixTableScrollLeftBtn" onclick="window.dashboard.scrollMatrixTable(-360)" title="${isEn ? 'Scroll left (earlier allergens)' : 'Ver alérgenos anteriores'}" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                        <span class="btn-text">${isEn ? 'Earlier' : 'Anteriores'}</span>
+                    </button>
+                    <span class="matrix-carousel-pill" id="matrixCarouselPill">${isEn ? '14 Allergens FSA' : '14 Alérgenos FSA'}</span>
+                    <button type="button" class="matrix-table-carousel-btn next highlight" id="matrixTableScrollRightBtn" onclick="window.dashboard.scrollMatrixTable(360)" title="${isEn ? 'Scroll right (view Soya & Sulphur Dioxide)' : 'Ver alérgenos finales (Soya, Sulfitos...)'}">
+                        <span class="btn-text">${isEn ? 'More (Soya/Sulphur)' : 'Siguientes (Soya, Sulfitos...)'}</span>
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Matrix Table Outer Container with Floating Carousel Arrows -->
+            <div class="matrix-table-outer-container">
+                <button type="button" class="matrix-floating-arrow left" id="matrixFloatingArrowLeft" onclick="window.dashboard.scrollMatrixTable(-360)" title="${isEn ? 'Scroll left' : 'Deslizar hacia alérgenos anteriores'}" aria-label="Anterior">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <div class="matrix-table-wrapper" id="officialMatrixTableWrapper" onscroll="window.dashboard.updateMatrixCarouselState()">
+                    <table class="fsa-matrix-table" id="officialFsaMatrixTable">
+                        <thead>
                             <tr>
-                                <td colspan="${allergens.length + 1}" style="text-align:center; padding: 36px; color: #64748B;">
-                                    <span class="material-symbols-outlined" style="font-size: 36px; color: #94A3B8; display: block; margin-bottom: 8px;">search_off</span>
-                                    ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
-                                </td>
+                                <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
+                                ${allergens.map(a => `
+                                    <th class="col-allergen" title="${a.name_en} (${a.name_es})">
+                                        <div class="th-allergen-inner" style="color: ${a.color};">
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
+                                            <span class="th-name">${a.name_en}</span>
+                                        </div>
+                                    </th>
+                                `).join('')}
                             </tr>
-                        ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${filteredDishes.length === 0 ? `
+                                <tr>
+                                    <td colspan="${allergens.length + 1}" style="text-align:center; padding: 36px; color: #64748B;">
+                                        <span class="material-symbols-outlined" style="font-size: 36px; color: #94A3B8; display: block; margin-bottom: 8px;">search_off</span>
+                                        ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
+                                    </td>
+                                </tr>
+                            ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="matrix-floating-arrow right visible" id="matrixFloatingArrowRight" onclick="window.dashboard.scrollMatrixTable(360)" title="${isEn ? 'Scroll right (view SOYA & SULPHUR DIOXIDE)' : 'Deslizar a alérgenos finales (Soya, Sulfitos...)'}" aria-label="Siguiente">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
             </div>
         `;
+
+        setTimeout(() => {
+            this.updateMatrixCarouselState();
+            this.setupMatrixTableDrag();
+        }, 50);
     }
 
     renderMatrixTableRows(dishes, allergens, isEn) {
@@ -2609,8 +2734,10 @@ class DashboardManager {
                 rowsHtml.push(`
                     <tr class="matrix-section-row" data-section="${currentSection}">
                         <td colspan="${allergens.length + 1}">
-                            <span>${currentSection}</span>
-                            <span class="matrix-section-pill-tag">${count} ${isEn ? 'dishes' : 'platos'}</span>
+                            <div class="matrix-section-title-sticky">
+                                <span>${currentSection}</span>
+                                <span class="matrix-section-pill-tag">${count} ${isEn ? 'dishes' : 'platos'}</span>
+                            </div>
                         </td>
                     </tr>
                 `);

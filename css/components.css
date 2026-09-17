@@ -9073,16 +9073,208 @@ input:checked~.m3-ingredient-text {
     margin: 0;
 }
 
+/* Allergen Matrix Carousel Toolbar */
+.matrix-table-carousel-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #F8FAFC 0%, #F0FDF4 100%);
+    border: 1.5px solid #E2E8F0;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.matrix-carousel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1E293B;
+    background: #FFFFFF;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #CBD5E1;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.matrix-carousel-badge .material-symbols-outlined {
+    font-size: 16px;
+    color: #10B981;
+}
+
+.matrix-carousel-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: #475569;
+    font-weight: 500;
+}
+
+.matrix-carousel-hint .material-symbols-outlined {
+    font-size: 18px;
+    color: #10B981;
+}
+
+.matrix-carousel-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.matrix-carousel-pill {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+    transition: all 0.25s ease;
+}
+
+.matrix-table-carousel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 12px;
+    border: 1.5px solid #CBD5E1;
+    background: #FFFFFF;
+    color: #1E293B;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.matrix-table-carousel-btn:hover:not(:disabled) {
+    background: #F1F5F9;
+    border-color: #94A3B8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.matrix-table-carousel-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.matrix-table-carousel-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: #F8FAFC;
+    border-color: #E2E8F0;
+    box-shadow: none;
+}
+
+.matrix-table-carousel-btn.highlight {
+    background: #0F172A;
+    color: #FFFFFF;
+    border-color: #0F172A;
+}
+
+.matrix-table-carousel-btn.highlight:hover:not(:disabled) {
+    background: #1E293B;
+    border-color: #1E293B;
+    color: #FFFFFF;
+}
+
+/* Outer Container with Floating Side Carousel Arrows */
+.matrix-table-outer-container {
+    position: relative;
+    width: 100%;
+}
+
+.matrix-floating-arrow {
+    position: absolute;
+    top: 22px;
+    z-index: 30;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+    color: #0F172A;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.matrix-floating-arrow.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.matrix-floating-arrow:hover {
+    background: #0F172A;
+    color: #FFFFFF;
+    border-color: #0F172A;
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+}
+
+.matrix-floating-arrow.left {
+    left: 236px; /* Positioned past the sticky recipe name column */
+}
+
+.matrix-floating-arrow.right {
+    right: 14px;
+}
+
 .matrix-table-wrapper {
     background: #FFFFFF;
     border-radius: 26px;
     border: 1.5px solid #E2E8F0;
     overflow-x: auto;
+    scroll-behavior: smooth;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+    scrollbar-width: thin;
+    scrollbar-color: #94A3B8 #F1F5F9;
+    cursor: grab;
+}
+
+.matrix-table-wrapper.is-dragging {
+    cursor: grabbing;
+    user-select: none;
+    scroll-behavior: auto;
+}
+
+.matrix-table-wrapper::-webkit-scrollbar {
+    height: 10px;
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-track {
+    background: #F1F5F9;
+    border-radius: 10px;
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
+    border: 2px solid #F1F5F9;
+}
+
+.matrix-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
 }
 
 .fsa-matrix-table {
     width: 100%;
+    min-width: 1250px; /* Ample width so 14 allergens never cram or cut off */
     border-collapse: collapse;
     font-size: 13px;
     text-align: center;
@@ -9105,7 +9297,17 @@ input:checked~.m3-ingredient-text {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    min-width: 54px;
+    min-width: 68px;
+    width: 70px;
+}
+
+.matrix-section-title-sticky {
+    position: sticky;
+    left: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 
 .th-allergen-inner {
@@ -10029,6 +10231,20 @@ input:checked~.m3-ingredient-text {
     .matrix-table-wrapper {
         border-radius: 16px;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .matrix-floating-arrow.left {
+        left: 145px;
+    }
+
+    .matrix-table-carousel-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .matrix-carousel-actions {
+        justify-content: space-between;
     }
 
     .col-recipe-name,
