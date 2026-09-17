@@ -84,7 +84,49 @@
             if (window.updateGlobalUserUI) window.updateGlobalUserUI();
         }
 
-        // --- List View Methods ---
+        getNotesCacheKey(userId) {
+            return `pantry_notes_cache_${userId}`;
+        }
+
+        getNotesFromCache(userId) {
+            if (!userId) return null;
+            try {
+                const raw = localStorage.getItem(this.getNotesCacheKey(userId));
+                return raw ? JSON.parse(raw) : null;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        setNotesToCache(userId, notes) {
+            if (!userId || !notes) return;
+            try {
+                localStorage.setItem(this.getNotesCacheKey(userId), JSON.stringify(notes));
+            } catch (_) {}
+        }
+
+        updateNoteInCache(userId, updatedNote) {
+            if (!userId || !updatedNote || !updatedNote.id) return;
+            try {
+                let list = this.getNotesFromCache(userId) || [];
+                const idx = list.findIndex(n => n.id === updatedNote.id);
+                if (idx !== -1) {
+                    list[idx] = { ...list[idx], ...updatedNote, updated_at: updatedNote.updated_at || new Date().toISOString() };
+                } else {
+                    list.unshift(updatedNote);
+                }
+                this.setNotesToCache(userId, list);
+            } catch (_) {}
+        }
+
+        removeNoteFromCache(userId, noteId) {
+            if (!userId || !noteId) return;
+            try {
+                let list = this.getNotesFromCache(userId) || [];
+                list = list.filter(n => n.id !== noteId);
+                this.setNotesToCache(userId, list);
+            } catch (_) {}
+        }
 
         async initListView() {
             const user = window.authManager.currentUser;
@@ -92,41 +134,59 @@
                 console.error("No user found in authManager");
                 return;
             }
+            const userId = user.auth_user_id || user.id;
 
-            // ── Mostrar nota guardada INSTANTÁNEAMENTE (sessionStorage) ──
-            try {
-                const savedStr = sessionStorage.getItem('__nota_guardada');
-                if (savedStr) {
-                    const saved = JSON.parse(savedStr);
-                    sessionStorage.removeItem('__nota_guardada');
-                    // Pintar lista provisional con esa nota al frente
-                    this.notes = [saved];
-                    this.showLoading(false);
-                    this.renderNotesList();
-                } else {
-                    this.showLoading(true);
-                }
-            } catch (_) {
+            // ── 1. MOSTRAR INMEDIATAMENTE DESDE LOCALSTORAGE (0ms, INSTANTÁNEO) ──
+            const cachedNotes = this.getNotesFromCache(userId);
+            if (cachedNotes && Array.isArray(cachedNotes) && cachedNotes.length > 0) {
+                this.notes = cachedNotes;
+                this.applyCustomOrder();
+                this.showLoading(false);
+                this.renderNotesList();
+            } else {
                 this.showLoading(true);
             }
 
-            // ── Función de carga real desde Supabase ──
-            const fetchNotes = async () => {
+            // ── 2. Función de carga real desde Supabase en segundo plano ──
+            const fetchNotes = async (silent = false) => {
                 try {
-                    const { data: notes, error } = await window.supabaseClient
+                    const { data: remoteNotes, error } = await window.supabaseClient
                         .from('notes')
                         .select('*, note_items(*)')
-                        .eq('user_id', user.auth_user_id || user.id)
+                        .eq('user_id', userId)
                         .order('is_pinned', { ascending: false })
                         .order('created_at', { ascending: false });
 
                     if (error) throw error;
-                    this.notes = notes || [];
-                    this.applyCustomOrder();
-                    this.renderNotesList();
+                    if (remoteNotes) {
+                        const localCached = this.getNotesFromCache(userId) || [];
+                        const localMap = new Map(localCached.map(n => [n.id, n]));
+
+                        const merged = remoteNotes.map(rn => {
+                            const ln = localMap.get(rn.id);
+                            if (ln && ln.updated_at && (!rn.updated_at || new Date(ln.updated_at) > new Date(rn.updated_at))) {
+                                return { ...rn, ...ln };
+                            }
+                            return rn;
+                        });
+
+                        const remoteIds = new Set(remoteNotes.map(n => n.id));
+                        localCached.forEach(ln => {
+                            if (!remoteIds.has(ln.id)) {
+                                merged.unshift(ln);
+                            }
+                        });
+
+                        this.notes = merged;
+                        this.setNotesToCache(userId, this.notes);
+                        this.applyCustomOrder();
+                        this.renderNotesList();
+                    }
                 } catch (err) {
                     console.error('Error fetching notes:', err);
-                    if (window.uiManager) window.uiManager.showToast('Error al cargar las notas.', 'error');
+                    if (!silent && (!this.notes || this.notes.length === 0)) {
+                        if (window.uiManager) window.uiManager.showToast('Error al cargar las notas.', 'error');
+                    }
                 } finally {
                     this.showLoading(false);
                 }
@@ -134,9 +194,24 @@
 
             await fetchNotes();
 
-            // ── bfcache: re-cargar si el navegador restaura la página desde memoria ──
-            window.addEventListener('pageshow', (e) => {
-                if (e.persisted) fetchNotes();
+            // ── 3. Actualización automática instantánea en BFCache / Cambios de foco ──
+            const refreshInstant = () => {
+                const fresh = this.getNotesFromCache(userId);
+                if (fresh && fresh.length > 0) {
+                    this.notes = fresh;
+                    this.applyCustomOrder();
+                    this.renderNotesList();
+                }
+                fetchNotes(true);
+            };
+
+            window.addEventListener('pageshow', refreshInstant);
+            window.addEventListener('focus', refreshInstant);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') refreshInstant();
+            });
+            window.addEventListener('storage', (e) => {
+                if (e.key && e.key.includes('pantry_notes_cache')) refreshInstant();
             });
 
             // ── Wire up search input ──
@@ -535,21 +610,24 @@
 
 
         async updateNoteColor(noteId, color) {
+            const user = window.authManager?.currentUser;
+            const userId = user?.auth_user_id || user?.id;
             try {
+                // Actualizar inmediatamente en local y re-renderizar
+                const note = this.notes.find(n => n.id === noteId);
+                if (note) note.color = color;
+                if (userId) this.updateNoteInCache(userId, { id: noteId, color: color });
+                this.renderNotesList();
+                
+                const palette = document.getElementById('note-color-palette');
+                if (palette) palette.style.display = 'none';
+
                 const { error } = await window.supabaseClient
                     .from('notes')
                     .update({ color: color })
                     .eq('id', noteId);
 
                 if (error) throw error;
-                
-                // Update local note and re-render
-                const note = this.notes.find(n => n.id === noteId);
-                if (note) note.color = color;
-                this.renderNotesList();
-                
-                const palette = document.getElementById('note-color-palette');
-                if (palette) palette.style.display = 'none';
             } catch (err) {
                 console.error('Error updating color:', err);
             }
@@ -570,9 +648,12 @@
         }
 
         _performDelete(id, isCurrent) {
+            const user = window.authManager?.currentUser;
+            const userId = user?.auth_user_id || user?.id;
+
             if (isCurrent) {
-                // Navegamos de vuelta INMEDIATAMENTE y borramos en fondo
-                window.history.back();
+                if (userId) this.removeNoteFromCache(userId, id);
+                window.location.href = '/notas';
                 window.supabaseClient.from('notes').delete().eq('id', id)
                     .then(({ error }) => {
                         if (error) console.error('Error al eliminar nota:', error);
@@ -583,6 +664,7 @@
             // Lista de notas: quitar tarjeta de UI al instante (optimista)
             const removed = this.notes.find(n => n.id === id);
             this.notes = this.notes.filter(n => n.id !== id);
+            if (userId) this.removeNoteFromCache(userId, id);
             this.renderNotesList();
             if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
 
@@ -590,10 +672,10 @@
             window.supabaseClient.from('notes').delete().eq('id', id)
                 .then(({ error }) => {
                     if (error) {
-                        // Rollback: devolver la nota a la lista
                         console.error('Error al eliminar nota:', error);
                         if (removed) {
                             this.notes.unshift(removed);
+                            if (userId) this.updateNoteInCache(userId, removed);
                             this.renderNotesList();
                         }
                         if (window.uiManager) window.uiManager.showToast('Error al eliminar', 'error');
@@ -884,7 +966,7 @@
 
                 if (window.uiManager) window.uiManager.showToast('Nota guardada ✅', 'success');
 
-                // Guardar en sessionStorage para mostrarla al instante en /notas
+                // Guardar en caché local para mostrarla AL INSTANTE en /notas sin parpadeo ni recarga
                 try {
                     const preview = {
                         id: noteId,
@@ -895,6 +977,7 @@
                             ? this.checklistItems
                                 .filter(i => !i._deleted && i.content.trim() !== '')
                                 .map((item, idx) => ({
+                                    id: item.id || `temp-${idx}`,
                                     content: item.content,
                                     is_completed: item.is_completed,
                                     order_index: idx
@@ -905,7 +988,7 @@
                         updated_at: new Date().toISOString(),
                         created_at: this.currentNote?.created_at || new Date().toISOString()
                     };
-                    sessionStorage.setItem('__nota_guardada', JSON.stringify(preview));
+                    this.updateNoteInCache(authUserId, preview);
                 } catch (_) {}
 
                 // Redirigir inmediatamente a /notas
