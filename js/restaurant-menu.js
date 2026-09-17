@@ -335,7 +335,7 @@
         }
 
         updateDishTagsFromChips() {
-            const activeChips = document.querySelectorAll('#dishDietaryChips .filter-chip.active');
+            const activeChips = document.querySelectorAll('#dishDietaryChips .m3-expressive-chip.active, #dishDietaryChips .filter-chip.active');
             const tags = Array.from(activeChips).map(c => c.getAttribute('data-diet')).filter(Boolean);
             const tagsInput = document.getElementById('newDishTags');
             if (tagsInput) {
@@ -358,37 +358,26 @@
 
             container.innerHTML = `
                 <div class="menu-form-view-container" style="max-width: 820px; margin: 0 auto; padding: 16px 16px 60px 16px;">
-                    <!-- Top Navigation Bar / Breadcrumb -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.cancelAddDish()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                                <span class="material-symbols-outlined" style="font-size: 20px; color: #374151;">arrow_back</span>
-                            </button>
-                            <div>
-                                <h1 style="margin: 0; font-size: clamp(20px, 3.2vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
-                                    <span class="material-symbols-outlined" style="color: #10B981; font-size: 26px;">restaurant</span>
-                                    <span>${isEn ? 'Add New Dish to Menu' : 'Agregar Nuevo Plato a la Carta'}</span>
-                                </h1>
-                                <p style="margin: 3px 0 0 0; font-size: 13.5px; color: #6B7280;">
-                                    ${isEn ? 'Add seasonal specials, new creations or web updates to Stanley’s food menu.' : 'Añade novedades que salgan en la web de Stanley’s o especiales del chef.'}
-                                </p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <button type="button" class="btn-secondary" onclick="window.restaurantMenu.cancelAddDish()" style="border-radius: 999px; height: 40px; padding: 0 20px; font-size: 13.5px; font-weight: 600;">
-                                <span>${isEn ? 'Cancel' : 'Cancelar'}</span>
-                            </button>
-                            <button type="button" class="btn-primary" onclick="window.restaurantMenu.saveNewDish()" style="border-radius: 999px; height: 40px; padding: 0 22px; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                                <span class="material-symbols-outlined" style="font-size: 19px;">save</span>
-                                <span>${isEn ? 'Save Dish' : 'Guardar Plato'}</span>
-                            </button>
+                    <!-- Top Navigation Bar / Breadcrumb (sin botones duplicados arriba) -->
+                    <div style="display: flex; align-items: center; margin-bottom: 24px; gap: 14px;">
+                        <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.cancelAddDish()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #374151;">arrow_back</span>
+                        </button>
+                        <div>
+                            <h1 style="margin: 0; font-size: clamp(20px, 3.2vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 26px;">restaurant</span>
+                                <span>${isEn ? 'Add New Dish to Menu' : 'Agregar Nuevo Plato a la Carta'}</span>
+                            </h1>
+                            <p style="margin: 3px 0 0 0; font-size: 13.5px; color: #6B7280;">
+                                ${isEn ? 'Add seasonal specials, new creations or web updates to Stanley’s food menu.' : 'Añade novedades que salgan en la web de Stanley’s o especiales del chef.'}
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Clean Form Container with M3 Cards -->
-                    <div style="display: flex; flex-direction: column; gap: 18px;">
-                        <!-- Card 1: Datos principales -->
-                        <div style="padding: 24px; border-radius: 20px; border: 1px solid var(--outline-variant, #E5E7EB); background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                    <!-- Single Unified M3 Expressive Card -->
+                    <div class="menu-form-single-card" style="background: #FFFFFF; border-radius: 24px; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 4px 20px rgba(0,0,0,0.04); padding: 28px 24px; display: flex; flex-direction: column; gap: 26px;">
+                        <!-- Sección 1: Datos principales -->
+                        <div>
                             <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #1F2937; display: flex; align-items: center; gap: 8px;">
                                 <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">info</span>
                                 <span>${isEn ? 'Dish Details' : 'Información del Plato'}</span>
@@ -423,8 +412,10 @@
                             </div>
                         </div>
 
-                        <!-- Card 2: Descripción y Preparación -->
-                        <div style="padding: 24px; border-radius: 20px; border: 1px solid var(--outline-variant, #E5E7EB); background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                        <hr style="border: 0; height: 1px; background: #F3F4F6; margin: 0;">
+
+                        <!-- Sección 2: Descripción y Preparación -->
+                        <div>
                             <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #1F2937; display: flex; align-items: center; gap: 8px;">
                                 <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">menu_book</span>
                                 <span>${isEn ? 'Description & Ingredients' : 'Descripción, Preparación y Guarniciones'}</span>
@@ -437,33 +428,35 @@
                             </div>
                         </div>
 
-                        <!-- Card 3: Preferencias Dietéticas -->
-                        <div style="padding: 24px; border-radius: 20px; border: 1px solid var(--outline-variant, #E5E7EB); background: #FFFFFF; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                        <hr style="border: 0; height: 1px; background: #F3F4F6; margin: 0;">
+
+                        <!-- Sección 3: Preferencias Dietéticas (Material 3 Expressive Chips sin contornos) -->
+                        <div>
                             <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #1F2937; display: flex; align-items: center; gap: 8px;">
                                 <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">local_florist</span>
                                 <span>${isEn ? 'Dietary Preferences & Tags' : 'Preferencias Dietéticas y Etiquetas'}</span>
                             </h3>
                             <div>
-                                <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
+                                <label style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 10px;">
                                     ${isEn ? 'Select tags (click to toggle):' : 'Selecciona insignias (haz clic para activar o desactivar):'}
                                 </label>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;" id="dishDietaryChips">
-                                    <button type="button" class="filter-chip" data-diet="V" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                <div class="menu-m3-chips-group" id="dishDietaryChips">
+                                    <button type="button" class="m3-expressive-chip" data-diet="V" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();">
                                         <span>🌱 Vegetariano (V)</span>
                                     </button>
-                                    <button type="button" class="filter-chip" data-diet="VE" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                    <button type="button" class="m3-expressive-chip" data-diet="VE" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();">
                                         <span>🌿 Vegano (VE)</span>
                                     </button>
-                                    <button type="button" class="filter-chip" data-diet="GF*" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                    <button type="button" class="m3-expressive-chip" data-diet="GF*" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();">
                                         <span>🌾 Opción Sin Gluten (GF*)</span>
                                     </button>
-                                    <button type="button" class="filter-chip" data-diet="GF" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                    <button type="button" class="m3-expressive-chip" data-diet="GF" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();">
                                         <span>✨ Sin Gluten (GF)</span>
                                     </button>
-                                    <button type="button" class="filter-chip" data-diet="Hot" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                    <button type="button" class="m3-expressive-chip" data-diet="Hot" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();">
                                         <span>🔥 Picante (Hot)</span>
                                     </button>
-                                    <button type="button" class="filter-chip" data-diet="Bestseller" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();" style="border-radius: 999px;">
+                                    <button type="button" class="m3-expressive-chip" data-diet="Bestseller" onclick="this.classList.toggle('active'); window.restaurantMenu.updateDishTagsFromChips();">
                                         <span>⭐ Especial / Popular</span>
                                     </button>
                                 </div>
@@ -472,8 +465,8 @@
                         </div>
 
                         <!-- Bottom Actions -->
-                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 10px;">
-                            <button type="button" class="btn-secondary" onclick="window.restaurantMenu.cancelAddDish()" style="border-radius: 999px; height: 44px; padding: 0 24px; font-size: 14px; font-weight: 600;">
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 14px; border-top: 1px solid #F3F4F6;">
+                            <button type="button" class="btn-secondary" onclick="window.restaurantMenu.cancelAddDish()" style="border: none !important; outline: none !important; box-shadow: none !important; background: #F1F5F9; color: #475569; border-radius: 999px; height: 44px; padding: 0 24px; font-size: 14px; font-weight: 600; cursor: pointer;">
                                 <span>${isEn ? 'Cancel' : 'Cancelar'}</span>
                             </button>
                             <button type="button" class="btn-primary" onclick="window.restaurantMenu.saveNewDish()" style="border-radius: 999px; height: 44px; padding: 0 26px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
@@ -627,7 +620,7 @@
             const isEn = window.i18n && window.i18n.getLang() === 'en';
 
             container.innerHTML = `
-                <div class="menu-doc-view-container" style="max-width: 1040px; margin: 0 auto; padding: 12px 16px 50px 16px;">
+                <div class="menu-doc-view-container">
                     <!-- Top Navigation Bar / Breadcrumb -->
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
@@ -691,8 +684,8 @@
                     </div>
 
                     <!-- Adapted Viewport inside System -->
-                    <div class="menu-doc-viewport" id="docViewport" style="background: #FFFFFF; min-height: 72vh; border-radius: 0 0 16px 16px; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-                        <div id="docViewerLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #4B5563; min-height: 450px;">
+                    <div class="menu-doc-viewport" id="docViewport" style="background: #FFFFFF; min-height: auto; border-radius: 0 0 16px 16px; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                        <div id="docViewerLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #4B5563; min-height: 220px; padding: 30px 0;">
                             <div class="spinner-sm" style="border-top-color: #10B981;"></div>
                             <span style="font-size: 14px; font-weight: 600;">${isEn ? 'Loading menu document...' : 'Cargando documento de la carta...'}</span>
                         </div>
@@ -876,10 +869,6 @@
             window.open(this.activeDocFile.dataUrl, '_blank');
         }
 
-        closeDocumentViewer() {
-            document.getElementById('menuDocModal')?.remove();
-        }
-
         showHelpModal() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const modalHtml = `
@@ -1031,6 +1020,11 @@
                 <div class="allergens-module menu-module-container">
                     <!-- Modern Header Banner -->
                     <div class="menu-hero-card">
+                        <!-- Botón de Ayuda circular en esquina superior derecha -->
+                        <button type="button" class="menu-hero-help-btn" onclick="window.restaurantMenu.showHelpModal()" title="${isEn ? 'How updates and dishes work' : '¿Cómo funciona la gestión del menú?'}" aria-label="${isEn ? 'Help' : 'Ayuda'}">
+                            <span class="material-symbols-outlined">help</span>
+                        </button>
+
                         <div class="allergens-hero-top-row" style="align-items: center;">
                             <a href="${info.website || 'https://www.stanleyssw16.com/food'}" target="_blank" rel="noopener" class="menu-hero-logo" title="${isEn ? 'Visit official Stanley’s website' : 'Visitar web oficial de Stanley’s'}" style="text-decoration: none; cursor: pointer; display: inline-flex;">
                                 <img src="assets/images/stanleys-logo.png" alt="Stanley's of Streatham">
@@ -1055,11 +1049,6 @@
                             <button type="button" class="menu-action-pill menu-pdf-pill" onclick="window.restaurantMenu.openDocumentViewer()" title="${isEn ? 'View official menu PDF / photos and upload new' : 'Ver carta oficial en PDF / foto y actualizar'}">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">picture_as_pdf</span>
                                 <span>${isEn ? 'Official Menu (PDF / Photo)' : 'Carta Oficial (PDF / Foto)'}</span>
-                            </button>
-
-                            <button class="menu-action-pill" onclick="window.restaurantMenu.showHelpModal()" title="${isEn ? 'How updates and dishes work' : '¿Cómo funciona la gestión del menú?'}" style="background: #EFF6FF; color: #1E40AF; border-color: #DBEAFE;">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: #2563EB;">help</span>
-                                <span>${isEn ? 'Help' : 'Ayuda'}</span>
                             </button>
 
                             ${this.removedItemIds.length > 0 ? `
@@ -1286,17 +1275,10 @@
                     </div>
 
                     <div class="menu-item-card-footer">
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <button class="menu-toggle-86-btn ${isAvail ? 'btn-mark-86' : 'btn-restore-86'}" onclick="window.restaurantMenu.toggleItemAvailability('${item.id}', event)" title="${isAvail ? 'Marcar como agotado (86)' : 'Marcar como disponible'}">
-                                <span class="material-symbols-outlined" style="font-size: 16px;">${isAvail ? 'do_not_disturb_on' : 'check_circle'}</span>
-                                <span>${isAvail ? (isEn ? '86' : '86') : (isEn ? 'Available' : 'Disponible')}</span>
-                            </button>
-
-                            <button class="menu-pantry-btn" onclick="window.restaurantMenu.searchInPantry('${item.name.replace(/'/g, "\\'")}')" title="${isEn ? 'Search recipe in pantry' : 'Buscar receta en mi recetario'}">
-                                <span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span>
-                                <span>${isEn ? 'Recipe' : 'Receta'}</span>
-                            </button>
-                        </div>
+                        <button class="menu-toggle-86-btn ${isAvail ? 'btn-mark-86' : 'btn-restore-86'}" onclick="window.restaurantMenu.toggleItemAvailability('${item.id}', event)" title="${isAvail ? 'Marcar como agotado (86)' : 'Marcar como disponible'}">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">${isAvail ? 'do_not_disturb_on' : 'check_circle'}</span>
+                            <span>${isAvail ? (isEn ? '86' : '86') : (isEn ? 'Available' : 'Disponible')}</span>
+                        </button>
 
                         <!-- Botón eliminar plato de la carta si fue retirado del restaurante -->
                         <button class="btn-icon-m3" onclick="window.restaurantMenu.deleteMenuItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" title="${isEn ? 'Remove from active menu' : 'Quitar plato de la carta'}" style="width: 32px; height: 32px; color: #9CA3AF;">

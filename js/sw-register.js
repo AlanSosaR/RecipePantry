@@ -1,4 +1,4 @@
-const APP_VERSION_ID = 'v556';
+const APP_VERSION_ID = 'v560';
 const SW_PATH = '/sw.js';
 let currentWorker = null;
 let updateBannerDismissed = false;
@@ -29,9 +29,6 @@ async function registerSW() {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                     console.log('[SW] Nueva versión instalada en segundo plano.');
                     currentWorker = newWorker;
-                    notifyUpdateReady(newWorker);
-                } else if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-                    console.log('[SW] Nueva versión activada.');
                     notifyUpdateReady(newWorker);
                 }
             });
@@ -78,10 +75,20 @@ async function checkVersionJson() {
         if (!res.ok) return;
         const data = await res.json();
         const currentVersion = (window.CONFIG && window.CONFIG.BUILD_ID) || APP_VERSION_ID;
-        if (data && data.build && data.build !== currentVersion) {
-            console.log(`[Version] Nueva versión en servidor: ${data.build} (actual: ${currentVersion})`);
-            // Solo notificar en la campana, sin banner flotante
-            notifyUpdateReady(null);
+        if (data && data.build) {
+            if (data.build !== currentVersion) {
+                console.log(`[Version] Nueva versión en servidor: ${data.build} (actual: ${currentVersion})`);
+                // Solo notificar en la campana si realmente es diferente
+                notifyUpdateReady(null);
+            } else {
+                // Si ya estamos en la versión actual, limpiar cualquier notificación pendiente de actualización
+                if (window.notificationManager) {
+                    window.notificationManager.notifications = window.notificationManager.notifications.filter(n => n.type !== 'app_update');
+                    window.notificationManager.updateBadge();
+                    const btn = document.getElementById('btn-notifications');
+                    if (btn) btn.classList.remove('bell-update-pulse');
+                }
+            }
         }
     } catch (e) {
         // Silencioso si está offline
@@ -90,6 +97,12 @@ async function checkVersionJson() {
 
 // 4. Notificar al usuario (solo Campanita — sin banner flotante)
 async function notifyUpdateReady(worker) {
+    if (sessionStorage.getItem('recipe_pantry_just_updated')) {
+        console.log('[Update] Acaba de actualizarse, omitiendo aviso redundante.');
+        sessionStorage.removeItem('recipe_pantry_just_updated');
+        return;
+    }
+
     console.log('📢 [Update] Preparando notificación de actualización en campana...');
     if ('setAppBadge' in navigator) {
         navigator.setAppBadge(1).catch(() => {});

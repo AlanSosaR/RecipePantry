@@ -641,6 +641,41 @@ ol {
     cursor: not-allowed;
 }
 
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px;
+    height: 44px;
+    border-radius: 999px;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: #F1F5F9;
+    color: #475569;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-secondary:hover {
+    background: #E2E8F0;
+    color: #1E293B;
+}
+
+.btn-secondary:active {
+    transform: scale(0.97);
+}
+
+.btn-secondary[disabled] {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
 /* ─── View Modes (Grid vs List) ────────────────────────────────── */
 .recipes-grid {
     display: grid;
@@ -10514,6 +10549,45 @@ input:checked~.m3-ingredient-text {
     border: 1px solid #FECACA;
 }
 
+/* Menu Hero Card & Help Button in Top Right Corner */
+.menu-hero-card {
+    background: #FFFFFF;
+    border: 1px solid var(--outline-variant, #E5E7EB);
+    border-radius: 24px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.menu-hero-help-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #DBEAFE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.menu-hero-help-btn:hover {
+    background: #DBEAFE;
+    transform: scale(1.06);
+}
+
+.menu-hero-help-btn .material-symbols-outlined {
+    font-size: 20px;
+    color: #2563EB;
+}
+
 /* Sunday Roast Banner */
 .menu-sunday-banner {
     display: flex;
@@ -10800,6 +10874,86 @@ input:checked~.m3-ingredient-text {
     color: #111827;
 }
 
+/* Material 3 Expressive Chips para formulario (sin contornos, fondo suave y activo vibrante) */
+.menu-m3-chips-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.m3-expressive-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    background: #F1F5F9;
+    color: #475569;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m3-expressive-chip:hover {
+    background: #E2E8F0;
+    color: #1E293B;
+    transform: translateY(-1px);
+}
+
+.m3-expressive-chip:active {
+    transform: scale(0.97);
+}
+
+.m3-expressive-chip.active {
+    background: #DCFCE7 !important;
+    color: #15803D !important;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.22) !important;
+}
+
+.m3-expressive-chip[data-diet="VE"].active {
+    background: #D1FAE5 !important;
+    color: #065F46 !important;
+}
+
+.m3-expressive-chip[data-diet="GF*"].active,
+.m3-expressive-chip[data-diet="GF"].active {
+    background: #FEF3C7 !important;
+    color: #92400E !important;
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.2) !important;
+}
+
+.m3-expressive-chip[data-diet="Hot"].active {
+    background: #FEE2E2 !important;
+    color: #991B1B !important;
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.2) !important;
+}
+
+.m3-expressive-chip[data-diet="Bestseller"].active {
+    background: #EDE9FE !important;
+    color: #5B21B6 !important;
+    box-shadow: 0 3px 10px rgba(139, 92, 246, 0.2) !important;
+}
+
+@media (max-width: 640px) {
+    .menu-form-single-card {
+        padding: 20px 16px !important;
+        border-radius: 20px !important;
+    }
+    .m3-expressive-chip {
+        padding: 8px 14px;
+        font-size: 12.5px;
+    }
+}
+
 /* PDF Section */
 .menu-pdf-container {
     width: 100%;
@@ -10911,14 +11065,48 @@ input:checked~.m3-ingredient-text {
         font-size: 12.5px;
     }
 
+    .menu-hero-card {
+        padding: 16px 14px !important;
+        border-radius: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
     .menu-items-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        width: 100% !important;
     }
 
     .menu-item-card {
-        padding: 14px 12px;
-        border-radius: 16px;
+        padding: 16px 14px !important;
+        border-radius: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .menu-doc-view-container {
+        padding: 8px 0 60px 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .menu-doc-viewport {
+        padding: 10px 8px 16px 8px !important;
+        min-height: auto !important;
+        border-radius: 0 0 16px 16px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .menu-doc-viewport canvas,
+    .menu-doc-viewport img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
     }
 
     .menu-pdf-iframe {
@@ -11160,6 +11348,14 @@ input:checked~.m3-ingredient-text {
     background: #FFFFFF;
     flex-wrap: wrap;
     gap: 12px;
+}
+
+.menu-doc-view-container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 16px 16px 60px 16px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .menu-doc-tabs {
