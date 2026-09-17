@@ -2432,10 +2432,10 @@ class DashboardManager {
         }
     }
 
-    setupMatrixTopScrollbar() {
+    setupMatrixBottomScrollbar() {
         const wrapper = document.getElementById('officialMatrixTableWrapper');
-        const track = document.getElementById('matrixTopScrollTrack');
-        const thumb = document.getElementById('matrixTopScrollThumb');
+        const track = document.getElementById('matrixBottomScrollTrack');
+        const thumb = document.getElementById('matrixBottomScrollThumb');
         if (!wrapper || !track || !thumb) return;
 
         const updateThumb = () => {
@@ -2465,7 +2465,7 @@ class DashboardManager {
 
             // 1. Click track to jump/scroll
             track.addEventListener('click', (e) => {
-                if (e.target.closest('#matrixTopScrollThumb')) return;
+                if (e.target.closest('#matrixBottomScrollThumb')) return;
                 const rect = track.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const trackWidth = track.clientWidth;
@@ -2672,21 +2672,8 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Table Card with Discreet M3 Top Scrollbar -->
+            <!-- Table Card with Discreet M3 Bottom Scrollbar -->
             <div class="matrix-card-container">
-                <div class="matrix-top-scroll-rail-container" id="matrixTopScrollRailContainer">
-                    <span class="matrix-top-scroll-hint left">
-                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_back</span>
-                        <span>Celery, Gluten...</span>
-                    </span>
-                    <div class="matrix-top-scroll-track" id="matrixTopScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
-                        <div class="matrix-top-scroll-thumb" id="matrixTopScrollThumb"></div>
-                    </div>
-                    <span class="matrix-top-scroll-hint right">
-                        <span>...Soya, Sulphur Dioxide</span>
-                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span>
-                    </span>
-                </div>
                 <div class="matrix-table-wrapper" id="officialMatrixTableWrapper">
                     <table class="fsa-matrix-table" id="officialFsaMatrixTable">
                         <thead>
@@ -2714,11 +2701,25 @@ class DashboardManager {
                         </tbody>
                     </table>
                 </div>
+                <!-- Bottom Scrollbar Rail (al lado de abajo) -->
+                <div class="matrix-bottom-scroll-rail-container" id="matrixBottomScrollRailContainer">
+                    <span class="matrix-bottom-scroll-hint left">
+                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_back</span>
+                        <span>Celery, Gluten...</span>
+                    </span>
+                    <div class="matrix-bottom-scroll-track" id="matrixBottomScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
+                        <div class="matrix-bottom-scroll-thumb" id="matrixBottomScrollThumb"></div>
+                    </div>
+                    <span class="matrix-bottom-scroll-hint right">
+                        <span>...Soya, Sulphur Dioxide</span>
+                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span>
+                    </span>
+                </div>
             </div>
         `;
 
         setTimeout(() => {
-            this.setupMatrixTopScrollbar();
+            this.setupMatrixBottomScrollbar();
         }, 50);
     }
 
