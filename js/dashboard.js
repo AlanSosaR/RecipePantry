@@ -533,6 +533,7 @@ class DashboardManager {
             menuView.classList.remove('hidden');
             if (window.restaurantMenu) {
                 window.restaurantMenu.isAddingDish = false;
+                window.restaurantMenu.isViewingDocument = false;
                 window.restaurantMenu.render();
             }
         }

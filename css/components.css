@@ -11206,11 +11206,11 @@ input:checked~.m3-ingredient-text {
 .menu-doc-viewport {
     flex: 1;
     overflow: auto;
-    background: #1E293B;
+    background: #FFFFFF;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 20px;
+    padding: 24px 20px;
     position: relative;
     user-select: none;
 }
@@ -11219,8 +11219,9 @@ input:checked~.m3-ingredient-text {
 .menu-doc-viewport img {
     max-width: 100%;
     height: auto;
-    border-radius: 8px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+    border: 1px solid #E5E7EB;
     transform-origin: top center;
     transition: transform 0.15s ease-out;
 }

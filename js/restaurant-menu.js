@@ -73,6 +73,9 @@
             this.activeCategory = 'all';
             this.searchQuery = '';
             this.isAddingDish = false; // Vista de formulario completo para nuevo plato
+            this.isViewingDocument = false; // Vista de visualizador de carta adaptada al sistema
+            this.currentDocTab = 'main';
+            this.docZoom = 1.0;
             this.availability = this.loadAvailability();
             this.customItems = this.loadCustomItems(); // Platos agregados por el usuario
             this.removedItemIds = this.loadRemovedItems(); // Platos eliminados
@@ -590,92 +593,100 @@
         openDocumentViewer(tab) {
             this.currentDocTab = tab || (this.activeTab === 'sunday' ? 'sunday' : 'main');
             this.docZoom = 1.0;
+            this.isViewingDocument = true;
+            this.isAddingDish = false;
+            // Eliminar modal antiguo si existía
+            document.getElementById('menuDocModal')?.remove();
+            this.render();
+            const main = document.querySelector('.main-content') || window;
+            if (main.scrollTo) {
+                main.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        closeDocumentViewer() {
+            this.isViewingDocument = false;
+            this.render();
+        }
+
+        renderDocumentView(container) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-            const modalHtml = `
-                <div id="menuDocModal" class="menu-doc-modal-overlay">
-                    <div class="menu-doc-modal-card">
-                        <!-- Header -->
-                        <div class="menu-doc-header">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 38px; height: 38px; border-radius: 10px; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center;">
-                                    <span class="material-symbols-outlined" style="font-size: 22px;">picture_as_pdf</span>
-                                </div>
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
-                                        ${isEn ? 'Official Menu Document & Photo Viewer' : 'Carta Oficial de Stanley\'s (Documento / Foto)'}
-                                    </h3>
-                                    <p style="margin: 2px 0 0 0; font-size: 12.5px; color: #6B7280;">
-                                        ${isEn ? 'View high-res menu or upload new photos when menu updates.' : 'Visualiza la carta oficial o sube una foto nueva para actualizarla.'}
-                                    </p>
-                                </div>
+            container.innerHTML = `
+                <div class="menu-doc-view-container" style="max-width: 1040px; margin: 0 auto; padding: 12px 16px 50px 16px;">
+                    <!-- Top Navigation Bar / Breadcrumb -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.closeDocumentViewer()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #374151;">arrow_back</span>
+                            </button>
+                            <div>
+                                <h1 style="margin: 0; font-size: clamp(19px, 3vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
+                                    <span class="material-symbols-outlined" style="color: #DC2626; font-size: 24px;">picture_as_pdf</span>
+                                    <span>${isEn ? 'Official Menu Document & Photos' : 'Carta Oficial de Stanley\'s (Documento / Foto)'}</span>
+                                </h1>
+                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #6B7280;">
+                                    ${isEn ? 'View official menu document or upload new photos when kitchen changes.' : 'Visualiza la carta oficial o sube fotos nuevas cuando cambie la carta.'}
+                                </p>
                             </div>
+                        </div>
 
-                            <!-- Tabs Switcher -->
-                            <div class="menu-doc-tabs">
-                                <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'main' ? 'active' : ''}" id="docTabMain" onclick="window.restaurantMenu.switchDocTab('main')">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
-                                    <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal'}</span>
-                                </button>
-                                <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'sunday' ? 'active' : ''}" id="docTabSunday" onclick="window.restaurantMenu.switchDocTab('sunday')">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">outdoor_grill</span>
-                                    <span>${isEn ? 'Sunday Roasts' : 'Sunday Roasts'}</span>
-                                </button>
-                            </div>
+                        <!-- Macro Tabs Switcher -->
+                        <div class="menu-doc-tabs" style="background: #F3F4F6; padding: 4px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;">
+                            <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'main' ? 'active' : ''}" id="docTabMain" onclick="window.restaurantMenu.switchDocTab('main')">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
+                                <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal'}</span>
+                            </button>
+                            <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'sunday' ? 'active' : ''}" id="docTabSunday" onclick="window.restaurantMenu.switchDocTab('sunday')">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">outdoor_grill</span>
+                                <span>${isEn ? 'Sunday Roasts' : 'Sunday Roasts'}</span>
+                            </button>
+                        </div>
+                    </div>
 
-                            <button type="button" class="btn-close-modal" onclick="window.restaurantMenu.closeDocumentViewer()" title="${isEn ? 'Close' : 'Cerrar'}" style="width: 36px; height: 36px;">
-                                <span class="material-symbols-outlined">close</span>
+                    <!-- Actions & Controls Toolbar -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); border-radius: 16px 16px 0 0; border-bottom: none; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <input type="file" id="menuDocFileInput" accept="image/*,application/pdf" style="display: none;" onchange="window.restaurantMenu.handleDocumentUpload(event)">
+                            <button type="button" class="btn-primary" onclick="document.getElementById('menuDocFileInput').click()" style="border-radius: 999px; height: 38px; padding: 0 18px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">upload_file</span>
+                                <span>${isEn ? 'Upload New Photo or PDF' : 'Subir Nueva Foto o PDF'}</span>
+                            </button>
+                            <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 38px; padding: 0 16px; font-size: 13px; font-weight: 600; align-items: center; gap: 6px;" title="Restaurar documento original">
+                                <span class="material-symbols-outlined" style="font-size: 17px;">restore</span>
+                                <span>${isEn ? 'Reset to Original' : 'Restaurar Original'}</span>
                             </button>
                         </div>
 
-                        <!-- Toolbar -->
-                        <div class="menu-doc-toolbar">
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <input type="file" id="menuDocFileInput" accept="image/*,application/pdf" style="display: none;" onchange="window.restaurantMenu.handleDocumentUpload(event)">
-                                <button type="button" class="btn-primary" onclick="document.getElementById('menuDocFileInput').click()" style="border-radius: 999px; height: 36px; padding: 0 16px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">upload_file</span>
-                                    <span>${isEn ? 'Upload New Photo / PDF' : 'Subir Nueva Foto o PDF'}</span>
-                                </button>
-                                <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 600; align-items: center; gap: 6px;" title="Volver a la carta original">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">restore</span>
-                                    <span>${isEn ? 'Reset to Original' : 'Restaurar Original'}</span>
-                                </button>
-                            </div>
-
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 34px; height: 34px;">
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">zoom_out</span>
-                                </button>
-                                <span id="docZoomLevel" style="font-size: 12.5px; font-weight: 700; color: #4B5563; min-width: 48px; text-align: center;">100%</span>
-                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 34px; height: 34px;">
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">zoom_in</span>
-                                </button>
-                                <div style="width: 1px; height: 22px; background: #D1D5DB; margin: 0 4px;"></div>
-                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.downloadCurrentDoc()" title="${isEn ? 'Download file' : 'Descargar archivo'}" style="width: 34px; height: 34px;">
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">download</span>
-                                </button>
-                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.openDocInNewTab()" title="${isEn ? 'Open in new tab' : 'Abrir en pestaña nueva'}" style="width: 34px; height: 34px;">
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">open_in_new</span>
-                                </button>
-                            </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">zoom_out</span>
+                            </button>
+                            <span id="docZoomLevel" style="font-size: 13px; font-weight: 800; color: #374151; min-width: 50px; text-align: center;">100%</span>
+                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">zoom_in</span>
+                            </button>
+                            <div style="width: 1px; height: 22px; background: #E5E7EB; margin: 0 4px;"></div>
+                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.downloadCurrentDoc()" title="${isEn ? 'Download file' : 'Descargar archivo'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">download</span>
+                            </button>
+                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.openDocInNewTab()" title="${isEn ? 'Open in new window' : 'Abrir en nueva ventana'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">open_in_new</span>
+                            </button>
                         </div>
+                    </div>
 
-                        <!-- Viewport -->
-                        <div class="menu-doc-viewport" id="docViewport">
-                            <div id="docViewerLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #FFFFFF; height: 100%; min-height: 350px;">
-                                <div class="spinner-sm" style="border-top-color: #10B981;"></div>
-                                <span style="font-size: 13.5px; font-weight: 600;">${isEn ? 'Loading menu document...' : 'Cargando documento de la carta...'}</span>
-                            </div>
-                            <canvas id="docViewerCanvas" style="display: none;"></canvas>
-                            <img id="docViewerImage" style="display: none;" alt="Carta Stanley's">
+                    <!-- Adapted Viewport inside System -->
+                    <div class="menu-doc-viewport" id="docViewport" style="background: #FFFFFF; min-height: 72vh; border-radius: 0 0 16px 16px; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+                        <div id="docViewerLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #4B5563; min-height: 450px;">
+                            <div class="spinner-sm" style="border-top-color: #10B981;"></div>
+                            <span style="font-size: 14px; font-weight: 600;">${isEn ? 'Loading menu document...' : 'Cargando documento de la carta...'}</span>
                         </div>
+                        <canvas id="docViewerCanvas" style="display: none;"></canvas>
+                        <img id="docViewerImage" style="display: none;" alt="Carta Stanley's">
                     </div>
                 </div>
             `;
-
-            // Eliminar anterior si existía
-            document.getElementById('menuDocModal')?.remove();
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
 
             this.loadCurrentDocument();
         }
@@ -948,6 +959,11 @@
 
             if (this.isAddingDish) {
                 this.renderAddDishForm(container);
+                return;
+            }
+
+            if (this.isViewingDocument) {
+                this.renderDocumentView(container);
                 return;
             }
 
