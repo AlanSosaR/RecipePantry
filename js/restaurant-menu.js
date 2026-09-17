@@ -1032,9 +1032,9 @@
                     <!-- Modern Header Banner -->
                     <div class="menu-hero-card">
                         <div class="allergens-hero-top-row" style="align-items: center;">
-                            <div class="menu-hero-logo" title="Stanley's of Streatham">
+                            <a href="${info.website || 'https://www.stanleyssw16.com/food'}" target="_blank" rel="noopener" class="menu-hero-logo" title="${isEn ? 'Visit official Stanley’s website' : 'Visitar web oficial de Stanley’s'}" style="text-decoration: none; cursor: pointer; display: inline-flex;">
                                 <img src="assets/images/stanleys-logo.png" alt="Stanley's of Streatham">
-                            </div>
+                            </a>
                             <div class="allergens-hero-heading-block" style="flex: 1;">
                                 <div class="menu-hero-badge-row">
                                     <span class="m3-uk-fsa-badge" style="background: #EFF6FF; color: #1E40AF; font-weight: 800;">
@@ -1042,7 +1042,7 @@
                                     </span>
                                 </div>
                                 <h1 style="margin: 4px 0 2px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
-                                    ${info.restaurantName || "Stanley's SW16"} &bull; ${isEn ? 'Food Menu' : 'Carta de Comida'}
+                                    ${isEn ? 'Food Menu' : 'Carta de Comida'}
                                 </h1>
                                 <p style="margin: 0; font-size: 13.5px; color: #4B5563;">
                                     ${isEn ? 'Complete digital restaurant menu. Dishes can be marked out-of-stock (86) or updated dynamically.' : 'Carta digital completa y abierta. Puedes marcar platos agotados (86) o agregar novedades cuando cambie la web.'}
@@ -1052,11 +1052,6 @@
 
                         <!-- Header Action Buttons -->
                         <div class="menu-hero-actions">
-                            <a href="${info.website}" target="_blank" rel="noopener" class="menu-action-pill" title="Visitar web oficial">
-                                <span class="material-symbols-outlined" style="font-size: 17px;">public</span>
-                                <span>stanleyssw16.com/food</span>
-                            </a>
-
                             <button type="button" class="menu-action-pill menu-pdf-pill" onclick="window.restaurantMenu.openDocumentViewer()" title="${isEn ? 'View official menu PDF / photos and upload new' : 'Ver carta oficial en PDF / foto y actualizar'}">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">picture_as_pdf</span>
                                 <span>${isEn ? 'Official Menu (PDF / Photo)' : 'Carta Oficial (PDF / Foto)'}</span>
