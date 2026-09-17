@@ -2933,6 +2933,57 @@ class DashboardManager {
         document.body.appendChild(modal);
     }
 
+    toggleSafeAllergenExclusion(allergenId, event) {
+        if (event) {
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+        }
+        if (!this.selectedSafeExclusions) {
+            this.selectedSafeExclusions = new Set();
+        }
+        if (this.selectedSafeExclusions.has(allergenId)) {
+            this.selectedSafeExclusions.delete(allergenId);
+        } else {
+            this.selectedSafeExclusions.add(allergenId);
+        }
+        this.renderAllergensView();
+    }
+
+    clearSafeExclusions() {
+        if (this.selectedSafeExclusions) {
+            this.selectedSafeExclusions.clear();
+        }
+        this.renderAllergensView();
+    }
+
+    toggleSafeAllergenDropdown(event) {
+        if (event) {
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+        }
+        this.safeFilterDropdownOpen = !this.safeFilterDropdownOpen;
+        const dropdown = document.getElementById('safeAllergenDropdown');
+        const arrow = document.querySelector('.m3-split-btn-arrow .arrow-icon');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden', !this.safeFilterDropdownOpen);
+        }
+        if (arrow) {
+            arrow.classList.toggle('open', this.safeFilterDropdownOpen);
+        }
+    }
+
+    toggleExcludedRecipesDropdown(event) {
+        if (event) {
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+        }
+        this.excludedRecipesDropdownOpen = !this.excludedRecipesDropdownOpen;
+        const dropdown = document.getElementById('excludedRecipesDropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('hidden', !this.excludedRecipesDropdownOpen);
+        }
+    }
+
     renderAllergenSafeTab(isEn, t) {
         const tabMount = document.getElementById('allergenTabContent');
         if (!tabMount) return;
