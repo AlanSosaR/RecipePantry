@@ -1,13 +1,13 @@
 /**
- * RecipePantry Service Worker (v500) - PASSIVE
+ * RecipePantry Service Worker (v589) - PASSIVE
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v588';
-const BUILD_ID = 'v588';
-const CACHE_NAME = `recipe-pantry-v588`;
-const STATIC_CACHE = 'static-v588';
-const DATA_CACHE = 'data-v588';
+const VERSION = 'v589';
+const BUILD_ID = 'v589';
+const CACHE_NAME = `recipe-pantry-v589`;
+const STATIC_CACHE = 'static-v589';
+const DATA_CACHE = 'data-v589';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -79,8 +79,9 @@ const createErrorResponse = (message, status = 503) => {
 };
 
 // 1. Instalación: Pre-caché
+// NOTE: NO llamamos self.skipWaiting() aquí para evitar el bucle infinito de recarga.
+// El skipWaiting solo se ejecuta cuando el usuario confirma la actualización manualmente.
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // v482: Forzar actualización inmediata
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
@@ -244,7 +245,8 @@ self.addEventListener('fetch', (event) => {
 
 // 4. Mensajería
 self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
+    // Aceptar tanto { type: 'SKIP_WAITING' } como { action: 'skipWaiting' } para compatibilidad
+    if (event.data && (event.data.type === 'SKIP_WAITING' || event.data.action === 'skipWaiting')) {
         self.skipWaiting();
     }
 });
