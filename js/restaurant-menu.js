@@ -938,17 +938,17 @@
                             </div>
 
                             <div class="menu-help-item">
-                                <div class="menu-help-icon-wrap" style="background: #EFF6FF; color: #2563EB;">
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">restore</span>
+                                <div class="menu-help-icon-wrap" style="background: #FFFBEB; color: #D97706;">
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">visibility_off</span>
                                 </div>
                                 <div>
                                     <h4 style="margin: 0 0 2px 0; font-size: 13.5px; font-weight: 700; color: #111827;">
-                                        ${isEn ? '4. Restore Original Menu' : '4. Restaurar Carta Original'}
+                                        ${isEn ? '4. Dishes Off Menu' : '4. Platos Fuera del Menú'}
                                     </h4>
                                     <p style="margin: 0; font-size: 12.5px; color: #4B5563; line-height: 1.4;">
                                         ${isEn 
-                                            ? 'If you ever need to revert back to the original restaurant menu, click "Restore All Items".' 
-                                            : 'Si en algún momento deseas recuperar platos borrados, el botón "Restaurar Todo" restaurará la carta oficial.'}
+                                            ? 'If you remove dishes, click "Dishes Off Menu" to view them and restore any dish back to the menu whenever you want.' 
+                                            : 'Si retiras platos de la carta, pulsa "Platos Fuera del Menú" para verlos y devolver individualmente cualquiera de ellos en cualquier momento.'}
                                     </p>
                                 </div>
                             </div>
@@ -957,6 +957,144 @@
                             <button class="btn-m3-expressive" onclick="document.getElementById('menuHelpModal').remove()">
                                 <span class="material-symbols-outlined" style="font-size: 19px;">check</span>
                                 <span>${isEn ? 'Got It' : 'Entendido'}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        getRemovedItems() {
+            const data = window.STANLEYS_MENU_DATA || {};
+            const removedSet = new Set(this.removedItemIds);
+            const result = [];
+
+            (data.sections || []).forEach(section => {
+                (section.categories || []).forEach(cat => {
+                    (cat.items || []).forEach(item => {
+                        if (removedSet.has(item.id)) {
+                            result.push({
+                                ...item,
+                                categoryName_es: cat.name_es,
+                                categoryName_en: cat.name_en,
+                                categoryIcon: cat.icon || 'restaurant',
+                                sectionName_es: section.name_es,
+                                sectionName_en: section.name_en
+                            });
+                        }
+                    });
+                });
+            });
+
+            return result;
+        }
+
+        closeRemovedItemsModal() {
+            const modal = document.getElementById('menuRemovedItemsModal');
+            if (modal) modal.remove();
+        }
+
+        restoreMenuItem(itemId, itemName) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            this.removedItemIds = this.removedItemIds.filter(id => id !== itemId);
+            this.saveRemovedItems();
+            this.render();
+
+            if (this.removedItemIds.length > 0) {
+                this.showRemovedItemsModal();
+            } else {
+                this.closeRemovedItemsModal();
+            }
+
+            const notify = window.showToast || (window.utils && window.utils.showToast);
+            if (notify) {
+                notify(isEn ? `"${itemName || 'Dish'}" moved back to the menu` : `"${itemName || 'Plato'}" regresado a la carta`, 'success');
+            }
+        }
+
+        restoreAllRemovedItems() {
+            this.resetOriginalMenu();
+            this.closeRemovedItemsModal();
+        }
+
+        showRemovedItemsModal() {
+            this.closeRemovedItemsModal();
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const removedItems = this.getRemovedItems();
+
+            const modalHtml = `
+                <div id="menuRemovedItemsModal" class="modal-overlay" style="display: flex; z-index: 99999; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px); padding: 16px; align-items: center; justify-content: center;">
+                    <div class="menu-modal-card" style="max-width: 580px; width: min(580px, calc(100vw - 28px)); max-height: min(88vh, 650px);">
+                        <div class="modal-header">
+                            <div class="header-info">
+                                <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="color: #D97706; font-size: 22px;">visibility_off</span>
+                                    <span>${isEn ? 'Dishes Off Menu' : 'Platos Fuera del Menú'}</span>
+                                    <span class="chip-count" style="background: #FEE2E2; color: #DC2626; font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 800;">${removedItems.length}</span>
+                                </h3>
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #666;">
+                                    ${isEn 
+                                        ? 'Dishes currently excluded from the menu. Click "Return to Menu" to put any dish back.' 
+                                        : 'Platos retirados de la carta activa. Pulsa "Regresar a la carta" en el plato que quieras recuperar.'}
+                                </p>
+                            </div>
+                            <button class="btn-close-modal" onclick="window.restaurantMenu.closeRemovedItemsModal()" aria-label="${isEn ? 'Close' : 'Cerrar'}">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
+                            ${removedItems.length === 0 ? `
+                                <div style="text-align: center; padding: 36px 16px; color: #64748B;">
+                                    <span class="material-symbols-outlined" style="font-size: 48px; color: #10B981; display: block; margin-bottom: 8px;">task_alt</span>
+                                    <strong style="display: block; font-size: 15px; color: #0F172A; margin-bottom: 4px;">
+                                        ${isEn ? 'All dishes are in the active menu' : 'Todos los platos están en la carta activa'}
+                                    </strong>
+                                    <span style="font-size: 13px;">${isEn ? 'No dishes are marked as off menu.' : 'No tienes platos fuera de la carta en este momento.'}</span>
+                                </div>
+                            ` : removedItems.map(item => `
+                                <div class="removed-dish-item" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 14px; transition: all 0.15s ease;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap;">
+                                            <strong style="color: #0F172A; font-size: 14px;">${item.name}</strong>
+                                            ${item.categoryName_es ? `
+                                                <span style="font-size: 11px; font-weight: 700; color: #475569; background: #E2E8F0; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span class="material-symbols-outlined" style="font-size: 13px;">${item.categoryIcon || 'restaurant'}</span>
+                                                    <span>${isEn ? item.categoryName_en : item.categoryName_es}</span>
+                                                </span>
+                                            ` : ''}
+                                            <span style="font-size: 12px; font-weight: 700; color: #059669;">£${(item.price || 0).toFixed(2)}</span>
+                                        </div>
+                                        ${(isEn ? item.desc_en : item.desc_es) ? `
+                                            <p style="margin: 0; font-size: 12px; color: #64748B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                ${isEn ? item.desc_en : item.desc_es}
+                                            </p>
+                                        ` : ''}
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onclick="window.restaurantMenu.restoreMenuItem('${item.id}', '${(item.name || '').replace(/'/g, "\\'")}')" 
+                                        title="${isEn ? 'Move this dish back to the active menu' : 'Regresar este plato a la carta activa'}"
+                                        style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #ECFDF5; color: #047857; border: 1.5px solid #A7F3D0; border-radius: 10px; font-weight: 700; font-size: 12.5px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.2s ease;"
+                                        onmouseover="this.style.background='#D1FAE5'; this.style.borderColor='#059669';"
+                                        onmouseout="this.style.background='#ECFDF5'; this.style.borderColor='#A7F3D0';"
+                                    >
+                                        <span class="material-symbols-outlined" style="font-size: 17px;">keyboard_return</span>
+                                        <span>${isEn ? 'Return to Menu' : 'Regresar a la carta'}</span>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px;">
+                            ${removedItems.length > 1 ? `
+                                <button type="button" onclick="window.restaurantMenu.restoreAllRemovedItems()" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer;">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">restore</span>
+                                    <span>${isEn ? 'Restore All Dishes' : 'Regresar todos a la carta'}</span>
+                                </button>
+                            ` : '<div></div>'}
+                            <button class="btn-m3-expressive" onclick="window.restaurantMenu.closeRemovedItemsModal()">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                                <span>${isEn ? 'Done' : 'Listo'}</span>
                             </button>
                         </div>
                     </div>
@@ -1071,9 +1209,10 @@
                             </button>
 
                             ${this.removedItemIds.length > 0 ? `
-                                <button class="menu-action-pill" onclick="window.restaurantMenu.resetOriginalMenu()" title="Restaurar platos ocultados" style="background: #FEF3C7; color: #92400E;">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">restore</span>
-                                    <span>${isEn ? 'Restore All Items' : 'Restaurar Todo'}</span>
+                                <button class="menu-action-pill" onclick="window.restaurantMenu.showRemovedItemsModal()" title="${isEn ? 'View dishes currently off the menu' : 'Ver platos fuera de la carta'}" style="background: #FEF3C7; color: #92400E; border: 1.5px solid #FDE68A;">
+                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #D97706;">visibility_off</span>
+                                    <span>${isEn ? 'Dishes Off Menu' : 'Platos Fuera del Menú'}</span>
+                                    <span class="chip-count" style="background: #D97706; color: #FFFFFF; font-weight: 800; margin-left: 4px; padding: 2px 7px; border-radius: 999px;">${this.removedItemIds.length}</span>
                                 </button>
                             ` : ''}
                         </div>
