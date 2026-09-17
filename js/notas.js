@@ -122,6 +122,7 @@
 
                     if (error) throw error;
                     this.notes = notes || [];
+                    this.applyCustomOrder();
                     this.renderNotesList();
                 } catch (err) {
                     console.error('Error fetching notes:', err);
@@ -225,9 +226,12 @@
             const notesToRender = filtered;
 
             notesToRender.forEach(note => {
-                const card = document.createElement('a');
-                card.href = `nota-form.html?id=${note.id}`;
+                const card = document.createElement('div');
                 card.className = 'note-card';
+                card.dataset.noteId = note.id;
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('draggable', 'true');
                 
                 let contentHtml = '';
                 if (note.type === 'text') {
@@ -283,12 +287,190 @@
                         </div>
                     </div>
                 `;
+
+                // ── Mover nota de posición (Long-press en móvil + Drag & Drop en PC) ──
+                let longPressTimer = null;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let isCardDragging = false;
+
+                // Soporte táctil / móvil: mantener presionado para mover
+                card.addEventListener('touchstart', (e) => {
+                    if (e.target.closest('.note-actions') || e.target.closest('.note-action-btn')) return;
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    isCardDragging = false;
+
+                    longPressTimer = setTimeout(() => {
+                        isCardDragging = true;
+                        this.isDragging = true;
+                        if (navigator.vibrate) navigator.vibrate(40);
+                        card.classList.add('note-card--dragging');
+                        document.body.classList.add('notes-is-reordering');
+                    }, 300);
+                }, { passive: true });
+
+                card.addEventListener('touchmove', (e) => {
+                    const touch = e.touches[0];
+                    const dist = Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY);
+                    if (!isCardDragging && dist > 8) {
+                        clearTimeout(longPressTimer);
+                        return;
+                    }
+                    if (isCardDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                        const targetCard = elementBelow?.closest('.note-card');
+                        if (targetCard && targetCard !== card && targetCard.parentNode === grid) {
+                            const rect = targetCard.getBoundingClientRect();
+                            const isAfter = touch.clientY > rect.top + (rect.height / 2);
+                            if (isAfter) {
+                                targetCard.after(card);
+                            } else {
+                                targetCard.before(card);
+                            }
+                        }
+                    }
+                }, { passive: false });
+
+                const endTouch = () => {
+                    clearTimeout(longPressTimer);
+                    if (isCardDragging) {
+                        isCardDragging = false;
+                        this.isDragging = false;
+                        card.classList.remove('note-card--dragging');
+                        document.body.classList.remove('notes-is-reordering');
+                        this.justDragged = true;
+                        setTimeout(() => { this.justDragged = false; }, 350);
+                        this.syncNotesFromDOM();
+                    }
+                };
+
+                card.addEventListener('touchend', endTouch);
+                card.addEventListener('touchcancel', endTouch);
+
+                // Soporte escritorio (HTML5 drag & drop)
+                card.addEventListener('dragstart', (e) => {
+                    if (e.target.closest('.note-actions') || e.target.closest('.note-action-btn')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    this.isDragging = true;
+                    card.classList.add('note-card--dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', note.id);
+                });
+
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    const draggingEl = grid.querySelector('.note-card--dragging');
+                    if (draggingEl && draggingEl !== card) {
+                        const rect = card.getBoundingClientRect();
+                        const isAfter = e.clientY > rect.top + (rect.height / 2);
+                        if (isAfter) {
+                            card.after(draggingEl);
+                        } else {
+                            card.before(draggingEl);
+                        }
+                    }
+                });
+
+                card.addEventListener('dragend', () => {
+                    this.isDragging = false;
+                    card.classList.remove('note-card--dragging');
+                    this.justDragged = true;
+                    setTimeout(() => { this.justDragged = false; }, 350);
+                    this.syncNotesFromDOM();
+                });
+
+                // ── Clic para editar la nota ──
+                const openNote = (e) => {
+                    if (this.isDragging || this.justDragged) return;
+                    if (e.target.closest('.note-actions') || e.target.closest('.note-action-btn') || e.target.closest('#note-color-palette')) return;
+                    // Redirigir directamente al editor de la nota
+                    window.location.href = `/nota-form?id=${encodeURIComponent(note.id)}`;
+                };
+
+                card.addEventListener('click', openNote);
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openNote(e);
+                    }
+                });
+
                 grid.appendChild(card);
             });
         }
 
+        // ── Sincronizar y guardar orden personalizado ──
+        syncNotesFromDOM() {
+            const grid = document.getElementById('notes-grid');
+            if (!grid) return;
+            const domCards = Array.from(grid.querySelectorAll('.note-card'));
+            const orderedIds = domCards.map(c => c.dataset.noteId).filter(Boolean);
+            if (orderedIds.length === 0) return;
+
+            const map = new Map(this.notes.map(n => [n.id, n]));
+            const reordered = [];
+            orderedIds.forEach(id => {
+                if (map.has(id)) {
+                    reordered.push(map.get(id));
+                    map.delete(id);
+                }
+            });
+            for (const rem of map.values()) {
+                reordered.push(rem);
+            }
+            this.notes = reordered;
+            this.saveCustomOrder();
+        }
+
+        saveCustomOrder() {
+            const user = window.authManager?.currentUser;
+            const userId = user?.auth_user_id || user?.id;
+            if (!userId || !this.notes) return;
+            try {
+                const ids = this.notes.map(n => n.id);
+                localStorage.setItem(`notes_order_${userId}`, JSON.stringify(ids));
+                // Persistir orden en Supabase si la columna existe
+                ids.forEach((id, idx) => {
+                    window.supabaseClient
+                        ?.from('notes')
+                        .update({ order_index: idx })
+                        .eq('id', id)
+                        .then(() => {})
+                        .catch(() => {});
+                });
+            } catch (_) {}
+        }
+
+        applyCustomOrder() {
+            const user = window.authManager?.currentUser;
+            const userId = user?.auth_user_id || user?.id;
+            if (!userId || !this.notes || this.notes.length === 0) return;
+            try {
+                const savedOrder = JSON.parse(localStorage.getItem(`notes_order_${userId}`) || '[]');
+                if (savedOrder && Array.isArray(savedOrder) && savedOrder.length > 0) {
+                    const orderMap = new Map();
+                    savedOrder.forEach((id, index) => orderMap.set(id, index));
+                    this.notes.sort((a, b) => {
+                        if (a.is_pinned !== b.is_pinned) {
+                            return a.is_pinned ? -1 : 1;
+                        }
+                        const indexA = orderMap.has(a.id) ? orderMap.get(a.id) : 999999;
+                        const indexB = orderMap.has(b.id) ? orderMap.get(b.id) : 999999;
+                        if (indexA !== indexB) return indexA - indexB;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                }
+            } catch (_) {}
+        }
+
         createNewNote(type) {
-            window.location.href = `/nota-form.html?type=${type}`;
+            window.location.href = `/nota-form?type=${type}`;
         }
 
         showColorPalette(event, noteId) {
@@ -530,7 +712,7 @@
                         ${item.is_completed ? '<span class="material-symbols-outlined">check</span>' : ''}
                     </div>
                     <input type="text" class="checklist-item-input" value="${this.escapeHTML(item.content || '')}" 
-                           onchange="window.notasManager.updateItemContent(${index}, this.value)" 
+                           oninput="window.notasManager.updateItemContent(${index}, this.value)" 
                            placeholder="Elemento...">
                     <button class="checklist-item-delete" onclick="window.notasManager.deleteItem(${index})">
                         <span class="material-symbols-outlined">close</span>
@@ -584,6 +766,20 @@
             }
         }
 
+        handleBack() {
+            const title = document.getElementById('note-title')?.value?.trim() || '';
+            const type = document.getElementById('note-type')?.value || 'text';
+            const content = type === 'text' ? (document.getElementById('note-content')?.value?.trim() || '') : '';
+            const hasContent = title !== '' || (type === 'text' && content !== '') ||
+                (type === 'checklist' && this.checklistItems.some(i => !i._deleted && i.content.trim() !== ''));
+
+            if (hasContent) {
+                this.saveNote();
+            } else {
+                window.location.href = '/notas';
+            }
+        }
+
         async saveNote() {
             try {
                 const title = document.getElementById('note-title').value.trim();
@@ -620,31 +816,39 @@
 
                 if (!authUserId) throw new Error('Usuario no autenticado');
 
-                const noteData = {
-                    title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
-                    type: type,
-                    user_id: authUserId,
-                    updated_at: new Date().toISOString()
-                };
-
-                if (type === 'text') {
-                    noteData.content = content;
-                }
-
                 let noteId = this.currentNote?.id;
 
                 if (noteId) {
-                    // Update
+                    // Update: sólo actualizar campos mutables, nunca sobreescribir user_id para evitar conflictos de RLS
+                    const updateData = {
+                        title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
+                        type: type,
+                        updated_at: new Date().toISOString()
+                    };
+                    if (type === 'text') {
+                        updateData.content = content;
+                    }
+
                     const { error } = await window.supabaseClient
                         .from('notes')
-                        .update(noteData)
+                        .update(updateData)
                         .eq('id', noteId);
                     if (error) throw error;
                 } else {
                     // Insert
+                    const insertData = {
+                        title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
+                        type: type,
+                        user_id: authUserId,
+                        updated_at: new Date().toISOString()
+                    };
+                    if (type === 'text') {
+                        insertData.content = content;
+                    }
+
                     const { data, error } = await window.supabaseClient
                         .from('notes')
-                        .insert([noteData])
+                        .insert([insertData])
                         .select()
                         .single();
                     if (error) throw error;
@@ -653,7 +857,7 @@
                     this.currentNote = { ...this.currentNote, id: noteId };
                 }
 
-                // Handle Checklist Items en paralelo (más rápido)
+                // Handle Checklist Items en paralelo (más rápido y seguro)
                 if (type === 'checklist') {
                     const ops = [];
                     const itemsToDelete = this.checklistItems.filter(i => i._deleted && i.id).map(i => i.id);
@@ -669,9 +873,9 @@
                             is_completed: item.is_completed,
                             order_index: i
                         };
-                        if (item.id && item.isModified) {
+                        if (item.id) {
                             ops.push(window.supabaseClient.from('note_items').update(itemData).eq('id', item.id));
-                        } else if (item.isNew) {
+                        } else {
                             ops.push(window.supabaseClient.from('note_items').insert([itemData]));
                         }
                     });
@@ -684,7 +888,7 @@
                 try {
                     const preview = {
                         id: noteId,
-                        title: noteData.title,
+                        title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
                         type: type,
                         content: type === 'text' ? (content || '') : '',
                         note_items: type === 'checklist'
@@ -698,13 +902,13 @@
                             : [],
                         is_pinned: this.currentNote?.is_pinned || false,
                         color: this.currentNote?.color || null,
-                        updated_at: noteData.updated_at,
-                        created_at: this.currentNote?.created_at || noteData.updated_at
+                        updated_at: new Date().toISOString(),
+                        created_at: this.currentNote?.created_at || new Date().toISOString()
                     };
                     sessionStorage.setItem('__nota_guardada', JSON.stringify(preview));
                 } catch (_) {}
 
-                // Redirigir inmediatamente sin delay artificial
+                // Redirigir inmediatamente a /notas
                 window.location.href = '/notas';
 
             } catch (err) {

@@ -733,12 +733,29 @@
     border-radius: 20px;
     padding: 24px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.22s ease, border-color 0.2s ease, opacity 0.2s ease;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     text-decoration: none;
     display: block;
+    touch-action: pan-y;
+    -webkit-touch-callout: none;
+}
+
+body.notes-is-reordering {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.note-card.note-card--dragging {
+    opacity: 0.92;
+    transform: scale(1.04) rotate(1.2deg);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    border: 2px dashed #10B981 !important;
+    z-index: 1000;
+    cursor: grabbing;
 }
 
 .note-card:hover {

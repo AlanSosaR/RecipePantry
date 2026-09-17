@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v561';
-const BUILD_ID = 'v561';
-const CACHE_NAME = `recipe-pantry-v561`;
-const STATIC_CACHE = 'static-v561';
-const DATA_CACHE = 'data-v561';
+const VERSION = 'v562';
+const BUILD_ID = 'v562';
+const CACHE_NAME = `recipe-pantry-v562`;
+const STATIC_CACHE = 'static-v562';
+const DATA_CACHE = 'data-v562';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -126,11 +126,14 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(request, { cache: 'no-store' })
                 .then(async (response) => {
-                    if (response && response.status === 200 && response.type !== 'opaqueredirect') {
+                    if (response && (response.status === 200 || response.ok) && response.type !== 'opaqueredirect') {
                         const copy = response.clone();
                         // Cache by pathname only (ignoreSearch) so /nota-form?type=text and /nota-form?id=x share the same cache entry
                         const cacheKey = new Request(url.pathname, { headers: request.headers });
                         caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, copy));
+                        return cleanResponse(response);
+                    }
+                    if (response && response.redirected) {
                         return cleanResponse(response);
                     }
                     return response;
