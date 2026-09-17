@@ -2432,120 +2432,7 @@ class DashboardManager {
         }
     }
 
-    updateM3Scrollbar() {
-        const wrapper = document.getElementById('officialMatrixTableWrapper');
-        const track = document.getElementById('matrixM3ScrollTrack');
-        const thumb = document.getElementById('matrixM3ScrollThumb');
-        const indicator = document.getElementById('matrixM3ScrollIndicator');
-        if (!wrapper || !track || !thumb) return;
 
-        const scrollLeft = wrapper.scrollLeft;
-        const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-        const trackWidth = track.clientWidth;
-
-        if (maxScroll <= 0 || trackWidth <= 0) {
-            thumb.style.width = '100%';
-            thumb.style.transform = 'translateX(0px)';
-            return;
-        }
-
-        const visibleRatio = Math.min(1, Math.max(0.12, wrapper.clientWidth / wrapper.scrollWidth));
-        const thumbWidth = Math.max(80, visibleRatio * trackWidth);
-        const availableTrack = Math.max(0, trackWidth - thumbWidth);
-
-        const scrollRatio = Math.min(1, Math.max(0, scrollLeft / maxScroll));
-        const thumbLeft = scrollRatio * availableTrack;
-
-        thumb.style.width = `${thumbWidth}px`;
-        thumb.style.transform = `translateX(${thumbLeft}px)`;
-
-        if (indicator) {
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
-            if (scrollRatio >= 0.90) {
-                indicator.innerHTML = `<span class="m3-scroll-badge success">✓ ${isEn ? 'End: Soya & Sulphur Dioxide' : 'Final: Soya y Sulfitos'}</span>`;
-            } else if (scrollRatio <= 0.08) {
-                indicator.innerHTML = `<span class="m3-scroll-badge start">${isEn ? 'Start: Celery & Gluten' : 'Inicio: Celery y Gluten'}</span>`;
-            } else {
-                const pct = Math.round(scrollRatio * 100);
-                indicator.innerHTML = `<span class="m3-scroll-badge progress">${isEn ? 'Exploring 14 allergens' : 'Explorando 14 alérgenos'} (${pct}%)</span>`;
-            }
-        }
-    }
-
-    setupM3Scrollbar() {
-        const wrapper = document.getElementById('officialMatrixTableWrapper');
-        const track = document.getElementById('matrixM3ScrollTrack');
-        const thumb = document.getElementById('matrixM3ScrollThumb');
-        if (!wrapper || !track || !thumb) return;
-
-        // Sync initial state
-        this.updateM3Scrollbar();
-
-        if (track.dataset.bound === 'true') return;
-        track.dataset.bound = 'true';
-
-        // 1. Click track to smooth scroll
-        track.addEventListener('click', (e) => {
-            if (e.target.closest('#matrixM3ScrollThumb')) return;
-            const rect = track.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const trackWidth = track.clientWidth;
-            const thumbWidth = thumb.clientWidth;
-            const availableTrack = Math.max(1, trackWidth - thumbWidth);
-            const targetLeft = Math.max(0, Math.min(availableTrack, clickX - thumbWidth / 2));
-            const ratio = targetLeft / availableTrack;
-            const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-            wrapper.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
-        });
-
-        // 2. Drag thumb
-        let isDragging = false;
-        let startX = 0;
-        let startScrollLeft = 0;
-
-        const onMouseDown = (e) => {
-            e.preventDefault();
-            isDragging = true;
-            thumb.classList.add('is-active');
-            document.body.classList.add('m3-scrollbar-dragging');
-            startX = e.clientX;
-            startScrollLeft = wrapper.scrollLeft;
-            window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('mouseup', onMouseUp);
-        };
-
-        const onMouseMove = (e) => {
-            if (!isDragging) return;
-            const deltaX = e.clientX - startX;
-            const trackWidth = track.clientWidth;
-            const thumbWidth = thumb.clientWidth;
-            const availableTrack = Math.max(1, trackWidth - thumbWidth);
-            const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-
-            const scrollDelta = (deltaX / availableTrack) * maxScroll;
-            wrapper.scrollLeft = startScrollLeft + scrollDelta;
-            this.updateM3Scrollbar();
-        };
-
-        const onMouseUp = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            thumb.classList.remove('is-active');
-            document.body.classList.remove('m3-scrollbar-dragging');
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('mouseup', onMouseUp);
-        };
-
-        thumb.addEventListener('mousedown', onMouseDown);
-
-        // 3. Resize listener
-        if (!window._m3ScrollResizeBound) {
-            window._m3ScrollResizeBound = true;
-            window.addEventListener('resize', () => {
-                if (window.dashboard) window.dashboard.updateM3Scrollbar();
-            });
-        }
-    }
 
     filterMatrixBySearch(query) {
         this.matrixSearchQuery = (query || '').trim().toLowerCase();
@@ -2681,8 +2568,8 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Clean Matrix Table (Without arrows on the header) -->
-            <div class="matrix-table-wrapper" id="officialMatrixTableWrapper" onscroll="window.dashboard.updateM3Scrollbar()">
+            <!-- Official FSA Matrix Table -->
+            <div class="matrix-table-wrapper" id="officialMatrixTableWrapper">
                 <table class="fsa-matrix-table" id="officialFsaMatrixTable">
                     <thead>
                         <tr>
@@ -2709,50 +2596,7 @@ class DashboardManager {
                     </tbody>
                 </table>
             </div>
-
-            <!-- Material 3 Expressive Horizontal Scrollbar (Bottom Bar) -->
-            <div class="m3-expressive-scrollbar-bar" id="matrixM3ScrollbarBar">
-                <div class="m3-scroll-header">
-                    <div class="m3-scroll-meta-tag">
-                        <span class="material-symbols-outlined">swap_horiz</span>
-                        <span>${isEn ? 'FSA 14 Allergens Matrix' : 'Matriz 14 Alérgenos FSA'}</span>
-                    </div>
-                    <div class="m3-scroll-current-range" id="matrixM3ScrollIndicator">
-                        <span class="m3-scroll-badge start">${isEn ? 'Start: Celery & Gluten' : 'Inicio: Celery y Gluten'}</span>
-                    </div>
-                </div>
-
-                <div class="m3-scroll-track-container" id="matrixM3ScrollTrack" title="${isEn ? 'Click or drag to explore all allergens' : 'Haz clic o arrastra para ver todos los alérgenos'}">
-                    <div class="m3-scroll-track-rail"></div>
-                    <div class="m3-scroll-thumb" id="matrixM3ScrollThumb" role="scrollbar" aria-label="Control de desplazamiento de alérgenos">
-                        <div class="m3-thumb-handle">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="m3-scroll-legend">
-                    <span class="m3-legend-tag left">
-                        <span class="material-symbols-outlined">first_page</span>
-                        <span>Celery, Gluten, Crustaceans...</span>
-                    </span>
-                    <span class="m3-legend-tag middle">
-                        <span class="material-symbols-outlined">drag_indicator</span>
-                        <span>${isEn ? 'Drag bar to slide table' : 'Arrastra la barra para deslizar la tabla'}</span>
-                    </span>
-                    <span class="m3-legend-tag right">
-                        <span>Soya, Sulphur Dioxide (Final)</span>
-                        <span class="material-symbols-outlined">last_page</span>
-                    </span>
-                </div>
-            </div>
         `;
-
-        setTimeout(() => {
-            this.setupM3Scrollbar();
-        }, 50);
     }
 
     renderMatrixTableRows(dishes, allergens, isEn) {
