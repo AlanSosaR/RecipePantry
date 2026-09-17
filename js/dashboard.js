@@ -2419,22 +2419,14 @@ class DashboardManager {
         if (!tabMount) return;
 
         const allergens = window.UK_ALLERGENS || [];
-        const officialDishes = window.STANLEYS_OFFICIAL_ALLERGENS || [];
-        const userRecipes = this.currentRecipes || [];
+        const dishes = window.STANLEYS_OFFICIAL_ALLERGENS || [];
 
-        // Source default: 'official' (Stanley's SW16 kitchen matrix)
-        if (!this.matrixSource) {
-            this.matrixSource = 'official';
-        }
         if (!this.matrixSelectedSection) {
             this.matrixSelectedSection = 'ALL';
         }
 
-        const isOfficial = (this.matrixSource === 'official');
-        const dishes = isOfficial ? officialDishes : userRecipes;
-
         const sectionsList = [
-            { id: 'ALL', name: isEn ? 'All Sections' : 'Todas las secciones', count: officialDishes.length },
+            { id: 'ALL', name: isEn ? 'All Sections' : 'Todas las secciones', count: dishes.length },
             { id: 'FINGER FOOD', name: 'Finger Food', count: 11 },
             { id: 'MAINS', name: 'Mains & Steaks', count: 14 },
             { id: 'FLAT BREADS', name: 'Flat Breads', count: 5 },
@@ -2447,7 +2439,7 @@ class DashboardManager {
 
         // Filter by section if not ALL
         let filteredDishes = dishes;
-        if (isOfficial && this.matrixSelectedSection !== 'ALL') {
+        if (this.matrixSelectedSection !== 'ALL') {
             filteredDishes = dishes.filter(d => d.section === this.matrixSelectedSection);
         }
 
@@ -2468,17 +2460,11 @@ class DashboardManager {
                         </div>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <button class="btn-m3-tonal ${isOfficial ? 'active-source-btn' : ''}" onclick="window.dashboard.setMatrixSource('official')" style="${isOfficial ? 'background:#0F172A; color:#FFF; font-weight:700;' : ''}">
-                        <span class="material-symbols-outlined">restaurant</span>
-                        <span>${isEn ? 'Stanley\'s Official (73)' : 'Matriz Oficial (73)'}</span>
-                    </button>
-                    ${userRecipes.length > 0 ? `
-                        <button class="btn-m3-tonal ${!isOfficial ? 'active-source-btn' : ''}" onclick="window.dashboard.setMatrixSource('user')" style="${!isOfficial ? 'background:#0F172A; color:#FFF; font-weight:700;' : ''}">
-                            <span class="material-symbols-outlined">menu_book</span>
-                            <span>${isEn ? `My Recipes (${userRecipes.length})` : `Mis Recetas (${userRecipes.length})`}</span>
-                        </button>
-                    ` : ''}
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="matrix-official-badge" style="background:#0F172A; color:#FFFFFF; padding:8px 18px; border-radius:999px; font-weight:700; font-size:13px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
+                        <span class="material-symbols-outlined" style="font-size:18px; color:#10B981;">verified</span>
+                        <span>${isEn ? "Stanley's Official (73)" : "Matriz Oficial (73)"}</span>
+                    </div>
                 </div>
             </div>
 
@@ -2508,20 +2494,18 @@ class DashboardManager {
 
             <!-- Section Pills & Search Filter -->
             <div class="matrix-controls-bar">
-                ${isOfficial ? `
-                    <div class="matrix-sections-scroll">
-                        ${sectionsList.map(s => `
-                            <button 
-                                class="matrix-section-filter-btn ${this.matrixSelectedSection === s.id ? 'active' : ''}"
-                                onclick="window.dashboard.setMatrixSection('${s.id}')"
-                                type="button"
-                            >
-                                <span>${s.name}</span>
-                                <span class="matrix-section-pill-tag">${s.count}</span>
-                            </button>
-                        `).join('')}
-                    </div>
-                ` : ''}
+                <div class="matrix-sections-scroll">
+                    ${sectionsList.map(s => `
+                        <button 
+                            class="matrix-section-filter-btn ${this.matrixSelectedSection === s.id ? 'active' : ''}"
+                            onclick="window.dashboard.setMatrixSection('${s.id}')"
+                            type="button"
+                        >
+                            <span>${s.name}</span>
+                            <span class="matrix-section-pill-tag">${s.count}</span>
+                        </button>
+                    `).join('')}
+                </div>
 
                 <div class="matrix-search-input-wrap">
                     <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">search</span>
@@ -2564,20 +2548,20 @@ class DashboardManager {
                                     ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
                                 </td>
                             </tr>
-                        ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn, isOfficial)}
+                        ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
                     </tbody>
                 </table>
             </div>
         `;
     }
 
-    renderMatrixTableRows(dishes, allergens, isEn, isOfficial) {
+    renderMatrixTableRows(dishes, allergens, isEn) {
         let currentSection = null;
         const rowsHtml = [];
 
         dishes.forEach(item => {
-            // Render section header if in ALL mode and official
-            if (isOfficial && this.matrixSelectedSection === 'ALL' && item.section && item.section !== currentSection) {
+            // Render section header if in ALL mode
+            if (this.matrixSelectedSection === 'ALL' && item.section && item.section !== currentSection) {
                 currentSection = item.section;
                 const count = dishes.filter(d => d.section === currentSection).length;
                 rowsHtml.push(`
@@ -2800,14 +2784,7 @@ class DashboardManager {
 
         const allergens = window.UK_ALLERGENS || [];
         const dietaryProfiles = window.UK_DIETARY_PROFILES || [];
-        const officialDishes = window.STANLEYS_OFFICIAL_ALLERGENS || [];
-        const userRecipes = this.currentRecipes || [];
-
-        if (!this.safeDinerSource) {
-            this.safeDinerSource = 'official';
-        }
-        const isOfficial = (this.safeDinerSource === 'official');
-        const allRecipes = isOfficial ? officialDishes : (userRecipes.length > 0 ? userRecipes : officialDishes);
+        const allRecipes = window.STANLEYS_OFFICIAL_ALLERGENS || [];
 
         let safeRecipes = [];
         let warningRecipes = [];
@@ -2845,16 +2822,16 @@ class DashboardManager {
                         </div>
                         <div class="demo-notice-sub">
                             ${isEn 
-                                ? `Analyzing ${allRecipes.length} dishes from ${isOfficial ? "Stanley's Official Kitchen Menu" : "Your Saved Recipes"}. Excludes direct allergens and identifies cross-contamination risks.`
-                                : `Analizando ${allRecipes.length} platos del ${isOfficial ? "Menú Oficial de Stanley's SW16" : "Tus Recetas Guardadas"}. Excluye alérgenos directos e identifica riesgos de contaminación cruzada.`}
+                                ? `Analyzing 73 dishes from Stanley's Official Kitchen Menu. Excludes direct allergens and identifies cross-contamination risks.`
+                                : `Analizando 73 platos del Menú Oficial de Stanley's SW16. Excluye alérgenos directos e identifica riesgos de contaminación cruzada.`}
                         </div>
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="btn-m3-tonal" onclick="window.dashboard.safeDinerSource = (window.dashboard.safeDinerSource === 'user' ? 'official' : 'user'); window.dashboard.renderAllergenSafeTab(${isEn}, null);">
-                        <span class="material-symbols-outlined">swap_horiz</span>
-                        <span>${isOfficial ? (isEn ? "Source: Stanley's (73)" : "Fuente: Stanley's (73)") : (isEn ? `Source: My Recipes (${userRecipes.length})` : `Fuente: Mis Recetas (${userRecipes.length})`)}</span>
-                    </button>
+                    <div class="matrix-official-badge" style="background:#0F172A; color:#FFFFFF; padding:8px 18px; border-radius:999px; font-weight:700; font-size:13px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
+                        <span class="material-symbols-outlined" style="font-size:18px; color:#10B981;">verified</span>
+                        <span>${isEn ? "Stanley's Official (73)" : "Carta Oficial (73)"}</span>
+                    </div>
                 </div>
             </div>
 
