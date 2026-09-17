@@ -2129,12 +2129,19 @@ class DashboardManager {
         const clearBtn = document.getElementById('clearSearch');
         if (searchInput) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
-            searchInput.placeholder = isEn 
-                ? 'Search allergen, hidden ingredient, or sauce...' 
-                : 'Buscar alérgeno, salsa o ingrediente oculto...';
-            searchInput.value = this.allergenSearchQuery || '';
+            if (this.currentAllergenTab === 'matrix') {
+                searchInput.placeholder = isEn 
+                    ? 'Search dish in allergen matrix (e.g. Chicken, Chips, Pizza...)' 
+                    : 'Buscar plato en la matriz (ej: Chicken, Chips, Pizza...)';
+                searchInput.value = this.matrixSearchQuery || '';
+            } else {
+                searchInput.placeholder = isEn 
+                    ? 'Search allergen, hidden ingredient, or sauce...' 
+                    : 'Buscar alérgeno, salsa o ingrediente oculto...';
+                searchInput.value = this.allergenSearchQuery || '';
+            }
             if (clearBtn) {
-                clearBtn.classList.toggle('hidden', !this.allergenSearchQuery);
+                clearBtn.classList.toggle('hidden', !(this.currentAllergenTab === 'matrix' ? this.matrixSearchQuery : this.allergenSearchQuery));
             }
         }
 
@@ -2153,6 +2160,30 @@ class DashboardManager {
 
     setAllergenTab(tabName) {
         this.currentAllergenTab = tabName;
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        if (searchInput) {
+            if (tabName === 'matrix') {
+                searchInput.placeholder = isEn 
+                    ? 'Search dish in allergen matrix (e.g. Chicken, Chips, Pizza...)' 
+                    : 'Buscar plato en la matriz (ej: Chicken, Chips, Pizza...)';
+                searchInput.value = this.matrixSearchQuery || '';
+            } else if (tabName === 'safe') {
+                searchInput.placeholder = isEn 
+                    ? 'Search allergen or dish...' 
+                    : 'Buscar alérgeno o plato...';
+                searchInput.value = '';
+            } else {
+                searchInput.placeholder = isEn 
+                    ? 'Search allergen, hidden ingredient, or sauce...' 
+                    : 'Buscar alérgeno, salsa o ingrediente oculto...';
+                searchInput.value = this.allergenSearchQuery || '';
+            }
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !searchInput.value);
+            }
+        }
         this.renderAllergensView();
     }
 
@@ -2338,7 +2369,6 @@ class DashboardManager {
     }
 
     handleAllergenSearch(val) {
-        this.allergenSearchQuery = val;
         const searchInput = document.getElementById('searchInput');
         const clearBtn = document.getElementById('clearSearch');
         if (searchInput && searchInput.value !== val) {
@@ -2347,6 +2377,13 @@ class DashboardManager {
         if (clearBtn) {
             clearBtn.classList.toggle('hidden', !val);
         }
+
+        if (this.currentAllergenTab === 'matrix') {
+            this.filterMatrixBySearch(val);
+            return;
+        }
+
+        this.allergenSearchQuery = val;
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
         this.renderAllergenGuideTab(isEn, t);
@@ -2378,6 +2415,21 @@ class DashboardManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
         this.renderAllergenMatrixTab(isEn, t);
+    }
+
+    scrollMatrixChips(distance) {
+        const container = document.getElementById('matrixCategoryChips');
+        if (container) {
+            container.scrollBy({ left: distance, behavior: 'smooth' });
+        }
+    }
+
+    handleMatrixChipsWheel(e) {
+        const container = document.getElementById('matrixCategoryChips');
+        if (container && (e.deltaY !== 0 || e.deltaX !== 0)) {
+            e.preventDefault();
+            container.scrollLeft += (e.deltaY || e.deltaX);
+        }
     }
 
     filterMatrixBySearch(query) {
@@ -2492,36 +2544,26 @@ class DashboardManager {
                 </div>
             </div>
 
-            <!-- Section Pills & Search Filter -->
-            <div class="matrix-controls-bar">
-                <div class="matrix-sections-scroll">
+            <!-- Horizontal Scrollable Section Chips Carousel -->
+            <div class="menu-category-carousel-wrapper" style="margin-bottom: 16px;">
+                <button type="button" class="menu-carousel-arrow left" onclick="window.dashboard.scrollMatrixChips(-260)" title="${isEn ? 'Previous sections' : 'Secciones anteriores'}">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <div class="menu-category-chips" id="matrixCategoryChips" onwheel="window.dashboard.handleMatrixChipsWheel(event)">
                     ${sectionsList.map(s => `
                         <button 
-                            class="matrix-section-filter-btn ${this.matrixSelectedSection === s.id ? 'active' : ''}"
+                            class="menu-category-chip ${this.matrixSelectedSection === s.id ? 'active' : ''}"
                             onclick="window.dashboard.setMatrixSection('${s.id}')"
                             type="button"
                         >
                             <span>${s.name}</span>
-                            <span class="matrix-section-pill-tag">${s.count}</span>
+                            <span class="chip-count">${s.count}</span>
                         </button>
                     `).join('')}
                 </div>
-
-                <div class="matrix-search-input-wrap">
-                    <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">search</span>
-                    <input 
-                        type="text" 
-                        id="matrixSearchInput" 
-                        placeholder="${isEn ? 'Search dish by name (e.g. Chicken, Chips, Pizza...)' : 'Buscar plato por nombre (ej: Chicken, Chips, Pizza...)'}"
-                        value="${this.matrixSearchQuery || ''}"
-                        oninput="window.dashboard.filterMatrixBySearch(this.value)"
-                    />
-                    ${this.matrixSearchQuery ? `
-                        <button onclick="document.getElementById('matrixSearchInput').value=''; window.dashboard.filterMatrixBySearch('');" style="background:none; border:none; cursor:pointer; color:#94A3B8; display:flex;">
-                            <span class="material-symbols-outlined" style="font-size:18px;">close</span>
-                        </button>
-                    ` : ''}
-                </div>
+                <button type="button" class="menu-carousel-arrow right" onclick="window.dashboard.scrollMatrixChips(260)" title="${isEn ? 'Next sections' : 'Siguientes secciones'}">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
             </div>
 
             <!-- Matrix Table -->
