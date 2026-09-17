@@ -2712,17 +2712,9 @@ class DashboardManager {
                                 <th class="col-recipe-name col-subhead-spacer"></th>
                                 <th colspan="${allergens.length}" class="col-subhead-scrollbar">
                                     <div class="matrix-bottom-scroll-rail-container" id="matrixBottomScrollRailContainer">
-                                        <span class="matrix-bottom-scroll-hint left">
-                                            <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_back</span>
-                                            <span>Celery, Gluten...</span>
-                                        </span>
                                         <div class="matrix-bottom-scroll-track" id="matrixBottomScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
                                             <div class="matrix-bottom-scroll-thumb" id="matrixBottomScrollThumb"></div>
                                         </div>
-                                        <span class="matrix-bottom-scroll-hint right">
-                                            <span>...Soya, Sulphur Dioxide</span>
-                                            <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span>
-                                        </span>
                                     </div>
                                 </th>
                             </tr>

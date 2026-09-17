@@ -9112,26 +9112,11 @@ input:checked~.m3-ingredient-text {
     width: calc(100vw - 290px);
     max-width: 960px;
     background: #F8FAFC;
-    padding: 6px 14px;
+    padding: 6px 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
     user-select: none;
     box-sizing: border-box;
-}
-
-.matrix-bottom-scroll-hint {
-    font-size: 11px;
-    font-weight: 700;
-    color: #64748B;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.matrix-bottom-scroll-hint.right {
-    color: #059669;
 }
 
 .matrix-bottom-scroll-track {
