@@ -11125,6 +11125,107 @@ input:checked~.m3-ingredient-text {
     }
 }
 
+/* ─── Menu Document Viewer & Uploader Modal ─── */
+.menu-doc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+}
+
+.menu-doc-modal-card {
+    width: 96vw;
+    max-width: 1020px;
+    height: 92vh;
+    max-height: 900px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+}
+
+.menu-doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--outline-variant, #E5E7EB);
+    background: #FFFFFF;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.menu-doc-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #F3F4F6;
+    padding: 4px;
+    border-radius: 999px;
+}
+
+.menu-doc-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #4B5563;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.menu-doc-tab-btn.active {
+    background: #FFFFFF;
+    color: #047857;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.menu-doc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: #F9FAFB;
+    border-bottom: 1px solid #E5E7EB;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.menu-doc-viewport {
+    flex: 1;
+    overflow: auto;
+    background: #1E293B;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    user-select: none;
+}
+
+.menu-doc-viewport canvas,
+.menu-doc-viewport img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    transform-origin: top center;
+    transition: transform 0.15s ease-out;
+}
+
+
 
 
 

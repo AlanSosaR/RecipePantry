@@ -6,6 +6,66 @@
  */
 
 (function () {
+    const MenuDocStorage = {
+        dbPromise: null,
+        getDB() {
+            if (!this.dbPromise) {
+                this.dbPromise = new Promise((resolve, reject) => {
+                    const req = indexedDB.open('RecipePantry_MenuDocs', 1);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('docs')) {
+                            db.createObjectStore('docs', { keyPath: 'id' });
+                        }
+                    };
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            return this.dbPromise;
+        },
+        async setDoc(id, data) {
+            try {
+                const db = await this.getDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('docs', 'readwrite');
+                    const store = tx.objectStore('docs');
+                    const req = store.put({ id, ...data, updatedAt: Date.now() });
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {
+                console.warn('DocStorage error:', e);
+            }
+        },
+        async getDoc(id) {
+            try {
+                const db = await this.getDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('docs', 'readonly');
+                    const store = tx.objectStore('docs');
+                    const req = store.get(id);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {
+                return null;
+            }
+        },
+        async removeDoc(id) {
+            try {
+                const db = await this.getDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('docs', 'readwrite');
+                    const store = tx.objectStore('docs');
+                    const req = store.delete(id);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {}
+        }
+    };
+
     class RestaurantMenuManager {
         constructor() {
             this.containerId = 'menuView';
@@ -527,6 +587,265 @@
             });
         }
 
+        openDocumentViewer(tab) {
+            this.currentDocTab = tab || (this.activeTab === 'sunday' ? 'sunday' : 'main');
+            this.docZoom = 1.0;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+            const modalHtml = `
+                <div id="menuDocModal" class="menu-doc-modal-overlay">
+                    <div class="menu-doc-modal-card">
+                        <!-- Header -->
+                        <div class="menu-doc-header">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center;">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">picture_as_pdf</span>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
+                                        ${isEn ? 'Official Menu Document & Photo Viewer' : 'Carta Oficial de Stanley\'s (Documento / Foto)'}
+                                    </h3>
+                                    <p style="margin: 2px 0 0 0; font-size: 12.5px; color: #6B7280;">
+                                        ${isEn ? 'View high-res menu or upload new photos when menu updates.' : 'Visualiza la carta oficial o sube una foto nueva para actualizarla.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Tabs Switcher -->
+                            <div class="menu-doc-tabs">
+                                <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'main' ? 'active' : ''}" id="docTabMain" onclick="window.restaurantMenu.switchDocTab('main')">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
+                                    <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal'}</span>
+                                </button>
+                                <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'sunday' ? 'active' : ''}" id="docTabSunday" onclick="window.restaurantMenu.switchDocTab('sunday')">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">outdoor_grill</span>
+                                    <span>${isEn ? 'Sunday Roasts' : 'Sunday Roasts'}</span>
+                                </button>
+                            </div>
+
+                            <button type="button" class="btn-close-modal" onclick="window.restaurantMenu.closeDocumentViewer()" title="${isEn ? 'Close' : 'Cerrar'}" style="width: 36px; height: 36px;">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        <!-- Toolbar -->
+                        <div class="menu-doc-toolbar">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <input type="file" id="menuDocFileInput" accept="image/*,application/pdf" style="display: none;" onchange="window.restaurantMenu.handleDocumentUpload(event)">
+                                <button type="button" class="btn-primary" onclick="document.getElementById('menuDocFileInput').click()" style="border-radius: 999px; height: 36px; padding: 0 16px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">upload_file</span>
+                                    <span>${isEn ? 'Upload New Photo / PDF' : 'Subir Nueva Foto o PDF'}</span>
+                                </button>
+                                <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 600; align-items: center; gap: 6px;" title="Volver a la carta original">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">restore</span>
+                                    <span>${isEn ? 'Reset to Original' : 'Restaurar Original'}</span>
+                                </button>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 34px; height: 34px;">
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">zoom_out</span>
+                                </button>
+                                <span id="docZoomLevel" style="font-size: 12.5px; font-weight: 700; color: #4B5563; min-width: 48px; text-align: center;">100%</span>
+                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 34px; height: 34px;">
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">zoom_in</span>
+                                </button>
+                                <div style="width: 1px; height: 22px; background: #D1D5DB; margin: 0 4px;"></div>
+                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.downloadCurrentDoc()" title="${isEn ? 'Download file' : 'Descargar archivo'}" style="width: 34px; height: 34px;">
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">download</span>
+                                </button>
+                                <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.openDocInNewTab()" title="${isEn ? 'Open in new tab' : 'Abrir en pestaña nueva'}" style="width: 34px; height: 34px;">
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">open_in_new</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Viewport -->
+                        <div class="menu-doc-viewport" id="docViewport">
+                            <div id="docViewerLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #FFFFFF; height: 100%; min-height: 350px;">
+                                <div class="spinner-sm" style="border-top-color: #10B981;"></div>
+                                <span style="font-size: 13.5px; font-weight: 600;">${isEn ? 'Loading menu document...' : 'Cargando documento de la carta...'}</span>
+                            </div>
+                            <canvas id="docViewerCanvas" style="display: none;"></canvas>
+                            <img id="docViewerImage" style="display: none;" alt="Carta Stanley's">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Eliminar anterior si existía
+            document.getElementById('menuDocModal')?.remove();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            this.loadCurrentDocument();
+        }
+
+        switchDocTab(tab) {
+            this.currentDocTab = tab;
+            document.querySelectorAll('.menu-doc-tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (tab === 'main') {
+                document.getElementById('docTabMain')?.classList.add('active');
+            } else {
+                document.getElementById('docTabSunday')?.classList.add('active');
+            }
+            this.docZoom = 1.0;
+            const zEl = document.getElementById('docZoomLevel');
+            if (zEl) zEl.textContent = '100%';
+            this.loadCurrentDocument();
+        }
+
+        async loadCurrentDocument() {
+            const loadingEl = document.getElementById('docViewerLoading');
+            const canvasEl = document.getElementById('docViewerCanvas');
+            const imgEl = document.getElementById('docViewerImage');
+            const resetBtn = document.getElementById('btnResetDoc');
+
+            if (loadingEl) loadingEl.style.display = 'flex';
+            if (canvasEl) canvasEl.style.display = 'none';
+            if (imgEl) imgEl.style.display = 'none';
+
+            try {
+                const custom = await MenuDocStorage.getDoc(this.currentDocTab);
+                if (custom && custom.dataUrl) {
+                    if (resetBtn) resetBtn.style.display = 'inline-flex';
+                    this.activeDocFile = custom;
+                    if (custom.type && custom.type.startsWith('image/')) {
+                        if (imgEl) {
+                            imgEl.src = custom.dataUrl;
+                            imgEl.style.display = 'block';
+                            imgEl.style.transform = `scale(${this.docZoom})`;
+                        }
+                        if (loadingEl) loadingEl.style.display = 'none';
+                    } else {
+                        // PDF
+                        await this.renderPdfDoc(custom.dataUrl);
+                    }
+                } else {
+                    if (resetBtn) resetBtn.style.display = 'none';
+                    const defaultPdf = this.currentDocTab === 'sunday' 
+                        ? 'assets/pdf/stanleys-sunday-menu.pdf' 
+                        : 'assets/pdf/stanleys-main-menu.pdf';
+                    this.activeDocFile = { type: 'application/pdf', dataUrl: defaultPdf, name: (this.currentDocTab === 'sunday' ? 'stanleys-sunday-menu.pdf' : 'stanleys-main-menu.pdf') };
+                    await this.renderPdfDoc(defaultPdf);
+                }
+            } catch (err) {
+                console.error('Error loading menu document:', err);
+                if (loadingEl) {
+                    loadingEl.innerHTML = `
+                        <span class="material-symbols-outlined" style="font-size: 36px; color: #EF4444;">error</span>
+                        <p style="margin: 4px 0 0 0; font-size: 13px;">No se pudo cargar la vista previa.</p>
+                        <a href="${this.activeDocFile ? this.activeDocFile.dataUrl : '#'}" download class="btn-secondary" style="margin-top: 10px; border-radius: 999px;">Descargar archivo</a>
+                    `;
+                }
+            }
+        }
+
+        async renderPdfDoc(srcOrData) {
+            const loadingEl = document.getElementById('docViewerLoading');
+            const canvasEl = document.getElementById('docViewerCanvas');
+            if (!canvasEl) return;
+
+            if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/lib/pdf.worker.min.js';
+                const loadingTask = window.pdfjsLib.getDocument(srcOrData);
+                const pdf = await loadingTask.promise;
+                const page = await pdf.getPage(1);
+                const scale = 1.8;
+                const viewport = page.getViewport({ scale: scale });
+
+                canvasEl.width = viewport.width;
+                canvasEl.height = viewport.height;
+                const renderContext = {
+                    canvasContext: canvasEl.getContext('2d'),
+                    viewport: viewport
+                };
+                await page.render(renderContext).promise;
+
+                if (loadingEl) loadingEl.style.display = 'none';
+                canvasEl.style.display = 'block';
+                canvasEl.style.transform = `scale(${this.docZoom})`;
+            } else {
+                // Fallback embebido
+                const vp = document.getElementById('docViewport');
+                if (vp) {
+                    vp.innerHTML = `<iframe src="${srcOrData}" style="width: 100%; height: 100%; border: none; min-height: 600px;"></iframe>`;
+                }
+            }
+        }
+
+        async handleDocumentUpload(e) {
+            const file = e.target && e.target.files && e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const dataUrl = reader.result;
+                await MenuDocStorage.setDoc(this.currentDocTab, {
+                    type: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
+                    dataUrl: dataUrl,
+                    name: file.name
+                });
+                this.loadCurrentDocument();
+                if (window.showActionToast) {
+                    const isSunday = this.currentDocTab === 'sunday';
+                    window.showActionToast({
+                        message: `✅ Carta de ${isSunday ? 'Sunday Roasts' : 'Menú Principal'} actualizada con tu nueva foto/documento`,
+                        type: 'success'
+                    });
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async resetCurrentDocToDefault() {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const msg = isEn ? 'Reset to the official original menu document?' : '¿Deseas restaurar la carta oficial original?';
+            if (confirm(msg)) {
+                await MenuDocStorage.removeDoc(this.currentDocTab);
+                this.loadCurrentDocument();
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: '✅ Carta original restaurada',
+                        type: 'success'
+                    });
+                }
+            }
+        }
+
+        zoomDoc(delta) {
+            this.docZoom = Math.max(0.6, Math.min(2.8, parseFloat(((this.docZoom || 1) + delta).toFixed(2))));
+            const zEl = document.getElementById('docZoomLevel');
+            if (zEl) zEl.textContent = Math.round(this.docZoom * 100) + '%';
+
+            const canvasEl = document.getElementById('docViewerCanvas');
+            if (canvasEl && canvasEl.style.display !== 'none') {
+                canvasEl.style.transform = `scale(${this.docZoom})`;
+            }
+            const imgEl = document.getElementById('docViewerImage');
+            if (imgEl && imgEl.style.display !== 'none') {
+                imgEl.style.transform = `scale(${this.docZoom})`;
+            }
+        }
+
+        downloadCurrentDoc() {
+            if (!this.activeDocFile || !this.activeDocFile.dataUrl) return;
+            const a = document.createElement('a');
+            a.href = this.activeDocFile.dataUrl;
+            a.download = this.activeDocFile.name || `stanleys-${this.currentDocTab}-menu.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        openDocInNewTab() {
+            if (!this.activeDocFile || !this.activeDocFile.dataUrl) return;
+            window.open(this.activeDocFile.dataUrl, '_blank');
+        }
+
+        closeDocumentViewer() {
+            document.getElementById('menuDocModal')?.remove();
+        }
+
         showHelpModal() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const modalHtml = `
@@ -699,10 +1018,10 @@
                                 <span>stanleyssw16.com/food</span>
                             </a>
 
-                            <a href="${info.pdfUrl}" target="_blank" rel="noopener" class="menu-action-pill menu-pdf-pill" title="Abrir documento PDF original en nueva pestaña">
-                                <span class="material-symbols-outlined" style="font-size: 17px;">open_in_new</span>
-                                <span>${isEn ? 'Official PDF' : 'PDF Original'}</span>
-                            </a>
+                            <button type="button" class="menu-action-pill menu-pdf-pill" onclick="window.restaurantMenu.openDocumentViewer()" title="${isEn ? 'View official menu PDF / photos and upload new' : 'Ver carta oficial en PDF / foto y actualizar'}">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">picture_as_pdf</span>
+                                <span>${isEn ? 'Official Menu (PDF / Photo)' : 'Carta Oficial (PDF / Foto)'}</span>
+                            </button>
 
                             <button class="menu-action-pill" onclick="window.restaurantMenu.showHelpModal()" title="${isEn ? 'How updates and dishes work' : '¿Cómo funciona la gestión del menú?'}" style="background: #EFF6FF; color: #1E40AF; border-color: #DBEAFE;">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #2563EB;">help</span>
