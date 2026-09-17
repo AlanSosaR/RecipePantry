@@ -10886,38 +10886,44 @@ input:checked~.m3-ingredient-text {
 }
 
 /* ==========================================================================
-   WHITE MODAL FOR RESTAURANT MENU (HELP & ADD DISH)
+   WHITE RESPONSIVE MODAL & MATERIAL 3 EXPRESSIVE FOR RESTAURANT MENU
    ========================================================================== */
 .menu-modal-card {
     background: #FFFFFF !important;
     color: #111827 !important;
-    width: calc(100% - 32px);
-    max-width: 520px;
+    width: min(480px, calc(100vw - 32px)) !important;
+    max-width: 480px !important;
+    max-height: min(85vh, 580px) !important;
     border-radius: 24px !important;
     border: 1px solid #E5E7EB !important;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16) !important;
-    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
     animation: modalEntry 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
 .menu-modal-card .modal-header {
     background: #FFFFFF !important;
     border-bottom: 1px solid #F3F4F6 !important;
-    padding: 20px 24px !important;
+    padding: 16px 20px !important;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
+    flex-shrink: 0 !important;
 }
 
 .menu-modal-card .header-info h3 {
     color: #111827 !important;
-    font-size: 18px !important;
+    font-size: 16.5px !important;
     font-weight: 800 !important;
+    margin: 0;
 }
 
 .menu-modal-card .header-info p {
     color: #6B7280 !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
+    margin: 2px 0 0 0;
 }
 
 .menu-modal-card .btn-close-modal {
@@ -10925,13 +10931,14 @@ input:checked~.m3-ingredient-text {
     color: #4B5563 !important;
     border: none;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .menu-modal-card .btn-close-modal:hover {
@@ -10942,27 +10949,67 @@ input:checked~.m3-ingredient-text {
 .menu-modal-card .modal-body {
     background: #FFFFFF !important;
     color: #111827 !important;
-    padding: 20px 24px !important;
+    padding: 14px 18px !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .menu-modal-card .modal-footer {
     background: #FAFAFA !important;
     border-top: 1px solid #F3F4F6 !important;
-    padding: 16px 24px !important;
+    padding: 12px 20px !important;
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0 !important;
+}
+
+/* Material 3 Expressive Action Button */
+.btn-m3-expressive {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    height: 44px !important;
+    padding: 0 24px !important;
+    border-radius: 9999px !important;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #FFFFFF !important;
+    font-family: inherit !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.25px !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.32), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+    outline: none !important;
+    user-select: none !important;
+}
+
+.btn-m3-expressive:hover {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.42), 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+}
+
+.btn-m3-expressive:active {
+    transform: translateY(1px) scale(0.98) !important;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25) !important;
 }
 
 .menu-help-item {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     align-items: flex-start;
-    padding: 14px;
+    padding: 10px 12px;
     background: #F9FAFB;
     border: 1px solid #F3F4F6;
-    border-radius: 16px;
-    transition: background 0.2s ease;
+    border-radius: 14px;
+    transition: background 0.15s ease;
 }
 
 .menu-help-item:hover {
@@ -10970,14 +11017,36 @@ input:checked~.m3-ingredient-text {
 }
 
 .menu-help-icon-wrap {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 }
+
+/* Category Badge on Menu Item Cards */
+.menu-card-cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4B5563;
+    background: #F3F4F6;
+    border-radius: 6px;
+    padding: 2px 7px;
+    margin-bottom: 6px;
+}
+
+/* Fluid Grid: Lone Card spans full row so no empty hole is ever left */
+@media (min-width: 768px) {
+    .menu-items-grid > .menu-item-card:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+}
+
 
 
 

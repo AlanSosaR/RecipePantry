@@ -131,10 +131,16 @@
             const rawSections = JSON.parse(JSON.stringify(data.sections || []));
             const removedSet = new Set(this.removedItemIds);
 
-            // Filtrar eliminados
+            // Filtrar eliminados y anotar metadatos de categoría
             rawSections.forEach(section => {
                 section.categories.forEach(cat => {
                     cat.items = (cat.items || []).filter(item => !removedSet.has(item.id));
+                    cat.items.forEach(item => {
+                        item.categoryName_es = cat.name_es;
+                        item.categoryName_en = cat.name_en;
+                        item.categoryIcon = cat.icon || 'restaurant';
+                        item.categoryId = cat.id;
+                    });
                 });
             });
 
@@ -144,6 +150,9 @@
                 for (const sec of rawSections) {
                     for (const cat of sec.categories) {
                         if (cat.id === item.categoryId) {
+                            item.categoryName_es = cat.name_es;
+                            item.categoryName_en = cat.name_en;
+                            item.categoryIcon = cat.icon || 'restaurant';
                             cat.items.push(item);
                             found = true;
                             break;
@@ -152,7 +161,11 @@
                     if (found) break;
                 }
                 if (!found && rawSections[0] && rawSections[0].categories[0]) {
-                    rawSections[0].categories[0].items.push(item);
+                    const fallbackCat = rawSections[0].categories[0];
+                    item.categoryName_es = fallbackCat.name_es;
+                    item.categoryName_en = fallbackCat.name_en;
+                    item.categoryIcon = fallbackCat.icon || 'restaurant';
+                    fallbackCat.items.push(item);
                 }
             });
 
@@ -368,32 +381,32 @@
         showHelpModal() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const modalHtml = `
-                <div id="menuHelpModal" class="modal-overlay" style="display: flex; z-index: 99999; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
-                    <div class="menu-modal-card" style="max-width: 520px; width: 92%;">
+                <div id="menuHelpModal" class="modal-overlay" style="display: flex; z-index: 99999; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px); padding: 16px; align-items: center; justify-content: center;">
+                    <div class="menu-modal-card">
                         <div class="modal-header">
                             <div class="header-info">
-                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                                    <span class="material-symbols-outlined" style="color: #2563EB;">help</span>
+                                <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="color: #2563EB; font-size: 20px;">help</span>
                                     <span>${isEn ? 'How do updates & new dishes work?' : '¿Cómo se actualiza la carta?'}</span>
                                 </h3>
-                                <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #666;">
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #666;">
                                     ${isEn ? 'Guide for menu updates and kitchen availability.' : 'Guía de actualización y disponibilidad en cocina.'}
                                 </p>
                             </div>
                             <button class="btn-close-modal" onclick="document.getElementById('menuHelpModal').remove()">
-                                <span class="material-symbols-outlined">close</span>
+                                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
                             </button>
                         </div>
-                        <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
+                        <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
                             <div class="menu-help-item">
                                 <div class="menu-help-icon-wrap" style="background: #ECFDF5; color: #059669;">
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">add_circle</span>
                                 </div>
                                 <div>
-                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                    <h4 style="margin: 0 0 2px 0; font-size: 13.5px; font-weight: 700; color: #111827;">
                                         ${isEn ? '1. Add New Dishes' : '1. Agregar Nuevos Platos'}
                                     </h4>
-                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                    <p style="margin: 0; font-size: 12.5px; color: #4B5563; line-height: 1.4;">
                                         ${isEn 
                                             ? 'Click the <strong>"+ Add New Dish"</strong> button at the top to add any seasonal special or newly introduced dish.' 
                                             : 'Usa el botón <strong>"+ Agregar Plato"</strong> en la parte superior para añadir novedades o especiales de temporada.'}
@@ -403,13 +416,13 @@
 
                             <div class="menu-help-item">
                                 <div class="menu-help-icon-wrap" style="background: #FEF2F2; color: #DC2626;">
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">delete</span>
                                 </div>
                                 <div>
-                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                    <h4 style="margin: 0 0 2px 0; font-size: 13.5px; font-weight: 700; color: #111827;">
                                         ${isEn ? '2. Remove Outdated Dishes' : '2. Quitar Platos Retirados'}
                                     </h4>
-                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                    <p style="margin: 0; font-size: 12.5px; color: #4B5563; line-height: 1.4;">
                                         ${isEn 
                                             ? 'Click the <strong>trash icon</strong> at the bottom of any dish card to remove it from the active menu.' 
                                             : 'Haz clic en el icono de <strong>papelera</strong> en la tarjeta del plato para retirarlo de la carta activa.'}
@@ -419,13 +432,13 @@
 
                             <div class="menu-help-item">
                                 <div class="menu-help-icon-wrap" style="background: #FFFBEB; color: #D97706;">
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">do_not_disturb_on</span>
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">do_not_disturb_on</span>
                                 </div>
                                 <div>
-                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                    <h4 style="margin: 0 0 2px 0; font-size: 13.5px; font-weight: 700; color: #111827;">
                                         ${isEn ? '3. Out of Stock / 86 (Kitchen Service)' : '3. Agotado / 86 (Servicio Diario)'}
                                     </h4>
-                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                    <p style="margin: 0; font-size: 12.5px; color: #4B5563; line-height: 1.4;">
                                         ${isEn 
                                             ? 'Click the <strong>"86"</strong> button on any dish to mark it temporarily out of stock for the shift without deleting it.' 
                                             : 'Usa el botón <strong>"86"</strong> en cualquier plato para marcarlo como agotado en cocina durante el servicio sin tener que borrarlo.'}
@@ -435,13 +448,13 @@
 
                             <div class="menu-help-item">
                                 <div class="menu-help-icon-wrap" style="background: #EFF6FF; color: #2563EB;">
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">restore</span>
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">restore</span>
                                 </div>
                                 <div>
-                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                    <h4 style="margin: 0 0 2px 0; font-size: 13.5px; font-weight: 700; color: #111827;">
                                         ${isEn ? '4. Restore Original Menu' : '4. Restaurar Carta Original'}
                                     </h4>
-                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                    <p style="margin: 0; font-size: 12.5px; color: #4B5563; line-height: 1.4;">
                                         ${isEn 
                                             ? 'If you ever need to revert back to the original restaurant menu, click "Restore All Items".' 
                                             : 'Si en algún momento deseas recuperar platos borrados, el botón "Restaurar Todo" restaurará la carta oficial.'}
@@ -449,8 +462,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer" style="display: flex; justify-content: flex-end; padding: 16px 24px;">
-                            <button class="btn-primary" onclick="document.getElementById('menuHelpModal').remove()">
+                        <div class="modal-footer">
+                            <button class="btn-m3-expressive" onclick="document.getElementById('menuHelpModal').remove()">
+                                <span class="material-symbols-outlined" style="font-size: 19px;">check</span>
                                 <span>${isEn ? 'Got It' : 'Entendido'}</span>
                             </button>
                         </div>
@@ -617,71 +631,78 @@
             let renderedDishesCount = 0;
             let sectionsHtml = '';
 
-            sectionsToDisplay.forEach(section => {
-                const isSunday = section.id === 'sunday';
-
-                // Si estamos viendo todo y llegamos al domingo, mostramos el banner especial de domingo
-                let sectionIntroHtml = '';
-                if (isSunday) {
-                    sectionIntroHtml = `
-                        <div class="menu-sunday-banner" style="margin-top: 24px; margin-bottom: 8px;">
-                            <div class="menu-sunday-banner-icon">
-                                <span class="material-symbols-outlined">outdoor_grill</span>
-                            </div>
-                            <div class="menu-sunday-banner-content">
-                                <div class="menu-sunday-banner-title">
-                                    <strong>SOS Sunday Roasts</strong> &bull; <span>${info.sundayHours || 'Domingos de 12:00 a 20:00'}</span>
-                                </div>
-                                <p class="menu-sunday-banner-desc">
-                                    ${isEn ? info.sundayDescription_en : info.sundayDescription_es}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                let categoriesInSecHtml = '';
-
-                (section.categories || []).forEach(cat => {
-                    // Filtrar por categoría activa
-                    if (this.activeCategory !== 'all' && this.activeCategory !== cat.id) return;
-
-                    // Filtrar por búsqueda
-                    const filteredItems = (cat.items || []).filter(item => {
-                        if (!this.searchQuery) return true;
-                        const name = (item.name || '').toLowerCase();
-                        const desc = ((isEn ? item.desc_en : item.desc_es) || '').toLowerCase();
-                        const tags = (item.tags || []).join(' ').toLowerCase();
-                        const allergens = (item.allergens || []).join(' ').toLowerCase();
-                        return name.includes(this.searchQuery) || desc.includes(this.searchQuery) || tags.includes(this.searchQuery) || allergens.includes(this.searchQuery);
+            if (this.activeCategory === 'all') {
+                // MODO FLUIDO: Todos los platos en una única cuadrícula continua.
+                // Cuando se elimina cualquier tarjeta, las demás se mueven automáticamente
+                // al espacio vacío sin dejar huecos entre categorías.
+                const allDishes = [];
+                sectionsToDisplay.forEach(section => {
+                    const isSunday = section.id === 'sunday';
+                    (section.categories || []).forEach(cat => {
+                        (cat.items || []).forEach(item => {
+                            if (this.searchQuery) {
+                                const q = this.searchQuery.toLowerCase();
+                                const name = (item.name || '').toLowerCase();
+                                const desc = ((isEn ? item.desc_en : item.desc_es) || '').toLowerCase();
+                                const tags = (item.tags || []).join(' ').toLowerCase();
+                                const allergens = (item.allergens || []).join(' ').toLowerCase();
+                                if (!name.includes(q) && !desc.includes(q) && !tags.includes(q) && !allergens.includes(q)) {
+                                    return;
+                                }
+                            }
+                            allDishes.push(item);
+                        });
                     });
-
-                    if (filteredItems.length === 0) return;
-
-                    renderedDishesCount += filteredItems.length;
-
-                    categoriesInSecHtml += `
-                        <div class="menu-category-section" id="cat_section_${cat.id}">
-                            <div class="menu-category-header">
-                                <div class="menu-category-title-wrap">
-                                    <span class="material-symbols-outlined menu-cat-icon">${cat.icon || 'restaurant'}</span>
-                                    <h3 class="menu-category-title">${isEn ? cat.name_en : cat.name_es}</h3>
-                                    <span class="menu-category-badge">${filteredItems.length}</span>
-                                </div>
-                                ${(isEn ? cat.notice_en : cat.notice_es) ? `<p class="menu-category-notice">${isEn ? cat.notice_en : cat.notice_es}</p>` : ''}
-                            </div>
-
-                            <div class="menu-items-grid">
-                                ${filteredItems.map(item => this.renderMenuItemCard(item, isEn)).join('')}
-                            </div>
-                        </div>
-                    `;
                 });
 
-                if (categoriesInSecHtml) {
-                    sectionsHtml += sectionIntroHtml + categoriesInSecHtml;
+                renderedDishesCount = allDishes.length;
+
+                if (renderedDishesCount > 0) {
+                    sectionsHtml = `
+                        <div class="menu-items-grid">
+                            ${allDishes.map(item => this.renderMenuItemCard(item, isEn)).join('')}
+                        </div>
+                    `;
                 }
-            });
+            } else {
+                // MODO CATEGORÍA ESPECÍFICA (cuando el usuario selecciona una sección específica en los chips)
+                sectionsToDisplay.forEach(section => {
+                    (section.categories || []).forEach(cat => {
+                        if (cat.id !== this.activeCategory) return;
+
+                        const filteredItems = (cat.items || []).filter(item => {
+                            if (!this.searchQuery) return true;
+                            const q = this.searchQuery.toLowerCase();
+                            const name = (item.name || '').toLowerCase();
+                            const desc = ((isEn ? item.desc_en : item.desc_es) || '').toLowerCase();
+                            const tags = (item.tags || []).join(' ').toLowerCase();
+                            const allergens = (item.allergens || []).join(' ').toLowerCase();
+                            return name.includes(q) || desc.includes(q) || tags.includes(q) || allergens.includes(q);
+                        });
+
+                        if (filteredItems.length === 0) return;
+
+                        renderedDishesCount += filteredItems.length;
+
+                        sectionsHtml += `
+                            <div class="menu-category-section" id="cat_section_${cat.id}">
+                                <div class="menu-category-header">
+                                    <div class="menu-category-title-wrap">
+                                        <span class="material-symbols-outlined menu-cat-icon">${cat.icon || 'restaurant'}</span>
+                                        <h3 class="menu-category-title">${isEn ? cat.name_en : cat.name_es}</h3>
+                                        <span class="menu-category-badge">${filteredItems.length}</span>
+                                    </div>
+                                    ${(isEn ? cat.notice_en : cat.notice_es) ? `<p class="menu-category-notice">${isEn ? cat.notice_en : cat.notice_es}</p>` : ''}
+                                </div>
+
+                                <div class="menu-items-grid">
+                                    ${filteredItems.map(item => this.renderMenuItemCard(item, isEn)).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+            }
 
             if (renderedDishesCount === 0) {
                 sectionsHtml = `
@@ -707,6 +728,14 @@
             const isAvail = this.isAvailable(item.id);
             const desc = isEn ? item.desc_en : item.desc_es;
             const priceText = item.priceOptions || `£${item.price.toFixed(2)}`;
+
+            const catName = isEn ? (item.categoryName_en || '') : (item.categoryName_es || '');
+            const catBadgeHtml = catName ? `
+                <div class="menu-card-cat-badge">
+                    <span class="material-symbols-outlined" style="font-size: 13px;">${item.categoryIcon || 'restaurant'}</span>
+                    <span>${catName}</span>
+                </div>
+            ` : '';
 
             // Render tags
             const tagsHtml = (item.tags || []).map(t => {
@@ -736,6 +765,7 @@
             return `
                 <div class="menu-item-card ${!isAvail ? 'is-out-of-stock' : ''}" id="card_${item.id}">
                     <div class="menu-item-card-top">
+                        ${catBadgeHtml}
                         <div class="menu-item-header">
                             <h4 class="menu-item-name">${item.name}</h4>
                             <div class="menu-item-price-wrap">
