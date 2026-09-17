@@ -2432,93 +2432,119 @@ class DashboardManager {
         }
     }
 
-    scrollMatrixTable(distance) {
-        const container = document.getElementById('officialMatrixTableWrapper');
-        if (container) {
-            container.scrollBy({ left: distance, behavior: 'smooth' });
-            setTimeout(() => this.updateMatrixCarouselState(), 200);
+    updateM3Scrollbar() {
+        const wrapper = document.getElementById('officialMatrixTableWrapper');
+        const track = document.getElementById('matrixM3ScrollTrack');
+        const thumb = document.getElementById('matrixM3ScrollThumb');
+        const indicator = document.getElementById('matrixM3ScrollIndicator');
+        if (!wrapper || !track || !thumb) return;
+
+        const scrollLeft = wrapper.scrollLeft;
+        const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+        const trackWidth = track.clientWidth;
+
+        if (maxScroll <= 0 || trackWidth <= 0) {
+            thumb.style.width = '100%';
+            thumb.style.transform = 'translateX(0px)';
+            return;
         }
-    }
 
-    updateMatrixCarouselState() {
-        const container = document.getElementById('officialMatrixTableWrapper');
-        if (!container) return;
-        const leftBtn = document.getElementById('matrixTableScrollLeftBtn');
-        const rightBtn = document.getElementById('matrixTableScrollRightBtn');
-        const floatingLeft = document.getElementById('matrixFloatingArrowLeft');
-        const floatingRight = document.getElementById('matrixFloatingArrowRight');
-        const indicator = document.getElementById('matrixCarouselPill');
+        const visibleRatio = Math.min(1, Math.max(0.12, wrapper.clientWidth / wrapper.scrollWidth));
+        const thumbWidth = Math.max(80, visibleRatio * trackWidth);
+        const availableTrack = Math.max(0, trackWidth - thumbWidth);
 
-        const scrollLeft = container.scrollLeft;
-        const maxScroll = container.scrollWidth - container.clientWidth;
+        const scrollRatio = Math.min(1, Math.max(0, scrollLeft / maxScroll));
+        const thumbLeft = scrollRatio * availableTrack;
 
-        const atStart = scrollLeft <= 12;
-        const atEnd = maxScroll <= 15 || scrollLeft >= maxScroll - 15;
-
-        if (leftBtn) leftBtn.disabled = atStart;
-        if (rightBtn) rightBtn.disabled = atEnd;
-
-        if (floatingLeft) {
-            floatingLeft.classList.toggle('visible', !atStart);
-        }
-        if (floatingRight) {
-            floatingRight.classList.toggle('visible', !atEnd);
-        }
+        thumb.style.width = `${thumbWidth}px`;
+        thumb.style.transform = `translateX(${thumbLeft}px)`;
 
         if (indicator) {
-            if (atEnd) {
-                indicator.textContent = 'Alérgenos finales: Soya, Sulfitos ✓';
-                indicator.style.background = '#ECFDF5';
-                indicator.style.color = '#059669';
-                indicator.style.borderColor = '#10B981';
-            } else if (atStart) {
-                indicator.textContent = '14 Alérgenos FSA';
-                indicator.style.background = '';
-                indicator.style.color = '';
-                indicator.style.borderColor = '';
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (scrollRatio >= 0.90) {
+                indicator.innerHTML = `<span class="m3-scroll-badge success">✓ ${isEn ? 'End: Soya & Sulphur Dioxide' : 'Final: Soya y Sulfitos'}</span>`;
+            } else if (scrollRatio <= 0.08) {
+                indicator.innerHTML = `<span class="m3-scroll-badge start">${isEn ? 'Start: Celery & Gluten' : 'Inicio: Celery y Gluten'}</span>`;
             } else {
-                indicator.textContent = 'Alérgenos (Deslizando...)';
-                indicator.style.background = '#EFF6FF';
-                indicator.style.color = '#2563EB';
-                indicator.style.borderColor = '#93C5FD';
+                const pct = Math.round(scrollRatio * 100);
+                indicator.innerHTML = `<span class="m3-scroll-badge progress">${isEn ? 'Exploring 14 allergens' : 'Explorando 14 alérgenos'} (${pct}%)</span>`;
             }
         }
     }
 
-    setupMatrixTableDrag() {
-        const slider = document.getElementById('officialMatrixTableWrapper');
-        if (!slider || slider.dataset.dragAttached === 'true') return;
-        slider.dataset.dragAttached = 'true';
+    setupM3Scrollbar() {
+        const wrapper = document.getElementById('officialMatrixTableWrapper');
+        const track = document.getElementById('matrixM3ScrollTrack');
+        const thumb = document.getElementById('matrixM3ScrollThumb');
+        if (!wrapper || !track || !thumb) return;
 
-        let isDown = false;
-        let startX = 0;
-        let scrollLeft = 0;
+        // Sync initial state
+        this.updateM3Scrollbar();
 
-        slider.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button') || e.target.closest('a')) return;
-            isDown = true;
-            slider.classList.add('is-dragging');
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
+        if (track.dataset.bound === 'true') return;
+        track.dataset.bound = 'true';
+
+        // 1. Click track to smooth scroll
+        track.addEventListener('click', (e) => {
+            if (e.target.closest('#matrixM3ScrollThumb')) return;
+            const rect = track.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const trackWidth = track.clientWidth;
+            const thumbWidth = thumb.clientWidth;
+            const availableTrack = Math.max(1, trackWidth - thumbWidth);
+            const targetLeft = Math.max(0, Math.min(availableTrack, clickX - thumbWidth / 2));
+            const ratio = targetLeft / availableTrack;
+            const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+            wrapper.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
         });
 
-        const stopDrag = () => {
-            if (!isDown) return;
-            isDown = false;
-            slider.classList.remove('is-dragging');
+        // 2. Drag thumb
+        let isDragging = false;
+        let startX = 0;
+        let startScrollLeft = 0;
+
+        const onMouseDown = (e) => {
+            e.preventDefault();
+            isDragging = true;
+            thumb.classList.add('is-active');
+            document.body.classList.add('m3-scrollbar-dragging');
+            startX = e.clientX;
+            startScrollLeft = wrapper.scrollLeft;
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
         };
 
-        slider.addEventListener('mouseleave', stopDrag);
-        slider.addEventListener('mouseup', stopDrag);
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - startX;
+            const trackWidth = track.clientWidth;
+            const thumbWidth = thumb.clientWidth;
+            const availableTrack = Math.max(1, trackWidth - thumbWidth);
+            const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
 
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            slider.scrollLeft = scrollLeft - walk;
-            this.updateMatrixCarouselState();
-        });
+            const scrollDelta = (deltaX / availableTrack) * maxScroll;
+            wrapper.scrollLeft = startScrollLeft + scrollDelta;
+            this.updateM3Scrollbar();
+        };
+
+        const onMouseUp = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            thumb.classList.remove('is-active');
+            document.body.classList.remove('m3-scrollbar-dragging');
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
+
+        thumb.addEventListener('mousedown', onMouseDown);
+
+        // 3. Resize listener
+        if (!window._m3ScrollResizeBound) {
+            window._m3ScrollResizeBound = true;
+            window.addEventListener('resize', () => {
+                if (window.dashboard) window.dashboard.updateM3Scrollbar();
+            });
+        }
     }
 
     filterMatrixBySearch(query) {
@@ -2655,70 +2681,77 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Allergen Matrix Carousel Toolbar -->
-            <div class="matrix-table-carousel-bar">
-                <div class="matrix-carousel-badge">
-                    <span class="material-symbols-outlined">view_column</span>
-                    <span>${isEn ? 'Allergens Carousel (FSA 14)' : 'Carrusel de Alérgenos (14 FSA)'}</span>
-                </div>
-                <div class="matrix-carousel-hint">
-                    <span class="material-symbols-outlined">swipe</span>
-                    <span>${isEn ? 'Use arrows or swipe table to view all 14 allergens (Soya & Sulphites at the end)' : 'Usa las flechas o desliza para ver los 14 alérgenos (Soya y Sulfitos al final)'}</span>
-                </div>
-                <div class="matrix-carousel-actions">
-                    <button type="button" class="matrix-table-carousel-btn prev" id="matrixTableScrollLeftBtn" onclick="window.dashboard.scrollMatrixTable(-360)" title="${isEn ? 'Scroll left (earlier allergens)' : 'Ver alérgenos anteriores'}" disabled>
-                        <span class="material-symbols-outlined">chevron_left</span>
-                        <span class="btn-text">${isEn ? 'Earlier' : 'Anteriores'}</span>
-                    </button>
-                    <span class="matrix-carousel-pill" id="matrixCarouselPill">${isEn ? '14 Allergens FSA' : '14 Alérgenos FSA'}</span>
-                    <button type="button" class="matrix-table-carousel-btn next highlight" id="matrixTableScrollRightBtn" onclick="window.dashboard.scrollMatrixTable(360)" title="${isEn ? 'Scroll right (view Soya & Sulphur Dioxide)' : 'Ver alérgenos finales (Soya, Sulfitos...)'}">
-                        <span class="btn-text">${isEn ? 'More (Soya/Sulphur)' : 'Siguientes (Soya, Sulfitos...)'}</span>
-                        <span class="material-symbols-outlined">chevron_right</span>
-                    </button>
-                </div>
+            <!-- Clean Matrix Table (Without arrows on the header) -->
+            <div class="matrix-table-wrapper" id="officialMatrixTableWrapper" onscroll="window.dashboard.updateM3Scrollbar()">
+                <table class="fsa-matrix-table" id="officialFsaMatrixTable">
+                    <thead>
+                        <tr>
+                            <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
+                            ${allergens.map(a => `
+                                <th class="col-allergen" title="${a.name_en} (${a.name_es})">
+                                    <div class="th-allergen-inner" style="color: ${a.color};">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
+                                        <span class="th-name">${a.name_en}</span>
+                                    </div>
+                                </th>
+                            `).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredDishes.length === 0 ? `
+                            <tr>
+                                <td colspan="${allergens.length + 1}" style="text-align:center; padding: 36px; color: #64748B;">
+                                    <span class="material-symbols-outlined" style="font-size: 36px; color: #94A3B8; display: block; margin-bottom: 8px;">search_off</span>
+                                    ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
+                                </td>
+                            </tr>
+                        ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
+                    </tbody>
+                </table>
             </div>
 
-            <!-- Matrix Table Outer Container with Floating Carousel Arrows -->
-            <div class="matrix-table-outer-container">
-                <button type="button" class="matrix-floating-arrow left" id="matrixFloatingArrowLeft" onclick="window.dashboard.scrollMatrixTable(-360)" title="${isEn ? 'Scroll left' : 'Deslizar hacia alérgenos anteriores'}" aria-label="Anterior">
-                    <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <div class="matrix-table-wrapper" id="officialMatrixTableWrapper" onscroll="window.dashboard.updateMatrixCarouselState()">
-                    <table class="fsa-matrix-table" id="officialFsaMatrixTable">
-                        <thead>
-                            <tr>
-                                <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
-                                ${allergens.map(a => `
-                                    <th class="col-allergen" title="${a.name_en} (${a.name_es})">
-                                        <div class="th-allergen-inner" style="color: ${a.color};">
-                                            <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
-                                            <span class="th-name">${a.name_en}</span>
-                                        </div>
-                                    </th>
-                                `).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filteredDishes.length === 0 ? `
-                                <tr>
-                                    <td colspan="${allergens.length + 1}" style="text-align:center; padding: 36px; color: #64748B;">
-                                        <span class="material-symbols-outlined" style="font-size: 36px; color: #94A3B8; display: block; margin-bottom: 8px;">search_off</span>
-                                        ${isEn ? 'No dishes found matching this criteria.' : 'No se encontraron platos con los filtros seleccionados.'}
-                                    </td>
-                                </tr>
-                            ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
-                        </tbody>
-                    </table>
+            <!-- Material 3 Expressive Horizontal Scrollbar (Bottom Bar) -->
+            <div class="m3-expressive-scrollbar-bar" id="matrixM3ScrollbarBar">
+                <div class="m3-scroll-header">
+                    <div class="m3-scroll-meta-tag">
+                        <span class="material-symbols-outlined">swap_horiz</span>
+                        <span>${isEn ? 'FSA 14 Allergens Matrix' : 'Matriz 14 Alérgenos FSA'}</span>
+                    </div>
+                    <div class="m3-scroll-current-range" id="matrixM3ScrollIndicator">
+                        <span class="m3-scroll-badge start">${isEn ? 'Start: Celery & Gluten' : 'Inicio: Celery y Gluten'}</span>
+                    </div>
                 </div>
-                <button type="button" class="matrix-floating-arrow right visible" id="matrixFloatingArrowRight" onclick="window.dashboard.scrollMatrixTable(360)" title="${isEn ? 'Scroll right (view SOYA & SULPHUR DIOXIDE)' : 'Deslizar a alérgenos finales (Soya, Sulfitos...)'}" aria-label="Siguiente">
-                    <span class="material-symbols-outlined">chevron_right</span>
-                </button>
+
+                <div class="m3-scroll-track-container" id="matrixM3ScrollTrack" title="${isEn ? 'Click or drag to explore all allergens' : 'Haz clic o arrastra para ver todos los alérgenos'}">
+                    <div class="m3-scroll-track-rail"></div>
+                    <div class="m3-scroll-thumb" id="matrixM3ScrollThumb" role="scrollbar" aria-label="Control de desplazamiento de alérgenos">
+                        <div class="m3-thumb-handle">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="m3-scroll-legend">
+                    <span class="m3-legend-tag left">
+                        <span class="material-symbols-outlined">first_page</span>
+                        <span>Celery, Gluten, Crustaceans...</span>
+                    </span>
+                    <span class="m3-legend-tag middle">
+                        <span class="material-symbols-outlined">drag_indicator</span>
+                        <span>${isEn ? 'Drag bar to slide table' : 'Arrastra la barra para deslizar la tabla'}</span>
+                    </span>
+                    <span class="m3-legend-tag right">
+                        <span>Soya, Sulphur Dioxide (Final)</span>
+                        <span class="material-symbols-outlined">last_page</span>
+                    </span>
+                </div>
             </div>
         `;
 
         setTimeout(() => {
-            this.updateMatrixCarouselState();
-            this.setupMatrixTableDrag();
+            this.setupM3Scrollbar();
         }, 50);
     }
 

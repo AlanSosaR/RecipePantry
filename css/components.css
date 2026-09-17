@@ -9073,168 +9073,189 @@ input:checked~.m3-ingredient-text {
     margin: 0;
 }
 
-/* Allergen Matrix Carousel Toolbar */
-.matrix-table-carousel-bar {
+/* ==========================================================================
+   MATERIAL 3 EXPRESSIVE SCROLLBAR BAR (BOTTOM OF TABLE)
+   ========================================================================== */
+.m3-expressive-scrollbar-bar {
+    position: sticky;
+    bottom: 14px;
+    z-index: 25;
+    margin-top: 14px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid #E2E8F0;
+    border-radius: 22px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    user-select: none;
+    transition: box-shadow 0.2s ease;
+}
+
+.m3-expressive-scrollbar-bar:hover {
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.12), 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.m3-scroll-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 16px;
-    margin-bottom: 14px;
-    background: linear-gradient(135deg, #F8FAFC 0%, #F0FDF4 100%);
-    border: 1.5px solid #E2E8F0;
-    border-radius: 18px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.matrix-carousel-badge {
+.m3-scroll-meta-tag {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
-    color: #1E293B;
-    background: #FFFFFF;
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1px solid #CBD5E1;
-    white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    color: #475569;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
-.matrix-carousel-badge .material-symbols-outlined {
+.m3-scroll-meta-tag .material-symbols-outlined {
     font-size: 16px;
     color: #10B981;
 }
 
-.matrix-carousel-hint {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12.5px;
-    color: #475569;
-    font-weight: 500;
-}
-
-.matrix-carousel-hint .material-symbols-outlined {
-    font-size: 18px;
-    color: #10B981;
-}
-
-.matrix-carousel-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.matrix-carousel-pill {
-    font-size: 11.5px;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #F1F5F9;
-    color: #475569;
-    border: 1px solid #CBD5E1;
-    transition: all 0.25s ease;
-}
-
-.matrix-table-carousel-btn {
+.m3-scroll-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border-radius: 12px;
-    border: 1.5px solid #CBD5E1;
-    background: #FFFFFF;
-    color: #1E293B;
-    font-size: 12px;
+    gap: 4px;
+    font-size: 11px;
     font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
 }
 
-.matrix-table-carousel-btn:hover:not(:disabled) {
+.m3-scroll-badge.start {
     background: #F1F5F9;
-    border-color: #94A3B8;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    color: #475569;
 }
 
-.matrix-table-carousel-btn:active:not(:disabled) {
-    transform: translateY(0);
+.m3-scroll-badge.progress {
+    background: #EFF6FF;
+    color: #2563EB;
 }
 
-.matrix-table-carousel-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-    background: #F8FAFC;
-    border-color: #E2E8F0;
-    box-shadow: none;
+.m3-scroll-badge.success {
+    background: #ECFDF5;
+    color: #059669;
+    border: 1px solid #10B981;
 }
 
-.matrix-table-carousel-btn.highlight {
-    background: #0F172A;
-    color: #FFFFFF;
-    border-color: #0F172A;
-}
-
-.matrix-table-carousel-btn.highlight:hover:not(:disabled) {
-    background: #1E293B;
-    border-color: #1E293B;
-    color: #FFFFFF;
-}
-
-/* Outer Container with Floating Side Carousel Arrows */
-.matrix-table-outer-container {
+/* Track Rail */
+.m3-scroll-track-container {
     position: relative;
-    width: 100%;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 2px 0;
 }
 
-.matrix-floating-arrow {
+.m3-scroll-track-rail {
     position: absolute;
-    top: 22px;
-    z-index: 30;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #FFFFFF;
-    border: 1.5px solid #CBD5E1;
-    color: #0F172A;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 9999px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: background 0.2s ease;
+}
+
+.m3-scroll-track-container:hover .m3-scroll-track-rail {
+    background: #CBD5E1;
+}
+
+/* Thumb Pill - M3 Expressive High-Tonal Pill */
+.m3-scroll-thumb {
+    position: absolute;
+    left: 0;
+    height: 16px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.42);
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 0;
-    pointer-events: none;
-    user-select: none;
+    cursor: grab;
+    transition: height 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, filter 0.15s ease;
+    will-change: transform;
 }
 
-.matrix-floating-arrow.visible {
-    opacity: 1;
-    pointer-events: auto;
+.m3-scroll-thumb:hover {
+    height: 18px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.55);
+    filter: brightness(1.05);
 }
 
-.matrix-floating-arrow:hover {
-    background: #0F172A;
-    color: #FFFFFF;
-    border-color: #0F172A;
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+.m3-scroll-thumb.is-active,
+.m3-scroll-thumb:active {
+    cursor: grabbing;
+    height: 18px;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.65);
+    filter: brightness(1.1);
 }
 
-.matrix-floating-arrow.left {
-    left: 236px; /* Positioned past the sticky recipe name column */
+.m3-thumb-handle {
+    display: flex;
+    align-items: center;
+    gap: 3px;
 }
 
-.matrix-floating-arrow.right {
-    right: 14px;
+.m3-thumb-handle span {
+    width: 3px;
+    height: 8px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.9);
 }
 
+/* Legend row */
+.m3-scroll-legend {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #64748B;
+    font-weight: 600;
+}
+
+.m3-legend-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.m3-legend-tag .material-symbols-outlined {
+    font-size: 14px;
+}
+
+.m3-legend-tag.left {
+    color: #0F172A;
+}
+
+.m3-legend-tag.middle {
+    color: #94A3B8;
+}
+
+.m3-legend-tag.right {
+    color: #059669;
+    font-weight: 700;
+}
+
+body.m3-scrollbar-dragging {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
+
+/* Native Webkit Scrollbar on Table Wrapper (M3 Style) */
 .matrix-table-wrapper {
     background: #FFFFFF;
     border-radius: 26px;
@@ -9243,33 +9264,27 @@ input:checked~.m3-ingredient-text {
     scroll-behavior: smooth;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
     scrollbar-width: thin;
-    scrollbar-color: #94A3B8 #F1F5F9;
-    cursor: grab;
-}
-
-.matrix-table-wrapper.is-dragging {
-    cursor: grabbing;
-    user-select: none;
-    scroll-behavior: auto;
+    scrollbar-color: #10B981 #E2E8F0;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar {
-    height: 10px;
+    height: 12px;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar-track {
     background: #F1F5F9;
-    border-radius: 10px;
+    border-radius: 9999px;
+    margin: 0 16px;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
-    border-radius: 10px;
-    border: 2px solid #F1F5F9;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    border-radius: 9999px;
+    border: 3px solid #F1F5F9;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
+    background: #047857;
 }
 
 .fsa-matrix-table {
@@ -10233,19 +10248,7 @@ input:checked~.m3-ingredient-text {
         -webkit-overflow-scrolling: touch;
     }
 
-    .matrix-floating-arrow.left {
-        left: 145px;
-    }
 
-    .matrix-table-carousel-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-
-    .matrix-carousel-actions {
-        justify-content: space-between;
-    }
 
     .col-recipe-name,
     .col-recipe-name-cell {
