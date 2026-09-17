@@ -79,9 +79,9 @@ const createErrorResponse = (message, status = 503) => {
 };
 
 // 1. Instalación: Pre-caché
-// NOTE: NO llamamos self.skipWaiting() aquí para evitar el bucle infinito de recarga.
-// El skipWaiting solo se ejecuta cuando el usuario confirma la actualización manualmente.
 self.addEventListener('install', (event) => {
+    // skipWaiting para que el nuevo SW tome control inmediatamente y rompa el caché viejo
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log(`[SW] Instalando versión ${CACHE_NAME}...`);
