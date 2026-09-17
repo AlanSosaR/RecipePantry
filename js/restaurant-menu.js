@@ -84,6 +84,71 @@
             this.openDocumentViewer = this.openDocumentViewer.bind(this);
             this.cancelAddDish = this.cancelAddDish.bind(this);
             this.render = this.render.bind(this);
+
+            // Sincronizar desde Supabase al iniciar (los datos persisten aunque se borre el caché)
+            this.syncFromSupabase();
+        }
+
+        // ─── PERSISTENCIA: localStorage (caché offline) + Supabase (fuente de verdad) ───
+
+        /**
+         * Sincroniza los datos del menú desde Supabase.
+         * Se llama al iniciar. Si Supabase tiene datos más recientes, los usa y
+         * actualiza el localStorage. Así el estado sobrevive aunque se borre el caché.
+         */
+        async syncFromSupabase() {
+            try {
+                const sb = window.supabaseClient;
+                if (!sb) return;
+                const { data, error } = await sb.from('app_settings')
+                    .select('setting_key, setting_value')
+                    .in('setting_key', ['menu_availability', 'menu_removed_items', 'menu_custom_items']);
+                if (error || !data || data.length === 0) return;
+
+                let changed = false;
+                data.forEach(row => {
+                    try {
+                        const val = typeof row.setting_value === 'string'
+                            ? JSON.parse(row.setting_value) : row.setting_value;
+                        if (row.setting_key === 'menu_availability') {
+                            this.availability = val || {};
+                            localStorage.setItem('stanleys_menu_availability', JSON.stringify(this.availability));
+                            changed = true;
+                        } else if (row.setting_key === 'menu_removed_items') {
+                            this.removedItemIds = Array.isArray(val) ? val : [];
+                            localStorage.setItem('stanleys_removed_items', JSON.stringify(this.removedItemIds));
+                            changed = true;
+                        } else if (row.setting_key === 'menu_custom_items') {
+                            this.customItems = Array.isArray(val) ? val : [];
+                            localStorage.setItem('stanleys_custom_items', JSON.stringify(this.customItems));
+                            changed = true;
+                        }
+                    } catch (e) {}
+                });
+                if (changed) {
+                    console.log('[Menu] Datos sincronizados desde Supabase.');
+                    this.render();
+                }
+            } catch (e) {
+                console.warn('[Menu] No se pudo sincronizar desde Supabase (offline?):', e);
+            }
+        }
+
+        /**
+         * Guarda un valor en Supabase app_settings usando upsert.
+         * No bloquea la UI — falla silenciosamente si no hay conexión.
+         */
+        async saveToSupabase(key, value) {
+            try {
+                const sb = window.supabaseClient;
+                if (!sb) return;
+                await sb.from('app_settings').upsert(
+                    { setting_key: key, setting_value: JSON.stringify(value) },
+                    { onConflict: 'setting_key' }
+                );
+            } catch (e) {
+                console.warn('[Menu] No se pudo guardar en Supabase:', e);
+            }
         }
 
         loadAvailability() {
@@ -98,6 +163,7 @@
         saveAvailability() {
             try {
                 localStorage.setItem('stanleys_menu_availability', JSON.stringify(this.availability));
+                this.saveToSupabase('menu_availability', this.availability);
             } catch (e) {}
         }
 
@@ -113,6 +179,7 @@
         saveCustomItems() {
             try {
                 localStorage.setItem('stanleys_custom_items', JSON.stringify(this.customItems));
+                this.saveToSupabase('menu_custom_items', this.customItems);
             } catch (e) {}
         }
 
@@ -128,6 +195,7 @@
         saveRemovedItems() {
             try {
                 localStorage.setItem('stanleys_removed_items', JSON.stringify(this.removedItemIds));
+                this.saveToSupabase('menu_removed_items', this.removedItemIds);
             } catch (e) {}
         }
 
