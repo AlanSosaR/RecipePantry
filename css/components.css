@@ -9084,85 +9084,107 @@ input:checked~.m3-ingredient-text {
     overflow: hidden;
 }
 
-/* Discreet M3 scrollbar directly under the allergen header */
-.matrix-subhead-scrollbar-row th {
-    background: #F8FAFC !important;
-    border-bottom: 2px solid #E2E8F0 !important;
-    padding: 0 !important;
-    position: sticky;
-    top: 50px;
-    z-index: 8;
-}
-
-.matrix-subhead-scrollbar-row th.col-subhead-spacer {
-    position: sticky;
-    left: 0;
-    z-index: 9;
-    background: #F8FAFC !important;
-    box-shadow: 3px 0 8px rgba(0, 0, 0, 0.03);
-}
-
-.matrix-subhead-scrollbar-row th.col-subhead-scrollbar {
-    overflow: hidden;
-}
-
-.matrix-bottom-scroll-rail-container {
-    position: sticky;
-    left: 200px;
-    width: calc(100vw - 290px);
-    max-width: 960px;
-    background: #F8FAFC;
-    padding: 6px 16px;
-    display: flex;
-    align-items: center;
-    user-select: none;
+/* ==========================================================================
+   MATERIAL 3 WHITE TOOLTIP / SNACKBAR FOR ALLERGEN MATRIX
+   Replaces native black title tooltip with crisp white background & black text
+   ========================================================================== */
+.m3-white-matrix-tooltip {
+    position: fixed;
+    z-index: 999999;
+    pointer-events: none;
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    max-width: 290px;
+    min-width: 180px;
     box-sizing: border-box;
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+    transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.matrix-bottom-scroll-track {
-    position: relative;
-    flex: 1;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
+.m3-white-matrix-tooltip:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
-.matrix-bottom-scroll-track::before {
+.m3-white-matrix-tooltip.hidden {
+    display: none !important;
+}
+
+.m3-white-matrix-tooltip::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: #E2E8F0;
-    border-radius: 999px;
-    transition: background 0.15s ease;
-}
-
-.matrix-bottom-scroll-track:hover::before {
-    background: #CBD5E1;
-}
-
-.matrix-bottom-scroll-thumb {
-    position: absolute;
-    left: 0;
-    height: 8px;
-    border-radius: 999px;
-    background: #10B981;
-    cursor: grab;
-    transition: height 0.15s ease, background 0.15s ease;
-    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.35);
-}
-
-.matrix-bottom-scroll-thumb:hover,
-.matrix-bottom-scroll-thumb.is-active {
+    width: 10px;
     height: 10px;
-    background: #059669;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    transform: rotate(45deg);
 }
 
-.matrix-bottom-scroll-thumb.is-active {
-    cursor: grabbing;
+.m3-white-matrix-tooltip.arrow-bottom::after {
+    bottom: -6px;
+    left: var(--arrow-left, 50%);
+    margin-left: -5px;
+    border-top: none;
+    border-left: none;
+}
+
+.m3-white-matrix-tooltip.arrow-top::after {
+    top: -6px;
+    left: var(--arrow-left, 50%);
+    margin-left: -5px;
+    border-bottom: none;
+    border-right: none;
+}
+
+.m3-wt-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.m3-wt-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #0F172A !important;
+    line-height: 1.3;
+}
+
+.m3-wt-icon {
+    font-size: 17px !important;
+    flex-shrink: 0;
+}
+
+.m3-wt-title {
+    color: #0F172A !important;
+    letter-spacing: -0.01em;
+    flex: 1;
+}
+
+.m3-wt-tag {
+    font-size: 9.5px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.m3-wt-desc {
+    font-size: 11.5px;
+    color: #334155 !important;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-top: 2px;
 }
 
 .matrix-table-wrapper {
@@ -9171,46 +9193,27 @@ input:checked~.m3-ingredient-text {
     border-radius: 0;
     overflow-x: auto;
     overflow-y: auto;
-    max-height: 72vh;
+    max-height: 76vh;
     scroll-behavior: smooth;
-    /* Clean overflow without double scrollbar */
-    scrollbar-width: none;
+    scrollbar-width: thin;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar {
-    display: none;
-}
-
-/* Discreet horizontal scrollbar on the bottom border of the table */
-.matrix-table-wrapper::-webkit-scrollbar {
-    width: 7px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar-track {
     background: #F8FAFC;
-    border-radius: 999px;
-    margin: 0 12px;
 }
 
 .matrix-table-wrapper::-webkit-scrollbar-thumb {
     background: #CBD5E1;
     border-radius: 999px;
-    border: 2px solid #F8FAFC;
-    transition: background 0.2s ease;
-}
-
-.matrix-table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
-}
-
-.matrix-table-wrapper::-webkit-scrollbar-thumb:active {
-    background: #64748B;
 }
 
 .fsa-matrix-table {
     width: 100%;
-    min-width: 1250px; /* Ample width so 14 allergens never cram or cut off */
     border-collapse: collapse;
     font-size: 13px;
     text-align: center;
@@ -9218,7 +9221,7 @@ input:checked~.m3-ingredient-text {
 
 .fsa-matrix-table th,
 .fsa-matrix-table td {
-    padding: 12px 10px;
+    padding: 10px 8px;
     border-bottom: 1px solid #F1F5F9;
     border-right: 1px solid #F1F5F9;
 }
@@ -9233,8 +9236,6 @@ input:checked~.m3-ingredient-text {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    min-width: 68px;
-    width: 70px;
 }
 
 .matrix-section-title-sticky {
@@ -9254,17 +9255,16 @@ input:checked~.m3-ingredient-text {
 }
 
 .th-name {
-    font-size: 10.5px;
+    font-size: 10px;
     white-space: nowrap;
 }
 
 .col-recipe-name,
 .col-recipe-name-cell {
     text-align: left;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
-    min-width: 200px;
-    max-width: 280px;
+    padding-left: 14px;
+    padding-right: 14px;
+    min-width: 180px;
     position: sticky;
     left: 0;
     background: #FFFFFF;
@@ -9286,6 +9286,120 @@ input:checked~.m3-ingredient-text {
 .fsa-matrix-table th.col-recipe-name {
     background: #F8FAFC;
     z-index: 7;
+}
+
+/* ==========================================================================
+   DESKTOP PC EXPANSION: ALL 14 ALLERGENS FULLY VISIBLE WITHOUT SCROLLBAR
+   ========================================================================== */
+@media (min-width: 1024px) {
+    .allergens-module {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 10px 4px 60px 4px !important;
+        gap: 20px !important;
+    }
+
+    .allergens-hero-m3,
+    .demo-notice-banner-m3,
+    .matrix-legend-banner,
+    .matrix-card-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .matrix-card-container {
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1.5px solid #E2E8F0;
+    }
+
+    .matrix-table-wrapper {
+        overflow-x: hidden !important; /* No horizontal scrollbar needed on PC */
+        scrollbar-width: none;
+    }
+
+    .matrix-table-wrapper::-webkit-scrollbar {
+        display: none;
+    }
+
+    .fsa-matrix-table {
+        width: 100% !important;
+        min-width: 0 !important; /* Never force scrollbar overflow */
+        table-layout: fixed !important; /* Proportionally fit all 15 columns */
+    }
+
+    .col-recipe-name,
+    .col-recipe-name-cell {
+        width: 21.6% !important;
+        min-width: 160px !important;
+        max-width: 250px !important;
+        padding: 9px 12px !important;
+    }
+
+    .fsa-matrix-table th.col-allergen,
+    .fsa-matrix-table td.col-allergen-cell {
+        width: 5.6% !important; /* (100% - 21.6%) / 14 = 5.6% each */
+        min-width: 38px !important;
+        padding: 7px 1px !important;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .th-allergen-inner {
+        gap: 3px;
+    }
+
+    .th-allergen-inner span.material-symbols-outlined {
+        font-size: 17px !important;
+    }
+
+    .th-name {
+        font-size: 9.5px !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em;
+        white-space: normal !important;
+        line-height: 1.15;
+        text-align: center;
+        display: block;
+        max-width: 54px;
+        margin: 0 auto;
+        word-break: break-word;
+    }
+
+    .matrix-badge-x,
+    .matrix-badge-o {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 11px !important;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .matrix-badge-dash {
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .matrix-section-title-sticky {
+        position: static !important;
+    }
+}
+
+/* Tablet & Mobile: Graceful swipe scroll */
+@media (max-width: 1023px) {
+    .fsa-matrix-table {
+        min-width: 980px;
+    }
+    .col-recipe-name,
+    .col-recipe-name-cell {
+        min-width: 180px;
+    }
+    .fsa-matrix-table th.col-allergen {
+        min-width: 56px;
+    }
 }
 
 .fsa-matrix-table tr:hover td {
@@ -9332,7 +9446,7 @@ input:checked~.m3-ingredient-text {
     font-weight: 900;
     font-size: 12px;
     box-shadow: 0 2px 4px rgba(239, 68, 68, 0.28);
-    cursor: default;
+    cursor: pointer;
     transition: transform 0.15s ease;
 }
 
@@ -9352,7 +9466,7 @@ input:checked~.m3-ingredient-text {
     font-weight: 900;
     font-size: 12px;
     box-shadow: 0 2px 4px rgba(245, 158, 11, 0.28);
-    cursor: default;
+    cursor: pointer;
     transition: transform 0.15s ease;
 }
 
@@ -9362,8 +9476,16 @@ input:checked~.m3-ingredient-text {
 
 .matrix-badge-dash {
     color: #CBD5E1;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14px;
+    cursor: pointer;
+    display: inline-block;
+    padding: 2px 6px;
+    transition: color 0.15s ease;
+}
+
+.matrix-badge-dash:hover {
+    color: #10B981;
 }
 
 .col-allergen-cell.has-x {

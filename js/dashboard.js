@@ -2451,108 +2451,84 @@ class DashboardManager {
         }
     }
 
-    setupMatrixBottomScrollbar() {
-        const wrapper = document.getElementById('officialMatrixTableWrapper');
-        const track = document.getElementById('matrixBottomScrollTrack');
-        const thumb = document.getElementById('matrixBottomScrollThumb');
-        if (!wrapper || !track || !thumb) return;
-
-        const updateThumb = () => {
-            const scrollLeft = wrapper.scrollLeft;
-            const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-            const trackWidth = track.clientWidth;
-
-            if (maxScroll <= 0 || trackWidth <= 0) {
-                thumb.style.width = '100%';
-                thumb.style.transform = 'translateX(0px)';
-                return;
-            }
-
-            const visibleRatio = Math.min(1, Math.max(0.15, wrapper.clientWidth / wrapper.scrollWidth));
-            const thumbWidth = Math.max(60, visibleRatio * trackWidth);
-            const availableTrack = Math.max(0, trackWidth - thumbWidth);
-
-            const scrollRatio = Math.min(1, Math.max(0, scrollLeft / maxScroll));
-            const thumbLeft = scrollRatio * availableTrack;
-
-            thumb.style.width = `${thumbWidth}px`;
-            thumb.style.transform = `translateX(${thumbLeft}px)`;
-        };
-
-        if (track.dataset.bound !== 'true') {
-            track.dataset.bound = 'true';
-
-            // 1. Click track to jump/scroll
-            track.addEventListener('click', (e) => {
-                if (e.target.closest('#matrixBottomScrollThumb')) return;
-                const rect = track.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const trackWidth = track.clientWidth;
-                const thumbWidth = thumb.clientWidth;
-                const availableTrack = Math.max(1, trackWidth - thumbWidth);
-                const targetLeft = Math.max(0, Math.min(availableTrack, clickX - thumbWidth / 2));
-                const ratio = targetLeft / availableTrack;
-                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-                wrapper.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
-            });
-
-            // 2. Drag thumb
-            let isDragging = false;
-            let startX = 0;
-            let startScrollLeft = 0;
-
-            const onMouseDown = (e) => {
-                e.preventDefault();
-                isDragging = true;
-                thumb.classList.add('is-active');
-                document.body.classList.add('m3-scrollbar-dragging');
-                startX = e.clientX;
-                startScrollLeft = wrapper.scrollLeft;
-                window.addEventListener('mousemove', onMouseMove);
-                window.addEventListener('mouseup', onMouseUp);
-            };
-
-            const onMouseMove = (e) => {
-                if (!isDragging) return;
-                const deltaX = e.clientX - startX;
-                const trackWidth = track.clientWidth;
-                const thumbWidth = thumb.clientWidth;
-                const availableTrack = Math.max(1, trackWidth - thumbWidth);
-                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-
-                const scrollDelta = (deltaX / availableTrack) * maxScroll;
-                wrapper.scrollLeft = startScrollLeft + scrollDelta;
-                updateThumb();
-            };
-
-            const onMouseUp = () => {
-                if (!isDragging) return;
-                isDragging = false;
-                thumb.classList.remove('is-active');
-                document.body.classList.remove('m3-scrollbar-dragging');
-                window.removeEventListener('mousemove', onMouseMove);
-                window.removeEventListener('mouseup', onMouseUp);
-            };
-
-            thumb.addEventListener('mousedown', onMouseDown);
-
-            // 3. Sync when table scrolls
-            wrapper.addEventListener('scroll', updateThumb);
-
-            // 4. Mouse wheel over table headers scrolls horizontally!
-            wrapper.addEventListener('wheel', (e) => {
-                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-                if (maxScroll > 0 && (e.target.closest('thead') || e.shiftKey)) {
-                    e.preventDefault();
-                    wrapper.scrollLeft += (e.deltaY || e.deltaX);
-                    updateThumb();
-                }
-            }, { passive: false });
-
-            window.addEventListener('resize', updateThumb);
+    setupMatrixWhiteTooltips() {
+        let tooltip = document.getElementById('m3WhiteMatrixTooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'm3WhiteMatrixTooltip';
+            tooltip.className = 'm3-white-matrix-tooltip hidden';
+            document.body.appendChild(tooltip);
         }
 
-        updateThumb();
+        const showTooltip = (el) => {
+            const title = el.getAttribute('data-m3-tooltip-title') || '';
+            const desc = el.getAttribute('data-m3-tooltip-desc') || '';
+            const tag = el.getAttribute('data-m3-tooltip-tag') || '';
+            const icon = el.getAttribute('data-m3-tooltip-icon') || '';
+            const iconColor = el.getAttribute('data-m3-tooltip-color') || '#0F172A';
+
+            if (!title && !desc) return;
+
+            tooltip.innerHTML = `
+                <div class="m3-wt-container">
+                    <div class="m3-wt-header">
+                        ${icon ? `<span class="material-symbols-outlined m3-wt-icon" style="color: ${iconColor};">${icon}</span>` : ''}
+                        <span class="m3-wt-title">${title}</span>
+                        ${tag ? `<span class="m3-wt-tag" style="background: ${iconColor}18; color: ${iconColor}; border: 1px solid ${iconColor}33;">${tag}</span>` : ''}
+                    </div>
+                    ${desc ? `<div class="m3-wt-desc">${desc}</div>` : ''}
+                </div>
+            `;
+
+            tooltip.classList.remove('hidden');
+            tooltip.classList.remove('arrow-top', 'arrow-bottom');
+
+            const rect = el.getBoundingClientRect();
+            const ttRect = tooltip.getBoundingClientRect();
+
+            let left = rect.left + (rect.width / 2) - (ttRect.width / 2);
+            left = Math.max(12, Math.min(window.innerWidth - ttRect.width - 12, left));
+
+            let top = rect.top - ttRect.height - 9;
+            let arrowClass = 'arrow-bottom';
+            if (top < 10) {
+                top = rect.bottom + 9;
+                arrowClass = 'arrow-top';
+            }
+
+            const arrowLeft = Math.max(16, Math.min(ttRect.width - 16, (rect.left + rect.width / 2) - left));
+            tooltip.style.setProperty('--arrow-left', `${arrowLeft}px`);
+            tooltip.classList.add(arrowClass);
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        };
+
+        const hideTooltip = () => {
+            if (tooltip) {
+                tooltip.classList.add('hidden');
+            }
+        };
+
+        if (document.body.dataset.m3TooltipBound !== 'true') {
+            document.body.dataset.m3TooltipBound = 'true';
+
+            document.addEventListener('mouseover', (e) => {
+                const target = e.target.closest('[data-m3-tooltip-title]');
+                if (target) {
+                    showTooltip(target);
+                }
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                const target = e.target.closest('[data-m3-tooltip-title]');
+                if (target) {
+                    if (e.relatedTarget && target.contains(e.relatedTarget)) return;
+                    hideTooltip();
+                }
+            });
+
+            window.addEventListener('scroll', hideTooltip, { passive: true });
+        }
     }
 
 
@@ -2648,15 +2624,30 @@ class DashboardManager {
             <!-- Legend Banner with FSA UK Key -->
             <div class="matrix-legend-banner">
                 <div class="matrix-legend-items">
-                    <div class="matrix-legend-item">
+                    <div class="matrix-legend-item"
+                        data-m3-tooltip-title="${isEn ? 'Direct Ingredient' : 'Ingrediente Directo'}"
+                        data-m3-tooltip-icon="close"
+                        data-m3-tooltip-color="#EF4444"
+                        data-m3-tooltip-tag="X"
+                        data-m3-tooltip-desc="${isEn ? 'The allergen is an intentional recipe ingredient.' : 'El alérgeno está presente directamente en los ingredientes de la receta.'}">
                         <span class="matrix-badge-x">X</span>
                         <span>${isEn ? 'Contains allergen (Direct ingredient)' : 'Contiene el alérgeno (Ingrediente directo)'}</span>
                     </div>
-                    <div class="matrix-legend-item">
+                    <div class="matrix-legend-item"
+                        data-m3-tooltip-title="${isEn ? 'Cross-Contamination Risk' : 'Riesgo de Contaminación Cruzada'}"
+                        data-m3-tooltip-icon="warning"
+                        data-m3-tooltip-color="#D97706"
+                        data-m3-tooltip-tag="O"
+                        data-m3-tooltip-desc="${isEn ? 'Risk of traces due to shared fryers, grills or prep utensils.' : 'Riesgo de trazas por freidoras compartidas, plancha o utensilios de cocina.'}">
                         <span class="matrix-badge-o">O</span>
                         <span>${isEn ? 'Cross-contamination risk (Shared fryers/equipment)' : 'Riesgo de contaminación cruzada (Freidoras/utensilios compartidos)'}</span>
                     </div>
-                    <div class="matrix-legend-item">
+                    <div class="matrix-legend-item"
+                        data-m3-tooltip-title="${isEn ? 'Free from Allergen' : 'Libre del Alérgeno'}"
+                        data-m3-tooltip-icon="check_circle"
+                        data-m3-tooltip-color="#10B981"
+                        data-m3-tooltip-tag="-"
+                        data-m3-tooltip-desc="${isEn ? 'Safe recipe with no declared presence or cross-contact.' : 'Receta segura sin presencia directa ni riesgos reportados.'}">
                         <span class="matrix-badge-dash" style="font-size: 20px; line-height: 1;">-</span>
                         <span>${isEn ? 'Safe / Free from allergen' : 'Libre del alérgeno'}</span>
                     </div>
@@ -2691,7 +2682,7 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Table Card with Discreet M3 Scrollbar Directly Underneath the Allergens -->
+            <!-- Table Card with Full Width on PC -->
             <div class="matrix-card-container">
                 <div class="matrix-table-wrapper" id="officialMatrixTableWrapper">
                     <table class="fsa-matrix-table" id="officialFsaMatrixTable">
@@ -2699,24 +2690,18 @@ class DashboardManager {
                             <tr class="matrix-header-allergens-row">
                                 <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
                                 ${allergens.map(a => `
-                                    <th class="col-allergen" title="${a.name_en} (${a.name_es})">
+                                    <th class="col-allergen"
+                                        data-m3-tooltip-title="${a.name_en} (${a.name_es})"
+                                        data-m3-tooltip-icon="${a.icon}"
+                                        data-m3-tooltip-color="${a.color}"
+                                        data-m3-tooltip-tag="UK FSA"
+                                        data-m3-tooltip-desc="${isEn ? 'Official mandatory UK FSA allergen.' : 'Alérgeno oficial de declaración obligatoria según UK FSA.'}">
                                         <div class="th-allergen-inner" style="color: ${a.color};">
                                             <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
                                             <span class="th-name">${a.name_en}</span>
                                         </div>
                                     </th>
                                 `).join('')}
-                            </tr>
-                            <!-- Subhead Scrollbar Row: DIRECTLY BELOW THE ALLERGENS (Abajo de las alergias) -->
-                            <tr class="matrix-subhead-scrollbar-row">
-                                <th class="col-recipe-name col-subhead-spacer"></th>
-                                <th colspan="${allergens.length}" class="col-subhead-scrollbar">
-                                    <div class="matrix-bottom-scroll-rail-container" id="matrixBottomScrollRailContainer">
-                                        <div class="matrix-bottom-scroll-track" id="matrixBottomScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
-                                            <div class="matrix-bottom-scroll-thumb" id="matrixBottomScrollThumb"></div>
-                                        </div>
-                                    </div>
-                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2734,9 +2719,7 @@ class DashboardManager {
             </div>
         `;
 
-        setTimeout(() => {
-            this.setupMatrixBottomScrollbar();
-        }, 50);
+        this.setupMatrixWhiteTooltips();
     }
 
     renderMatrixTableRows(dishes, allergens, isEn) {
@@ -2784,19 +2767,34 @@ class DashboardManager {
                         if (hasX) {
                             return `
                                 <td class="col-allergen-cell has-x">
-                                    <span class="matrix-badge-x" title="${isEn ? `Contains ${a.name_en} (Direct)` : `Contiene ${a.name_es} (Ingrediente directo)`}">X</span>
+                                    <span class="matrix-badge-x"
+                                        data-m3-tooltip-title="${isEn ? `Contains ${a.name_en}` : `Contiene ${a.name_es}`}"
+                                        data-m3-tooltip-icon="close"
+                                        data-m3-tooltip-color="#EF4444"
+                                        data-m3-tooltip-tag="${isEn ? 'Direct Ingredient' : 'Ingrediente Directo'}"
+                                        data-m3-tooltip-desc="${isEn ? `Direct ingredient in recipe for ${displayName}.` : `Ingrediente directo en la preparación de ${displayName}.`}">X</span>
                                 </td>
                             `;
                         } else if (hasO) {
                             return `
                                 <td class="col-allergen-cell has-o">
-                                    <span class="matrix-badge-o" title="${isEn ? `Cross-contamination risk: ${a.name_en}` : `Riesgo de contaminación cruzada: ${a.name_es}`}">O</span>
+                                    <span class="matrix-badge-o"
+                                        data-m3-tooltip-title="${isEn ? `Cross-Contamination: ${a.name_en}` : `Riesgo Cruzado: ${a.name_es}`}"
+                                        data-m3-tooltip-icon="warning"
+                                        data-m3-tooltip-color="#D97706"
+                                        data-m3-tooltip-tag="${isEn ? 'Shared Equipment' : 'Contacto Cruzado'}"
+                                        data-m3-tooltip-desc="${isEn ? `Risk of traces in ${displayName} from fryers or utensils.` : `Riesgo de trazas en ${displayName} por freidoras compartidas o utensilios.`}">O</span>
                                 </td>
                             `;
                         } else {
                             return `
                                 <td class="col-allergen-cell">
-                                    <span class="matrix-badge-dash">-</span>
+                                    <span class="matrix-badge-dash"
+                                        data-m3-tooltip-title="${isEn ? `Safe / Free from ${a.name_en}` : `Libre de ${a.name_es}`}"
+                                        data-m3-tooltip-icon="check_circle"
+                                        data-m3-tooltip-color="#10B981"
+                                        data-m3-tooltip-tag="${isEn ? 'Allergen Free' : 'Sin Alérgeno'}"
+                                        data-m3-tooltip-desc="${isEn ? `Safe: No ${a.name_en} declared in ${displayName}.` : `Seguro: Sin ${a.name_es} declarado en ${displayName}.`}">-</span>
                                 </td>
                             `;
                         }
