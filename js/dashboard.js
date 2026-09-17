@@ -2597,30 +2597,6 @@ class DashboardManager {
         }
 
         tabMount.innerHTML = `
-            <div class="demo-notice-banner-m3" style="border-left: 4px solid #10B981;">
-                <div class="demo-notice-left">
-                    <div class="demo-notice-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
-                        <span class="material-symbols-outlined">verified</span>
-                    </div>
-                    <div>
-                        <div class="demo-notice-title">
-                            ${isEn ? "Stanley's SW16 - Official Kitchen Allergen Matrix (05_26)" : "Stanley's SW16 - Matriz Oficial de Alérgenos de Cocina (05_26)"}
-                        </div>
-                        <div class="demo-notice-sub">
-                            ${isEn 
-                                ? "Single source of truth extracted directly from the restaurant specification (STANLEYS UPDATED ALLERGENS 05_26.numbers). 73 recipes across 8 sections with FSA UK 14 Allergens compliance." 
-                                : "Fuente oficial de verdad extraída directamente del documento de cocina (STANLEYS UPDATED ALLERGENS 05_26.numbers). 73 recetas en 8 secciones en cumplimiento con la normativa UK FSA."}
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="matrix-official-badge" style="background:#0F172A; color:#FFFFFF; padding:8px 18px; border-radius:999px; font-weight:700; font-size:13px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
-                        <span class="material-symbols-outlined" style="font-size:18px; color:#10B981;">verified</span>
-                        <span>${isEn ? "Stanley's Official (73)" : "Matriz Oficial (73)"}</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Legend Banner with FSA UK Key -->
             <div class="matrix-legend-banner">
                 <div class="matrix-legend-items">
