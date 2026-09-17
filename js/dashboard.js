@@ -2628,12 +2628,6 @@ class DashboardManager {
                         <span>${isEn ? 'Safe / Free from allergen' : 'Libre del alérgeno'}</span>
                     </div>
                 </div>
-                <div class="matrix-actions">
-                    <button class="btn-m3-tonal" onclick="window.print()" title="${isEn ? 'Print kitchen matrix' : 'Imprimir matriz de cocina'}">
-                        <span class="material-symbols-outlined">print</span>
-                        <span>${isEn ? 'Print Matrix' : 'Imprimir'}</span>
-                    </button>
-                </div>
             </div>
 
             <!-- Horizontal Scrollable Section Chips Carousel -->
