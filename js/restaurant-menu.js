@@ -334,6 +334,101 @@
             }
         }
 
+        showHelpModal() {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const modalHtml = `
+                <div id="menuHelpModal" class="modal-overlay" style="display: flex; z-index: 99999;">
+                    <div class="share-modal-container" style="max-width: 520px; width: 92%;">
+                        <div class="modal-header">
+                            <div class="header-info">
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="color: #2563EB;">help</span>
+                                    <span>${isEn ? 'How do updates & new dishes work?' : '¿Cómo se actualiza la carta?'}</span>
+                                </h3>
+                                <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #666;">
+                                    ${isEn ? 'Guide for menu updates and kitchen availability.' : 'Guía de actualización y disponibilidad en cocina.'}
+                                </p>
+                            </div>
+                            <button class="btn-close-modal" onclick="document.getElementById('menuHelpModal').remove()">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                        ${isEn ? '1. Add New Dishes' : '1. Agregar Nuevos Platos'}
+                                    </h4>
+                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                        ${isEn 
+                                            ? 'Click the <strong>"+ Add New Dish"</strong> button at the top to add any seasonal special or newly introduced dish.' 
+                                            : 'Usa el botón <strong>"+ Agregar Plato"</strong> en la parte superior para añadir novedades o especiales de temporada.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                        ${isEn ? '2. Remove Outdated Dishes' : '2. Quitar Platos Retirados'}
+                                    </h4>
+                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                        ${isEn 
+                                            ? 'Click the <strong>trash icon</strong> at the bottom of any dish card to remove it from the active menu.' 
+                                            : 'Haz clic en el icono de <strong>papelera</strong> en la tarjeta del plato para retirarlo de la carta activa.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #FFFBEB; color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">do_not_disturb_on</span>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                        ${isEn ? '3. Out of Stock / 86 (Kitchen Service)' : '3. Agotado / 86 (Servicio Diario)'}
+                                    </h4>
+                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                        ${isEn 
+                                            ? 'Click the <strong>"86"</strong> button on any dish to mark it temporarily out of stock for the shift without deleting it.' 
+                                            : 'Usa el botón <strong>"86"</strong> en cualquier plato para marcarlo como agotado en cocina durante el servicio sin tener que borrarlo.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">restore</span>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #111827;">
+                                        ${isEn ? '4. Restore Original Menu' : '4. Restaurar Carta Original'}
+                                    </h4>
+                                    <p style="margin: 0; font-size: 13px; color: #4B5563; line-height: 1.45;">
+                                        ${isEn 
+                                            ? 'If you ever need to revert back to the original restaurant menu, click "Restore All Items".' 
+                                            : 'Si en algún momento deseas recuperar platos borrados, el botón "Restaurar Todo" restaurará la carta oficial.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="display: flex; justify-content: flex-end; padding: 16px 20px;">
+                            <button class="btn-primary" onclick="document.getElementById('menuHelpModal').remove()">
+                                <span>${isEn ? 'Got It' : 'Entendido'}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
         render() {
             const container = document.getElementById(this.containerId);
             if (!container) return;
@@ -420,6 +515,11 @@
                                 <span class="material-symbols-outlined" style="font-size: 17px;">open_in_new</span>
                                 <span>${isEn ? 'Official PDF' : 'PDF Original'}</span>
                             </a>
+
+                            <button class="menu-action-pill" onclick="window.restaurantMenu.showHelpModal()" title="${isEn ? 'How updates and dishes work' : '¿Cómo funciona la gestión del menú?'}" style="background: #EFF6FF; color: #1E40AF; border-color: #DBEAFE;">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #2563EB;">help</span>
+                                <span>${isEn ? 'Help' : 'Ayuda'}</span>
+                            </button>
 
                             ${this.removedItemIds.length > 0 ? `
                                 <button class="menu-action-pill" onclick="window.restaurantMenu.resetOriginalMenu()" title="Restaurar platos ocultados" style="background: #FEF3C7; color: #92400E;">
@@ -566,26 +666,6 @@
                 <div class="menu-items-container">
                     ${sectionsHtml}
                 </div>
-
-                <!-- Footer Info / How updates work -->
-                <div class="menu-update-explainer-card">
-                    <div class="menu-update-icon">
-                        <span class="material-symbols-outlined">sync_alt</span>
-                    </div>
-                    <div class="menu-update-content">
-                        <h4>${isEn ? 'How do updates & new dishes work?' : '¿Cómo se actualizan o agregan nuevos platos si cambia la web?'}</h4>
-                        <p>
-                            ${isEn 
-                                ? '1. <strong>Direct Addition:</strong> Click "+ Add New Dish" above to instantly add any new special or changed plate.<br>' +
-                                  '2. <strong>Remove Outdated Items:</strong> Click the trash icon on any dish that was taken off the restaurant menu.<br>' +
-                                  '3. <strong>Daily Kitchen 86:</strong> Use "86 / Out of Stock" to temporarily deactivate a dish without deleting it.'
-                                : '1. <strong>Agregar Platos:</strong> Usa el botón "+ Agregar Plato" arriba para añadir al instante cualquier plato nuevo que publiquen en su web.<br>' +
-                                  '2. <strong>Quitar Platos Viejos:</strong> Haz clic en el icono de papelera en cualquier plato que hayan quitado de la carta.<br>' +
-                                  '3. <strong>Agotado en Cocina (86):</strong> Usa el botón "Agotado (86)" para apagar temporalmente platos que se terminen durante el servicio sin tener que borrarlos.'}
-                        </p>
-                    </div>
-                </div>
-
                 </div>
             `;
 
