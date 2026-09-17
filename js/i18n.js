@@ -12,6 +12,7 @@
         es: {
             // ── Sidebar nav ──────────────────────────────────────────────
             navRecipes: 'Recetas',
+            navMenu: 'Menú',
             navFavorites: 'Favoritos',
             navScan: 'Escanear Receta',
             navNotes: 'Notas',
@@ -377,6 +378,7 @@
         en: {
             // ── Sidebar nav ──────────────────────────────────────────────
             navRecipes: 'Recipes',
+            navMenu: 'Menu',
             navFavorites: 'Favorites',
             navScan: 'Scan Recipe',
             navNotes: 'Notes',

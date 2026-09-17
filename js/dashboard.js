@@ -109,11 +109,11 @@ class DashboardManager {
             const urlParams = new URLSearchParams(window.location.search);
             let viewParam = urlParams.get('view');
             const rawHash = (window.location.hash || '').replace('#', '').toLowerCase();
-            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens'].includes(rawHash)) {
+            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu'].includes(rawHash)) {
                 viewParam = rawHash;
             }
             if (viewParam === 'settings') viewParam = 'help';
-            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens'].includes(viewParam)) {
+            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
             this.currentOffset = 0;
@@ -427,9 +427,11 @@ class DashboardManager {
             this.showHelpView();
         } else if (view === 'allergens') {
             this.showAllergensView();
+        } else if (view === 'menu') {
+            this.showMenuView();
         }
 
-        if (view !== 'allergens') {
+        if (view !== 'allergens' && view !== 'menu') {
             this.allergenSearchQuery = '';
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
@@ -446,11 +448,13 @@ class DashboardManager {
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
         const allergensView = document.getElementById('allergensView');
+        const menuView = document.getElementById('menuView');
         const titleEl = document.getElementById('view-title');
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
         if (allergensView) allergensView.classList.add('hidden');
+        if (menuView) menuView.classList.add('hidden');
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.add('hidden');
 
@@ -470,6 +474,37 @@ class DashboardManager {
 
         if (titleEl) {
             titleEl.textContent = (window.i18n && window.i18n.t) ? window.i18n.t('navHelp', 'Configuración') : 'Configuración';
+        }
+    }
+
+    showMenuView() {
+        console.log('[Dashboard] Executing showMenuView');
+        this.currentView = 'menu';
+        const grid = document.getElementById('recipesGrid');
+        const empty = document.getElementById('emptyState');
+        const help = document.getElementById('helpView');
+        const allergensView = document.getElementById('allergensView');
+        const menuView = document.getElementById('menuView');
+        const titleEl = document.getElementById('view-title');
+
+        if (grid) grid.classList.add('hidden');
+        if (empty) empty.classList.add('hidden');
+        if (help) help.classList.add('hidden');
+        if (allergensView) allergensView.classList.add('hidden');
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.add('hidden');
+
+        if (this.isSelectionMode) this.clearSelection();
+
+        if (menuView) {
+            menuView.classList.remove('hidden');
+            if (window.restaurantMenu) {
+                window.restaurantMenu.render();
+            }
+        }
+
+        if (titleEl) {
+            titleEl.textContent = (window.i18n && window.i18n.t) ? (window.i18n.t('navMenu') || 'Menú') : 'Menú';
         }
     }
 
@@ -515,6 +550,9 @@ class DashboardManager {
 
         const allergensView = document.getElementById('allergensView');
         if (allergensView) allergensView.classList.add('hidden');
+
+        const menuView = document.getElementById('menuView');
+        if (menuView) menuView.classList.add('hidden');
 
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.remove('hidden');
@@ -2018,11 +2056,13 @@ class DashboardManager {
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
         const allergensView = document.getElementById('allergensView');
+        const menuView = document.getElementById('menuView');
         const titleEl = document.getElementById('view-title');
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
         if (help) help.classList.add('hidden');
+        if (menuView) menuView.classList.add('hidden');
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.add('hidden');
 
