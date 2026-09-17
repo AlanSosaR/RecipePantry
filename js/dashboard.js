@@ -2471,11 +2471,11 @@ class DashboardManager {
 
             tooltip.innerHTML = `
                 <div class="m3-wt-container">
-                    <div class="m3-wt-header">
+                    <div class="m3-wt-top-row">
                         ${icon ? `<span class="material-symbols-outlined m3-wt-icon" style="color: ${iconColor};">${icon}</span>` : ''}
-                        <span class="m3-wt-title">${title}</span>
-                        ${tag ? `<span class="m3-wt-tag" style="background: ${iconColor}18; color: ${iconColor}; border: 1px solid ${iconColor}33;">${tag}</span>` : ''}
+                        ${tag ? `<span class="m3-wt-tag" style="background: ${iconColor}16; color: ${iconColor}; border: 1px solid ${iconColor}33;">${tag}</span>` : ''}
                     </div>
+                    <div class="m3-wt-title">${title}</div>
                     ${desc ? `<div class="m3-wt-desc">${desc}</div>` : ''}
                 </div>
             `;
@@ -2768,7 +2768,7 @@ class DashboardManager {
                             return `
                                 <td class="col-allergen-cell has-x">
                                     <span class="matrix-badge-x"
-                                        data-m3-tooltip-title="${isEn ? `Contains ${a.name_en}` : `Contiene ${a.name_es}`}"
+                                        data-m3-tooltip-title="${isEn ? `${a.name_en} (${a.name_es})` : `${a.name_es} (${a.name_en})`}"
                                         data-m3-tooltip-icon="close"
                                         data-m3-tooltip-color="#EF4444"
                                         data-m3-tooltip-tag="${isEn ? 'Direct Ingredient' : 'Ingrediente Directo'}"
@@ -2779,10 +2779,10 @@ class DashboardManager {
                             return `
                                 <td class="col-allergen-cell has-o">
                                     <span class="matrix-badge-o"
-                                        data-m3-tooltip-title="${isEn ? `Cross-Contamination: ${a.name_en}` : `Riesgo Cruzado: ${a.name_es}`}"
+                                        data-m3-tooltip-title="${isEn ? `${a.name_en} (${a.name_es})` : `${a.name_es} (${a.name_en})`}"
                                         data-m3-tooltip-icon="warning"
                                         data-m3-tooltip-color="#D97706"
-                                        data-m3-tooltip-tag="${isEn ? 'Shared Equipment' : 'Contacto Cruzado'}"
+                                        data-m3-tooltip-tag="${isEn ? 'Cross-Contamination' : 'Contacto Cruzado'}"
                                         data-m3-tooltip-desc="${isEn ? `Risk of traces in ${displayName} from fryers or utensils.` : `Riesgo de trazas en ${displayName} por freidoras compartidas o utensilios.`}">O</span>
                                 </td>
                             `;
@@ -2790,7 +2790,7 @@ class DashboardManager {
                             return `
                                 <td class="col-allergen-cell">
                                     <span class="matrix-badge-dash"
-                                        data-m3-tooltip-title="${isEn ? `Safe / Free from ${a.name_en}` : `Libre de ${a.name_es}`}"
+                                        data-m3-tooltip-title="${isEn ? `${a.name_en} (${a.name_es})` : `${a.name_es} (${a.name_en})`}"
                                         data-m3-tooltip-icon="check_circle"
                                         data-m3-tooltip-color="#10B981"
                                         data-m3-tooltip-tag="${isEn ? 'Allergen Free' : 'Sin Alérgeno'}"
