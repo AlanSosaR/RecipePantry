@@ -1,4 +1,4 @@
-const APP_VERSION_ID = 'v560';
+const APP_VERSION_ID = 'v561';
 const SW_PATH = '/sw.js';
 let currentWorker = null;
 let updateBannerDismissed = false;
@@ -74,7 +74,7 @@ async function checkVersionJson() {
         const res = await fetch('/version.json?_t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        const currentVersion = (window.CONFIG && window.CONFIG.BUILD_ID) || APP_VERSION_ID;
+        const currentVersion = (window.APP_CONFIG && window.APP_CONFIG.BUILD_ID) || APP_VERSION_ID;
         if (data && data.build) {
             if (data.build !== currentVersion) {
                 console.log(`[Version] Nueva versión en servidor: ${data.build} (actual: ${currentVersion})`);
