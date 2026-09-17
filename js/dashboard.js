@@ -2718,8 +2718,9 @@ class DashboardManager {
             const crossAllergens = item.crossContamination || (window.detectRecipeCrossContamination ? window.detectRecipeCrossContamination(item) : []);
             const crossSet = new Set(crossAllergens.map(c => (typeof c === 'object' ? c.id : c)));
 
-            const displayName = isEn ? (item.name_en || item.name || item.name_es) : (item.name_es || item.name_en || item.name);
-            const subName = isEn ? item.name_es : (item.name_en || item.rawName);
+            // Primary dish name always in English as requested for official kitchen matrix
+            const displayName = item.name_en || item.name || item.rawName || item.name_es;
+            const subName = (item.name_es && item.name_es !== displayName) ? item.name_es : '';
 
             rowsHtml.push(`
                 <tr class="matrix-dish-row" data-name="${(displayName + ' ' + (subName || '')).toLowerCase()}" data-raw="${(item.rawName || '').toLowerCase()}" data-section="${item.section || ''}">
