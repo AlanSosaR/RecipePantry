@@ -2997,30 +2997,6 @@ class DashboardManager {
         }
 
         tabMount.innerHTML = `
-            <div class="demo-notice-banner-m3">
-                <div class="demo-notice-left">
-                    <div class="demo-notice-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
-                        <span class="material-symbols-outlined">shield_with_heart</span>
-                    </div>
-                    <div>
-                        <div class="demo-notice-title">
-                            ${isEn ? "Safe Diner Filter (Kitchen & Front-of-House Protocol)" : "Filtro de Comensal Seguro (Protocolo de Cocina y Sala)"}
-                        </div>
-                        <div class="demo-notice-sub">
-                            ${isEn 
-                                ? `Analyzing 73 dishes from Stanley's Official Kitchen Menu. Excludes direct allergens and identifies cross-contamination risks.`
-                                : `Analizando 73 platos del Menú Oficial de Stanley's SW16. Excluye alérgenos directos e identifica riesgos de contaminación cruzada.`}
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="matrix-official-badge" style="background:#0F172A; color:#FFFFFF; padding:8px 18px; border-radius:999px; font-weight:700; font-size:13px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
-                        <span class="material-symbols-outlined" style="font-size:18px; color:#10B981;">verified</span>
-                        <span>${isEn ? "Stanley's Official (73)" : "Carta Oficial (73)"}</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="safe-filter-panel">
                 <div class="safe-filter-header">
                     <div class="safe-filter-title">
