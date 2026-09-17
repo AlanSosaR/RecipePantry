@@ -294,7 +294,7 @@
             }
 
             emptyState.style.display = 'none';
-            grid.style.display = 'block'; // Masonry relies on column-count
+            grid.style.display = 'grid';
             grid.innerHTML = '';
 
             // Use filtered list
@@ -652,7 +652,13 @@
             const userId = user?.auth_user_id || user?.id;
 
             if (isCurrent) {
-                if (userId) this.removeNoteFromCache(userId, id);
+                if (userId) {
+                    this.removeNoteFromCache(userId, id);
+                    const list = (this.getNotesFromCache(userId) || []).filter(n => n.id !== id);
+                    this.setNotesToCache(userId, list);
+                    this.notes = list;
+                    this.saveCustomOrder();
+                }
                 window.location.href = '/notas';
                 window.supabaseClient.from('notes').delete().eq('id', id)
                     .then(({ error }) => {
@@ -664,7 +670,10 @@
             // Lista de notas: quitar tarjeta de UI al instante (optimista)
             const removed = this.notes.find(n => n.id === id);
             this.notes = this.notes.filter(n => n.id !== id);
-            if (userId) this.removeNoteFromCache(userId, id);
+            if (userId) {
+                this.removeNoteFromCache(userId, id);
+                this.saveCustomOrder();
+            }
             this.renderNotesList();
             if (window.uiManager) window.uiManager.showToast('Nota eliminada', 'success');
 
@@ -675,7 +684,10 @@
                         console.error('Error al eliminar nota:', error);
                         if (removed) {
                             this.notes.unshift(removed);
-                            if (userId) this.updateNoteInCache(userId, removed);
+                            if (userId) {
+                                this.updateNoteInCache(userId, removed);
+                                this.saveCustomOrder();
+                            }
                             this.renderNotesList();
                         }
                         if (window.uiManager) window.uiManager.showToast('Error al eliminar', 'error');

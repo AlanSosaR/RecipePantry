@@ -702,32 +702,34 @@
 }
 
 .recipe-masonry {
-    column-count: 1;
-    column-gap: 16px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
     width: 100%;
+    align-items: start;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
     .recipe-masonry {
-        column-count: 2;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (min-width: 1024px) {
     .recipe-masonry {
-        column-count: 3;
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (min-width: 1440px) {
     .recipe-masonry {
-        column-count: 4;
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
 .note-card {
-    break-inside: avoid;
-    margin-bottom: 24px;
+    margin-bottom: 0;
+    align-self: start;
     background: #ffffff;
     border: 1px solid rgba(0,0,0,0.05);
     border-radius: 20px;
