@@ -2,6 +2,7 @@ const APP_VERSION_ID = 'v589';
 const SW_PATH = '/sw.js';
 let currentWorker = null;
 let updateBannerDismissed = false;
+let _updateNotified = false; // guard: evita notificaciones duplicadas en la misma sesión
 
 // 1. Registro del Service Worker
 async function registerSW() {
@@ -78,10 +79,14 @@ async function checkVersionJson() {
         if (data && data.build) {
             if (data.build !== currentVersion) {
                 console.log(`[Version] Nueva versión en servidor: ${data.build} (actual: ${currentVersion})`);
-                // Solo notificar en la campana si realmente es diferente
-                notifyUpdateReady(null);
+                // Evitar notificaciones duplicadas si ya se notificó en esta sesión
+                if (!_updateNotified) {
+                    _updateNotified = true;
+                    notifyUpdateReady(null);
+                }
             } else {
                 // Si ya estamos en la versión actual, limpiar cualquier notificación pendiente de actualización
+                _updateNotified = false;
                 if (window.notificationManager) {
                     window.notificationManager.notifications = window.notificationManager.notifications.filter(n => n.type !== 'app_update');
                     window.notificationManager.updateBadge();
