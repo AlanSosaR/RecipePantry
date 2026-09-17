@@ -994,15 +994,29 @@
                 sectionsToDisplay = allSections; // 'all' -> Muestra absolutamente todo
             }
 
-            // Contabilizar items y categorías
-            let totalDishes = 0;
-            let outOfStockCount = 0;
-            const categoryList = [];
+            // Total general en la carta completa
+            let totalDishesAll = 0;
+            let mainDishesCount = 0;
+            let sundayDishesCount = 0;
 
             allSections.forEach(sec => {
                 (sec.categories || []).forEach(cat => {
+                    const cCount = (cat.items || []).length;
+                    totalDishesAll += cCount;
+                    if (sec.id === 'main') mainDishesCount += cCount;
+                    if (sec.id === 'sunday') sundayDishesCount += cCount;
+                });
+            });
+
+            // Contabilizar items y categorías exclusivas del tab activo actual
+            let currentTabDishes = 0;
+            let outOfStockCount = 0;
+            const categoryList = [];
+
+            sectionsToDisplay.forEach(sec => {
+                (sec.categories || []).forEach(cat => {
                     const count = (cat.items || []).length;
-                    totalDishes += count;
+                    currentTabDishes += count;
                     (cat.items || []).forEach(it => {
                         if (!this.isAvailable(it.id)) outOfStockCount++;
                     });
@@ -1015,6 +1029,11 @@
                     });
                 });
             });
+
+            // Asegurar que si la categoría activa no pertenece al menú actual, se reinicie a 'all'
+            if (this.activeCategory !== 'all' && !categoryList.some(c => c.id === this.activeCategory)) {
+                this.activeCategory = 'all';
+            }
 
             let html = `
                 <div class="allergens-module menu-module-container">
@@ -1032,7 +1051,7 @@
                             <div class="allergens-hero-heading-block" style="flex: 1;">
                                 <div class="menu-hero-badge-row">
                                     <span class="m3-uk-fsa-badge" style="background: #EFF6FF; color: #1E40AF; font-weight: 800;">
-                                        ${totalDishes} ${isEn ? 'Active Dishes' : 'Platos Activos'}
+                                        ${totalDishesAll} ${isEn ? 'Active Dishes' : 'Platos Activos'}
                                     </span>
                                 </div>
                                 <h1 style="margin: 4px 0 2px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
@@ -1065,15 +1084,17 @@
                         <button class="menu-tab-btn ${this.activeTab === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('all')">
                             <span class="material-symbols-outlined">menu_book</span>
                             <span>${isEn ? 'Full Menu (Everything)' : '🍽️ Todo el Menú (Completo)'}</span>
-                            <span class="chip-count" style="margin-left: 4px;">${totalDishes}</span>
+                            <span class="chip-count" style="margin-left: 4px;">${totalDishesAll}</span>
                         </button>
                         <button class="menu-tab-btn ${this.activeTab === 'main' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('main')">
                             <span class="material-symbols-outlined">restaurant</span>
                             <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal & Pizzas'}</span>
+                            <span class="chip-count" style="margin-left: 4px;">${mainDishesCount}</span>
                         </button>
                         <button class="menu-tab-btn ${this.activeTab === 'sunday' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('sunday')">
                             <span class="material-symbols-outlined">outdoor_grill</span>
                             <span>${isEn ? 'Sunday Roasts' : '🥩 Sunday Roasts'}</span>
+                            <span class="chip-count" style="margin-left: 4px;">${sundayDishesCount}</span>
                             <span class="menu-tab-badge">Domingos 12-8pm</span>
                         </button>
                     </div>
@@ -1086,7 +1107,7 @@
                         <div class="menu-category-chips" id="menuCategoryChips" onwheel="window.restaurantMenu.handleChipsWheel(event)">
                             <button class="menu-category-chip ${this.activeCategory === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('all')">
                                 <span>${isEn ? 'All Categories' : 'Todas las Secciones'}</span>
-                                <span class="chip-count">${totalDishes}</span>
+                                <span class="chip-count">${currentTabDishes}</span>
                             </button>
                             ${categoryList.map(c => `
                                 <button class="menu-category-chip ${this.activeCategory === c.id ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('${c.id}')">
