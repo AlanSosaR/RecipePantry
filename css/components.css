@@ -9084,15 +9084,40 @@ input:checked~.m3-ingredient-text {
     overflow: hidden;
 }
 
-/* Discreet M3 bottom scrollbar directly attached to the bottom of the table card */
+/* Discreet M3 scrollbar directly under the allergen header */
+.matrix-subhead-scrollbar-row th {
+    background: #F8FAFC !important;
+    border-bottom: 2px solid #E2E8F0 !important;
+    padding: 0 !important;
+    position: sticky;
+    top: 50px;
+    z-index: 8;
+}
+
+.matrix-subhead-scrollbar-row th.col-subhead-spacer {
+    position: sticky;
+    left: 0;
+    z-index: 9;
+    background: #F8FAFC !important;
+    box-shadow: 3px 0 8px rgba(0, 0, 0, 0.03);
+}
+
+.matrix-subhead-scrollbar-row th.col-subhead-scrollbar {
+    overflow: hidden;
+}
+
 .matrix-bottom-scroll-rail-container {
+    position: sticky;
+    left: 200px;
+    width: calc(100vw - 290px);
+    max-width: 960px;
     background: #F8FAFC;
-    border-top: 1.5px solid #E2E8F0;
-    padding: 7px 16px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
     gap: 12px;
     user-select: none;
+    box-sizing: border-box;
 }
 
 .matrix-bottom-scroll-hint {

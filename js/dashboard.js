@@ -128,6 +128,16 @@ class DashboardManager {
 
             this.setupEventListeners();
 
+            // Sincronizar navegación atrás/adelante del navegador
+            window.addEventListener('popstate', () => {
+                const p = new URLSearchParams(window.location.search);
+                const v = p.get('view') || 'recipes';
+                if (v && v !== this.currentView) {
+                    const nav = document.querySelector(`.nav-item[data-view="${v}"]`);
+                    this.switchView(v, nav);
+                }
+            });
+
             // Check for deep link in hash
             this.checkDeepLink();
 
@@ -421,6 +431,15 @@ class DashboardManager {
             if (this.updateActionBar) this.updateActionBar();
         }
         localStorage.setItem('recipe_pantry_current_view', view);
+
+        // Sincronizar URL para que al refrescar (F5) permanezca exactamente en esta vista
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', view);
+            window.history.replaceState({ view }, '', url.toString());
+        } catch (e) {
+            console.warn('[Dashboard] Could not update URL state:', e);
+        }
 
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if (activeItem) activeItem.classList.add('active');
@@ -2672,12 +2691,12 @@ class DashboardManager {
                 </button>
             </div>
 
-            <!-- Table Card with Discreet M3 Bottom Scrollbar -->
+            <!-- Table Card with Discreet M3 Scrollbar Directly Underneath the Allergens -->
             <div class="matrix-card-container">
                 <div class="matrix-table-wrapper" id="officialMatrixTableWrapper">
                     <table class="fsa-matrix-table" id="officialFsaMatrixTable">
                         <thead>
-                            <tr>
+                            <tr class="matrix-header-allergens-row">
                                 <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
                                 ${allergens.map(a => `
                                     <th class="col-allergen" title="${a.name_en} (${a.name_es})">
@@ -2687,6 +2706,25 @@ class DashboardManager {
                                         </div>
                                     </th>
                                 `).join('')}
+                            </tr>
+                            <!-- Subhead Scrollbar Row: DIRECTLY BELOW THE ALLERGENS (Abajo de las alergias) -->
+                            <tr class="matrix-subhead-scrollbar-row">
+                                <th class="col-recipe-name col-subhead-spacer"></th>
+                                <th colspan="${allergens.length}" class="col-subhead-scrollbar">
+                                    <div class="matrix-bottom-scroll-rail-container" id="matrixBottomScrollRailContainer">
+                                        <span class="matrix-bottom-scroll-hint left">
+                                            <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_back</span>
+                                            <span>Celery, Gluten...</span>
+                                        </span>
+                                        <div class="matrix-bottom-scroll-track" id="matrixBottomScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
+                                            <div class="matrix-bottom-scroll-thumb" id="matrixBottomScrollThumb"></div>
+                                        </div>
+                                        <span class="matrix-bottom-scroll-hint right">
+                                            <span>...Soya, Sulphur Dioxide</span>
+                                            <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span>
+                                        </span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2700,20 +2738,6 @@ class DashboardManager {
                             ` : this.renderMatrixTableRows(filteredDishes, allergens, isEn)}
                         </tbody>
                     </table>
-                </div>
-                <!-- Bottom Scrollbar Rail (al lado de abajo) -->
-                <div class="matrix-bottom-scroll-rail-container" id="matrixBottomScrollRailContainer">
-                    <span class="matrix-bottom-scroll-hint left">
-                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_back</span>
-                        <span>Celery, Gluten...</span>
-                    </span>
-                    <div class="matrix-bottom-scroll-track" id="matrixBottomScrollTrack" title="${isEn ? 'Drag or click to scroll through all 14 allergens' : 'Arrastra o haz clic para ver todos los alérgenos'}">
-                        <div class="matrix-bottom-scroll-thumb" id="matrixBottomScrollThumb"></div>
-                    </div>
-                    <span class="matrix-bottom-scroll-hint right">
-                        <span>...Soya, Sulphur Dioxide</span>
-                        <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span>
-                    </span>
                 </div>
             </div>
         `;
