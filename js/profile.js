@@ -314,16 +314,22 @@ class ProfileManager {
                 } catch (err) {}
             }
 
-            // 2. Subir nueva
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.auth_user_id}_${Date.now()}.${fileExt}`;
+            // 2. Convertir a JPEG via canvas (resuelve HEIC, tamaño y content-type en iOS)
+            const jpegBlob = await this._toJpegBlob(file, 1200, 0.85);
+
+            // 3. Subir nueva
+            const fileName = `${user.auth_user_id}_${Date.now()}.jpg`;
             const { error: uploadError } = await window.supabaseClient.storage
                 .from('avatars')
-                .upload(fileName, file, { cacheControl: '3600', upsert: true });
+                .upload(fileName, jpegBlob, {
+                    cacheControl: '3600',
+                    upsert: true,
+                    contentType: 'image/jpeg'
+                });
 
             if (uploadError) throw uploadError;
             
-            // 3. URL
+            // 4. URL
             const { data: { publicUrl } } = window.supabaseClient.storage
                 .from('avatars')
                 .getPublicUrl(fileName);
@@ -339,6 +345,47 @@ class ProfileManager {
             window.utils.showToast('Error al subir la foto', 'error');
             this.updateProfileVisuals(user); 
         }
+    }
+
+    /** Convierte cualquier imagen (incluido HEIC de iPhone) a un Blob JPEG redimensionado */
+    _toJpegBlob(file, maxSize = 1200, quality = 0.85) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const objectUrl = URL.createObjectURL(file);
+
+            img.onload = () => {
+                URL.revokeObjectURL(objectUrl);
+
+                let { width, height } = img;
+                if (width > maxSize || height > maxSize) {
+                    if (width > height) {
+                        height = Math.round((height * maxSize) / width);
+                        width = maxSize;
+                    } else {
+                        width = Math.round((width * maxSize) / height);
+                        height = maxSize;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob(
+                    (blob) => blob ? resolve(blob) : reject(new Error('Canvas toBlob falló')),
+                    'image/jpeg',
+                    quality
+                );
+            };
+
+            img.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error('No se pudo leer la imagen'));
+            };
+
+            img.src = objectUrl;
+        });
     }
 
     async handleSave(e) {
