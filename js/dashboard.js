@@ -936,6 +936,7 @@ class DashboardManager {
 
         if (this.selectedRecipes.size === 0) return;
 
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
         const menu = document.createElement('div');
         menu.className = 'dropbox-menu-m3';
         if (this.selectedRecipes.size === 1) {
@@ -964,7 +965,6 @@ class DashboardManager {
                 </div>
             `;
 
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
             const isFavorite = recipe.is_favorite;
 
             menu.innerHTML = `
