@@ -840,13 +840,9 @@ class DashboardManager {
             document.body.classList.remove('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.remove('selection-mode-active');
 
-            // Restore original title count
+            // Restore original title count via centralized updateTitleHeader
+            this.updateTitleHeader();
             if (title) {
-                const total = this.currentRecipes ? this.currentRecipes.length : 0;
-                let base = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
-                if (this.currentView === 'favorites') base = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
-                if (this.currentView === 'shared') base = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
-                title.textContent = `${base} (${total})`;
                 title.style.color = '';
             }
             if (countText) countText.classList.add('hidden');
