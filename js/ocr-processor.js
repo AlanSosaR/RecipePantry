@@ -138,7 +138,8 @@ ${cleanedText}`;
         const apiKey = getOpenRouterKey();
         if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
 
-        const response = await fetch(OPENROUTER_URL, {
+        let requestedTokens = 1100;
+        let response = await fetch(OPENROUTER_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
@@ -152,10 +153,37 @@ ${cleanedText}`;
                     role: 'user',
                     content: prompt
                 }],
-                max_tokens: 1500,
+                max_tokens: requestedTokens,
                 temperature: 0.1
             })
         });
+
+        if (!response.ok && response.status === 402) {
+            const errText = await response.text();
+            console.warn('[OCR Text Structuring] 402 recibido por límite de saldo, reintentando con tokens ajustados...', errText);
+            const affordMatch = errText.match(/can only afford (\d+)/i);
+            const affordTokens = affordMatch ? parseInt(affordMatch[1]) : 800;
+            const fallbackTokens = Math.max(350, Math.min(affordTokens - 20, 850));
+
+            response = await fetch(OPENROUTER_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://recipepantry.app',
+                    'X-Title': 'Recipe Pantry'
+                },
+                body: JSON.stringify({
+                    model: AI_MODEL,
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }],
+                    max_tokens: fallbackTokens,
+                    temperature: 0.1
+                })
+            });
+        }
 
         if (!response.ok) throw new Error(`Error en OpenRouter: ${response.status}`);
 
@@ -313,7 +341,8 @@ If no clear title is visible, infer a concise descriptive name in ${langName}.`;
         const apiKey = getOpenRouterKey();
         if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
 
-        const response = await fetch(OPENROUTER_URL, {
+        let requestedTokens = 1100;
+        let response = await fetch(OPENROUTER_URL, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
@@ -333,10 +362,44 @@ If no clear title is visible, infer a concise descriptive name in ${langName}.`;
                         { type: 'text', text: prompt }
                     ]
                 }],
-                max_tokens: 1500,
+                max_tokens: requestedTokens,
                 temperature: 0.1
             })
         });
+
+        // Si OpenRouter responde 402 por límite de tokens, reintentar automáticamente con presupuesto ajustado
+        if (!response.ok && response.status === 402) {
+            const errText = await response.text();
+            console.warn('[OCR Vision] 402 recibido por límite de saldo, reintentando con tokens ajustados...', errText);
+            const affordMatch = errText.match(/can only afford (\d+)/i);
+            const affordTokens = affordMatch ? parseInt(affordMatch[1]) : 800;
+            const fallbackTokens = Math.max(350, Math.min(affordTokens - 20, 850));
+
+            response = await fetch(OPENROUTER_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://recipepantry.app',
+                    'X-Title': 'Recipe Pantry'
+                },
+                body: JSON.stringify({
+                    model: AI_MODEL,
+                    messages: [{
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'image_url',
+                                image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
+                            },
+                            { type: 'text', text: prompt }
+                        ]
+                    }],
+                    max_tokens: fallbackTokens,
+                    temperature: 0.1
+                })
+            });
+        }
 
         if (!response.ok) {
             const errData = await response.text();
