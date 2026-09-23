@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="641">
+<html lang="es" data-app-version="642">
 
 <head>
     <meta charset="UTF-8">
@@ -39,8 +39,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- App Styles Fallback -->
-    <link rel="stylesheet" href="css/styles.css?v=641">
-    <link rel="stylesheet" href="css/components.css?v=641">
+    <link rel="stylesheet" href="css/styles.css?v=642">
+    <link rel="stylesheet" href="css/components.css?v=642">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -152,7 +152,7 @@
 <body class="detail-body">
     <!-- Top Bar -->
     <nav class="premium-nav">
-        <button id="btn-back" class="m3-icon-btn" onclick="window.location.href='/'">
+        <button id="btn-back" class="m3-icon-btn" onclick="if (window.recipeDetailManager) { window.recipeDetailManager.goBack(); } else if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">
             <span class="material-symbols-outlined">arrow_back</span>
         </button>
         <div style="display: flex; gap: 12px;">
@@ -233,18 +233,18 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=641"></script>
-    <script src="js/supabase-client.js?v=641"></script>
-    <script src="js/auth.js?v=641"></script>
-    <script src="js/localdb.js?v=641"></script>
-    <script src="js/sync-manager.js?v=641"></script>
-    <script src="js/db.js?v=641"></script>
-    <script src="js/utils.js?v=641"></script>
-    <script src="js/ui.js?v=641"></script>
-    <script src="js/i18n.js?v=641"></script>
-    <script src="js/recipe-detail.js?v=641"></script>
-    <script src="js/sw-register.js?v=641"></script>
-    <script src="js/pwa-install.js?v=641"></script>
+    <script src="js/config.js?v=642"></script>
+    <script src="js/supabase-client.js?v=642"></script>
+    <script src="js/auth.js?v=642"></script>
+    <script src="js/localdb.js?v=642"></script>
+    <script src="js/sync-manager.js?v=642"></script>
+    <script src="js/db.js?v=642"></script>
+    <script src="js/utils.js?v=642"></script>
+    <script src="js/ui.js?v=642"></script>
+    <script src="js/i18n.js?v=642"></script>
+    <script src="js/recipe-detail.js?v=642"></script>
+    <script src="js/sw-register.js?v=642"></script>
+    <script src="js/pwa-install.js?v=642"></script>
     <script>
         // RecipeDetailManager initializes itself via window.recipeDetailManager
     </script>

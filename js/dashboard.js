@@ -141,9 +141,15 @@ class DashboardManager {
             window.addEventListener('popstate', () => {
                 const p = new URLSearchParams(window.location.search);
                 const v = p.get('view') || 'recipes';
+                const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
                 if (v && v !== this.currentView) {
                     const nav = document.querySelector(`.nav-item[data-view="${v}"]`);
                     this.switchView(v, nav);
+                }
+                if (this.currentView === 'recipes' && this.currentFolder !== f) {
+                    this.currentFolder = f;
+                    this.clearSelection();
+                    this.renderRecipesGrid(this.currentRecipes);
                 }
             });
 
@@ -476,7 +482,12 @@ class DashboardManager {
         try {
             const url = new URL(window.location.href);
             url.searchParams.set('view', view);
-            window.history.replaceState({ view }, '', url.toString());
+            if (view !== 'recipes' || !this.currentFolder) {
+                url.searchParams.delete('folder');
+            } else if (this.currentFolder) {
+                url.searchParams.set('folder', this.currentFolder);
+            }
+            window.history.replaceState({ view, folder: this.currentFolder }, '', url.toString());
         } catch (e) {
             console.warn('[Dashboard] Could not update URL state:', e);
         }
@@ -1861,6 +1872,11 @@ class DashboardManager {
                     await window.db.renameFolder(originalText, newName);
                     if (this.currentFolder === originalText) {
                         this.currentFolder = newName;
+                        try {
+                            const u = new URL(window.location.href);
+                            u.searchParams.set('folder', newName);
+                            window.history.replaceState({ view: 'recipes', folder: newName }, '', u.toString());
+                        } catch (e) {}
                     }
                     await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
                     window.showToast(isEn ? 'Folder renamed' : 'Nombre de carpeta actualizado', 'success');
@@ -1932,9 +1948,27 @@ class DashboardManager {
         });
     }
 
-    openFolder(folderName) {
+    openFolder(folderName, replaceUrl = false) {
         this.currentFolder = folderName ? folderName.trim() : null;
         this.clearSelection();
+
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', 'recipes');
+            if (this.currentFolder) {
+                url.searchParams.set('folder', this.currentFolder);
+            } else {
+                url.searchParams.delete('folder');
+            }
+            if (replaceUrl) {
+                window.history.replaceState({ view: 'recipes', folder: this.currentFolder }, '', url.toString());
+            } else {
+                window.history.pushState({ view: 'recipes', folder: this.currentFolder }, '', url.toString());
+            }
+        } catch (e) {
+            console.warn('[Dashboard] Could not update URL state for folder:', e);
+        }
+
         this.renderRecipesGrid(this.currentRecipes);
     }
 
@@ -2044,6 +2078,11 @@ class DashboardManager {
             onConfirm: async () => {
                 await window.db.deleteFolder(folderName);
                 this.currentFolder = null;
+                try {
+                    const u = new URL(window.location.href);
+                    u.searchParams.delete('folder');
+                    window.history.replaceState({ view: 'recipes', folder: null }, '', u.toString());
+                } catch (e) {}
                 await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
                 window.showToast(isEn ? 'Folder deleted' : 'Carpeta eliminada', 'success');
             }
@@ -2686,6 +2725,12 @@ class DashboardManager {
         `;
     }
 
+    isRootFolder(f) {
+        if (!f || typeof f !== 'string') return true;
+        const trimmed = f.trim().toLowerCase();
+        return !trimmed || trimmed === 'general' || trimmed === 'mis recetas' || trimmed === 'my recipes' || trimmed === 'todas las recetas' || trimmed === 'all recipes';
+    }
+
     handleRecipeClick(recipeId) {
         // En PC (viewport >= 768px) mostrar el detalle en el panel principal sin navegar
         const isDesktop = window.innerWidth >= 768;
@@ -2697,10 +2742,15 @@ class DashboardManager {
             return;
         }
 
-        // Móvil: navegación directa al detalle pasando permiso si existe (para compartidas)
-        const url = permission
-            ? `/recipe-detail?id=${recipeId}&permission=${permission}`
-            : `/recipe-detail?id=${recipeId}`;
+        // Móvil: navegación directa al detalle pasando permiso si existe y carpeta de origen
+        const targetFolder = this.currentFolder || (recipe?.pantry_es && !this.isRootFolder(recipe.pantry_es) ? recipe.pantry_es.trim() : '');
+        let url = `/recipe-detail?id=${encodeURIComponent(recipeId)}`;
+        if (permission) {
+            url += `&permission=${encodeURIComponent(permission)}`;
+        }
+        if (targetFolder) {
+            url += `&folder=${encodeURIComponent(targetFolder)}`;
+        }
         window.location.href = url;
     }
 
@@ -2710,9 +2760,14 @@ class DashboardManager {
 
         if (!container) return;
 
-        // Actualizar URL del navegador sin navegar (SPA style)
-        // Esto evita que el botón Atrás del navegador vaya a recipe-detail?id=...
-        history.pushState({ panelRecipe: recipeId }, '', '/');
+        // Si la receta pertenece a una carpeta y no teníamos carpeta fijada, recordarla
+        if (!this.currentFolder && recipe?.pantry_es && !this.isRootFolder(recipe.pantry_es)) {
+            this.currentFolder = recipe.pantry_es.trim();
+        }
+
+        // Actualizar URL del navegador sin navegar (SPA style) preservando la carpeta si existe
+        const panelUrl = this.currentFolder ? `/?view=recipes&folder=${encodeURIComponent(this.currentFolder)}` : '/?view=recipes';
+        history.pushState({ panelRecipe: recipeId, folder: this.currentFolder }, '', panelUrl);
 
         // Listener para el botón Atrás del navegador: cierra el panel
         this._panelPopstateHandler = () => {
@@ -2980,19 +3035,24 @@ class DashboardManager {
             window.removeEventListener('popstate', this._panelPopstateHandler);
             this._panelPopstateHandler = null;
         }
-        history.pushState({}, '', '/');
+        const returnUrl = this.currentFolder ? `/?view=recipes&folder=${encodeURIComponent(this.currentFolder)}` : '/?view=recipes';
+        history.pushState({ view: 'recipes', folder: this.currentFolder }, '', returnUrl);
         this._closeDetailPanelInternal();
     }
 
     _closeDetailPanelInternal() {
-        // Restaurar el header del dashboard
+        // Restaurar el header del dashboard solo si no estamos dentro de una carpeta
         const dashHeader = document.querySelector('.dashboard-header');
-        if (dashHeader) dashHeader.classList.remove('hidden');
+        if (dashHeader && !this.currentFolder && !this.isSelectionMode) {
+            dashHeader.classList.remove('hidden');
+        }
 
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.remove('hidden');
 
-        // Restaurar la lista de recetas en el panel
+        // Restaurar la lista de recetas y el breadcrumb de carpetas
+        this.renderFolders();
+        this.updateTitleHeader();
         this.renderRecipesGrid(this.currentRecipes);
     }
 

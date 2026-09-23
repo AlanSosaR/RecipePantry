@@ -21,6 +21,38 @@ class RecipeDetailManager {
         this.init();
     }
 
+    isRootFolder(f) {
+        if (!f || typeof f !== 'string') return true;
+        const trimmed = f.trim().toLowerCase();
+        return !trimmed || trimmed === 'general' || trimmed === 'mis recetas' || trimmed === 'my recipes' || trimmed === 'todas las recetas' || trimmed === 'all recipes';
+    }
+
+    goBack() {
+        const params = new URLSearchParams(window.location.search);
+        let folder = params.get('folder');
+
+        // Si no vino en el parámetro URL, verificar si la receta pertenece a una carpeta
+        if (!folder && this.currentRecipe) {
+            const rawFolder = this.currentRecipe.pantry_es || this.currentRecipe.pantry_en;
+            if (rawFolder && !this.isRootFolder(rawFolder)) {
+                folder = rawFolder.trim();
+            }
+        }
+
+        if (folder && folder.trim()) {
+            window.location.href = `/?view=recipes&folder=${encodeURIComponent(folder.trim())}`;
+            return;
+        }
+
+        // Si hay historial previo dentro del mismo sitio, volver atrás
+        if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+            window.history.back();
+            return;
+        }
+
+        window.location.href = '/?view=recipes';
+    }
+
     async init() {
         // 1. Verificar autenticación con redirección inteligente
         const isAuth = await window.authManager.checkAuth();
@@ -300,6 +332,15 @@ class RecipeDetailManager {
 
     setupEventListeners() {
         // Favorite Button
+        // Back Button
+        const btnBack = document.getElementById('btn-back');
+        if (btnBack) {
+            btnBack.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.goBack();
+            });
+        }
+
         document.getElementById('btnFavorite')?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleFavorite();
