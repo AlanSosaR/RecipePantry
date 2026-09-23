@@ -1,5 +1,5 @@
-// Lógica específica del Dashboard - v473
-console.log('📄 [File] js/dashboard.js loaded (v629)');
+// Lógica específica del Dashboard - v645
+console.log('📄 [File] js/dashboard.js loaded (v645)');
 
 class DashboardManager {
     constructor() {
@@ -91,12 +91,13 @@ class DashboardManager {
             }
 
             if (this.currentView === 'recipes') {
-                let folderParam = urlParams.get('folder');
-                if (!folderParam) {
-                    try { folderParam = sessionStorage.getItem('rp_current_folder'); } catch (e) {}
-                }
+                // SOLO usar el parámetro de la URL — nunca sessionStorage como fallback
+                // para evitar que una carpeta anterior «contamine» la navegación al root.
+                const folderParam = urlParams.get('folder');
                 if (folderParam) {
                     this.currentFolder = decodeURIComponent(folderParam).trim();
+                } else {
+                    this.currentFolder = null; // siempre resetear al root si no hay param
                 }
             }
 
@@ -146,10 +147,8 @@ class DashboardManager {
             window.addEventListener('popstate', () => {
                 const p = new URLSearchParams(window.location.search);
                 const v = p.get('view') || 'recipes';
-                let f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
-                if (!f && this.currentView === 'recipes') {
-                    try { f = sessionStorage.getItem('rp_current_folder') || null; } catch (e) {}
-                }
+                // Usar SOLO la URL — sin sessionStorage para evitar carpetas fantasma
+                const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
                 if (v && v !== this.currentView) {
                     const nav = document.querySelector(`.nav-item[data-view="${v}"]`);
                     this.switchView(v, nav);
@@ -157,20 +156,22 @@ class DashboardManager {
                 if (this.currentView === 'recipes' && this.currentFolder !== f) {
                     this.currentFolder = f;
                     this.clearSelection();
+                    this.renderFolders();
                     this.renderRecipesGrid(this.currentRecipes);
                 }
             });
 
             // Al restaurar la página desde la caché del navegador (bfcache en móviles)
+            // IMPORTANTE: solo actuar cuando sea una restauración real de bfcache (event.persisted)
+            // para evitar doble-render en carga normal que causa el «flash» y el bloqueo de navegación.
             window.addEventListener('pageshow', (event) => {
+                if (!event.persisted) return; // carga normal — ya manejada por init()
                 const p = new URLSearchParams(window.location.search);
-                let f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
-                if (!f && this.currentView === 'recipes') {
-                    try { f = sessionStorage.getItem('rp_current_folder') || null; } catch (e) {}
-                }
-                if (this.currentView === 'recipes' && f && this.currentFolder !== f) {
-                    this.currentFolder = f;
+                const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
+                if (this.currentView === 'recipes' && this.currentFolder !== f) {
+                    this.currentFolder = f || null;
                     this.clearSelection();
+                    this.renderFolders();
                     this.renderRecipesGrid(this.currentRecipes);
                 }
             });

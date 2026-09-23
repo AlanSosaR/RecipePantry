@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=644">
-  <link rel="stylesheet" href="css/components.css?v=644">
+  <link rel="stylesheet" href="css/styles.css?v=645">
+  <link rel="stylesheet" href="css/components.css?v=645">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -55,12 +55,10 @@
 
     // ── Detección instantánea de carpeta para prevenir cualquier parpadeo de "Mis Recetas" ──
     try {
+      sessionStorage.removeItem('rp_current_folder');
       const p = new URLSearchParams(window.location.search);
       const v = p.get('view') || 'recipes';
-      let f = p.get('folder');
-      if (!f && v === 'recipes') {
-        f = sessionStorage.getItem('rp_current_folder');
-      }
+      const f = p.get('folder');
       if (v === 'recipes' && f && f.trim()) {
         const folderName = decodeURIComponent(f).trim();
         document.documentElement.setAttribute('data-active-folder', folderName);
@@ -746,27 +744,27 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=644"></script>
-  <script src="js/supabase-client.js?v=644"></script>
-  <script src="js/localdb.js?v=644"></script>
-  <script src="js/sync-manager.js?v=644"></script>
-  <script src="js/utils.js?v=644"></script>
-  <script src="js/i18n.js?v=644"></script>
-  <script src="js/allergen-data.js?v=644"></script>
-  <script src="js/menu-data.js?v=644"></script>
-  <script src="js/lib/pdf.min.js?v=644"></script>
-  <script src="js/restaurant-menu.js?v=644"></script>
-  <script src="js/db.js?v=644"></script>
-  <script src="js/auth.js?v=644"></script>
-  <script src="js/dashboard.js?v=644"></script>
-  <script src="js/share-modal.js?v=644"></script>
-  <script src="js/help-modal.js?v=644"></script>
-  <script src="js/notifications.js?v=644"></script>
-  <script src="js/ui.js?v=644"></script>
-  <script src="js/sw-register.js?v=644"></script>
-<script src="js/pwa-install.js?v=644"></script>
-  <script src="js/gemini-client.js?v=644"></script>
-  <script type="module" src="js/url-importer.js?v=644"></script>
+  <script src="js/config.js?v=645"></script>
+  <script src="js/supabase-client.js?v=645"></script>
+  <script src="js/localdb.js?v=645"></script>
+  <script src="js/sync-manager.js?v=645"></script>
+  <script src="js/utils.js?v=645"></script>
+  <script src="js/i18n.js?v=645"></script>
+  <script src="js/allergen-data.js?v=645"></script>
+  <script src="js/menu-data.js?v=645"></script>
+  <script src="js/lib/pdf.min.js?v=645"></script>
+  <script src="js/restaurant-menu.js?v=645"></script>
+  <script src="js/db.js?v=645"></script>
+  <script src="js/auth.js?v=645"></script>
+  <script src="js/dashboard.js?v=645"></script>
+  <script src="js/share-modal.js?v=645"></script>
+  <script src="js/help-modal.js?v=645"></script>
+  <script src="js/notifications.js?v=645"></script>
+  <script src="js/ui.js?v=645"></script>
+  <script src="js/sw-register.js?v=645"></script>
+<script src="js/pwa-install.js?v=645"></script>
+  <script src="js/gemini-client.js?v=645"></script>
+  <script type="module" src="js/url-importer.js?v=645"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

@@ -28,6 +28,9 @@ class RecipeDetailManager {
     }
 
     goBack() {
+        if (this._isGoingBack) return;
+        this._isGoingBack = true;
+
         const params = new URLSearchParams(window.location.search);
         let folder = params.get('folder');
 
@@ -39,39 +42,14 @@ class RecipeDetailManager {
             }
         }
 
-        // Guardar carpeta en sessionStorage para asegurar que el dashboard la recuerde
+        // Limpiar sessionStorage siempre para evitar estado residual
+        try { sessionStorage.removeItem('rp_current_folder'); } catch (e) {}
+
         if (folder && folder.trim()) {
-            try {
-                sessionStorage.setItem('rp_current_folder', folder.trim());
-            } catch (e) {}
+            window.location.href = `/?view=recipes&folder=${encodeURIComponent(folder.trim())}`;
         } else {
-            try {
-                sessionStorage.removeItem('rp_current_folder');
-            } catch (e) {}
+            window.location.href = '/?view=recipes';
         }
-
-        // Activar microanimación de salida limpia y suave
-        document.body.classList.add('page-exit-back');
-
-        const targetUrl = folder && folder.trim()
-            ? `/?view=recipes&folder=${encodeURIComponent(folder.trim())}`
-            : '/?view=recipes';
-
-        // Si el usuario navegó desde la app, volver atrás inmediatamente usando la caché del navegador (bfcache)
-        // Esto elimina cualquier parpadeo, recarga o tirón
-        const cameFromSameApp = window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host);
-
-        setTimeout(() => {
-            if (cameFromSameApp) {
-                window.history.back();
-                // Fallback de seguridad si el navegador no completa el back en 280ms
-                setTimeout(() => {
-                    window.location.href = targetUrl;
-                }, 280);
-            } else {
-                window.location.href = targetUrl;
-            }
-        }, 110);
     }
 
     async init() {
@@ -356,8 +334,10 @@ class RecipeDetailManager {
         // Back Button
         const btnBack = document.getElementById('btn-back');
         if (btnBack) {
+            btnBack.style.touchAction = 'manipulation';
             btnBack.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.goBack();
             });
         }
