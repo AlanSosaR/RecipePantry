@@ -52,6 +52,33 @@ class NotificationManager {
                 }
             }, 700);
         }
+
+        // ── Firebase Push Notifications ──────────────────────────────────────
+        // Registrar token FCM si el usuario está autenticado
+        const currentUser = window.authManager?.currentUser;
+        if (currentUser?.id) {
+            if (typeof window.registerPushToken === 'function') {
+                window.registerPushToken(currentUser.id);
+            } else {
+                // push.js puede no haber cargado aún si está después en el DOM
+                window.addEventListener('push:ready', () => {
+                    window.registerPushToken(currentUser.id);
+                }, { once: true });
+            }
+        }
+
+        // Escuchar mensajes push en foreground para refrescar el badge
+        window.addEventListener('push:foreground', (e) => {
+            console.log('📬 [Notifications] Push foreground recibido:', e.detail);
+            // Refrescar notificaciones desde Supabase
+            setTimeout(() => this.fetchNotifications(), 800);
+        });
+
+        // Inicializar handler de foreground
+        if (typeof window.initForegroundPush === 'function') {
+            window.initForegroundPush();
+        }
+        // ─────────────────────────────────────────────────────────────────────
     }
 
     async fetchNotifications() {

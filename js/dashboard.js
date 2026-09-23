@@ -1,5 +1,5 @@
-// Lógica específica del Dashboard - v645
-console.log('📄 [File] js/dashboard.js loaded (v645)');
+// Lógica específica del Dashboard - v646
+console.log('📄 [File] js/dashboard.js loaded (v646)');
 
 class DashboardManager {
     constructor() {

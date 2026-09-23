@@ -28,6 +28,8 @@ const FILES = [
   'js/sw-register.js',
   'js/restaurant-menu.js',
   'js/menu-data.js',
+  'js/core/firebase.js',
+  'js/core/push.js',
 ];
 
 // 1. Detectar versión actual desde sw.js
@@ -47,10 +49,14 @@ let total = 0;
 FILES.forEach(file => {
   if (!fs.existsSync(file)) { console.log(`  SKIP (no existe): ${file}`); return; }
   const before = fs.readFileSync(file, 'utf8');
-  const after  = before.replaceAll(oldVer, newVer);
+  let after = before.replaceAll(oldVer, newVer);
+  after = after.replaceAll(`?v=${currentNum}`, `?v=${nextNum}`);
+  after = after.replaceAll(`data-app-version="${currentNum}"`, `data-app-version="${nextNum}"`);
+  after = after.replaceAll(`CURRENT_VERSION = '${currentNum}'`, `CURRENT_VERSION = '${nextNum}'`);
   if (after !== before) {
     fs.writeFileSync(file, after, 'utf8');
-    const n = (before.match(new RegExp(oldVer, 'g')) || []).length;
+    const n = (before.match(new RegExp(oldVer, 'g')) || []).length +
+              (before.match(new RegExp(`\\?v=${currentNum}`, 'g')) || []).length;
     total += n;
     console.log(`  ✅ ${file}  (${n} reemplazos)`);
   } else {

@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v645';
-const BUILD_ID = 'v645';
-const CACHE_NAME = `recipe-pantry-v645`;
-const STATIC_CACHE = 'static-v645';
-const DATA_CACHE = 'data-v645';
+const VERSION = 'v646';
+const BUILD_ID = 'v646';
+const CACHE_NAME = `recipe-pantry-v646`;
+const STATIC_CACHE = 'static-v646';
+const DATA_CACHE = 'data-v646';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -38,6 +38,8 @@ const STATIC_RESOURCES = [
     '/js/recipe-form.js',
     '/js/sync-manager.js',
     '/js/notifications.js',
+    '/js/core/firebase.js',
+    '/js/core/push.js',
     '/js/pwa-install.js',
     '/js/gemini-client.js',
     '/js/allergen-data.js',

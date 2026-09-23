@@ -1,8 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const VERSION = '644';
-const V_TAG = 'v644';
+const swContent = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
+const match = swContent.match(/const VERSION = 'v(\d+)'/);
+const targetNum = process.argv[2] || (match ? match[1] : '646');
+const VERSION = String(targetNum);
+const V_TAG = `v${VERSION}`;
 
 // 1. Update config.js
 const configPath = path.join(__dirname, 'js', 'config.js');
