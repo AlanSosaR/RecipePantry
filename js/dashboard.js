@@ -2094,37 +2094,59 @@ class DashboardManager {
         }
 
         // Helper para raíz
-        const isRoot = (f) => !f || typeof f !== 'string' || !f.trim();
+        const isRoot = (f) => !f || typeof f !== 'string' || !f.trim() || (window.db && window.db._isRootFolderName && window.db._isRootFolderName(f));
 
-        // Obtener carpetas disponibles (registro + recetas)
-        const dbFolders = await window.db.getMyFolders();
-        const folderSet = new Set((dbFolders || []).filter(f => !isRoot(f)));
-        (this.currentRecipes || []).forEach(r => {
-            const f = (r.pantry_es || '').trim();
-            if (!isRoot(f) && f.toLowerCase() !== 'prueba 2') folderSet.add(f);
-        });
-        if (Array.isArray(this.allRecipes)) {
-            this.allRecipes.forEach(r => {
-                const f = (r.pantry_es || '').trim();
-                if (!isRoot(f) && f.toLowerCase() !== 'prueba 2') folderSet.add(f);
-            });
+        // Obtener todas las recetas disponibles para conteos fiables
+        let allRecs = [];
+        if (window.localDB) {
+            try {
+                allRecs = await window.localDB.getAll('recipes_index') || [];
+            } catch (e) {}
         }
-        const folders = Array.from(folderSet)
+        if (!allRecs || allRecs.length === 0) {
+            allRecs = Array.isArray(this.currentRecipes) ? this.currentRecipes : [];
+        }
+
+        // Obtener carpetas disponibles (registro + recetas) con nombres canónicos
+        const dbFolders = await window.db.getMyFolders();
+        const folderMap = new Map();
+
+        // 1. Desde registro de carpetas
+        (dbFolders || []).forEach(f => {
+            if (f && !isRoot(f)) {
+                folderMap.set(f.trim().toLowerCase(), f.trim());
+            }
+        });
+
+        // 2. Desde recetas en índice o memoria
+        allRecs.forEach(r => {
+            const f = (r.pantry_es || '').trim();
+            if (f && !isRoot(f) && f.toLowerCase() !== 'prueba 2') {
+                if (!folderMap.has(f.toLowerCase())) {
+                    folderMap.set(f.toLowerCase(), f);
+                }
+            }
+        });
+
+        const folders = Array.from(folderMap.values())
             .filter(f => f && f.trim().toLowerCase() !== 'prueba 2')
             .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
-        // Contar recetas por carpeta
-        const counts = {};
-        (this.currentRecipes || []).forEach(r => {
+        // Contar recetas por carpeta de forma insensible a mayúsculas/minúsculas
+        const countMap = new Map();
+        allRecs.forEach(r => {
             const f = (r.pantry_es || '').trim();
-            if (f) counts[f] = (counts[f] || 0) + 1;
+            if (f && !isRoot(f)) {
+                const key = f.toLowerCase();
+                countMap.set(key, (countMap.get(key) || 0) + 1);
+            }
         });
 
         // Generar items de la lista
         let html = '';
 
         // Opción: Raíz (Mis Recetas / Sin carpeta)
-        const isCurrentRoot = currentFolderOfItem === '';
+        const isCurrentRoot = !currentFolderOfItem;
         html += `
             <div class="move-modal-folder-item ${isCurrentRoot ? 'current-location' : ''}" 
                  data-folder="" 
@@ -2145,7 +2167,7 @@ class DashboardManager {
         folders.forEach(f => {
             const safeF = f.replace(/'/g, "\\'");
             const isCurrent = currentFolderOfItem !== null && currentFolderOfItem.toLowerCase() === f.toLowerCase();
-            const count = counts[f] || 0;
+            const count = countMap.get(f.toLowerCase()) || 0;
             const countLabel = `${count} ${count === 1 ? (isEn ? 'recipe' : 'receta') : (isEn ? 'recipes' : 'recetas')}`;
 
             html += `

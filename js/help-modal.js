@@ -382,6 +382,7 @@ class SettingsViewManager {
                                 k.includes('sb-') ||
                                 k.includes('auth-token') ||
                                 k.includes('supabase.auth') ||
+                                k.startsWith('rp_folders_') ||
                                 k === 'recipe_pantry_user_profile' ||
                                 k === 'lang' ||
                                 k === 'preferredLang'

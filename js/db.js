@@ -157,45 +157,37 @@ class DatabaseManager {
         return this._fetchRecipesFromServer(filters);
     }
 
-    // Limpia local (caché) y servidor para recetas que apuntan a una carpeta que ya
-    // no existe o a un nombre reservado de raíz ("Mis Recetas"/"My Recipes").
-    // Corre tanto en la rama de caché como en la de servidor para que una receta
-    // stale (p.ej. con pantry_es='prueba 2') no reaparezca ni se ofrezca al mover.
+    // Limpia local (caché) y servidor ÚNICAMENTE para recetas que apuntan a nombres reservados
+    // de raíz ("Mis Recetas"/"My Recipes") o a carpetas explícitamente eliminadas por el usuario.
+    // NUNCA borra carpetas válidas existentes en recetas solo porque la caché local se haya reseteado.
     async _normalizeOrphanFolders(recipes) {
         if (!Array.isArray(recipes) || recipes.length === 0) return;
-        if (!window.localDB) return;
-        let orphanRegistry = null;
         const user = window.authManager?.currentUser;
-        (() => {
-            const reg = new Set();
-            const uid = (user && user.id) || 'guest';
-            try {
-                const localSaved = JSON.parse(localStorage.getItem(`rp_folders_${uid}`) || '[]');
-                if (Array.isArray(localSaved)) localSaved.forEach(f => { if (f && (f+'').trim()) reg.add((f+'').trim().toLowerCase()); });
-            } catch (e) {}
-            if (user && user.settings && Array.isArray(user.settings.folders)) {
-                user.settings.folders.forEach(f => { if (f && (f+'').trim()) reg.add((f+'').trim().toLowerCase()); });
-            }
-            orphanRegistry = reg;
-        })();
-        if (!orphanRegistry) return;
+        const uid = (user && user.id) || 'guest';
+        const deletedSet = (typeof this._getDeletedFolderSet === 'function')
+            ? this._getDeletedFolderSet(uid)
+            : new Set();
+
         for (const r of recipes) {
             const f = (r.pantry_es || '').trim();
-            // Limpiar SIEMPRE los nombres reservados de raíz ("Mis Recetas"/"My Recipes")
-            // y, si hay registro, también las carpetas que ya no existen.
+            if (!f || r.sharingContext === 'received') continue;
+
             const isReserved = this._isRootFolderName(f);
-            const isOrphan = !isReserved && orphanRegistry.size > 0 && !orphanRegistry.has(f.toLowerCase());
-            if (f && r.sharingContext !== 'received' && (isReserved || isOrphan)) {
+            const isExplicitlyDeleted = deletedSet.has(f.toLowerCase());
+
+            if (isReserved || isExplicitlyDeleted) {
                 try {
                     r.pantry_es = '';
                     r.pantry_en = '';
-                    await window.localDB.put('recipes_index', r);
+                    if (window.localDB) {
+                        await window.localDB.put('recipes_index', r);
+                    }
                     if (this._isOnline && window.supabaseClient) {
                         await window.supabaseClient.from('recipes')
                             .update({ pantry_es: '', pantry_en: '' })
                             .eq('id', r.id);
                     }
-                    console.log(`🧹 Carpeta huérfana '${f}' eliminada → receta '${r.name_es || r.name_en || r.id}' movida a la raíz`);
+                    console.log(`🧹 Carpeta eliminada/reservada '${f}' → receta '${r.name_es || r.name_en || r.id}' movida a la raíz`);
                 } catch (e) { console.warn('⚠️ No se pudo limpiar carpeta huérfana', r.id, e); }
             }
         }
@@ -1162,7 +1154,11 @@ class DatabaseManager {
         if (cleanFolder) {
             await this.createFolder(cleanFolder);
         }
-        await this.updateRecipe(recipeId, { pantry_es: cleanFolder, pantry_en: cleanFolder });
+        const res = await this.updateRecipe(recipeId, { pantry_es: cleanFolder, pantry_en: cleanFolder });
+        if (res && res.error) {
+            console.error('⚠️ [moveRecipeToFolder] Error actualizando receta:', res.error);
+            throw new Error(res.error);
+        }
         window.dispatchEvent(new CustomEvent('recipes-index-updated'));
         return { success: true };
     }
