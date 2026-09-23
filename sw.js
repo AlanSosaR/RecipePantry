@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v646';
-const BUILD_ID = 'v646';
-const CACHE_NAME = `recipe-pantry-v646`;
-const STATIC_CACHE = 'static-v646';
-const DATA_CACHE = 'data-v646';
+const VERSION = 'v647';
+const BUILD_ID = 'v647';
+const CACHE_NAME = `recipe-pantry-v647`;
+const STATIC_CACHE = 'static-v647';
+const DATA_CACHE = 'data-v647';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -270,5 +270,61 @@ self.addEventListener('notificationclick', (event) => {
                 }
             })
         );
+        return;
     }
+
+    // Click en notificación push (FCM)
+    const targetUrl = event.notification.data?.url || '/';
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+            const existingClient = clientsArr.find((c) => c.url.includes(self.location.origin));
+            if (existingClient && 'focus' in existingClient) {
+                if (targetUrl !== '/') existingClient.navigate(targetUrl);
+                return existingClient.focus();
+            }
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(targetUrl);
+            }
+        })
+    );
 });
+
+// 6. Firebase Cloud Messaging (FCM Background Handler)
+try {
+    importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCcp8u2ckTy8E1Un1Fp5s-ZuYqJoxVYct4",
+        authDomain: "recipepantry-e8ef8.firebaseapp.com",
+        projectId: "recipepantry-e8ef8",
+        storageBucket: "recipepantry-e8ef8.firebasestorage.app",
+        messagingSenderId: "547631229279",
+        appId: "1:547631229279:web:5ad75d816f2c37f75e6eea"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    messaging.onBackgroundMessage((payload) => {
+        console.log('[FCM SW] onBackgroundMessage recibido:', payload);
+        const title = payload.notification?.title || 'Recipe Pantry';
+        const body  = payload.notification?.body  || '';
+        const url   = payload.data?.url || '/';
+
+        const options = {
+            body,
+            icon:             '/assets/icons/icon.svg',
+            badge:            '/assets/icons/icon.svg',
+            data:             { url, ...payload.data },
+            requireInteraction: true,
+            tag:              payload.data?.notification_id || 'rp-push',
+            vibrate:          [200, 100, 200]
+        };
+
+        self.registration.showNotification(title, options);
+    });
+} catch (e) {
+    console.warn('[SW] Firebase background messaging no inicializado:', e);
+}
+

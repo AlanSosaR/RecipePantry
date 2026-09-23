@@ -162,8 +162,12 @@
     // Importar getToken dinámicamente (firebase.js ya importó messaging)
     const { getToken } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js');
 
-    const swReg = await navigator.serviceWorker.register(SW_PATH, { scope: '/' });
-    console.log('🔧 [Push] SW FCM registrado:', swReg.scope);
+    // Usar el Service Worker principal de la app para evitar conflictos de scope
+    let swReg = await navigator.serviceWorker.getRegistration('/');
+    if (!swReg || !swReg.active) {
+      swReg = await navigator.serviceWorker.ready;
+    }
+    console.log('🔧 [Push] Service Worker principal listo para FCM:', swReg?.scope);
 
     const token = await getToken(window.firebaseMessaging, {
       vapidKey: VAPID_KEY,
