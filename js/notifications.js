@@ -38,6 +38,16 @@ class NotificationManager {
             }
         });
 
+        // Refrescar notificaciones al volver a la app o enfocar la pantalla
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.fetchNotifications();
+            }
+        });
+        window.addEventListener('focus', () => {
+            this.fetchNotifications();
+        });
+
         // Comprobar si acabamos de actualizar para mostrar confirmación de éxito
         if (sessionStorage.getItem('recipe_pantry_just_updated')) {
             sessionStorage.removeItem('recipe_pantry_just_updated');
@@ -77,6 +87,21 @@ class NotificationManager {
         // Inicializar handler de foreground
         if (typeof window.initForegroundPush === 'function') {
             window.initForegroundPush();
+        }
+
+        // Escuchar clics en notificaciones push desde el Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data?.type === 'PUSH_CLICKED') {
+                    console.log('📬 [Notifications] Push clicked message recibido desde SW:', event.data);
+                    this.fetchNotifications();
+                    setTimeout(() => {
+                        if (this.menu && this.menu.classList.contains('hidden')) {
+                            this.toggleMenu();
+                        }
+                    }, 500);
+                }
+            });
         }
         // ─────────────────────────────────────────────────────────────────────
     }
@@ -444,6 +469,7 @@ class NotificationManager {
 
         const isHidden = this.menu.classList.contains('hidden');
         if (isHidden) {
+            this.fetchNotifications();
             this.renderMenu();
             this.menu.classList.remove('hidden');
         } else {
@@ -553,6 +579,8 @@ class NotificationManager {
                         </div>
                     </div>
                 `;
+            }
+
             if (n.type === 'folder_shared') {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const folderTitle = n.folderName || (isEn ? 'Folder' : 'Carpeta');

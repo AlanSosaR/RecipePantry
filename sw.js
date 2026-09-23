@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v651';
-const BUILD_ID = 'v651';
-const CACHE_NAME = `recipe-pantry-v651`;
-const STATIC_CACHE = 'static-v651';
-const DATA_CACHE = 'data-v651';
+const VERSION = 'v652';
+const BUILD_ID = 'v652';
+const CACHE_NAME = `recipe-pantry-v652`;
+const STATIC_CACHE = 'static-v652';
+const DATA_CACHE = 'data-v652';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -366,5 +366,28 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Manejador al hacer clic en la notificación push
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = event.notification.data?.url || '/';
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if ('focus' in client) {
+                    client.postMessage({
+                        type: 'PUSH_CLICKED',
+                        data: event.notification.data
+                    });
+                    return client.focus();
+                }
+            }
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(targetUrl);
+            }
+        })
+    );
 });
 
