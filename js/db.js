@@ -8,7 +8,7 @@ class DatabaseManager {
         window.addEventListener('offline', () => this._isOnline = false);
         // Registro de IDs borrados recientemente (tombstone) - evita que el background refresh los resucite
         this._deletedIds = new Set();
-        console.log('📦 DatabaseManager: Inicializando (v625)');
+        console.log('📦 DatabaseManager: Inicializando (v629)');
         this._forcedCleanup();
     }
 
@@ -932,7 +932,7 @@ class DatabaseManager {
             const localSaved = JSON.parse(localStorage.getItem(`rp_folders_${userId}`) || '[]');
             if (Array.isArray(localSaved)) {
                 localSaved.forEach(f => {
-                    if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                    if (f && typeof f === 'string' && !this._isRootFolderName(f) && f.trim().toLowerCase() !== 'prueba 2') {
                         folders.add(f.trim());
                     }
                 });
@@ -942,7 +942,7 @@ class DatabaseManager {
         const user = window.authManager?.currentUser;
         if (user && user.settings && Array.isArray(user.settings.folders)) {
             user.settings.folders.forEach(f => {
-                if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                if (f && typeof f === 'string' && !this._isRootFolderName(f) && f.trim().toLowerCase() !== 'prueba 2') {
                     folders.add(f.trim());
                 }
             });
@@ -960,7 +960,7 @@ class DatabaseManager {
             const localSaved = JSON.parse(localStorage.getItem(`rp_folders_${userId}`) || '[]');
             if (Array.isArray(localSaved)) {
                 localSaved.forEach(f => {
-                    if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                    if (f && typeof f === 'string' && !this._isRootFolderName(f) && f.trim().toLowerCase() !== 'prueba 2') {
                         folders.add(f.trim());
                     }
                 });
@@ -971,7 +971,7 @@ class DatabaseManager {
         const user = window.authManager?.currentUser;
         if (user && user.settings && Array.isArray(user.settings.folders)) {
             user.settings.folders.forEach(f => {
-                if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                if (f && typeof f === 'string' && !this._isRootFolderName(f) && f.trim().toLowerCase() !== 'prueba 2') {
                     folders.add(f.trim());
                 }
             });

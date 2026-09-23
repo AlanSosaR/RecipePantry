@@ -1,5 +1,5 @@
 // Lógica específica del Dashboard - v473
-console.log('📄 [File] js/dashboard.js loaded (v473)');
+console.log('📄 [File] js/dashboard.js loaded (v629)');
 
 class DashboardManager {
     constructor() {
@@ -1445,6 +1445,8 @@ class DashboardManager {
         const track = document.getElementById('suggestedCarouselTrack');
         if (!section || !track) return;
 
+        folders = (folders || []).filter(f => f && f.trim().toLowerCase() !== 'prueba 2');
+
         if (this.currentView !== 'recipes' || this.currentFolder || folders.length === 0) {
             section.classList.add('hidden');
             track.innerHTML = '';
@@ -2053,7 +2055,9 @@ class DashboardManager {
                 if (!isRoot(f) && f.toLowerCase() !== 'prueba 2') folderSet.add(f);
             });
         }
-        const folders = Array.from(folderSet).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+        const folders = Array.from(folderSet)
+            .filter(f => f && f.trim().toLowerCase() !== 'prueba 2')
+            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
         // Contar recetas por carpeta
         const counts = {};
@@ -2307,7 +2311,7 @@ class DashboardManager {
 
             // 4. Mostrar todas las carpetas (incluso vacías para poder gestionarlas o meterles recetas)
             const folders = Array.from(folderMap.values())
-                .filter(f => !isRootFolder(f))
+                .filter(f => !isRootFolder(f) && f.trim().toLowerCase() !== 'prueba 2')
                 .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
             this.renderSuggestedCarousel(folders, counts);

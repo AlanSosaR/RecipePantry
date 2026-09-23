@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="628">
+<html lang="es" data-app-version="629">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=628">
-  <link rel="stylesheet" href="css/components.css?v=628">
+  <link rel="stylesheet" href="css/styles.css?v=629">
+  <link rel="stylesheet" href="css/components.css?v=629">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -52,6 +52,33 @@
     }
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
+
+    // ── Purga inmediata de prueba 2 y caché desactualizada ──
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('rp_folders_') || k.includes('folder'))) {
+          try {
+            let val = JSON.parse(localStorage.getItem(k) || '[]');
+            if (Array.isArray(val)) {
+              val = val.filter(x => x && (x + '').trim().toLowerCase() !== 'prueba 2');
+              localStorage.setItem(k, JSON.stringify(val));
+            }
+          } catch(e) {}
+        }
+      }
+      if (window.indexedDB) {
+        const req = indexedDB.open('recipe_pantry_offline');
+        req.onsuccess = (ev) => {
+          const db = ev.target.result;
+          if (db.objectStoreNames.contains('recipes_index')) {
+            const tx = db.transaction(['recipes_index'], 'readwrite');
+            tx.objectStore('recipes_index').clear();
+          }
+        };
+      }
+    } catch(err) { console.warn('Bootstrap purge error:', err); }
+
     console.log('🏁 UI Boot v483 - Nuclear Sync Active');
   </script>
 
@@ -721,27 +748,27 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=628"></script>
-  <script src="js/supabase-client.js?v=628"></script>
-  <script src="js/localdb.js?v=628"></script>
-  <script src="js/sync-manager.js?v=628"></script>
-  <script src="js/utils.js?v=628"></script>
-  <script src="js/i18n.js?v=628"></script>
-  <script src="js/allergen-data.js?v=628"></script>
-  <script src="js/menu-data.js?v=628"></script>
-  <script src="js/lib/pdf.min.js?v=628"></script>
-  <script src="js/restaurant-menu.js?v=628"></script>
-  <script src="js/db.js?v=628"></script>
-  <script src="js/auth.js?v=628"></script>
-  <script src="js/dashboard.js?v=628"></script>
-  <script src="js/share-modal.js?v=628"></script>
-  <script src="js/help-modal.js?v=628"></script>
-  <script src="js/notifications.js?v=628"></script>
-  <script src="js/ui.js?v=628"></script>
-  <script src="js/sw-register.js?v=628"></script>
-<script src="js/pwa-install.js?v=628"></script>
-  <script src="js/gemini-client.js?v=628"></script>
-  <script type="module" src="js/url-importer.js?v=628"></script>
+  <script src="js/config.js?v=629"></script>
+  <script src="js/supabase-client.js?v=629"></script>
+  <script src="js/localdb.js?v=629"></script>
+  <script src="js/sync-manager.js?v=629"></script>
+  <script src="js/utils.js?v=629"></script>
+  <script src="js/i18n.js?v=629"></script>
+  <script src="js/allergen-data.js?v=629"></script>
+  <script src="js/menu-data.js?v=629"></script>
+  <script src="js/lib/pdf.min.js?v=629"></script>
+  <script src="js/restaurant-menu.js?v=629"></script>
+  <script src="js/db.js?v=629"></script>
+  <script src="js/auth.js?v=629"></script>
+  <script src="js/dashboard.js?v=629"></script>
+  <script src="js/share-modal.js?v=629"></script>
+  <script src="js/help-modal.js?v=629"></script>
+  <script src="js/notifications.js?v=629"></script>
+  <script src="js/ui.js?v=629"></script>
+  <script src="js/sw-register.js?v=629"></script>
+<script src="js/pwa-install.js?v=629"></script>
+  <script src="js/gemini-client.js?v=629"></script>
+  <script type="module" src="js/url-importer.js?v=629"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'
