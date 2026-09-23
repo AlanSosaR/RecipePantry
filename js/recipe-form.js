@@ -89,6 +89,12 @@ class RecipeFormManager {
             form.description.value = isEn ? (r.description_en || r.description_es || '') : (r.description_es || '');
 
 
+            // Seleccionar carpeta de la receta
+            const folderSelect = document.getElementById('pantryFolderSelect');
+            if (folderSelect) {
+                folderSelect.value = r.pantry_es || '';
+            }
+
             // Trigger has-value for all inputs/selects loaded
             form.querySelectorAll('input, select, textarea').forEach(el => {
                 if (el.value) el.classList.add('has-value');
@@ -318,17 +324,27 @@ class RecipeFormManager {
             }
             if (nameGroup) nameGroup.classList.remove('has-error');
 
-            // 1.1) Validar nombre único (Nuevo requisito)
-            const existsOptions = this.isEditing && this.recipeId ? { excludeId: this.recipeId } : {};
+            // 1.1) Validar nombre único dentro de la misma carpeta
+            const currentFolderVal = document.getElementById('pantryFolderSelect')?.value || '';
+            const existsOptions = { 
+                excludeId: this.isEditing && this.recipeId ? this.recipeId : null,
+                folder: currentFolderVal === '__NEW__' ? '' : currentFolderVal
+            };
             const nameExists = await window.db.recipeNameExists(recipeName, existsOptions);
             if (nameExists) {
-                const errorMsg = window.i18n 
-                    ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
-                    : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas guardarla.`;
-                window.utils.showToast(errorMsg, 'error');
-                if (nameGroup) nameGroup.classList.add('has-error');
-                form.name.focus();
-                return;
+                // Si ya existe en esta misma carpeta, permitir guardar si el usuario confirma
+                const confirmMsg = isEn 
+                    ? `A recipe named "${recipeName}" already exists in this folder. Do you want to save anyway?` 
+                    : `Ya existe una receta llamada "${recipeName}" en esta carpeta. ¿Deseas guardarla de todas formas?`;
+                if (!window.confirm(confirmMsg)) {
+                    const errorMsg = window.i18n 
+                        ? window.i18n.t('recipeNameAlreadyExists', { name: recipeName }) 
+                        : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas guardarla.`;
+                    window.utils.showToast(errorMsg, 'error');
+                    if (nameGroup) nameGroup.classList.add('has-error');
+                    form.name.focus();
+                    return;
+                }
             }
 
             // 2) Primer ingrediente vacío

@@ -368,20 +368,27 @@ class DatabaseManager {
         }
     }
 
-    async recipeNameExists(name, options = { includeShared: true, excludeId: null }) {
+    async recipeNameExists(name, options = { includeShared: true, excludeId: null, folder: undefined }) {
         if (!name) return false;
         await this._checkLocalDB();
         const includeShared = options.includeShared !== false;
         const excludeId = options.excludeId || null;
+        const targetFolder = options.folder !== undefined ? (options.folder || '').trim().toLowerCase() : undefined;
         const normalizedName = name.toLowerCase().trim();
 
-        console.log(`🔍 [DB] recipeNameExists check: "${name}" (includeShared: ${includeShared})`);
+        console.log(`🔍 [DB] recipeNameExists check: "${name}" (includeShared: ${includeShared}, folder: ${targetFolder})`);
 
         // 1. Buscar en caché local (recipes_index)
         const localRecipes = await window.localDB.getAll('recipes_index');
         
         const localMatch = localRecipes.find(r => {
             if (excludeId && r.id && String(r.id).toLowerCase() === String(excludeId).toLowerCase()) return false;
+            
+            // Si se especificó carpeta, comparar dentro de la misma carpeta
+            if (targetFolder !== undefined) {
+                const recipeFolder = (r.pantry_es || r.folder || '').trim().toLowerCase();
+                if (recipeFolder !== targetFolder) return false;
+            }
             
             const userId = window.authManager.currentUser?.id;
             
@@ -411,12 +418,20 @@ class DatabaseManager {
                 // v248: Usamos sintaxis más limpia para evitar fallos con caracteres especiales
                 let query = window.supabaseClient
                     .from('recipes')
-                    .select('id, name_es')
+                    .select('id, name_es, pantry_es')
                     .eq('user_id', userId)
                     .or(`name_es.ilike."${name}",name_en.ilike."${name}"`);
 
                 if (excludeId) {
                     query = query.neq('id', excludeId);
+                }
+
+                if (targetFolder !== undefined) {
+                    if (targetFolder === '') {
+                        query = query.or('pantry_es.is.null,pantry_es.eq.""');
+                    } else {
+                        query = query.ilike('pantry_es', options.folder);
+                    }
                 }
 
                 const { data: mine, error: errorMine } = await query.limit(1);
@@ -663,12 +678,15 @@ class DatabaseManager {
             const { success, recipe, error: fetchError } = await this.getRecipeById(sourceRecipeId, true);
             if (!success) throw new Error(fetchError);
 
-            // 2. Verificar si el nombre ya existe en la colección del usuario 
+            const targetPantry = (overrideFolder !== null) ? overrideFolder : (recipe.pantry_es || null);
+
+            // 2. Verificar si el nombre ya existe en la misma carpeta de la colección del usuario 
             // v250: Pasamos sourceRecipeId para evitar que la receta compartida se bloquee a sí misma
             const recipeName = (window.i18n && window.i18n.getLang() === 'en') ? (recipe.name_en || recipe.name_es) : recipe.name_es;
             const exists = await this.recipeNameExists(recipeName, { 
                 includeShared: false, 
-                excludeId: sourceRecipeId 
+                excludeId: sourceRecipeId,
+                folder: targetPantry
             });
             let finalNameEs = recipe.name_es;
             let finalNameEn = recipe.name_en;
@@ -683,10 +701,6 @@ class DatabaseManager {
             }
 
             // 3. Insertar metadatos base (asignando carpeta de destino si se especificó)
-            const targetPantry = (overrideFolder !== null && overrideFolder !== undefined && String(overrideFolder).trim()) 
-                ? String(overrideFolder).trim() 
-                : recipe.pantry_es;
-
             const { data: newRecipeData, error: recipeError } = await window.supabaseClient.from('recipes').insert([{
                 user_id: targetUserId,
                 name_es: finalNameEs,
