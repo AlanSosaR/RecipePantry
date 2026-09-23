@@ -789,16 +789,27 @@ class DashboardManager {
 
         if (this._selectAllTimeout) return;
         this._selectAllTimeout = true;
-        setTimeout(() => this._selectAllTimeout = false, 300);
+        setTimeout(() => this._selectAllTimeout = false, 150);
 
-        // Determinar si todos los visibles de esta carpeta/vista ya están seleccionados
-        const allVisibleSelected = visibleRecipes.every(r => this.selectedRecipes.has(r.id));
+        // Comprobar si todas las recetas visibles están seleccionadas (compatible con string y number)
+        const isSelected = (id) => this.selectedRecipes.has(id) || this.selectedRecipes.has(String(id)) || this.selectedRecipes.has(Number(id));
+        const allVisibleSelected = visibleRecipes.every(r => isSelected(r.id));
 
         if (allVisibleSelected) {
-            // Si ya están TODOS seleccionados en esta vista/carpeta, los deseleccionamos
-            visibleRecipes.forEach(r => this.selectedRecipes.delete(r.id));
+            // Si ya están TODOS seleccionados, deseleccionamos todos los visibles
+            visibleRecipes.forEach(r => {
+                this.selectedRecipes.delete(r.id);
+                this.selectedRecipes.delete(String(r.id));
+                this.selectedRecipes.delete(Number(r.id));
+            });
+
+            // Si ya no queda ninguna receta seleccionada, salimos limpiamente del modo selección
+            if (this.selectedRecipes.size === 0) {
+                this.clearSelection();
+                return;
+            }
         } else {
-            // Seleccionar únicamente los visibles de esta carpeta/vista
+            // Si falta alguna o ninguna, seleccionamos todos los visibles
             visibleRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
 
@@ -1170,7 +1181,7 @@ class DashboardManager {
 
         [selectAllTop, selectAllList].forEach(applyState);
 
-        // Refuerzo en siguiente frame para garantizar sincronía total con eventos móviles
+        // Refuerzo en siguiente frame para garantizar sincronía total con eventos de render
         requestAnimationFrame(() => {
             const top = document.getElementById('selectAllCheckboxTop');
             const list = document.getElementById('selectAllCheckboxList');
@@ -2501,7 +2512,7 @@ class DashboardManager {
         const date = new Date(recipe.updated_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', {
             day: '2-digit', month: '2-digit', year: 'numeric'
         });
-        const isSelected = this.selectedRecipes.has(recipe.id);
+        const isSelected = this.selectedRecipes.has(recipe.id) || this.selectedRecipes.has(String(recipe.id));
 
         return `
             <div class="file-row-m3 ${isSelected ? 'selected' : ''}" 
