@@ -106,8 +106,14 @@ class NotificationManager {
         // ─────────────────────────────────────────────────────────────────────
     }
 
-    async fetchNotifications() {
+    async fetchNotifications(force = false) {
         try {
+            const now = Date.now();
+            if (!force && this._lastFetch && (now - this._lastFetch < 2500)) {
+                return;
+            }
+            this._lastFetch = now;
+
             const user = window.authManager?.currentUser;
             if (!user) {
                 console.warn('⚠️ [Notifications] No hay usuario para buscar notificaciones');
@@ -465,31 +471,42 @@ class NotificationManager {
 
     toggleMenu(event) {
         if (event) event.stopPropagation();
+        if (!this.menu) {
+            this.menu = document.getElementById('notifications-menu');
+            this.list = document.getElementById('notifications-list');
+            this.badge = document.getElementById('notifications-badge');
+        }
         if (!this.menu) return;
 
         const isHidden = this.menu.classList.contains('hidden');
         if (isHidden) {
-            this.fetchNotifications();
-            this.renderMenu();
             this.menu.classList.remove('hidden');
+            this.renderMenu();
+            this.fetchNotifications();
         } else {
             this.menu.classList.add('hidden');
         }
     }
 
     renderMenu() {
+        if (!this.list) {
+            this.list = document.getElementById('notifications-list');
+        }
         if (!this.list) return;
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         if (this.notifications.length === 0) {
             this.list.innerHTML = `
                 <div class="notifications-empty">
-                    <p>Sin notificaciones</p>
+                    <p>${isEn ? 'No notifications' : 'Sin notificaciones'}</p>
                 </div>
             `;
             return;
         }
 
-        this.list.innerHTML = this.notifications.map(n => {
+        try {
+            this.list.innerHTML = this.notifications.map(n => {
             if (n.type === 'welcome') {
                 return `
                     <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
@@ -672,7 +689,10 @@ class NotificationManager {
                     </div>
                 </div>
             `;
-        }).join('');
+            }).join('');
+        } catch (renderErr) {
+            console.error('❌ [Notifications] Error en renderMenu:', renderErr);
+        }
     }
 
     handleWelcomeClick(notificationId) {
