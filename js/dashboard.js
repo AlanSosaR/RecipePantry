@@ -1957,26 +1957,23 @@ class DashboardManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         window.showActionToast({
             message: isEn
-                ? `Delete folder <strong>"${folderName}"</strong>? Recipes will stay and return to main view.`
-                : `¿Eliminar la carpeta <strong>"${folderName}"</strong>? Las recetas no se borrarán, volverán a la vista principal.`,
+                ? `Delete folder <strong>"${folderName}"</strong> and all its recipes? This action cannot be undone.`
+                : `¿Eliminar la carpeta <strong>"${folderName}"</strong> y todas sus recetas? Esta acción no se puede deshacer.`,
             actionText: isEn ? 'Delete' : 'Eliminar',
             cancelText: isEn ? 'Cancel' : 'Cancelar',
             type: 'error',
             actionColor: '#EF4444',
             onConfirm: async () => {
-                // Actualizar inmediatamente en memoria para que no reaparezca
+                // Actualizar inmediatamente en memoria eliminando las recetas de la carpeta
                 if (this.currentRecipes && Array.isArray(this.currentRecipes)) {
-                    this.currentRecipes.forEach(r => {
-                        if ((r.pantry_es || '').trim().toLowerCase() === folderName.trim().toLowerCase()) {
-                            r.pantry_es = '';
-                            r.pantry_en = '';
-                        }
-                    });
+                    this.currentRecipes = this.currentRecipes.filter(r => 
+                        (r.pantry_es || '').trim().toLowerCase() !== folderName.trim().toLowerCase()
+                    );
                 }
                 await window.db.deleteFolder(folderName);
                 if (this.currentFolder === folderName) this.currentFolder = null;
                 await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
-                window.showToast(isEn ? 'Folder deleted' : 'Carpeta eliminada', 'success');
+                window.showToast(isEn ? 'Folder and recipes deleted' : 'Carpeta y recetas eliminadas', 'success');
             }
         });
     }
@@ -2107,13 +2104,18 @@ class DashboardManager {
         const folderName = this.currentFolder;
         window.showActionToast({
             message: isEn
-                ? `Delete folder <strong>"${folderName}"</strong>? Recipes will stay and return to main view.`
-                : `¿Eliminar la carpeta <strong>"${folderName}"</strong>? Las recetas no se borrarán, volverán a la vista principal.`,
+                ? `Delete folder <strong>"${folderName}"</strong> and all its recipes? This action cannot be undone.`
+                : `¿Eliminar la carpeta <strong>"${folderName}"</strong> y todas sus recetas? Esta acción no se puede deshacer.`,
             actionText: isEn ? 'Delete' : 'Eliminar',
             cancelText: isEn ? 'Cancel' : 'Cancelar',
             type: 'error',
             actionColor: '#EF4444',
             onConfirm: async () => {
+                if (this.currentRecipes && Array.isArray(this.currentRecipes)) {
+                    this.currentRecipes = this.currentRecipes.filter(r => 
+                        (r.pantry_es || '').trim().toLowerCase() !== folderName.trim().toLowerCase()
+                    );
+                }
                 await window.db.deleteFolder(folderName);
                 this.currentFolder = null;
                 try {
@@ -2122,7 +2124,7 @@ class DashboardManager {
                     window.history.replaceState({ view: 'recipes', folder: null }, '', u.toString());
                 } catch (e) {}
                 await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
-                window.showToast(isEn ? 'Folder deleted' : 'Carpeta eliminada', 'success');
+                window.showToast(isEn ? 'Folder and recipes deleted' : 'Carpeta y recetas eliminadas', 'success');
             }
         });
     }

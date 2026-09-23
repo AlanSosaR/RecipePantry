@@ -939,7 +939,14 @@ class DatabaseManager {
     _pruneDeletedFolders(uid, folderNames) {
         const deleted = this._getDeletedFolderSet(uid);
         if (deleted.size === 0) return folderNames;
-        return folderNames.filter(f => !deleted.has(f.toLowerCase()));
+        // Si el usuario tiene la carpeta explícitamente en settings de Supabase, no podarla
+        const user = window.authManager?.currentUser;
+        const activeFolders = new Set((user?.settings?.folders || []).map(f => (f || '').trim().toLowerCase()));
+        return folderNames.filter(f => {
+            const clean = f.toLowerCase();
+            if (activeFolders.has(clean)) return true;
+            return !deleted.has(clean);
+        });
     }
 
     getMyFoldersSync() {
@@ -1145,27 +1152,41 @@ class DatabaseManager {
             } catch (e) {}
         }
 
-        // 3. Devolver todas las recetas de esa carpeta a la raíz (pantry_es: '') en Supabase
+        // 3. Eliminar permanentemente todas las recetas pertenecientes a esa carpeta (Supabase + localDB)
+        let recipeIdsToDelete = [];
         if (this._isOnline && window.supabaseClient && user && user.id) {
             try {
-                await window.supabaseClient.from('recipes')
-                    .update({ pantry_es: '', pantry_en: '' })
+                const { data: recs } = await window.supabaseClient
+                    .from('recipes')
+                    .select('id')
                     .eq('user_id', user.id)
                     .ilike('pantry_es', clean);
+                if (recs && recs.length > 0) {
+                    recipeIdsToDelete = recs.map(r => r.id);
+                }
             } catch (e) {
-                console.warn('[db.deleteFolder] Supabase recipes reset error:', e);
+                console.warn('[db.deleteFolder] Supabase recipes fetch error:', e);
             }
         }
 
-        // 4. Devolver todas las recetas en localDB
+        // Recoger también de localDB
         if (window.localDB) {
             try {
                 const allRecipes = await window.localDB.getAll('recipes_index') || [];
-                const toUpdate = allRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === clean.toLowerCase());
-                for (const r of toUpdate) {
-                    await this.updateRecipe(r.id, { pantry_es: '', pantry_en: '' });
-                }
+                const localMatches = allRecipes
+                    .filter(r => (r.pantry_es || '').trim().toLowerCase() === clean.toLowerCase())
+                    .map(r => r.id);
+                recipeIdsToDelete = Array.from(new Set([...recipeIdsToDelete, ...localMatches]));
             } catch (e) {}
+        }
+
+        // Eliminar completamente cada una de las recetas
+        for (const rId of recipeIdsToDelete) {
+            try {
+                await this.deleteRecipe(rId);
+            } catch (e) {
+                console.warn(`[db.deleteFolder] Error eliminando receta ${rId}:`, e);
+            }
         }
 
         window.dispatchEvent(new CustomEvent('folders-updated'));
