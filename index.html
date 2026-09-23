@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="643">
+<html lang="es" data-app-version="644">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=643">
-  <link rel="stylesheet" href="css/components.css?v=643">
+  <link rel="stylesheet" href="css/styles.css?v=644">
+  <link rel="stylesheet" href="css/components.css?v=644">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -53,36 +53,35 @@
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
 
-    // ── Purga inmediata de prueba 2 y caché desactualizada ──
+    // ── Detección instantánea de carpeta para prevenir cualquier parpadeo de "Mis Recetas" ──
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && (k.startsWith('rp_folders_') || k.includes('folder'))) {
-          try {
-            let val = JSON.parse(localStorage.getItem(k) || '[]');
-            if (Array.isArray(val)) {
-              val = val.filter(x => x && (x + '').trim().toLowerCase() !== 'prueba 2');
-              localStorage.setItem(k, JSON.stringify(val));
-            }
-          } catch(e) {}
-        }
+      const p = new URLSearchParams(window.location.search);
+      const v = p.get('view') || 'recipes';
+      let f = p.get('folder');
+      if (!f && v === 'recipes') {
+        f = sessionStorage.getItem('rp_current_folder');
       }
-      if (window.indexedDB) {
-        const req = indexedDB.open('recipe_pantry_offline');
-        req.onsuccess = (ev) => {
-          const db = ev.target.result;
-          if (db.objectStoreNames.contains('recipes_index')) {
-            const tx = db.transaction(['recipes_index'], 'readwrite');
-            tx.objectStore('recipes_index').clear();
-          }
-        };
+      if (v === 'recipes' && f && f.trim()) {
+        const folderName = decodeURIComponent(f).trim();
+        document.documentElement.setAttribute('data-active-folder', folderName);
+        document.addEventListener('DOMContentLoaded', () => {
+          const lbl = document.getElementById('currentFolderNameLabel');
+          if (lbl) lbl.textContent = folderName;
+        });
       }
-    } catch(err) { console.warn('Bootstrap purge error:', err); }
-
-    console.log('🏁 UI Boot v483 - Nuclear Sync Active');
+    } catch(e) {}
   </script>
 
   <style>
+    /* Si hay carpeta activa, ocultar cabecera general y mostrar breadcrumb desde el primer frame */
+    html[data-active-folder] .dashboard-header,
+    html[data-active-folder] #suggestedCarouselSection {
+      display: none !important;
+    }
+    html[data-active-folder] #folderBreadcrumb {
+      display: flex !important;
+    }
+
     /* ─── Recipe Pantry Original Landing UI ─── */
     :root {
       --m3-easing: cubic-bezier(0.2, 0.0, 0, 1.0);
@@ -747,27 +746,27 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=643"></script>
-  <script src="js/supabase-client.js?v=643"></script>
-  <script src="js/localdb.js?v=643"></script>
-  <script src="js/sync-manager.js?v=643"></script>
-  <script src="js/utils.js?v=643"></script>
-  <script src="js/i18n.js?v=643"></script>
-  <script src="js/allergen-data.js?v=643"></script>
-  <script src="js/menu-data.js?v=643"></script>
-  <script src="js/lib/pdf.min.js?v=643"></script>
-  <script src="js/restaurant-menu.js?v=643"></script>
-  <script src="js/db.js?v=643"></script>
-  <script src="js/auth.js?v=643"></script>
-  <script src="js/dashboard.js?v=643"></script>
-  <script src="js/share-modal.js?v=643"></script>
-  <script src="js/help-modal.js?v=643"></script>
-  <script src="js/notifications.js?v=643"></script>
-  <script src="js/ui.js?v=643"></script>
-  <script src="js/sw-register.js?v=643"></script>
-<script src="js/pwa-install.js?v=643"></script>
-  <script src="js/gemini-client.js?v=643"></script>
-  <script type="module" src="js/url-importer.js?v=643"></script>
+  <script src="js/config.js?v=644"></script>
+  <script src="js/supabase-client.js?v=644"></script>
+  <script src="js/localdb.js?v=644"></script>
+  <script src="js/sync-manager.js?v=644"></script>
+  <script src="js/utils.js?v=644"></script>
+  <script src="js/i18n.js?v=644"></script>
+  <script src="js/allergen-data.js?v=644"></script>
+  <script src="js/menu-data.js?v=644"></script>
+  <script src="js/lib/pdf.min.js?v=644"></script>
+  <script src="js/restaurant-menu.js?v=644"></script>
+  <script src="js/db.js?v=644"></script>
+  <script src="js/auth.js?v=644"></script>
+  <script src="js/dashboard.js?v=644"></script>
+  <script src="js/share-modal.js?v=644"></script>
+  <script src="js/help-modal.js?v=644"></script>
+  <script src="js/notifications.js?v=644"></script>
+  <script src="js/ui.js?v=644"></script>
+  <script src="js/sw-register.js?v=644"></script>
+<script src="js/pwa-install.js?v=644"></script>
+  <script src="js/gemini-client.js?v=644"></script>
+  <script type="module" src="js/url-importer.js?v=644"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

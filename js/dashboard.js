@@ -76,7 +76,32 @@ class DashboardManager {
 
     async init() {
         try {
-            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium v473)', 'color: #10B981; font-weight: bold; font-size: 14px;');
+            console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium)', 'color: #10B981; font-weight: bold;');
+
+            // 0. Parsear vista y carpeta de inmediato (sincrónicamente antes de cualquier await)
+            const urlParams = new URLSearchParams(window.location.search);
+            let viewParam = urlParams.get('view');
+            const rawHash = (window.location.hash || '').replace('#', '').toLowerCase();
+            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu'].includes(rawHash)) {
+                viewParam = rawHash;
+            }
+            if (viewParam === 'settings') viewParam = 'help';
+            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu'].includes(viewParam)) {
+                this.currentView = viewParam;
+            }
+
+            if (this.currentView === 'recipes') {
+                let folderParam = urlParams.get('folder');
+                if (!folderParam) {
+                    try { folderParam = sessionStorage.getItem('rp_current_folder'); } catch (e) {}
+                }
+                if (folderParam) {
+                    this.currentFolder = decodeURIComponent(folderParam).trim();
+                }
+            }
+
+            // Aplicar de inmediato el estado visual de la carpeta (oculta header general "Mis Recetas" y muestra el breadcrumb)
+            this.renderFolders();
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -105,26 +130,6 @@ class DashboardManager {
             // Actualizar datos de usuario en la UI
             this.updateUserUI();
 
-
-            // 2. Cargar datos iniciales según la vista guardada, URL o hash
-            const urlParams = new URLSearchParams(window.location.search);
-            let viewParam = urlParams.get('view');
-            const rawHash = (window.location.hash || '').replace('#', '').toLowerCase();
-            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu'].includes(rawHash)) {
-                viewParam = rawHash;
-            }
-            if (viewParam === 'settings') viewParam = 'help';
-            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu'].includes(viewParam)) {
-                this.currentView = viewParam;
-            }
-
-            // Leer carpeta desde URL si estamos en vista recipes
-            if (this.currentView === 'recipes') {
-                const folderParam = urlParams.get('folder');
-                if (folderParam) {
-                    this.currentFolder = decodeURIComponent(folderParam).trim();
-                }
-            }
             this.currentOffset = 0;
             if (!this.selectedRecipes) this.selectedRecipes = new Set();
             this.isSelectionMode = false;
@@ -1466,6 +1471,7 @@ class DashboardManager {
         }
 
         if (this.currentFolder) {
+            document.documentElement.setAttribute('data-active-folder', this.currentFolder);
             // Vista dentro de una carpeta: ocultar cabecera superior "Recetas" y carrusel
             if (dashHeader && !this.isSelectionMode) {
                 dashHeader.classList.add('hidden');
@@ -1479,11 +1485,15 @@ class DashboardManager {
             if (breadcrumb) {
                 breadcrumb.classList.remove('hidden');
                 breadcrumb.style.display = 'flex';
-                // Contar recetas dentro de esta carpeta
-                const folderCount = (this.currentRecipes || []).filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()).length;
-                if (folderLabel) folderLabel.textContent = `${this.currentFolder} (${folderCount})`;
+                // Contar recetas dentro de esta carpeta (si ya cargaron)
+                const hasRecs = this.currentRecipes && this.currentRecipes.length > 0;
+                const folderCount = hasRecs
+                    ? (this.currentRecipes || []).filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()).length
+                    : null;
+                if (folderLabel) folderLabel.textContent = folderCount !== null ? `${this.currentFolder} (${folderCount})` : this.currentFolder;
             }
         } else {
+            document.documentElement.removeAttribute('data-active-folder');
             // Vista raíz de Mis Recetas: mostrar cabecera "Recetas"
             if (breadcrumb) {
                 breadcrumb.classList.add('hidden');
