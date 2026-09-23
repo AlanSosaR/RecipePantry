@@ -2127,33 +2127,54 @@ class DashboardManager {
         const ids = [...this.pendingMoveRecipeIds];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        // 1. CERRAR MODAL INMEDIATAMENTE
         this.closeMoveModal();
-        window.showToast(isEn ? 'Moving...' : 'Moviendo...', 'info');
 
-        try {
-            for (const id of ids) {
-                await window.db.moveRecipeToFolder(id, targetFolder);
-            }
-
-            this.clearSelection();
-            if (this.currentView === 'favorites') {
-                await this.loadRecipes({ favorite: true, orderBy: 'name_es', ascending: true, forceRefresh: true });
-            } else if (this.currentView === 'shared') {
-                await this.loadRecipes({ shared: true, forceRefresh: true });
-            } else {
-                await this.loadRecipes({ orderBy: 'name_es', ascending: true, forceRefresh: true });
-            }
-            this.renderFolders();
-
-            const targetDesc = targetFolder ? `"${targetFolder}"` : (isEn ? 'My Recipes' : 'Mis Recetas');
-            const successMsg = ids.length === 1
-                ? (isEn ? `Recipe moved to ${targetDesc}` : `Receta movida a ${targetDesc} con éxito`)
-                : (isEn ? `${ids.length} recipes moved to ${targetDesc}` : `${ids.length} recetas movidas a ${targetDesc} con éxito`);
-            window.showToast(successMsg, 'success');
-        } catch (err) {
-            console.error('[executeMoveModal] Error:', err);
-            window.showToast(isEn ? 'Error moving items' : 'Error al mover los elementos', 'error');
+        // 2. ACTUALIZACIÓN OPTIMISTA INSTANTÁNEA EN MEMORIA (0 ms)
+        const idSet = new Set(ids);
+        if (Array.isArray(this.currentRecipes)) {
+            this.currentRecipes.forEach(r => {
+                if (idSet.has(r.id)) {
+                    r.pantry_es = targetFolder;
+                    r.pantry_en = targetFolder;
+                }
+            });
         }
+        if (Array.isArray(this.allRecipes)) {
+            this.allRecipes.forEach(r => {
+                if (idSet.has(r.id)) {
+                    r.pantry_es = targetFolder;
+                    r.pantry_en = targetFolder;
+                }
+            });
+        }
+
+        // Si la carpeta destino es nueva, asegurar que esté registrada en local inmediatamente
+        if (targetFolder && window.db && window.db.createFolder) {
+            window.db.createFolder(targetFolder);
+        }
+
+        // 3. RE-RENDERIZAR INMEDIATAMENTE LA GRILLA Y CONTADORES (0 ms)
+        this.clearSelection();
+        this.renderRecipesGrid(this.currentRecipes);
+        this.renderFolders();
+
+        // 4. NOTIFICACIÓN INMEDIATA DE ÉXITO
+        const targetDesc = targetFolder ? `"${targetFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
+        const successMsg = ids.length === 1
+            ? (isEn ? `Recipe moved to ${targetDesc}` : `Receta movida a ${targetDesc}`)
+            : (isEn ? `${ids.length} recipes moved to ${targetDesc}` : `${ids.length} recetas movidas a ${targetDesc}`);
+        window.showToast(successMsg, 'success');
+
+        // 5. SINCRONIZACIÓN EN SEGUNDO PLANO (sin bloquear ni congelar la pantalla)
+        (async () => {
+            try {
+                await Promise.all(ids.map(id => window.db.moveRecipeToFolder(id, targetFolder)));
+            } catch (err) {
+                console.error('[executeMoveModal] Error de persistencia en background:', err);
+                window.showToast(isEn ? 'Error syncing with server' : 'Error al sincronizar con el servidor', 'error');
+            }
+        })();
     }
 
     toggleNewFolderInMoveModal() {
