@@ -576,7 +576,7 @@ class NotificationManager {
                                 <div style="display:flex; gap:8px; margin-top:10px;">
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptFolder('${n.id}', '${safeFolderName}', '${safeRecipeIdsJson}')"
                                         style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
-                                        ✅ Agregar a mis recetas
+                                        💾 ${isEn ? 'Save whole folder' : 'Guardar toda la carpeta'}
                                     </button>
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineFolder('${n.id}', '${safeRecipeIdsJson}')"
                                         style="flex:1; padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
@@ -962,7 +962,7 @@ class NotificationManager {
     }
 
     /**
-     * Accept Folder: Duplica todas las recetas de la carpeta a la colección personal
+     * Accept Folder: Guarda la carpeta completa y todas sus recetas en la colección personal
      */
     async handleAcceptFolder(notificationId, encodedFolderName, encodedRecipeIdsJson) {
         try {
@@ -983,64 +983,76 @@ class NotificationManager {
             }
 
             const isEn = window.i18n && window.i18n.getLang() === 'en';
-            window.utils.showToast(isEn ? 'Saving folder and recipes...' : 'Guardando carpeta y recetas...', 'info');
+            window.utils.showToast(isEn ? 'Saving folder and all recipes...' : 'Guardando carpeta y todas las recetas...', 'info');
+
+            // 1. Crear la carpeta en las carpetas personales del usuario para que aparezca en el menú y pestañas
+            if (folderName && window.db && typeof window.db.createFolder === 'function') {
+                try {
+                    await window.db.createFolder(folderName);
+                } catch (cfErr) {
+                    console.warn('⚠️ Error registrando carpeta en db:', cfErr);
+                }
+            }
 
             let successCount = 0;
             for (const rId of recipeIds) {
                 try {
-                    // 1. Actualizar estado en shared_recipes
+                    // 2. Actualizar estado en shared_recipes
                     await window.supabaseClient
                         .from('shared_recipes')
                         .update({ status: 'accepted', accepted_at: new Date().toISOString() })
                         .eq('recipe_id', rId)
                         .eq('recipient_user_id', user.id);
 
-                    // 2. Duplicar receta a la colección personal
-                    const dupRes = await window.db.duplicateRecipe(rId, user.id);
+                    // 3. Duplicar receta a la colección personal asignándole la carpeta y auto-renombrando si se repite el nombre
+                    const dupRes = await window.db.duplicateRecipe(rId, user.id, folderName, true);
                     if (dupRes.success) {
                         successCount++;
                     }
 
-                    // 3. Eliminar de compartidas
+                    // 4. Eliminar de compartidas para que no quede duplicada en la pestaña Compartidas
                     await window.db.deleteSharedRecipe(user.id, rId);
                 } catch (rErr) {
                     console.warn(`⚠️ Error procesando receta ${rId} de la carpeta:`, rErr);
                 }
             }
 
-            // 4. Marcar notificación como leída
+            // 5. Marcar notificación como leída
             await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
                 .eq('id', notificationId);
 
-            // 5. Actualizar UI
+            // 6. Actualizar UI de notificaciones
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
             this.updateBadge();
             this.renderMenu();
 
             const toastSuccess = isEn 
-                ? `✅ Folder "${folderName}" (${successCount} recipes) added to your collection!`
-                : `✅ ¡Carpeta "${folderName}" (${successCount} recetas) agregada a tu colección!`;
+                ? `✅ Folder "${folderName}" (${successCount} recipes) saved in your recipes!`
+                : `✅ ¡Carpeta "${folderName}" (${successCount} recetas) guardada en tus recetas!`;
             window.utils.showToast(toastSuccess, 'success');
 
-            // 6. Recargar recetas y abrir la carpeta en el dashboard
-            if (window.dashboardManager) {
-                window.dashboardManager.currentFolder = folderName || null;
-                if (typeof window.dashboardManager.loadRecipes === 'function') {
-                    await window.dashboardManager.loadRecipes();
+            // 7. Recargar recetas, actualizar carpetas y abrir la carpeta en el dashboard
+            const d = window.dashboardManager || window.dashboard;
+            if (d) {
+                d.currentFolder = folderName || null;
+                if (typeof d.renderFolders === 'function') {
+                    d.renderFolders();
                 }
-                window.dashboardManager.switchView('recipes');
-            } else if (window.dashboard) {
-                window.dashboard.currentFolder = folderName || null;
-                if (typeof window.dashboard.loadRecipes === 'function') {
-                    await window.dashboard.loadRecipes();
+                if (typeof d.loadRecipes === 'function') {
+                    await d.loadRecipes();
                 }
-                window.dashboard.switchView('recipes');
+                if (typeof d.switchView === 'function') {
+                    d.switchView('recipes');
+                }
+                if (typeof d.renderFolders === 'function') {
+                    d.renderFolders();
+                }
             }
         } catch (err) {
-            console.error('❌ Error aceptando carpeta:', err);
-            window.utils.showToast('Error al agregar la carpeta', 'error');
+            console.error('❌ Error guardando carpeta completa:', err);
+            window.utils.showToast('Error al guardar la carpeta', 'error');
         }
     }
 

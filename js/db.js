@@ -654,10 +654,7 @@ class DatabaseManager {
     }
 
     /**
-     * Duplica una receta compartida como propia del usuario destino.
-     * Copia técnica profunda: metadatos + ingredientes + pasos.
-     */
-    async duplicateRecipe(sourceRecipeId, targetUserId) {
+      async duplicateRecipe(sourceRecipeId, targetUserId, overrideFolder = null, autoRenameIfExists = false) {
         if (!this._isOnline) return { success: false, error: 'Debes tener conexión para duplicar una receta.' };
         try {
             // 1. Obtener la receta COMPLETA (con ingredientes y pasos)
@@ -668,21 +665,33 @@ class DatabaseManager {
             // v250: Pasamos sourceRecipeId para evitar que la receta compartida se bloquee a sí misma
             const recipeName = (window.i18n && window.i18n.getLang() === 'en') ? (recipe.name_en || recipe.name_es) : recipe.name_es;
             const exists = await this.recipeNameExists(recipeName, { 
-                includeShared: false,
+                includeShared: false, 
                 excludeId: sourceRecipeId 
             });
+            let finalNameEs = recipe.name_es;
+            let finalNameEn = recipe.name_en;
+
             if (exists) {
-                return { success: false, error: `Ya existe una receta con el nombre "${recipeName}" en tu colección.` };
+                if (autoRenameIfExists) {
+                    finalNameEs = `${recipe.name_es} (Copia)`;
+                    if (recipe.name_en) finalNameEn = `${recipe.name_en} (Copy)`;
+                } else {
+                    return { success: false, error: `Ya existe una receta con el nombre "${recipeName}" en tu colección.` };
+                }
             }
 
-            // 3. Insertar metadatos base
+            // 3. Insertar metadatos base (asignando carpeta de destino si se especificó)
+            const targetPantry = (overrideFolder !== null && overrideFolder !== undefined && String(overrideFolder).trim()) 
+                ? String(overrideFolder).trim() 
+                : recipe.pantry_es;
+
             const { data: newRecipeData, error: recipeError } = await window.supabaseClient.from('recipes').insert([{
                 user_id: targetUserId,
-                name_es: recipe.name_es,
-                name_en: recipe.name_en || null,
+                name_es: finalNameEs,
+                name_en: finalNameEn || null,
                 description_es: recipe.description_es,
                 description_en: recipe.description_en,
-                pantry_es: recipe.pantry_es,
+                pantry_es: targetPantry,
                 pantry_en: recipe.pantry_en,
                 personal_notes: recipe.personal_notes,
                 tags: recipe.tags,
