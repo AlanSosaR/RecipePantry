@@ -590,26 +590,38 @@ class NotificationManager {
                 const safeFolderName = encodeURIComponent(n.folderName || '');
 
                 return `
-                    <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08); position:relative;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
                             <div class="notification-avatar" style="flex-shrink:0; background:rgba(16, 185, 129, 0.2); color:#10B981; font-size:18px; display:flex; align-items:center; justify-content:center;">
                                 📁
                             </div>
                             <div style="flex:1; min-width:0;">
-                                <span style="color:white; display:block; font-size:13px; font-weight:600;">${n.prefix} ${n.sender} te ha compartido una carpeta</span>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <span style="color:white; display:block; font-size:13px; font-weight:600;">${n.prefix} ${n.sender} te ha compartido una carpeta</span>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
+                                        style="background:transparent; border:none; color:rgba(255,255,255,0.4); font-size:15px; cursor:pointer; padding:0 4px; line-height:1;"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                                </div>
                                 <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">📁 ${folderTitle} <span style="font-weight:400; font-size:12px; color:#A1A1AA;">${countText}</span></span>
                                 <span style="color:#666; font-size:10px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                                 
                                 <!-- Action buttons -->
-                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptFolder('${n.id}', '${safeFolderName}', '${safeRecipeIdsJson}')"
-                                        style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
-                                        💾 ${isEn ? 'Save whole folder' : 'Guardar toda la carpeta'}
+                                        style="width:100%; padding:9px 10px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);">
+                                        💾 ${isEn ? 'Save folder' : 'Guardar toda la carpeta'}
                                     </button>
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineFolder('${n.id}', '${safeRecipeIdsJson}')"
-                                        style="flex:1; padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
-                                        Dejar en compartidas
-                                    </button>
+                                    <div style="display:flex; gap:6px;">
+                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineFolder('${n.id}', '${safeRecipeIdsJson}')"
+                                            style="flex:1; padding:7px 8px; background:rgba(255,255,255,0.08); color:#d1d5db; border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; text-align:center;">
+                                            ${isEn ? 'In shared' : 'Dejar en compartidas'}
+                                        </button>
+                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
+                                            style="flex:1; padding:7px 8px; background:rgba(239,68,68,0.12); color:#fca5a5; border:1px solid rgba(239,68,68,0.25); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; text-align:center;"
+                                            title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                            ✕ ${isEn ? 'Dismiss' : 'Omitir'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -621,26 +633,38 @@ class NotificationManager {
             const isRecipeIdValid = safeRecipeId.length > 10 && safeRecipeId !== 'undefined';
             
             return `
-                <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08); position:relative;">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
                         <div class="notification-avatar" style="flex-shrink:0;">
                             ${n.sender ? n.sender.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <span style="color:white; display:block; font-size:13px; font-weight:600;">${n.prefix} ${n.sender} te ha compartido una receta</span>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                <span style="color:white; display:block; font-size:13px; font-weight:600;">${n.prefix} ${n.sender} te ha compartido una receta</span>
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
+                                    style="background:transparent; border:none; color:rgba(255,255,255,0.4); font-size:15px; cursor:pointer; padding:0 4px; line-height:1;"
+                                    title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                            </div>
                             <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">${n.recipeName}</span>
                             <span style="color:#666; font-size:10px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                             
                             <!-- Action buttons -->
-                            <div style="display:flex; gap:8px; margin-top:10px; ${isRecipeIdValid ? '' : 'opacity:0.5; pointer-events:none;'}">
+                            <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px; ${isRecipeIdValid ? '' : 'opacity:0.5; pointer-events:none;'}">
                                 <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${safeRecipeId}')"
-                                    style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
-                                    ✅ Agregar a mis recetas
+                                    style="width:100%; padding:9px 10px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);">
+                                    ✅ ${isEn ? 'Add to my recipes' : 'Agregar a mis recetas'}
                                 </button>
-                                <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineRecipe('${n.id}', '${safeRecipeId}')"
-                                    style="flex:1; padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
-                                    Dejar en compartidas
-                                </button>
+                                <div style="display:flex; gap:6px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineRecipe('${n.id}', '${safeRecipeId}')"
+                                        style="flex:1; padding:7px 8px; background:rgba(255,255,255,0.08); color:#d1d5db; border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; text-align:center;">
+                                        ${isEn ? 'In shared' : 'Dejar en compartidas'}
+                                    </button>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
+                                        style="flex:1; padding:7px 8px; background:rgba(239,68,68,0.12); color:#fca5a5; border:1px solid rgba(239,68,68,0.25); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; text-align:center;"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                        ✕ ${isEn ? 'Dismiss' : 'Omitir'}
+                                    </button>
+                                </div>
                             </div>
                             <!-- Error fallback message if ID is invalid -->
                             ${!isRecipeIdValid ? '<span style="color:red; font-size:10px; display:block; margin-top:4px;">⚠️ Error: ID de receta no válido</span>' : ''}
@@ -1138,6 +1162,86 @@ class NotificationManager {
         } catch (err) {
             console.error('❌ Error guardando carpeta en compartidas:', err);
             window.utils.showToast('Error al procesar la carpeta', 'error');
+        }
+    }
+
+    /**
+     * Dismiss Folder: Omite / descarta la carpeta compartida sin guardarla
+     */
+    async handleDismissFolder(notificationId, encodedRecipeIdsJson) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            let recipeIds = [];
+            try { recipeIds = JSON.parse(decodeURIComponent(encodedRecipeIdsJson)); } catch (e) { recipeIds = []; }
+
+            if (!recipeIds || recipeIds.length === 0) {
+                const notif = this.notifications.find(item => item.id === notificationId);
+                if (notif && notif.recipeIds) recipeIds = notif.recipeIds;
+            }
+
+            // 1. Eliminar de shared_recipes para que no aparezca en compartidas
+            if (recipeIds.length > 0) {
+                await window.supabaseClient
+                    .from('shared_recipes')
+                    .delete()
+                    .in('recipe_id', recipeIds)
+                    .eq('recipient_user_id', user.id);
+            }
+
+            // 2. Marcar notificación como leída
+            await window.supabaseClient
+                .from('notifications')
+                .update({ leido: true })
+                .eq('id', notificationId);
+
+            // 3. Actualizar UI
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Folder dismissed' : 'Carpeta omitida', 'info');
+        } catch (err) {
+            console.error('❌ Error omitiendo carpeta:', err);
+            window.utils.showToast('Error al omitir', 'error');
+        }
+    }
+
+    /**
+     * Dismiss Recipe: Omite / descarta la receta compartida sin guardarla
+     */
+    async handleDismissRecipe(notificationId, recipeId) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            // 1. Eliminar de shared_recipes
+            if (recipeId) {
+                await window.supabaseClient
+                    .from('shared_recipes')
+                    .delete()
+                    .eq('recipe_id', recipeId)
+                    .eq('recipient_user_id', user.id);
+            }
+
+            // 2. Marcar notificación como leída
+            await window.supabaseClient
+                .from('notifications')
+                .update({ leido: true })
+                .eq('id', notificationId);
+
+            // 3. Actualizar UI
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Recipe dismissed' : 'Receta omitida', 'info');
+        } catch (err) {
+            console.error('❌ Error omitiendo receta:', err);
+            window.utils.showToast('Error al omitir', 'error');
         }
     }
 
