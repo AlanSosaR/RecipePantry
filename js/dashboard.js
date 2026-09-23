@@ -972,35 +972,39 @@ class DashboardManager {
                     <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
                 </div>
                 ${sharedLabelHTML}
-                <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected()">
+                <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">link</span>
                     ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
                 </button>
-                <button class="context-menu-item" onclick="window.dashboard.shareSelected()">
+                <button class="context-menu-item" onclick="window.dashboard.shareSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">share</span>
                     ${window.i18n ? window.i18n.t('shareSelection') : 'Compartir'}
                 </button>
+                <button class="context-menu-item" onclick="window.dashboard.moveSelected(); this.closest('.dropbox-menu-m3')?.remove();">
+                    <span class="material-symbols-outlined">drive_file_move</span>
+                    ${isEn ? 'Move to folder' : 'Mover a carpeta'}
+                </button>
                 <div class="context-menu-divider"></div>
-                <button class="context-menu-item" onclick="window.dashboard.editSelected()">
+                <button class="context-menu-item" onclick="window.dashboard.editSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">edit</span>
                     ${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar receta'}
                 </button>
-                <button class="context-menu-item" onclick="window.dashboard.startRename('${recipe.id}', event)">
+                <button class="context-menu-item" onclick="window.dashboard.startRename('${recipe.id}', event); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">edit_square</span>
                     ${window.i18n ? window.i18n.t('rename') : 'Renombrar'}
                 </button>
-                <button class="context-menu-item" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
+                <button class="context-menu-item" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite}); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">${isFavorite ? 'star' : 'star_border'}</span>
                     ${isFavorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}
                 </button>
                 <div class="context-menu-divider"></div>
                 ${isReceived ? `
-                    <button class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}')">
+                    <button class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}'); this.closest('.dropbox-menu-m3')?.remove();">
                         <span class="material-symbols-outlined">library_add</span>
                         ${window.i18n ? window.i18n.t('addToMyRecipes') : 'Agregar a mis recetas'}
                     </button>
                 ` : ''}
-                <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
+                <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">delete</span>
                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
                 </button>
@@ -1016,16 +1020,20 @@ class DashboardManager {
                 <div class="dropbox-menu-header">
                     <h4>${headerText}</h4>
                 </div>
-                <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected()">
+                <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">link</span>
                     ${window.i18n ? (count === 1 ? window.i18n.t('copyLinkLabel') : 'Copiar enlaces') : 'Copiar enlaces'}
                 </button>
-                <button class="context-menu-item" onclick="window.dashboard.shareSelected()">
+                <button class="context-menu-item" onclick="window.dashboard.shareSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">share</span>
                     ${window.i18n ? (count === 1 ? window.i18n.t('shareSelection') : 'Compartir selección') : 'Compartir selección'}
                 </button>
+                <button class="context-menu-item" onclick="window.dashboard.moveSelected(); this.closest('.dropbox-menu-m3')?.remove();">
+                    <span class="material-symbols-outlined">drive_file_move</span>
+                    ${isEn ? 'Move to folder' : 'Mover a carpeta'}
+                </button>
                 <div class="context-menu-divider"></div>
-                <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected()">
+                <button class="context-menu-item danger" onclick="window.dashboard.deleteSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">delete</span>
                     ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
                 </button>
@@ -2086,13 +2094,6 @@ class DashboardManager {
                 : (isEn ? `Move ${recipeIds.length} items to...` : `Mover ${recipeIds.length} elementos a...`);
         }
 
-        // Determinar carpeta actual si es un solo elemento
-        let currentFolderOfItem = null;
-        if (recipeIds.length === 1) {
-            const rec = (this.currentRecipes || []).find(r => r.id === recipeIds[0]);
-            currentFolderOfItem = (rec && rec.pantry_es) ? rec.pantry_es.trim() : '';
-        }
-
         // Helper para raíz
         const isRoot = (f) => !f || typeof f !== 'string' || !f.trim() || (window.db && window.db._isRootFolderName && window.db._isRootFolderName(f));
 
@@ -2105,6 +2106,17 @@ class DashboardManager {
         }
         if (!allRecs || allRecs.length === 0) {
             allRecs = Array.isArray(this.currentRecipes) ? this.currentRecipes : [];
+        }
+
+        // Determinar carpeta actual si es un solo elemento o si estamos dentro de una carpeta
+        let currentFolderOfItem = null;
+        if (recipeIds.length === 1) {
+            const rec = allRecs.find(r => r.id === recipeIds[0]) || (this.currentRecipes || []).find(r => r.id === recipeIds[0]);
+            currentFolderOfItem = (rec && rec.pantry_es) ? rec.pantry_es.trim() : '';
+        } else if (this.currentFolder) {
+            currentFolderOfItem = this.currentFolder.trim();
+        } else {
+            currentFolderOfItem = '';
         }
 
         // Obtener carpetas disponibles (registro + recetas) con nombres canónicos
