@@ -82,7 +82,9 @@ async function sendFCMNotification(
   fcmToken: string,
   title: string,
   body: string,
-  data: Record<string, string> = {}
+  data: Record<string, string> = {},
+  supabaseUrl?: string,
+  serviceRole?: string
 ): Promise<void> {
   const iconUrl  = "https://recipe-pantry.vercel.app/assets/icons/manifest-icon-192.maskable.png";
   const badgeUrl = "https://recipe-pantry.vercel.app/assets/icons/favicon-196.png";
@@ -133,6 +135,24 @@ async function sendFCMNotification(
 
   if (!response.ok) {
     const err = await response.text();
+    // Limpieza automática si el token caducó o el usuario revocó permisos
+    if ((err.includes("UNREGISTERED") || err.includes("NotRegistered")) && supabaseUrl && serviceRole) {
+      console.warn(`⚠️ [FCM] Token desregistrado, eliminando de BD: ${fcmToken}`);
+      try {
+        await fetch(
+          `${supabaseUrl}/rest/v1/push_tokens?token=eq.${encodeURIComponent(fcmToken)}`,
+          {
+            method: "DELETE",
+            headers: {
+              "apikey": serviceRole,
+              "Authorization": `Bearer ${serviceRole}`
+            }
+          }
+        );
+      } catch (cleanErr) {
+        console.warn("Error limpiando token:", cleanErr);
+      }
+    }
     throw new Error(`FCM send error: ${err}`);
   }
 
@@ -277,7 +297,9 @@ serve(async (req: Request) => {
         type:            type || "general",
         notification_id: notification_id || "",
         url:             linkUrl
-      }
+      },
+      supabaseUrl,
+      serviceRole
     );
 
     return new Response(JSON.stringify({ success: true }), {
