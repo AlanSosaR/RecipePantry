@@ -6888,11 +6888,12 @@ body.dark-theme .folder-more-btn:hover {
     top: 100%;
     right: 0;
     margin-top: 12px;
-    width: 320px;
+    width: 360px;
+    max-width: calc(100vw - 24px);
     background: #1c1c1e;
     color: #ffffff;
     border: 1px solid #3a3a3a;
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
     z-index: 4000;
     overflow: hidden;
