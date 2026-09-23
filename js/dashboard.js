@@ -746,28 +746,60 @@ class DashboardManager {
     }
 
 
-    handleSelectAll(e) {
-        if (!this.currentRecipes || this.currentRecipes.length === 0) return;
+    getVisibleRecipes() {
+        if (!Array.isArray(this.currentRecipes) || this.currentRecipes.length === 0) return [];
 
-        // v197: Prevent default and stop propagation for mobile stability
+        const isRootFolder = (f) => {
+            if (!f || typeof f !== 'string') return true;
+            return !f.trim();
+        };
+
+        const isSearching = !!(this.lastFilters && this.lastFilters.search && this.lastFilters.search.trim());
+
+        if (this.currentView === 'recipes') {
+            if (this.currentFolder) {
+                // Dentro de una carpeta: solo recetas pertenecientes a esa carpeta
+                return this.currentRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
+            } else if (isSearching) {
+                const s = this.lastFilters.search.trim().toLowerCase();
+                return this.currentRecipes.filter(r => {
+                    const isRoot = isRootFolder(r.pantry_es);
+                    if (!isRoot) return false;
+                    return (r.name_es && r.name_es.toLowerCase().includes(s)) || (r.name_en && r.name_en.toLowerCase().includes(s));
+                });
+            } else {
+                // En la raíz (Despensa Principal): recetas sueltas sin carpeta asignada
+                return this.currentRecipes.filter(r => isRootFolder(r.pantry_es));
+            }
+        } else if (this.currentView === 'favorites') {
+            return this.currentRecipes.filter(r => r.is_favorite);
+        } else if (this.currentView === 'shared') {
+            return this.currentRecipes.filter(r => r.sharingContext === 'received');
+        }
+        return this.currentRecipes;
+    }
+
+    handleSelectAll(e) {
+        const visibleRecipes = this.getVisibleRecipes();
+        if (!visibleRecipes || visibleRecipes.length === 0) return;
+
         if (e) {
-            e.preventDefault();
             e.stopPropagation();
         }
 
         if (this._selectAllTimeout) return;
         this._selectAllTimeout = true;
-        setTimeout(() => this._selectAllTimeout = false, 400); // 400ms buffer
+        setTimeout(() => this._selectAllTimeout = false, 300);
 
-        // Determinar si todos los visibles ya están seleccionados
-        const allVisibleSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
+        // Determinar si todos los visibles de esta carpeta/vista ya están seleccionados
+        const allVisibleSelected = visibleRecipes.every(r => this.selectedRecipes.has(r.id));
 
         if (allVisibleSelected) {
-            // Si ya están TODOS seleccionados, deseleccionamos todos
-            this.selectedRecipes.clear();
+            // Si ya están TODOS seleccionados en esta vista/carpeta, los deseleccionamos
+            visibleRecipes.forEach(r => this.selectedRecipes.delete(r.id));
         } else {
-            // Si falta alguno (incluyendo estado indeterminado), los seleccionamos todos
-            this.currentRecipes.forEach(r => this.selectedRecipes.add(r.id));
+            // Seleccionar únicamente los visibles de esta carpeta/vista
+            visibleRecipes.forEach(r => this.selectedRecipes.add(r.id));
         }
 
         // Haptic feedback if available
@@ -776,6 +808,7 @@ class DashboardManager {
         this.isSelectionMode = this.selectedRecipes.size > 0;
         this.updateActionBar();
         this.renderRecipesGrid(this.currentRecipes);
+        this.updateSelectAllCheckbox();
     }
 
     clearSelection() {
@@ -816,13 +849,23 @@ class DashboardManager {
             if (countGroup) countGroup.classList.remove('hidden');
             const moreBtn = document.getElementById('selectionMoreBtn');
             if (moreBtn) {
-                // v289: Mantener siempre visible el de la cabecera global para mayor claridad
-                moreBtn.style.setProperty('display', 'flex', 'important');
-                moreBtn.classList.remove('hidden');
+                // En móvil: el menú de 3 puntos (⋮) a la derecha
+                if (window.innerWidth <= 768) {
+                    moreBtn.style.setProperty('display', 'flex', 'important');
+                    moreBtn.classList.remove('hidden');
+                } else {
+                    moreBtn.style.setProperty('display', 'none', 'important');
+                    moreBtn.classList.add('hidden');
+                }
             }
             const moreBtnHeader = document.getElementById('selectionMoreBtnHeader');
             if (moreBtnHeader) {
-                moreBtnHeader.style.setProperty('display', 'inline-flex', 'important');
+                // En PC: el menú junto al checkbox en el encabezado de la tabla
+                if (window.innerWidth > 768) {
+                    moreBtnHeader.style.setProperty('display', 'inline-flex', 'important');
+                } else {
+                    moreBtnHeader.style.setProperty('display', 'none', 'important');
+                }
             }
             // Force PC selection header alignment leftwards next to title
             const dashHeader = document.querySelector('.dashboard-header');
@@ -1108,24 +1151,31 @@ class DashboardManager {
         const selectAllTop = document.getElementById('selectAllCheckboxTop');
         const selectAllList = document.getElementById('selectAllCheckboxList');
 
-        if (this.currentRecipes && this.currentRecipes.length > 0) {
-            const allSelected = this.currentRecipes.every(r => this.selectedRecipes.has(r.id));
-            const isAnySelected = this.selectedRecipes.size > 0;
-            const isIndeterminate = isAnySelected && !allSelected;
+        const visibleRecipes = this.getVisibleRecipes();
+        const hasVisible = visibleRecipes && visibleRecipes.length > 0;
+        const allSelected = hasVisible && visibleRecipes.every(r => this.selectedRecipes.has(r.id));
+        const isAnySelected = hasVisible && visibleRecipes.some(r => this.selectedRecipes.has(r.id));
+        const isIndeterminate = isAnySelected && !allSelected;
 
-            // v198: Usamos un pequeño delay para asegurar que el DOM refleje el estado tras preventDefault()
-            setTimeout(() => {
-                [selectAllTop, selectAllList].forEach(cb => {
-                    if (cb) {
-                        cb.checked = allSelected;
-                        cb.indeterminate = isIndeterminate;
-                        // Forzar refresco visual si es necesario
-                        if (allSelected) cb.setAttribute('checked', 'checked');
-                        else cb.removeAttribute('checked');
-                    }
-                });
-            }, 50);
-        }
+        const applyState = (cb) => {
+            if (!cb) return;
+            cb.checked = allSelected;
+            cb.indeterminate = isIndeterminate;
+            if (allSelected) {
+                cb.setAttribute('checked', 'checked');
+            } else {
+                cb.removeAttribute('checked');
+            }
+        };
+
+        [selectAllTop, selectAllList].forEach(applyState);
+
+        // Refuerzo en siguiente frame para garantizar sincronía total con eventos móviles
+        requestAnimationFrame(() => {
+            const top = document.getElementById('selectAllCheckboxTop');
+            const list = document.getElementById('selectAllCheckboxList');
+            [top, list].forEach(applyState);
+        });
     }
 
 

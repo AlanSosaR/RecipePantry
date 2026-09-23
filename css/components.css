@@ -92,10 +92,30 @@ ol {
     gap: 8px;
 }
 
-/* Hide select-all checkbox on PC header as requested (v19.7.0) */
-@media (min-width: 768px) {
-    #selectionActionsGroup .m3-checkbox-wrapper {
+.mobile-select-all-wrapper {
+    display: none !important;
+}
+
+@media (min-width: 769px) {
+    #selectionMoreBtn {
         display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body.selection-mode-active .mobile-select-all-wrapper {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin: 0 !important;
+        padding: 0 !important;
+        flex-shrink: 0;
+    }
+
+    body.selection-mode-active #selectionMoreBtn {
+        display: inline-flex !important;
     }
 }
 
@@ -7626,16 +7646,6 @@ input:checked~.m3-ingredient-text {
     height: 40px !important;
 }
 
-/* Ensure the menu button and checkbox wrapper are identical in layout terms */
-#selectionMoreBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 !important;
-    padding: 0 !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-}
 
 .m3-checkbox-wrapper {
     display: inline-flex !important;
@@ -8024,17 +8034,22 @@ input:checked~.m3-ingredient-text {
 }
 
 /* M3 Checkbox styles consolidated in the main checkbox block (v193) */
+.m3-checkbox-input:indeterminate + .m3-checkbox-visual {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
 .m3-checkbox-input:indeterminate + .m3-checkbox-visual::after {
-    content: 'remove';
-    font-family: 'Material Symbols Outlined';
-    font-size: 16px;
-    color: white;
-    opacity: 1;
+    content: 'remove' !important;
+    font-family: 'Material Symbols Outlined' !important;
+    font-size: 16px !important;
+    color: white !important;
+    opacity: 1 !important;
     /* Fix invisible indeterminate icon */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 @media (max-width: 800px) {
