@@ -1043,13 +1043,14 @@ class DashboardManager {
         document.body.appendChild(menu);
 
         // Position menu
-        const rect = event.target.getBoundingClientRect();
+        const targetBtn = (event && event.currentTarget) ? event.currentTarget : (event?.target?.closest('button') || event?.target || document.body);
+        const rect = targetBtn.getBoundingClientRect();
 
         if (window.innerWidth < 600) {
             // MOBILE: Bottom Sheet Style (v205)
             menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.bottom = '40%'; // Subir más hacia la mitad (v205)
+            menu.style.bottom = '40%';
             menu.style.left = '5%';
             menu.style.width = '90%';
             menu.style.top = 'auto';
@@ -1058,24 +1059,41 @@ class DashboardManager {
             menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
             menu.style.zIndex = '3000';
         } else {
-            menu.style.top = `${rect.bottom + 8}px`;
-            menu.style.left = `${rect.right - 220}px`;
+            let left = rect.left;
+            // Si el botón está hacia la mitad derecha de la pantalla, alinear a la derecha
+            if (rect.right > window.innerWidth / 2) {
+                left = rect.right - 220;
+            }
+            // Clamping para asegurar que nunca quede fuera de la pantalla
+            const menuWidth = 230;
+            if (left < 16) left = 16;
+            if (left + menuWidth > window.innerWidth - 16) {
+                left = window.innerWidth - menuWidth - 16;
+            }
+
+            let top = rect.bottom + 8;
+            if (top + 280 > window.innerHeight) {
+                top = Math.max(16, rect.top - 280);
+            }
+
+            menu.style.top = `${top}px`;
+            menu.style.left = `${left}px`;
         }
 
         // Close menu on outside click
         const closeMenu = (e) => {
-            if (!menu.contains(e.target) && e.target !== event.target) {
+            if (!menu.contains(e.target) && !targetBtn.contains(e.target)) {
                 menu.remove();
-                document.removeEventListener('mousedown', closeMenu);
+                document.removeEventListener('click', closeMenu);
             }
         };
-        setTimeout(() => document.addEventListener('mousedown', closeMenu), 10);
+        setTimeout(() => document.addEventListener('click', closeMenu), 50);
 
         // Ensure menu closes when an action button is clicked
         menu.addEventListener('click', (e) => {
             if (e.target.closest('button')) {
                 menu.remove();
-                document.removeEventListener('mousedown', closeMenu);
+                document.removeEventListener('click', closeMenu);
             }
         });
     }
