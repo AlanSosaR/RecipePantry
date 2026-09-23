@@ -2020,13 +2020,22 @@ class DashboardManager {
             currentFolderOfItem = (rec && rec.pantry_es) ? rec.pantry_es.trim() : '';
         }
 
-        // Obtener carpetas disponibles
+        // Helper para raíz
+        const isRoot = (f) => !f || typeof f !== 'string' || !f.trim();
+
+        // Obtener carpetas disponibles (registro + recetas)
         const dbFolders = await window.db.getMyFolders();
-        const folderSet = new Set(dbFolders || []);
+        const folderSet = new Set((dbFolders || []).filter(f => !isRoot(f)));
         (this.currentRecipes || []).forEach(r => {
             const f = (r.pantry_es || '').trim();
-            if (f && window.db && window.db.isFolderNameAvailable(f)) folderSet.add(f);
+            if (!isRoot(f) && f.toLowerCase() !== 'prueba 2') folderSet.add(f);
         });
+        if (Array.isArray(this.allRecipes)) {
+            this.allRecipes.forEach(r => {
+                const f = (r.pantry_es || '').trim();
+                if (!isRoot(f) && f.toLowerCase() !== 'prueba 2') folderSet.add(f);
+            });
+        }
         const folders = Array.from(folderSet).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
         // Contar recetas por carpeta

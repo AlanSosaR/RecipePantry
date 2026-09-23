@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const VERSION = '626';
-const V_TAG = 'v626';
+const VERSION = '627';
+const V_TAG = 'v627';
 
 // 1. Update config.js
 const configPath = path.join(__dirname, 'js', 'config.js');

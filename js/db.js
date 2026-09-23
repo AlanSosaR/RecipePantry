@@ -13,9 +13,9 @@ class DatabaseManager {
     }
 
     async _forcedCleanup() {
-        const FIX_KEY = 'recipe_pantry_fix_622_cleanup';
+        const FIX_KEY = 'recipe_pantry_fix_627_cleanup';
         if (localStorage.getItem(FIX_KEY) !== 'done') {
-            console.warn('🧹 [DB] Forced Cleanup (v622): Clearing local caches and ghost folders.');
+            console.warn('🧹 [DB] Forced Cleanup (v627): Unblocking valid folders and purging ghost folders.');
             try {
                 await this._checkLocalDB();
                 if (window.localDB) {
@@ -24,15 +24,29 @@ class DatabaseManager {
                     await window.localDB.clear('recipes');
                 }
                 const uid = window.authManager?.currentUser?.id || 'guest';
-                // Limpiar ghost folders en localStorage (prueba 2)
+                // 1. Limpiar ghost folders en localStorage (prueba 2)
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith('rp_folders_')) {
+                    if (key && key.startsWith('rp_folders_') && !key.startsWith('rp_folders_deleted_')) {
                         try {
                             let folders = JSON.parse(localStorage.getItem(key) || '[]');
                             if (Array.isArray(folders)) {
                                 folders = folders.filter(f => f && f.trim().toLowerCase() !== 'prueba 2');
                                 localStorage.setItem(key, JSON.stringify(folders));
+                            }
+                        } catch (e) {}
+                    }
+                }
+                // 2. Limpiar blacklist en rp_folders_deleted_ para que no bloquee carpetas reales
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('rp_folders_deleted_')) {
+                        try {
+                            let deleted = JSON.parse(localStorage.getItem(key) || '[]');
+                            if (Array.isArray(deleted)) {
+                                // Solo mantener 'prueba 2'
+                                deleted = deleted.filter(f => (f || '').trim().toLowerCase() === 'prueba 2');
+                                localStorage.setItem(key, JSON.stringify(deleted));
                             }
                         } catch (e) {}
                     }
@@ -934,21 +948,6 @@ class DatabaseManager {
             });
         }
 
-        // Reconciliación de fantasmas offline: si este dispositivo ya tiene registro
-        // local (localStorage no vacío), un nombre que solo vive en settings sin
-        // respaldo local es un rename/delete que no llegó al servidor → se marca
-        // como eliminado para que no reaparezca.
-        let localArr = [];
-        try { localArr = JSON.parse(localStorage.getItem(`rp_folders_${userId}`) || '[]'); } catch (e) {}
-        if (Array.isArray(localArr) && localArr.length > 0) {
-            const localSet = new Set(localArr.map(f => (f + '').trim().toLowerCase()).filter(Boolean));
-            for (const f of Array.from(folders)) {
-                if (!localSet.has(f.toLowerCase()) && !this._getDeletedFolderSet(userId).has(f.toLowerCase())) {
-                    this._markFolderDeleted(userId, f);
-                }
-            }
-        }
-
         return this._pruneDeletedFolders(userId, Array.from(folders)).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
     }
 
@@ -978,39 +977,16 @@ class DatabaseManager {
             });
         }
 
-        // 3. Carpetas derivadas de la caché (recipes_index): SIEMPRE como respaldo
-        // cuando NO hay registro. El registro (localStorage + settings.folders) es
-        // la fuente de verdad: así una carpeta eliminada no vuelve a aparecer en los
-        // selectores aunque alguna receta quedara con pantry_es desactualizado.
-        const cacheFolders = new Set();
+        // 3. Carpetas derivadas de la caché (recipes_index o recipes_full)
         if (window.localDB) {
             try {
                 const index = await window.localDB.getAll('recipes_index') || [];
                 index.forEach(r => {
                     if (r.pantry_es && typeof r.pantry_es === 'string' && !this._isRootFolderName(r.pantry_es)) {
-                        cacheFolders.add(r.pantry_es.trim());
+                        folders.add(r.pantry_es.trim());
                     }
                 });
             } catch (e) {}
-        }
-        if (folders.size === 0) {
-            cacheFolders.forEach(f => folders.add(f));
-        }
-
-        // Reconciliación de fantasmas offline (igual que en getMyFoldersSync, pero
-        // además no marca como eliminadas carpetas que tengan recetas en este
-        // dispositivo, aunque no estén en el registro local).
-        let localArr = [];
-        try { localArr = JSON.parse(localStorage.getItem(`rp_folders_${userId}`) || '[]'); } catch (e) {}
-        if (Array.isArray(localArr) && localArr.length > 0) {
-            const localSet = new Set(localArr.map(f => (f + '').trim().toLowerCase()).filter(Boolean));
-            const cacheSet = new Set(Array.from(cacheFolders).map(f => f.toLowerCase()));
-            for (const f of Array.from(folders)) {
-                if (!localSet.has(f.toLowerCase()) && !cacheSet.has(f.toLowerCase()) &&
-                    !this._getDeletedFolderSet(userId).has(f.toLowerCase())) {
-                    this._markFolderDeleted(userId, f);
-                }
-            }
         }
 
         return this._pruneDeletedFolders(userId, Array.from(folders)).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
