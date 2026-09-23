@@ -645,7 +645,12 @@ class DashboardManager {
                 const folderCount = this.currentRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()).length;
                 titleEl.textContent = `${baseTitle} (${folderCount})`;
             } else if (!this.currentFolder && this.currentView === 'recipes' && !filters.search) {
-                const rootCount = this.currentRecipes.filter(r => !(r.pantry_es && r.pantry_es.trim())).length;
+                const rootCount = this.currentRecipes.filter(r => {
+                    const f = (r.pantry_es || '').trim();
+                    if (!f) return true;
+                    const low = f.toLowerCase();
+                    return low === 'mis recetas' || low === 'my recipes';
+                }).length;
                 titleEl.textContent = `${baseTitle} (${rootCount})`;
             } else {
                 let currentBase = baseTitle;
@@ -2020,7 +2025,7 @@ class DashboardManager {
         const folderSet = new Set(dbFolders || []);
         (this.currentRecipes || []).forEach(r => {
             const f = (r.pantry_es || '').trim();
-            if (f) folderSet.add(f);
+            if (f && window.db && window.db.isFolderNameAvailable(f)) folderSet.add(f);
         });
         const folders = Array.from(folderSet).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
@@ -2045,7 +2050,7 @@ class DashboardManager {
                     <span class="material-symbols-outlined" style="font-size: 24px; color: #10B981; font-variation-settings: 'FILL' 1;">inventory_2</span>
                 </div>
                 <div class="move-modal-item-info">
-                    <div class="move-modal-item-name">${isEn ? 'My Recipes (Root)' : 'Mis Recetas (Raíz)'}</div>
+                    <div class="move-modal-item-name">${isEn ? 'Main Pantry (Root)' : 'Despensa Principal (Raíz)'}</div>
                     <div class="move-modal-item-sub">${isCurrentRoot ? (isEn ? 'Current location' : 'Ubicación actual') : (isEn ? 'Main location' : 'Ubicación principal')}</div>
                 </div>
                 <div class="move-modal-item-access">${isEn ? 'Only you' : 'Solo tú'}</div>
@@ -2209,7 +2214,7 @@ class DashboardManager {
                 // Dentro de una carpeta: solo recetas pertenecientes a esa carpeta
                 displayRecipes = recipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
             } else {
-                // En la vista global (raíz): recetas sueltas sin carpeta asignada o marcadas como 'Mis Recetas'
+                // En la vista global (raíz): recetas sueltas sin carpeta asignada
                 displayRecipes = recipes.filter(r => isRootFolder(r.pantry_es));
             }
         } else if (this.currentView === 'recipes' && this.currentFolder && isSearching) {
@@ -2256,9 +2261,9 @@ class DashboardManager {
                 }
             });
 
-            // 4. Filtrar: no mostrar "Mis Recetas" y no mostrar carpetas con 0 recetas en el carrusel
+            // 4. Mostrar todas las carpetas (incluso vacías para poder gestionarlas o meterles recetas)
             const folders = Array.from(folderMap.values())
-                .filter(f => !isRootFolder(f) && (counts[f] || 0) > 0)
+                .filter(f => !isRootFolder(f))
                 .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
             this.renderSuggestedCarousel(folders, counts);

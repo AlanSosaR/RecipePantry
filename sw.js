@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v621';
-const BUILD_ID = 'v621';
-const CACHE_NAME = `recipe-pantry-v621`;
-const STATIC_CACHE = 'static-v621';
-const DATA_CACHE = 'data-v621';
+const VERSION = 'v625';
+const BUILD_ID = 'v625';
+const CACHE_NAME = `recipe-pantry-v625`;
+const STATIC_CACHE = 'static-v625';
+const DATA_CACHE = 'data-v625';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -39,6 +39,7 @@ const STATIC_RESOURCES = [
     '/js/sync-manager.js',
     '/js/notifications.js',
     '/js/pwa-install.js',
+    '/js/gemini-client.js',
     '/js/allergen-data.js',
     '/js/menu-data.js',
     '/js/restaurant-menu.js',

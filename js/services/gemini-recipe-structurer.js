@@ -81,36 +81,23 @@ export async function structureRecipeFromText(content, lang = 'spa') {
       return { success: true, recipe: JSON.parse(cached), content, cached: true };
     }
 
-    console.log(`📡 [Gemini v501] Mode: Deterministic Engine...`);
+    console.log(`📡 [Gemini] Mode: Deterministic Engine...`);
 
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
-    if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
+    if (typeof window.callGemini !== 'function') {
+      throw new Error('Cliente Gemini no inicializado (falta js/gemini-client.js)');
+    }
     
-    let response;
+    let responseText;
     try {
-        response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-001',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.1
-          })
-        });
+      responseText = await window.callGemini({
+        text: prompt,
+        maxOutputTokens: 2048,
+        temperature: 0.1
+      });
     } catch (netErr) {
-        throw new Error(`Fallo de red al contactar IA: ${netErr.message}`);
+        throw new Error(`Error de Gemini API: ${netErr.message}`);
     }
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(()=>({}));
-      throw new Error(`Error de Gemini API (HTTP ${response.status}): ${errorData.error?.message || 'Error desconocido'}`);
-    }
-    
-    const data = await response.json();
-    const responseText = data.choices[0].message.content.trim();
+    responseText = (responseText || '').trim();
 
     // v501 Check for exact "NO_RECIPE_DATA_AVAILABLE"
     if (responseText.includes('NO_RECIPE_DATA_AVAILABLE')) {
@@ -172,44 +159,24 @@ export async function structureRecipeFromText(content, lang = 'spa') {
 
 export async function structureRecipeFromImage(base64Image, mimeType) {
   try {
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
-    if (!apiKey) throw new Error('No se encontró API key de OpenRouter');
+    if (typeof window.callGemini !== 'function') {
+      throw new Error('Cliente Gemini no inicializado (falta js/gemini-client.js)');
+    }
     
     const imagePrompt = `Analiza esta imagen de una receta y extrae TODA la información visible. Proporciona el contenido de texto completo que puedas leer, incluyendo ingredientes y pasos. Responde en formato texto plano.`;
     
-    let response;
+    let extractedText;
     try {
-        response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-001',
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } },
-                  { type: 'text', text: imagePrompt }
-                ]
-              }
-            ],
-            temperature: 0.1
-          })
-        });
+      extractedText = await window.callGemini({
+        text: imagePrompt,
+        image: base64Image,
+        mimeType: mimeType,
+        maxOutputTokens: 2048,
+        temperature: 0.1
+      });
     } catch (netErr) {
         throw new Error(`Fallo de red al contactar IA Visión: ${netErr.message}`);
     }
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(()=>({}));
-      throw new Error(`Error de Gemini Vision (HTTP ${response.status}): ${errorData.error?.message || 'Error desconocido'}`);
-    }
-    
-    const data = await response.json();
-    const extractedText = data.choices[0].message.content;
     
     return await structureRecipeFromText(extractedText);
     

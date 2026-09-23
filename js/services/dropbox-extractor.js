@@ -182,37 +182,17 @@ function extractTextFromRTF(rtfText) {
  */
 async function extractFromImageWithVision(base64Image, mimeType, sourceUrl, fileName) {
   try {
-    const apiKey = localStorage.getItem('openrouter_api_key') || window.APP_SETTINGS?.openrouter_api_key || window.OPENROUTER_API_KEY;
-    if (!apiKey) throw new Error('No API key found para OCR Visión');
-    
-    // Aquí podríamos usar fetchWithRetry, lo actualizamos!
-    const response = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash:free',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } },
-              { type: 'text', text: `Extrae todo el texto de la receta y nada más.` }
-            ]
-          }
-        ],
-        temperature: 0.1
-      })
-    }, 1);
-    
-    if (!response.ok) {
-      throw new Error(`Gemini Vision falló con HTTP ${response.status}`);
+    if (typeof window.callGemini !== 'function') {
+      throw new Error('Cliente Gemini no inicializado (falta js/gemini-client.js)');
     }
     
-    const data = await response.json();
-    const extractedText = data.choices[0].message.content;
+    const extractedText = await window.callGemini({
+      text: `Extrae todo el texto de la receta y nada más.`,
+      image: base64Image,
+      mimeType: mimeType,
+      maxOutputTokens: 2048,
+      temperature: 0.1
+    });
     
     return {
       success: true,

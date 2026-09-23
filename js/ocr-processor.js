@@ -1,33 +1,10 @@
 /**
  * OCRProcessor.js - Recipe Pantry Premium v7.1.0 (Precision Boost)
  * Sistema simplificado basado en Tesseract.js v7 con correcciones mejoradas.
+ * Estructuración IA vía Google Gemini API directa (js/gemini-client.js).
  */
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const AI_MODEL = "google/gemini-2.5-flash";
-
-// API key obfuscation: XOR cipher (key='RecPantry') + Base64, split into 3 fragments
-// This prevents GitHub's secret scanner from detecting the raw key pattern
-const _K1 = 'IQ5OPxNDAkNUYAAANFheFUBPZl0GZ1NfQ';
-const _K2 = 'kNNalcCMQdcTRdMYldUNFcKQ0dKZlJRZ1';
-const _K3 = 'FbQkFMZVRUYFRXERNLZQdQNlJXRUsbMA==';
-
-const getOpenRouterKey = () => {
-    if (window.APP_SETTINGS && window.APP_SETTINGS['openrouter_api_key']) {
-        return window.APP_SETTINGS['openrouter_api_key'];
-    }
-    try {
-        const _x = [0x52,0x65,0x63,0x50,0x61,0x6e,0x74,0x72,0x79]; // 'RecPantry'
-        const _b = typeof atob !== 'undefined' ? atob(_K1+_K2+_K3) : Buffer.from(_K1+_K2+_K3,'base64').toString('binary');
-        return Array.from(_b).map((c,i) => String.fromCharCode(c.charCodeAt(0) ^ _x[i % _x.length])).join('');
-    } catch(e) { return null; }
-};
-
-// Expose globally so ES modules (gemini-recipe-structurer.js) can access it
-Object.defineProperty(window, 'OPENROUTER_API_KEY', {
-    get: function() { return getOpenRouterKey(); },
-    configurable: true
-});
+const AI_MODEL = "gemini-3.6-flash";
 
 class OCRProcessor {
     constructor() {
@@ -135,60 +112,20 @@ REQUIRED JSON STRUCTURE:
 TEXT TO STRUCTURE:
 ${cleanedText}`;
 
-        const apiKey = getOpenRouterKey();
-        if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
+        const apiKey = window.getGeminiKey ? window.getGeminiKey() : null;
+        if (!apiKey) throw new Error("Se requiere una clave de Gemini para continuar.");
 
-        let requestedTokens = 1100;
-        let response = await fetch(OPENROUTER_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://recipepantry.app',
-                'X-Title': 'Recipe Pantry'
-            },
-            body: JSON.stringify({
-                model: AI_MODEL,
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }],
-                max_tokens: requestedTokens,
-                temperature: 0.1
-            })
-        });
-
-        if (!response.ok && response.status === 402) {
-            const errText = await response.text();
-            console.warn('[OCR Text Structuring] 402 recibido por límite de saldo, reintentando con tokens ajustados...', errText);
-            const affordMatch = errText.match(/can only afford (\d+)/i);
-            const affordTokens = affordMatch ? parseInt(affordMatch[1]) : 800;
-            const fallbackTokens = Math.max(350, Math.min(affordTokens - 20, 850));
-
-            response = await fetch(OPENROUTER_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': 'https://recipepantry.app',
-                    'X-Title': 'Recipe Pantry'
-                },
-                body: JSON.stringify({
-                    model: AI_MODEL,
-                    messages: [{
-                        role: 'user',
-                        content: prompt
-                    }],
-                    max_tokens: fallbackTokens,
-                    temperature: 0.1
-                })
-            });
+        if (typeof window.callGemini !== 'function') {
+            throw new Error("Cliente Gemini no inicializado (falta js/gemini-client.js).");
         }
 
-        if (!response.ok) throw new Error(`Error en OpenRouter: ${response.status}`);
-
-        const data = await response.json();
-        const textResponse = data.choices[0].message.content;
+        let requestedTokens = 2048;
+        let textResponse = await window.callGemini({
+            text: prompt,
+            model: AI_MODEL,
+            maxOutputTokens: requestedTokens,
+            temperature: 0.1
+        });
 
         if (!textResponse) throw new Error("Respuesta vacía de la IA");
 
@@ -338,77 +275,22 @@ REQUIRED JSON FORMAT:
 
 If no clear title is visible, infer a concise descriptive name in ${langName}.`;
 
-        const apiKey = getOpenRouterKey();
-        if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
+        const apiKey = window.getGeminiKey ? window.getGeminiKey() : null;
+        if (!apiKey) throw new Error("Se requiere una clave de Gemini para continuar.");
 
-        let requestedTokens = 1100;
-        let response = await fetch(OPENROUTER_URL, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://recipepantry.app',
-                'X-Title': 'Recipe Pantry'
-            },
-            body: JSON.stringify({
-                model: AI_MODEL,
-                messages: [{
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'image_url',
-                            image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
-                        },
-                        { type: 'text', text: prompt }
-                    ]
-                }],
-                max_tokens: requestedTokens,
-                temperature: 0.1
-            })
+        if (typeof window.callGemini !== 'function') {
+            throw new Error("Cliente Gemini no inicializado (falta js/gemini-client.js).");
+        }
+
+        let requestedTokens = 2048;
+        let textResponse = await window.callGemini({
+            text: prompt,
+            image: imageBase64,
+            mimeType: 'image/jpeg',
+            model: AI_MODEL,
+            maxOutputTokens: requestedTokens,
+            temperature: 0.1
         });
-
-        // Si OpenRouter responde 402 por límite de tokens, reintentar automáticamente con presupuesto ajustado
-        if (!response.ok && response.status === 402) {
-            const errText = await response.text();
-            console.warn('[OCR Vision] 402 recibido por límite de saldo, reintentando con tokens ajustados...', errText);
-            const affordMatch = errText.match(/can only afford (\d+)/i);
-            const affordTokens = affordMatch ? parseInt(affordMatch[1]) : 800;
-            const fallbackTokens = Math.max(350, Math.min(affordTokens - 20, 850));
-
-            response = await fetch(OPENROUTER_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': 'https://recipepantry.app',
-                    'X-Title': 'Recipe Pantry'
-                },
-                body: JSON.stringify({
-                    model: AI_MODEL,
-                    messages: [{
-                        role: 'user',
-                        content: [
-                            {
-                                type: 'image_url',
-                                image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
-                            },
-                            { type: 'text', text: prompt }
-                        ]
-                    }],
-                    max_tokens: fallbackTokens,
-                    temperature: 0.1
-                })
-            });
-        }
-
-        if (!response.ok) {
-            const errData = await response.text();
-            console.error('OpenRouter Vision Error:', response.status, errData);
-            throw new Error(`Error en Vision (OpenRouter): ${response.status}`);
-        }
-
-        const data = await response.json();
-        const textResponse = data.choices?.[0]?.message?.content;
 
         if (!textResponse) throw new Error("Respuesta vacía de Vision");
 
@@ -473,7 +355,7 @@ If no clear title is visible, infer a concise descriptive name in ${langName}.`;
                     confidence: score,
                     success: true,
                     version: 'v7.5.0-vision',
-                    method: 'gemini-2.5-flash-vision',
+                    method: 'gemini-3.6-flash-vision',
                     isStructured: true
                 };
 
@@ -518,7 +400,7 @@ If no clear title is visible, infer a concise descriptive name in ${langName}.`;
                         confidence: score,
                         success: true,
                         version: 'v7.5.0-tesseract-ia',
-                        method: 'tesseract-v7 + gemini-2.5-flash',
+                        method: 'tesseract-v7 + gemini-3.6-flash',
                         isStructured: true
                     };
 
