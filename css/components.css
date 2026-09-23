@@ -5456,6 +5456,8 @@ html[data-auth-likely="true"] #dashboard-app {
     justify-content: center;
     z-index: 3000;
     transition: opacity 180ms ease;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .modal-overlay.hidden {
@@ -6138,7 +6140,7 @@ body.dark-theme .folder-more-btn:hover {
 /* ─── Share Modal Estilo Dropbox (Match Exacto del Screenshot) ─── */
 .dropbox-share-modal-card {
     background: #1e1e1e;
-    width: calc(100% - 32px);
+    width: 100%;
     max-width: 530px;
     border-radius: 16px;
     border: 1px solid #333333;
@@ -6148,6 +6150,8 @@ body.dark-theme .folder-more-btn:hover {
     animation: modalEntry 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
     position: relative;
     box-sizing: border-box;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
 }
 
 .dropbox-share-header {
@@ -6225,6 +6229,7 @@ body.dark-theme .folder-more-btn:hover {
 
 .dropbox-input-container {
     flex: 1;
+    min-width: 0;
     background: #262626;
     border: 1.5px solid #3a3a3a;
     border-radius: 10px;
@@ -6298,7 +6303,7 @@ body.dark-theme .folder-more-btn:hover {
     color: #ffffff;
     font-size: 13.5px;
     flex: 1;
-    min-width: 140px;
+    min-width: 60px;
     outline: none;
     padding: 2px 0;
 }
@@ -6703,6 +6708,83 @@ body.dark-theme .folder-more-btn:hover {
 .btn-dropbox-share.ready:hover,
 .btn-dropbox-share:not(:disabled):hover {
     background: #059669;
+}
+
+/* Adaptación responsive para Móvil / Pantallas pequeñas del Modal Compartir */
+@media (max-width: 540px) {
+    .dropbox-share-modal-card {
+        padding: 20px 16px;
+        border-radius: 16px;
+        max-height: calc(100vh - 24px);
+    }
+
+    .dropbox-share-header {
+        margin-bottom: 16px;
+    }
+
+    .dropbox-share-heading {
+        font-size: 18px;
+    }
+
+    .dropbox-share-row {
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .dropbox-input-container {
+        width: 100%;
+        min-height: 44px;
+        padding: 8px 12px;
+    }
+
+    .dropbox-user-input {
+        min-width: 100%;
+        font-size: 14px;
+    }
+
+    .dropbox-perm-picker {
+        width: 100%;
+    }
+
+    .btn-perm-picker {
+        width: 100%;
+        justify-content: space-between;
+        height: 42px;
+        min-height: 42px;
+        font-size: 13px;
+        padding: 0 12px;
+    }
+
+    .dropbox-perm-dropdown-menu {
+        width: 100%;
+        left: 0;
+        right: 0;
+    }
+
+    .dropbox-message-container {
+        margin-bottom: 18px;
+    }
+
+    .dropbox-message-textarea {
+        font-size: 13.5px;
+        padding: 10px 12px;
+    }
+
+    .dropbox-share-modal-footer {
+        gap: 10px;
+    }
+
+    .btn-dropbox-cancel,
+    .btn-dropbox-share {
+        flex: 1;
+        text-align: center;
+        padding: 12px 16px;
+        font-size: 14px;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+    }
 }
 
 /* ─── Notifications System ─── */
