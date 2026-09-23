@@ -141,12 +141,29 @@ class DashboardManager {
             window.addEventListener('popstate', () => {
                 const p = new URLSearchParams(window.location.search);
                 const v = p.get('view') || 'recipes';
-                const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
+                let f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
+                if (!f && this.currentView === 'recipes') {
+                    try { f = sessionStorage.getItem('rp_current_folder') || null; } catch (e) {}
+                }
                 if (v && v !== this.currentView) {
                     const nav = document.querySelector(`.nav-item[data-view="${v}"]`);
                     this.switchView(v, nav);
                 }
                 if (this.currentView === 'recipes' && this.currentFolder !== f) {
+                    this.currentFolder = f;
+                    this.clearSelection();
+                    this.renderRecipesGrid(this.currentRecipes);
+                }
+            });
+
+            // Al restaurar la página desde la caché del navegador (bfcache en móviles)
+            window.addEventListener('pageshow', (event) => {
+                const p = new URLSearchParams(window.location.search);
+                let f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
+                if (!f && this.currentView === 'recipes') {
+                    try { f = sessionStorage.getItem('rp_current_folder') || null; } catch (e) {}
+                }
+                if (this.currentView === 'recipes' && f && this.currentFolder !== f) {
                     this.currentFolder = f;
                     this.clearSelection();
                     this.renderRecipesGrid(this.currentRecipes);
@@ -1953,6 +1970,11 @@ class DashboardManager {
         this.clearSelection();
 
         try {
+            if (this.currentFolder) {
+                sessionStorage.setItem('rp_current_folder', this.currentFolder);
+            } else {
+                sessionStorage.removeItem('rp_current_folder');
+            }
             const url = new URL(window.location.href);
             url.searchParams.set('view', 'recipes');
             if (this.currentFolder) {
@@ -3037,7 +3059,16 @@ class DashboardManager {
         }
         const returnUrl = this.currentFolder ? `/?view=recipes&folder=${encodeURIComponent(this.currentFolder)}` : '/?view=recipes';
         history.pushState({ view: 'recipes', folder: this.currentFolder }, '', returnUrl);
-        this._closeDetailPanelInternal();
+
+        const panel = document.querySelector('.pc-detail-panel');
+        if (panel) {
+            panel.classList.add('closing');
+            setTimeout(() => {
+                this._closeDetailPanelInternal();
+            }, 120);
+        } else {
+            this._closeDetailPanelInternal();
+        }
     }
 
     _closeDetailPanelInternal() {

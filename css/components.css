@@ -12363,9 +12363,18 @@ input:checked~.m3-ingredient-text {
     animation: pc-detail-fade 0.25s ease-out;
 }
 
+.pc-detail-panel.closing {
+    animation: pc-detail-fade-out 0.14s ease-in forwards !important;
+}
+
 @keyframes pc-detail-fade {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pc-detail-fade-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(6px); }
 }
 
 .pc-detail-topbar {

@@ -39,18 +39,39 @@ class RecipeDetailManager {
             }
         }
 
+        // Guardar carpeta en sessionStorage para asegurar que el dashboard la recuerde
         if (folder && folder.trim()) {
-            window.location.href = `/?view=recipes&folder=${encodeURIComponent(folder.trim())}`;
-            return;
+            try {
+                sessionStorage.setItem('rp_current_folder', folder.trim());
+            } catch (e) {}
+        } else {
+            try {
+                sessionStorage.removeItem('rp_current_folder');
+            } catch (e) {}
         }
 
-        // Si hay historial previo dentro del mismo sitio, volver atrás
-        if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
-            window.history.back();
-            return;
-        }
+        // Activar microanimación de salida limpia y suave
+        document.body.classList.add('page-exit-back');
 
-        window.location.href = '/?view=recipes';
+        const targetUrl = folder && folder.trim()
+            ? `/?view=recipes&folder=${encodeURIComponent(folder.trim())}`
+            : '/?view=recipes';
+
+        // Si el usuario navegó desde la app, volver atrás inmediatamente usando la caché del navegador (bfcache)
+        // Esto elimina cualquier parpadeo, recarga o tirón
+        const cameFromSameApp = window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host);
+
+        setTimeout(() => {
+            if (cameFromSameApp) {
+                window.history.back();
+                // Fallback de seguridad si el navegador no completa el back en 280ms
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 280);
+            } else {
+                window.location.href = targetUrl;
+            }
+        }, 110);
     }
 
     async init() {
