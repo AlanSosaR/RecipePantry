@@ -6211,7 +6211,7 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .dropbox-input-container:focus-within {
-    border-color: #0061FE;
+    border-color: #10B981;
 }
 
 .dropbox-chips-list {
@@ -6237,7 +6237,7 @@ body.dark-theme .folder-more-btn:hover {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #0061FE;
+    background: #10B981;
     color: white;
     font-size: 10px;
     font-weight: 700;
@@ -6406,7 +6406,7 @@ body.dark-theme .folder-more-btn:hover {
     height: 32px;
     border-radius: 50%;
     background: #333338;
-    color: #0061FE;
+    color: #10B981;
     font-weight: 700;
     font-size: 12px;
     display: flex;
@@ -6456,12 +6456,12 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .suggestion-badge.badge-selected {
-    background: rgba(0, 97, 254, 0.2);
-    color: #60a5fa;
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
 }
 
 .suggestion-add-icon {
-    color: #0061FE;
+    color: #10B981;
     font-size: 18px;
     flex-shrink: 0;
 }
@@ -6491,7 +6491,7 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .dropbox-message-textarea:focus {
-    border-color: #0061FE;
+    border-color: #10B981;
 }
 
 /* Personas con Acceso Drawer */
@@ -6666,14 +6666,14 @@ body.dark-theme .folder-more-btn:hover {
 
 .btn-dropbox-share.ready,
 .btn-dropbox-share:not(:disabled) {
-    background: #0061FE;
+    background: #10B981;
     color: #ffffff;
     cursor: pointer;
 }
 
 .btn-dropbox-share.ready:hover,
 .btn-dropbox-share:not(:disabled):hover {
-    background: #0052d6;
+    background: #059669;
 }
 
 /* ─── Notifications System ─── */

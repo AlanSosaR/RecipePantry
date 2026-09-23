@@ -623,7 +623,7 @@ class DashboardManager {
         return this.loadRecipes({ shared: true });
     }
 
-    updateTitleHeader() {
+    updateTitleHeader(forcedCount = null) {
         const titleEl = document.getElementById('view-title');
         if (!titleEl || this.isSelectionMode) return;
 
@@ -631,33 +631,39 @@ class DashboardManager {
         const baseTitle = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
         const isSearching = !!(this.lastFilters && this.lastFilters.search && this.lastFilters.search.trim());
 
+        const isRootFolder = (f) => {
+            if (!f || typeof f !== 'string') return true;
+            return !f.trim();
+        };
+
         if (this.currentView === 'recipes') {
             if (this.currentFolder) {
                 // Dentro de una carpeta: cuenta sólo las recetas de esa carpeta
-                const folderCount = (this.currentRecipes || []).filter(r => 
+                const folderCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => 
                     (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()
                 ).length;
                 titleEl.textContent = `${this.currentFolder} (${folderCount})`;
             } else if (isSearching) {
                 const s = this.lastFilters.search.trim().toLowerCase();
-                const searchCount = (this.currentRecipes || []).filter(r => {
-                    const isRoot = !r.pantry_es || !r.pantry_es.trim();
+                const searchCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => {
+                    const isRoot = isRootFolder(r.pantry_es);
                     if (!isRoot) return false;
                     return (r.name_es && r.name_es.toLowerCase().includes(s)) || (r.name_en && r.name_en.toLowerCase().includes(s));
                 }).length;
                 titleEl.textContent = `${this.lastFilters.search.trim()} (${searchCount})`;
             } else {
                 // En la raíz (Despensa Principal): SÓLO cuenta recetas sin carpeta asignada
-                const rootCount = (this.currentRecipes || []).filter(r => 
-                    !r.pantry_es || !r.pantry_es.trim()
+                const rootCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => 
+                    isRootFolder(r.pantry_es)
                 ).length;
                 titleEl.textContent = `${baseTitle} (${rootCount})`;
             }
         } else if (this.currentView === 'favorites') {
-            const favCount = (this.currentRecipes || []).filter(r => r.is_favorite).length;
+            const favCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => r.is_favorite).length;
             titleEl.textContent = `${window.i18n ? window.i18n.t('navFavorites') : 'Favoritos'} (${favCount})`;
         } else if (this.currentView === 'shared') {
-            titleEl.textContent = `${window.i18n ? window.i18n.t('navShared') : 'Compartidas'} (${(this.currentRecipes || []).length})`;
+            const sharedCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).length;
+            titleEl.textContent = `${window.i18n ? window.i18n.t('navShared') : 'Compartidas'} (${sharedCount})`;
         }
     }
 
@@ -2276,8 +2282,8 @@ class DashboardManager {
         // Renderizar sección de carpetas o breadcrumb
         this.renderFolders();
 
-        // Sincronizar contador en cabecera
-        this.updateTitleHeader();
+        // Sincronizar contador en cabecera con el número exacto de recetas mostradas
+        this.updateTitleHeader(displayRecipes ? displayRecipes.length : null);
 
         // Renderizar o esconder carrusel de carpetas sugeridas
         if (this.currentView === 'recipes' && !this.currentFolder) {
