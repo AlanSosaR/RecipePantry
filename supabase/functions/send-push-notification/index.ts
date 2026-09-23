@@ -194,9 +194,14 @@ serve(async (req: Request) => {
     }
 
     // ── Obtener Service Account y enviar ───────────────────────────────────
-    const serviceAccountStr = Deno.env.get("FCM_SERVICE_ACCOUNT");
+    let serviceAccountStr = Deno.env.get("FCM_SERVICE_ACCOUNT")?.trim();
     if (!serviceAccountStr) {
       throw new Error("FCM_SERVICE_ACCOUNT secret no configurado");
+    }
+
+    if ((serviceAccountStr.startsWith("'") && serviceAccountStr.endsWith("'")) ||
+        (serviceAccountStr.startsWith('"') && serviceAccountStr.endsWith('"'))) {
+      serviceAccountStr = serviceAccountStr.slice(1, -1);
     }
 
     const serviceAccount = JSON.parse(serviceAccountStr);
