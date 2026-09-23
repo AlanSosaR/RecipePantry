@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="560">
+<html lang="es" data-app-version="620">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=589">
-  <link rel="stylesheet" href="css/components.css?v=589">
+  <link rel="stylesheet" href="css/styles.css?v=620">
+  <link rel="stylesheet" href="css/components.css?v=620">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -391,11 +391,49 @@
         <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)">
           <span class="material-symbols-outlined">menu</span>
         </button>
-        <!-- Botón + Nuevo estilo Dropbox — solo PC -->
-        <button class="btn-new-dropbox desktop-only" onclick="window.location.href='/recipe-form'" id="btnNewRecipeTop">
-          <span class="material-symbols-outlined">add</span>
-          <span data-i18n="newRecipeBtn">Nuevo</span>
-        </button>
+<!-- Contenedor con position:relative para anclar el popover (funciona en desktop y móvil) -->
+        <div class="dropbox-new-wrapper" style="position:relative; display:inline-block;">
+          <!-- Botón + Nuevo estilo Dropbox (Desktop) -->
+          <div class="desktop-only" style="display:inline-block;">
+            <button class="btn-new-dropbox" id="btnNewRecipeTop" onclick="window.dashboard.toggleNewDropboxMenu(event)" title="Crear">
+              <span class="material-symbols-outlined">add</span>
+              <span data-i18n="newRecipeBtn">Nuevo</span>
+            </button>
+          </div>
+
+          <!-- Menú Popover estilo Dropbox (Crear: Carpeta, Documento, Escanear) - Disponible en desktop y móvil -->
+          <div id="newDropboxMenu" class="dropbox-create-popover hidden">
+          <div class="dropbox-create-top">
+            <button type="button" class="dropbox-close-btn" onclick="window.dashboard.closeNewDropboxMenu(event)" title="Cerrar">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <h4 class="dropbox-create-heading">Crear</h4>
+          </div>
+          <div class="dropbox-create-items">
+            <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('folder')">
+              <div class="row-icon-box">
+                <span class="material-symbols-outlined">folder</span>
+              </div>
+              <span class="row-title">Carpeta</span>
+              <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+            <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('document')">
+              <div class="row-icon-box">
+                <span class="material-symbols-outlined">description</span>
+              </div>
+              <span class="row-title">Documento</span>
+              <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+            <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('scan')">
+              <div class="row-icon-box">
+                <span class="material-symbols-outlined">document_scanner</span>
+              </div>
+              <span class="row-title">Escanear Receta</span>
+              <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+</div>
+        </div>
+      </div>
         <div class="search-container-m3">
           <div class="search-wrapper-m3" id="searchWrapper">
             <span class="material-symbols-outlined">search</span>
@@ -418,6 +456,46 @@
         </div>
       </header>
 
+      <!-- Sugerido para ti (Carrusel estilo Dropbox de carpetas y sugerencias) -->
+      <div id="suggestedCarouselSection" class="dropbox-suggested-section hidden">
+        <div class="suggested-header">
+          <div class="suggested-title-group" onclick="window.dashboard.toggleSuggestedCarousel()" title="Ocultar o mostrar carpetas">
+            <h4 class="suggested-title">Sugerido para ti</h4>
+            <span class="material-symbols-outlined suggested-eye-icon" id="suggestedEyeIcon">visibility</span>
+          </div>
+          <div class="carousel-nav-buttons" id="carouselNavButtons">
+            <button type="button" class="btn-carousel-nav" id="btnCarouselPrev" onclick="window.dashboard.scrollCarousel(-1)" title="Anterior">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button type="button" class="btn-carousel-nav" id="btnCarouselNext" onclick="window.dashboard.scrollCarousel(1)" title="Siguiente">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <div id="suggestedCarouselTrack" class="dropbox-carousel-track">
+          <!-- Renderizado dinámicamente con carpetas estilo Dropbox -->
+        </div>
+      </div>
+
+      <!-- Breadcrumb / Barra de Navegación de Carpeta (Oculto en la raíz) -->
+      <div id="folderBreadcrumb" class="hidden folder-breadcrumb-bar">
+        <button type="button" class="folder-back-btn" onclick="window.dashboard.openFolder(null)" title="Volver a Mis Recetas">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <span class="folder-crumb-root" onclick="window.dashboard.openFolder(null)" data-i18n="myRecipes">Mis Recetas</span>
+        <span class="folder-crumb-sep">/</span>
+        <span id="currentFolderNameText" class="folder-crumb-title">
+          <span class="material-symbols-outlined folder-crumb-icon">folder</span>
+          <span id="currentFolderNameLabel"></span>
+        </span>
+        <div class="folder-breadcrumb-actions">
+          <button type="button" class="folder-more-btn" onclick="window.dashboard.toggleCurrentFolderMenu(event)" title="Opciones de carpeta">
+            <span class="material-symbols-outlined">more_vert</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cabecera de la lista de archivos/recetas (Justo donde empieza la lista) -->
       <div class="dashboard-header">
         <div class="header-main-group">
           <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
@@ -441,23 +519,52 @@
         <div id="selectionOverflowMenu" class="dropbox-menu-m3 hidden" style="top: 48px; right: 0;"></div>
       </div>
 
+      <!-- Popover de Opciones de Carpeta estilo Dropbox -->
+      <div id="folderCardMenu" class="dropbox-folder-popover hidden"></div>
+
       <div id="recipesGrid" class="recipes-grid">
         <div class="loading-inline"><div class="spinner-sm"></div><p data-i18n="loadingRecipes">Cargando...</p></div>
       </div>
 
-      <div id="emptyState" class="hidden" style="text-align: center; padding: 80px 0;">
-        <span class="material-symbols-outlined" style="font-size: 80px; color: #E5E7EB;">folder_open</span>
-        <h4 data-i18n="noRecipesTitle">Aún no tienes recetas</h4>
-        <button class="btn-comenzar" style="width: auto; margin: 24px auto;" onclick="window.location.href='/ocr'">
+      <div id="emptyState" class="hidden" style="text-align: center; padding: 60px 20px;">
+        <div id="emptyStateImgGroup" style="margin-bottom: 16px;">
+          <span id="emptyStateIcon" class="material-symbols-outlined" style="font-size: 80px; color: #D1D5DB; margin: 0 auto; display: block;">folder_open</span>
+        </div>
+        <h4 id="emptyStateTitle" data-i18n="noRecipesTitle" style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 8px 0;">Aún no tienes recetas</h4>
+        <p id="emptyStateDesc" style="color: #6B7280; font-size: 14px; max-width: 420px; margin: 0 auto 20px auto; line-height: 1.5;"></p>
+        <button id="emptyStateBtn" class="btn-comenzar" style="width: auto; margin: 16px auto;" onclick="window.location.href='/ocr'">
           <span class="material-symbols-outlined">document_scanner</span>
           <span data-i18n="scanRecipeBtn">Escanear Receta</span>
         </button>
       </div>
 
-      <!-- FAB solo para móvil -->
-      <button class="fab-m3 mobile-only" onclick="window.location.href='/recipe-form'" aria-label="Nueva Receta">
-        <span class="material-symbols-outlined">add</span>
-      </button>
+      <!-- FAB Menu para Móvil (Material 3 Speed Dial / FAB Menu) -->
+      <div id="m3FabMenuContainer" class="m3-fab-menu-container mobile-only">
+        <div id="m3FabScrim" class="m3-fab-scrim hidden" onclick="window.dashboard.closeFabMenu()"></div>
+        <div id="m3FabActions" class="m3-fab-actions hidden">
+          <div class="m3-fab-action-item" data-action="folder" onclick="window.dashboard.handleDropboxOption('folder')">
+            <span class="m3-fab-action-label" data-i18n="newFolder">Carpeta</span>
+            <button type="button" class="m3-fab-mini-btn" title="Nueva Carpeta">
+              <span class="material-symbols-outlined">create_new_folder</span>
+            </button>
+          </div>
+          <div class="m3-fab-action-item" data-action="document" onclick="window.dashboard.handleDropboxOption('document')">
+            <span class="m3-fab-action-label" data-i18n="newRecipeDoc">Documento</span>
+            <button type="button" class="m3-fab-mini-btn" title="Nuevo Documento">
+              <span class="material-symbols-outlined">description</span>
+            </button>
+          </div>
+          <div class="m3-fab-action-item" data-action="scan" onclick="window.dashboard.handleDropboxOption('scan')">
+            <span class="m3-fab-action-label" data-i18n="scanRecipeBtn">Escanear Receta</span>
+            <button type="button" class="m3-fab-mini-btn" title="Escanear Receta">
+              <span class="material-symbols-outlined">document_scanner</span>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="fab-m3" id="mainFabBtn" onclick="window.dashboard.toggleFabMenu(event)" aria-label="Crear" aria-expanded="false" title="Crear">
+          <span class="material-symbols-outlined fab-icon">add</span>
+        </button>
+      </div>
 
       <!-- Pantalla de Configuración / Ajustes (Generado por JS) -->
       <div id="helpView" class="hidden"></div>
@@ -470,85 +577,170 @@
     </main>
   </div>
 
-  <!-- Share Modal -->
-  <div id="share-modal" class="modal-overlay hidden">
-    <div class="share-modal-container">
-      <div class="modal-header">
-        <div class="header-info">
-          <h3 id="share-modal-title">Administrar permisos</h3>
-          <p id="share-modal-size" class="text-secondary"></p>
-        </div>
-        <button class="btn-close-modal" onclick="window.shareModal.close()">
-          <span class="material-symbols-outlined">close</span>
-        </button>
+  <!-- Modal Crear Carpeta estilo Dropbox (Match 1:1 Screenshot Dropbox) -->
+  <div id="createFolderModal" class="modal-overlay hidden" onclick="if(event.target === this) window.dashboard.closeFolderModal()">
+    <div class="dropbox-folder-modal" onclick="event.stopPropagation()">
+      <div class="folder-modal-section">
+        <label class="folder-modal-label" for="newFolderModalInput">Nombre de carpeta</label>
+        <input type="text" id="newFolderModalInput" class="folder-modal-input" value="Nueva carpeta" autocomplete="off" onkeydown="if(event.key==='Enter') window.dashboard.submitFolderModal()">
       </div>
-      <div class="modal-body">
-        <div class="search-section">
-          <div class="chip-input-container">
-            <div id="selected-users-chips" class="chips-list" style="display: none;"></div>
-            <input type="text" id="user-search-input" placeholder="Buscar por nombre o correo..." autocomplete="off">
+
+      <div class="folder-modal-section" style="margin-top: 20px;">
+        <label class="folder-modal-label">Quiénes tendrán acceso</label>
+        <p class="folder-modal-sublabel">Elige quién quieres que tenga acceso a esta carpeta.</p>
+        
+        <div class="folder-access-group">
+          <div class="folder-access-card active" id="accessCardOnlyMe" onclick="window.dashboard.setFolderAccessType('only_me')">
+            <span class="material-symbols-outlined access-icon" id="accessIconOnlyMe">check_circle</span>
+            <input type="radio" name="folderAccessRadio" id="folderAccessOnlyMe" value="only_me" checked style="display: none;">
+            <span class="access-text">Solo yo</span>
           </div>
-        </div>
-        <div class="permissions-section">
-          <label class="section-label">Permisos predeterminados</label>
-          <div class="permission-options">
-            <label class="radio-option">
-              <input type="radio" name="share-permission" value="view" checked>
-              <div class="radio-content">
-                <span class="radio-title">Solo ver</span>
-                <span class="radio-description">Los usuarios pueden ver la receta y marcar ingredientes</span>
-              </div>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="share-permission" value="view_and_copy">
-              <div class="radio-content">
-                <span class="radio-title">Ver y copiar</span>
-                <span class="radio-description">Los usuarios pueden ver y agregar una copia editable a su recetario</span>
-              </div>
-            </label>
-          </div>
-        </div>
-        <div class="current-shares">
-          <label style="font-size: 13px; font-weight: 600; color: #aaa; margin-bottom: 12px; display: block;">Personas con acceso</label>
-          <div id="current-shares-list" class="shares-list">
-            <!-- Renderizado dinámicamente -->
+
+          <div class="folder-access-card" id="accessCardSpecific" onclick="window.dashboard.setFolderAccessType('specific')">
+            <span class="material-symbols-outlined access-icon" id="accessIconSpecific" style="display: none;">check_circle</span>
+            <input type="radio" name="folderAccessRadio" id="folderAccessSpecific" value="specific" style="display: none;">
+            <span class="access-text">Solo personas específicas</span>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="window.shareModal.copyPublicLink()">
-          <span class="material-symbols-outlined" style="font-size: 18px;">link</span>
-          <span data-i18n="copyLinkLabel">Copiar enlace</span>
+
+      <div class="folder-modal-footer">
+        <button type="button" class="btn-folder-config" onclick="window.showToast(window.i18n && window.i18n.getLang() === 'en' ? 'Advanced settings available after creation' : 'Configuración disponible tras crear la carpeta', 'info')">Configuración</button>
+        <div class="folder-modal-actions">
+          <button type="button" class="btn-folder-cancel" onclick="window.dashboard.closeFolderModal()">Cancelar</button>
+          <button type="button" class="btn-folder-create" onclick="window.dashboard.submitFolderModal()">Crear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Mover Receta a Carpeta estilo Dropbox (Match 1:1 Screenshot Dropbox) -->
+  <div id="moveRecipeModal" class="modal-overlay hidden" onclick="if(event.target === this) window.dashboard.closeMoveModal()">
+    <div class="dropbox-folder-modal dropbox-move-modal" onclick="event.stopPropagation()">
+      <div class="move-modal-header">
+        <h3 id="moveModalTitle" class="move-modal-title">Mover 1 elemento a...</h3>
+      </div>
+
+      <!-- Fila para crear carpeta nueva directamente en el modal -->
+      <div id="moveModalNewFolderRow" class="move-modal-new-folder-row hidden">
+        <span class="material-symbols-outlined" style="font-size: 22px; color: #10B981; flex-shrink: 0;">create_new_folder</span>
+        <input type="text" id="moveModalNewFolderInput" class="folder-modal-input" placeholder="Nombre de carpeta" style="padding: 7px 10px; font-size: 13.5px; height: 36px;" onkeydown="if(event.key==='Enter') window.dashboard.confirmCreateFolderInMoveModal()">
+        <button type="button" class="btn-move-inline-confirm" onclick="window.dashboard.confirmCreateFolderInMoveModal()">Crear</button>
+        <button type="button" class="btn-move-inline-cancel" onclick="window.dashboard.cancelCreateFolderInMoveModal()">✕</button>
+      </div>
+
+      <div class="move-modal-section-label" id="moveModalSectionLabel">Carpetas</div>
+
+      <div id="moveModalFolderList" class="move-modal-folder-list">
+        <!-- Renderizado dinámico de carpetas y opción Raíz -->
+      </div>
+
+      <div class="folder-modal-footer" style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <button type="button" class="btn-folder-config" onclick="window.dashboard.toggleNewFolderInMoveModal()">Crear carpeta nueva</button>
+        <div class="folder-modal-actions">
+          <button type="button" class="btn-folder-cancel" onclick="window.dashboard.closeMoveModal()">Cancelar</button>
+          <button type="button" id="btnConfirmMoveModal" class="btn-folder-create" disabled onclick="window.dashboard.executeMoveModal()">Mover</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal Estilo Dropbox (Match Exacto del Screenshot) -->
+  <div id="share-modal" class="modal-overlay hidden" onclick="if(event.target === this) window.shareModal.close()">
+    <div class="dropbox-share-modal-card">
+      <!-- Header con título, subtítulo e icono de colaboradores -->
+      <div class="dropbox-share-header">
+        <div class="dropbox-share-titles">
+          <h3 id="dropbox-share-title" class="dropbox-share-heading">Compartir carpeta</h3>
+          <div class="dropbox-share-subinfo">
+            <span class="material-symbols-outlined subinfo-icon" id="dropbox-share-type-icon">folder</span>
+            <span id="dropbox-share-target-name">prueba • 0 elementos</span>
+          </div>
+        </div>
+        
+        <button type="button" class="btn-collaborators-pill" onclick="window.shareModal.toggleCollaboratorsList()" title="Personas con acceso">
+          <div class="collaborator-mini-avatar" id="myMiniAvatar">A</div>
+          <span class="material-symbols-outlined chevron-icon" id="collaboratorsChevron">chevron_right</span>
         </button>
-        <button class="btn-primary" onclick="window.shareModal.shareWithSelected()">
-          <span>Compartir</span>
-        </button>
+      </div>
+
+      <!-- Fila de Entrada: Añadir correo o nombre + Selector de permiso -->
+      <div class="dropbox-share-row">
+        <div class="dropbox-input-container" onclick="document.getElementById('user-search-input')?.focus()">
+          <div id="selected-users-chips" class="dropbox-chips-list" style="display: none;"></div>
+          <input type="text" id="user-search-input" class="dropbox-user-input" placeholder="Añadir un correo electrónico o nombre" autocomplete="off">
+        </div>
+
+        <!-- Selector de Permiso estilo Dropbox -->
+        <div class="dropbox-perm-picker">
+          <button type="button" id="btnPermDropdown" class="btn-perm-picker" onclick="window.shareModal.togglePermDropdown(event)">
+            <span id="currentPermLabel">pueden editar</span>
+            <span class="material-symbols-outlined perm-dropdown-arrow">expand_more</span>
+          </button>
+
+          <!-- Menú desplegable flotante de permisos -->
+          <div id="permDropdownMenu" class="dropbox-perm-dropdown-menu hidden">
+            <div class="perm-dropdown-item" id="permOptionView" onclick="window.shareModal.selectPermission('view')">
+              <span class="perm-check-mark" id="checkPermView"></span>
+              <span class="perm-dropdown-text">pueden ver</span>
+            </div>
+            <div class="perm-dropdown-item active" id="permOptionEdit" onclick="window.shareModal.selectPermission('view_and_copy')">
+              <span class="perm-check-mark" id="checkPermEdit">✓</span>
+              <span class="perm-dropdown-text">pueden editar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropdown flotante de sugerencias de usuarios (cuando escribe o hace focus) -->
+        <div id="search-suggestions" class="search-suggestions hidden"></div>
+      </div>
+
+      <!-- Caja de Mensaje opcional -->
+      <div class="dropbox-message-container">
+        <textarea id="share-message-input" class="dropbox-message-textarea" placeholder="Añade un mensaje (opcional)" rows="4"></textarea>
+      </div>
+
+      <!-- Panel Desplegable de Personas con Acceso -->
+      <div id="collaboratorsDrawer" class="collaborators-drawer hidden">
+        <div class="collaborators-drawer-header">
+          <span class="drawer-title">Personas con acceso</span>
+          <span id="current-shares-count" class="shares-count-badge">0</span>
+        </div>
+        <div id="current-shares-list" class="shares-list">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Footer con botones Cancelar y Compartir -->
+      <div class="dropbox-share-modal-footer">
+        <button type="button" class="btn-dropbox-cancel" onclick="window.shareModal.close()">Cancelar</button>
+        <button type="button" id="btn-share-submit" class="btn-dropbox-share" onclick="window.shareModal.submitShare()" disabled>Compartir</button>
       </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=589"></script>
-  <script src="js/supabase-client.js?v=589"></script>
-  <script src="js/localdb.js?v=589"></script>
-  <script src="js/sync-manager.js?v=589"></script>
-  <script src="js/utils.js?v=589"></script>
-  <script src="js/i18n.js?v=589"></script>
-  <script src="js/allergen-data.js?v=589"></script>
-  <script src="js/menu-data.js?v=589"></script>
-  <script src="js/lib/pdf.min.js?v=589"></script>
-  <script src="js/restaurant-menu.js?v=589"></script>
-  <script src="js/db.js?v=589"></script>
-  <script src="js/auth.js?v=589"></script>
-  <script src="js/dashboard.js?v=589"></script>
-  <script src="js/share-modal.js?v=589"></script>
-  <script src="js/help-modal.js?v=589"></script>
-  <script src="js/notifications.js?v=589"></script>
-  <script src="js/ui.js?v=589"></script>
-  <script src="js/sw-register.js?v=589"></script>
-  <script src="js/pwa-install.js?v=589"></script>
-  <script type="module" src="js/url-importer.js?v=589"></script>
+  <script src="js/config.js?v=620"></script>
+  <script src="js/supabase-client.js?v=620"></script>
+  <script src="js/localdb.js?v=620"></script>
+  <script src="js/sync-manager.js?v=620"></script>
+  <script src="js/utils.js?v=620"></script>
+  <script src="js/i18n.js?v=620"></script>
+  <script src="js/allergen-data.js?v=620"></script>
+  <script src="js/menu-data.js?v=620"></script>
+  <script src="js/lib/pdf.min.js?v=620"></script>
+  <script src="js/restaurant-menu.js?v=620"></script>
+  <script src="js/db.js?v=620"></script>
+  <script src="js/auth.js?v=620"></script>
+  <script src="js/dashboard.js?v=620"></script>
+  <script src="js/share-modal.js?v=620"></script>
+  <script src="js/help-modal.js?v=620"></script>
+  <script src="js/notifications.js?v=620"></script>
+  <script src="js/ui.js?v=620"></script>
+  <script src="js/sw-register.js?v=620"></script>
+  <script src="js/pwa-install.js?v=620"></script>
+  <script type="module" src="js/url-importer.js?v=620"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

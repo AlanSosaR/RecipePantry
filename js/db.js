@@ -13,15 +13,28 @@ class DatabaseManager {
     }
 
     async _forcedCleanup() {
-        const FIX_KEY = 'recipe_pantry_fix_250_cleanup';
+        const FIX_KEY = 'recipe_pantry_fix_620_cleanup';
         if (localStorage.getItem(FIX_KEY) !== 'done') {
-            console.warn('🧹 [DB] Forced Cleanup (v249): Clearing local caches to resolve zombie conflicts.');
+            console.warn('🧹 [DB] Forced Cleanup (v620): Clearing local caches and ghost folders.');
             try {
                 await this._checkLocalDB();
                 if (window.localDB) {
                     await window.localDB.clear('recipes_index');
                     await window.localDB.clear('recipes_full');
                     await window.localDB.clear('recipes');
+                }
+                // Limpiar ghost folders en localStorage
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('rp_folders_')) {
+                        try {
+                            let folders = JSON.parse(localStorage.getItem(key) || '[]');
+                            if (Array.isArray(folders)) {
+                                folders = folders.filter(f => f && !this._isRootFolderName(f) && f.trim().toLowerCase() !== 'prueba 2');
+                                localStorage.setItem(key, JSON.stringify(folders));
+                            }
+                        } catch (e) {}
+                    }
                 }
                 localStorage.setItem(FIX_KEY, 'done');
             } catch (e) {
@@ -195,6 +208,9 @@ class DatabaseManager {
                     updated_at: r.updated_at, 
                     category_id: r.category_id, 
                     is_favorite: r.is_favorite,
+                    pantry_es: r.pantry_es || null,
+                    pantry_en: r.pantry_en || null,
+                    tags: r.tags || [],
                     sharingContext: r.sharingContext || null,
                     user_id: r.user_id || null // v249: critical for duplicate check
                 }));
@@ -202,7 +218,7 @@ class DatabaseManager {
             } else {
                 let query = window.supabaseClient
                     .from('recipes')
-                    .select(`id, name_es, name_en, updated_at, is_favorite`)
+                    .select(`id, name_es, name_en, updated_at, is_favorite, pantry_es, pantry_en, tags`)
                     .eq('is_active', true)
                     .eq('user_id', userId);
 
@@ -496,7 +512,8 @@ class DatabaseManager {
                 await window.localDB.put('recipes_full', recipe);
                 await window.localDB.put('recipes_index', {
                     id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en, image_url: recipe.image_url,
-                    updated_at: recipe.updated_at, is_favorite: recipe.is_favorite
+                    updated_at: recipe.updated_at, is_favorite: recipe.is_favorite, pantry_es: recipe.pantry_es || null,
+                    pantry_en: recipe.pantry_en || null, tags: recipe.tags || []
                 });
                 return { success: true, recipe };
             } catch (err) { return { success: false, error: err.message }; }
@@ -506,7 +523,8 @@ class DatabaseManager {
             await window.localDB.put('recipes_full', tempRecipe);
             await window.localDB.put('recipes_index', {
                 id: tempId, name_es: tempRecipe.name_es, name_en: tempRecipe.name_en, image_url: tempRecipe.image_url,
-                updated_at: tempRecipe.updated_at, is_favorite: tempRecipe.is_favorite
+                updated_at: tempRecipe.updated_at, is_favorite: tempRecipe.is_favorite, pantry_es: tempRecipe.pantry_es || null,
+                pantry_en: tempRecipe.pantry_en || null, tags: tempRecipe.tags || []
             });
             await window.localDB.enqueueSync('insert', 'recipes', tempRecipe, null);
             return { success: true, recipe: tempRecipe, offline: true };
@@ -530,10 +548,13 @@ class DatabaseManager {
             try {
                 const { data: recipe, error } = await window.supabaseClient.from('recipes').update(updates).eq('id', recipeId).select().single();
                 if (error) throw error;
-                if (window.localDB) {
-                    await window.localDB.delete('recipes_full', recipeId);
-                    await window.localDB.delete('recipes_index', recipeId);
-                    await window.localDB.delete('recipes', recipeId);
+                if (window.localDB && recipe) {
+                    await window.localDB.put('recipes_full', recipe);
+                    await window.localDB.put('recipes_index', {
+                        id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en, image_url: recipe.image_url,
+                        updated_at: recipe.updated_at, is_favorite: recipe.is_favorite, pantry_es: recipe.pantry_es || null,
+                        pantry_en: recipe.pantry_en || null, tags: recipe.tags || []
+                    });
                 }
                 if ('caches' in window) {
                     const cacheNames = await caches.keys();
@@ -757,6 +778,288 @@ class DatabaseManager {
 
     async getMyCategories() {
         return { success: true, categories: [] };
+    }
+
+    /**
+     * Gestión de Carpetas Privadas del Usuario
+     */
+    _isRootFolderName(name) {
+        if (!name || typeof name !== 'string') return true;
+        return !name.trim();
+    }
+
+    getMyFoldersSync() {
+        const folders = new Set();
+        const userId = window.authManager?.currentUser?.id || 'guest';
+        try {
+            const localSaved = JSON.parse(localStorage.getItem(`rp_folders_${userId}`) || '[]');
+            if (Array.isArray(localSaved)) {
+                localSaved.forEach(f => {
+                    if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                        folders.add(f.trim());
+                    }
+                });
+            }
+        } catch (e) {}
+
+        const user = window.authManager?.currentUser;
+        if (user && user.settings && Array.isArray(user.settings.folders)) {
+            user.settings.folders.forEach(f => {
+                if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                    folders.add(f.trim());
+                }
+            });
+        }
+        return Array.from(folders).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }
+
+    async getMyFolders() {
+        const folders = new Set();
+        const userId = window.authManager?.currentUser?.id || 'guest';
+
+        // 1. Desde localStorage del usuario
+        try {
+            const localSaved = JSON.parse(localStorage.getItem(`rp_folders_${userId}`) || '[]');
+            if (Array.isArray(localSaved)) {
+                localSaved.forEach(f => {
+                    if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                        folders.add(f.trim());
+                    }
+                });
+            }
+        } catch (e) {}
+
+        // 2. Desde recetas en cache (localDB)
+        if (window.localDB) {
+            try {
+                const index = await window.localDB.getAll('recipes_index') || [];
+                index.forEach(r => {
+                    if (r.pantry_es && typeof r.pantry_es === 'string' && !this._isRootFolderName(r.pantry_es)) {
+                        folders.add(r.pantry_es.trim());
+                    }
+                });
+            } catch (e) {}
+        }
+
+        // 3. Desde user profile settings si estamos autenticados
+        const user = window.authManager?.currentUser;
+        if (user && user.settings && Array.isArray(user.settings.folders)) {
+            user.settings.folders.forEach(f => {
+                if (f && typeof f === 'string' && !this._isRootFolderName(f)) {
+                    folders.add(f.trim());
+                }
+            });
+        }
+
+        return Array.from(folders).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }
+
+    async createFolder(folderName) {
+        if (!folderName || typeof folderName !== 'string' || !folderName.trim()) return null;
+        const clean = folderName.trim();
+        if (this._isRootFolderName(clean)) return null; // "Mis Recetas" es la raíz, no una subcarpeta
+
+        const userId = window.authManager?.currentUser?.id || 'guest';
+
+        // 1. Guardar en localStorage
+        const localKey = `rp_folders_${userId}`;
+        try {
+            let localSaved = JSON.parse(localStorage.getItem(localKey) || '[]');
+            localSaved = localSaved.filter(f => !this._isRootFolderName(f));
+            if (!localSaved.some(f => f.toLowerCase() === clean.toLowerCase())) {
+                localSaved.push(clean);
+                localStorage.setItem(localKey, JSON.stringify(localSaved));
+            }
+        } catch (e) {}
+
+        // 2. Sincronizar en settings de usuario si está online
+        const user = window.authManager?.currentUser;
+        if (user && this._isOnline && window.supabaseClient) {
+            try {
+                const currentSettings = user.settings || {};
+                let currentFolders = Array.isArray(currentSettings.folders) ? currentSettings.folders : [];
+                currentFolders = currentFolders.filter(f => !this._isRootFolderName(f));
+                if (!currentFolders.some(f => f.toLowerCase() === clean.toLowerCase())) {
+                    currentFolders.push(clean);
+                    currentSettings.folders = currentFolders;
+                    user.settings = currentSettings;
+                    await window.supabaseClient.from('users').update({ settings: currentSettings }).eq('id', user.id);
+                }
+            } catch (e) {
+                console.warn('⚠️ Error guardando carpeta en Supabase users.settings:', e);
+            }
+        }
+
+        window.dispatchEvent(new CustomEvent('folders-updated', { detail: clean }));
+        return clean;
+    }
+
+    async renameFolder(oldName, newName) {
+        if (!oldName || !newName) return;
+        const cleanOld = oldName.trim();
+        const cleanNew = newName.trim();
+        const userId = window.authManager?.currentUser?.id || 'guest';
+
+        // Si el destino es "Mis Recetas" (la raíz), devolver las recetas a la raíz y borrar la carpeta
+        if (this._isRootFolderName(cleanNew)) {
+            await this.deleteFolder(cleanOld);
+            return;
+        }
+
+        // 1. Actualizar localStorage (insensible a mayúsculas y espacios)
+        const localKey = `rp_folders_${userId}`;
+        try {
+            let localSaved = JSON.parse(localStorage.getItem(localKey) || '[]');
+            localSaved = localSaved.filter(f => f && !this._isRootFolderName(f) && f.trim().toLowerCase() !== cleanOld.toLowerCase());
+            if (!localSaved.some(f => f.toLowerCase() === cleanNew.toLowerCase())) {
+                localSaved.push(cleanNew);
+            }
+            localStorage.setItem(localKey, JSON.stringify(localSaved));
+        } catch (e) {}
+
+        // 2. Actualizar user settings
+        const user = window.authManager?.currentUser;
+        if (user && this._isOnline && window.supabaseClient) {
+            try {
+                const currentSettings = user.settings || {};
+                let currentFolders = Array.isArray(currentSettings.folders) ? currentSettings.folders : [];
+                currentFolders = currentFolders.filter(f => f && !this._isRootFolderName(f) && f.trim().toLowerCase() !== cleanOld.toLowerCase());
+                if (!currentFolders.some(f => f.toLowerCase() === cleanNew.toLowerCase())) {
+                    currentFolders.push(cleanNew);
+                }
+                currentSettings.folders = currentFolders;
+                user.settings = currentSettings;
+                await window.supabaseClient.from('users').update({ settings: currentSettings }).eq('id', user.id);
+            } catch (e) {}
+        }
+
+        // 3. Actualizar recetas que tengan este nombre de carpeta en Supabase
+        if (this._isOnline && window.supabaseClient && user && user.id) {
+            try {
+                await window.supabaseClient.from('recipes')
+                    .update({ pantry_es: cleanNew, pantry_en: cleanNew })
+                    .eq('user_id', user.id)
+                    .ilike('pantry_es', cleanOld);
+            } catch (e) {
+                console.warn('[db.renameFolder] Supabase recipes update error:', e);
+            }
+        }
+
+        // 4. Actualizar recetas en localDB
+        if (window.localDB) {
+            try {
+                const allRecipes = await window.localDB.getAll('recipes_index') || [];
+                const toUpdate = allRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === cleanOld.toLowerCase());
+                for (const r of toUpdate) {
+                    await this.updateRecipe(r.id, { pantry_es: cleanNew, pantry_en: cleanNew });
+                }
+            } catch (e) {}
+        }
+
+        window.dispatchEvent(new CustomEvent('folders-updated'));
+        window.dispatchEvent(new CustomEvent('recipes-index-updated'));
+    }
+
+    async deleteFolder(folderName) {
+        if (!folderName) return;
+        const clean = folderName.trim();
+        const userId = window.authManager?.currentUser?.id || 'guest';
+
+        // 1. Actualizar localStorage (insensible a mayúsculas/espacios)
+        const localKey = `rp_folders_${userId}`;
+        try {
+            let localSaved = JSON.parse(localStorage.getItem(localKey) || '[]');
+            localSaved = localSaved.filter(f => (f || '').trim().toLowerCase() !== clean.toLowerCase());
+            localStorage.setItem(localKey, JSON.stringify(localSaved));
+        } catch (e) {}
+
+        // 2. Actualizar user settings
+        const user = window.authManager?.currentUser;
+        if (user && this._isOnline && window.supabaseClient) {
+            try {
+                const currentSettings = user.settings || {};
+                let currentFolders = Array.isArray(currentSettings.folders) ? currentSettings.folders : [];
+                currentFolders = currentFolders.filter(f => (f || '').trim().toLowerCase() !== clean.toLowerCase());
+                currentSettings.folders = currentFolders;
+                user.settings = currentSettings;
+                await window.supabaseClient.from('users').update({ settings: currentSettings }).eq('id', user.id);
+            } catch (e) {}
+        }
+
+        // 3. Devolver todas las recetas de esa carpeta a la raíz (pantry_es: '') en Supabase
+        if (this._isOnline && window.supabaseClient && user && user.id) {
+            try {
+                await window.supabaseClient.from('recipes')
+                    .update({ pantry_es: '', pantry_en: '' })
+                    .eq('user_id', user.id)
+                    .ilike('pantry_es', clean);
+            } catch (e) {
+                console.warn('[db.deleteFolder] Supabase recipes reset error:', e);
+            }
+        }
+
+        // 4. Devolver todas las recetas en localDB
+        if (window.localDB) {
+            try {
+                const allRecipes = await window.localDB.getAll('recipes_index') || [];
+                const toUpdate = allRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === clean.toLowerCase());
+                for (const r of toUpdate) {
+                    await this.updateRecipe(r.id, { pantry_es: '', pantry_en: '' });
+                }
+            } catch (e) {}
+        }
+
+        window.dispatchEvent(new CustomEvent('folders-updated'));
+        window.dispatchEvent(new CustomEvent('recipes-index-updated'));
+    }
+
+    async moveRecipeToFolder(recipeId, folderName) {
+        const cleanFolder = (folderName && typeof folderName === 'string') ? folderName.trim() : '';
+        if (cleanFolder) {
+            await this.createFolder(cleanFolder);
+        }
+        await this.updateRecipe(recipeId, { pantry_es: cleanFolder, pantry_en: cleanFolder });
+        window.dispatchEvent(new CustomEvent('recipes-index-updated'));
+        return { success: true };
+    }
+
+    /**
+     * Sube una imagen a Supabase Storage y actualiza el image_url de la receta.
+     * Bucket: "recipe-images" — debe existir en Supabase con acceso público.
+     * Si no hay conexión o falla el upload, simplemente no se añade imagen (sin romper el guardado).
+     */
+    async uploadImage(file, recipeId) {
+        if (!file || !recipeId) return { success: false, error: 'Faltan parámetros' };
+        if (!this._isOnline) {
+            console.warn('[db.uploadImage] Sin conexión, imagen no subida');
+            return { success: false, error: 'Sin conexión' };
+        }
+        try {
+            const ext = (file.name || 'photo.jpg').split('.').pop().toLowerCase() || 'jpg';
+            const filePath = `${recipeId}/cover.${ext}`;
+            const bucket = 'recipe-images';
+
+            const { error: uploadError } = await window.supabaseClient.storage
+                .from(bucket)
+                .upload(filePath, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = window.supabaseClient.storage
+                .from(bucket)
+                .getPublicUrl(filePath);
+
+            const publicUrl = urlData?.publicUrl;
+            if (!publicUrl) throw new Error('No se pudo obtener URL pública');
+
+            // Actualizar la receta con la imagen
+            await this.updateRecipe(recipeId, { image_url: publicUrl });
+            return { success: true, url: publicUrl };
+        } catch (err) {
+            console.error('[db.uploadImage] Error:', err.message);
+            // No lanzar error: el guardado de la receta ya fue exitoso
+            return { success: false, error: err.message };
+        }
     }
 
     async deleteSharedRecipe(userId, recipeId) {

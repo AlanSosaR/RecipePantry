@@ -24,7 +24,8 @@ class RecipeFormManager {
             return;
         }
 
-        // 2. No cargar categorías (usaremos General por defecto)
+        // 2. Cargar carpetas privadas del usuario
+        await this.loadFolders();
 
         // 3. Si es edición, cargar datos de la receta
         if (this.isEditing) {
@@ -47,6 +48,28 @@ class RecipeFormManager {
         }
 
         this.setupEventListeners();
+    }
+
+    async loadFolders() {
+        const select = document.getElementById('pantryFolderSelect');
+        if (!select || !window.db || !window.db.getMyFolders) return;
+        try {
+            const folders = await window.db.getMyFolders();
+            select.innerHTML = `
+                <option value="">📁 Sin carpeta (Principal)</option>
+                ${folders.map(f => `<option value="${f}">📁 ${f}</option>`).join('')}
+                <option value="__NEW__">➕ Crear nueva carpeta...</option>
+            `;
+
+            const urlFolder = new URLSearchParams(window.location.search).get('folder');
+            if (this.currentRecipe && this.currentRecipe.pantry_es) {
+                select.value = this.currentRecipe.pantry_es;
+            } else if (urlFolder) {
+                select.value = urlFolder;
+            }
+        } catch (e) {
+            console.warn('Error cargando carpetas en formulario:', e);
+        }
     }
 
     // Categorías ya no se cargan dinámicamente en el select
@@ -334,9 +357,25 @@ class RecipeFormManager {
 
             btnSave.disabled = true;
             const savingTxt = window.i18n ? window.i18n.t('saving') : 'Guardando...';
-            btnSave.innerHTML = `<span class="spinner-small"></span> ${savingTxt}`;
+            // Detectar carpeta seleccionada
+            let selectedFolder = '';
+            const folderSelect = document.getElementById('pantryFolderSelect');
+            if (folderSelect) {
+                if (folderSelect.value === '__NEW__') {
+                    const customInp = document.getElementById('newFolderCustomInput');
+                    selectedFolder = customInp ? customInp.value.trim() : '';
+                    if (selectedFolder && window.db && window.db.createFolder) {
+                        await window.db.createFolder(selectedFolder);
+                    }
+                } else {
+                    selectedFolder = folderSelect.value.trim();
+                }
+            }
 
-            const recipeData = {};
+            const recipeData = {
+                pantry_es: selectedFolder,
+                pantry_en: selectedFolder
+            };
             if (isEn) {
                 recipeData.name_en = form.name.value;
                 recipeData.description_en = form.description.value;

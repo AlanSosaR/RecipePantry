@@ -3780,6 +3780,675 @@ select.input-field {
     transform: scale(0.97);
 }
 
+/* ─── Menú "Crear" Estilo Dropbox (Screenshot Match) ─── */
+.dropbox-new-wrapper {
+    position: relative;
+    display: inline-block;
+    z-index: 1000;
+}
+
+.dropbox-create-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 260px;
+    background: #1f1f1f;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.48), 0 4px 12px rgba(0, 0, 0, 0.25);
+    padding: 16px 12px 14px 12px;
+    z-index: 2000;
+    animation: dropboxPopIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+}
+
+@keyframes dropboxPopIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.dropbox-create-top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding: 0 4px;
+}
+
+.dropbox-close-btn {
+    background: transparent;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dropbox-close-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+.dropbox-close-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.dropbox-create-heading {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    letter-spacing: -0.2px;
+}
+
+.dropbox-create-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dropbox-create-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+
+.dropbox-create-row:hover {
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.dropbox-create-row:active {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.row-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+.row-icon-box .material-symbols-outlined {
+    font-size: 22px;
+    color: #ffffff;
+}
+
+.row-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+.row-chevron {
+    font-size: 20px;
+    color: #9e9e9e;
+}
+
+/* ─── Material 3 FAB Menu / Speed Dial (Móvil) ─── */
+.m3-fab-menu-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+@media (max-width: 767px) {
+    .m3-fab-menu-container {
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        right: 20px;
+    }
+}
+
+.m3-fab-menu-container.hidden,
+.m3-fab-menu-container:has(.fab-m3.hidden) {
+    display: none !important;
+}
+
+.m3-fab-menu-container .fab-m3 {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    z-index: 2102;
+    transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1), 
+                background-color 0.25s ease, 
+                box-shadow 0.25s ease;
+}
+
+.m3-fab-menu-container .fab-m3 .fab-icon {
+    display: inline-block;
+    transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-fab-menu-container .fab-m3.fab-menu-open {
+    background-color: #1F2937 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
+}
+
+.m3-fab-menu-container .fab-m3.fab-menu-open .fab-icon {
+    transform: rotate(135deg);
+}
+
+/* Telón de fondo (Scrim) M3 */
+.m3-fab-scrim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 2090;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-fab-scrim.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Contenedor de acciones apiladas hacia arriba */
+.m3-fab-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 16px;
+    z-index: 2101;
+    pointer-events: none;
+}
+
+.m3-fab-actions.active {
+    pointer-events: auto;
+}
+
+/* Fila de acción individual (Label + Mini FAB) */
+.m3-fab-action-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px) scale(0.85);
+    transform-origin: right bottom;
+    transition: opacity 0.22s cubic-bezier(0.2, 0, 0, 1), 
+                transform 0.22s cubic-bezier(0.2, 0, 0, 1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m3-fab-actions.active .m3-fab-action-item {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Efecto escalonado (Staggered Animation M3) */
+.m3-fab-actions.active .m3-fab-action-item:nth-child(3) {
+    transition-delay: 0.03s;
+}
+.m3-fab-actions.active .m3-fab-action-item:nth-child(2) {
+    transition-delay: 0.07s;
+}
+.m3-fab-actions.active .m3-fab-action-item:nth-child(1) {
+    transition-delay: 0.11s;
+}
+
+/* Etiqueta flotante con estilo M3 Surface */
+.m3-fab-action-label {
+    background: #ffffff;
+    color: #111827;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: var(--font-body, 'Poppins', sans-serif);
+    padding: 7px 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    white-space: nowrap;
+    letter-spacing: -0.1px;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.m3-fab-action-item:hover .m3-fab-action-label {
+    background: #f9fafb;
+    transform: translateX(-3px);
+}
+
+.m3-fab-action-item:active .m3-fab-action-label {
+    background: #f3f4f6;
+    transform: scale(0.96);
+}
+
+/* Botón Circular Mini-FAB M3 */
+.m3-fab-mini-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), 
+                background 0.2s ease, 
+                box-shadow 0.2s ease, 
+                color 0.2s ease;
+}
+
+.m3-fab-mini-btn .material-symbols-outlined {
+    font-size: 22px;
+    transition: transform 0.2s ease;
+}
+
+/* Colores específicos para cada acción */
+.m3-fab-action-item[data-action="folder"] .m3-fab-mini-btn {
+    color: #D97706;
+    background: #FFFBEB;
+    border: 1px solid rgba(217, 119, 6, 0.18);
+}
+.m3-fab-action-item[data-action="folder"]:hover .m3-fab-mini-btn {
+    background: #F59E0B;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
+    transform: scale(1.08);
+}
+
+.m3-fab-action-item[data-action="document"] .m3-fab-mini-btn {
+    color: #2563EB;
+    background: #EFF6FF;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+}
+.m3-fab-action-item[data-action="document"]:hover .m3-fab-mini-btn {
+    background: #2563EB;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+    transform: scale(1.08);
+}
+
+.m3-fab-action-item[data-action="scan"] .m3-fab-mini-btn {
+    color: #059669;
+    background: #ECFDF5;
+    border: 1px solid rgba(5, 150, 105, 0.18);
+}
+.m3-fab-action-item[data-action="scan"]:hover .m3-fab-mini-btn {
+    background: #10B981;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    transform: scale(1.08);
+}
+
+.m3-fab-action-item:active .m3-fab-mini-btn {
+    transform: scale(0.92);
+}
+
+/* ─── Modal "Crear Carpeta" Estilo Dropbox (Screenshot 1:1) ─── */
+.dropbox-folder-modal {
+    background: #1e1e1e !important;
+    color: #ffffff;
+    border-radius: 16px;
+    width: 440px;
+    max-width: calc(100vw - 32px);
+    padding: 26px 24px 22px 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    animation: dropboxModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+}
+
+@keyframes dropboxModalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.folder-modal-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.folder-modal-label {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.1px;
+}
+
+.folder-modal-sublabel {
+    font-size: 13px;
+    color: #9ca3af;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.folder-modal-input {
+    background: #1e1e1e;
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.folder-modal-input:focus {
+    border-color: #60a5fa;
+    background: #252525;
+}
+
+.folder-access-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.folder-access-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.folder-access-card.active {
+    border: 1.5px solid #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.folder-access-card .access-icon {
+    font-size: 20px;
+    color: #ffffff;
+    display: none;
+}
+
+.folder-access-card.active .access-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-access-card .access-text {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.folder-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 28px;
+}
+
+.btn-folder-config {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 0;
+    text-decoration: underline;
+    transition: opacity 0.15s;
+}
+
+.btn-folder-config:hover {
+    opacity: 0.8;
+}
+
+.folder-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-folder-cancel {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+
+.btn-folder-cancel:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-folder-create {
+    background: #52525b;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 10px 22px;
+    border-radius: 10px;
+    transition: background 0.18s ease, transform 0.1s ease;
+}
+
+.btn-folder-create:hover {
+    background: #71717a;
+}
+
+.btn-folder-create:active {
+    transform: scale(0.98);
+}
+
+/* ─── Modal "Mover a Carpeta" Estilo Dropbox (Screenshot 1:1) ─── */
+.dropbox-move-modal {
+    width: 480px;
+    max-width: calc(100vw - 32px);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.move-modal-header {
+    margin-bottom: 14px;
+}
+
+.move-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.2px;
+}
+
+.move-modal-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.move-modal-folder-list {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 4px;
+    margin-bottom: 4px;
+}
+
+.move-modal-folder-list::-webkit-scrollbar {
+    width: 6px;
+}
+.move-modal-folder-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.move-modal-folder-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.move-modal-folder-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    border: 1.5px solid transparent;
+    user-select: none;
+}
+
+.move-modal-folder-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.move-modal-folder-item.selected {
+    background: rgba(16, 185, 129, 0.16) !important;
+    border-color: #10B981 !important;
+}
+
+.move-modal-folder-item.current-location {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.move-modal-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.move-modal-item-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.move-modal-item-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.move-modal-item-sub {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 1px;
+}
+
+.move-modal-item-access {
+    font-size: 12.5px;
+    color: #9ca3af;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.move-modal-new-folder-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.25);
+}
+
+.btn-move-inline-confirm {
+    background: #10B981;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.btn-move-inline-confirm:hover {
+    background: #059669;
+}
+
+.btn-move-inline-cancel {
+    background: transparent;
+    color: #9ca3af;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 6px;
+}
+.btn-move-inline-cancel:hover {
+    color: #ffffff;
+}
+
+#btnConfirmMoveModal:enabled {
+    background: #10B981 !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+}
+
+#btnConfirmMoveModal:enabled:hover {
+    background: #059669 !important;
+}
+
+#btnConfirmMoveModal:disabled {
+    background: #3f3f46 !important;
+    color: #71717a !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
 .hamburger-btn {
     display: none;
     /* Desktop hidden */
@@ -4765,198 +5434,1000 @@ html[data-auth-likely="true"] #dashboard-app {
     pointer-events: none !important;
 }
 
-.share-modal-container {
-    background: #1c1c1e;
-    width: calc(100% - 32px);
-    max-width: 440px;
-    border-radius: 18px;
-    border: 1px solid #3a3a3a;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
-    color: #ffffff;
-    overflow: hidden;
-    animation: modalEntry 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
+/* ─── Carrusel Sugerido estilo Dropbox ─── */
+.dropbox-suggested-section {
+    margin-bottom: 24px;
+    padding: 0 2px;
 }
 
-@keyframes modalEntry {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.modal-header {
-    padding: 20px 24px;
+.suggested-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
+    margin-bottom: 12px;
 }
 
-.header-info h3 {
+.suggested-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.15s ease;
+}
+
+.suggested-title-group:hover {
+    opacity: 0.8;
+}
+
+.suggested-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
     margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.4;
-    color: #ffffff;
 }
 
-.header-info .text-secondary {
-    font-size: 13px;
-    color: #aaaaaa;
-}
-
-.btn-close-modal {
-    background: none;
-    border: none;
-    color: #ffffff;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.btn-close-modal:hover {
-    opacity: 1;
-}
-
-.modal-body {
-    padding: 0 24px 24px;
-}
-
-.search-section {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.chip-input-container {
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    border-radius: 12px;
-    padding: 8px 12px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    min-height: 52px;
-    align-items: center;
-}
-
-.chips-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.user-chip {
-    background: #444;
-    color: #fff;
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    animation: chipPop 200ms cubic-bezier(0.2, 0, 0.4, 1.25) forwards;
-}
-
-@keyframes chipPop {
-    0% {
-        transform: scale(0.85);
-        opacity: 0;
-    }
-
-    70% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.user-chip .remove-chip {
-    cursor: pointer;
+.suggested-eye-icon {
     font-size: 18px;
-    opacity: 0.7;
+    color: #9CA3AF;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.suggested-title-group:hover .suggested-eye-icon {
+    color: #4B5563;
+}
+
+.carousel-nav-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+@media (max-width: 1023px) {
+    .carousel-nav-buttons {
+        display: none !important;
+    }
+}
+
+.btn-carousel-nav {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid #E5E7EB;
+    background: white;
+    color: #4B5563;
     display: flex;
     align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
 }
 
-.user-chip .remove-chip:hover {
-    opacity: 1;
+.btn-carousel-nav:hover {
+    background: #F3F4F6;
+    color: #111827;
+    border-color: #D1D5DB;
 }
 
-#user-search-input {
-    background: transparent;
-    border: none;
-    color: #fff;
-    flex: 1;
-    min-width: 120px;
-    font-size: 14px;
-    padding: 4px 0;
+.dropbox-carousel-track {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 4px 2px 12px 2px;
+    scrollbar-width: none;
 }
 
-#user-search-input:focus {
-    outline: none;
+.dropbox-carousel-track::-webkit-scrollbar {
+    display: none;
 }
 
-.search-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #252528;
-    border: 1px solid #3a3a3a;
-    border-radius: 10px;
-    margin-top: 8px;
-    z-index: 100;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    max-height: 240px;
-    overflow-y: auto;
-}
-
-.suggestion-item {
-    padding: 10px 16px;
+.dropbox-carousel-card {
+    position: relative;
+    flex: 0 0 250px;
+    min-width: 230px;
+    height: 68px;
     display: flex;
     align-items: center;
     gap: 12px;
+    padding: 10px 14px;
+    background: white;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    user-select: none;
+}
+
+.dropbox-carousel-card:hover {
+    border-color: var(--primary, #10B981);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12);
+}
+
+.card-media {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--secondary-light, #ECFDF5);
+    color: var(--primary, #10B981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-media .folder-icon {
+    font-size: 24px;
+    color: var(--primary, #10B981);
+    font-variation-settings: 'FILL' 1;
+}
+
+.card-media-recipe {
+    background: #ECFDF5;
+    color: #059669;
+}
+
+.recipe-card-icon {
+    font-size: 24px;
+    color: #059669;
+}
+
+.card-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-subtitle {
+    font-size: 11.5px;
+    color: #6B7280;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-hover-actions {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: white;
+    padding: 3px 4px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    border: 1px solid #E5E7EB;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.dropbox-carousel-card:hover .card-hover-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Inline Folder Rename Input (Dropbox 1:1) */
+.dropbox-carousel-card.is-renaming {
+    border-color: #10B981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22) !important;
+    cursor: default !important;
+}
+
+.dropbox-carousel-card.is-renaming .card-hover-actions {
+    display: none !important;
+}
+
+.folder-inline-rename-input {
+    width: 100%;
+    min-width: 120px;
+    height: 28px;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #111827;
+    background: #FFFFFF;
+    border: 2px solid #10B981;
+    border-radius: 6px;
+    padding: 2px 8px;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.folder-inline-rename-input::selection {
+    background: #10B981;
+    color: #FFFFFF;
+}
+
+body.dark-mode .folder-inline-rename-input,
+body.dark-theme .folder-inline-rename-input {
+    background: #1F2937;
+    color: #F9FAFB;
+    border-color: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+}
+
+.folder-crumb-title .folder-inline-rename-input {
+    height: 26px;
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 220px;
+}
+
+.card-action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: #4B5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.card-action-btn:hover {
+    background: #F3F4F6;
+    color: #111827;
+}
+
+.card-action-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+@media (max-width: 1023px) {
+    .dropbox-carousel-card {
+        padding-right: 44px;
+    }
+
+    .card-hover-actions {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        right: 6px !important;
+    }
+
+    .card-hover-actions .card-action-btn:not(:last-child) {
+        display: none !important;
+    }
+
+    .card-hover-actions .card-action-btn,
+    .card-hover-actions .card-action-btn:hover,
+    .card-hover-actions .card-action-btn:focus,
+    .card-hover-actions .card-action-btn:active {
+        width: 32px;
+        height: 32px;
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        border-radius: 0 !important;
+        color: #6B7280;
+    }
+
+    .card-hover-actions .card-action-btn:hover,
+    .card-hover-actions .card-action-btn:active {
+        color: #111827;
+        background: transparent !important;
+    }
+}
+
+/* ─── Popover Opciones de Carpeta estilo Dropbox ─── */
+.dropbox-folder-popover {
+    position: fixed !important;
+    z-index: 9999;
+    background: #1c1c1e;
+    border: 1px solid #3a3a3e;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    width: 220px;
+    padding: 6px 0;
+    color: #fff;
+    animation: modalEntry 150ms ease;
+    box-sizing: border-box;
+}
+
+.folder-popover-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid #2e2e34;
+}
+
+.folder-popover-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f3f4f6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.folder-popover-items {
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+}
+
+.folder-popover-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: #d1d5db;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.folder-popover-item:hover {
+    background: #2c2c32;
+    color: #ffffff;
+}
+
+.folder-popover-item .material-symbols-outlined {
+    font-size: 18px;
+    color: #9ca3af;
+}
+
+.folder-popover-item:hover .material-symbols-outlined {
+    color: #ffffff;
+}
+
+.folder-popover-item.item-danger {
+    color: #f87171;
+}
+
+.folder-popover-item.item-danger .material-symbols-outlined {
+    color: #f87171;
+}
+
+.folder-popover-item.item-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.folder-popover-divider {
+    height: 1px;
+    background: #2e2e34;
+    margin: 4px 8px;
+}
+
+/* ─── Folder Breadcrumb / Action Bar ─── */
+.folder-breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 8px 14px;
+    background: #FFFFFF;
+    border-radius: 14px;
+    border: 1.5px solid var(--border, #E5E7EB);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    min-height: 48px;
+    box-sizing: border-box;
+}
+
+.folder-back-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    color: var(--primary, #10B981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+}
+
+.folder-back-btn:hover {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.folder-crumb-root {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.folder-crumb-root:hover {
+    color: var(--primary, #10B981);
+}
+
+.folder-crumb-sep {
+    color: #9CA3AF;
+    font-size: 13px;
+    user-select: none;
+}
+
+.folder-crumb-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folder-crumb-icon {
+    font-size: 20px;
+    color: #10B981;
+    font-variation-settings: 'FILL' 1;
+    flex-shrink: 0;
+}
+
+.folder-breadcrumb-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.folder-more-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    color: #4B5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.folder-more-btn:hover,
+.folder-more-btn:active {
+    background: #F3F4F6;
+    color: #111827;
+}
+
+@media (max-width: 1023px) {
+    .folder-crumb-root,
+    .folder-crumb-sep,
+    .folder-crumb-icon {
+        display: none !important;
+    }
+
+    .folder-breadcrumb-bar {
+        padding: 6px 10px;
+        border-radius: 12px;
+        gap: 6px;
+    }
+
+    .folder-crumb-title {
+        font-size: 16px;
+        font-weight: 800;
+    }
+}
+
+/* ─── Material 3 Expressive Popover Menu ─── */
+.m3-expressive-menu {
+    position: fixed !important;
+    z-index: 9999;
+    background: #FFFFFF;
+    border-radius: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 6px;
+    animation: modalEntry 150ms cubic-bezier(0.2, 0, 0, 1);
+    box-sizing: border-box;
+}
+
+.m3-menu-header {
+    padding: 8px 12px 6px 12px;
+    border-bottom: 1px solid #F3F4F6;
+    margin-bottom: 4px;
+}
+
+.m3-menu-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m3-menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.m3-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 14px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    color: #1F2937;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.m3-menu-item:hover,
+.m3-menu-item:active {
+    background: #F3F4F6;
+    color: #111827;
+}
+
+.m3-menu-item .material-symbols-outlined {
+    font-size: 20px;
+    color: #6B7280;
+    flex-shrink: 0;
+}
+
+.m3-menu-item:hover .material-symbols-outlined {
+    color: #111827;
+}
+
+.m3-menu-divider {
+    height: 1px;
+    background: #F3F4F6;
+    margin: 4px 6px;
+}
+
+.m3-menu-item.m3-item-danger {
+    color: #EF4444;
+}
+
+.m3-menu-item.m3-item-danger .material-symbols-outlined {
+    color: #EF4444;
+}
+
+.m3-menu-item.m3-item-danger:hover,
+.m3-menu-item.m3-item-danger:active {
+    background: rgba(239, 68, 68, 0.08);
+    color: #DC2626;
+}
+
+.m3-menu-item.m3-item-danger:hover .material-symbols-outlined {
+    color: #DC2626;
+}
+
+/* Dark mode support */
+body.dark-mode .m3-expressive-menu,
+body.dark-theme .m3-expressive-menu {
+    background: #1E1E22;
+    border-color: #2E2E34;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .m3-menu-header,
+body.dark-theme .m3-menu-header {
+    border-bottom-color: #2E2E34;
+}
+
+body.dark-mode .m3-menu-title,
+body.dark-theme .m3-menu-title {
+    color: #9CA3AF;
+}
+
+body.dark-mode .m3-menu-item,
+body.dark-theme .m3-menu-item {
+    color: #E5E7EB;
+}
+
+body.dark-mode .m3-menu-item:hover,
+body.dark-theme .m3-menu-item:hover,
+body.dark-mode .m3-menu-item:active,
+body.dark-theme .m3-menu-item:active {
+    background: #2C2C32;
+    color: #FFFFFF;
+}
+
+body.dark-mode .m3-menu-item .material-symbols-outlined,
+body.dark-theme .m3-menu-item .material-symbols-outlined {
+    color: #9CA3AF;
+}
+
+body.dark-mode .m3-menu-item:hover .material-symbols-outlined,
+body.dark-theme .m3-menu-item:hover .material-symbols-outlined {
+    color: #FFFFFF;
+}
+
+body.dark-mode .m3-menu-divider,
+body.dark-theme .m3-menu-divider {
+    background: #2E2E34;
+}
+
+body.dark-mode .folder-breadcrumb-bar,
+body.dark-theme .folder-breadcrumb-bar {
+    background: #1E1E22;
+    border-color: #2E2E34;
+}
+
+body.dark-mode .folder-crumb-title,
+body.dark-theme .folder-crumb-title {
+    color: #F3F4F6;
+}
+
+body.dark-mode .folder-more-btn,
+body.dark-theme .folder-more-btn {
+    color: #9CA3AF;
+}
+
+body.dark-mode .folder-more-btn:hover,
+body.dark-theme .folder-more-btn:hover {
+    background: #2C2C32;
+    color: #FFFFFF;
+}
+
+/* ─── Share Modal Estilo Dropbox (Match Exacto del Screenshot) ─── */
+.dropbox-share-modal-card {
+    background: #1e1e1e;
+    width: calc(100% - 32px);
+    max-width: 530px;
+    border-radius: 16px;
+    border: 1px solid #333333;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
+    color: #ffffff;
+    padding: 24px 28px;
+    animation: modalEntry 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.dropbox-share-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.dropbox-share-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.dropbox-share-subinfo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    color: #8e8e8e;
+    font-weight: 500;
+}
+
+.subinfo-icon {
+    font-size: 16px;
+    color: #8e8e8e;
+}
+
+.btn-collaborators-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #2a2a2a;
+    border: 1px solid #383838;
+    border-radius: 20px;
+    padding: 3px 8px 3px 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-collaborators-pill:hover {
+    background: #353535;
+}
+
+.collaborator-mini-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #9333ea;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chevron-icon {
+    font-size: 16px;
+    color: #8e8e8e;
+    transition: transform 0.2s ease;
+}
+
+/* Fila de Entrada: Input Usuario + Dropdown Permiso */
+.dropbox-share-row {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: stretch;
+}
+
+.dropbox-input-container {
+    flex: 1;
+    background: #262626;
+    border: 1.5px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-height: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    cursor: text;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.dropbox-input-container:focus-within {
+    border-color: #0061FE;
+}
+
+.dropbox-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.dropbox-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #383838;
+    border-radius: 16px;
+    padding: 3px 8px;
+    font-size: 12.5px;
+    color: #ffffff;
+    font-weight: 500;
+    animation: chipPop 160ms ease forwards;
+}
+
+.dropbox-chip-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0061FE;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropbox-chip-remove {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropbox-chip-remove:hover {
+    color: #fff;
+}
+
+.dropbox-user-input {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 13.5px;
+    flex: 1;
+    min-width: 140px;
+    outline: none;
+    padding: 2px 0;
+}
+
+.dropbox-user-input::placeholder {
+    color: #737373;
+}
+
+/* Selector de Permiso estilo Dropbox */
+.dropbox-perm-picker {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.btn-perm-picker {
+    height: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    background: #262626;
+    border: 1.5px solid #3a3a3a;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.btn-perm-picker:hover {
+    background: #303030;
+    border-color: #4a4a4a;
+}
+
+.perm-dropdown-arrow {
+    font-size: 18px;
+    color: #8e8e8e;
+}
+
+.dropbox-perm-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 170px;
+    background: #262626;
+    border: 1px solid #3c3c3c;
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+    z-index: 120;
+    padding: 6px 0;
+}
+
+.perm-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    color: #d4d4d4;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.perm-dropdown-item:hover {
+    background: #333333;
+    color: #ffffff;
+}
+
+.perm-dropdown-item.active {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.perm-check-mark {
+    width: 16px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Sugerencias de Búsqueda de Usuarios */
+.search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #262626;
+    border: 1px solid #3c3c3c;
+    border-radius: 12px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 110;
+    padding: 6px;
+}
+
+.suggestion-item {
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
 }
 
 .suggestion-item:hover {
-    background: var(--surface-container, #f5f5f5);
+    background: #333333;
+}
+
+.suggestion-item.is-disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.suggestion-item.is-disabled:hover {
+    background: transparent;
+}
+
+.suggestion-item.is-selected {
+    background: rgba(0, 97, 254, 0.15);
+    border: 1px solid rgba(0, 97, 254, 0.3);
 }
 
 .suggestion-avatar {
     width: 32px;
     height: 32px;
-    background: var(--primary, #f97316);
-    color: #fff;
     border-radius: 50%;
+    background: #333338;
+    color: #0061FE;
+    font-weight: 700;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
     flex-shrink: 0;
+    overflow: hidden;
+    border: 1px solid #44444c;
 }
 
 .suggestion-info {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 1px;
 }
 
 .suggestion-name {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13.5px;
+    font-weight: 600;
     color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
@@ -4964,129 +6435,245 @@ html[data-auth-likely="true"] #dashboard-app {
 }
 
 .suggestion-email {
-    font-size: 12px;
-    color: #aaaaaa;
+    font-size: 11.5px;
+    color: #8e8e8e;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.permission-section {
+.suggestion-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.suggestion-badge.badge-shared {
+    background: #333333;
+    color: #a3a3a3;
+}
+
+.suggestion-badge.badge-selected {
+    background: rgba(0, 97, 254, 0.2);
+    color: #60a5fa;
+}
+
+.suggestion-add-icon {
+    color: #0061FE;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* Mensaje opcional estilo Dropbox */
+.dropbox-message-container {
     margin-bottom: 24px;
 }
 
-.select-wrapper {
-    position: relative;
-    background: #2a2a2a;
-    border: 1px solid #444;
+.dropbox-message-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: #262626;
+    border: 1.5px solid #3a3a3a;
     border-radius: 10px;
-    padding: 6px 16px;
+    padding: 12px 14px;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.dropbox-message-textarea::placeholder {
+    color: #737373;
+}
+
+.dropbox-message-textarea:focus {
+    border-color: #0061FE;
+}
+
+/* Personas con Acceso Drawer */
+.collaborators-drawer {
+    background: #242424;
+    border: 1px solid #333333;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.collaborators-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.drawer-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #a3a3a3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.shares-count-badge {
+    background: #333333;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.shares-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.no-shares-box {
     display: flex;
     align-items: center;
     gap: 8px;
-    height: 48px;
+    color: #737373;
+    font-size: 12px;
+    padding: 6px 0;
 }
 
-.select-label {
-    font-size: 14px;
-    color: #aaaaaa;
+.share-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #2a2a2a;
+    border-radius: 8px;
+}
+
+.share-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #383838;
+    color: #60a5fa;
+    font-weight: 700;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.share-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.share-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.custom-select {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    width: 100%;
-    font-size: 14px;
-    appearance: none;
+.share-email {
+    font-size: 11px;
+    color: #8e8e8e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.share-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.permission-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #a3a3a3;
+    background: #333333;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+.btn-remove-access {
+    background: none;
+    border: 1px solid #444444;
+    color: #f87171;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
-    padding-right: 24px;
-    font-family: inherit;
+    transition: all 0.15s;
 }
 
-.custom-select:focus {
-    outline: none;
+.btn-remove-access:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
 }
 
-.select-arrow {
-    position: absolute;
-    right: 12px;
-    pointer-events: none;
-    color: #aaaaaa;
+/* Footer estilo Dropbox: Botones Cancelar y Compartir */
+.dropbox-share-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 4px;
 }
 
-.btn-share-main {
-    width: 100%;
-    height: 52px;
-    background: var(--primary);
+.btn-dropbox-cancel {
+    padding: 10px 24px;
+    background: #262626;
+    border: 1px solid #383838;
+    border-radius: 12px;
     color: #ffffff;
-    border: none;
-    border-radius: 14px;
-    padding: 0 24px;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 4px 12px rgba(255, 122, 80, 0.2);
-    margin: 12px 0;
+    transition: background 0.15s;
 }
 
-.btn-share-main:disabled {
-    background: #333333;
-    color: #777777;
-    cursor: not-allowed;
-    opacity: 0.6;
-    box-shadow: none;
+.btn-dropbox-cancel:hover {
+    background: #323232;
 }
 
-.btn-share-main:not(:disabled):hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 122, 80, 0.35);
-}
-
-.btn-share-main:not(:disabled):active {
-    transform: translateY(0);
-}
-
-.modal-footer {
-    border-top: 1px solid #3a3a3a;
-    padding: 24px;
-}
-
-.btn-copy-link {
-    width: 100%;
-    background: #2a2a2a;
-    color: #ffffff;
+.btn-dropbox-share {
+    padding: 10px 28px;
+    background: #383838;
     border: none;
     border-radius: 12px;
-    padding: 14px;
+    color: #787878;
     font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    font-weight: 700;
+    cursor: not-allowed;
+    transition: all 0.2s;
+}
+
+.btn-dropbox-share.ready,
+.btn-dropbox-share:not(:disabled) {
+    background: #0061FE;
+    color: #ffffff;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
-.btn-copy-link:hover {
-    background: #333333;
-}
-
-.btn-copy-link.copied {
-    background: #059669;
-    /* Verde esmeralda para éxito */
-}
-
-.btn-copy-link .material-symbols-outlined {
-    font-size: 20px;
+.btn-dropbox-share.ready:hover,
+.btn-dropbox-share:not(:disabled):hover {
+    background: #0052d6;
 }
 
 /* ─── Notifications System ─── */
@@ -6561,31 +8148,65 @@ input:checked~.m3-ingredient-text {
     background-color: var(--md-sys-color-secondary-container, rgba(16, 185, 129, 0.12));
 }
 
-/* ─── Material 3 Expressive Context Menu (Dark) ─── */
+/* ─── Material 3 Expressive Context Menu (Dark / Dropbox Style) ─── */
 .dropbox-menu-m3 {
     position: fixed;
     background: #1e1f21 !important;
     color: white !important;
-    min-width: 280px;
+    min-width: 240px;
+    max-width: 320px;
     border-radius: 16px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
     border: 1px solid #333;
     z-index: 2000;
-    padding: 12px 0;
+    padding: 8px 0;
     display: flex;
     flex-direction: column;
-    animation: m3-menu-appear 0.2s cubic-bezier(0, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+    animation: m3-menu-appear 0.18s cubic-bezier(0, 0, 0.2, 1);
+    box-sizing: border-box;
+}
+
+.dropbox-menu-m3::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropbox-menu-m3::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dropbox-menu-m3::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+}
+
+.dropbox-menu-m3::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.dropbox-menu-header {
+    position: sticky;
+    top: -8px;
+    background: #1e1f21;
+    z-index: 2;
+    padding: 8px 16px 10px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 4px;
+    flex-shrink: 0;
 }
 
 @keyframes m3-menu-appear {
     from {
         opacity: 0;
-        transform: scale(0.95) translateY(-8px);
+        transform: scale(0.96);
     }
 
     to {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: scale(1);
     }
 }
 

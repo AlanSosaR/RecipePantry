@@ -10,6 +10,7 @@ class DashboardManager {
         this.selectedRecipeId = null;
         this.selectedRecipes = new Set();
         this.isSelectionMode = false;
+        this.currentFolder = null;
 
         this.longPressTimer = null;
         this.ignoreNextClick = false;
@@ -115,6 +116,14 @@ class DashboardManager {
             if (viewParam === 'settings') viewParam = 'help';
             if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu'].includes(viewParam)) {
                 this.currentView = viewParam;
+            }
+
+            // Leer carpeta desde URL si estamos en vista recipes
+            if (this.currentView === 'recipes') {
+                const folderParam = urlParams.get('folder');
+                if (folderParam) {
+                    this.currentFolder = decodeURIComponent(folderParam).trim();
+                }
             }
             this.currentOffset = 0;
             if (!this.selectedRecipes) this.selectedRecipes = new Set();
@@ -377,9 +386,39 @@ class DashboardManager {
         // Listener para actualizaciones en segundo plano (Cache-First Revalidation)
         window.addEventListener('recipes-index-updated', (e) => {
             console.log('🔄 Índice de recetas actualizado en segundo plano');
-            this.currentRecipes = e.detail;
-            if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
-                this.renderRecipesGrid(this.currentRecipes);
+            if (e.detail && Array.isArray(e.detail)) {
+                this.currentRecipes = e.detail;
+                if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                    this.renderRecipesGrid(this.currentRecipes);
+                }
+            }
+        });
+
+        // Listener para cambios de carpetas privadas
+        window.addEventListener('folders-updated', () => {
+            if (this.currentView === 'recipes') {
+                this.renderFolders();
+            }
+        });
+
+        // Cerrar menú estilo Dropbox o FAB menu al hacer click fuera
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('newDropboxMenu');
+            if (menu && !menu.classList.contains('hidden')) {
+                const wrapper = document.querySelector('.dropbox-new-wrapper');
+                if (!wrapper || !wrapper.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            }
+            if (!e.target.closest('#m3FabMenuContainer')) {
+                this.closeFabMenu();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeFabMenu();
+                this.closeNewDropboxMenu();
             }
         });
     }
@@ -426,6 +465,7 @@ class DashboardManager {
         this.currentView = view;
 
         // Limpiar selección actual si cambia de pestaña
+        if (this.closeFabMenu) this.closeFabMenu();
         if (this.selectedRecipes) {
             this.selectedRecipes.clear();
             if (this.updateActionBar) this.updateActionBar();
@@ -443,6 +483,10 @@ class DashboardManager {
 
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if (activeItem) activeItem.classList.add('active');
+
+        if (view !== 'recipes') {
+            this.currentFolder = null;
+        }
 
         if (view === 'favorites') {
             this.loadRecipes({ favorite: true, orderBy: 'name_es', ascending: true });
@@ -478,8 +522,8 @@ class DashboardManager {
                     <span class="material-symbols-outlined">add</span>
                     <span data-i18n="newRecipeBtn">${(window.i18n && window.i18n.t) ? window.i18n.t('newRecipeBtn', 'Nuevo') : 'Nuevo'}</span>
                 `;
-                btnNew.onclick = () => { window.location.href = '/recipe-form'; };
-                btnNew.title = (window.i18n && window.i18n.t) ? window.i18n.t('newRecipe', 'Nueva Receta') : 'Nueva Receta';
+                btnNew.onclick = (e) => { this.toggleNewDropboxMenu(e); };
+                btnNew.title = (window.i18n && window.i18n.t) ? window.i18n.t('newRecipe', 'Crear') : 'Crear';
             }
         }
 
@@ -596,20 +640,20 @@ class DashboardManager {
 
         const titleEl = document.getElementById('view-title');
         if (titleEl && !this.isSelectionMode) {
-            const count = this.currentRecipes.length;
-            let baseTitle = '';
-
-            if (filters.search) {
-                baseTitle = filters.search;
-            } else if (filters.favorite) {
-                baseTitle = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
-            } else if (filters.shared) {
-                baseTitle = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
+            const baseTitle = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
+            if (this.currentFolder && this.currentView === 'recipes') {
+                const folderCount = this.currentRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()).length;
+                titleEl.textContent = `${baseTitle} (${folderCount})`;
+            } else if (!this.currentFolder && this.currentView === 'recipes' && !filters.search) {
+                const rootCount = this.currentRecipes.filter(r => !(r.pantry_es && r.pantry_es.trim())).length;
+                titleEl.textContent = `${baseTitle} (${rootCount})`;
             } else {
-                baseTitle = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
+                let currentBase = baseTitle;
+                if (filters.search) currentBase = filters.search;
+                else if (filters.favorite) currentBase = window.i18n ? window.i18n.t('navFavorites') : 'Favoritos';
+                else if (filters.shared) currentBase = window.i18n ? window.i18n.t('navShared') : 'Compartidas';
+                titleEl.textContent = `${currentBase} (${this.currentRecipes.length})`;
             }
-
-            titleEl.textContent = `${baseTitle} (${count})`;
         }
 
         const helpView = document.getElementById('helpView');
@@ -754,9 +798,12 @@ class DashboardManager {
             }
             // Force PC selection header alignment leftwards next to title
             const dashHeader = document.querySelector('.dashboard-header');
-            if (dashHeader && window.innerWidth > 800) {
-                dashHeader.style.setProperty('justify-content', 'space-between', 'important');
-                dashHeader.style.setProperty('gap', '12px', 'important');
+            if (dashHeader) {
+                dashHeader.classList.remove('hidden');
+                if (window.innerWidth > 800) {
+                    dashHeader.style.setProperty('justify-content', 'space-between', 'important');
+                    dashHeader.style.setProperty('gap', '12px', 'important');
+                }
             }
 
         } else {
@@ -789,9 +836,16 @@ class DashboardManager {
             }
             // Restore normal PC header alignment
             const dashHeader = document.querySelector('.dashboard-header');
-            if (dashHeader && window.innerWidth > 800) {
-                dashHeader.style.setProperty('justify-content', 'space-between', 'important');
-                dashHeader.style.setProperty('gap', '8px', 'important');
+            if (dashHeader) {
+                if (this.currentFolder && this.currentView === 'recipes') {
+                    dashHeader.classList.add('hidden');
+                } else {
+                    dashHeader.classList.remove('hidden');
+                }
+                if (window.innerWidth > 800) {
+                    dashHeader.style.setProperty('justify-content', 'space-between', 'important');
+                    dashHeader.style.setProperty('gap', '8px', 'important');
+                }
             }
         }
 
@@ -1148,26 +1202,7 @@ class DashboardManager {
 
     async moveSelected() {
         if (this.selectedRecipes.size === 0) return;
-
-        const categories = [...new Set(this.currentRecipes.map(r => r.category).filter(Boolean))];
-        const categoriesStr = categories.join(', ') || 'Principal';
-
-        const newCategory = prompt(
-            window.i18n && window.i18n.getLang() === 'en'
-                ? `Enter new category (Existing: ${categoriesStr}):`
-                : `Ingrese la nueva categoría (Existentes: ${categoriesStr}):`
-        );
-
-        if (newCategory) {
-            window.showToast(window.i18n ? window.i18n.t('movingRecs') : 'Moviendo recetas...', 'info');
-            const ids = Array.from(this.selectedRecipes);
-            const movePromises = ids.map(id => window.db.updateRecipe(id, { category: newCategory }));
-            await Promise.all(movePromises);
-            
-            this.clearSelection();
-            await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
-            window.showToast(window.i18n ? window.i18n.t('moveSuccess') : 'Recetas movidas con éxito', 'success');
-        }
+        this.openMoveModal(Array.from(this.selectedRecipes));
     }
 
     shareSelected() {
@@ -1185,26 +1220,1055 @@ class DashboardManager {
             // Podríamos iterar, pero bloquearía la UI. Dejemos el ID [0] como placeholder temporal o implementemos un multi-share
         }
     }
+    // ─── Menú "Crear" Estilo Dropbox (Desktop) ──────────────────
+    toggleNewDropboxMenu(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        const menu = document.getElementById('newDropboxMenu');
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+
+    closeNewDropboxMenu(e) {
+        if (e) e.stopPropagation();
+        const menu = document.getElementById('newDropboxMenu');
+        if (menu) menu.classList.add('hidden');
+    }
+
+    // ─── Material 3 FAB Menu / Speed Dial (Móvil) ────────────────
+    toggleFabMenu(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+        if (fab && fab.classList.contains('fab-menu-open')) {
+            this.closeFabMenu();
+        } else {
+            this.openFabMenu();
+        }
+    }
+
+    openFabMenu() {
+        const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+        const actions = document.getElementById('m3FabActions');
+        const scrim = document.getElementById('m3FabScrim');
+
+        if (fab) {
+            fab.classList.add('fab-menu-open');
+            fab.setAttribute('aria-expanded', 'true');
+        }
+        if (scrim) {
+            scrim.classList.remove('hidden');
+            void scrim.offsetHeight;
+            scrim.classList.add('active');
+        }
+        if (actions) {
+            actions.classList.remove('hidden');
+            void actions.offsetHeight;
+            actions.classList.add('active');
+        }
+    }
+
+    closeFabMenu() {
+        const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+        const actions = document.getElementById('m3FabActions');
+        const scrim = document.getElementById('m3FabScrim');
+
+        if (fab) {
+            fab.classList.remove('fab-menu-open');
+            fab.setAttribute('aria-expanded', 'false');
+        }
+        if (actions) {
+            actions.classList.remove('active');
+            setTimeout(() => {
+                const currentFab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+                if (!currentFab?.classList.contains('fab-menu-open')) {
+                    actions.classList.add('hidden');
+                }
+            }, 240);
+        }
+        if (scrim) {
+            scrim.classList.remove('active');
+            setTimeout(() => {
+                const currentFab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+                if (!currentFab?.classList.contains('fab-menu-open')) {
+                    scrim.classList.add('hidden');
+                }
+            }, 240);
+        }
+    }
+
+    handleDropboxOption(option) {
+        this.closeNewDropboxMenu();
+        this.closeFabMenu();
+        if (option === 'folder') {
+            this.promptNewFolder();
+        } else if (option === 'document') {
+            window.location.href = '/recipe-form';
+        } else if (option === 'scan') {
+            window.location.href = '/ocr';
+        }
+    }
+
+    // ─── Gestión de Carpetas Privadas ────────────────────────────
+    renderFolders() {
+        const breadcrumb = document.getElementById('folderBreadcrumb');
+        const folderLabel = document.getElementById('currentFolderNameLabel');
+        const dashHeader = document.querySelector('.dashboard-header');
+
+        if (this.currentView !== 'recipes') {
+            if (breadcrumb) {
+                breadcrumb.classList.add('hidden');
+                breadcrumb.style.display = 'none';
+            }
+            if (dashHeader && !this.isSelectionMode) {
+                dashHeader.classList.remove('hidden');
+            }
+            return;
+        }
+
+        if (this.currentFolder) {
+            // Vista dentro de una carpeta: ocultar cabecera superior "Recetas" y carrusel
+            if (dashHeader && !this.isSelectionMode) {
+                dashHeader.classList.add('hidden');
+            }
+
+            const carouselSection = document.getElementById('suggestedCarouselSection');
+            if (carouselSection) {
+                carouselSection.classList.add('hidden');
+            }
+
+            if (breadcrumb) {
+                breadcrumb.classList.remove('hidden');
+                breadcrumb.style.display = 'flex';
+                // Contar recetas dentro de esta carpeta
+                const folderCount = (this.currentRecipes || []).filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()).length;
+                if (folderLabel) folderLabel.textContent = `${this.currentFolder} (${folderCount})`;
+            }
+        } else {
+            // Vista raíz de Mis Recetas: mostrar cabecera "Recetas"
+            if (breadcrumb) {
+                breadcrumb.classList.add('hidden');
+                breadcrumb.style.display = 'none';
+            }
+            if (dashHeader) {
+                dashHeader.classList.remove('hidden');
+            }
+        }
+    }
+
+    renderFolderRow(folderName, count) {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const safeF = folderName.replace(/'/g, "\\'");
+        return `
+            <div class="file-row-m3 folder-row-dropbox" 
+                 data-folder="${safeF}"
+                 role="option"
+                 tabindex="0"
+                 onclick="window.dashboard.openFolder('${safeF}')"
+                 style="cursor: pointer; background: #FAFDFB; border-bottom: 1.5px solid #F0FDF4;">
+                
+                <div class="col-checkbox" onclick="event.stopPropagation()">
+                    <span class="material-symbols-outlined" style="font-size: 20px; color: #D1D5DB;">folder</span>
+                </div>
+
+                <div class="col-icon">
+                    <span class="material-symbols-outlined" style="font-size: 26px; color: #10B981; font-variation-settings: 'FILL' 1;">folder</span>
+                </div>
+
+                <div class="col-name text-ellipsis" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="recipe-name" style="font-weight: 700; color: #111827;">${folderName}</span>
+                    <span style="font-size: 11.5px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 1px 7px; border-radius: 6px;">${count} ${count === 1 ? (isEn ? 'receta' : 'receta') : (isEn ? 'recetas' : 'recetas')}</span>
+                </div>
+
+                <div class="col-access">
+                    <span style="color: #6B7280; font-size: 13px;">${window.i18n ? window.i18n.t('accessPrivate') : 'Solo tú'}</span>
+                </div>
+
+                <div class="col-date">—</div>
+
+                <div class="col-actions">
+                    <div class="row-actions-dropbox">
+                        <button type="button" class="btn-icon-m3 row-folder-action-btn" title="Compartir carpeta" onclick="event.stopPropagation(); window.dashboard.openShareFolderModal('${safeF}')">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">share</span>
+                        </button>
+                        <button type="button" class="btn-icon-m3 row-folder-action-btn" title="Copiar enlace" onclick="event.stopPropagation(); window.dashboard.copyFolderLink('${safeF}')">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">link</span>
+                        </button>
+                        <button type="button" class="btn-icon-m3 row-folder-action-btn" title="Más opciones" onclick="event.stopPropagation(); window.dashboard.toggleFolderCardMenu(event, '${safeF}')">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">more_vert</span>
+                        </button>
+                        <button type="button" class="btn-icon-m3" title="Abrir carpeta" onclick="event.stopPropagation(); window.dashboard.openFolder('${safeF}')">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                    <button type="button" class="btn-icon-m3 mobile-action-btn" onclick="event.stopPropagation(); window.dashboard.toggleFolderCardMenu(event, '${safeF}')">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderSuggestedCarousel(folders = [], counts = {}) {
+        const section = document.getElementById('suggestedCarouselSection');
+        const track = document.getElementById('suggestedCarouselTrack');
+        if (!section || !track) return;
+
+        if (this.currentView !== 'recipes' || this.currentFolder || folders.length === 0) {
+            section.classList.add('hidden');
+            track.innerHTML = '';
+            return;
+        }
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const folderCards = folders.map(f => {
+            const safeF = f.replace(/'/g, "\\'");
+            const count = counts[f] || 0;
+            const countLabel = `${count} ${count === 1 ? (isEn ? 'receta' : 'receta') : (isEn ? 'recetas' : 'recetas')}`;
+
+            return `
+                <div class="dropbox-carousel-card" data-folder="${safeF}" onclick="window.dashboard.openFolder('${safeF}')">
+                    <div class="card-media">
+                        <span class="material-symbols-outlined folder-icon">folder</span>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-title" title="${f}">${f}</span>
+                        <span class="card-subtitle">Carpeta • ${countLabel}</span>
+                    </div>
+                    <div class="card-hover-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="card-action-btn" title="Compartir" onclick="window.dashboard.openShareFolderModal('${safeF}')">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
+                        <button type="button" class="card-action-btn" title="Copiar enlace" onclick="window.dashboard.copyFolderLink('${safeF}')">
+                            <span class="material-symbols-outlined">link</span>
+                        </button>
+                        <button type="button" class="card-action-btn" title="Más opciones" onclick="window.dashboard.toggleFolderCardMenu(event, '${safeF}')">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        track.innerHTML = folderCards;
+        section.classList.remove('hidden');
+
+        // Restaurar estado de visibilidad del ojo (recordar preferencia)
+        const isCollapsed = localStorage.getItem('suggested_carousel_collapsed') === 'true';
+        this.updateSuggestedCarouselState(isCollapsed);
+    }
+
+    toggleSuggestedCarousel() {
+        const track = document.getElementById('suggestedCarouselTrack');
+        const isCurrentlyHidden = track ? track.classList.contains('hidden') : false;
+        const willCollapse = !isCurrentlyHidden;
+        if (willCollapse) {
+            localStorage.setItem('suggested_carousel_collapsed', 'true');
+        } else {
+            localStorage.removeItem('suggested_carousel_collapsed');
+        }
+        this.updateSuggestedCarouselState(willCollapse);
+    }
+
+    updateSuggestedCarouselState(isCollapsed) {
+        const track = document.getElementById('suggestedCarouselTrack');
+        const navButtons = document.getElementById('carouselNavButtons');
+        const eyeIcon = document.getElementById('suggestedEyeIcon');
+
+        if (isCollapsed) {
+            if (track) track.classList.add('hidden');
+            if (navButtons) navButtons.classList.add('hidden');
+            if (eyeIcon) eyeIcon.textContent = 'visibility_off';
+        } else {
+            if (track) track.classList.remove('hidden');
+            if (navButtons) navButtons.classList.remove('hidden');
+            if (eyeIcon) eyeIcon.textContent = 'visibility';
+        }
+    }
+
+    scrollCarousel(direction) {
+        const track = document.getElementById('suggestedCarouselTrack');
+        if (track) {
+            track.scrollBy({ left: direction * 280, behavior: 'smooth' });
+        }
+    }
+
+    openShareFolderModal(folderName) {
+        this.closeFolderCardMenu();
+        if (window.shareModal) {
+            window.shareModal.open(folderName, 'folder');
+        }
+    }
+
+    copyFolderLink(folderName) {
+        this.closeFolderCardMenu();
+        const url = `${window.location.origin}${window.location.pathname}?folder=${encodeURIComponent(folderName)}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                window.showToast('Enlace de la carpeta copiado al portapapeles', 'success');
+            });
+        } else {
+            window.showToast('Enlace copiado', 'success');
+        }
+    }
+
+    toggleFolderCardMenu(event, folderName) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const menu = document.getElementById('folderCardMenu');
+        if (!menu) return;
+
+        if (this._activeFolderMenuName === folderName && !menu.classList.contains('hidden')) {
+            this.closeFolderCardMenu();
+            return;
+        }
+
+        this._activeFolderMenuName = folderName;
+        const safeF = folderName.replace(/'/g, "\\'");
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        menu.className = 'dropbox-folder-popover';
+        menu.innerHTML = `
+            <div class="folder-popover-header">
+                <span class="folder-popover-title">${folderName}</span>
+            </div>
+            <div class="folder-popover-items">
+                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openFolder('${safeF}')">
+                    <span class="material-symbols-outlined">folder_open</span>
+                    <span>${isEn ? 'Open folder' : 'Abrir carpeta'}</span>
+                </button>
+                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
+                    <span class="material-symbols-outlined">share</span>
+                    <span>${isEn ? 'Share' : 'Compartir'}</span>
+                </button>
+                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.copyFolderLink('${safeF}')">
+                    <span class="material-symbols-outlined">link</span>
+                    <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
+                </button>
+                <div class="folder-popover-divider"></div>
+                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameFolderByName('${safeF}')">
+                    <span class="material-symbols-outlined">edit</span>
+                    <span>${isEn ? 'Rename' : 'Cambiar nombre'}</span>
+                </button>
+                <button type="button" class="folder-popover-item item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteFolderByName('${safeF}')">
+                    <span class="material-symbols-outlined">delete</span>
+                    <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                </button>
+            </div>
+        `;
+
+        const card = event.currentTarget.closest('.dropbox-carousel-card') || event.currentTarget;
+        const cardRect = card.getBoundingClientRect();
+        const menuWidth = 220;
+        const menuHeight = 220;
+
+        menu.style.position = 'fixed';
+        let topPos = cardRect.bottom + 6;
+        if (topPos + menuHeight > window.innerHeight - 10) {
+            topPos = Math.max(10, cardRect.top - menuHeight - 6);
+        }
+        menu.style.top = `${topPos}px`;
+
+        // Ubicar exactamente debajo de la tarjeta de la carpeta que lo abre
+        let leftPos = cardRect.left;
+        if (leftPos + menuWidth > window.innerWidth - 12) {
+            leftPos = Math.max(12, cardRect.right - menuWidth);
+        }
+        menu.style.left = `${leftPos}px`;
+        menu.classList.remove('hidden');
+    }
+
+    toggleCurrentFolderMenu(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        if (!this.currentFolder) return;
+
+        const menu = document.getElementById('folderCardMenu');
+        if (!menu) return;
+
+        if (this._activeFolderMenuName === '__current_folder__' && !menu.classList.contains('hidden')) {
+            this.closeFolderCardMenu();
+            return;
+        }
+
+        this._activeFolderMenuName = '__current_folder__';
+        const safeF = this.currentFolder.replace(/'/g, "\\'");
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        menu.className = 'm3-expressive-menu';
+        menu.innerHTML = `
+            <div class="m3-menu-header">
+                <span class="m3-menu-title">${this.currentFolder}</span>
+            </div>
+            <div class="m3-menu-items">
+                <button type="button" class="m3-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameCurrentFolder()">
+                    <span class="material-symbols-outlined">edit</span>
+                    <span>${isEn ? 'Edit name' : 'Editar'}</span>
+                </button>
+                <button type="button" class="m3-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
+                    <span class="material-symbols-outlined">share</span>
+                    <span>${isEn ? 'Share' : 'Compartir'}</span>
+                </button>
+                <div class="m3-menu-divider"></div>
+                <button type="button" class="m3-menu-item m3-item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteCurrentFolder()">
+                    <span class="material-symbols-outlined">delete</span>
+                    <span>${isEn ? 'Delete folder' : 'Eliminar'}</span>
+                </button>
+            </div>
+        `;
+
+        const btn = event.currentTarget;
+        const rect = btn.getBoundingClientRect();
+        const menuWidth = 190;
+        menu.style.position = 'fixed';
+        menu.style.width = `${menuWidth}px`;
+        menu.style.top = `${rect.bottom + 6}px`;
+        let leftPos = rect.right - menuWidth;
+        if (leftPos < 10) leftPos = 10;
+        menu.style.left = `${leftPos}px`;
+        menu.classList.remove('hidden');
+    }
+
+    closeFolderCardMenu() {
+        const menu = document.getElementById('folderCardMenu');
+        if (menu) menu.classList.add('hidden');
+        this._activeFolderMenuName = null;
+    }
+
+    renameFolderByName(folderName) {
+        if (!folderName) return;
+        this.closeFolderCardMenu();
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        // 1. Localizar el elemento que contiene el nombre de la carpeta
+        let targetEl = null;
+        let cardContainer = null;
+
+        // Intentar en el carrusel de carpetas
+        const carouselCards = document.querySelectorAll('.dropbox-carousel-card');
+        for (const card of carouselCards) {
+            if (card.getAttribute('data-folder') === folderName) {
+                targetEl = card.querySelector('.card-title');
+                cardContainer = card;
+                break;
+            }
+        }
+
+        // Si no está en el carrusel, intentar en las filas de carpetas
+        if (!targetEl) {
+            const folderRows = document.querySelectorAll('.folder-row-dropbox');
+            for (const row of folderRows) {
+                if (row.getAttribute('data-folder') === folderName) {
+                    targetEl = row.querySelector('.recipe-name');
+                    cardContainer = row;
+                    break;
+                }
+            }
+        }
+
+        // Si estamos dentro de la carpeta (breadcrumb)
+        if (!targetEl && this.currentFolder === folderName) {
+            targetEl = document.getElementById('currentFolderNameLabel');
+            cardContainer = document.getElementById('currentFolderNameText');
+        }
+
+        if (!targetEl) {
+            console.warn('[Dashboard] Could not locate folder element for inline rename:', folderName);
+            return;
+        }
+
+        // Evitar múltiples inputs simultáneos
+        if (targetEl.tagName === 'INPUT' || targetEl.querySelector?.('.folder-inline-rename-input')) {
+            return;
+        }
+
+        const originalText = folderName;
+        if (cardContainer) cardContainer.classList.add('is-renaming');
+
+        // Crear input inline estilo Dropbox
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'folder-inline-rename-input';
+        input.value = originalText;
+        input.spellcheck = false;
+        input.autocomplete = 'off';
+
+        // Evitar que clicks en el input activen abrir carpeta
+        input.addEventListener('click', (e) => e.stopPropagation());
+        input.addEventListener('mousedown', (e) => e.stopPropagation());
+        input.addEventListener('dblclick', (e) => e.stopPropagation());
+
+        let finished = false;
+
+        const restore = (textToRestore) => {
+            if (cardContainer) {
+                cardContainer.classList.remove('is-renaming');
+                if (cardContainer.classList.contains('dropbox-carousel-card')) {
+                    cardContainer.setAttribute('data-folder', textToRestore);
+                }
+            }
+            targetEl.textContent = textToRestore;
+            targetEl.title = textToRestore;
+            if (input.parentNode) {
+                input.replaceWith(targetEl);
+            }
+        };
+
+        const commit = async () => {
+            if (finished) return;
+            finished = true;
+
+            const newName = input.value.trim();
+            if (!newName) {
+                restore(originalText);
+                return;
+            }
+
+            if (newName && newName !== originalText) {
+                try {
+                    // Actualizar texto temporalmente mientras guarda
+                    targetEl.textContent = newName;
+                    if (input.parentNode) input.replaceWith(targetEl);
+                    if (cardContainer) cardContainer.classList.remove('is-renaming');
+
+                    // Actualizar inmediatamente en memoria las recetas para que el carrusel y conteos no queden desfasados
+                    if (this.currentRecipes && Array.isArray(this.currentRecipes)) {
+                        this.currentRecipes.forEach(r => {
+                            if ((r.pantry_es || '').trim().toLowerCase() === originalText.trim().toLowerCase()) {
+                                r.pantry_es = newName;
+                                r.pantry_en = newName;
+                            }
+                        });
+                    }
+
+                    await window.db.renameFolder(originalText, newName);
+                    if (this.currentFolder === originalText) {
+                        this.currentFolder = newName;
+                    }
+                    await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+                    window.showToast(isEn ? 'Folder renamed' : 'Nombre de carpeta actualizado', 'success');
+                } catch (err) {
+                    console.error('[renameFolderByName] Error:', err);
+                    window.showToast(isEn ? 'Error renaming folder' : 'Error al cambiar nombre', 'error');
+                    restore(originalText);
+                }
+            } else {
+                restore(originalText);
+            }
+        };
+
+        const cancel = () => {
+            if (finished) return;
+            finished = true;
+            restore(originalText);
+        };
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                commit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                cancel();
+            }
+        });
+
+        input.addEventListener('blur', () => {
+            commit();
+        });
+
+        // Reemplazar el título con el input y seleccionar texto
+        targetEl.replaceWith(input);
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 50);
+    }
+
+    async deleteFolderByName(folderName) {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        window.showActionToast({
+            message: isEn
+                ? `Delete folder <strong>"${folderName}"</strong>? Recipes will stay and return to main view.`
+                : `¿Eliminar la carpeta <strong>"${folderName}"</strong>? Las recetas no se borrarán, volverán a la vista principal.`,
+            actionText: isEn ? 'Delete' : 'Eliminar',
+            cancelText: isEn ? 'Cancel' : 'Cancelar',
+            type: 'error',
+            actionColor: '#EF4444',
+            onConfirm: async () => {
+                // Actualizar inmediatamente en memoria para que no reaparezca
+                if (this.currentRecipes && Array.isArray(this.currentRecipes)) {
+                    this.currentRecipes.forEach(r => {
+                        if ((r.pantry_es || '').trim().toLowerCase() === folderName.trim().toLowerCase()) {
+                            r.pantry_es = '';
+                            r.pantry_en = '';
+                        }
+                    });
+                }
+                await window.db.deleteFolder(folderName);
+                if (this.currentFolder === folderName) this.currentFolder = null;
+                await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+                window.showToast(isEn ? 'Folder deleted' : 'Carpeta eliminada', 'success');
+            }
+        });
+    }
+
+    openFolder(folderName) {
+        this.currentFolder = folderName ? folderName.trim() : null;
+        this.clearSelection();
+        this.renderRecipesGrid(this.currentRecipes);
+    }
+
+    promptNewFolder() {
+        this.openFolderModal();
+    }
+
+    openFolderModal() {
+        this.closeNewDropboxMenu();
+        const modal = document.getElementById('createFolderModal');
+        const input = document.getElementById('newFolderModalInput');
+        this.setFolderAccessType('only_me');
+        if (modal) {
+            modal.classList.remove('hidden');
+            if (input) {
+                input.value = 'Nueva carpeta';
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 50);
+            }
+        }
+    }
+
+    closeFolderModal() {
+        const modal = document.getElementById('createFolderModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    setFolderAccessType(type) {
+        const cardOnlyMe = document.getElementById('accessCardOnlyMe');
+        const cardSpecific = document.getElementById('accessCardSpecific');
+        const iconOnlyMe = document.getElementById('accessIconOnlyMe');
+        const iconSpecific = document.getElementById('accessIconSpecific');
+        const radioOnlyMe = document.getElementById('folderAccessOnlyMe');
+        const radioSpecific = document.getElementById('folderAccessSpecific');
+
+        if (type === 'only_me') {
+            if (cardOnlyMe) cardOnlyMe.classList.add('active');
+            if (cardSpecific) cardSpecific.classList.remove('active');
+            if (iconOnlyMe) {
+                iconOnlyMe.style.display = 'inline-flex';
+                iconOnlyMe.textContent = 'check_circle';
+            }
+            if (iconSpecific) {
+                iconSpecific.style.display = 'none';
+            }
+            if (radioOnlyMe) radioOnlyMe.checked = true;
+        } else {
+            if (cardSpecific) cardSpecific.classList.add('active');
+            if (cardOnlyMe) cardOnlyMe.classList.remove('active');
+            if (iconSpecific) {
+                iconSpecific.style.display = 'inline-flex';
+                iconSpecific.textContent = 'check_circle';
+            }
+            if (iconOnlyMe) {
+                iconOnlyMe.style.display = 'none';
+            }
+            if (radioSpecific) radioSpecific.checked = true;
+        }
+    }
+
+    async submitFolderModal() {
+        const input = document.getElementById('newFolderModalInput');
+        const name = input ? input.value.trim() : '';
+        if (!name) {
+            window.showToast(window.i18n && window.i18n.getLang() === 'en' ? 'Folder name is required' : 'El nombre de la carpeta es obligatorio', 'warning');
+            return;
+        }
+
+        const isSpecific = document.getElementById('folderAccessSpecific')?.checked;
+        this.closeFolderModal();
+
+        const created = await window.db.createFolder(name);
+        await this.renderFolders();
+        this.renderRecipesGrid(this.currentRecipes);
+
+        window.showToast(
+            window.i18n && window.i18n.getLang() === 'en' 
+                ? `Folder "${created}" created` 
+                : `Carpeta "${created}" creada con éxito`, 
+            'success'
+        );
+
+        if (isSpecific && window.shareModal) {
+            window.shareModal.open(created, 'folder');
+        }
+    }
+
+    renameCurrentFolder() {
+        if (!this.currentFolder) return;
+        this.renameFolderByName(this.currentFolder);
+    }
+
+    async deleteCurrentFolder() {
+        if (!this.currentFolder) return;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const folderName = this.currentFolder;
+        window.showActionToast({
+            message: isEn
+                ? `Delete folder <strong>"${folderName}"</strong>? Recipes will stay and return to main view.`
+                : `¿Eliminar la carpeta <strong>"${folderName}"</strong>? Las recetas no se borrarán, volverán a la vista principal.`,
+            actionText: isEn ? 'Delete' : 'Eliminar',
+            cancelText: isEn ? 'Cancel' : 'Cancelar',
+            type: 'error',
+            actionColor: '#EF4444',
+            onConfirm: async () => {
+                await window.db.deleteFolder(folderName);
+                this.currentFolder = null;
+                await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+                window.showToast(isEn ? 'Folder deleted' : 'Carpeta eliminada', 'success');
+            }
+        });
+    }
+
+    async shareCurrentFolder() {
+        if (!this.currentFolder) return;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const folderRecipes = (this.currentRecipes || []).filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
+        const count = folderRecipes.length;
+        
+        const shareText = isEn 
+            ? `Folder: ${this.currentFolder} (${count} recipes in RecipePantry)`
+            : `Carpeta: ${this.currentFolder} (${count} recetas en RecipePantry)`;
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: this.currentFolder,
+                    text: shareText,
+                    url: window.location.href
+                });
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+                    window.showToast(isEn ? 'Share info copied to clipboard' : 'Enlace copiado al portapapeles', 'success');
+                }
+            }
+        } else {
+            navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
+            window.showToast(isEn ? 'Share info copied to clipboard' : 'Enlace copiado al portapapeles', 'success');
+        }
+    }
+
+    async promptMoveSingle(recipeId) {
+        this.openMoveModal([recipeId]);
+    }
+
+    async openMoveModal(recipeIds = []) {
+        if (!recipeIds || recipeIds.length === 0) return;
+        this.pendingMoveRecipeIds = recipeIds;
+        this.selectedMoveTargetFolder = null;
+
+        // Cerrar cualquier menú contextual abierto
+        document.querySelectorAll('.recipe-context-menu').forEach(m => m.remove());
+
+        const modal = document.getElementById('moveRecipeModal');
+        const titleEl = document.getElementById('moveModalTitle');
+        const listEl = document.getElementById('moveModalFolderList');
+        const confirmBtn = document.getElementById('btnConfirmMoveModal');
+        const newFolderRow = document.getElementById('moveModalNewFolderRow');
+        const newFolderInput = document.getElementById('moveModalNewFolderInput');
+
+        if (!modal || !listEl) return;
+
+        // Reset inline new folder row
+        if (newFolderRow) newFolderRow.classList.add('hidden');
+        if (newFolderInput) newFolderInput.value = '';
+        if (confirmBtn) confirmBtn.disabled = true;
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        if (titleEl) {
+            titleEl.textContent = recipeIds.length === 1
+                ? (isEn ? 'Move 1 item to...' : 'Mover 1 elemento a...')
+                : (isEn ? `Move ${recipeIds.length} items to...` : `Mover ${recipeIds.length} elementos a...`);
+        }
+
+        // Determinar carpeta actual si es un solo elemento
+        let currentFolderOfItem = null;
+        if (recipeIds.length === 1) {
+            const rec = (this.currentRecipes || []).find(r => r.id === recipeIds[0]);
+            currentFolderOfItem = (rec && rec.pantry_es) ? rec.pantry_es.trim() : '';
+        }
+
+        // Obtener carpetas disponibles
+        const dbFolders = await window.db.getMyFolders();
+        const folderSet = new Set(dbFolders || []);
+        (this.currentRecipes || []).forEach(r => {
+            const f = (r.pantry_es || '').trim();
+            if (f) folderSet.add(f);
+        });
+        const folders = Array.from(folderSet).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+        // Contar recetas por carpeta
+        const counts = {};
+        (this.currentRecipes || []).forEach(r => {
+            const f = (r.pantry_es || '').trim();
+            if (f) counts[f] = (counts[f] || 0) + 1;
+        });
+
+        // Generar items de la lista
+        let html = '';
+
+        // Opción: Raíz (Mis Recetas / Sin carpeta)
+        const isCurrentRoot = currentFolderOfItem === '';
+        html += `
+            <div class="move-modal-folder-item ${isCurrentRoot ? 'current-location' : ''}" 
+                 data-folder="" 
+                 onclick="window.dashboard.selectMoveTarget('')" 
+                 ondblclick="window.dashboard.selectAndExecuteMove('')">
+                <div class="move-modal-item-icon">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: #10B981; font-variation-settings: 'FILL' 1;">inventory_2</span>
+                </div>
+                <div class="move-modal-item-info">
+                    <div class="move-modal-item-name">${isEn ? 'My Recipes (Root)' : 'Mis Recetas (Raíz)'}</div>
+                    <div class="move-modal-item-sub">${isCurrentRoot ? (isEn ? 'Current location' : 'Ubicación actual') : (isEn ? 'Main location' : 'Ubicación principal')}</div>
+                </div>
+                <div class="move-modal-item-access">${isEn ? 'Only you' : 'Solo tú'}</div>
+            </div>
+        `;
+
+        // Opciones: Cada carpeta
+        folders.forEach(f => {
+            const safeF = f.replace(/'/g, "\\'");
+            const isCurrent = currentFolderOfItem !== null && currentFolderOfItem.toLowerCase() === f.toLowerCase();
+            const count = counts[f] || 0;
+            const countLabel = `${count} ${count === 1 ? (isEn ? 'recipe' : 'receta') : (isEn ? 'recipes' : 'recetas')}`;
+
+            html += `
+                <div class="move-modal-folder-item ${isCurrent ? 'current-location' : ''}" 
+                     data-folder="${safeF}" 
+                     onclick="window.dashboard.selectMoveTarget('${safeF}')" 
+                     ondblclick="window.dashboard.selectAndExecuteMove('${safeF}')">
+                    <div class="move-modal-item-icon">
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: #10B981; font-variation-settings: 'FILL' 1;">folder</span>
+                    </div>
+                    <div class="move-modal-item-info">
+                        <div class="move-modal-item-name" title="${f}">${f}</div>
+                        <div class="move-modal-item-sub">${isCurrent ? (isEn ? 'Current location' : 'Ubicación actual') : countLabel}</div>
+                    </div>
+                    <div class="move-modal-item-access">${isEn ? 'Only you' : 'Solo tú'}</div>
+                </div>
+            `;
+        });
+
+        listEl.innerHTML = html;
+        modal.classList.remove('hidden');
+    }
+
+    closeMoveModal() {
+        const modal = document.getElementById('moveRecipeModal');
+        if (modal) modal.classList.add('hidden');
+        this.pendingMoveRecipeIds = null;
+        this.selectedMoveTargetFolder = null;
+    }
+
+    selectMoveTarget(folderName) {
+        this.selectedMoveTargetFolder = folderName;
+        const listEl = document.getElementById('moveModalFolderList');
+        const confirmBtn = document.getElementById('btnConfirmMoveModal');
+
+        if (listEl) {
+            const items = listEl.querySelectorAll('.move-modal-folder-item');
+            items.forEach(item => {
+                if (item.getAttribute('data-folder') === folderName) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+        }
+    }
+
+    async selectAndExecuteMove(folderName) {
+        this.selectMoveTarget(folderName);
+        await this.executeMoveModal();
+    }
+
+    async executeMoveModal() {
+        if (this.selectedMoveTargetFolder === null || !this.pendingMoveRecipeIds || this.pendingMoveRecipeIds.length === 0) {
+            return;
+        }
+
+        const targetFolder = this.selectedMoveTargetFolder.trim();
+        const ids = [...this.pendingMoveRecipeIds];
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        this.closeMoveModal();
+        window.showToast(isEn ? 'Moving...' : 'Moviendo...', 'info');
+
+        try {
+            for (const id of ids) {
+                await window.db.moveRecipeToFolder(id, targetFolder);
+            }
+
+            this.clearSelection();
+            if (this.currentView === 'favorites') {
+                await this.loadRecipes({ favorite: true, orderBy: 'name_es', ascending: true, forceRefresh: true });
+            } else if (this.currentView === 'shared') {
+                await this.loadRecipes({ shared: true, forceRefresh: true });
+            } else {
+                await this.loadRecipes({ orderBy: 'name_es', ascending: true, forceRefresh: true });
+            }
+            this.renderFolders();
+
+            const targetDesc = targetFolder ? `"${targetFolder}"` : (isEn ? 'My Recipes' : 'Mis Recetas');
+            const successMsg = ids.length === 1
+                ? (isEn ? `Recipe moved to ${targetDesc}` : `Receta movida a ${targetDesc} con éxito`)
+                : (isEn ? `${ids.length} recipes moved to ${targetDesc}` : `${ids.length} recetas movidas a ${targetDesc} con éxito`);
+            window.showToast(successMsg, 'success');
+        } catch (err) {
+            console.error('[executeMoveModal] Error:', err);
+            window.showToast(isEn ? 'Error moving items' : 'Error al mover los elementos', 'error');
+        }
+    }
+
+    toggleNewFolderInMoveModal() {
+        const row = document.getElementById('moveModalNewFolderRow');
+        const input = document.getElementById('moveModalNewFolderInput');
+        if (row) {
+            row.classList.remove('hidden');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 50);
+            }
+        }
+    }
+
+    cancelCreateFolderInMoveModal() {
+        const row = document.getElementById('moveModalNewFolderRow');
+        const input = document.getElementById('moveModalNewFolderInput');
+        if (row) row.classList.add('hidden');
+        if (input) input.value = '';
+    }
+
+    async confirmCreateFolderInMoveModal() {
+        const input = document.getElementById('moveModalNewFolderInput');
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) return;
+
+        try {
+            await window.db.createFolder(name);
+            this.cancelCreateFolderInMoveModal();
+            // Re-render move modal keeping current pendingMoveRecipeIds
+            const currentPending = this.pendingMoveRecipeIds;
+            await this.openMoveModal(currentPending);
+            // Pre-seleccionar la carpeta recién creada
+            this.selectMoveTarget(name);
+        } catch (err) {
+            console.error('[confirmCreateFolderInMoveModal] Error:', err);
+        }
+    }
+
     // ----------------------------
 
     renderRecipesGrid(recipes) {
         const container = document.getElementById('recipesGrid');
         if (!container) return;
 
+        // Helper para identificar la raíz (recetas sin carpeta asignada)
+        const isRootFolder = (f) => {
+            if (!f || typeof f !== 'string') return true;
+            return !f.trim();
+        };
+
+        // Filtrar por carpeta actual si estamos en la vista de recetas
+        let displayRecipes = recipes;
+        const isSearching = !!(this.lastFilters && this.lastFilters.search && this.lastFilters.search.trim());
+        if (this.currentView === 'recipes' && !isSearching) {
+            if (this.currentFolder) {
+                // Dentro de una carpeta: solo recetas pertenecientes a esa carpeta
+                displayRecipes = recipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
+            } else {
+                // En la vista global (raíz): recetas sueltas sin carpeta asignada o marcadas como 'Mis Recetas'
+                displayRecipes = recipes.filter(r => isRootFolder(r.pantry_es));
+            }
+        } else if (this.currentView === 'recipes' && this.currentFolder && isSearching) {
+            displayRecipes = recipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
+        }
+
+        // Renderizar sección de carpetas o breadcrumb
+        this.renderFolders();
+
         // Sincronizar contador en cabecera (v69)
         const titleEl = document.getElementById('view-title');
         if (titleEl && !this.isSelectionMode) {
-            const count = recipes.length;
-            const currentText = titleEl.textContent || '';
-            const baseTitle = currentText.includes(' (') ? currentText.split(' (')[0] : currentText;
-            if (baseTitle) {
-                titleEl.textContent = `${baseTitle} (${count})`;
-            }
+            const baseTitle = window.i18n ? (window.i18n.t('navRecipes') || window.i18n.t('myRecipes')) : 'Recetas';
+            titleEl.textContent = `${baseTitle} (${displayRecipes.length})`;
+        }
+
+        // Renderizar o esconder carrusel de carpetas sugeridas
+        if (this.currentView === 'recipes' && !this.currentFolder) {
+            const savedFolders = (window.db && window.db.getMyFoldersSync) ? window.db.getMyFoldersSync() : [];
+            const folderMap = new Map();
+
+            // 1. Carpetas guardadas (excluyendo la raíz)
+            savedFolders.forEach(f => {
+                if (f && !isRootFolder(f)) {
+                    folderMap.set(f.trim().toLowerCase(), f.trim());
+                }
+            });
+
+            // 2. Carpetas presentes en recetas (excluyendo la raíz)
+            (this.currentRecipes || []).forEach(r => {
+                const f = (r.pantry_es || '').trim();
+                if (f && !isRootFolder(f) && !folderMap.has(f.toLowerCase())) {
+                    folderMap.set(f.toLowerCase(), f);
+                }
+            });
+
+            // 3. Contar recetas por carpeta
+            const counts = {};
+            (this.currentRecipes || []).forEach(r => {
+                const f = (r.pantry_es || '').trim();
+                if (f && !isRootFolder(f)) {
+                    const canonical = folderMap.get(f.toLowerCase()) || f;
+                    counts[canonical] = (counts[canonical] || 0) + 1;
+                }
+            });
+
+            // 4. Filtrar: no mostrar "Mis Recetas" y no mostrar carpetas con 0 recetas en el carrusel
+            const folders = Array.from(folderMap.values())
+                .filter(f => !isRootFolder(f) && (counts[f] || 0) > 0)
+                .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+            this.renderSuggestedCarousel(folders, counts);
+        } else {
+            this.renderSuggestedCarousel([], {});
         }
 
         const emptyState = document.getElementById('emptyState');
 
-        if (recipes.length === 0) {
+        if (displayRecipes.length === 0) {
             container.innerHTML = '';
             if (emptyState) {
                 // Actualizar contenido del empty state según la vista
@@ -1214,7 +2278,34 @@ class DashboardManager {
                 const desc = document.getElementById('emptyStateDesc');
                 const btn = document.getElementById('emptyStateBtn');
 
-                if (this.currentView === 'shared') {
+                if (this.currentFolder) {
+                    const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    if (imgGroup) imgGroup.innerHTML = '<span class="material-symbols-outlined" style="font-size: 80px; color: #10B981; margin: 0 auto; display: block; opacity: 0.85;">folder_open</span>';
+                    if (title) {
+                        title.textContent = isEn ? `Folder "${this.currentFolder}" is empty` : `La carpeta "${this.currentFolder}" está vacía`;
+                        title.style.color = '#111827';
+                    }
+                    if (desc) {
+                        desc.textContent = isEn ? 'Move recipes to this folder or create a new one to keep your cooking organized.' : 'Mueve recetas a esta carpeta o crea una nueva para tener tus preparaciones organizadas.';
+                        desc.style.color = '#6B7280';
+                        desc.style.opacity = '1';
+                    }
+                    if (btn) btn.classList.add('hidden');
+                } else if (!this.currentFolder && this.currentView === 'recipes' && recipes.length > 0) {
+                    // Todas las recetas están organizadas dentro de carpetas
+                    const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    if (imgGroup) imgGroup.innerHTML = '<span class="material-symbols-outlined" style="font-size: 64px; color: #10B981; margin: 0 auto; display: block;">folder</span>';
+                    if (title) {
+                        title.textContent = isEn ? 'All recipes are in folders' : 'Todas tus recetas están en carpetas';
+                        title.style.color = '#10B981';
+                    }
+                    if (desc) {
+                        desc.textContent = isEn ? 'Open any folder above to view its recipes.' : 'Abre cualquiera de las carpetas de arriba para ver sus recetas.';
+                        desc.style.color = '#6B7280';
+                        desc.style.opacity = '1';
+                    }
+                    if (btn) btn.classList.add('hidden');
+                } else if (this.currentView === 'shared') {
                     if (imgGroup) imgGroup.innerHTML = '<img src="assets/compartir.svg" style="width: 120px; height: auto; opacity: 0.9; margin: 0 auto; display: block;" alt="Shared">';
                     if (title) {
                         title.textContent = window.i18n ? window.i18n.t('noSharedRecipesTitle') : 'Tu despensa compartida está vacía';
@@ -1293,7 +2384,8 @@ class DashboardManager {
                 <div class="col-actions"></div>
             </div>
         `;
-        const rows = recipes.map(recipe => this.renderRecipeRow(recipe)).join('');
+
+        const rows = displayRecipes.map(recipe => this.renderRecipeRow(recipe)).join('');
         container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
         this.updateSelectAllCheckbox();
         this.updateActionBar(); // Asegurar que botones globales se actualicen tras el render
@@ -1330,8 +2422,14 @@ class DashboardManager {
                     <span class="material-symbols-outlined" style="font-size: 24px; color: var(--secondary);">description</span>
                 </div>
 
-                <div class="col-name text-ellipsis">
+                <div class="col-name text-ellipsis" style="display: flex; align-items: center; gap: 8px;">
                     <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
+                    ${(!this.currentFolder && recipe.pantry_es && recipe.pantry_es.trim()) ? `
+                        <span class="badge-folder-pill" onclick="event.stopPropagation(); window.dashboard.openFolder('${recipe.pantry_es.trim().replace(/'/g, "\\'")}')" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #047857; background: #D1FAE5; padding: 2px 8px; border-radius: 6px; cursor: pointer; flex-shrink: 0;" title="Carpeta: ${recipe.pantry_es.trim()}">
+                            <span class="material-symbols-outlined" style="font-size: 13px;">folder</span>
+                            <span>${recipe.pantry_es.trim()}</span>
+                        </span>
+                    ` : ''}
                 </div>
 
                 <div class="col-access">
@@ -1469,6 +2567,20 @@ class DashboardManager {
         if (emptyState) emptyState.classList.add('hidden');
         const dashHeader = document.querySelector('.dashboard-header');
         if (dashHeader) dashHeader.classList.add('hidden');
+
+        // Ocultar barra/breadcrumb de carpeta si está abierta
+        const breadcrumb = document.getElementById('folderBreadcrumb');
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
+
+        const suggestedCarousel = document.getElementById('suggestedCarouselSection');
+        if (suggestedCarousel) suggestedCarousel.classList.add('hidden');
+
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.add('hidden');
+        if (this.closeFabMenu) this.closeFabMenu();
 
         // Mostrar skeleton de carga en el panel
         container.innerHTML = `
@@ -1717,6 +2829,10 @@ class DashboardManager {
         // Restaurar el header del dashboard
         const dashHeader = document.querySelector('.dashboard-header');
         if (dashHeader) dashHeader.classList.remove('hidden');
+
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.remove('hidden');
+
         // Restaurar la lista de recetas en el panel
         this.renderRecipesGrid(this.currentRecipes);
     }
@@ -1903,6 +3019,10 @@ class DashboardManager {
                     <span class="material-symbols-outlined">edit_square</span>
                     ${window.i18n ? window.i18n.t('rename') : 'Renombrar'}
                 </button>
+                <button class="context-menu-item" onclick="window.dashboard.promptMoveSingle('${recipe.id}')">
+                    <span class="material-symbols-outlined">drive_file_move</span>
+                    <span>${window.i18n && window.i18n.getLang() === 'en' ? 'Move to folder...' : 'Mover a carpeta...'}</span>
+                </button>
                 <button class="context-menu-item" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
                     <span class="material-symbols-outlined">${recipe.is_favorite ? 'star' : 'star_border'}</span>
                     ${recipe.is_favorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}
@@ -1917,23 +3037,18 @@ class DashboardManager {
 
         document.body.appendChild(menu);
 
-        const rect = event.target.getBoundingClientRect();
-        const menuWidth = 220;
-        const menuHeight = menu.offsetHeight;
+        const trigger = (event.currentTarget || event.target).closest('button') || event.target;
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = 240;
+        const vh = window.innerHeight;
+        const vw = window.innerWidth;
+        const margin = 12;
 
-        let top = rect.bottom + 8;
-        let left = rect.right - menuWidth;
-
-        if (top + menuHeight > window.innerHeight) {
-            top = rect.top - menuHeight - 8;
-        }
-        if (left < 0) left = 8;
-
-        if (window.innerWidth < 600) {
+        if (vw < 600) {
             // MOBILE: Center Sheet Style (v205)
             menu.classList.add('mobile-bottom-sheet');
             menu.style.position = 'fixed';
-            menu.style.bottom = '40%'; // Subir más hacia la mitad (v205)
+            menu.style.bottom = '40%';
             menu.style.left = '5%';
             menu.style.width = '90%';
             menu.style.top = 'auto';
@@ -1941,8 +3056,40 @@ class DashboardManager {
             menu.style.borderRadius = '24px';
             menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
         } else {
+            // DESKTOP: Estilo Dropbox con límites de pantalla y scroll vertical
+            menu.style.position = 'fixed';
+            menu.style.width = `${menuWidth}px`;
+
+            const spaceBelow = vh - rect.bottom - margin;
+            const spaceAbove = rect.top - margin;
+
+            let top;
+            let maxH;
+
+            // Si hay espacio suficiente abajo (al menos 260px) o hay más espacio abajo que arriba, abre hacia abajo
+            if (spaceBelow >= 260 || spaceBelow >= spaceAbove) {
+                top = rect.bottom + 6;
+                maxH = Math.min(spaceBelow - 8, 420);
+            } else {
+                // Abre hacia arriba, asegurando que NUNCA suba de la pantalla (mínimo margin)
+                maxH = Math.min(spaceAbove - 8, 420);
+                top = Math.max(margin, rect.top - maxH - 6);
+            }
+
+            // Evitar que se desborde horizontalmente
+            let left = rect.right - menuWidth;
+            if (left + menuWidth > vw - margin) {
+                left = vw - menuWidth - margin;
+            }
+            if (left < margin) {
+                left = margin;
+            }
+
             menu.style.top = `${top}px`;
             menu.style.left = `${left}px`;
+            menu.style.maxHeight = `${maxH}px`;
+            menu.style.overflowY = 'auto';
+            menu.style.overflowX = 'hidden';
         }
 
         const closeMenu = (e) => {
@@ -3452,3 +4599,9 @@ class SearchHistory {
 // Inicializar y exponer
 window.dashboard = new DashboardManager();
 window.addEventListener('DOMContentLoaded', () => window.dashboard.init());
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#folderCardMenu') && !e.target.closest('.card-action-btn') && !e.target.closest('.row-folder-action-btn') && !e.target.closest('.mobile-action-btn') && !e.target.closest('.folder-more-btn')) {
+        window.dashboard?.closeFolderCardMenu();
+    }
+});

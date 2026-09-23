@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="560">
+<html lang="es" data-app-version="620">
 
 <head>
     <meta charset="UTF-8">
@@ -42,8 +42,8 @@
         rel="stylesheet" />
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=589">
-    <link rel="stylesheet" href="css/components.css?v=589">
+    <link rel="stylesheet" href="css/styles.css?v=620">
+    <link rel="stylesheet" href="css/components.css?v=620">
 
     <style>
         :root {
@@ -956,11 +956,24 @@
                         </div>
 
                         <!-- Description -->
-                        <div class="m3-field textarea m3-field-container" style="margin-bottom: 32px;">
+                        <div class="m3-field textarea m3-field-container" style="margin-bottom: 24px;">
                             <textarea id="description" class="m3-field-input" name="description_es" placeholder=" "
                                 rows="3" data-i18n-placeholder="placeholderDescription"></textarea>
                             <label class="m3-field-label" for="description"
                                 data-i18n="formDescriptionLabel">Descripción</label>
+                        </div>
+
+                        <!-- Folder Selector -->
+                        <div class="m3-field m3-field-container" style="margin-bottom: 32px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px;">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--md-primary);">folder</span>
+                                <span>Carpeta:</span>
+                            </label>
+                            <select id="pantryFolderSelect" onchange="const inp = document.getElementById('newFolderCustomInput'); if(inp) inp.style.display = this.value === '__NEW__' ? 'block' : 'none';" style="width: 100%; padding: 12px 14px; border-radius: var(--md-shape-md); border: 1.5px solid var(--md-outline-var); background: var(--md-surface-1); font-size: 14px; font-weight: 600; color: var(--md-on-surface); outline: none;">
+                                <option value="">📁 Sin carpeta (Principal)</option>
+                                <option value="__NEW__">➕ Crear nueva carpeta...</option>
+                            </select>
+                            <input type="text" id="newFolderCustomInput" placeholder="Nombre de la nueva carpeta (ej. Harlem)" style="display: none; width: 100%; margin-top: 10px; padding: 12px 14px; border-radius: var(--md-shape-md); border: 1.5px solid var(--md-primary); font-size: 14px; box-sizing: border-box; outline: none;">
                         </div>
 
 
@@ -1012,18 +1025,18 @@
 
     <!-- Scripts (classic, NO type=module) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=589"></script>
-    <script src="js/supabase-client.js?v=589"></script>
-    <script src="js/auth.js?v=589"></script>
-    <script src="js/localdb.js?v=589"></script>
-    <script src="js/sync-manager.js?v=589"></script>
-    <script src="js/db.js?v=589"></script>
-    <script src="js/utils.js?v=589"></script>
-    <script src="js/ui.js?v=589"></script>
-    <script src="js/i18n.js?v=589"></script>
-    <script src="js/recipe-form.js?v=589"></script>
-    <script src="js/sw-register.js?v=589"></script>
-    <script src="js/pwa-install.js?v=589"></script>
+    <script src="js/config.js?v=620"></script>
+    <script src="js/supabase-client.js?v=620"></script>
+    <script src="js/auth.js?v=620"></script>
+    <script src="js/localdb.js?v=620"></script>
+    <script src="js/sync-manager.js?v=620"></script>
+    <script src="js/db.js?v=620"></script>
+    <script src="js/utils.js?v=620"></script>
+    <script src="js/ui.js?v=620"></script>
+    <script src="js/i18n.js?v=620"></script>
+    <script src="js/recipe-form.js?v=620"></script>
+    <script src="js/sw-register.js?v=620"></script>
+    <script src="js/pwa-install.js?v=620"></script>
 
     <script>
         (async () => {

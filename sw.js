@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v589';
-const BUILD_ID = 'v589';
-const CACHE_NAME = `recipe-pantry-v589`;
-const STATIC_CACHE = 'static-v589';
-const DATA_CACHE = 'data-v589';
+const VERSION = 'v620';
+const BUILD_ID = 'v620';
+const CACHE_NAME = `recipe-pantry-v620`;
+const STATIC_CACHE = 'static-v620';
+const DATA_CACHE = 'data-v620';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -116,11 +116,13 @@ self.addEventListener('fetch', (event) => {
 
     if (!request.url.startsWith('http')) return;
 
-    // v482: SIEMPRE intentar Red Primero para index.html y ocr.html
+    // v482: SIEMPRE intentar Red Primero para index.html y ocr.html / ocr
     const isNavigation = (request.mode === 'navigate' || 
                           url.pathname.endsWith('/') || 
                           url.pathname.endsWith('index.html') || 
-                          url.pathname.endsWith('ocr.html'));
+                          url.pathname.endsWith('ocr.html') ||
+                          url.pathname === '/ocr' ||
+                          url.pathname.endsWith('/ocr'));
 
     if (isNavigation) {
         console.log(`[SW] Navigation Request (v${BUILD_ID}): Forcing Network First...`);

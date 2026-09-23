@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="544">
+<html lang="es" data-app-version="620">
 
 <head>
     <meta charset="utf-8" />
@@ -57,8 +57,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=544">
-    <link rel="stylesheet" href="css/components.css?v=544">
+    <link rel="stylesheet" href="css/styles.css?v=620">
+    <link rel="stylesheet" href="css/components.css?v=620">
     <!-- ocr.css removed because it was a 404 and styles are inline -->
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
@@ -66,26 +66,27 @@
     <script async src="https://docs.opencv.org/master/opencv.js" type="text/javascript"></script>
 
     <!-- Recipe Pantry v485 - OCR Module -->
-    <script defer src="js/scanner/documentDetection.js?v=544"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=544"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=544"></script>
-    <script defer src="js/scanner/cameraController.js?v=544"></script>
+    <script defer src="js/scanner/documentDetection.js?v=620"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=620"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=620"></script>
+    <script defer src="js/scanner/interactiveCrop.js?v=620"></script>
+    <script defer src="js/scanner/cameraController.js?v=620"></script>
 
     <!-- CORE SCRIPTS v500-STABLE (Purga de Caché Nuclear Re-Activa) -->
-    <meta name="version-id" content="v500">
-    <script src="js/config.js?v=544"></script>
-    <script src="js/supabase-client.js?v=544"></script>
-    <script src="js/utils.js?v=544"></script>
-    <script src="js/i18n.js?v=544"></script>
-    <script src="js/auth.js?v=544"></script>
-    <script src="js/localdb.js?v=544"></script>
-    <script src="js/db.js?v=544"></script>
-    <script src="js/ui.js?v=544"></script>
-    <script src="js/ocr-processor.js?v=544"></script>
-    <script src="js/ocr.js?v=544"></script>
-    <script type="module" src="js/url-importer.js?v=544"></script>
-    <script src="js/sw-register.js?v=544"></script>
-    <script src="js/pwa-install.js?v=544"></script>
+    <meta name="version-id" content="v602">
+    <script src="js/config.js?v=620"></script>
+    <script src="js/supabase-client.js?v=620"></script>
+    <script src="js/utils.js?v=620"></script>
+    <script src="js/i18n.js?v=620"></script>
+    <script src="js/auth.js?v=620"></script>
+    <script src="js/localdb.js?v=620"></script>
+    <script src="js/db.js?v=620"></script>
+    <script src="js/ui.js?v=620"></script>
+    <script src="js/ocr-processor.js?v=620"></script>
+    <script src="js/ocr.js?v=620"></script>
+    <script type="module" src="js/url-importer.js?v=620"></script>
+    <script src="js/sw-register.js?v=620"></script>
+    <script src="js/pwa-install.js?v=620"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -379,7 +380,7 @@
 
         .dropzone {
             width: 100%;
-            height: 320px;
+            min-height: 290px;
             border: 2px dashed var(--outline-variant);
             border-radius: 28px;
             display: flex;
@@ -389,7 +390,8 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: var(--surface-container-low);
-            padding: 40px;
+            padding: 32px 20px;
+            box-sizing: border-box;
             text-align: center;
         }
 
@@ -593,6 +595,105 @@
             display: flex;
         }
 
+        /* ══════════════════════════════════════════════
+           CAMSCANNER SUITE STYLES (v547)
+           ══════════════════════════════════════════════ */
+        .crop-magnifier {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3.5px solid #10B981;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1000;
+            background: #000;
+            will-change: transform, left, top;
+        }
+
+        .crop-magnifier canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .crop-tool-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--md-on-surface);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .crop-tool-btn:hover, .crop-tool-btn:active {
+            background: var(--md-surface-1);
+            border-color: var(--primary);
+        }
+
+        .cam-filters-row {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 8px 2px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .cam-filters-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cam-filter-card {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 6px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .cam-filter-card.active {
+            border-color: var(--primary);
+            background: #F0FDF4;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18);
+        }
+
+        .cam-filter-card .material-symbols-outlined {
+            color: #6B7280;
+            transition: color 0.2s ease;
+        }
+
+        .cam-filter-card.active .material-symbols-outlined {
+            color: var(--primary);
+        }
+
+        .cam-filter-card span.label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--md-on-surface);
+        }
+
+        .cam-filter-card.active span.label {
+            color: var(--primary);
+        }
+
         @keyframes m3-fade-up {
             from {
                 opacity: 0;
@@ -602,6 +703,17 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes m3-slide-up {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
             }
         }
 
@@ -1083,25 +1195,22 @@
 
                         <!-- CAMERA INTERFACE PANEL -->
                         <div id="cameraInterfacePanel">
-                            <div style="margin-bottom: 32px;">
-                                <h2 class="brand-font" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;" data-i18n="ocrStep1Title">Prepara tu escáner</h2>
-                                <p style="color: var(--on-surface-variant); font-size: 14px;" data-i18n="ocrStep1Desc">Sube una foto clara de tu receta para digitalizarla al instante.</p>
+                            <div style="margin-bottom: 24px;">
+                                <h2 class="brand-font" style="font-size: 30px; color: var(--primary); margin-bottom: 8px;" data-i18n="ocrStep1Title">Prepara tu escáner</h2>
+                                <p style="color: var(--on-surface-variant); font-size: 14px;" data-i18n="ocrStep1Desc">Toma una foto con tu cámara o sube una imagen de tu receta para digitalizarla al instante.</p>
                             </div>
 
-                            <div class="dropzone" id="dropzone"
-                                onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('fileInput').click()">
-                                <div
-                                    style="background: var(--primary); color: white; width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);">
-                                    <span class="material-symbols-outlined" style="font-size: 32px;">add_a_photo</span>
+                            <div class="dropzone" id="dropzone" onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('ocrGalleryInput').click();">
+                                <div style="background: var(--primary-light); color: var(--primary); width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                    <span class="material-symbols-outlined" style="font-size: 34px;">photo_camera</span>
                                 </div>
-                                <p style="font-weight: 700; color: var(--md-on-surface); font-size: 20px;"
-                                    data-i18n="ocrSelectImage">Tomar foto o subir
+                                <h3 style="margin: 0; font-weight: 800; color: var(--md-on-surface); font-size: 20px;" data-i18n="ocrSelectImage">
+                                    Abrir Cámara de Recetas
+                                </h3>
+                                <p style="font-size: 14px; color: var(--on-surface-variant); margin: 8px 0 0 0; max-width: 320px; line-height: 1.5;" data-i18n="ocrFormats">
+                                    Toca para abrir la cámara. En la cámara también podrás elegir fotos de tu galería.
                                 </p>
-                                <p style="font-size: 14px; color: var(--on-surface-variant); margin-top: 8px;"
-                                    data-i18n="ocrFormats">JPG o PNG compatibles</p>
                             </div>
-
-                            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
 
                             <!-- SECCIÓN DE CONSEJOS (Ahora dentro de cameraInterfacePanel) -->
                             <div id="ocrTipsSection"
@@ -1153,6 +1262,16 @@
                             </h3>
                             <div id="ocrStepsListStep1" style="display: flex; flex-direction: column; gap: 14px;"></div>
 
+                            <!-- Sección Notas / Tips -->
+                            <div id="ocrNotesContainerStep1" class="hidden" style="margin-top: 32px;">
+                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size:20px;">sticky_note_2</span> NOTAS
+                                </h3>
+                                <div class="ocr-edit-card" style="gap: 12px; padding: 14px 16px; border-radius: 16px;">
+                                    <div id="ocrNotesTextStep1" contenteditable="true" data-type="nota" style="width: 100%; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6; outline: none; min-height: 24px; white-space: pre-wrap;"></div>
+                                </div>
+                            </div>
+
                         </div>
 
                         <!-- Vista Tradicional (Raw View) -->
@@ -1164,8 +1283,21 @@
                         </div>
 
 
+                        <!-- Selector de Carpeta para Guardar Receta -->
+                        <div id="ocrFolderContainerStep1" style="margin-top: 24px; padding: 14px 16px; background: #F9FAFB; border: 1.5px solid #E5E7EB; border-radius: 16px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px;">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">folder</span>
+                                <span>Guardar en Carpeta:</span>
+                            </label>
+                            <select id="ocrFolderSelect" onchange="const inp = document.getElementById('ocrNewFolderCustomInput'); if(inp) inp.style.display = this.value === '__NEW__' ? 'block' : 'none';" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #D1D5DB; background: white; font-size: 14px; font-weight: 600; color: #111827; outline: none;">
+                                <option value="">📁 Sin carpeta (Principal)</option>
+                                <option value="__NEW__">➕ Crear nueva carpeta...</option>
+                            </select>
+                            <input type="text" id="ocrNewFolderCustomInput" placeholder="Nombre de la nueva carpeta (ej. Harlem)" style="display: none; width: 100%; margin-top: 10px; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--primary); font-size: 14px; box-sizing: border-box; outline: none;">
+                        </div>
+
                         <!-- Action Buttons -->
-                        <div style="display: flex; gap: 12px; margin-top: 32px; margin-bottom: 32px;">
+                        <div style="display: flex; gap: 12px; margin-top: 24px; margin-bottom: 32px;">
                             <button class="m3-expressive-card secondary" 
                                 style="flex: 1; padding: 16px; border-radius: 16px; min-height: 60px; flex-direction: row; gap: 8px;"
                                 onclick="goToStep(1, true)">
@@ -1179,6 +1311,84 @@
                                 <span style="font-size: 16px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- PASO RECORTE CAMSCANNER: Ajustar esquinas y filtros -->
+                <div id="stepCrop" class="ocr-step">
+                    <div style="margin-bottom: 16px;">
+                        <h2 class="brand-font" style="font-size: 26px; color: var(--primary); margin-bottom: 6px;">
+                            Ajustar Documento
+                        </h2>
+                        <p style="color: var(--on-surface-variant); font-size: 13.5px; margin: 0;">
+                            Arrastra las 4 esquinas para alinear tu receta. La lupa te muestra cada borde con precisión milimétrica.
+                        </p>
+                    </div>
+
+                    <!-- Crop Editor Toolbar -->
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 12px; flex-wrap: wrap;">
+                        <button type="button" class="crop-tool-btn" onclick="if(window.interactiveCrop) window.interactiveCrop.rotate90()" title="Girar 90 grados">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">rotate_right</span>
+                            <span>Girar</span>
+                        </button>
+                        <button type="button" class="crop-tool-btn" onclick="if(window.interactiveCrop) window.interactiveCrop.autoDetect()" title="Detectar bordes automáticamente">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">auto_fix_high</span>
+                            <span>Auto</span>
+                        </button>
+                        <button type="button" class="crop-tool-btn" onclick="if(window.interactiveCrop) window.interactiveCrop.resetToFull()" title="Usar toda la imagen">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">fullscreen</span>
+                            <span>Completa</span>
+                        </button>
+                    </div>
+
+                    <!-- Interactive Canvas Container with Magnifier -->
+                    <div id="cropContainer" style="position: relative; width: 100%; height: 52vh; min-height: 380px; max-height: 560px; background: #0F172A; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; touch-action: none;">
+                        <canvas id="cropCanvas" style="display: block; touch-action: none;"></canvas>
+                    </div>
+
+                    <!-- Filtros CamScanner -->
+                    <div style="margin-top: 16px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">
+                            Mejora de Imagen (Estilo CamScanner):
+                        </label>
+                        <div class="cam-filters-row">
+                            <div class="cam-filter-card active" data-filter="magic" onclick="selectCamFilter('magic')">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: #10B981;">auto_awesome</span>
+                                <span class="label">Color Mágico</span>
+                                <span style="font-size: 9px; font-weight: 800; background: #10B981; color: white; padding: 2px 6px; border-radius: 99px; margin-top: 2px;">TOP</span>
+                            </div>
+                            <div class="cam-filter-card" data-filter="bw" onclick="selectCamFilter('bw')">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">contrast</span>
+                                <span class="label">B/N Nítido</span>
+                                <span style="font-size: 9px; font-weight: 600; opacity: 0.6; margin-top: 2px;">Texto</span>
+                            </div>
+                            <div class="cam-filter-card" data-filter="lighten" onclick="selectCamFilter('lighten')">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">light_mode</span>
+                                <span class="label">Sin Sombras</span>
+                                <span style="font-size: 9px; font-weight: 600; opacity: 0.6; margin-top: 2px;">Aclarar</span>
+                            </div>
+                            <div class="cam-filter-card" data-filter="original" onclick="selectCamFilter('original')">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">photo</span>
+                                <span class="label">Original</span>
+                                <span style="font-size: 9px; font-weight: 600; opacity: 0.6; margin-top: 2px;">Foto</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 12px; margin-top: 20px; margin-bottom: 24px;">
+                        <button type="button" class="m3-expressive-card secondary" 
+                            style="flex: 1; padding: 14px; border-radius: 16px; min-height: 54px; flex-direction: row; gap: 8px; justify-content: center;"
+                            onclick="goToStep(1, true)">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+                            <span style="font-size: 14px; font-weight: 700;">Volver</span>
+                        </button>
+                        <button type="button" id="btnConfirmCrop" class="m3-expressive-card" 
+                            style="flex: 2; padding: 14px 20px; border-radius: 16px; min-height: 54px; background: var(--primary); color: white; flex-direction: row; gap: 10px; justify-content: center; box-shadow: 0 8px 18px rgba(16, 185, 129, 0.28);"
+                            onclick="confirmCropAndProcess()">
+                            <span class="material-symbols-outlined" style="font-size: 22px;">document_scanner</span>
+                            <span style="font-size: 15px; font-weight: 800;">Escanear Receta</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1381,7 +1591,7 @@
                 
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'assets/link.svg?v=544';
+                    previewImg.src = 'assets/link.svg?v=620';
                     previewImg.style.display = 'block';
                 }
                 if (typeof goToStep === 'function') goToStep(2);
@@ -1456,7 +1666,7 @@
             try {
                 // Reutilizamos el OCRProcessor (v7.1.0) para máxima precisión
                 if (window.ocrProcessor) {
-                    const canvas = await window.ocrProcessor.preprocessImage(await (await fetch(imageDataUrl)).blob());
+                    const canvas = await window.ocrProcessor.getCleanImageCanvas(imageDataUrl);
                     return await window.ocrProcessor.structureRecipeWithGeminiVision(canvas);
                 }
                 throw new Error("OCRProcessor no disponible.");
@@ -1558,10 +1768,30 @@
             if (btnCloseOCR) btnCloseOCR.onclick = () => window.ocr.close();
             if (btnCapture) btnCapture.onclick = () => window.ocr.capture();
             if (btnSwitchCamera) btnSwitchCamera.onclick = () => window.ocr.switchCamera();
-            if (btnGallery) btnGallery.onclick = () => ocrGalleryInput.click();
+            if (btnGallery) {
+                btnGallery.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const input = document.getElementById('ocrGalleryInput');
+                    if (input) input.click();
+                };
+            }
             if (ocrGalleryInput) {
                 ocrGalleryInput.onchange = (e) => {
-                    if (window.ocr && e.target.files[0]) window.ocr.handleGallery(e.target.files[0]);
+                    if (window.ocr && e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        e.target.value = '';
+                        window.ocr.handleGallery(file);
+                    }
+                };
+            }
+            if (ocrCameraModalInput) {
+                ocrCameraModalInput.onchange = (e) => {
+                    if (window.ocr && e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        e.target.value = '';
+                        window.ocr.handleGallery(file);
+                    }
                 };
             }
             if (btnRetryOCR) btnRetryOCR.onclick = () => window.ocr.reset();
@@ -1641,6 +1871,14 @@
                     if (resHeader) resHeader.classList.add('hidden');
                     if (resBody) resBody.classList.add('hidden');
 
+                    const notesContainer = document.getElementById('ocrNotesContainerStep1');
+                    const notesText = document.getElementById('ocrNotesTextStep1');
+                    if (notesContainer) {
+                        notesContainer.classList.add('hidden');
+                        notesContainer.style.display = 'none';
+                    }
+                    if (notesText) notesText.innerText = '';
+
                     const fileInput = document.getElementById('fileInput');
                     const urlInput = document.getElementById('urlImportInput');
                     if (fileInput) fileInput.value = '';
@@ -1672,24 +1910,125 @@
         }
 
 
-        function handleFileSelect(e) {
-            if (e.target.files[0]) handleImageFile(e.target.files[0]);
+        window.openOcrCamera = function() {
+            if (window.ocr) {
+                window.ocr.openModal();
+            } else {
+                const galleryInput = document.getElementById('ocrGalleryInput');
+                if (galleryInput) galleryInput.click();
+            }
+        };
+
+        window.openSourceModal = function() {
+            window.openOcrCamera();
+        };
+
+        window.triggerNativeCamera = function() {
+            window.openOcrCamera();
+        };
+
+        window.triggerSmartCapture = function() {
+            window.openOcrCamera();
+        };
+
+        window.handleFileSelect = function(e) {
+            if (e && e.target && e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                e.target.value = '';
+                handleImageFile(file);
+            }
+        };
+
+        let selectedCamFilter = 'magic';
+
+        function selectCamFilter(mode) {
+            selectedCamFilter = mode;
+            document.querySelectorAll('.cam-filter-card').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === mode);
+            });
         }
 
         function handleImageFile(file) {
-            if (!file.type.startsWith('image/')) return;
+            if (!file || !file.type.startsWith('image/')) return;
             currentImageFile = file;
 
-            // Preview
             const reader = new FileReader();
             reader.onload = e => {
-                const preview = document.getElementById('ocrProcessingPreview');
-                if (preview) preview.src = e.target.result;
+                const img = new Image();
+                img.onload = () => {
+                    const container = document.getElementById('cropContainer');
+                    const canvas = document.getElementById('cropCanvas');
+                    if (container && canvas && window.InteractiveCrop) {
+                        selectCamFilter('magic');
+                        goToStep('Crop');
+                        requestAnimationFrame(() => {
+                            if (!window.interactiveCrop) {
+                                window.interactiveCrop = new InteractiveCrop(container, canvas);
+                            }
+                            window.interactiveCrop.loadImage(img);
+                            setTimeout(() => {
+                                if (window.interactiveCrop && window.cv) {
+                                    window.interactiveCrop.autoDetect();
+                                }
+                            }, 120);
+                        });
+                    } else {
+                        // Fallback directo si no carga InteractiveCrop
+                        const preview = document.getElementById('ocrProcessingPreview');
+                        if (preview) preview.src = e.target.result;
+                        goToStep(2);
+                        startOCR(file);
+                    }
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
 
-            goToStep(2);
-            startOCR(file);
+        async function confirmCropAndProcess() {
+            if (!window.interactiveCrop) {
+                if (currentImageFile) {
+                    goToStep(2);
+                    startOCR(currentImageFile);
+                }
+                return;
+            }
+
+            try {
+                // 1. Obtener imagen recortada y corregida de perspectiva
+                const croppedCanvas = window.interactiveCrop.getCroppedCanvas();
+                if (!croppedCanvas) throw new Error("No se pudo recortar la imagen.");
+
+                // 2. Aplicar filtro CamScanner seleccionado
+                let finalCanvas = croppedCanvas;
+                if (window.ImageEnhancer) {
+                    const enhancer = new ImageEnhancer();
+                    finalCanvas = enhancer.applyFilter(croppedCanvas, selectedCamFilter);
+                }
+
+                // 3. Vista previa inmediata en paso 2
+                const previewUrl = finalCanvas.toDataURL('image/jpeg', 0.88);
+                const previews = [
+                    document.getElementById('ocrPreview'),
+                    document.getElementById('ocrProcessingPreview'),
+                    document.getElementById('ocrProcessingPreviewModal')
+                ];
+                previews.forEach(p => { if (p) p.src = previewUrl; });
+
+                // 4. Convertir a Blob y procesar con OCRProcessor
+                const blob = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/jpeg', 0.94));
+                const processedFile = new File([blob], 'camscanner_receta.jpg', { type: 'image/jpeg' });
+
+                goToStep(2);
+                await startOCR(processedFile);
+
+            } catch (err) {
+                console.error("Error en confirmCropAndProcess:", err);
+                if (currentImageFile) {
+                    goToStep(2);
+                    startOCR(currentImageFile);
+                }
+            }
         }
 
         async function startOCR(file) {
@@ -1709,7 +2048,7 @@
                     } else if (m.message) {
                         status.textContent = m.message;
                     }
-                });
+                }, { lang, psm });
 
                 if (!results.success) throw new Error(results.error);
 
@@ -1723,12 +2062,14 @@
                     // Fallback si por alguna razón window.ocr no está listo
                     document.getElementById('ocrRecipeName').value = results.nombre || '';
                     document.getElementById('ocrFullText').value = results.texto;
+                    goToStep(1);
                 }
 
+                const scanLine = document.querySelector('.scanning-line');
                 if (scanLine) scanLine.classList.add('hidden');
-                goToStep(3);
             } catch (err) {
                 console.error(err);
+                const scanLine = document.querySelector('.scanning-line');
                 if (scanLine) scanLine.classList.add('hidden');
                 const readErr = window.i18n ? window.i18n.t('ocrReadError') : 'No pudimos leer la imagen. Intenta con más luz.';
                 if (window.showSnackbar) {
@@ -1765,13 +2106,44 @@
                     throw new Error(nameReq);
                 }
 
+                // Intentar leer notas editables del DOM o del OCR estructurado
+                const notesEl = document.getElementById('ocrNotesTextStep1');
+                let currentNotes = '';
+                if (notesEl && notesEl.innerText && notesEl.innerText.trim()) {
+                    currentNotes = notesEl.innerText.trim();
+                } else if (ocrData.notas) {
+                    currentNotes = String(ocrData.notas).trim();
+                } else if (ocrData.notes) {
+                    currentNotes = String(ocrData.notes).trim();
+                }
+
+                // Detectar carpeta seleccionada
+                let selectedFolder = '';
+                const folderSelect = document.getElementById('ocrFolderSelect');
+                if (folderSelect) {
+                    if (folderSelect.value === '__NEW__') {
+                        const newInp = document.getElementById('ocrNewFolderCustomInput');
+                        selectedFolder = newInp ? newInp.value.trim() : '';
+                        if (selectedFolder && window.db && window.db.createFolder) {
+                            await window.db.createFolder(selectedFolder);
+                        }
+                    } else {
+                        selectedFolder = folderSelect.value.trim();
+                    }
+                }
+
                 // 1. Crear Receta
                 const recipeRes = await window.db.createRecipe({
                     name_es: name,
+                    name_en: name,
+                    description_es: currentNotes,
+                    description_en: currentNotes,
+                    personal_notes: currentNotes,
                     ocr_raw_text: fullText,
                     ocr_confidence: Math.round(ocrData.confidence || 0),
                     created_from_ocr: true,
-                    pantry_es: ''
+                    pantry_es: selectedFolder,
+                    pantry_en: selectedFolder
                 });
 
 
@@ -1806,6 +2178,9 @@
                     const reParsed = window.ocrProcessor.parseRecipeText(fullText);
                     currentIngs = reParsed.ingredients.map(i => typeof i === 'string' ? i : (i.nombre || i.name)).filter(Boolean);
                     currentSteps = reParsed.steps.map(s => typeof s === 'string' ? s : (s.instruccion || s.instruction)).filter(Boolean);
+                    if (!currentNotes && (reParsed.notas || reParsed.notes)) {
+                        currentNotes = (reParsed.notas || reParsed.notes).trim();
+                    }
                 }
 
 
@@ -1832,6 +2207,9 @@
                 // 4. Update local cache immediately so the detail view sees the data (v153 Fix / v184 Fix)
                 const fullRecipeForCache = {
                     ...recipeRes.recipe,
+                    description_es: currentNotes,
+                    description_en: currentNotes,
+                    personal_notes: currentNotes,
                     ingredients: currentIngs.map(line => ({ name_es: line.trim() })),
                     steps: currentSteps.map((line, idx) => ({ instruction_es: line.trim(), step_number: idx + 1 })),
                     preparation_steps: currentSteps.map((line, idx) => ({ instruction_es: line.trim(), step_number: idx + 1 }))
@@ -1840,9 +2218,13 @@
                     await window.localDB.put('recipes_full', fullRecipeForCache);
                 }
 
-                // 5. Imagen
-                if (currentImageFile) {
-                    await window.db.uploadImage(currentImageFile, recipeId);
+                // 5. Imagen (opcional, no bloquea el guardado si falla)
+                if (currentImageFile && typeof window.db?.uploadImage === 'function') {
+                    try {
+                        await window.db.uploadImage(currentImageFile, recipeId);
+                    } catch (imgErr) {
+                        console.warn('[OCR] Error subiendo imagen (no bloquea):', imgErr.message);
+                    }
                 }
 
                 const saveSuccessMsg = window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada!';
@@ -1919,11 +2301,14 @@
                 <!-- Controls bar -->
                 <div
                     style="margin-top:auto;padding:24px 24px 28px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:space-around;z-index:10;">
-                    <!-- Gallery fallback -->
-                    <button id="btnGallery"
+                    <!-- Hidden inputs for gallery & native camera fallback (outside button to prevent event loops) -->
+                    <input type="file" id="ocrGalleryInput" accept="image/*" style="display:none">
+                    <input type="file" id="ocrCameraModalInput" accept="image/*" capture="environment" style="display:none">
+
+                    <!-- Gallery button inside camera screen -->
+                    <button type="button" id="btnGallery"
                         style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
                         data-i18n-title="ocrGalleryTooltip" title="Subir imagen desde galería">
-                        <input type="file" id="ocrGalleryInput" accept="image/*" style="display:none">
                         <span class="material-symbols-outlined">photo_library</span>
                     </button>
                     <!-- Main capture button: takes photo and auto-processes -->
@@ -2048,6 +2433,12 @@
     </div>
         </div>
     </div>
+
+
+    <!-- Inputs globales para captura con cámara nativa o selección de galería -->
+    <input type="file" id="cameraNativeInput" accept="image/*" capture="environment" style="display: none;" onchange="handleFileSelect(event)">
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+
 
 
     <script>

@@ -93,33 +93,43 @@ class OCRProcessor {
     /**
      * Estructura la receta usando la API de Gemini 2.0 Flash
      */
-    async structureRecipeWithGemini(cleanedText, onProgress) {
+    async structureRecipeWithGemini(cleanedText, onProgress, options = {}) {
         if (onProgress) {
             onProgress({ status: 'estructurando', progress: 0.85, message: '🤖 Estructurando receta con IA...' });
         }
 
-        const prompt = `You are an expert culinary assistant specialized in Spanish-language recipes. 
-You will receive OCR text extracted from a recipe photo, or scraped text from a webpage/video. This text may contain errors.
-Your job is to structure the recipe with 100% accuracy in Spanish strictly into the required JSON format.
+        const isEnglish = (options && options.lang === 'eng');
+        const langName = isEnglish ? 'English' : 'Spanish';
+
+        const prompt = `You are an expert culinary assistant and OCR transcriber.
+You will receive OCR text extracted from a recipe. This text may contain punctuation or OCR errors.
+Your job is to structure the recipe accurately strictly into the required JSON format.
+
+CRITICAL LANGUAGE REQUIREMENT:
+- Target language is ${langName}.
+- Keep all text in ${langName}. Do NOT translate between languages!
+- If the original recipe is in ${langName}, keep the original wording, ingredients, units, and directions in ${langName} verbatim.
 
 Rules:
-- Fix common OCR misreads (1/2, 1/4, 3/4, g, ml, etc.)
+- Fix common OCR misreads (1/2, 1/4, 3/4, g, ml, tbsp, tsp, etc.)
 - Ingredients must be an array of objects: { "cantidad": "string", "unidad": "string", "nombre": "string" }
-- Steps must be an array of strings.
+- Steps must be an array of strings in chronological order.
+- If the recipe includes notes, chef tips, warnings, or footnotes (e.g. 'Notes:', 'Tips:', 'Consejos:'), extract them into the "notas" string field. If none, set "notas": "".
 - Default to 4 servings if unspecified.
-- If any information is missing, do NOT omit the key. Use null (for properties) or an empty array [] (for lists).
+- If any information is missing, do NOT omit the key. Use null (for properties), empty string "" (for notas), or an empty array [] (for lists).
 - Return ONLY valid JSON and nothing else.
 
 REQUIRED JSON STRUCTURE:
 {
-  "nombre": "string",
+  "nombre": "${isEnglish ? 'Recipe Name' : 'Nombre de la receta'}",
   "porciones": 4,
   "ingredientes": [
-    { "cantidad": "1", "unidad": "kilo", "nombre": "lomo de cerdo" }
+    { "cantidad": "1", "unidad": "${isEnglish ? 'cup' : 'kilo'}", "nombre": "${isEnglish ? 'flour' : 'lomo de cerdo'}" }
   ],
   "pasos": [
-    "string"
-  ]
+    "${isEnglish ? 'Step 1...' : 'Paso 1...'}"
+  ],
+  "notas": "${isEnglish ? 'Extra notes or tips if present, otherwise empty string' : 'Notas o consejos si están presentes, o cadena vacía'}"
 }
 
 TEXT TO STRUCTURE:
@@ -142,7 +152,7 @@ ${cleanedText}`;
                     role: 'user',
                     content: prompt
                 }],
-                max_tokens: 4096,
+                max_tokens: 1500,
                 temperature: 0.1
             })
         });
@@ -176,49 +186,129 @@ ${cleanedText}`;
         }
 
         const jsonString = text.substring(start, end + 1);
-        return JSON.parse(jsonString);
+        const obj = JSON.parse(jsonString);
+
+        // Normalizar nombres de propiedades comunes (inglés y español)
+        const nombre = obj.nombre || obj.name || obj.title || obj.recipe_name || 'Receta Escaneada';
+        const porciones = parseInt(obj.porciones || obj.servings || obj.yield || 4) || 4;
+
+        const rawIngs = obj.ingredientes || obj.ingredients || [];
+        const ingredientes = rawIngs.map(i => {
+            if (typeof i === 'string') return { cantidad: '', unidad: '', nombre: i };
+            return {
+                cantidad: String(i.cantidad || i.quantity || i.amount || '').trim(),
+                unidad: String(i.unidad || i.unit || '').trim(),
+                nombre: String(i.nombre || i.name || i.item || i.ingredient || '').trim()
+            };
+        }).filter(i => i.nombre.length > 0);
+
+        const rawSteps = obj.pasos || obj.steps || obj.instructions || obj.preparacion || [];
+        const pasos = rawSteps.map(p => {
+            if (typeof p === 'string') return p.trim();
+            return (p.instruccion || p.instruction || p.step || p.text || JSON.stringify(p)).trim();
+        }).filter(p => p.length > 0);
+
+        const notas = String(obj.notas || obj.notes || obj.tips || obj.consejos || obj.nota || obj.note || '').trim();
+
+        return {
+            ...obj,
+            nombre,
+            porciones,
+            ingredientes,
+            pasos,
+            notas
+        };
     }
 
 
     /**
+     * Obtiene un canvas limpio y redimensionado de forma óptima a partir de cualquier origen (Blob, File, Image, DataURL, Canvas)
+     * manteniendo los colores naturales y la máxima nitidez para la IA.
+     */
+    async getCleanImageCanvas(imageSource) {
+        if (imageSource instanceof HTMLCanvasElement) {
+            return imageSource;
+        }
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const maxDim = 1200;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas);
+            };
+            img.onerror = () => reject(new Error('No se pudo cargar la imagen para el escaneo.'));
+
+            if (typeof imageSource === 'string') {
+                img.src = imageSource;
+            } else if (imageSource instanceof Blob || imageSource instanceof File) {
+                img.src = URL.createObjectURL(imageSource);
+            } else {
+                reject(new Error('Formato de imagen no soportado.'));
+            }
+        });
+    }
+
+    /**
      * Lee y estructura la receta directamente usando Gemini 2.5 Flash Vision
      */
-    async structureRecipeWithGeminiVision(canvas, onProgress, options = {}) {
-        const scaleCanvas = document.createElement('canvas');
-        const maxDim = 1200;
-        let width = canvas.width;
-        let height = canvas.height;
+    async structureRecipeWithGeminiVision(canvasOrSource, onProgress, options = {}) {
+        const cleanCanvas = await this.getCleanImageCanvas(canvasOrSource);
+        const imageBase64 = cleanCanvas.toDataURL('image/jpeg', 0.80).split(',')[1];
 
-        if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
-        else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+        const isEnglish = (options && options.lang === 'eng');
+        const langName = isEnglish ? 'English' : 'Spanish';
 
-        scaleCanvas.width = width;
-        scaleCanvas.height = height;
-        const ctx = scaleCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, 0, width, height);
+        const prompt = `You are an expert culinary assistant and advanced OCR scanner.
+Analyze this recipe image carefully and extract all text, ingredients, preparation steps, and any notes or tips with 100% precision.
 
-        const imageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+CRITICAL LANGUAGE REQUIREMENT:
+- Target language: ${langName}.
+- All output fields (nombre, ingredientes, pasos, notas) MUST be in ${langName}.
+- DO NOT translate between languages! If the recipe is in ${langName}, keep the exact original text, ingredient names, units, and directions in ${langName} verbatim.
 
-        const prompt = `You are an expert culinary assistant. Analyze this image and extract the complete recipe.
+Rules:
+- Read ALL visible text on the image, including any footnotes, yields, warnings, or notes.
+- Identify the exact recipe title/name as written on the image.
+- Extract all ingredients with quantity (cantidad), unit (unidad), and ingredient name (nombre).
+- Extract all preparation steps in chronological order as clear sentences.
+- If there is a section for "Notes", "Notas", "Tips", "Consejos", or extra recommendations (e.g. "Notes: you can sprinkle chocolate chips on the brownie before baking it"), extract it into the "notas" string field. If no notes exist on the image, set "notas": "".
+- Default to 4 servings (porciones) if unspecified.
+- Output STRICT JSON only. Do not include markdown or explanations.
 
-Instructions:
-- Read ALL visible text in the image carefully
-- Identify the recipe name
-- Separate ingredients from steps
-- IMPORTANT: The user wants the recipe in ${(options && options.lang === 'eng') ? 'English' : 'Spanish'}.
-- Always return the final JSON in ${(options && options.lang === 'eng') ? 'English' : 'Spanish'}.
-
-Return ONLY this JSON, no markdown, no explanation:
+REQUIRED JSON FORMAT:
 {
-  "nombre": "Recipe name",
+  "nombre": "${isEnglish ? 'Chocolate Chip Cookies' : 'Nombre de la receta'}",
   "porciones": 4,
   "ingredientes": [
-    { "cantidad": "1", "unidad": "kilo", "nombre": "lomo de cerdo" }
+    { "cantidad": "1", "unidad": "${isEnglish ? 'cup' : 'kilo'}", "nombre": "${isEnglish ? 'all-purpose flour' : 'harina'}" }
   ],
   "pasos": [
-    "Complete step as a clean sentence."
-  ]
-}`;
+    "${isEnglish ? 'Preheat oven to 350°F (175°C)...' : 'Precalentar el horno a 180°C...'}"
+  ],
+  "notas": "${isEnglish ? 'Notes or tips if present on the image, otherwise empty string' : 'Notas o consejos si están en la imagen, o cadena vacía'}"
+}
+
+If no clear title is visible, infer a concise descriptive name in ${langName}.`;
 
         const apiKey = getOpenRouterKey();
         if (!apiKey) throw new Error("Se requiere una clave de OpenRouter para continuar.");
@@ -243,80 +333,99 @@ Return ONLY this JSON, no markdown, no explanation:
                         { type: 'text', text: prompt }
                     ]
                 }],
-                max_tokens: 4096
+                max_tokens: 1500,
+                temperature: 0.1
             })
         });
 
-        if (!response.ok) throw new Error(`Error en Vision (OpenRouter): ${response.status}`);
+        if (!response.ok) {
+            const errData = await response.text();
+            console.error('OpenRouter Vision Error:', response.status, errData);
+            throw new Error(`Error en Vision (OpenRouter): ${response.status}`);
+        }
 
         const data = await response.json();
-        const textResponse = data.choices[0].message.content;
+        const textResponse = data.choices?.[0]?.message?.content;
 
         if (!textResponse) throw new Error("Respuesta vacía de Vision");
 
         const parsed = this.extractJSON(textResponse);
         parsed.isStructured = true;
-        parsed.texto = "Extracción directa con Vision.";
+
+        // Construir representación textual legible para el campo de texto completo
+        const ingsText = (parsed.ingredientes || []).map(i => {
+            const parts = [i.cantidad, i.unidad, i.nombre].filter(Boolean);
+            return `• ${parts.join(' ')}`;
+        }).join('\n');
+
+        const stepsText = (parsed.pasos || []).map((p, idx) => {
+            const text = typeof p === 'string' ? p : (p.instruccion || p.instruction || JSON.stringify(p));
+            return `${idx + 1}. ${text}`;
+        }).join('\n');
+
+        const ingsLabel = isEnglish ? 'Ingredients:' : 'Ingredientes:';
+        const prepLabel = isEnglish ? 'Directions:' : 'Preparación:';
+        const notesLabel = isEnglish ? 'Notes:' : 'Notas:';
+        const defaultTitle = isEnglish ? 'Scanned Recipe' : 'Receta Escaneada';
+        let fullText = `${parsed.nombre || defaultTitle}\n\n${ingsLabel}\n${ingsText}\n\n${prepLabel}\n${stepsText}`;
+        if (parsed.notas) {
+            fullText += `\n\n${notesLabel}\n${parsed.notas}`;
+        }
+        parsed.texto = fullText.trim();
         return parsed;
     }
 
     /**
      * Proceso principal de OCR
      */
-
     async processImage(imageFile, onProgress, options = {}) {
         try {
-            await this.initialize(onProgress, options);
+            if (onProgress) onProgress({ status: 'iniciando', progress: 0.15, message: 'Analizando imagen...' });
 
+            const cleanCanvas = await this.getCleanImageCanvas(imageFile);
 
-
-            if (onProgress) onProgress({ status: 'preprocesando', progress: 0.2, message: 'Analizando imagen...' });
-            const processedCanvas = await this.preprocessImage(imageFile);
-
+            // ─────────────────────────────────────────────────────
+            // RUTA PRIMARIA: Gemini 2.5 Flash Vision (Alta precisión)
+            // ─────────────────────────────────────────────────────
             try {
-                // ─────────────────────────────────────────────────────
-                // RUTA PRIMARIA: Gemini 2.5 Flash Vision (v300)
-                // ─────────────────────────────────────────────────────
-                if (onProgress) onProgress({ status: 'vision', progress: 0.4, message: 'Reconociendo texto...' });
-                if (onProgress) onProgress({ status: 'leyendo', progress: 0.6, message: 'Identificando ingredientes...' });
+                if (onProgress) onProgress({ status: 'vision', progress: 0.45, message: 'Leyendo receta con IA...' });
+                if (onProgress) onProgress({ status: 'leyendo', progress: 0.7, message: 'Extrayendo ingredientes...' });
 
-                const geminiResult = await this.structureRecipeWithGeminiVision(processedCanvas, onProgress, options);
+                const geminiResult = await this.structureRecipeWithGeminiVision(cleanCanvas, onProgress, options);
 
-
-                if (onProgress) onProgress({ status: 'estructurando', progress: 0.8, message: 'Estructurando receta...' });
+                if (onProgress) onProgress({ status: 'estructurando', progress: 0.9, message: 'Estructurando receta...' });
 
                 // Cálculo de Confianza Dinámica
-                let score = 100;
+                let score = 98;
                 if (!geminiResult.nombre || geminiResult.nombre.trim().length < 3) score -= 10;
                 if (!geminiResult.ingredientes || geminiResult.ingredientes.length === 0) score -= 20;
-                if (!geminiResult.pasos || geminiResult.pasos.length < 2) score -= 5;
-                if (score < 0) score = 0;
+                if (!geminiResult.pasos || geminiResult.pasos.length === 0) score -= 5;
+                if (score < 50) score = 50;
 
-                console.log(`✅ [Gemini Vision] Éxito | Confianza AI: ${score}%`);
-                if (onProgress) onProgress({ status: 'finalizando', progress: 0.95, message: 'Últimos ajustes...' });
-
-                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Lista!' });
-
-
+                console.log(`✅ [Gemini Vision] Éxito | Confianza AI: ${score}%`, geminiResult);
+                if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '¡Listo!' });
 
                 return {
                     ...geminiResult,
-                    texto: "Extraído directamente con Gemini Vision.",
                     confidence: score,
                     success: true,
-                    version: 'v7.2.0-vision',
+                    version: 'v7.5.0-vision',
                     method: 'gemini-2.5-flash-vision',
                     isStructured: true
                 };
 
             } catch (visionError) {
-                console.warn("⚠️ Gemini Vision falló, recurriendo a Tesseract fallback:", visionError.message);
+                console.warn("⚠️ Gemini Vision no disponible, recurriendo a Tesseract fallback:", visionError.message);
 
                 // ─────────────────────────────────────────────────────
                 // RUTA SECUNDARIA: Tesseract Fallback
                 // ─────────────────────────────────────────────────────
-                if (onProgress) onProgress({ status: 'reconociendo', progress: 0.3, message: 'Analizando texto alternativo...' });
+                await this.initialize(onProgress, options);
 
+                if (onProgress) onProgress({ status: 'preprocesando', progress: 0.3, message: 'Procesando imagen...' });
+                const processedCanvas = await this.preprocessImage(imageFile);
+
+                if (onProgress) onProgress({ status: 'reconociendo', progress: 0.5, message: 'Analizando texto alternativo...' });
 
                 const startTime = performance.now();
                 const { data: { text, confidence: tesseractConfidence } } = await this.worker.recognize(processedCanvas);
@@ -324,19 +433,15 @@ Return ONLY this JSON, no markdown, no explanation:
                 const endTime = performance.now();
 
                 const elapsedTimeMs = (endTime - startTime).toFixed(2);
-                console.log(`⏱️ [OCR Rendimiento] Tiempo de extracción de texto: ${elapsedTimeMs} milisegundos`);
-                console.log(`📝 Texto extraído | Confianza: ${confidence.toFixed(1)}%`);
-
-                if (onProgress) onProgress({ status: 'estructurando', progress: 0.7, message: '🤖 Estructurando receta con IA...' });
+                console.log(`⏱️ [Tesseract OCR] Tiempo: ${elapsedTimeMs}ms | Confianza: ${confidence.toFixed(1)}%`);
 
                 const textoCorregido = this.applyAllCorrections(text);
 
                 try {
-                    console.log("🤖 [Tesseract Fallback] Enviando texto a Gemini para estructuración...");
-                    const geminiResult = await this.structureRecipeWithGemini(textoCorregido, onProgress);
-                    
-                    // Cálculo de Confianza Dinámica (IA + Tesseract)
-                    let score = Math.round((tesseractConfidence + 100) / 2); // Promedio entre OCR y Estructuración
+                    if (onProgress) onProgress({ status: 'estructurando', progress: 0.8, message: '🤖 Estructurando receta con IA...' });
+                    const geminiResult = await this.structureRecipeWithGemini(textoCorregido, onProgress, options);
+
+                    let score = Math.round((tesseractConfidence + 100) / 2);
                     if (!geminiResult.nombre || geminiResult.nombre.trim().length < 3) score -= 10;
                     if (!geminiResult.ingredientes || geminiResult.ingredientes.length === 0) score -= 20;
                     if (score < 0) score = 0;
@@ -349,14 +454,14 @@ Return ONLY this JSON, no markdown, no explanation:
                         texto: textoCorregido,
                         confidence: score,
                         success: true,
-                        version: 'v7.2.1-tesseract-ia',
-                        method: 'tesseract-v7 + gemini-2.0-flash',
+                        version: 'v7.5.0-tesseract-ia',
+                        method: 'tesseract-v7 + gemini-2.5-flash',
                         isStructured: true
                     };
 
                 } catch (e) {
                     console.warn("⚠️ Fallback a procesamiento Regex local (IA Falló):", e.message);
-                    const localResult = this.parseRecipeLocally(textoCorregido);
+                    const localResult = this.parseRecipeLocally(textoCorregido, options);
 
                     if (onProgress) onProgress({ status: 'completado', progress: 1.0, message: '✨ Proceso completado (Modo Local)' });
 
@@ -365,13 +470,12 @@ Return ONLY this JSON, no markdown, no explanation:
                         texto: textoCorregido,
                         confidence: tesseractConfidence,
                         success: true,
-                        version: 'v7.3.0-fallback-local-smart',
+                        version: 'v7.5.0-fallback-local-smart',
                         method: 'tesseract-v7-local-smart'
                     };
                 }
             }
         } catch (error) {
-
             console.error('❌ Error en OCRProcessor:', error);
             return { error: error.message, success: false };
         }
@@ -632,10 +736,11 @@ Return ONLY this JSON, no markdown, no explanation:
     }
 
     /**
-     * Detecta y corrige inclinación de texto (Skew) hasta 45 grados.
-     * Basado en la máxima varianza de sumas de filas de proyecciones horizontales.
+     * Detecta y corrige inclinación de texto (Skew) suave.
+     * Basado en la máxima varianza de sumas de filas de proyecciones horizontales con fondo blanco sólido.
      */
     detectAndCorrectSkew(canvas) {
+        if (!canvas || !canvas.width || !canvas.height) return canvas;
         const w = canvas.width;
         const h = canvas.height;
 
@@ -646,8 +751,9 @@ Return ONLY this JSON, no markdown, no explanation:
         smallCanvas.width = Math.round(w * scale);
         smallCanvas.height = Math.round(h * scale);
         const sctx = smallCanvas.getContext('2d', { willReadFrequently: true });
+        sctx.fillStyle = '#ffffff';
+        sctx.fillRect(0, 0, smallCanvas.width, smallCanvas.height);
         sctx.drawImage(canvas, 0, 0, w, h, 0, 0, smallCanvas.width, smallCanvas.height);
-
 
         // 2. Binarizar imagen pequeña para aislar líneas
         let imgData = sctx.getImageData(0, 0, smallCanvas.width, smallCanvas.height);
@@ -657,10 +763,11 @@ Return ONLY this JSON, no markdown, no explanation:
         for (let i = 0; i < d.length; i += 4) {
             const val = d[i] < 128 ? 0 : 255;
             d[i] = d[i + 1] = d[i + 2] = val;
+            d[i + 3] = 255;
         }
         sctx.putImageData(imgData, 0, 0);
 
-        // 3. Probar ángulos de -45° a 45°
+        // 3. Probar ángulos de -15° a 15° con fondo blanco
         let maxVar = -1;
         let bestAngle = 0;
         const testCanvas = document.createElement('canvas');
@@ -668,14 +775,13 @@ Return ONLY this JSON, no markdown, no explanation:
         testCanvas.height = smallCanvas.height;
         const tctx = testCanvas.getContext('2d', { willReadFrequently: true });
 
-
-        for (let angle = -45; angle <= 45; angle += 1) {
-            tctx.clearRect(0, 0, testCanvas.width, testCanvas.height);
+        for (let angle = -15; angle <= 15; angle += 1) {
+            tctx.fillStyle = '#ffffff';
+            tctx.fillRect(0, 0, testCanvas.width, testCanvas.height);
             tctx.save();
             tctx.translate(testCanvas.width / 2, testCanvas.height / 2);
             tctx.rotate(angle * Math.PI / 180);
-            // Dibujar centrado
-            tctx.drawImage(smallCanvas, -testCanvas.width / 2, -testCanvas.height / 2);
+            tctx.drawImage(smallCanvas, -smallCanvas.width / 2, -smallCanvas.height / 2);
             tctx.restore();
 
             const tData = tctx.getImageData(0, 0, testCanvas.width, testCanvas.height).data;
@@ -684,7 +790,8 @@ Return ONLY this JSON, no markdown, no explanation:
                 let sum = 0;
                 for (let x = 0; x < testCanvas.width; x++) {
                     const idx = (y * testCanvas.width + x) * 4;
-                    if (tData[idx] === 0) sum++; // Píxel negro (texto)
+                    // Solo píxeles oscuros y opacos reales
+                    if (tData[idx] < 100 && tData[idx + 3] > 128) sum++;
                 }
                 rowSums[y] = sum;
             }
@@ -706,12 +813,11 @@ Return ONLY this JSON, no markdown, no explanation:
             }
         }
 
-        console.log(`📐 Skew de imagen detectado: ${bestAngle} grados`);
-
-        // 4. Rotar el original si el ángulo es significativo (> 0.5°)
-        if (Math.abs(bestAngle) > 0.5) {
+        // 4. Rotar el original solo si el ángulo es significativo (>= 2°)
+        if (Math.abs(bestAngle) >= 2) {
+            console.log(`📐 Skew detectado y corregido: ${bestAngle} grados`);
             const rotCanvas = document.createElement('canvas');
-            const rad = -bestAngle * Math.PI / 180; // Invertido para corrección
+            const rad = -bestAngle * Math.PI / 180;
             const cos = Math.abs(Math.cos(rad));
             const sin = Math.abs(Math.sin(rad));
             const rotW = Math.round(w * cos + h * sin);
@@ -720,8 +826,9 @@ Return ONLY this JSON, no markdown, no explanation:
             rotCanvas.height = rotH;
 
             const rctx = rotCanvas.getContext('2d', { willReadFrequently: true });
+            rctx.fillStyle = '#ffffff';
+            rctx.fillRect(0, 0, rotW, rotH);
             rctx.translate(rotW / 2, rotH / 2);
-
             rctx.rotate(rad);
             rctx.drawImage(canvas, -w / 2, -h / 2);
 
@@ -947,10 +1054,13 @@ Return ONLY this JSON, no markdown, no explanation:
      */
     parseRecipeText(text) {
         const corrected = this.applyAllCorrections(text);
+        const notas = this.extractNotes(corrected);
         return {
             name: this.extractRecipeName(corrected),
             ingredients: this.extractIngredients(corrected),
-            steps: this.extractSteps(corrected)
+            steps: this.extractSteps(corrected),
+            notas: notas,
+            notes: notas
         };
     }
 
@@ -976,9 +1086,9 @@ Return ONLY this JSON, no markdown, no explanation:
         for (const line of lines) {
             const clean = line.trim().toLowerCase();
             // Start of ingredients
-            if (clean.includes('ingrediente')) { inSection = true; continue; }
-            // End of ingredients / Start of steps
-            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('procedimiento') || clean.includes('elaboración')) { inSection = false; continue; }
+            if (clean.includes('ingrediente') || clean.includes('ingredient')) { inSection = true; continue; }
+            // End of ingredients / Start of steps or notes
+            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('procedimiento') || clean.includes('elaboración') || clean.includes('direction') || clean.includes('method')) { inSection = false; continue; }
 
             if (inSection && line.trim().length > 2) {
                 // Limpiar viñetas (Mejorado v153: no borrar números al inicio si no van seguidos de punto o espacio)
@@ -996,9 +1106,9 @@ Return ONLY this JSON, no markdown, no explanation:
         for (const line of lines) {
             const clean = line.trim().toLowerCase();
             // Start of steps
-            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('procedimiento') || clean.includes('elaboración')) { inSection = true; continue; }
+            if (clean.includes('preparación') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('procedimiento') || clean.includes('elaboración') || clean.includes('direction') || clean.includes('method') || clean.includes('procedure')) { inSection = true; continue; }
             // End of steps
-            if (clean.includes('notas') || clean.includes('tips') || clean.includes('consejos')) { inSection = false; continue; }
+            if (clean.startsWith('nota') || clean.startsWith('note') || clean.startsWith('tip') || clean.startsWith('consejo')) { inSection = false; continue; }
 
             if (inSection && line.trim().length > 5) {
                 // Limpiar números de paso si ya vienen
@@ -1006,6 +1116,27 @@ Return ONLY this JSON, no markdown, no explanation:
             }
         }
         return steps;
+    }
+
+    extractNotes(text) {
+        const notes = [];
+        let inSection = false;
+        const lines = text.split('\n');
+        for (const line of lines) {
+            const clean = line.trim().toLowerCase();
+            if (/^(nota|note|tip|consejo)/i.test(clean)) {
+                inSection = true;
+                const afterColon = line.replace(/^[^:]*:\s*/, '').trim();
+                if (afterColon) notes.push(afterColon);
+                continue;
+            }
+            if (inSection) {
+                if (clean.length > 0) {
+                    notes.push(line.trim());
+                }
+            }
+        }
+        return notes.join('\n').trim();
     }
 
     /**
@@ -1039,50 +1170,93 @@ Return ONLY this JSON, no markdown, no explanation:
      * Parseador local "inteligente" para cuando no hay IA disponible.
      * Detecta nombres, ingredientes, pasos y porciones por patrones.
      */
-    parseRecipeLocally(text) {
+    parseRecipeLocally(text, options = {}) {
         const lines = text.split('\n')
             .map(l => l.trim())
             .filter(l => l.length > 2);
 
-        // STEP 1 — Find recipe name (first meaningful line)
-        const nombre = lines[0] || 'Receta sin nombre';
+        const isEnglish = (options && options.lang === 'eng');
+
+        // STEP 1 — Find recipe name (first meaningful line that isn't a section header or ingredient)
+        let nombre = isEnglish ? 'Scanned Recipe' : 'Receta Escaneada';
+        let titleIndex = -1;
+        for (let i = 0; i < lines.length; i++) {
+            const l = lines[i];
+            const lower = l.toLowerCase();
+            if (!lower.startsWith('ingrediente') && 
+                !lower.startsWith('ingredient') && 
+                !lower.startsWith('procedimiento') && 
+                !lower.startsWith('preparaci') && 
+                !lower.startsWith('instrucc') && 
+                !lower.startsWith('direction') && 
+                !lower.startsWith('method') && 
+                !/^\d+[\s\.\,\-]/.test(l) &&
+                l.length > 3) {
+                nombre = l.replace(/^[\#\*\-•\:\s]+|[\:\s]+$/g, '').trim();
+                titleIndex = i;
+                break;
+            }
+        }
 
         // STEP 2 — Detect ingredient lines by pattern:
         // Has number + unit keywords OR starts with quantity
         const unitKeywords = [
-            'g', 'kg', 'ml', 'l', 'taza', 'tazas', 'cucharada', 
+            'g', 'kg', 'ml', 'l', 'lt', 'taza', 'tazas', 'cucharada', 
             'cucharadas', 'cucharadita', 'cucharaditas', 'kilo', 
             'kilos', 'gramo', 'litro', 'pieza', 'piezas', 'diente',
             'dientes', 'trozo', 'trozos', 'hoja', 'hojas', 'rama',
             'ramas', 'pizca', 'sobre', 'lata', 'latas', 'rebanada',
-            'rebanadas', 'oz', 'lb', 'onza', 'tsp', 'tbsp', 'cup'
+            'rebanadas', 'oz', 'lb', 'onza', 'tsp', 'tbsp', 'cup', 'cups',
+            'tablespoon', 'tablespoons', 'teaspoon', 'teaspoons', 'pound',
+            'pounds', 'ounce', 'ounces', 'clove', 'cloves', 'slice', 'slices', 'can', 'cans'
         ];
 
         const stepKeywords = [
             'paso', 'step', 'mezcla', 'agrega', 'añade', 'calienta',
             'cocina', 'hornea', 'fríe', 'hierve', 'corta', 'pica',
             'bate', 'incorpora', 'vierte', 'deja', 'retira', 'sirve',
-            'prepara', 'cubre', 'revuelve', 'sazona', 'licúa', 'muele'
+            'prepara', 'cubre', 'revuelve', 'sazona', 'licúa', 'muele',
+            'mix', 'add', 'heat', 'cook', 'bake', 'fry', 'boil', 'cut', 'chop',
+            'whisk', 'pour', 'leave', 'remove', 'serve', 'prepare', 'cover', 'stir', 'season', 'blend'
         ];
 
         const ingredientes = [];
         const pasos = [];
+        const notasList = [];
 
         let inIngredientsSection = false;
         let inStepsSection = false;
+        let inNotesSection = false;
 
-        for (const line of lines.slice(1)) {
+        for (let i = 0; i < lines.length; i++) {
+            if (i === titleIndex) continue;
+            const line = lines[i];
             const lower = line.toLowerCase();
 
             // Detect section headers
             if (/ingrediente|ingredient/i.test(lower)) {
                 inIngredientsSection = true;
                 inStepsSection = false;
+                inNotesSection = false;
                 continue;
             }
-            if (/preparaci|procedimiento|instruccion|paso|method|direction/i.test(lower)) {
+            if (/preparaci|procedimiento|instruccion|paso|method|direction|procedure/i.test(lower)) {
                 inStepsSection = true;
                 inIngredientsSection = false;
+                inNotesSection = false;
+                continue;
+            }
+            if (/^(nota|note|tip|consejo)/i.test(lower)) {
+                inNotesSection = true;
+                inIngredientsSection = false;
+                inStepsSection = false;
+                const afterColon = line.replace(/^[^:]*:\s*/, '').trim();
+                if (afterColon) notasList.push(afterColon);
+                continue;
+            }
+
+            if (inNotesSection) {
+                if (line.trim().length > 0) notasList.push(line.trim());
                 continue;
             }
 
@@ -1094,7 +1268,7 @@ Return ONLY this JSON, no markdown, no explanation:
             const hasStepWord = stepKeywords.some(w => lower.includes(w));
             const isNumberedStep = /^(\d+[\.\-\)]|paso\s*\d)/i.test(lower);
 
-            if (inIngredientsSection || (!inStepsSection && (hasQuantity || hasUnit) && !hasStepWord)) {
+            if (inIngredientsSection || (!inStepsSection && !inNotesSection && (hasQuantity || hasUnit) && !hasStepWord)) {
                 // Parse ingredient: quantity + unit + name
                 const match = line.match(
                     /^([\d½⅓⅔¼¾⅛\/\s]+)\s*(g|kg|ml|l|taza[s]?|cucharada[s]?|cucharadita[s]?|kilo[s]?|diente[s]?|pizca[s]?|oz|lb|cup[s]?)?\s*(.+)/i
@@ -1126,6 +1300,7 @@ Return ONLY this JSON, no markdown, no explanation:
             porciones,
             ingredientes,
             pasos,
+            notas: notasList.join('\n').trim(),
             confidence: 55,
             method: 'tesseract-local-parser',
             isStructured: ingredientes.length > 0 || pasos.length > 0

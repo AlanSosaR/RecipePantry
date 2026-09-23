@@ -10,26 +10,36 @@ class OCRScanner {
 
     async openModal() {
         const modal = document.getElementById('ocrModal');
-        if (!modal) return;
+        if (!modal) {
+            const fallbackInput = document.getElementById('ocrGalleryInput') || document.getElementById('fileInput');
+            if (fallbackInput) fallbackInput.click();
+            return;
+        }
+
         modal.classList.add('open');
         this.videoElement = document.getElementById('videoFeed');
-        await this.startCamera();
+
         const cameraState = document.getElementById('ocrCameraState');
         const resultState = document.getElementById('ocrResultState');
         const loadingState = document.getElementById('ocrLoading');
         
         if (cameraState) {
             cameraState.style.display = 'flex';
-            // Ensure video feed is also flex and visible
             const videoFeed = document.getElementById('videoFeed');
             if (videoFeed) videoFeed.style.display = 'block';
         }
         if (resultState) resultState.style.display = 'none';
         if (loadingState) loadingState.style.display = 'none';
         
-        // v253: Activar visual green guide
         const overlay = document.getElementById('ocrOverlay');
         if (overlay) overlay.classList.add('active');
+
+        // Intentar arrancar la cámara en vivo (WebRTC)
+        try {
+            await this.startCamera();
+        } catch (camErr) {
+            console.warn("Cámara en vivo no pudo arrancar automáticamente:", camErr);
+        }
     }
 
     async close() {
@@ -100,22 +110,68 @@ class OCRScanner {
 
     async startCamera() {
         if (this.stream) this.stopCamera();
-        try {
-            // Detectar orientación para pedir la resolución 4K en el ratio correcto y evitar recortes
-            const isPortrait = window.innerHeight > window.innerWidth;
-            const idealW = isPortrait ? 2160 : 4096;
-            const idealH = isPortrait ? 4096 : 2160;
 
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { 
-                    facingMode: this.currentFacingMode,
-                    width: { ideal: idealW },
-                    height: { ideal: idealH }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.warn("navigator.mediaDevices.getUserMedia no está disponible en este entorno.");
+            return false;
+        }
+
+        try {
+            const isPortrait = window.innerHeight > window.innerWidth;
+
+            // Perfiles de resolución progresivos para máxima compatibilidad con teléfonos
+            const profiles = [
+                {
+                    video: { 
+                        facingMode: { ideal: this.currentFacingMode },
+                        width: { ideal: isPortrait ? 1080 : 1920 },
+                        height: { ideal: isPortrait ? 1920 : 1080 }
+                    },
+                    audio: false
                 },
-                audio: false
-            });
+                {
+                    video: { 
+                        facingMode: { ideal: this.currentFacingMode },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                },
+                {
+                    video: { 
+                        facingMode: this.currentFacingMode 
+                    },
+                    audio: false
+                },
+                {
+                    video: true,
+                    audio: false
+                }
+            ];
+
+            let stream = null;
+            for (const constraints of profiles) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    if (stream) break;
+                } catch (profileError) {
+                    console.warn("Perfil de cámara falló, probando siguiente:", profileError.name || profileError.message);
+                }
+            }
+
+            if (!stream) {
+                throw new Error("No se pudo iniciar ningún perfil de video.");
+            }
+
+            this.stream = stream;
+
             if (this.videoElement) {
                 this.videoElement.srcObject = this.stream;
+                this.videoElement.setAttribute('playsinline', 'true');
+                this.videoElement.setAttribute('webkit-playsinline', 'true');
+                this.videoElement.setAttribute('autoplay', 'true');
+                this.videoElement.muted = true;
+
                 try {
                     await this.videoElement.play();
                     if (window.cameraController) {
@@ -129,24 +185,18 @@ class OCRScanner {
                     }
                 }
             }
+            return true;
         } catch (err) {
             console.error('Error camera:', err);
             this.stream = null;
 
-            // Si el usuario denegó los permisos o no hay cámara
-            if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
-                if (window.showSnackbar) {
-                    window.showSnackbar('No hay acceso a la cámara. Sube una foto de tu galería.');
-                }
-                // Ocultar feed de video para que solo quede el botón de subir foto
-                if (this.videoElement) {
-                    this.videoElement.style.display = 'none';
-                }
-            } else {
-                if (window.showSnackbar) {
-                    window.showSnackbar('Error al iniciar la cámara. Intenta subir una foto.');
-                }
+            if (window.showToast) {
+                window.showToast('No se pudo abrir la cámara en vivo. Puedes tomar foto directamente.', 'warning');
+            } else if (window.showSnackbar) {
+                window.showSnackbar('No se pudo abrir la cámara en vivo. Puedes tomar foto directamente.');
             }
+
+            return false;
         }
     }
 
@@ -227,7 +277,17 @@ class OCRScanner {
 
 
     async capture(corners = null) {
-        if (!this.videoElement || !this.stream) return;
+        if (!this.videoElement || !this.stream) {
+            console.warn("Sin stream de video activo en vivo. Disparando cámara nativa...");
+            const nativeCam = document.getElementById('ocrCameraModalInput') || document.getElementById('cameraNativeInput');
+            if (nativeCam) {
+                nativeCam.click();
+            } else {
+                const fallbackInput = document.getElementById('ocrGalleryInput') || document.getElementById('fileInput');
+                if (fallbackInput) fallbackInput.click();
+            }
+            return;
+        }
         
         if (window.cameraController) window.cameraController.stopScanning();
         
@@ -261,13 +321,20 @@ class OCRScanner {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
         const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
 
+        this.stopCamera();
+        this.close();
+
+        if (typeof handleImageFile === 'function') {
+            handleImageFile(file);
+            return;
+        }
+
         const selectedLang = window.selectedOcrLang || 'spa';
 
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
 
             if (results.success) {
-                // Esperar a que el usuario vea el 100% antes de mostrar resultados
                 await new Promise(resolve => setTimeout(resolve, 700));
                 this.showResults(results);
             } else {
@@ -407,8 +474,26 @@ class OCRScanner {
 
 
 
+                const renderNotes = () => {
+                    const notesContainer = document.getElementById('ocrNotesContainerStep1');
+                    const notesText = document.getElementById('ocrNotesTextStep1');
+                    const notesVal = (results.notas || results.notes || '').trim();
+                    if (notesContainer && notesText) {
+                        if (notesVal) {
+                            notesText.innerText = notesVal;
+                            notesContainer.classList.remove('hidden');
+                            notesContainer.style.display = 'block';
+                        } else {
+                            notesText.innerText = '';
+                            notesContainer.classList.add('hidden');
+                            notesContainer.style.display = 'none';
+                        }
+                    }
+                };
+
                 renderIngs('ocrIngredientsListStep1');
                 renderSteps('ocrStepsListStep1');
+                renderNotes();
 
             } else {
                 if (structuredView1) structuredView1.classList.add('hidden');
@@ -435,6 +520,22 @@ class OCRScanner {
             updateBadge('confidenceBadge');
             updateBadge('confidenceBadgeStep1');
 
+            // Cargar carpetas existentes en el selector de carpeta
+            if (window.db && window.db.getMyFolders) {
+                window.db.getMyFolders().then(folders => {
+                    const select = document.getElementById('ocrFolderSelect');
+                    if (select) {
+                        const existingVal = select.value;
+                        select.innerHTML = `
+                            <option value="">📁 Sin carpeta (Principal)</option>
+                            ${folders.map(f => `<option value="${f}">📁 ${f}</option>`).join('')}
+                            <option value="__NEW__">➕ Crear nueva carpeta...</option>
+                        `;
+                        if (existingVal) select.value = existingVal;
+                    }
+                }).catch(() => {});
+            }
+
             if (resultBody) resultBody.scrollIntoView({ behavior: 'smooth' });
         } else {
             this.stopCamera();
@@ -460,8 +561,15 @@ class OCRScanner {
     }
 
     async handleGallery(file) {
-
         if (!file) return;
+        this.stopCamera();
+        this.close();
+
+        if (typeof handleImageFile === 'function') {
+            handleImageFile(file);
+            return;
+        }
+
         const reader = new FileReader();
         const imageDataUrl = await new Promise((resolve) => {
             reader.onload = e => resolve(e.target.result);
