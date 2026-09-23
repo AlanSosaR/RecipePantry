@@ -13,9 +13,9 @@ class DatabaseManager {
     }
 
     async _forcedCleanup() {
-        const FIX_KEY = 'recipe_pantry_fix_627_cleanup';
+        const FIX_KEY = 'recipe_pantry_fix_628_cleanup';
         if (localStorage.getItem(FIX_KEY) !== 'done') {
-            console.warn('🧹 [DB] Forced Cleanup (v627): Unblocking valid folders and purging ghost folders.');
+            console.warn('🧹 [DB] Forced Cleanup (v628): Unblocking valid folders, refreshing index and purging ghost folders.');
             try {
                 await this._checkLocalDB();
                 if (window.localDB) {
