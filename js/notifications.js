@@ -1045,16 +1045,20 @@ class NotificationManager {
                 }
             }
 
-            // 5. Marcar notificación como leída
-            await window.supabaseClient
-                .from('notifications')
-                .update({ leido: true })
-                .eq('id', notificationId);
+            // 5. Marcar notificación como leída solo si se guardó al menos una receta
+            if (successCount > 0) {
+                await window.supabaseClient
+                    .from('notifications')
+                    .update({ leido: true })
+                    .eq('id', notificationId);
 
-            // 6. Actualizar UI de notificaciones
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+                // 6. Actualizar UI de notificaciones
+                this.notifications = this.notifications.filter(n => n.id !== notificationId);
+                this.updateBadge();
+                this.renderMenu();
+            } else {
+                throw new Error('No se pudo guardar ninguna receta');
+            }
 
             const toastSuccess = isEn 
                 ? `✅ Folder "${folderName}" (${successCount} recipes) saved in your recipes!`

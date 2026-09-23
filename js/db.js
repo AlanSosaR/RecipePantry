@@ -654,7 +654,9 @@ class DatabaseManager {
     }
 
     /**
-      async duplicateRecipe(sourceRecipeId, targetUserId, overrideFolder = null, autoRenameIfExists = false) {
+     * Duplica una receta compartida como propia del usuario destino.
+     */
+    async duplicateRecipe(sourceRecipeId, targetUserId, overrideFolder = null, autoRenameIfExists = false) {
         if (!this._isOnline) return { success: false, error: 'Debes tener conexión para duplicar una receta.' };
         try {
             // 1. Obtener la receta COMPLETA (con ingredientes y pasos)
