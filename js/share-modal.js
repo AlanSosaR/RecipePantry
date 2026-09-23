@@ -543,10 +543,28 @@ class ShareModalManager {
 
             let recipeIds = [];
             if (this.targetType === 'folder') {
-                const folderRecipes = (window.dashboard?.currentRecipes || []).filter(
+                const allRecs = window.dashboard?.currentRecipes || window.dashboardManager?.currentRecipes || [];
+                const folderRecipes = allRecs.filter(
                     r => (r.pantry_es || '').trim().toLowerCase() === String(this.targetId).toLowerCase()
                 );
                 recipeIds = folderRecipes.map(r => r.id);
+
+                // Fallback directo a Supabase si no estaban en memoria
+                if (recipeIds.length === 0 && window.supabaseClient && currentUserId) {
+                    try {
+                        const { data: dbRecs } = await window.supabaseClient
+                            .from('recipes')
+                            .select('id')
+                            .eq('user_id', currentUserId)
+                            .ilike('pantry_es', String(this.targetId).trim())
+                            .eq('is_active', true);
+                        if (dbRecs && dbRecs.length > 0) {
+                            recipeIds = dbRecs.map(r => r.id);
+                        }
+                    } catch (fErr) {
+                        console.warn('⚠️ Fallback query de carpeta falló:', fErr);
+                    }
+                }
             } else if (this.targetId) {
                 recipeIds = [this.targetId];
             }
@@ -556,6 +574,7 @@ class ShareModalManager {
                 const notifications = [];
 
                 for (const user of this.selectedUsers) {
+                    // Registrar acceso individual para cada receta de la carpeta en shared_recipes
                     for (const rId of recipeIds) {
                         inserts.push({
                             recipe_id: rId,
@@ -564,14 +583,34 @@ class ShareModalManager {
                             permission: permission,
                             status: 'pending'
                         });
+                    }
+
+                    // Enviar UNA SOLA notificación agrupada si es carpeta, o individual si es receta
+                    if (this.targetType === 'folder') {
                         notifications.push({
                             user_id: user.id,
                             from_user_id: currentUserId,
-                            recipe_id: rId,
+                            recipe_id: recipeIds[0] || null,
                             leido: false,
-                            type: 'recipe_shared',
-                            metadata: optionalMessage ? { message: optionalMessage } : {}
+                            type: 'folder_shared',
+                            metadata: {
+                                folder_name: this.targetId,
+                                recipe_ids: recipeIds,
+                                recipe_count: recipeIds.length,
+                                message: optionalMessage || null
+                            }
                         });
+                    } else {
+                        for (const rId of recipeIds) {
+                            notifications.push({
+                                user_id: user.id,
+                                from_user_id: currentUserId,
+                                recipe_id: rId,
+                                leido: false,
+                                type: 'recipe_shared',
+                                metadata: optionalMessage ? { message: optionalMessage } : {}
+                            });
+                        }
                     }
                 }
 

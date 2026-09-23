@@ -516,7 +516,12 @@ class DashboardManager {
         }
 
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        if (activeItem) activeItem.classList.add('active');
+        if (activeItem) {
+            activeItem.classList.add('active');
+        } else {
+            const navEl = document.querySelector(`.nav-item[data-view="${view}"]`);
+            if (navEl) navEl.classList.add('active');
+        }
 
         if (view !== 'recipes') {
             this.currentFolder = null;
@@ -4859,6 +4864,7 @@ class SearchHistory {
 
 // Inicializar y exponer
 window.dashboard = new DashboardManager();
+window.dashboardManager = window.dashboard;
 window.addEventListener('DOMContentLoaded', () => window.dashboard.init());
 
 document.addEventListener('click', (e) => {

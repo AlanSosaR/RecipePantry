@@ -100,6 +100,7 @@ class NotificationManager {
                     type,
                     from_user_id, 
                     recipe_id,
+                    metadata,
                     from_user:users!from_user_id(first_name, last_name, email, prefix),
                     recipe:recipes(id, name_es, name_en)
                 `)
@@ -120,12 +121,16 @@ class NotificationManager {
                     || n.from_user?.email
                     || (isEn ? 'Someone' : 'Alguien');
                 const senderPrefix = n.from_user?.prefix || (isEn ? 'Chef' : 'Chef');
+                const meta = n.metadata || {};
 
                 return {
                     id: n.id,
                     recipeId: n.recipe_id,
                     recipeName: recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida'),
                     type: n.type || 'recipe_shared',
+                    folderName: meta.folder_name || '',
+                    recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (n.recipe_id ? [n.recipe_id] : []),
+                    recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
                     timestamp: n.created_at,
                     sender: senderName,
                     prefix: senderPrefix,
@@ -175,11 +180,16 @@ class NotificationManager {
                 // Optimistic UI Update: Mostrar en la campana de inmediato
                 if (payload.new && payload.new.id) {
                     const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    const nType = payload.new.type || 'recipe_shared';
+                    const meta = payload.new.metadata || {};
                     this.notifications.unshift({
                         id: payload.new.id,
                         recipeId: payload.new.recipe_id,
                         recipeName: isEn ? 'Loading recipe...' : 'Cargando receta...',
-                        type: payload.new.type || 'recipe_shared',
+                        type: nType,
+                        folderName: meta.folder_name || '',
+                        recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (payload.new.recipe_id ? [payload.new.recipe_id] : []),
+                        recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
                         timestamp: payload.new.created_at || new Date().toISOString(),
                         sender: '...',
                         prefix: '',
@@ -195,8 +205,11 @@ class NotificationManager {
                 setTimeout(() => this.fetchNotifications(), 800);
                 
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const toastMsg = (payload.new?.type === 'folder_shared')
+                    ? (isEn ? '📁 You have received a new folder!' : '📁 ¡Has recibido una nueva carpeta!')
+                    : (isEn ? '🔔 You have received a new recipe!' : '🔔 ¡Has recibido una nueva receta!');
                 if (window.utils && window.utils.showToast) {
-                    window.utils.showToast(isEn ? '🔔 You have received a new recipe!' : '🔔 ¡Has recibido una nueva receta!', 'info');
+                    window.utils.showToast(toastMsg, 'info');
                 }
             });
 
@@ -534,6 +547,40 @@ class NotificationManager {
                                     <button onclick="event.stopPropagation(); window.notificationManager.dismissNotification('${n.id}')"
                                         style="padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
                                         ${dismissText}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            if (n.type === 'folder_shared') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const folderTitle = n.folderName || (isEn ? 'Folder' : 'Carpeta');
+                const count = n.recipeCount || (n.recipeIds ? n.recipeIds.length : 0);
+                const countText = count ? `(${count} ${count === 1 ? (isEn ? 'recipe' : 'receta') : (isEn ? 'recipes' : 'recetas')})` : '';
+                const safeRecipeIdsJson = encodeURIComponent(JSON.stringify(n.recipeIds || []));
+                const safeFolderName = encodeURIComponent(n.folderName || '');
+
+                return `
+                    <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:rgba(16, 185, 129, 0.2); color:#10B981; font-size:18px; display:flex; align-items:center; justify-content:center;">
+                                📁
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <span style="color:white; display:block; font-size:13px; font-weight:600;">${n.prefix} ${n.sender} te ha compartido una carpeta</span>
+                                <span style="color:#10B981; font-weight:700; display:block; margin-top:2px;">📁 ${folderTitle} <span style="font-weight:400; font-size:12px; color:#A1A1AA;">${countText}</span></span>
+                                <span style="color:#666; font-size:10px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                
+                                <!-- Action buttons -->
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptFolder('${n.id}', '${safeFolderName}', '${safeRecipeIdsJson}')"
+                                        style="flex:1; padding:8px 12px; background:#10B981; color:white; border:none; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                                        ✅ Agregar a mis recetas
+                                    </button>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineFolder('${n.id}', '${safeRecipeIdsJson}')"
+                                        style="flex:1; padding:8px 12px; background:rgba(255,255,255,0.1); color:#ccc; border:1px solid rgba(255,255,255,0.15); border-radius:10px; font-size:12px; font-weight:600; cursor:pointer;">
+                                        Dejar en compartidas
                                     </button>
                                 </div>
                             </div>
@@ -911,6 +958,142 @@ class NotificationManager {
         } catch (err) {
             console.error('Error procesando receta:', err);
             window.utils.showToast('Error al procesar', 'error');
+        }
+    }
+
+    /**
+     * Accept Folder: Duplica todas las recetas de la carpeta a la colección personal
+     */
+    async handleAcceptFolder(notificationId, encodedFolderName, encodedRecipeIdsJson) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            let folderName = '';
+            try { folderName = decodeURIComponent(encodedFolderName); } catch (e) { folderName = encodedFolderName; }
+            
+            let recipeIds = [];
+            try { recipeIds = JSON.parse(decodeURIComponent(encodedRecipeIdsJson)); } catch (e) { recipeIds = []; }
+
+            if (!recipeIds || recipeIds.length === 0) {
+                const notif = this.notifications.find(item => item.id === notificationId);
+                if (notif && notif.recipeIds && notif.recipeIds.length > 0) {
+                    recipeIds = notif.recipeIds;
+                }
+            }
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Saving folder and recipes...' : 'Guardando carpeta y recetas...', 'info');
+
+            let successCount = 0;
+            for (const rId of recipeIds) {
+                try {
+                    // 1. Actualizar estado en shared_recipes
+                    await window.supabaseClient
+                        .from('shared_recipes')
+                        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                        .eq('recipe_id', rId)
+                        .eq('recipient_user_id', user.id);
+
+                    // 2. Duplicar receta a la colección personal
+                    const dupRes = await window.db.duplicateRecipe(rId, user.id);
+                    if (dupRes.success) {
+                        successCount++;
+                    }
+
+                    // 3. Eliminar de compartidas
+                    await window.db.deleteSharedRecipe(user.id, rId);
+                } catch (rErr) {
+                    console.warn(`⚠️ Error procesando receta ${rId} de la carpeta:`, rErr);
+                }
+            }
+
+            // 4. Marcar notificación como leída
+            await window.supabaseClient
+                .from('notifications')
+                .update({ leido: true })
+                .eq('id', notificationId);
+
+            // 5. Actualizar UI
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            const toastSuccess = isEn 
+                ? `✅ Folder "${folderName}" (${successCount} recipes) added to your collection!`
+                : `✅ ¡Carpeta "${folderName}" (${successCount} recetas) agregada a tu colección!`;
+            window.utils.showToast(toastSuccess, 'success');
+
+            // 6. Recargar recetas y abrir la carpeta en el dashboard
+            if (window.dashboardManager) {
+                window.dashboardManager.currentFolder = folderName || null;
+                if (typeof window.dashboardManager.loadRecipes === 'function') {
+                    await window.dashboardManager.loadRecipes();
+                }
+                window.dashboardManager.switchView('recipes');
+            } else if (window.dashboard) {
+                window.dashboard.currentFolder = folderName || null;
+                if (typeof window.dashboard.loadRecipes === 'function') {
+                    await window.dashboard.loadRecipes();
+                }
+                window.dashboard.switchView('recipes');
+            }
+        } catch (err) {
+            console.error('❌ Error aceptando carpeta:', err);
+            window.utils.showToast('Error al agregar la carpeta', 'error');
+        }
+    }
+
+    /**
+     * Decline Folder: Mantener todas las recetas de la carpeta en la sección Compartidas
+     */
+    async handleDeclineFolder(notificationId, encodedRecipeIdsJson) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            let recipeIds = [];
+            try { recipeIds = JSON.parse(decodeURIComponent(encodedRecipeIdsJson)); } catch (e) { recipeIds = []; }
+
+            if (!recipeIds || recipeIds.length === 0) {
+                const notif = this.notifications.find(item => item.id === notificationId);
+                if (notif && notif.recipeIds) recipeIds = notif.recipeIds;
+            }
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Saving in shared...' : 'Guardando en compartidas...', 'info');
+
+            // 1. Actualizar status a 'accepted' en shared_recipes para que aparezcan en la pestaña Compartidas
+            if (recipeIds.length > 0) {
+                await window.supabaseClient
+                    .from('shared_recipes')
+                    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                    .in('recipe_id', recipeIds)
+                    .eq('recipient_user_id', user.id);
+            }
+
+            // 2. Marcar notificación como leída
+            await window.supabaseClient
+                .from('notifications')
+                .update({ leido: true })
+                .eq('id', notificationId);
+
+            // 3. Actualizar UI
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            window.utils.showToast(isEn ? 'Folder kept in Shared section' : 'Carpeta guardada en compartidas', 'success');
+
+            // 4. Navegar a la sección Compartidas
+            if (window.dashboardManager) {
+                window.dashboardManager.switchView('shared');
+            } else if (window.dashboard) {
+                window.dashboard.switchView('shared');
+            }
+        } catch (err) {
+            console.error('❌ Error guardando carpeta en compartidas:', err);
+            window.utils.showToast('Error al procesar la carpeta', 'error');
         }
     }
 

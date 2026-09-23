@@ -205,7 +205,7 @@ serve(async (req: Request) => {
     if (notification_id) {
       try {
         const notifRes = await fetch(
-          `${supabaseUrl}/rest/v1/notifications?id=eq.${notification_id}&select=recipe_id,from_user:users!from_user_id(first_name,last_name,prefix),recipe:recipes(name_es,name_en)`,
+          `${supabaseUrl}/rest/v1/notifications?id=eq.${notification_id}&select=recipe_id,metadata,type,from_user:users!from_user_id(first_name,last_name,prefix),recipe:recipes(name_es,name_en)`,
           {
             headers: {
               "apikey":        serviceRole,
@@ -220,20 +220,33 @@ serve(async (req: Request) => {
           const sender = [item.from_user?.prefix, item.from_user?.first_name, item.from_user?.last_name]
             .filter(Boolean).join(" ").trim() || "Alguien";
           const recipeName = item.recipe?.name_es || item.recipe?.name_en || "";
+          const notifType = item.type || type;
 
-          if (type === "recipe_shared") {
+          if (notifType === "folder_shared") {
+            const folderName = item.metadata?.folder_name || "Carpeta";
+            const count = item.metadata?.recipe_count || (Array.isArray(item.metadata?.recipe_ids) ? item.metadata.recipe_ids.length : 0);
+            title = "📁 ¡Carpeta compartida!";
+            notifBody = count > 0 
+              ? `${sender} te ha compartido la carpeta "${folderName}" (${count} ${count === 1 ? 'receta' : 'recetas'})`
+              : `${sender} te ha compartido la carpeta "${folderName}"`;
+            linkUrl = "/?view=recipes";
+          } else if (notifType === "recipe_shared") {
             title = recipeName ? `🍳 ¡Receta: ${recipeName}!` : "🍳 ¡Receta compartida!";
             notifBody = recipeName 
               ? `${sender} te ha compartido "${recipeName}"` 
               : `${sender} te ha compartido una receta`;
-          }
-          if (item.recipe_id) {
             linkUrl = "/";
           }
         }
       } catch (err) {
         console.warn("⚠️ [FCM] Error cargando detalles:", err);
       }
+    }
+
+    if (type === "folder_shared" && notifBody === "Tienes una nueva notificación") {
+      title = "📁 ¡Carpeta compartida!";
+      notifBody = "Alguien te ha compartido una carpeta con recetas";
+      linkUrl = "/?view=recipes";
     }
 
     if (type === "recipe_shared" && notifBody === "Tienes una nueva notificación") {
