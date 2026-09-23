@@ -60,4 +60,12 @@ FILES.forEach(file => {
 
 console.log(`\n✅ Total reemplazos: ${total}`);
 console.log(`   Nueva versión: ${newVer}`);
+
+// 3. Actualizar version.json (CRÍTICO: debe coincidir con sw.js o se dispara la notificación de update)
+const versionJsonPath = 'version.json';
+const versionData = { version: String(nextNum), build: newVer };
+fs.writeFileSync(versionJsonPath, JSON.stringify(versionData, null, 2) + '\n', 'utf8');
+console.log(`  ✅ ${versionJsonPath}  → build: ${newVer}`);
+
 console.log(`\n💡 Recuerda hacer git commit + push para que el SW descargue los nuevos assets.\n`);
+
