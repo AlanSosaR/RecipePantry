@@ -796,18 +796,9 @@ class DashboardManager {
         const allVisibleSelected = visibleRecipes.every(r => isSelected(r.id));
 
         if (allVisibleSelected) {
-            // Si ya están TODOS seleccionados, deseleccionamos todos los visibles
-            visibleRecipes.forEach(r => {
-                this.selectedRecipes.delete(r.id);
-                this.selectedRecipes.delete(String(r.id));
-                this.selectedRecipes.delete(Number(r.id));
-            });
-
-            // Si ya no queda ninguna receta seleccionada, salimos limpiamente del modo selección
-            if (this.selectedRecipes.size === 0) {
-                this.clearSelection();
-                return;
-            }
+            // Si ya están seleccionadas, deseleccionar todo y salir del modo selección
+            this.clearSelection();
+            return;
         } else {
             // Si falta alguna o ninguna, seleccionamos todos los visibles
             visibleRecipes.forEach(r => this.selectedRecipes.add(r.id));
