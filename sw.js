@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v655';
-const BUILD_ID = 'v655';
-const CACHE_NAME = `recipe-pantry-v655`;
-const STATIC_CACHE = 'static-v655';
-const DATA_CACHE = 'data-v655';
+const VERSION = 'v656';
+const BUILD_ID = 'v656';
+const CACHE_NAME = `recipe-pantry-v656`;
+const STATIC_CACHE = 'static-v656';
+const DATA_CACHE = 'data-v656';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -309,16 +309,10 @@ try {
     messaging.onBackgroundMessage((payload) => {
         console.log('[FCM SW] onBackgroundMessage recibido:', payload);
 
-        // Si el mensaje ya traía el bloque 'notification', el navegador / FCM WebPush ya muestra la notificación.
-        // NO llamamos a showNotification() para evitar la notificación doble.
-        if (payload.notification) {
-            return;
-        }
-
-        const title = payload.data?.title || 'Recipe Pantry';
-        const body  = payload.data?.body  || 'Tienes una nueva notificación';
+        const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
+        const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
         const url   = payload.data?.url   || '/';
-        const tag   = payload.data?.notification_id ? `rp-${payload.data.notification_id}` : 'rp-push';
+        const tag   = payload.data?.notification_id ? `rp-${payload.data.notification_id}` : (payload.data?.tag || 'rp-push');
 
         const options = {
             body,

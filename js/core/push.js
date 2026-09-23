@@ -285,11 +285,36 @@
 
       // También mostrar como toast si está disponible
       const isEn = window.i18n?.getLang?.() === 'en';
-      const title = payload.notification?.title || (isEn ? 'New notification' : 'Nueva notificación');
-      const body  = payload.notification?.body  || '';
+      const title = payload.notification?.title || payload.data?.title || (isEn ? 'New notification' : 'Nueva notificación');
+      const body  = payload.notification?.body  || payload.data?.body  || '';
 
       if (window.utils?.showToast) {
         window.utils.showToast(`🔔 ${title}${body ? ': ' + body : ''}`, 'info', 4000);
+      }
+
+      // Mostrar notificación nativa del sistema si el permiso está concedido
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification(title, {
+                body,
+                icon: '/assets/icons/manifest-icon-192.maskable.png',
+                badge: '/assets/icons/favicon-196.png',
+                data: { url: payload.data?.url || '/' },
+                tag: payload.data?.notification_id ? `rp-${payload.data.notification_id}` : 'rp-push'
+              });
+            });
+          } else {
+            new Notification(title, {
+              body,
+              icon: '/assets/icons/manifest-icon-192.maskable.png',
+              tag: payload.data?.notification_id ? `rp-${payload.data.notification_id}` : 'rp-push'
+            });
+          }
+        } catch (e) {
+          console.warn('[Push] Error mostrando notificación nativa:', e);
+        }
       }
     });
 
