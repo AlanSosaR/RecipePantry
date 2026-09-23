@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v648';
-const BUILD_ID = 'v648';
-const CACHE_NAME = `recipe-pantry-v648`;
-const STATIC_CACHE = 'static-v648';
-const DATA_CACHE = 'data-v648';
+const VERSION = 'v649';
+const BUILD_ID = 'v649';
+const CACHE_NAME = `recipe-pantry-v649`;
+const STATIC_CACHE = 'static-v649';
+const DATA_CACHE = 'data-v649';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -308,9 +308,17 @@ try {
 
     messaging.onBackgroundMessage((payload) => {
         console.log('[FCM SW] onBackgroundMessage recibido:', payload);
-        const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
-        const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
-        const url   = payload.data?.url || '/';
+
+        // Si el mensaje ya traía el bloque 'notification', el navegador / FCM WebPush ya muestra la notificación.
+        // NO llamamos a showNotification() para evitar la notificación doble.
+        if (payload.notification) {
+            return;
+        }
+
+        const title = payload.data?.title || 'Recipe Pantry';
+        const body  = payload.data?.body  || 'Tienes una nueva notificación';
+        const url   = payload.data?.url   || '/';
+        const tag   = payload.data?.notification_id ? `rp-${payload.data.notification_id}` : 'rp-push';
 
         const options = {
             body,
@@ -318,7 +326,8 @@ try {
             badge:            '/assets/icons/favicon-196.png',
             data:             { url, ...payload.data },
             requireInteraction: true,
-            tag:              payload.data?.notification_id || 'rp-push',
+            tag:              tag,
+            renotify:         false,
             vibrate:          [200, 100, 200]
         };
 
@@ -328,21 +337,22 @@ try {
     console.warn('[SW] Firebase background messaging no inicializado:', e);
 }
 
-// Fallback nativo para eventos push
+// Fallback nativo para eventos push (evita duplicados si viene de FCM)
 self.addEventListener('push', (event) => {
     if (!event.data) return;
     let payload = {};
     try {
         payload = event.data.json();
     } catch (e) {
-        payload = { notification: { title: 'Recipe Pantry', body: event.data.text() } };
+        return;
     }
 
-    if (payload.fcmMessageId) return;
+    if (payload.fcmMessageId || payload.notification || payload.data?.fcmMessageId) return;
 
-    const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
-    const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
-    const url   = payload.data?.url || '/';
+    const title = payload.data?.title || 'Recipe Pantry';
+    const body  = payload.data?.body  || 'Tienes una nueva notificación';
+    const url   = payload.data?.url   || '/';
+    const tag   = payload.data?.notification_id ? `rp-${payload.data.notification_id}` : 'rp-push-fallback';
 
     const options = {
         body,
@@ -350,7 +360,8 @@ self.addEventListener('push', (event) => {
         badge:            '/assets/icons/favicon-196.png',
         data:             { url, ...payload.data },
         requireInteraction: true,
-        tag:              payload.data?.notification_id || 'rp-push-fallback',
+        tag:              tag,
+        renotify:         false,
         vibrate:          [200, 100, 200]
     };
 

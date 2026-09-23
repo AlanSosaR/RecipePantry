@@ -86,12 +86,20 @@ async function sendFCMNotification(
 ): Promise<void> {
   const iconUrl  = "https://recipe-pantry.vercel.app/assets/icons/manifest-icon-192.maskable.png";
   const badgeUrl = "https://recipe-pantry.vercel.app/assets/icons/favicon-196.png";
+  const tag      = data.notification_id ? `rp-${data.notification_id}` : "rp-push";
 
   const message = {
     message: {
       token: fcmToken,
       notification: { title, body },
-      data,
+      data: {
+        title,
+        body,
+        url: data.url || "/",
+        notification_id: data.notification_id || "",
+        type: data.type || "recipe_shared",
+        tag: tag
+      },
       webpush: {
         headers: {
           Urgency: "high",
@@ -102,6 +110,8 @@ async function sendFCMNotification(
           body,
           icon:             iconUrl,
           badge:            badgeUrl,
+          tag:              tag,
+          renotify:         false,
           requireInteraction: true,
           vibrate:          [200, 100, 200]
         },
@@ -187,13 +197,48 @@ serve(async (req: Request) => {
 
     const fcmToken = tokens[0].token;
 
-    // ── Determinar título y cuerpo según el tipo de notificación ───────────
+    // ── Determinar título y cuerpo con nombres reales del remitente y receta ─
     let title = "Recipe Pantry";
     let notifBody = "Tienes una nueva notificación";
+    let linkUrl = "/";
 
-    if (type === "recipe_shared") {
-      title     = "🍳 ¡Receta compartida!";
-      notifBody = "Alguien te ha compartido una receta nueva";
+    if (notification_id) {
+      try {
+        const notifRes = await fetch(
+          `${supabaseUrl}/rest/v1/notifications?id=eq.${notification_id}&select=recipe_id,from_user:users!from_user_id(first_name,last_name,prefix),recipe:recipes(name_es,name_en)`,
+          {
+            headers: {
+              "apikey":        serviceRole,
+              "Authorization": `Bearer ${serviceRole}`,
+              "Content-Type":  "application/json"
+            }
+          }
+        );
+        const notifData = await notifRes.json();
+        if (notifData && notifData.length > 0) {
+          const item = notifData[0];
+          const sender = [item.from_user?.prefix, item.from_user?.first_name, item.from_user?.last_name]
+            .filter(Boolean).join(" ").trim() || "Alguien";
+          const recipeName = item.recipe?.name_es || item.recipe?.name_en || "";
+
+          if (type === "recipe_shared") {
+            title = recipeName ? `🍳 ¡Receta: ${recipeName}!` : "🍳 ¡Receta compartida!";
+            notifBody = recipeName 
+              ? `${sender} te ha compartido "${recipeName}"` 
+              : `${sender} te ha compartido una receta`;
+          }
+          if (item.recipe_id) {
+            linkUrl = "/";
+          }
+        }
+      } catch (err) {
+        console.warn("⚠️ [FCM] Error cargando detalles:", err);
+      }
+    }
+
+    if (type === "recipe_shared" && notifBody === "Tienes una nueva notificación") {
+      title = "🍳 ¡Receta compartida!";
+      notifBody = "Alguien te ha compartido una receta";
     }
 
     // ── Obtener Service Account y enviar ───────────────────────────────────
@@ -218,7 +263,7 @@ serve(async (req: Request) => {
       {
         type:            type || "general",
         notification_id: notification_id || "",
-        url:             "/"
+        url:             linkUrl
       }
     );
 
