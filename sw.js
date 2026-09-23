@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v647';
-const BUILD_ID = 'v647';
-const CACHE_NAME = `recipe-pantry-v647`;
-const STATIC_CACHE = 'static-v647';
-const DATA_CACHE = 'data-v647';
+const VERSION = 'v648';
+const BUILD_ID = 'v648';
+const CACHE_NAME = `recipe-pantry-v648`;
+const STATIC_CACHE = 'static-v648';
+const DATA_CACHE = 'data-v648';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -308,14 +308,14 @@ try {
 
     messaging.onBackgroundMessage((payload) => {
         console.log('[FCM SW] onBackgroundMessage recibido:', payload);
-        const title = payload.notification?.title || 'Recipe Pantry';
-        const body  = payload.notification?.body  || '';
+        const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
+        const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
         const url   = payload.data?.url || '/';
 
         const options = {
             body,
-            icon:             '/assets/icons/icon.svg',
-            badge:            '/assets/icons/icon.svg',
+            icon:             '/assets/icons/manifest-icon-192.maskable.png',
+            badge:            '/assets/icons/favicon-196.png',
             data:             { url, ...payload.data },
             requireInteraction: true,
             tag:              payload.data?.notification_id || 'rp-push',
@@ -327,4 +327,33 @@ try {
 } catch (e) {
     console.warn('[SW] Firebase background messaging no inicializado:', e);
 }
+
+// Fallback nativo para eventos push
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+    let payload = {};
+    try {
+        payload = event.data.json();
+    } catch (e) {
+        payload = { notification: { title: 'Recipe Pantry', body: event.data.text() } };
+    }
+
+    if (payload.fcmMessageId) return;
+
+    const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
+    const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
+    const url   = payload.data?.url || '/';
+
+    const options = {
+        body,
+        icon:             '/assets/icons/manifest-icon-192.maskable.png',
+        badge:            '/assets/icons/favicon-196.png',
+        data:             { url, ...payload.data },
+        requireInteraction: true,
+        tag:              payload.data?.notification_id || 'rp-push-fallback',
+        vibrate:          [200, 100, 200]
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
 

@@ -84,6 +84,9 @@ async function sendFCMNotification(
   body: string,
   data: Record<string, string> = {}
 ): Promise<void> {
+  const iconUrl  = "https://recipe-pantry.vercel.app/assets/icons/manifest-icon-192.maskable.png";
+  const badgeUrl = "https://recipe-pantry.vercel.app/assets/icons/favicon-196.png";
+
   const message = {
     message: {
       token: fcmToken,
@@ -92,13 +95,13 @@ async function sendFCMNotification(
       webpush: {
         headers: {
           Urgency: "high",
-          TTL: "3600"
+          TTL: "86400"
         },
         notification: {
           title,
           body,
-          icon:             "/assets/icons/icon.svg",
-          badge:            "/assets/icons/icon.svg",
+          icon:             iconUrl,
+          badge:            badgeUrl,
           requireInteraction: true,
           vibrate:          [200, 100, 200]
         },
