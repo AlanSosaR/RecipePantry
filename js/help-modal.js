@@ -121,8 +121,8 @@ class SettingsViewManager {
 
                     <p style="font-size: 13.5px; color: #475569; margin: 0 0 16px 0; line-height: 1.5;">
                         ${t('cacheClearDesc', isEn 
-                            ? 'Clears cached files from the Service Worker and reloads the latest version from the server.' 
-                            : 'Borra los archivos locales en caché del Service Worker y recarga la versión más reciente.')}
+                            ? 'Clears local cached files, offline databases and resets client cache, reloading the freshest data from the server.' 
+                            : 'Borra los archivos locales en caché, bases de datos sin conexión y fuerza un reset limpio desde el servidor (mantiene tu sesión iniciada).')}
                     </p>
 
                     <button type="button" onclick="window.helpModal.handleClearCache()"
@@ -135,7 +135,7 @@ class SettingsViewManager {
                                 ${t('cacheClearBtn', isEn ? 'Clear cache & reload' : 'Borrar caché y recargar')}
                             </div>
                             <div style="font-size: 12px; color: #64748B;">
-                                ${isEn ? 'Recommended if recipes or updates are not showing up properly' : 'Recomendado si hay problemas de sincronización o no se ven actualizaciones'}
+                                ${isEn ? 'Recommended if recipes, folders or updates are not showing up properly' : 'Recomendado si hay problemas de sincronización o no se ven actualizaciones'}
                             </div>
                         </div>
                         <span class="material-symbols-outlined" style="font-size: 18px; color: #94A3B8;">chevron_right</span>
@@ -306,39 +306,112 @@ class SettingsViewManager {
     async handleClearCache() {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         const confirmMsg = isEn
-            ? 'Clear browser cache and reload? The app will reload automatically.'
-            : '¿Borrar el caché del navegador? La aplicación se recargará automáticamente.';
-        const actionBtn = isEn ? 'Clear & Reload' : 'Borrar y recargar';
+            ? 'Perform a complete cache reset? All temporary files, offline databases, and local folders cache will be purged, keeping your login session active so everything reloads fresh from the server.'
+            : '¿Hacer un reset total de caché y datos locales? Se borrarán todos los archivos en caché, bases de datos locales y carpetas temporales, manteniendo tu sesión abierta para recargar todo limpio desde el servidor.';
+        const actionBtn = isEn ? 'Reset & Reload' : 'Resetear y recargar';
         const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
 
         const doClean = async () => {
+            const showToast = window.utils?.showToast || window.showToast;
+            if (showToast) {
+                showToast(isEn ? '⏳ Performing full reset...' : '⏳ Realizando reset completo de caché...', 'info', 3000);
+            }
+
             try {
-                // 1. Borrar todos los caches del Service Worker (caches API)
+                // 1. Borrar todas las cachés del Service Worker (Caches API)
                 if ('caches' in window) {
-                    const cacheNames = await caches.keys();
-                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    try {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                        console.log('✅ [Reset] Caches API borrado:', cacheNames);
+                    } catch (e) {
+                        console.warn('⚠️ [Reset] Error borrando caches:', e);
+                    }
                 }
+
                 // 2. Desregistrar Service Workers activos
                 if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    await Promise.all(registrations.map(r => r.unregister()));
+                    try {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(registrations.map(r => r.unregister()));
+                        console.log('✅ [Reset] Service Workers desregistrados:', registrations.length);
+                    } catch (e) {
+                        console.warn('⚠️ [Reset] Error desregistrando SW:', e);
+                    }
                 }
-                // 3. Limpiar claves de versión / caché del localStorage
-                const keysToRemove = Object.keys(localStorage).filter(k =>
-                    k.includes('version') || k.includes('sw_') || k.includes('cache')
-                );
-                keysToRemove.forEach(k => localStorage.removeItem(k));
 
-                const msg = isEn ? '✅ Cache cleared! Reloading...' : '✅ Caché borrado. Recargando...';
-                const showToast = window.utils?.showToast || window.showToast;
-                if (showToast) showToast(msg, 'success');
+                // 3. Limpiar y eliminar todas las bases de datos de IndexedDB
+                if (window.localDB) {
+                    try { await window.localDB.clear('recipes_index'); } catch(e){}
+                    try { await window.localDB.clear('recipes_full'); } catch(e){}
+                    try { await window.localDB.clear('recipes'); } catch(e){}
+                    try { if (window.localDB.db) window.localDB.db.close(); } catch(e){}
+                }
 
-                // 4. Recargar forzando descarga fresca del servidor
-                setTimeout(() => window.location.reload(true), 1200);
+                if (window.indexedDB) {
+                    try {
+                        if (indexedDB.databases) {
+                            const dbs = await indexedDB.databases();
+                            for (const db of dbs) {
+                                if (db && db.name) {
+                                    try { indexedDB.deleteDatabase(db.name); } catch(e){}
+                                }
+                            }
+                        }
+                    } catch (e) {}
+
+                    // Bases de datos conocidas de RecipePantry
+                    ['RecipePantryDB', 'recipe_pantry_offline', 'RecipePantry_MenuDocs'].forEach(name => {
+                        try { indexedDB.deleteDatabase(name); } catch(e){}
+                    });
+                    console.log('✅ [Reset] Bases de datos IndexedDB eliminadas');
+                }
+
+                // 4. Limpiar sessionStorage
+                try {
+                    sessionStorage.clear();
+                } catch (e) {}
+
+                // 5. Limpiar localStorage preservando ÚNICAMENTE la sesión de Supabase y el perfil/idioma
+                try {
+                    const preserved = {};
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k) {
+                            if (
+                                k.includes('sb-') ||
+                                k.includes('auth-token') ||
+                                k.includes('supabase.auth') ||
+                                k === 'recipe_pantry_user_profile' ||
+                                k === 'lang' ||
+                                k === 'preferredLang'
+                            ) {
+                                preserved[k] = localStorage.getItem(k);
+                            }
+                        }
+                    }
+                    localStorage.clear();
+                    Object.keys(preserved).forEach(k => {
+                        localStorage.setItem(k, preserved[k]);
+                    });
+                    console.log('✅ [Reset] localStorage purgado (sesión y perfil preservados)');
+                } catch (e) {
+                    console.warn('⚠️ [Reset] Error en localStorage:', e);
+                }
+
+                if (showToast) {
+                    showToast(isEn ? '✅ Reset complete! Reloading...' : '✅ Reset completado. Recargando...', 'success', 2000);
+                }
+
+                // 6. Recargar forzando descarga fresca del servidor con bypass de query
+                setTimeout(() => {
+                    const cleanUrl = window.location.origin + window.location.pathname + '?reset=' + Date.now();
+                    window.location.href = cleanUrl;
+                }, 700);
+
             } catch (err) {
-                console.error('Error al borrar caché:', err);
-                const errMsg = isEn ? 'Error clearing cache' : 'Error al borrar el caché';
-                const showToast = window.utils?.showToast || window.showToast;
+                console.error('❌ Error durante el reset:', err);
+                const errMsg = isEn ? 'Error performing reset' : 'Error al resetear caché';
                 if (showToast) showToast(errMsg, 'error');
             }
         };
