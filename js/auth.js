@@ -129,6 +129,8 @@ class AuthManager {
                 console.log('✅ Perfil cargado y guardado:', userData.first_name);
                 localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
                 if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+                if (window.restaurantMenu) window.restaurantMenu.syncFromSupabase();
+                window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: userData } }));
             }
             
             return true;
@@ -285,6 +287,8 @@ class AuthManager {
             this.currentUser = userData;
             this.session = data.session;
             localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(userData));
+            if (window.restaurantMenu) window.restaurantMenu.syncFromSupabase();
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: userData } }));
 
             console.log('✅ Login exitoso:', email);
             return { success: true, user: userData };
@@ -319,6 +323,11 @@ class AuthManager {
 
             this.currentUser = null;
             this.session = null;
+            try {
+                localStorage.removeItem('recipepantry_cached_active_menu');
+                localStorage.removeItem('recipepantry_preferred_menu_id');
+            } catch (e) {}
+            if (window.restaurantMenu) window.restaurantMenu.resetToEmpty();
 
             console.log('✅ Logout exitoso');
             window.location.replace('/');

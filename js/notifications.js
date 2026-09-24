@@ -152,16 +152,24 @@ class NotificationManager {
                     || n.from_user?.email
                     || (isEn ? 'Someone' : 'Alguien');
                 const senderPrefix = n.from_user?.prefix || (isEn ? 'Chef' : 'Chef');
-                const meta = n.metadata || {};
+                let meta = n.metadata || {};
+                if (typeof meta === 'string') {
+                    try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                }
+                const isMenu = n.type === 'menu_shared';
+                const restaurantName = meta.restaurant_name || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
 
                 return {
                     id: n.id,
                     recipeId: n.recipe_id,
-                    recipeName: recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida'),
+                    recipeName: isMenu ? restaurantName : (recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida')),
                     type: n.type || 'recipe_shared',
                     folderName: meta.folder_name || '',
                     recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (n.recipe_id ? [n.recipe_id] : []),
                     recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
+                    menuId: meta.menu_id || null,
+                    restaurantName: restaurantName,
+                    menuMessage: meta.message || '',
                     timestamp: n.created_at,
                     sender: senderName,
                     prefix: senderPrefix,
@@ -212,15 +220,23 @@ class NotificationManager {
                 if (payload.new && payload.new.id) {
                     const isEn = window.i18n && window.i18n.getLang() === 'en';
                     const nType = payload.new.type || 'recipe_shared';
-                    const meta = payload.new.metadata || {};
+                    let meta = payload.new.metadata || {};
+                    if (typeof meta === 'string') {
+                        try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                    }
+                    const isMenu = nType === 'menu_shared';
+                    const restaurantName = meta.restaurant_name || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
                     this.notifications.unshift({
                         id: payload.new.id,
                         recipeId: payload.new.recipe_id,
-                        recipeName: isEn ? 'Loading recipe...' : 'Cargando receta...',
+                        recipeName: isMenu ? restaurantName : (isEn ? 'Loading recipe...' : 'Cargando receta...'),
                         type: nType,
                         folderName: meta.folder_name || '',
                         recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (payload.new.recipe_id ? [payload.new.recipe_id] : []),
                         recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
+                        menuId: meta.menu_id || null,
+                        restaurantName: restaurantName,
+                        menuMessage: meta.message || '',
                         timestamp: payload.new.created_at || new Date().toISOString(),
                         sender: '...',
                         prefix: '',
@@ -238,6 +254,8 @@ class NotificationManager {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const toastMsg = (payload.new?.type === 'folder_shared')
                     ? (isEn ? '📁 You have received a new folder!' : '📁 ¡Has recibido una nueva carpeta!')
+                    : (payload.new?.type === 'menu_shared')
+                    ? (isEn ? '🍽️ You have been invited to a restaurant menu!' : '🍽️ ¡Te han compartido una carta de restaurante!')
                     : (isEn ? '🔔 You have received a new recipe!' : '🔔 ¡Has recibido una nueva receta!');
                 if (window.utils && window.utils.showToast) {
                     window.utils.showToast(toastMsg, 'info');
@@ -641,6 +659,57 @@ class NotificationManager {
                                             onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'"
                                             title="${isEn ? 'Dismiss' : 'Omitir'}">
                                             ✕ ${isEn ? 'Dismiss' : 'Omitir'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (n.type === 'menu_shared') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const menuTitle = n.restaurantName || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
+                const safeMenuId = n.menuId || '';
+
+                return `
+                    <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); position:relative;">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:rgba(16, 185, 129, 0.2); color:#10B981; font-size:20px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
+                                🍽️
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <span style="color:white; display:block; font-size:13px; font-weight:600; line-height:1.35;">${n.prefix} ${n.sender} ${isEn ? 'has shared restaurant access (Menu & Allergens)' : 'te ha compartido el restaurante (Carta y Alérgenos)'}</span>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
+                                        style="background:transparent; border:none; color:rgba(255,255,255,0.35); font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
+                                        onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.35)'"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                                </div>
+                                <span style="color:#10B981; font-weight:700; display:block; margin-top:3px; font-size:13.5px;">🏪 ${menuTitle}</span>
+                                <span style="color:#A1A1AA; font-size:11.5px; display:block; margin-top:2px;">${isEn ? 'Includes food menu dishes & official allergen matrix' : 'Incluye carta de platos completa y matriz oficial de alérgenos.'}</span>
+                                ${n.menuMessage ? `<span style="color:#D1D5DB; font-size:11.5px; display:block; margin-top:3px; font-style:italic;">💬 "${n.menuMessage}"</span>` : ''}
+                                <span style="color:#71717A; font-size:10.5px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                
+                                <!-- Action buttons -->
+                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptMenu('${n.id}', '${safeMenuId}')"
+                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: transform 0.15s, filter 0.15s;"
+                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                        ✅ ${isEn ? 'Accept Restaurant (Menu & Allergens)' : 'Aceptar Restaurante (Carta y Alérgenos)'}
+                                    </button>
+                                    <div style="display:flex; gap:9px;">
+                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineMenu('${n.id}', '${safeMenuId}')"
+                                            style="flex:1; min-height:38px; padding:8px 10px; background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.22); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                            onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'"
+                                            title="${isEn ? 'Decline' : 'Rechazar'}">
+                                            ✕ ${isEn ? 'Decline' : 'Rechazar'}
+                                        </button>
+                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
+                                            style="flex:1; min-height:38px; padding:8px 10px; background:rgba(255,255,255,0.06); color:#E4E4E7; border:1px solid rgba(255,255,255,0.14); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                            onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                                            ${isEn ? 'Later' : 'Omitir'}
                                         </button>
                                     </div>
                                 </div>
@@ -1270,6 +1339,215 @@ class NotificationManager {
         } catch (err) {
             console.error('❌ Error omitiendo receta:', err);
             window.utils.showToast('Error al omitir', 'error');
+        }
+    }
+
+    async handleAcceptMenu(notificationId, menuId) {
+        try {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+            // 0. Identificar notificación y resolver menuId
+            const notif = this.notifications.find(n => n.id === notificationId);
+            const resolvedMenuId = (menuId && menuId !== 'undefined' && menuId !== 'null' && menuId !== '') 
+                ? menuId 
+                : (notif?.menuId || null);
+
+            if (resolvedMenuId) {
+                try { localStorage.setItem('recipepantry_preferred_menu_id', resolvedMenuId); } catch (e) {}
+            }
+
+            // 1. RESPUESTA SÍNCRONA INMEDIATA A 0ms (Exactamente igual a "Dejar de seguir")
+            if (this.menu) this.menu.classList.add('hidden');
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            const d = window.dashboard || window.dashboardManager;
+            if (d && typeof d.switchView === 'function') {
+                d.switchView('menu');
+            }
+
+            if (window.restaurantMenu) {
+                window.restaurantMenu.isAddingDish = false;
+                window.restaurantMenu.isViewingDocument = false;
+                // Si aún no tiene el menú cargado en memoria, mostrar skeleton de carga en vez del estado vacío
+                if (!window.restaurantMenu.hasMenu) {
+                    window.restaurantMenu.isLoading = true;
+                    window.restaurantMenu.render();
+                }
+            }
+
+            if (window.utils && window.utils.showToast) {
+                window.utils.showToast(
+                    isEn ? '✅ Restaurant menu linked successfully!' : '✅ ¡Restaurante vinculado con éxito (Menú y Alérgenos)!',
+                    'success'
+                );
+            }
+
+            // 2. OBTENER USUARIO ACTUAL (Resiliente y seguro)
+            let user = window.authManager?.currentUser;
+            if (!user || !user.id) {
+                user = window.restaurantMenu?.currentUser;
+            }
+            if (!user || !user.id) {
+                try {
+                    const stored = localStorage.getItem('recipe_pantry_user_profile');
+                    if (stored) user = JSON.parse(stored);
+                } catch (e) {}
+            }
+            if (!user || !user.id) {
+                try {
+                    const session = (await window.supabaseClient.auth.getSession())?.data?.session;
+                    const authUid = session?.user?.id;
+                    if (authUid) {
+                        const { data: uRow } = await window.supabaseClient
+                            .from('users')
+                            .select('id, email, first_name, last_name')
+                            .eq('auth_user_id', authUid)
+                            .maybeSingle();
+                        if (uRow && uRow.id) user = uRow;
+                    }
+                } catch (e) {}
+            }
+
+            // 3. ACTUALIZAR EN SUPABASE Y OBTENER LOS DATOS DE LA CARTA AL MISMO TIEMPO
+            let updatedRecord = null;
+            if (window.supabaseClient && user && user.id) {
+                let updateQuery = window.supabaseClient
+                    .from('shared_restaurant_menus')
+                    .update({ status: 'accepted' })
+                    .eq('recipient_user_id', user.id);
+
+                if (resolvedMenuId) {
+                    updateQuery = updateQuery.eq('menu_id', resolvedMenuId);
+                }
+
+                const { data: updatedRows, error: shareError } = await updateQuery.select(`
+                    id,
+                    permission,
+                    status,
+                    share_scope,
+                    menu:menu_id (*),
+                    owner:owner_user_id (id, first_name, last_name, email)
+                `);
+
+                if (shareError) {
+                    console.error('Error updating shared_restaurant_menus:', shareError);
+                } else if (updatedRows && updatedRows.length > 0) {
+                    updatedRecord = updatedRows[0];
+                }
+            }
+
+            // Marcar notificación leída en segundo plano
+            if (window.supabaseClient && notificationId) {
+                window.supabaseClient
+                    .from('notifications')
+                    .update({ leido: true })
+                    .eq('id', notificationId)
+                    .then(() => {})
+                    .catch(e => console.warn('Could not mark notif read:', e));
+            }
+
+            // 4. HIDRATAR window.restaurantMenu DIRECTAMENTE EN MEMORIA Y RENDERIZAR
+            if (updatedRecord && updatedRecord.menu && window.restaurantMenu) {
+                const rawMenu = Array.isArray(updatedRecord.menu) ? updatedRecord.menu[0] : updatedRecord.menu;
+                const rawOwner = Array.isArray(updatedRecord.owner) ? updatedRecord.owner[0] : updatedRecord.owner;
+                if (rawMenu) {
+                    window.restaurantMenu.hasMenu = true;
+                    window.restaurantMenu.isOwner = false;
+                    window.restaurantMenu.isShared = true;
+                    window.restaurantMenu.sharedRecordId = updatedRecord.id;
+                    window.restaurantMenu.shareScope = updatedRecord.share_scope || 'all';
+                    window.restaurantMenu.permission = updatedRecord.permission || 'view';
+                    window.restaurantMenu.sharedBy = rawOwner;
+                    window.restaurantMenu.activeMenu = rawMenu;
+                    window.restaurantMenu.loadMenuDataFromActive();
+                    window.restaurantMenu.saveToCache();
+                    window.restaurantMenu.isLoading = false;
+                    window.restaurantMenu.render();
+                    if (d && typeof d.renderAllergensView === 'function') {
+                        d.renderAllergensView();
+                    }
+                }
+            } else if (resolvedMenuId && window.restaurantMenu && !window.restaurantMenu.hasMenu) {
+                // Fallback directo consultando restaurant_menus por ID
+                const { data: menuData } = await window.supabaseClient
+                    .from('restaurant_menus')
+                    .select('*')
+                    .eq('id', resolvedMenuId)
+                    .maybeSingle();
+                if (menuData) {
+                    window.restaurantMenu.hasMenu = true;
+                    window.restaurantMenu.isOwner = false;
+                    window.restaurantMenu.isShared = true;
+                    window.restaurantMenu.activeMenu = menuData;
+                    window.restaurantMenu.loadMenuDataFromActive();
+                    window.restaurantMenu.saveToCache();
+                    window.restaurantMenu.isLoading = false;
+                    window.restaurantMenu.render();
+                    if (d && typeof d.renderAllergensView === 'function') {
+                        d.renderAllergensView();
+                    }
+                }
+            }
+
+            // 5. Sincronización de respaldo completa en segundo plano
+            if (window.restaurantMenu) {
+                await window.restaurantMenu.syncFromSupabase();
+            }
+        } catch (err) {
+            console.error('❌ [Notifications] Error en handleAcceptMenu:', err);
+        }
+    }
+
+    async handleDeclineMenu(notificationId, menuId) {
+        try {
+            const user = window.authManager?.currentUser;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+            // 1. Quitar de la lista local y actualizar badge de inmediato (0ms)
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            if (window.utils && window.utils.showToast) {
+                window.utils.showToast(isEn ? 'Menu invitation declined' : 'Invitación a la carta rechazada', 'info');
+            }
+
+            // 2. Operaciones de red en segundo plano
+            if (user && user.id && window.supabaseClient) {
+                await window.supabaseClient
+                    .from('shared_restaurant_menus')
+                    .delete()
+                    .eq('menu_id', menuId)
+                    .eq('recipient_user_id', user.id);
+
+                await window.supabaseClient
+                    .from('notifications')
+                    .update({ leido: true })
+                    .eq('id', notificationId);
+            }
+        } catch (err) {
+            console.error('❌ [Notifications] Error en handleDeclineMenu:', err);
+        }
+    }
+
+    async handleDismissMenu(notificationId, menuId) {
+        try {
+            // 1. UI update al instante (0ms)
+            this.notifications = this.notifications.filter(n => n.id !== notificationId);
+            this.updateBadge();
+            this.renderMenu();
+
+            // 2. Marcar en BD en segundo plano
+            if (window.supabaseClient) {
+                await window.supabaseClient
+                    .from('notifications')
+                    .update({ leido: true })
+                    .eq('id', notificationId);
+            }
+        } catch (err) {
+            console.error('❌ [Notifications] Error en handleDismissMenu:', err);
         }
     }
 

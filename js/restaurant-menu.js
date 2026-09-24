@@ -76,144 +76,1173 @@
             this.isViewingDocument = false; // Vista de visualizador de carta adaptada al sistema
             this.currentDocTab = 'main';
             this.docZoom = 1.0;
-            this.availability = this.loadAvailability();
-            this.customItems = this.loadCustomItems(); // Platos agregados por el usuario
-            this.removedItemIds = this.loadRemovedItems(); // Platos eliminados
+
+            // Estado de propiedad y pertenencia del restaurante
+            this.hasMenu = false;
+            this.isOwner = false;
+            this.isShared = false;
+            this.sharedBy = null;
+            this.permission = 'view';
+            this.activeMenu = null;
+            this.sharedRecordId = null;
+
+            this.restaurantName = "Mi Restaurante";
+            this.logoUrl = null;
+            this.websiteUrl = null;
+            this.info = {};
+            this.sections = [];
+            this.customItems = [];
+            this.removedItemIds = [];
+            this.availability = {};
+            this.officialAllergens = [];
+            this.allergenDefinitions = [];
+            this.isLoading = true;
 
             this.closeDocumentViewer = this.closeDocumentViewer.bind(this);
             this.openDocumentViewer = this.openDocumentViewer.bind(this);
             this.cancelAddDish = this.cancelAddDish.bind(this);
             this.render = this.render.bind(this);
+            this.resetToEmpty = this.resetToEmpty.bind(this);
+            this.restoreFromCache = this.restoreFromCache.bind(this);
+            this.saveToCache = this.saveToCache.bind(this);
 
-            // Sincronizar desde Supabase al iniciar (los datos persisten aunque se borre el caché)
+            // 1. Restaurar de caché local de inmediato para que NUNCA aparezca vacío al entrar
+            this.restoreFromCache();
+
+            // 2. Sincronizar desde Supabase en segundo plano al iniciar
             this.syncFromSupabase();
-        }
 
-        // ─── PERSISTENCIA: localStorage (caché offline) + Supabase (fuente de verdad) ───
+            // 3. Re-sincronizar automáticamente ante cualquier evento de autenticación o cambio de usuario
+            window.addEventListener('auth-ready', () => {
+                this.syncFromSupabase();
+            });
 
-        /**
-         * Sincroniza los datos del menú desde Supabase (columna settings en tabla users).
-         * Se llama al iniciar. Si Supabase tiene datos, los usa y actualiza el localStorage.
-         * Así el estado sobrevive aunque se borre el caché.
-         */
-        async syncFromSupabase() {
-            try {
-                const sb = window.supabaseClient;
-                if (!sb) return;
+            window.addEventListener('auth-changed', () => {
+                this.syncFromSupabase();
+            });
 
-                // Obtener el usuario autenticado
-                const { data: { user } } = await sb.auth.getUser();
-                if (!user) return;
-
-                const { data, error } = await sb.from('users')
-                    .select('settings')
-                    .eq('auth_user_id', user.id)
-                    .single();
-
-                if (error || !data || !data.settings) return;
-
-                const s = data.settings;
-                let changed = false;
-
-                if (s.menu_removed_items !== undefined) {
-                    this.removedItemIds = Array.isArray(s.menu_removed_items) ? s.menu_removed_items : [];
-                    localStorage.setItem('stanleys_removed_items', JSON.stringify(this.removedItemIds));
-                    changed = true;
-                }
-                if (s.menu_availability !== undefined) {
-                    this.availability = s.menu_availability || {};
-                    localStorage.setItem('stanleys_menu_availability', JSON.stringify(this.availability));
-                    changed = true;
-                }
-                if (s.menu_custom_items !== undefined) {
-                    this.customItems = Array.isArray(s.menu_custom_items) ? s.menu_custom_items : [];
-                    localStorage.setItem('stanleys_custom_items', JSON.stringify(this.customItems));
-                    changed = true;
-                }
-
-                if (changed) {
-                    console.log('[Menu] Datos sincronizados desde Supabase (users.settings).');
-                    this.render();
-                }
-            } catch (e) {
-                console.warn('[Menu] No se pudo sincronizar desde Supabase (offline?):', e);
+            if (window.supabaseClient) {
+                window.supabaseClient.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+                        this.syncFromSupabase();
+                    } else if (event === 'SIGNED_OUT') {
+                        this.resetToEmpty();
+                        this.render();
+                    }
+                });
             }
         }
 
-        /**
-         * Guarda los datos del menú en users.settings (merge parcial con JSONB).
-         * No bloquea la UI — falla silenciosamente si no hay conexión.
-         */
-        async saveToSupabase(key, value) {
+        restoreFromCache() {
+            try {
+                const cached = localStorage.getItem('recipepantry_cached_active_menu');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.activeMenu) {
+                        this.activeMenu = parsed.activeMenu;
+                        this.hasMenu = true;
+                        this.isOwner = !!parsed.isOwner;
+                        this.isShared = !!parsed.isShared;
+                        this.sharedBy = parsed.sharedBy || null;
+                        this.sharedRecordId = parsed.sharedRecordId || null;
+                        this.shareScope = parsed.shareScope || 'all';
+                        this.permission = parsed.permission || (this.isOwner ? 'edit' : 'view');
+                        this.loadMenuDataFromActive();
+                        this.isLoading = false;
+                        console.log('⚡ [Menu] Restaurado al instante desde caché local:', this.restaurantName);
+                    }
+                }
+            } catch (e) {
+                console.warn('[Menu] Error al restaurar caché local:', e);
+            }
+        }
+
+        saveToCache() {
+            try {
+                if (this.hasMenu && this.activeMenu) {
+                    const payload = {
+                        activeMenu: this.activeMenu,
+                        isOwner: this.isOwner,
+                        isShared: this.isShared,
+                        sharedBy: this.sharedBy,
+                        sharedRecordId: this.sharedRecordId,
+                        shareScope: this.shareScope,
+                        permission: this.permission,
+                        cachedAt: Date.now()
+                    };
+                    localStorage.setItem('recipepantry_cached_active_menu', JSON.stringify(payload));
+                } else {
+                    localStorage.removeItem('recipepantry_cached_active_menu');
+                }
+            } catch (e) {}
+        }
+
+        resetToEmpty() {
+            this.hasMenu = false;
+            this.isOwner = false;
+            this.isShared = false;
+            this.sharedBy = null;
+            this.permission = 'view';
+            this.activeMenu = null;
+            this.sharedRecordId = null;
+            this.shareScope = 'all';
+            this.restaurantName = "Mi Restaurante";
+            this.logoUrl = null;
+            this.websiteUrl = null;
+            this.info = {};
+            this.sections = [];
+            this.customItems = [];
+            this.removedItemIds = [];
+            this.availability = {};
+            this.officialAllergens = [];
+            this.allergenDefinitions = [];
+            try {
+                localStorage.removeItem('recipepantry_cached_active_menu');
+            } catch (e) {}
+        }
+
+        // Helper para identificar si el restaurante activo es el de Alan (Stanley's original)
+        isStanleyOriginal() {
+            if (this.currentUser?.email === 'alansosa225@gmail.com') return true;
+            if (this.activeMenu?.id === '24cf3b14-c867-49bc-a5fd-9045be6ccedf') return true;
+            if (this.restaurantName === "Stanley's SW16" && this.activeMenu?.doc_main_url === 'assets/pdf/stanleys-main-menu.pdf') return true;
+            return false;
+        }
+
+        // ─── PERSISTENCIA CENTRALIZADA: restaurant_menus + shared_restaurant_menus ───
+
+        async syncFromSupabase() {
             try {
                 const sb = window.supabaseClient;
-                if (!sb) return;
-                const { data: { user } } = await sb.auth.getUser();
-                if (!user) return;
+                if (!sb) {
+                    this.isLoading = false;
+                    return;
+                }
 
-                // Leer settings actuales, hacer merge y guardar
-                const { data: existing } = await sb.from('users')
-                    .select('settings')
-                    .eq('auth_user_id', user.id)
-                    .single();
+                // 1. Obtener usuario actual: primero de authManager o perfil en localStorage (instantáneo)
+                let userData = window.authManager?.currentUser;
+                if (!userData || !userData.id) {
+                    try {
+                        const storedProfile = localStorage.getItem('recipe_pantry_user_profile');
+                        if (storedProfile) {
+                            const parsed = JSON.parse(storedProfile);
+                            if (parsed && parsed.id) userData = parsed;
+                        }
+                    } catch (e) {}
+                }
 
-                const currentSettings = (existing && existing.settings) ? existing.settings : {};
-                currentSettings[key] = value;
+                // Si aún no está hidratado, intentar obtenerlo de la sesión de Supabase con reintentos
+                if (!userData || !userData.id) {
+                    for (let attempt = 0; attempt < 5; attempt++) {
+                        try {
+                            const session = (await sb.auth.getSession())?.data?.session;
+                            const authUser = session?.user || (await sb.auth.getUser())?.data?.user;
+                            if (authUser && authUser.id) {
+                                const { data: uData } = await sb.from('users')
+                                    .select('id, email, first_name, last_name')
+                                    .eq('auth_user_id', authUser.id)
+                                    .maybeSingle();
+                                if (uData && uData.id) {
+                                    userData = uData;
+                                    break;
+                                }
+                            }
+                        } catch (err) {}
+                        await new Promise(r => setTimeout(r, 200));
+                    }
+                }
 
-                await sb.from('users')
-                    .update({ settings: currentSettings })
-                    .eq('auth_user_id', user.id);
+                if (!userData || !userData.id) {
+                    // Si tras reintentos no hay usuario conectado y no tenemos menú en caché
+                    if (!this.hasMenu) {
+                        this.resetToEmpty();
+                    }
+                    this.isLoading = false;
+                    this.render();
+                    return;
+                }
+                this.currentUser = userData;
+
+                // 2. Si el usuario es dueño de algún restaurante propio (ej: Alan con Stanley's)
+                let { data: ownMenus, error: ownErr } = await sb.from('restaurant_menus')
+                    .select('*')
+                    .eq('owner_user_id', userData.id);
+
+                // Salvaguarda: si es el usuario de Alan, asegurar vinculación con Stanley's si existiese
+                if ((!ownMenus || ownMenus.length === 0) && userData.email === 'alansosa225@gmail.com') {
+                    const { data: stanleyMenu } = await sb.from('restaurant_menus')
+                        .select('*')
+                        .eq('restaurant_name', "Stanley's SW16")
+                        .limit(1);
+                    if (stanleyMenu && stanleyMenu.length > 0) {
+                        ownMenus = stanleyMenu;
+                    }
+                }
+
+                if (ownMenus && ownMenus.length > 0) {
+                    this.hasMenu = true;
+                    this.isOwner = true;
+                    this.isShared = false;
+                    this.permission = 'edit';
+                    this.activeMenu = ownMenus[0];
+                    this.loadMenuDataFromActive();
+                    this.saveToCache();
+                    this.isLoading = false;
+                    this.render();
+                    if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                        window.dashboard.renderAllergensView();
+                    }
+                    return;
+                }
+
+                // 3. Buscar si tiene restaurantes compartidos con status='accepted'
+                const { data: sharedMenus, error: sharedErr } = await sb.from('shared_restaurant_menus')
+                    .select(`
+                        id,
+                        permission,
+                        status,
+                        share_scope,
+                        menu:menu_id (*),
+                        owner:owner_user_id (id, first_name, last_name, email)
+                    `)
+                    .eq('recipient_user_id', userData.id)
+                    .eq('status', 'accepted');
+
+                if (sharedErr) {
+                    console.warn('[Menu] Error al consultar shared_restaurant_menus:', sharedErr);
+                    if (this.hasMenu) {
+                        this.isLoading = false;
+                        this.render();
+                        return;
+                    }
+                }
+
+                let preferredShared = null;
+                try {
+                    const preferredMenuId = localStorage.getItem('recipepantry_preferred_menu_id');
+                    if (preferredMenuId && sharedMenus?.length > 0) {
+                        preferredShared = sharedMenus.find(s => {
+                            const m = Array.isArray(s.menu) ? s.menu[0] : s.menu;
+                            return m?.id === preferredMenuId;
+                        });
+                    }
+                } catch (e) {}
+
+                if (preferredShared && preferredShared.menu) {
+                    const rawMenu = Array.isArray(preferredShared.menu) ? preferredShared.menu[0] : preferredShared.menu;
+                    const rawOwner = Array.isArray(preferredShared.owner) ? preferredShared.owner[0] : preferredShared.owner;
+                    if (rawMenu) {
+                        this.hasMenu = true;
+                        this.isOwner = false;
+                        this.isShared = true;
+                        this.sharedRecordId = preferredShared.id;
+                        this.shareScope = preferredShared.share_scope || 'all';
+                        this.permission = preferredShared.permission || 'view';
+                        this.sharedBy = rawOwner;
+                        this.activeMenu = rawMenu;
+                        this.loadMenuDataFromActive();
+                        this.saveToCache();
+                        this.isLoading = false;
+                        this.render();
+                        if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                            window.dashboard.renderAllergensView();
+                        }
+                        return;
+                    }
+                }
+
+                // 4. Si no tiene preferido pero tiene compartido aceptado
+                if (sharedMenus && sharedMenus.length > 0 && sharedMenus[0].menu) {
+                    const rawMenu = Array.isArray(sharedMenus[0].menu) ? sharedMenus[0].menu[0] : sharedMenus[0].menu;
+                    const rawOwner = Array.isArray(sharedMenus[0].owner) ? sharedMenus[0].owner[0] : sharedMenus[0].owner;
+                    if (rawMenu) {
+                        this.hasMenu = true;
+                        this.isOwner = false;
+                        this.isShared = true;
+                        this.sharedRecordId = sharedMenus[0].id;
+                        this.shareScope = sharedMenus[0].share_scope || 'all';
+                        this.permission = sharedMenus[0].permission || 'view';
+                        this.sharedBy = rawOwner;
+                        this.activeMenu = rawMenu;
+                        this.loadMenuDataFromActive();
+                        this.saveToCache();
+                        this.isLoading = false;
+                        this.render();
+                        if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                            window.dashboard.renderAllergensView();
+                        }
+                        return;
+                    }
+                }
+
+                // 5. Si no tiene ni propio ni compartido: Estado completamente vacío
+                this.resetToEmpty();
+                this.isLoading = false;
+                this.render();
+                if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                    window.dashboard.renderAllergensView();
+                }
+            } catch (e) {
+                console.warn('[Menu] Error al sincronizar restaurante desde Supabase:', e);
+                this.isLoading = false;
+                this.render();
+            }
+        }
+
+        loadMenuDataFromActive() {
+            if (!this.activeMenu) return;
+            if (Array.isArray(this.activeMenu)) {
+                this.activeMenu = this.activeMenu[0];
+            }
+            if (!this.activeMenu) return;
+            this.restaurantName = this.activeMenu.restaurant_name || "Mi Restaurante";
+            this.logoUrl = this.activeMenu.logo_url || null;
+            this.websiteUrl = this.activeMenu.website_url || null;
+            this.info = this.activeMenu.info || {};
+            this.sections = this.activeMenu.sections || [];
+            this.customItems = Array.isArray(this.activeMenu.custom_items) ? this.activeMenu.custom_items : [];
+            this.removedItemIds = Array.isArray(this.activeMenu.removed_items) ? this.activeMenu.removed_items : [];
+            this.availability = this.activeMenu.availability || {};
+            this.docMainUrl = this.activeMenu.doc_main_url;
+            this.docSundayUrl = this.activeMenu.doc_sunday_url;
+            this.officialAllergens = this.activeMenu.official_allergens || [];
+            this.allergenDefinitions = Array.isArray(this.activeMenu.allergen_definitions) ? this.activeMenu.allergen_definitions : [];
+        }
+
+        async saveToSupabase(fieldsToUpdate = {}) {
+            try {
+                const sb = window.supabaseClient;
+                if (!sb || !this.activeMenu?.id) return;
+
+                const payload = {
+                    ...fieldsToUpdate,
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await sb.from('restaurant_menus')
+                    .update(payload)
+                    .eq('id', this.activeMenu.id);
+
+                if (error) throw error;
             } catch (e) {
                 console.warn('[Menu] No se pudo guardar en Supabase:', e);
             }
         }
 
-        loadAvailability() {
-            try {
-                const stored = localStorage.getItem('stanleys_menu_availability');
-                return stored ? JSON.parse(stored) : {};
-            } catch (e) {
-                return {};
-            }
-        }
-
         saveAvailability() {
-            try {
-                localStorage.setItem('stanleys_menu_availability', JSON.stringify(this.availability));
-                this.saveToSupabase('menu_availability', this.availability);
-            } catch (e) {}
-        }
-
-        loadCustomItems() {
-            try {
-                const stored = localStorage.getItem('stanleys_custom_items');
-                return stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                return [];
-            }
+            this.saveToSupabase({ availability: this.availability });
         }
 
         saveCustomItems() {
-            try {
-                localStorage.setItem('stanleys_custom_items', JSON.stringify(this.customItems));
-                this.saveToSupabase('menu_custom_items', this.customItems);
-            } catch (e) {}
-        }
-
-        loadRemovedItems() {
-            try {
-                const stored = localStorage.getItem('stanleys_removed_items');
-                return stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                return [];
-            }
+            this.saveToSupabase({ custom_items: this.customItems });
         }
 
         saveRemovedItems() {
+            this.saveToSupabase({ removed_items: this.removedItemIds });
+        }
+
+        shareRestaurantMenu() {
+            if (!this.activeMenu?.id) {
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: 'No hay una carta de restaurante activa para compartir.',
+                        type: 'warning'
+                    });
+                }
+                return;
+            }
+            if (window.shareModal) {
+                window.shareModal.open(this.activeMenu.id, 'menu');
+            } else {
+                console.error('ShareModalManager no disponible.');
+            }
+        }
+
+        async leaveSharedMenu() {
+            if (!this.isShared || !this.sharedRecordId) return;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const confirmMsg = isEn 
+                ? 'Are you sure you want to leave this shared restaurant menu? You will no longer have access to it.' 
+                : '¿Seguro que deseas dejar de seguir la carta de este restaurante? Ya no tendrás acceso a sus platos ni matriz de alérgenos.';
+            
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: isEn 
+                        ? 'Are you sure you want to leave this shared restaurant menu? You will no longer have access to it.' 
+                        : '¿Seguro que deseas dejar de seguir la carta de este restaurante? Ya no tendrás acceso a sus platos ni matriz de alérgenos.',
+                    actionText: isEn ? 'Leave' : 'Dejar de seguir',
+                    cancelText: isEn ? 'Keep' : 'Mantener',
+                    actionColor: '#EF4444',
+                    onConfirm: async () => {
+                        const recId = this.sharedRecordId;
+                        try {
+                            localStorage.removeItem('recipepantry_preferred_menu_id');
+                        } catch (e) {}
+
+                        // 1. Resetear localmente de inmediato y renderizar al instante
+                        this.resetToEmpty();
+                        this.render();
+                        if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                            window.dashboard.renderAllergensView();
+                        }
+
+                        // 2. Notificación simple normal (sin botones de confirmar de nuevo)
+                        if (window.utils && window.utils.showToast) {
+                            window.utils.showToast(isEn ? 'You left the shared restaurant' : 'Has dejado de seguir el restaurante', 'info');
+                        }
+
+                        // 3. Eliminar de Supabase en segundo plano
+                        try {
+                            const sb = window.supabaseClient;
+                            if (sb && recId) {
+                                await sb.from('shared_restaurant_menus').delete().eq('id', recId);
+                            }
+                        } catch (err) {
+                            console.error('Error leaving shared menu in Supabase:', err);
+                        }
+                    }
+                });
+            }
+        }
+
+        promptCreateMenu() {
+            this.openCreateMenuModal();
+        }
+
+        async handleLogoFileSelected(event, mode = 'create') {
+            const file = event.target?.files?.[0];
+            if (!file) return;
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: isEn ? '⏳ Uploading logo...' : '⏳ Subiendo logo...',
+                    type: 'info'
+                });
+            }
+
             try {
-                localStorage.setItem('stanleys_removed_items', JSON.stringify(this.removedItemIds));
-                this.saveToSupabase('menu_removed_items', this.removedItemIds);
-            } catch (e) {}
+                const sb = window.supabaseClient;
+                if (!sb) throw new Error('No Supabase connection');
+
+                const ext = file.name.split('.').pop() || 'png';
+                const fileName = `logo_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+                const { error: uploadErr } = await sb.storage.from('menu-files').upload(fileName, file, { upsert: true });
+                if (uploadErr) throw uploadErr;
+
+                const { data: { publicUrl } } = sb.storage.from('menu-files').getPublicUrl(fileName);
+
+                const urlInput = document.getElementById(`${mode}LogoUrlInput`);
+                if (urlInput) urlInput.value = publicUrl;
+
+                const previewImg = document.getElementById(`${mode}LogoPreview`);
+                if (previewImg) previewImg.src = publicUrl;
+
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: isEn ? '✅ Logo uploaded' : '✅ Logo subido correctamente',
+                        type: 'success'
+                    });
+                }
+            } catch (err) {
+                console.error('Error uploading logo:', err);
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: isEn ? '❌ Error uploading logo' : '❌ Error al subir logo',
+                        type: 'error'
+                    });
+                }
+            }
+        }
+
+        updateLogoUrlPreview(url, mode = 'create') {
+            const preview = document.getElementById(`${mode}LogoPreview`);
+            if (!preview) return;
+            const clean = (url || '').trim();
+            preview.src = clean ? clean : 'assets/icons/favicon-196.png';
+        }
+
+        clearLogoInput(mode = 'create') {
+            const urlInput = document.getElementById(`${mode}LogoUrlInput`);
+            if (urlInput) urlInput.value = '';
+            const preview = document.getElementById(`${mode}LogoPreview`);
+            if (preview) preview.src = 'assets/icons/favicon-196.png';
+        }
+
+        openCreateMenuModal() {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const modalId = 'createMenuModal';
+            let modal = document.getElementById(modalId);
+            if (modal) modal.remove();
+
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'demo-recipe-modal-backdrop';
+            modal.style.cssText = 'position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;';
+            modal.innerHTML = `
+                <div class="demo-recipe-modal-card" style="background: #FFFFFF; border-radius: 24px; width: 100%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #E2E8F0; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+                    <div style="padding: 20px 24px 16px 24px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #F1F5F9; flex-shrink: 0;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);">
+                                <span class="material-symbols-outlined" style="font-size: 24px;">storefront</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0F172A;">
+                                    ${isEn ? 'Create Restaurant Menu' : 'Crear Carta de Restaurante'}
+                                </h3>
+                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748B;">
+                                    ${isEn ? 'Configure restaurant name, logo, and website' : 'Introduce el nombre, logo y web de tu restaurante'}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="document.getElementById('${modalId}').remove()" style="background: none; border: none; cursor: pointer; color: #94A3B8; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                    </div>
+
+                    <form id="createMenuForm" onsubmit="event.preventDefault(); window.restaurantMenu.submitCreateMenuForm();" style="padding: 24px; overflow-y: auto;">
+                        <!-- Nombre del restaurante -->
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Restaurant / Menu Name *' : 'Nombre del Restaurante / Carta *'}
+                            </label>
+                            <input type="text" id="newRestaurantNameInput" required placeholder="${isEn ? 'e.g. The Italian Kitchen, Bistro Central...' : 'Ej. La Trattoria, Bistró Central...'}" 
+                                style="width: 100%; height: 44px; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 0 14px; font-size: 14px; color: #0F172A; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- Logo / Icono -->
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Restaurant Logo (Optional)' : 'Logo del Restaurante (Opcional)'}
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+                                <div style="width: 56px; height: 56px; border-radius: 14px; border: 1.5px solid #E2E8F0; overflow: hidden; background: #F8FAFC; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                                    <img id="createLogoPreview" src="assets/icons/favicon-196.png" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="file" id="createLogoFileInput" accept="image/*" style="display: none;" onchange="window.restaurantMenu.handleLogoFileSelected(event, 'create')">
+                                    <button type="button" onclick="document.getElementById('createLogoFileInput').click()" class="btn-secondary" style="border-radius: 999px; height: 34px; padding: 0 14px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">upload</span>
+                                        <span>${isEn ? 'Upload Image File' : 'Subir Imagen'}</span>
+                                    </button>
+                                    <button type="button" onclick="window.restaurantMenu.clearLogoInput('create')" class="btn-secondary" style="border-radius: 999px; height: 34px; padding: 0 12px; font-size: 12.5px; margin-left: 6px; color: #64748B;" title="Usar icono oficial de la app">
+                                        <span>${isEn ? 'Use App Icon' : 'Usar Icono App'}</span>
+                                    </button>
+                                    <p style="margin: 4px 0 0 0; font-size: 11.5px; color: #64748B;">
+                                        ${isEn ? 'If left empty, the official app icon will be used.' : 'Si no subes logo, se usará el icono oficial de la app.'}
+                                    </p>
+                                </div>
+                            </div>
+                            <input type="url" id="createLogoUrlInput" placeholder="${isEn ? 'Or paste direct image URL (https://...)' : 'O pega una URL directa de imagen (https://...)'}"
+                                oninput="window.restaurantMenu.updateLogoUrlPreview(this.value, 'create')"
+                                style="width: 100%; height: 40px; border-radius: 10px; border: 1.5px solid #CBD5E1; padding: 0 12px; font-size: 13px; color: #0F172A; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- Página Web Oficial -->
+                        <div style="margin-bottom: 22px;">
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Official Website URL (Optional)' : 'Página Web Oficial (Opcional)'}
+                            </label>
+                            <input type="url" id="createWebsiteUrlInput" placeholder="https://www.mirestaurante.com"
+                                style="width: 100%; height: 42px; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 0 14px; font-size: 14px; color: #0F172A; outline: none; box-sizing: border-box;">
+                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748B; line-height: 1.4;">
+                                💡 ${isEn ? 'If set, clicking the logo will open this site in a new tab. If empty, clicking the logo does nothing.' : 'Si pones una URL, al tocar el logo se abrirá tu web. Si lo dejas vacío, al tocar el logo no hará nada.'}
+                            </p>
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                            <button type="button" onclick="document.getElementById('${modalId}').remove()" 
+                                style="height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid #CBD5E1; background: #F8FAFC; color: #475569; font-weight: 600; font-size: 14px; cursor: pointer;">
+                                ${isEn ? 'Cancel' : 'Cancelar'}
+                            </button>
+                            <button type="submit" 
+                                style="height: 42px; padding: 0 24px; border-radius: 999px; border: none; background: #10B981; color: #FFFFFF; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                                <span>${isEn ? 'Create Menu' : 'Crear Carta'}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                const input = document.getElementById('newRestaurantNameInput');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        submitCreateMenuForm() {
+            const nameInput = document.getElementById('newRestaurantNameInput');
+            const logoInput = document.getElementById('createLogoUrlInput');
+            const webInput = document.getElementById('createWebsiteUrlInput');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            if (!name) return;
+
+            const logoUrl = logoInput ? logoInput.value.trim() : null;
+            const websiteUrl = webInput ? webInput.value.trim() : null;
+
+            const modal = document.getElementById('createMenuModal');
+            if (modal) modal.remove();
+
+            this.createRestaurantMenu(name, {
+                logo_url: logoUrl || null,
+                website_url: websiteUrl || null,
+                withDefaults: false
+            });
+        }
+
+        openEditMenuModal() {
+            if (!this.isOwner) return;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const modalId = 'editMenuModal';
+            let modal = document.getElementById(modalId);
+            if (modal) modal.remove();
+
+            const isStanley = this.isStanleyOriginal();
+            const currentLogo = this.logoUrl || (isStanley ? 'assets/images/stanleys-logo.png' : 'assets/icons/favicon-196.png');
+            const currentWeb = this.websiteUrl || (isStanley ? (this.info?.website || 'https://www.stanleyssw16.com/food') : '');
+
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'demo-recipe-modal-backdrop';
+            modal.style.cssText = 'position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;';
+            modal.innerHTML = `
+                <div class="demo-recipe-modal-card" style="background: #FFFFFF; border-radius: 24px; width: 100%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #E2E8F0; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+                    <div style="padding: 20px 24px 16px 24px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #F1F5F9; flex-shrink: 0;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-outlined" style="font-size: 24px;">storefront</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0F172A;">
+                                    ${isEn ? 'Edit Restaurant Details' : 'Editar Datos del Restaurante'}
+                                </h3>
+                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748B;">
+                                    ${isEn ? 'Configure name, logo, and website' : 'Configura el nombre, logo y página web'}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="document.getElementById('${modalId}').remove()" style="background: none; border: none; cursor: pointer; color: #94A3B8; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                    </div>
+
+                    <form id="editMenuForm" onsubmit="event.preventDefault(); window.restaurantMenu.submitEditMenuForm();" style="padding: 24px; overflow-y: auto;">
+                        <!-- Nombre del restaurante -->
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Restaurant / Menu Name *' : 'Nombre del Restaurante / Carta *'}
+                            </label>
+                            <input type="text" id="editRestaurantNameInput" required value="${this.restaurantName || ''}" 
+                                placeholder="${isEn ? 'e.g. The Italian Kitchen' : 'Ej. La Trattoria'}" 
+                                style="width: 100%; height: 44px; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 0 14px; font-size: 14px; color: #0F172A; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- Logo / Icono -->
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Restaurant Logo' : 'Logo del Restaurante'}
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+                                <div style="width: 58px; height: 58px; border-radius: 14px; border: 1.5px solid #E2E8F0; overflow: hidden; background: #F8FAFC; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                                    <img id="editLogoPreview" src="${currentLogo}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="file" id="editLogoFileInput" accept="image/*" style="display: none;" onchange="window.restaurantMenu.handleLogoFileSelected(event, 'edit')">
+                                    <button type="button" onclick="document.getElementById('editLogoFileInput').click()" class="btn-secondary" style="border-radius: 999px; height: 34px; padding: 0 14px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">upload</span>
+                                        <span>${isEn ? 'Upload Image File' : 'Subir Imagen'}</span>
+                                    </button>
+                                    <button type="button" onclick="window.restaurantMenu.clearLogoInput('edit')" class="btn-secondary" style="border-radius: 999px; height: 34px; padding: 0 12px; font-size: 12.5px; margin-left: 6px; color: #64748B;" title="Usar icono oficial de la app">
+                                        <span>${isEn ? 'Use App Icon' : 'Usar Icono App'}</span>
+                                    </button>
+                                    <p style="margin: 4px 0 0 0; font-size: 11.5px; color: #64748B;">
+                                        ${isEn ? 'If empty, the official app icon will be used.' : 'Si no subes logo, se usará el icono oficial de la app.'}
+                                    </p>
+                                </div>
+                            </div>
+                            <input type="url" id="editLogoUrlInput" value="${this.logoUrl || ''}" placeholder="${isEn ? 'Or paste direct image URL (https://...)' : 'O pega una URL directa de imagen (https://...)'}"
+                                oninput="window.restaurantMenu.updateLogoUrlPreview(this.value, 'edit')"
+                                style="width: 100%; height: 40px; border-radius: 10px; border: 1.5px solid #CBD5E1; padding: 0 12px; font-size: 13px; color: #0F172A; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- Página Web -->
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Official Website URL (Optional)' : 'Página Web Oficial (Opcional)'}
+                            </label>
+                            <input type="url" id="editWebsiteUrlInput" value="${currentWeb}" placeholder="https://www.mirestaurante.com"
+                                style="width: 100%; height: 42px; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 0 14px; font-size: 14px; color: #0F172A; outline: none; box-sizing: border-box;">
+                            <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748B; line-height: 1.4;">
+                                💡 ${isEn ? 'If set, clicking the logo will open this site in a new tab. If empty, clicking the logo does nothing.' : 'Si pones una URL, al tocar el logo se abrirá tu web. Si lo dejas vacío, al tocar el logo no hará nada.'}
+                            </p>
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; flex-wrap: wrap;">
+                            <button type="button" onclick="window.restaurantMenu.confirmDeleteRestaurantMenu()" 
+                                style="height: 42px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #FECDD3; background: #FFF1F2; color: #E11D48; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
+                                onmouseenter="this.style.background='#FEE2E2'" onmouseleave="this.style.background='#FFF1F2'"
+                                title="${isEn ? 'Permanently delete this restaurant and leave menu empty' : 'Eliminar permanentemente esta carta y dejar el espacio vacío'}">
+                                <span class="material-symbols-outlined" style="font-size: 17px;">delete</span>
+                                <span>${isEn ? 'Delete Menu' : 'Eliminar Carta'}</span>
+                            </button>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+                                <button type="button" onclick="document.getElementById('${modalId}').remove()" 
+                                    style="height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid #CBD5E1; background: #F8FAFC; color: #475569; font-weight: 600; font-size: 14px; cursor: pointer;">
+                                    ${isEn ? 'Cancel' : 'Cancelar'}
+                                </button>
+                                <button type="submit" 
+                                    style="height: 42px; padding: 0 24px; border-radius: 999px; border: none; background: #10B981; color: #FFFFFF; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+                                    <span>${isEn ? 'Save Changes' : 'Guardar Cambios'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        confirmDeleteRestaurantMenu() {
+            if (!this.isOwner || !this.activeMenu?.id) return;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const modalId = 'editMenuModal';
+            const modal = document.getElementById(modalId);
+            if (modal) modal.remove();
+
+            const menuName = this.restaurantName || (isEn ? 'this restaurant' : 'este restaurante');
+            const confirmMsg = isEn 
+                ? `Are you sure you want to permanently delete "${menuName}"? The restaurant menu will be completely empty.` 
+                : `¿Seguro que deseas eliminar definitivamente la carta de "${menuName}"? El espacio quedará completamente vacío.`;
+
+            const doDelete = async () => {
+                try {
+                    const sb = window.supabaseClient;
+                    const menuId = this.activeMenu?.id;
+                    if (sb && menuId) {
+                        // 1. Eliminar colaboraciones compartidas asociadas a este menú
+                        await sb.from('shared_restaurant_menus').delete().eq('menu_id', menuId);
+                        // 2. Eliminar el menú en sí
+                        const { error } = await sb.from('restaurant_menus').delete().eq('id', menuId);
+                        if (error) throw error;
+                    }
+
+                    // 3. Resetear todo el estado a vacío
+                    this.hasMenu = false;
+                    this.isOwner = false;
+                    this.isShared = false;
+                    this.sharedBy = null;
+                    this.permission = 'view';
+                    this.activeMenu = null;
+                    this.sharedRecordId = null;
+                    this.restaurantName = "Mi Restaurante";
+                    this.logoUrl = null;
+                    this.websiteUrl = null;
+                    this.info = {};
+                    this.sections = [];
+                    this.customItems = [];
+                    this.removedItemIds = [];
+                    this.availability = {};
+                    this.officialAllergens = [];
+                    this.allergenDefinitions = [];
+
+                    // 4. Renderizar vista de menú (ahora mostrará el estado vacío para crear restaurante)
+                    this.render();
+
+                    // 5. Si el usuario está en la vista de alérgenos, refrescarla también
+                    if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                        window.dashboard.renderAllergensView();
+                    }
+
+                    if (window.showActionToast) {
+                        window.showActionToast({
+                            message: isEn ? '✅ Menu deleted. Space is now empty.' : '✅ Carta eliminada correctamente. El espacio ha quedado vacío.',
+                            type: 'success'
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error deleting restaurant menu:', err);
+                    if (window.showActionToast) {
+                        window.showActionToast({
+                            message: isEn ? '❌ Could not delete menu: ' + (err.message || err) : '❌ No se pudo eliminar la carta: ' + (err.message || err),
+                            type: 'error'
+                        });
+                    }
+                }
+            };
+
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: confirmMsg,
+                    actionText: isEn ? 'Delete Permanently' : 'Eliminar Carta',
+                    cancelText: isEn ? 'Keep' : 'Cancelar',
+                    type: 'error',
+                    actionColor: '#EF4444',
+                    onConfirm: doDelete
+                });
+            } else {
+                doDelete();
+            }
+        }
+
+        async submitEditMenuForm() {
+            const nameInput = document.getElementById('editRestaurantNameInput');
+            const logoInput = document.getElementById('editLogoUrlInput');
+            const webInput = document.getElementById('editWebsiteUrlInput');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            if (!name) return;
+
+            const logoUrl = logoInput ? (logoInput.value.trim() || null) : null;
+            const websiteUrl = webInput ? (webInput.value.trim() || null) : null;
+
+            const modal = document.getElementById('editMenuModal');
+            if (modal) modal.remove();
+
+            this.restaurantName = name;
+            this.logoUrl = logoUrl;
+            this.websiteUrl = websiteUrl;
+
+            await this.saveToSupabase({
+                restaurant_name: name,
+                logo_url: logoUrl,
+                website_url: websiteUrl
+            });
+
+            this.render();
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: isEn ? '✅ Restaurant details updated' : '✅ Datos del restaurante actualizados',
+                    type: 'success'
+                });
+            }
+        }
+
+        getAllergens() {
+            if (this.hasMenu && Array.isArray(this.allergenDefinitions) && this.allergenDefinitions.length > 0) {
+                return this.allergenDefinitions;
+            }
+            if (this.isStanleyOriginal()) {
+                return (window.UK_ALLERGENS || []).map(a => ({
+                    id: a.id,
+                    name: a.name_es,
+                    name_en: a.name_en,
+                    icon: a.icon,
+                    color: a.color,
+                    whereItHides: a.whereItHides_es,
+                    contaminationRisks: a.contaminationRisks_es,
+                    keywords: a.keywords || []
+                }));
+            }
+            return [];
+        }
+
+        openAllergenModal(allergenId = null) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const modalId = 'allergenEditorModal';
+            let modal = document.getElementById(modalId);
+            if (modal) modal.remove();
+
+            const existing = allergenId ? (this.allergenDefinitions || []).find(a => a.id === allergenId) : null;
+            const isEdit = !!existing;
+
+            const icons = ['spa', 'bakery_dining', 'phishing', 'egg', 'nutrition', 'science', 'local_cafe', 'eco', 'grain', 'set_meal', 'water_drop', 'health_and_safety'];
+            const currentIcon = existing?.icon || 'spa';
+            const currentColor = existing?.color || '#10B981';
+
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'demo-recipe-modal-backdrop';
+            modal.style.cssText = 'position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;';
+            
+            modal.innerHTML = `
+                <div class="demo-recipe-modal-card" style="background: #FFFFFF; border-radius: 24px; width: 100%; max-width: 540px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #E2E8F0; overflow: hidden;">
+                    <div style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #F1F5F9; flex-shrink: 0;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div id="modalIconPreview" style="width: 44px; height: 44px; border-radius: 12px; background: ${currentColor}18; color: ${currentColor}; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-outlined" style="font-size: 26px;">${currentIcon}</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0F172A;">
+                                    ${isEdit ? (isEn ? 'Edit Kitchen Allergen' : 'Editar Alérgeno') : (isEn ? 'New Kitchen Allergen' : 'Registrar Nuevo Alérgeno')}
+                                </h3>
+                                <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
+                                    ${isEn ? 'Custom allergen for your kitchen and country regulation' : 'Alérgeno personalizado para tu cocina y normativa local'}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="document.getElementById('${modalId}').remove()" style="background: none; border: none; cursor: pointer; color: #94A3B8; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                    </div>
+
+                    <form id="allergenEditForm" onsubmit="event.preventDefault(); window.restaurantMenu.submitAllergenForm('${allergenId || ''}');" style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Allergen Name *' : 'Nombre del Alérgeno *'}
+                            </label>
+                            <input type="text" id="allergenNameInput" required value="${existing?.name_es || existing?.name || ''}" placeholder="${isEn ? 'e.g. Peanuts, Gluten, Dairy, Sesame...' : 'Ej. Maní / Cacahuetes, Gluten, Lácteos, Sésamo...'}"
+                                style="width: 100%; height: 44px; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 0 14px; font-size: 14.5px; color: #0F172A; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Icon & Color' : 'Icono y Color'}
+                            </label>
+                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 6px; flex-wrap: wrap; flex: 1;">
+                                    ${icons.map(ic => `
+                                        <button type="button" class="allergen-icon-btn ${ic === currentIcon ? 'active' : ''}" data-icon="${ic}" onclick="window.restaurantMenu.selectModalIcon('${ic}')"
+                                            style="width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid ${ic === currentIcon ? '#10B981' : '#E2E8F0'}; background: ${ic === currentIcon ? '#ECFDF5' : '#F8FAFC'}; color: ${ic === currentIcon ? '#059669' : '#64748B'}; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                            <span class="material-symbols-outlined" style="font-size: 20px;">${ic}</span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                                <input type="hidden" id="selectedAllergenIcon" value="${currentIcon}">
+                                <input type="color" id="selectedAllergenColor" value="${currentColor}" onchange="window.restaurantMenu.updateModalColor(this.value)"
+                                    style="width: 40px; height: 38px; border-radius: 8px; border: 1.5px solid #E2E8F0; padding: 2px; cursor: pointer; background: #FFF;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Where does it hide in daily cooking?' : '¿Dónde se esconde en la cocina diaria?'}
+                            </label>
+                            <textarea id="allergenHidesInput" rows="2" placeholder="${isEn ? 'e.g. Soy sauces, stock cubes, roux, batters...' : 'Ej. Salsas de soja, pastillas de caldo, caldos concentrados, rebozados...'}"
+                                style="width: 100%; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 10px 14px; font-size: 14px; color: #0F172A; outline: none; resize: vertical; box-sizing: border-box;">${existing?.whereItHides_es || existing?.whereItHides || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Cross-contamination critical points:' : 'Puntos críticos de contaminación cruzada:'}
+                            </label>
+                            <textarea id="allergenRisksInput" rows="2" placeholder="${isEn ? 'e.g. Shared deep fryers, cutting boards, shared blenders...' : 'Ej. Freidoras compartidas, aceites de fritura, tablas de corte, batidoras...'}"
+                                style="width: 100%; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 10px 14px; font-size: 14px; color: #0F172A; outline: none; resize: vertical; box-sizing: border-box;">${existing?.contaminationRisks_es || existing?.contaminationRisks || ''}</textarea>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                                ${isEn ? 'Keywords for detection (comma-separated):' : 'Palabras clave para detección (separadas por comas):'}
+                            </label>
+                            <input type="text" id="allergenKeywordsInput" value="${(existing?.keywords || []).join(', ')}" placeholder="${isEn ? 'e.g. peanut, butter, arachis' : 'Ej. mani, cacahuete, crema de mani, arbol'}"
+                                style="width: 100%; height: 42px; border-radius: 12px; border: 1.5px solid #CBD5E1; padding: 0 14px; font-size: 14px; color: #0F172A; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 8px; flex-shrink: 0;">
+                            <button type="button" onclick="document.getElementById('${modalId}').remove()" 
+                                style="height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid #CBD5E1; background: #F8FAFC; color: #475569; font-weight: 600; font-size: 14px; cursor: pointer;">
+                                ${isEn ? 'Cancel' : 'Cancelar'}
+                            </button>
+                            <button type="submit" 
+                                style="height: 42px; padding: 0 24px; border-radius: 999px; border: none; background: #10B981; color: #FFFFFF; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+                                <span>${isEn ? 'Save Allergen' : 'Guardar Alérgeno'}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                const nameInput = document.getElementById('allergenNameInput');
+                if (nameInput) nameInput.focus();
+            }, 100);
+        }
+
+        selectModalIcon(icon) {
+            const input = document.getElementById('selectedAllergenIcon');
+            if (input) input.value = icon;
+            document.querySelectorAll('.allergen-icon-btn').forEach(btn => {
+                const isSelected = btn.getAttribute('data-icon') === icon;
+                btn.style.borderColor = isSelected ? '#10B981' : '#E2E8F0';
+                btn.style.background = isSelected ? '#ECFDF5' : '#F8FAFC';
+                btn.style.color = isSelected ? '#059669' : '#64748B';
+            });
+            const preview = document.querySelector('#modalIconPreview .material-symbols-outlined');
+            if (preview) preview.textContent = icon;
+        }
+
+        updateModalColor(color) {
+            const preview = document.getElementById('modalIconPreview');
+            if (preview) {
+                preview.style.background = color + '18';
+                preview.style.color = color;
+            }
+        }
+
+        submitAllergenForm(allergenId = '') {
+            const nameInput = document.getElementById('allergenNameInput');
+            const iconInput = document.getElementById('selectedAllergenIcon');
+            const colorInput = document.getElementById('selectedAllergenColor');
+            const hidesInput = document.getElementById('allergenHidesInput');
+            const risksInput = document.getElementById('allergenRisksInput');
+            const keywordsInput = document.getElementById('allergenKeywordsInput');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            if (!name) return;
+
+            const icon = iconInput ? iconInput.value : 'spa';
+            const color = colorInput ? colorInput.value : '#10B981';
+            const hides = hidesInput ? hidesInput.value.trim() : '';
+            const risks = risksInput ? risksInput.value.trim() : '';
+            const keywords = keywordsInput ? keywordsInput.value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [];
+
+            if (!Array.isArray(this.allergenDefinitions)) {
+                this.allergenDefinitions = [];
+            }
+
+            const isEdit = !!allergenId;
+            const id = isEdit ? allergenId : (name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString().slice(-4));
+
+            const newAllergen = {
+                id,
+                name_es: name,
+                name_en: name,
+                icon,
+                color,
+                bg: color + '15',
+                border: color + '30',
+                whereItHides_es: hides,
+                whereItHides_en: hides,
+                contaminationRisks_es: risks,
+                contaminationRisks_en: risks,
+                keywords: keywords.length > 0 ? keywords : [name.toLowerCase()]
+            };
+
+            if (isEdit) {
+                const idx = this.allergenDefinitions.findIndex(a => a.id === allergenId);
+                if (idx !== -1) {
+                    this.allergenDefinitions[idx] = newAllergen;
+                } else {
+                    this.allergenDefinitions.push(newAllergen);
+                }
+            } else {
+                this.allergenDefinitions.push(newAllergen);
+            }
+
+            this.saveToSupabase({ allergen_definitions: this.allergenDefinitions });
+
+            const modal = document.getElementById('allergenEditorModal');
+            if (modal) modal.remove();
+
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: isEdit ? `Alérgeno "${name}" actualizado` : `Alérgeno "${name}" registrado correctamente`,
+                    type: 'success'
+                });
+            }
+
+            if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                window.dashboard.renderAllergensView();
+            }
+        }
+
+        confirmDeleteAllergen(allergenId) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const allg = (this.allergenDefinitions || []).find(a => a.id === allergenId);
+            const name = allg ? (allg.name_es || allg.name_en || allergenId) : allergenId;
+            
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: isEn ? `¿Eliminar alérgeno "${name}" de la carta?` : `¿Eliminar alérgeno "${name}" de la carta?`,
+                    actionText: isEn ? 'Eliminar' : 'Eliminar',
+                    cancelText: isEn ? 'Cancelar' : 'Cancelar',
+                    actionColor: '#EF4444',
+                    onConfirm: () => {
+                        this.deleteAllergen(allergenId);
+                    }
+                });
+            }
+        }
+
+        deleteAllergen(allergenId) {
+            this.allergenDefinitions = (this.allergenDefinitions || []).filter(a => a.id !== allergenId);
+            this.saveToSupabase({ allergen_definitions: this.allergenDefinitions });
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: 'Alérgeno eliminado correctamente',
+                    type: 'success'
+                });
+            }
+            if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                window.dashboard.renderAllergensView();
+            }
+        }
+
+        async createRestaurantMenu(restaurantName = 'Mi Restaurante', options = false) {
+            try {
+                const sb = window.supabaseClient;
+                if (!sb) return;
+                const { data: { user } } = await sb.auth.getUser();
+                if (!user) return;
+
+                const { data: userData } = await sb.from('users')
+                    .select('id, email')
+                    .eq('auth_user_id', user.id)
+                    .single();
+
+                if (!userData) return;
+
+                const isObj = typeof options === 'object' && options !== null;
+                const withDefaults = isObj ? !!options.withDefaults : !!options;
+                const logoUrl = isObj ? (options.logo_url || null) : null;
+                const websiteUrl = isObj ? (options.website_url || null) : null;
+
+                const defaultData = window.STANLEYS_MENU_DATA || {};
+                const defaultAllergens = window.STANLEYS_OFFICIAL_ALLERGENS || [];
+
+                const payload = {
+                    owner_user_id: userData.id,
+                    restaurant_name: restaurantName,
+                    logo_url: logoUrl || (withDefaults ? 'assets/images/stanleys-logo.png' : null),
+                    website_url: websiteUrl || (withDefaults ? 'https://www.stanleyssw16.com/food' : null),
+                    info: withDefaults ? (defaultData.info || {}) : {},
+                    doc_main_url: withDefaults ? 'assets/pdf/stanleys-main-menu.pdf' : null,
+                    doc_main_name: withDefaults ? 'stanleys-main-menu.pdf' : null,
+                    doc_main_type: withDefaults ? 'application/pdf' : null,
+                    doc_sunday_url: withDefaults ? 'assets/pdf/stanleys-sunday-menu.pdf' : null,
+                    doc_sunday_name: withDefaults ? 'stanleys-sunday-menu.pdf' : null,
+                    doc_sunday_type: withDefaults ? 'application/pdf' : null,
+                    sections: withDefaults ? (defaultData.sections || []) : [
+                        { id: 'main', name_es: 'Menú Principal', name_en: 'Main Menu', icon: 'restaurant', categories: [
+                            { id: 'starters', name_es: 'Entrantes', name_en: 'Starters', icon: 'tapas', items: [] },
+                            { id: 'mains', name_es: 'Platos Principales', name_en: 'Main Dishes', icon: 'lunch_dining', items: [] },
+                            { id: 'desserts', name_es: 'Postres', name_en: 'Desserts', icon: 'icecream', items: [] }
+                        ]}
+                    ],
+                    custom_items: [],
+                    removed_items: [],
+                    availability: {},
+                    official_allergens: withDefaults ? defaultAllergens : []
+                };
+
+                const { data, error } = await sb.from('restaurant_menus').insert(payload).select().single();
+                if (error) throw error;
+
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: `✅ Carta de "${restaurantName}" creada con éxito`,
+                        type: 'success'
+                    });
+                }
+
+                await this.syncFromSupabase();
+                if (window.dashboard && window.dashboard.currentView === 'allergens') {
+                    window.dashboard.renderAllergensView();
+                }
+            } catch (err) {
+                console.error('Error creating restaurant menu:', err);
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: 'No se pudo crear el menú: ' + (err.message || err),
+                        type: 'error'
+                    });
+                }
+            }
         }
 
         toggleItemAvailability(itemId, event) {
@@ -280,14 +1309,19 @@
         }
 
         // Obtener todos los platos combinando datos fijos y personalizados, omitiendo eliminados
+        // Obtener todos los platos combinando datos del restaurante y personalizados, omitiendo eliminados
         getAllSections() {
-            const data = window.STANLEYS_MENU_DATA || {};
-            const rawSections = JSON.parse(JSON.stringify(data.sections || []));
-            const removedSet = new Set(this.removedItemIds);
+            if (!this.hasMenu) return [];
+            const isStanley = this.isStanleyOriginal();
+            const sectionsToUse = (this.sections && this.sections.length > 0)
+                ? this.sections
+                : (isStanley ? (window.STANLEYS_MENU_DATA?.sections || []) : []);
+            const rawSections = JSON.parse(JSON.stringify(sectionsToUse));
+            const removedSet = new Set(this.removedItemIds || []);
 
             // Filtrar eliminados y anotar metadatos de categoría
             rawSections.forEach(section => {
-                section.categories.forEach(cat => {
+                (section.categories || []).forEach(cat => {
                     cat.items = (cat.items || []).filter(item => !removedSet.has(item.id));
                     cat.items.forEach(item => {
                         item.categoryName_es = cat.name_es;
@@ -299,10 +1333,10 @@
             });
 
             // Agregar custom items a su categoría
-            this.customItems.forEach(item => {
+            (this.customItems || []).forEach(item => {
                 let found = false;
                 for (const sec of rawSections) {
-                    for (const cat of sec.categories) {
+                    for (const cat of (sec.categories || [])) {
                         if (cat.id === item.categoryId) {
                             item.categoryName_es = cat.name_es;
                             item.categoryName_en = cat.name_en;
@@ -314,7 +1348,7 @@
                     }
                     if (found) break;
                 }
-                if (!found && rawSections[0] && rawSections[0].categories[0]) {
+                if (!found && rawSections[0] && rawSections[0].categories && rawSections[0].categories[0]) {
                     const fallbackCat = rawSections[0].categories[0];
                     item.categoryName_es = fallbackCat.name_es;
                     item.categoryName_en = fallbackCat.name_en;
@@ -324,6 +1358,34 @@
             });
 
             return rawSections;
+        }
+
+        getOfficialAllergens() {
+            if (!this.hasMenu) return [];
+            const isStanley = this.isStanleyOriginal();
+            const base = (this.officialAllergens && this.officialAllergens.length > 0)
+                ? this.officialAllergens
+                : (isStanley ? (window.STANLEYS_OFFICIAL_ALLERGENS || []) : []);
+            const removedSet = new Set(this.removedItemIds || []);
+            let list = base.filter(d => !removedSet.has(d.id));
+
+            if (this.customItems && this.customItems.length > 0) {
+                this.customItems.forEach(ci => {
+                    if (removedSet.has(ci.id)) return;
+                    list.push({
+                        id: ci.id,
+                        section: (ci.sectionId === 'sunday' ? 'SUNDAY ROAST' : 'MAINS'),
+                        name_en: ci.name,
+                        name_es: ci.name,
+                        name: ci.name,
+                        allergens: ci.allergens || [],
+                        crossContamination: ci.crossContamination || [],
+                        rawAllergens: {},
+                        tags: ci.tags || []
+                    });
+                });
+            }
+            return list;
         }
 
         // Gestión: Eliminar un plato que ya no está en la carta del restaurante
@@ -362,9 +1424,7 @@
                     onConfirm: doDelete
                 });
             } else {
-                if (confirm(confirmMsg)) {
-                    doDelete();
-                }
+                doDelete();
             }
         }
 
@@ -394,9 +1454,7 @@
                     onConfirm: doReset
                 });
             } else {
-                if (confirm(confirmMsg)) {
-                    doReset();
-                }
+                doReset();
             }
         }
 
@@ -454,7 +1512,7 @@
                                 <span>${isEn ? 'Add New Dish to Menu' : 'Agregar Nuevo Plato a la Carta'}</span>
                             </h1>
                             <p style="margin: 3px 0 0 0; font-size: 13.5px; color: #6B7280;">
-                                ${isEn ? 'Add seasonal specials, new creations or web updates to Stanley’s food menu.' : 'Añade novedades que salgan en la web de Stanley’s o especiales del chef.'}
+                                ${isEn ? `Add seasonal specials, new creations or web updates to ${this.restaurantName || 'the'} food menu.` : `Añade novedades o especiales del chef a la carta de ${this.restaurantName || 'tu restaurante'}.`}
                             </p>
                         </div>
                     </div>
@@ -583,8 +1641,8 @@
                         message: 'Por favor ingresa el nombre del plato.',
                         type: 'error'
                     });
-                } else {
-                    alert('Por favor ingresa el nombre del plato.');
+                } else if (window.showToast) {
+                    window.showToast('Por favor ingresa el nombre del plato.', 'error');
                 }
                 if (nameEl) nameEl.focus();
                 return;
@@ -703,6 +1761,9 @@
 
         renderDocumentView(container) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const isStanley = this.isStanleyOriginal();
+            const hasSundayDoc = isStanley || !!this.activeMenu?.doc_sunday_url;
+            const restaurantTitle = this.restaurantName || (isEn ? 'Restaurant' : 'Restaurante');
 
             container.innerHTML = `
                 <div class="menu-doc-view-container">
@@ -715,7 +1776,7 @@
                             <div>
                                 <h1 style="margin: 0; font-size: clamp(19px, 3vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
                                     <span class="material-symbols-outlined" style="color: #DC2626; font-size: 24px;">picture_as_pdf</span>
-                                    <span>${isEn ? 'Official Menu Document & Photos' : 'Carta Oficial de Stanley\'s (Documento / Foto)'}</span>
+                                    <span>${isEn ? `Official Menu for ${restaurantTitle}` : `Carta Oficial de ${restaurantTitle} (Documento / Foto)`}</span>
                                 </h1>
                                 <p style="margin: 3px 0 0 0; font-size: 13px; color: #6B7280;">
                                     ${isEn ? 'View official menu document or upload new photos when kitchen changes.' : 'Visualiza la carta oficial o sube fotos nuevas cuando cambie la carta.'}
@@ -723,17 +1784,19 @@
                             </div>
                         </div>
 
-                        <!-- Macro Tabs Switcher -->
-                        <div class="menu-doc-tabs" style="background: #F3F4F6; padding: 4px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;">
-                            <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'main' ? 'active' : ''}" id="docTabMain" onclick="window.restaurantMenu.switchDocTab('main')">
-                                <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
-                                <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal'}</span>
-                            </button>
-                            <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'sunday' ? 'active' : ''}" id="docTabSunday" onclick="window.restaurantMenu.switchDocTab('sunday')">
-                                <span class="material-symbols-outlined" style="font-size: 16px;">outdoor_grill</span>
-                                <span>${isEn ? 'Sunday Roasts' : 'Sunday Roasts'}</span>
-                            </button>
-                        </div>
+                        <!-- Macro Tabs Switcher (Solo si tiene Sunday Roasts o múltiples cartas) -->
+                        ${hasSundayDoc ? `
+                            <div class="menu-doc-tabs" style="background: #F3F4F6; padding: 4px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;">
+                                <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'main' ? 'active' : ''}" id="docTabMain" onclick="window.restaurantMenu.switchDocTab('main')">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
+                                    <span>${isEn ? 'Main Menu' : 'Menú Principal'}</span>
+                                </button>
+                                <button type="button" class="menu-doc-tab-btn ${this.currentDocTab === 'sunday' ? 'active' : ''}" id="docTabSunday" onclick="window.restaurantMenu.switchDocTab('sunday')">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">outdoor_grill</span>
+                                    <span>Sunday Roasts</span>
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <!-- Actions & Controls Toolbar -->
@@ -744,38 +1807,38 @@
                                 <span class="material-symbols-outlined" style="font-size: 18px;">upload_file</span>
                                 <span>${isEn ? 'Upload New Photo or PDF' : 'Subir Nueva Foto o PDF'}</span>
                             </button>
-                            <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 38px; padding: 0 16px; font-size: 13px; font-weight: 600; align-items: center; gap: 6px;" title="Restaurar documento original">
+                            <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 38px; padding: 0 16px; font-size: 13px; font-weight: 600; align-items: center; gap: 6px;" title="Restaurar o eliminar documento actual">
                                 <span class="material-symbols-outlined" style="font-size: 17px;">restore</span>
-                                <span>${isEn ? 'Reset to Original' : 'Restaurar Original'}</span>
+                                <span>${isEn ? 'Reset / Remove' : 'Restaurar / Eliminar'}</span>
                             </button>
                         </div>
 
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                        <div id="docControlsGroup" style="display: flex; align-items: center; gap: 6px;">
+                            <button type="button" id="btnDocZoomOut" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">zoom_out</span>
                             </button>
                             <span id="docZoomLevel" style="font-size: 13px; font-weight: 800; color: #374151; min-width: 50px; text-align: center;">100%</span>
-                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                            <button type="button" id="btnDocZoomIn" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">zoom_in</span>
                             </button>
                             <div style="width: 1px; height: 22px; background: #E5E7EB; margin: 0 4px;"></div>
-                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.downloadCurrentDoc()" title="${isEn ? 'Download file' : 'Descargar archivo'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                            <button type="button" id="btnDocDownload" class="btn-icon-m3" onclick="window.restaurantMenu.downloadCurrentDoc()" title="${isEn ? 'Download file' : 'Descargar archivo'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">download</span>
                             </button>
-                            <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.openDocInNewTab()" title="${isEn ? 'Open in new window' : 'Abrir en nueva ventana'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                            <button type="button" id="btnDocNewTab" class="btn-icon-m3" onclick="window.restaurantMenu.openDocInNewTab()" title="${isEn ? 'Open in new window' : 'Abrir en nueva ventana'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">open_in_new</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Adapted Viewport inside System -->
-                    <div class="menu-doc-viewport" id="docViewport" style="background: #FFFFFF; min-height: auto; border-radius: 0 0 16px 16px; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                    <div class="menu-doc-viewport" id="docViewport" style="background: #FFFFFF; min-height: auto; border-radius: 0 0 16px 16px; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 4px 16px rgba(0,0,0,0.04); position: relative;">
                         <div id="docViewerLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #4B5563; min-height: 220px; padding: 30px 0;">
                             <div class="spinner-sm" style="border-top-color: #10B981;"></div>
                             <span style="font-size: 14px; font-weight: 600;">${isEn ? 'Loading menu document...' : 'Cargando documento de la carta...'}</span>
                         </div>
                         <canvas id="docViewerCanvas" style="display: none;"></canvas>
-                        <img id="docViewerImage" style="display: none;" alt="Carta Stanley's">
+                        <img id="docViewerImage" style="display: none;" alt="Carta ${restaurantTitle}">
                     </div>
                 </div>
             `;
@@ -807,38 +1870,98 @@
         }
 
         async loadCurrentDocument() {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
             const loadingEl = document.getElementById('docViewerLoading');
             const canvasEl = document.getElementById('docViewerCanvas');
             const imgEl = document.getElementById('docViewerImage');
             const resetBtn = document.getElementById('btnResetDoc');
+            const controlsGroup = document.getElementById('docControlsGroup');
+
+            // Eliminar estado vacío previo si existía
+            const oldEmpty = document.getElementById('docViewerEmptyState');
+            if (oldEmpty) oldEmpty.remove();
 
             if (loadingEl) loadingEl.style.display = 'flex';
             if (canvasEl) canvasEl.style.display = 'none';
             if (imgEl) imgEl.style.display = 'none';
 
             try {
-                const custom = await MenuDocStorage.getDoc(this.currentDocTab);
-                if (custom && custom.dataUrl) {
-                    if (resetBtn) resetBtn.style.display = 'inline-flex';
-                    this.activeDocFile = custom;
-                    if (custom.type && custom.type.startsWith('image/')) {
-                        if (imgEl) {
-                            imgEl.src = custom.dataUrl;
-                            imgEl.style.display = 'block';
-                            imgEl.style.transform = `scale(${this.docZoom})`;
-                        }
-                        if (loadingEl) loadingEl.style.display = 'none';
-                    } else {
-                        // PDF
-                        await this.renderPdfDoc(custom.dataUrl);
-                    }
-                } else {
+                const isSunday = this.currentDocTab === 'sunday';
+                let docUrl = isSunday ? this.activeMenu?.doc_sunday_url : this.activeMenu?.doc_main_url;
+                let docType = isSunday ? this.activeMenu?.doc_sunday_type : this.activeMenu?.doc_main_type;
+                let docName = isSunday ? this.activeMenu?.doc_sunday_name : this.activeMenu?.doc_main_name;
+
+                // Solo el restaurante original de Alan (Stanley's) tiene los PDFs de fallback
+                if (!docUrl && this.isStanleyOriginal()) {
+                    docUrl = isSunday ? 'assets/pdf/stanleys-sunday-menu.pdf' : 'assets/pdf/stanleys-main-menu.pdf';
+                    docType = 'application/pdf';
+                    docName = isSunday ? 'stanleys-sunday-menu.pdf' : 'stanleys-main-menu.pdf';
+                }
+
+                // SI NO HAY DOCUMENTO SUBIDO: Mostrar estado vacío limpio y amigable
+                if (!docUrl) {
+                    if (loadingEl) loadingEl.style.display = 'none';
+                    if (canvasEl) canvasEl.style.display = 'none';
+                    if (imgEl) imgEl.style.display = 'none';
                     if (resetBtn) resetBtn.style.display = 'none';
-                    const defaultPdf = this.currentDocTab === 'sunday' 
-                        ? 'assets/pdf/stanleys-sunday-menu.pdf' 
-                        : 'assets/pdf/stanleys-main-menu.pdf';
-                    this.activeDocFile = { type: 'application/pdf', dataUrl: defaultPdf, name: (this.currentDocTab === 'sunday' ? 'stanleys-sunday-menu.pdf' : 'stanleys-main-menu.pdf') };
-                    await this.renderPdfDoc(defaultPdf);
+                    if (controlsGroup) controlsGroup.style.opacity = '0.35';
+
+                    this.activeDocFile = null;
+
+                    const vp = document.getElementById('docViewport');
+                    if (vp) {
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.id = 'docViewerEmptyState';
+                        emptyDiv.style.cssText = 'padding: 55px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; width: 100%; box-sizing: border-box;';
+                        emptyDiv.innerHTML = `
+                            <div style="width: 76px; height: 76px; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center; color: #6B7280; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                                <span class="material-symbols-outlined" style="font-size: 38px; color: #4B5563;">upload_file</span>
+                            </div>
+                            <div style="max-width: 460px;">
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #111827;">
+                                    ${isEn ? 'No official menu document uploaded yet' : 'Aún no hay carta oficial subida'}
+                                </h3>
+                                <p style="margin: 0; font-size: 13.5px; color: #6B7280; line-height: 1.5;">
+                                    ${isEn ? 'Upload the official PDF or photo of this restaurant menu so your team can consult the original printed version at any time.' : 'Sube la carta oficial de tu restaurante en formato PDF o foto para que tu equipo pueda consultarla en cualquier momento.'}
+                                </p>
+                            </div>
+                            ${(this.isOwner || this.permission === 'edit') ? `
+                                <button type="button" class="btn-primary" onclick="document.getElementById('menuDocFileInput').click()" style="border-radius: 999px; height: 42px; padding: 0 24px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">upload_file</span>
+                                    <span>${isEn ? 'Upload Menu (PDF / Photo)' : 'Subir Carta Oficial (PDF o Foto)'}</span>
+                                </button>
+                            ` : `
+                                <p style="margin: 6px 0 0 0; font-size: 13px; color: #9CA3AF; font-style: italic;">
+                                    ${isEn ? 'The restaurant owner has not uploaded an official menu document yet.' : 'El propietario del restaurante aún no ha subido la carta oficial.'}
+                                </p>
+                            `}
+                        `;
+                        vp.appendChild(emptyDiv);
+                    }
+                    return;
+                }
+
+                // SI HAY DOCUMENTO: Habilitar controles
+                if (controlsGroup) controlsGroup.style.opacity = '1';
+
+                if (resetBtn) {
+                    const isCustom = docUrl && !docUrl.startsWith('assets/');
+                    resetBtn.style.display = (isCustom && (this.isOwner || this.permission === 'edit')) ? 'inline-flex' : 'none';
+                }
+
+                this.activeDocFile = { type: docType, dataUrl: docUrl, name: docName };
+
+                const isImage = (docType && docType.startsWith('image/')) || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(docUrl);
+
+                if (isImage) {
+                    if (imgEl) {
+                        imgEl.src = docUrl;
+                        imgEl.style.display = 'block';
+                        imgEl.style.transform = `scale(${this.docZoom})`;
+                    }
+                    if (loadingEl) loadingEl.style.display = 'none';
+                } else {
+                    await this.renderPdfDoc(docUrl);
                 }
             } catch (err) {
                 console.error('Error loading menu document:', err);
@@ -889,38 +2012,136 @@
             const file = e.target && e.target.files && e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const dataUrl = reader.result;
-                await MenuDocStorage.setDoc(this.currentDocTab, {
-                    type: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
-                    dataUrl: dataUrl,
-                    name: file.name
-                });
-                this.loadCurrentDocument();
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const sb = window.supabaseClient;
+            if (!sb) {
                 if (window.showActionToast) {
-                    const isSunday = this.currentDocTab === 'sunday';
                     window.showActionToast({
-                        message: `✅ Carta de ${isSunday ? 'Sunday Roasts' : 'Menú Principal'} actualizada con tu nueva foto/documento`,
+                        message: isEn ? 'Server connection not available' : 'No se pudo conectar con el servidor',
+                        type: 'error'
+                    });
+                }
+                return;
+            }
+
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: isEn ? '⏳ Uploading menu document to cloud...' : '⏳ Subiendo documento a la nube...',
+                    type: 'info'
+                });
+            }
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const menuId = this.activeMenu?.id || 'default';
+                const fileName = `menu_${menuId}_${this.currentDocTab}_${Date.now()}.${fileExt}`;
+
+                const { data: uploadData, error: uploadErr } = await sb.storage
+                    .from('menu-files')
+                    .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+                if (uploadErr) {
+                    console.error('Error uploading menu doc to storage:', uploadErr);
+                    throw uploadErr;
+                }
+
+                const { data: { publicUrl } } = sb.storage.from('menu-files').getPublicUrl(fileName);
+
+                const isSunday = this.currentDocTab === 'sunday';
+                const updatePayload = isSunday 
+                    ? { doc_sunday_url: publicUrl, doc_sunday_name: file.name, doc_sunday_type: file.type, updated_at: new Date().toISOString() }
+                    : { doc_main_url: publicUrl, doc_main_name: file.name, doc_main_type: file.type, updated_at: new Date().toISOString() };
+
+                if (this.activeMenu?.id) {
+                    await sb.from('restaurant_menus')
+                        .update(updatePayload)
+                        .eq('id', this.activeMenu.id);
+
+                    if (isSunday) {
+                        this.activeMenu.doc_sunday_url = publicUrl;
+                        this.activeMenu.doc_sunday_name = file.name;
+                        this.activeMenu.doc_sunday_type = file.type;
+                    } else {
+                        this.activeMenu.doc_main_url = publicUrl;
+                        this.activeMenu.doc_main_name = file.name;
+                        this.activeMenu.doc_main_type = file.type;
+                    }
+                }
+
+                this.loadCurrentDocument();
+
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: isEn ? '✅ Official menu document updated and synchronized!' : '✅ Carta oficial actualizada en la nube y sincronizada para todos los usuarios',
                         type: 'success'
                     });
                 }
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                console.error('Error al subir documento del menú:', err);
+                if (window.showActionToast) {
+                    window.showActionToast({
+                        message: isEn ? '❌ Could not upload document' : '❌ Error al subir documento a la nube',
+                        type: 'error'
+                    });
+                }
+            }
         }
 
         async resetCurrentDocToDefault() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
-            const msg = isEn ? 'Reset to the official original menu document?' : '¿Deseas restaurar la carta oficial original?';
-            if (confirm(msg)) {
-                await MenuDocStorage.removeDoc(this.currentDocTab);
-                this.loadCurrentDocument();
-                if (window.showActionToast) {
-                    window.showActionToast({
-                        message: '✅ Carta original restaurada',
-                        type: 'success'
-                    });
+            const isStanley = this.isStanleyOriginal();
+            const msg = isStanley 
+                ? (isEn ? 'Reset to the official original menu document?' : '¿Deseas restaurar la carta oficial original?')
+                : (isEn ? 'Remove this uploaded menu document?' : '¿Deseas eliminar este documento subido?');
+
+            const doReset = async () => {
+                try {
+                    const isSunday = this.currentDocTab === 'sunday';
+                    const defaultUrl = isStanley ? (isSunday ? 'assets/pdf/stanleys-sunday-menu.pdf' : 'assets/pdf/stanleys-main-menu.pdf') : null;
+                    const defaultName = isStanley ? (isSunday ? 'stanleys-sunday-menu.pdf' : 'stanleys-main-menu.pdf') : null;
+                    const defaultType = isStanley ? 'application/pdf' : null;
+
+                    const updatePayload = isSunday 
+                        ? { doc_sunday_url: defaultUrl, doc_sunday_name: defaultName, doc_sunday_type: defaultType, updated_at: new Date().toISOString() }
+                        : { doc_main_url: defaultUrl, doc_main_name: defaultName, doc_main_type: defaultType, updated_at: new Date().toISOString() };
+
+                    if (this.activeMenu?.id && window.supabaseClient) {
+                        await window.supabaseClient.from('restaurant_menus').update(updatePayload).eq('id', this.activeMenu.id);
+                        if (isSunday) {
+                            this.activeMenu.doc_sunday_url = defaultUrl;
+                            this.activeMenu.doc_sunday_name = defaultName;
+                            this.activeMenu.doc_sunday_type = defaultType;
+                        } else {
+                            this.activeMenu.doc_main_url = defaultUrl;
+                            this.activeMenu.doc_main_name = defaultName;
+                            this.activeMenu.doc_main_type = defaultType;
+                        }
+                    }
+
+                    this.loadCurrentDocument();
+                    if (window.showActionToast) {
+                        window.showActionToast({
+                            message: isStanley 
+                                ? (isEn ? '✅ Original menu document restored' : '✅ Carta oficial original restaurada')
+                                : (isEn ? '✅ Menu document removed' : '✅ Documento de la carta eliminado'),
+                            type: 'success'
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error resetting doc:', e);
                 }
+            };
+
+            if (window.showActionToast) {
+                window.showActionToast({
+                    message: msg,
+                    actionText: isStanley ? (isEn ? 'Reset' : 'Restaurar') : (isEn ? 'Remove' : 'Eliminar'),
+                    cancelText: isEn ? 'Cancel' : 'Cancelar',
+                    actionColor: isStanley ? '#10B981' : '#EF4444',
+                    onConfirm: doReset
+                });
+            } else {
+                doReset();
             }
         }
 
@@ -943,7 +2164,8 @@
             if (!this.activeDocFile || !this.activeDocFile.dataUrl) return;
             const a = document.createElement('a');
             a.href = this.activeDocFile.dataUrl;
-            a.download = this.activeDocFile.name || `stanleys-${this.currentDocTab}-menu.pdf`;
+            const fallbackName = `${(this.restaurantName || 'carta').toLowerCase().replace(/\s+/g, '_')}_${this.currentDocTab}.pdf`;
+            a.download = this.activeDocFile.name || fallbackName;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -1051,11 +2273,14 @@
         }
 
         getRemovedItems() {
-            const data = window.STANLEYS_MENU_DATA || {};
+            const isStanley = this.isStanleyOriginal();
+            const sectionsToUse = (this.sections && this.sections.length > 0)
+                ? this.sections
+                : (isStanley ? (window.STANLEYS_MENU_DATA?.sections || []) : []);
             const removedSet = new Set(this.removedItemIds);
             const result = [];
 
-            (data.sections || []).forEach(section => {
+            sectionsToUse.forEach(section => {
                 (section.categories || []).forEach(cat => {
                     (cat.items || []).forEach(item => {
                         if (removedSet.has(item.id)) {
@@ -1070,6 +2295,17 @@
                         }
                     });
                 });
+            });
+
+            (this.customItems || []).forEach(item => {
+                if (removedSet.has(item.id)) {
+                    result.push({
+                        ...item,
+                        categoryName_es: item.categoryName_es || 'Personalizados',
+                        categoryName_en: item.categoryName_en || 'Custom',
+                        categoryIcon: item.categoryIcon || 'restaurant'
+                    });
+                }
             });
 
             return result;
@@ -1192,6 +2428,54 @@
             const container = document.getElementById(this.containerId);
             if (!container) return;
 
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+            if (!this.hasMenu) {
+                if (this.isLoading) {
+                    container.innerHTML = `
+                        <div class="allergens-module menu-module-container" style="padding: 24px 0;">
+                            <div class="menu-hero-card" style="text-align: center; padding: 64px 24px; background: #FFFFFF; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #E2E8F0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 280px;">
+                                <div style="width: 58px; height: 58px; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(37,99,235,0.12);">
+                                    <div class="spinner-sm" style="border-top-color: #2563EB; width: 28px; height: 28px; border-width: 3px;"></div>
+                                </div>
+                                <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 6px 0; letter-spacing: -0.01em;">
+                                    ${isEn ? 'Loading Restaurant Menu...' : 'Cargando Carta de Restaurante...'}
+                                </h3>
+                                <p style="color: #64748B; font-size: 14px; margin: 0; max-width: 440px; line-height: 1.5;">
+                                    ${isEn ? 'Verifying kitchen status and preparing active dishes...' : 'Sincronizando información de la carta y platos activos...'}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="allergens-module menu-module-container">
+                        <div class="menu-hero-card" style="text-align: center; padding: 56px 24px; background: #FFFFFF; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #E2E8F0;">
+                            <div style="width: 80px; height: 80px; margin: 0 auto 20px auto; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.12);">
+                                <span class="material-symbols-outlined" style="font-size: 42px; color: #2563EB;">storefront</span>
+                            </div>
+                            <h2 style="font-size: 24px; font-weight: 900; color: #0F172A; margin: 0 0 10px 0; letter-spacing: -0.02em;">
+                                ${isEn ? 'No Restaurant Menu Active' : 'No tienes una carta de restaurante activa'}
+                            </h2>
+                            <p style="color: #64748B; font-size: 15px; max-width: 540px; margin: 0 auto 28px auto; line-height: 1.6;">
+                                ${isEn 
+                                    ? 'Start by creating your restaurant menu or ask your team owner to share their menu with you. Your recipes and private space remain 100% independent.' 
+                                    : 'Empieza creando la carta de tu restaurante o solicita al propietario de tu cocina que comparta su menú contigo. Tus recetas y tu espacio personal se mantienen 100% independientes.'}
+                            </p>
+                            <div style="display: flex; align-items: center; justify-content: center;">
+                                <button type="button" class="btn-primary" onclick="window.restaurantMenu.openCreateMenuModal()" style="border-radius: 999px; height: 46px; padding: 0 28px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
+                                    <span>${isEn ? 'Create Restaurant Menu' : 'Crear Carta de Restaurante'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
             if (this.isAddingDish) {
                 this.renderAddDishForm(container);
                 return;
@@ -1202,9 +2486,7 @@
                 return;
             }
 
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
-            const data = window.STANLEYS_MENU_DATA || {};
-            const info = data.info || {};
+            const info = this.info || {};
             const allSections = this.getAllSections();
 
             // Filtrar secciones según tab
@@ -1258,6 +2540,11 @@
                 this.activeCategory = 'all';
             }
 
+            const isStanley = this.isStanleyOriginal();
+            const defaultLogo = isStanley ? 'assets/images/stanleys-logo.png' : 'assets/icons/favicon-196.png';
+            const logoSrc = this.logoUrl || defaultLogo;
+            const website = this.websiteUrl || (isStanley ? (info.website || 'https://www.stanleyssw16.com/food') : null);
+
             let html = `
                 <div class="allergens-module menu-module-container">
                     <!-- Modern Header Banner -->
@@ -1267,19 +2554,43 @@
                             <span class="material-symbols-outlined">help</span>
                         </button>
 
+                        <!-- Header Top Row (Logo, Website, Name & Badge) -->
                         <div class="allergens-hero-top-row" style="align-items: center;">
-                            <a href="${info.website || 'https://www.stanleyssw16.com/food'}" target="_blank" rel="noopener" class="menu-hero-logo" title="${isEn ? 'Visit official Stanley’s website' : 'Visitar web oficial de Stanley’s'}" style="text-decoration: none; cursor: pointer; display: inline-flex;">
-                                <img src="assets/images/stanleys-logo.png" alt="Stanley's of Streatham">
-                            </a>
+                            ${website ? `
+                                <a href="${website}" target="_blank" rel="noopener noreferrer" class="menu-hero-logo" title="${isEn ? 'Visit official website' : 'Visitar página web oficial'}" style="text-decoration: none; cursor: pointer; display: inline-flex; width: 62px; height: 62px; border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1.5px solid #E2E8F0; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 4px; box-sizing: border-box;">
+                                    <img src="${logoSrc}" alt="${this.restaurantName}" style="width: 100%; height: 100%; object-fit: contain;">
+                                </a>
+                            ` : `
+                                <div class="menu-hero-logo" title="${this.restaurantName}" style="display: inline-flex; cursor: default; width: 62px; height: 62px; border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1.5px solid #E2E8F0; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 4px; box-sizing: border-box;">
+                                    <img src="${logoSrc}" alt="${this.restaurantName}" style="width: 100%; height: 100%; object-fit: contain;">
+                                </div>
+                            `}
                             <div class="allergens-hero-heading-block" style="flex: 1;">
-                                <div class="menu-hero-badge-row">
+                                <div class="menu-hero-badge-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span class="m3-uk-fsa-badge" style="background: #EFF6FF; color: #1E40AF; font-weight: 800;">
                                         ${totalDishesAll} ${isEn ? 'Active Dishes' : 'Platos Activos'}
                                     </span>
+                                    ${this.isOwner ? `
+                                        <span class="m3-uk-fsa-badge" style="background: #FEF3C7; color: #92400E; font-weight: 800;">
+                                            👑 ${isEn ? 'Owner' : 'Propietario'}
+                                        </span>
+                                    ` : ''}
+                                    ${this.isShared ? `
+                                        <span class="m3-uk-fsa-badge" style="background: #E0E7FF; color: #3730A3; font-weight: 800;">
+                                            👥 ${isEn ? 'Collaborator' : 'Colaborador'}
+                                        </span>
+                                    ` : ''}
                                 </div>
-                                <h1 style="margin: 4px 0 2px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
-                                    ${isEn ? 'Food Menu' : 'Carta de Comida'}
-                                </h1>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <h1 style="margin: 4px 0 2px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
+                                        ${this.restaurantName || (isEn ? 'Food Menu' : 'Carta de Comida')}
+                                    </h1>
+                                    ${this.isOwner ? `
+                                        <button type="button" onclick="window.restaurantMenu.openEditMenuModal()" title="${isEn ? 'Edit restaurant details (name, logo, web)' : 'Editar restaurante (nombre, logo, web)'}" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 50%; width: 32px; height: 32px; min-width: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #475569; transition: all 0.2s;" onmouseenter="this.style.background='#E2E8F0'" onmouseleave="this.style.background='#F1F5F9'">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
                                 <p style="margin: 0; font-size: 13.5px; color: #4B5563;">
                                     ${isEn ? 'Complete digital restaurant menu. Dishes can be marked out-of-stock (86) or updated dynamically.' : 'Carta digital completa y abierta. Puedes marcar platos agotados (86) o agregar novedades cuando cambie la web.'}
                                 </p>
@@ -1288,6 +2599,28 @@
 
                         <!-- Header Action Buttons -->
                         <div class="menu-hero-actions">
+                            ${this.isOwner ? `
+                                <button type="button" class="menu-action-pill" onclick="window.restaurantMenu.shareRestaurantMenu()" title="${isEn ? 'Share menu and allergen matrix with your kitchen team' : 'Compartir carta y matriz de alérgenos con tu equipo'}" style="background: #ECFDF5; color: #065F46; border: 1.5px solid #A7F3D0; font-weight: 700;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">group_add</span>
+                                    <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
+                                </button>
+                                <button type="button" class="menu-action-pill" onclick="window.restaurantMenu.confirmDeleteRestaurantMenu()" title="${isEn ? 'Permanently delete this restaurant menu and clear space' : 'Eliminar permanentemente esta carta y dejar el espacio vacío'}" style="background: #FFF1F2; color: #E11D48; border: 1.5px solid #FECDD3; font-weight: 700;">
+                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #E11D48;">delete</span>
+                                    <span>${isEn ? 'Delete Menu' : 'Eliminar Carta'}</span>
+                                </button>
+                            ` : ''}
+
+                            ${this.isShared ? `
+                                <span class="menu-action-pill" style="background: #F1F5F9; color: #334155; border: 1.5px solid #CBD5E1; cursor: default;">
+                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #64748B;">group</span>
+                                    <span>${isEn ? 'Shared by' : 'Compartido por'}: <strong>${this.sharedBy?.first_name || this.sharedBy?.email || 'Propietario'}</strong></span>
+                                </span>
+                                <button type="button" class="menu-action-pill" onclick="window.restaurantMenu.leaveSharedMenu()" title="${isEn ? 'Leave shared menu' : 'Dejar de seguir esta carta'}" style="background: #FFF1F2; color: #9F1239; border: 1.5px solid #FECDD3;">
+                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #E11D48;">logout</span>
+                                    <span>${isEn ? 'Leave Menu' : 'Dejar de seguir'}</span>
+                                </button>
+                            ` : ''}
+
                             <button type="button" class="menu-action-pill menu-pdf-pill" onclick="window.restaurantMenu.openDocumentViewer()" title="${isEn ? 'View official menu PDF / photos and upload new' : 'Ver carta oficial en PDF / foto y actualizar'}">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">picture_as_pdf</span>
                                 <span>${isEn ? 'Official Menu (PDF / Photo)' : 'Carta Oficial (PDF / Foto)'}</span>
@@ -1303,54 +2636,77 @@
                         </div>
                     </div>
 
-                    <!-- Macro Tabs (Todo, Menú Diario, Sunday Roasts) -->
-                    <div class="menu-tabs-bar">
-                        <button class="menu-tab-btn ${this.activeTab === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('all')">
-                            <span class="material-symbols-outlined">menu_book</span>
-                            <span>${isEn ? 'Full Menu (Everything)' : '🍽️ Todo el Menú (Completo)'}</span>
-                            <span class="chip-count" style="margin-left: 4px;">${totalDishesAll}</span>
-                        </button>
-                        <button class="menu-tab-btn ${this.activeTab === 'main' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('main')">
-                            <span class="material-symbols-outlined">restaurant</span>
-                            <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal & Pizzas'}</span>
-                            <span class="chip-count" style="margin-left: 4px;">${mainDishesCount}</span>
-                        </button>
-                        <button class="menu-tab-btn ${this.activeTab === 'sunday' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('sunday')">
-                            <span class="material-symbols-outlined">outdoor_grill</span>
-                            <span>${isEn ? 'Sunday Roasts' : '🥩 Sunday Roasts'}</span>
-                            <span class="chip-count" style="margin-left: 4px;">${sundayDishesCount}</span>
-                            <span class="menu-tab-badge">Domingos 12-8pm</span>
-                        </button>
-                    </div>
-
-                    <!-- Horizontal Scrollable Category Chips Carousel -->
-                    <div class="menu-category-carousel-wrapper">
-                        <button type="button" class="menu-carousel-arrow left" onclick="window.restaurantMenu.scrollChips(-260)" title="${isEn ? 'Previous categories' : 'Categorías anteriores'}">
-                            <span class="material-symbols-outlined">chevron_left</span>
-                        </button>
-                        <div class="menu-category-chips" id="menuCategoryChips" onwheel="window.restaurantMenu.handleChipsWheel(event)">
-                            <button class="menu-category-chip ${this.activeCategory === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('all')">
-                                <span>${isEn ? 'All Categories' : 'Todas las Secciones'}</span>
-                                <span class="chip-count">${currentTabDishes}</span>
+                    <!-- Macro Tabs (Solo si es Stanley o si hay más de 1 sección macro con platos) -->
+                    ${isStanley ? `
+                        <div class="menu-tabs-bar">
+                            <button class="menu-tab-btn ${this.activeTab === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('all')">
+                                <span class="material-symbols-outlined">menu_book</span>
+                                <span>${isEn ? 'Full Menu (Everything)' : '🍽️ Todo el Menú (Completo)'}</span>
+                                <span class="chip-count" style="margin-left: 4px;">${totalDishesAll}</span>
                             </button>
-                            ${categoryList.map(c => `
-                                <button class="menu-category-chip ${this.activeCategory === c.id ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('${c.id}')">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">${c.icon}</span>
-                                    <span>${c.name}</span>
-                                    <span class="chip-count">${c.count}</span>
-                                </button>
-                            `).join('')}
-                            ${outOfStockCount > 0 ? `
-                                <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}" style="white-space: nowrap;">
-                                    <span class="material-symbols-outlined" style="font-size: 16px; color: #DC2626;">do_not_disturb_on</span>
-                                    <span>${outOfStockCount} ${isEn ? '86 Out' : '86 Agotados'}</span>
-                                </div>
-                            ` : ''}
+                            <button class="menu-tab-btn ${this.activeTab === 'main' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('main')">
+                                <span class="material-symbols-outlined">restaurant</span>
+                                <span>${isEn ? 'Main Menu & Pizzas' : 'Menú Principal & Pizzas'}</span>
+                                <span class="chip-count" style="margin-left: 4px;">${mainDishesCount}</span>
+                            </button>
+                            <button class="menu-tab-btn ${this.activeTab === 'sunday' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('sunday')">
+                                <span class="material-symbols-outlined">outdoor_grill</span>
+                                <span>🥩 Sunday Roasts</span>
+                                <span class="chip-count" style="margin-left: 4px;">${sundayDishesCount}</span>
+                                <span class="menu-tab-badge">Domingos 12-8pm</span>
+                            </button>
                         </div>
-                        <button type="button" class="menu-carousel-arrow right" onclick="window.restaurantMenu.scrollChips(260)" title="${isEn ? 'Next categories' : 'Siguientes categorías'}">
-                            <span class="material-symbols-outlined">chevron_right</span>
-                        </button>
-                    </div>
+                    ` : (allSections.length > 1 ? `
+                        <div class="menu-tabs-bar">
+                            <button class="menu-tab-btn ${this.activeTab === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setTab('all')">
+                                <span class="material-symbols-outlined">menu_book</span>
+                                <span>${isEn ? 'All Sections' : '🍽️ Todo el Menú'}</span>
+                                <span class="chip-count" style="margin-left: 4px;">${totalDishesAll}</span>
+                            </button>
+                            ${allSections.map(sec => {
+                                let count = 0;
+                                (sec.categories || []).forEach(cat => { count += (cat.items || []).length; });
+                                return `
+                                    <button class="menu-tab-btn ${this.activeTab === sec.id ? 'active' : ''}" onclick="window.restaurantMenu.setTab('${sec.id}')">
+                                        <span class="material-symbols-outlined">${sec.icon || 'restaurant'}</span>
+                                        <span>${isEn ? (sec.name_en || sec.name_es) : sec.name_es}</span>
+                                        <span class="chip-count" style="margin-left: 4px;">${count}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    ` : '')}
+
+                    ${categoryList.length > 0 ? `
+                        <!-- Horizontal Scrollable Category Chips Carousel -->
+                        <div class="menu-category-carousel-wrapper">
+                            <button type="button" class="menu-carousel-arrow left" onclick="window.restaurantMenu.scrollChips(-260)" title="${isEn ? 'Previous categories' : 'Categorías anteriores'}">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <div class="menu-category-chips" id="menuCategoryChips" onwheel="window.restaurantMenu.handleChipsWheel(event)">
+                                <button class="menu-category-chip ${this.activeCategory === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('all')">
+                                    <span>${isEn ? 'All Categories' : 'Todas las Secciones'}</span>
+                                    <span class="chip-count">${currentTabDishes}</span>
+                                </button>
+                                ${categoryList.map(c => `
+                                    <button class="menu-category-chip ${this.activeCategory === c.id ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('${c.id}')">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">${c.icon}</span>
+                                        <span>${c.name}</span>
+                                        <span class="chip-count">${c.count}</span>
+                                    </button>
+                                `).join('')}
+                                ${outOfStockCount > 0 ? `
+                                    <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}" style="white-space: nowrap;">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; color: #DC2626;">do_not_disturb_on</span>
+                                        <span>${outOfStockCount} ${isEn ? '86 Out' : '86 Agotados'}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <button type="button" class="menu-carousel-arrow right" onclick="window.restaurantMenu.scrollChips(260)" title="${isEn ? 'Next categories' : 'Siguientes categorías'}">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </button>
+                        </div>
+                    ` : ''}
 
                     ${this.searchQuery ? `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 14px; background: #ECFDF5; border-radius: 12px; border: 1px solid #A7F3D0; margin: 4px 0 10px 0;">
@@ -1443,13 +2799,35 @@
             }
 
             if (renderedDishesCount === 0) {
-                sectionsHtml = `
-                    <div class="menu-empty-state">
-                        <span class="material-symbols-outlined" style="font-size: 56px; color: #ccc;">search_off</span>
-                        <h4>${isEn ? 'No dishes match your filter' : 'No se encontraron platos con ese criterio'}</h4>
-                        <p>${isEn ? 'Try another search or select "All Categories".' : 'Intenta con otro término de búsqueda o selecciona "Todas las Secciones".'}</p>
-                    </div>
-                `;
+                if (totalDishesAll === 0) {
+                    sectionsHtml = `
+                        <div class="menu-empty-state" style="padding: 48px 20px; background: #FFFFFF; border-radius: 20px; border: 1.5px dashed #CBD5E1; text-align: center; margin: 24px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                            <div style="width: 72px; height: 72px; border-radius: 50%; background: #F0FDF4; display: flex; align-items: center; justify-content: center; color: #10B981; margin-bottom: 4px;">
+                                <span class="material-symbols-outlined" style="font-size: 38px;">restaurant_menu</span>
+                            </div>
+                            <h4 style="margin: 0; font-size: 19px; font-weight: 800; color: #0F172A;">
+                                ${isEn ? 'Your restaurant menu is empty' : 'La carta de este restaurante está vacía'}
+                            </h4>
+                            <p style="margin: 0; font-size: 14px; color: #64748B; max-width: 440px; line-height: 1.5;">
+                                ${isEn ? 'Start by adding your signature dishes, ingredients, prices, and allergen tags.' : 'Comienza añadiendo tus platos, ingredientes, precios y alérgenos para gestionar tu carta.'}
+                            </p>
+                            ${(this.isOwner || this.permission === 'edit') ? `
+                                <button type="button" class="btn-primary" onclick="window.restaurantMenu.showAddDishForm()" style="border-radius: 999px; height: 44px; padding: 0 24px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+                                    <span>${isEn ? 'Add First Dish' : 'Agregar Primer Plato'}</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    sectionsHtml = `
+                        <div class="menu-empty-state">
+                            <span class="material-symbols-outlined" style="font-size: 56px; color: #ccc;">search_off</span>
+                            <h4>${isEn ? 'No dishes match your filter' : 'No se encontraron platos con ese criterio'}</h4>
+                            <p>${isEn ? 'Try another search or select "All Categories".' : 'Intenta con otro término de búsqueda o selecciona "Todas las Secciones".'}</p>
+                        </div>
+                    `;
+                }
             }
 
             html += `
@@ -1526,7 +2904,7 @@
 
                         ${tagsHtml ? `<div class="menu-item-tags-row">${tagsHtml}</div>` : ''}
 
-                        <p class="menu-item-desc">${desc || (isEn ? 'Chef preparation from Stanley’s SW16' : 'Elaboración artesanal de Stanley’s SW16')}</p>
+                        <p class="menu-item-desc">${desc || (isEn ? `Chef preparation from ${this.restaurantName || 'kitchen'}` : `Elaboración artesanal de ${this.restaurantName || 'cocina'}`)}</p>
 
                         ${allergensHtml}
                         ${crossHtml}

@@ -112,6 +112,11 @@ class DashboardManager {
                 window.notificationManager.init(); // fire-and-forget
             }
 
+            // Sincronizar restaurante con el usuario validado de inmediato
+            if (isAuthenticated && window.restaurantMenu) {
+                window.restaurantMenu.syncFromSupabase();
+            }
+
             const landingEl = document.getElementById('landing-section');
             const dashboardEl = document.getElementById('dashboard-app');
 
@@ -637,6 +642,10 @@ class DashboardManager {
                 window.restaurantMenu.isAddingDish = false;
                 window.restaurantMenu.isViewingDocument = false;
                 window.restaurantMenu.render();
+                // Si no tiene menú o está cargando, asegurar sincronización
+                if (!window.restaurantMenu.hasMenu || window.restaurantMenu.isLoading) {
+                    window.restaurantMenu.syncFromSupabase();
+                }
             }
         }
 
@@ -3629,6 +3638,7 @@ class DashboardManager {
         if (!this.selectedSafeExclusions) this.selectedSafeExclusions = new Set();
         if (this.allergenSearchQuery === undefined) this.allergenSearchQuery = '';
 
+        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         const t = (key, fallback) => (window.i18n && window.i18n.t ? window.i18n.t(key) : fallback) || fallback;
 
@@ -3637,8 +3647,8 @@ class DashboardManager {
                 <!-- Hero Header Material 3 Expressive -->
                 <div class="allergens-hero-m3">
                     <span class="m3-uk-fsa-badge hero-corner-badge">
-                        <span class="material-symbols-outlined" style="font-size: 15px;">verified</span>
-                        <span>FSA UK Compliance</span>
+                        <span class="material-symbols-outlined" style="font-size: 15px;">verified_user</span>
+                        <span>${isEn ? 'Food Safety' : 'Seguridad Alimentaria'}</span>
                     </span>
                     <div class="allergens-hero-top-row">
                         <div class="allergens-hero-icon">
@@ -3648,8 +3658,8 @@ class DashboardManager {
                             <h2>${isEn ? 'Food Allergens & Cross-Contamination' : 'Alergias y Contaminación Cruzada'}</h2>
                             <p class="allergens-hero-desc">
                                 ${isEn 
-                                    ? 'Official guidance in accordance with UK FSA regulations. Learn about the 14 mandatory allergens, uncover hidden risks in stocks and sauces, and prevent cross-contact.' 
-                                    : 'Guía oficial conforme a las normativas de la FSA de Reino Unido. Conoce los 14 alérgenos obligatorios, aprende dónde se esconden en salsas y caldos cotidianos, y previene la contaminación cruzada.'}
+                                    ? 'Official allergen registry, hidden ingredients, and cross-contamination prevention adapted to your kitchen and country regulations.' 
+                                    : 'Registro de alérgenos, ingredientes de riesgo y prevención de contaminación cruzada adaptado a tu cocina y normativa local.'}
                             </p>
                         </div>
                     </div>
@@ -3657,7 +3667,7 @@ class DashboardManager {
                         <div class="allergens-meta-chips allergens-hero-badges">
                             <span class="m3-badge-pill">
                                 <span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span>
-                                ${isEn ? '14 UK Allergens' : '14 Alérgenos UK'}
+                                ${allergens.length} ${isEn ? 'Registered Allergens' : 'Alérgenos Registrados'}
                             </span>
                             <span class="m3-badge-pill">
                                 <span class="material-symbols-outlined" style="font-size: 14px;">kitchen</span>
@@ -3667,6 +3677,18 @@ class DashboardManager {
                                 <span class="material-symbols-outlined" style="font-size: 14px;">warning</span>
                                 ${isEn ? 'Cross-Contact Risks' : 'Protocolos Contaminación'}
                             </span>
+                            ${(window.restaurantMenu && window.restaurantMenu.hasMenu) ? `
+                                <span class="m3-badge-pill" style="background: #ECFDF5; color: #065F46; font-weight: 700;">
+                                    <span class="material-symbols-outlined" style="font-size: 14px; color: #059669;">storefront</span>
+                                    ${window.restaurantMenu.restaurantName || "Mi Restaurante"}
+                                </span>
+                                ${window.restaurantMenu.isShared ? `
+                                    <button type="button" class="m3-badge-pill" onclick="window.restaurantMenu.leaveSharedMenu()" style="cursor: pointer; background: #FFF1F2; color: #E11D48; font-weight: 700; border: 1px solid #FECDD3; display: inline-flex; align-items: center; gap: 4px;" title="${isEn ? 'Leave shared restaurant' : 'Dejar de seguir este restaurante'}">
+                                        <span class="material-symbols-outlined" style="font-size: 14px; color: #E11D48;">logout</span>
+                                        ${isEn ? 'Leave' : 'Dejar de seguir'}
+                                    </button>
+                                ` : ''}
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -3683,13 +3705,13 @@ class DashboardManager {
                     <button class="m3-nav-tab ${this.currentAllergenTab === 'guide' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('guide')">
                         <span class="material-symbols-outlined">menu_book</span>
                         <span class="tab-label-text">
-                            <span>${isEn ? 'Guide' : 'Guía'}</span><span class="tab-label-desktop">${isEn ? ' & Risks' : ' y Contaminación'}</span>
+                            <span>${isEn ? 'Allergens Guide' : 'Guía de Alérgenos'}</span>
                         </span>
                     </button>
                     <button class="m3-nav-tab ${this.currentAllergenTab === 'matrix' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('matrix')">
                         <span class="material-symbols-outlined">table_chart</span>
                         <span class="tab-label-text">
-                            <span>${isEn ? 'FSA Matrix' : 'Matriz FSA'}</span><span class="tab-label-desktop">${isEn ? ' (Official)' : ' Oficial'}</span>
+                            <span>${isEn ? 'Allergen Matrix' : 'Matriz de Alérgenos'}</span>
                         </span>
                     </button>
                 </div>
@@ -3712,7 +3734,40 @@ class DashboardManager {
         const tabMount = document.getElementById('allergenTabContent');
         if (!tabMount) return;
 
-        const allergens = window.UK_ALLERGENS || [];
+        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
+        const hasMenu = window.restaurantMenu && window.restaurantMenu.hasMenu;
+        const isOwner = window.restaurantMenu && window.restaurantMenu.isOwner;
+
+        if (allergens.length === 0) {
+            tabMount.innerHTML = `
+                <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 24px; border: 1.5px solid #E2E8F0; margin-top: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                    <div style="width: 76px; height: 76px; margin: 0 auto 18px auto; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(16,185,129,0.15);">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: #059669;">health_and_safety</span>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
+                        ${isEn ? 'No Allergens Configured' : 'No hay alérgenos registrados'}
+                    </h3>
+                    <p style="color: #64748B; max-width: 520px; margin: 0 auto 24px auto; font-size: 14.5px; line-height: 1.6;">
+                        ${isEn 
+                            ? 'Allergen regulations and lists vary depending on the country or culinary style. Register your kitchen allergens from scratch with their hidden risks and cross-contamination protocols.' 
+                            : 'Las normativas de alérgenos varían según el país o tipo de cocina. Registra desde cero los alérgenos aplicables a tu restaurante, sus ingredientes ocultos y protocolos de contaminación cruzada.'}
+                    </p>
+                    ${hasMenu ? `
+                        <button type="button" class="btn-primary" onclick="window.restaurantMenu.openAllergenModal()" style="border-radius: 999px; padding: 0 26px; height: 46px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
+                            <span>${isEn ? 'Add Kitchen Allergen' : 'Registrar Nuevo Alérgeno'}</span>
+                        </button>
+                    ` : `
+                        <button type="button" class="btn-primary" onclick="window.restaurantMenu.openCreateMenuModal()" style="border-radius: 999px; padding: 0 26px; height: 46px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">storefront</span>
+                            <span>${isEn ? 'Create Restaurant Menu First' : 'Crear Carta de Restaurante Primero'}</span>
+                        </button>
+                    `}
+                </div>
+            `;
+            return;
+        }
+
         const q = (this.allergenSearchQuery || '').toLowerCase().trim();
 
         const getStr = (val) => {
@@ -3729,23 +3784,27 @@ class DashboardManager {
 
         const filtered = allergens.filter(a => {
             if (!q) return true;
-            const nameEs = (a.name_es || '').toLowerCase();
+            const nameEs = (a.name_es || a.name || '').toLowerCase();
             const nameEn = (a.name_en || '').toLowerCase();
             const desc = isEn ? (a.desc_en || '').toLowerCase() : (a.desc_es || '').toLowerCase();
-            const hides = getStr(isEn ? a.whereItHides_en : a.whereItHides_es);
-            const risks = getStr(isEn ? a.contaminationRisks_en : a.contaminationRisks_es);
+            const hides = getStr(isEn ? a.whereItHides_en : (a.whereItHides_es || a.whereItHides));
+            const risks = getStr(isEn ? a.contaminationRisks_en : (a.contaminationRisks_es || a.contaminationRisks));
             const kws = (a.keywords || []).join(' ').toLowerCase();
             return nameEs.includes(q) || nameEn.includes(q) || desc.includes(q) || hides.includes(q) || risks.includes(q) || kws.includes(q);
         });
 
         tabMount.innerHTML = `
-            ${q ? `
-                <div class="guide-toolbar-m3" style="justify-content: flex-end; margin-bottom: 14px;">
-                    <div class="guide-stats-chip">
-                        <span>${filtered.length} / ${allergens.length} ${isEn ? 'matching allergens' : 'alérgenos encontrados'}</span>
-                    </div>
+            <div class="guide-toolbar-m3" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: wrap;">
+                <div class="guide-stats-chip">
+                    <span>${filtered.length} / ${allergens.length} ${isEn ? 'matching allergens' : 'alérgenos en tu cocina'}</span>
                 </div>
-            ` : ''}
+                ${hasMenu ? `
+                    <button type="button" class="btn-primary" onclick="window.restaurantMenu.openAllergenModal()" style="border-radius: 999px; height: 40px; padding: 0 20px; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                        <span>${isEn ? 'Add Allergen' : 'Añadir Alérgeno'}</span>
+                    </button>
+                ` : ''}
+            </div>
 
             <div class="allergens-cards-grid">
                 ${filtered.length === 0 ? `
@@ -3755,21 +3814,32 @@ class DashboardManager {
                         <button class="btn-m3-tonal" onclick="window.dashboard.handleAllergenSearch('')">${isEn ? 'Clear search' : 'Limpiar búsqueda'}</button>
                     </div>
                 ` : filtered.map(item => `
-                    <div class="allergen-card-expressive" style="--allergen-accent: ${item.color};">
+                    <div class="allergen-card-expressive" style="--allergen-accent: ${item.color || '#10B981'};">
                         <div class="allergen-card-header">
-                            <div class="allergen-avatar" style="background: ${item.color}18; color: ${item.color};">
-                                <span class="material-symbols-outlined">${item.icon}</span>
+                            <div class="allergen-avatar" style="background: ${item.color || '#10B981'}18; color: ${item.color || '#10B981'};">
+                                <span class="material-symbols-outlined">${item.icon || 'shield'}</span>
                             </div>
-                            <div class="allergen-title-block">
-                                <h3>${item.name_en}</h3>
-                                <div class="allergen-official-name">
-                                    <span class="allergen-fsa-label">FSA UK</span>
-                                    <span>${item.name_es}</span>
+                            <div class="allergen-title-block" style="flex: 1;">
+                                <h3>${item.name_es || item.name_en || item.name}</h3>
+                                ${item.name_en && item.name_en !== (item.name_es || item.name) ? `
+                                    <div class="allergen-official-name">
+                                        <span>${item.name_en}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            ${isOwner ? `
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <button type="button" onclick="window.restaurantMenu.openAllergenModal('${item.id}')" title="Editar" style="background: none; border: none; cursor: pointer; color: #64748B; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.15s;" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='none'">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                                    </button>
+                                    <button type="button" onclick="window.restaurantMenu.confirmDeleteAllergen('${item.id}')" title="Eliminar" style="background: none; border: none; cursor: pointer; color: #EF4444; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.15s;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='none'">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                    </button>
                                 </div>
-                            </div>
+                            ` : ''}
                         </div>
 
-                        <p class="allergen-description">${isEn ? (item.desc_en || '') : (item.desc_es || '')}</p>
+                        ${(item.desc_es || item.desc_en) ? `<p class="allergen-description">${isEn ? (item.desc_en || item.desc_es) : (item.desc_es || item.desc_en)}</p>` : ''}
 
                         <!-- Caja 1: Dónde se esconde (Ejemplos Reales) -->
                         <div class="allergen-hides-box">
@@ -3778,7 +3848,7 @@ class DashboardManager {
                                 <span>${isEn ? 'Where it hides in daily cooking:' : '¿Dónde se esconde en la cocina diaria?'}</span>
                             </div>
                             <ul class="box-list">
-                                ${toItems(isEn ? item.whereItHides_en : item.whereItHides_es).map(ex => `
+                                ${toItems(isEn ? item.whereItHides_en : (item.whereItHides_es || item.whereItHides)).map(ex => `
                                     <li>${ex}</li>
                                 `).join('')}
                             </ul>
@@ -3791,7 +3861,7 @@ class DashboardManager {
                                 <span>${isEn ? 'Cross-contamination critical points:' : 'Puntos críticos de contaminación cruzada:'}</span>
                             </div>
                             <ul class="box-list">
-                                ${toItems(isEn ? item.contaminationRisks_en : item.contaminationRisks_es).map(rk => `
+                                ${toItems(isEn ? item.contaminationRisks_en : (item.contaminationRisks_es || item.contaminationRisks)).map(rk => `
                                     <li>${rk}</li>
                                 `).join('')}
                             </ul>
@@ -4023,8 +4093,52 @@ class DashboardManager {
         const tabMount = document.getElementById('allergenTabContent');
         if (!tabMount) return;
 
-        const allergens = window.UK_ALLERGENS || [];
-        const dishes = window.STANLEYS_OFFICIAL_ALLERGENS || [];
+        if (!window.restaurantMenu || !window.restaurantMenu.hasMenu) {
+            tabMount.innerHTML = `
+                <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; margin-top: 16px;">
+                    <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 38px; color: #2563EB;">table_chart</span>
+                    </div>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
+                        ${isEn ? 'No Active Restaurant Menu' : 'No tienes una carta de restaurante activa'}
+                    </h3>
+                    <p style="color: #64748B; max-width: 480px; margin: 0 auto 20px auto; font-size: 14px; line-height: 1.5;">
+                        ${isEn 
+                            ? 'To view the allergen matrix and cross-contact risks, you must have a restaurant menu active or shared with you.' 
+                            : 'Para consultar la matriz de alérgenos y riesgos de contaminación cruzada necesitas tener una carta creada o compartida por tu equipo.'}
+                    </p>
+                    <button class="btn-primary" onclick="window.dashboard.switchView('menu')" style="border-radius: 999px; padding: 0 24px; height: 42px; font-weight: 700;">
+                        ${isEn ? 'Go to Menu Management' : 'Ir a Gestión de Menú'}
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
+        if (allergens.length === 0) {
+            tabMount.innerHTML = `
+                <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; margin-top: 16px;">
+                    <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 38px; color: #059669;">table_chart</span>
+                    </div>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
+                        ${isEn ? 'No Allergens Configured' : 'Sin alérgenos configurados para la matriz'}
+                    </h3>
+                    <p style="color: #64748B; max-width: 480px; margin: 0 auto 20px auto; font-size: 14px; line-height: 1.5;">
+                        ${isEn 
+                            ? 'To view the cross-contamination and allergen matrix, first add the allergens for your kitchen in the "Allergens Guide" tab.' 
+                            : 'Para consultar la matriz de platos y alérgenos de tu cocina, primero registra tus alérgenos en la pestaña "Guía de Alérgenos".'}
+                    </p>
+                    <button class="btn-primary" onclick="window.dashboard.setAllergenTab('guide')" style="border-radius: 999px; padding: 0 24px; height: 42px; font-weight: 700;">
+                        ${isEn ? 'Go to Allergens Guide' : 'Ir a Guía de Alérgenos'}
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const dishes = window.restaurantMenu.getOfficialAllergens();
 
         if (!this.matrixSelectedSection) {
             this.matrixSelectedSection = 'ALL';
@@ -4032,14 +4146,14 @@ class DashboardManager {
 
         const sectionsList = [
             { id: 'ALL', name: isEn ? 'All Sections' : 'Todas las secciones', count: dishes.length },
-            { id: 'FINGER FOOD', name: 'Finger Food', count: 11 },
-            { id: 'MAINS', name: 'Mains & Steaks', count: 14 },
-            { id: 'FLAT BREADS', name: 'Flat Breads', count: 5 },
-            { id: 'SOS PIZZA', name: 'SOS Pizza & Dips', count: 24 },
-            { id: 'SIDES', name: 'Sides & Salads', count: 4 },
-            { id: 'KIDS MENU', name: 'Kids Menu', count: 3 },
-            { id: 'SUNDAY ROAST', name: 'Sunday Roast', count: 7 },
-            { id: 'DESSERTS', name: 'Desserts & Gelato', count: 5 }
+            { id: 'FINGER FOOD', name: 'Finger Food', count: dishes.filter(d => d.section === 'FINGER FOOD').length },
+            { id: 'MAINS', name: 'Mains & Steaks', count: dishes.filter(d => d.section === 'MAINS').length },
+            { id: 'FLAT BREADS', name: 'Flat Breads', count: dishes.filter(d => d.section === 'FLAT BREADS').length },
+            { id: 'SOS PIZZA', name: 'SOS Pizza & Dips', count: dishes.filter(d => d.section === 'SOS PIZZA').length },
+            { id: 'SIDES', name: 'Sides & Salads', count: dishes.filter(d => d.section === 'SIDES').length },
+            { id: 'KIDS MENU', name: 'Kids Menu', count: dishes.filter(d => d.section === 'KIDS MENU').length },
+            { id: 'SUNDAY ROAST', name: 'Sunday Roast', count: dishes.filter(d => d.section === 'SUNDAY ROAST').length },
+            { id: 'DESSERTS', name: 'Desserts & Gelato', count: dishes.filter(d => d.section === 'DESSERTS').length }
         ];
 
         // Filter by section if not ALL
@@ -4049,7 +4163,7 @@ class DashboardManager {
         }
 
         tabMount.innerHTML = `
-            <!-- Legend Banner with FSA UK Key -->
+            <!-- Legend Banner -->
             <div class="matrix-legend-banner">
                 <div class="matrix-legend-items">
                     <div class="matrix-legend-item"
@@ -4113,14 +4227,14 @@ class DashboardManager {
                                 <th class="col-recipe-name">${isEn ? 'Dish / Kitchen Preparation' : 'Plato / Preparación de Cocina'}</th>
                                 ${allergens.map(a => `
                                     <th class="col-allergen"
-                                        data-m3-tooltip-title="${a.name_en} (${a.name_es})"
-                                        data-m3-tooltip-icon="${a.icon}"
-                                        data-m3-tooltip-color="${a.color}"
-                                        data-m3-tooltip-tag="UK FSA"
-                                        data-m3-tooltip-desc="${isEn ? 'Official mandatory UK FSA allergen.' : 'Alérgeno oficial de declaración obligatoria según UK FSA.'}">
-                                        <div class="th-allergen-inner" style="color: ${a.color};">
-                                            <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon}</span>
-                                            <span class="th-name">${a.name_en}</span>
+                                        data-m3-tooltip-title="${a.name_es || a.name_en || a.name}"
+                                        data-m3-tooltip-icon="${a.icon || 'shield'}"
+                                        data-m3-tooltip-color="${a.color || '#10B981'}"
+                                        data-m3-tooltip-tag="${isEn ? 'Allergen' : 'Alérgeno'}"
+                                        data-m3-tooltip-desc="${isEn ? 'Registered kitchen allergen.' : 'Alérgeno registrado de tu cocina.'}">
+                                        <div class="th-allergen-inner" style="color: ${a.color || '#10B981'};">
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">${a.icon || 'shield'}</span>
+                                            <span class="th-name">${a.name_es || a.name_en || a.name}</span>
                                         </div>
                                     </th>
                                 `).join('')}
@@ -4257,7 +4371,7 @@ class DashboardManager {
 
     showOfficialDishModal(dish) {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
-        const allergens = window.UK_ALLERGENS || [];
+        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
 
         const directAllergens = dish.allergens || (window.detectRecipeAllergens ? window.detectRecipeAllergens(dish) : []);
         const directSet = new Set(directAllergens.map(d => (typeof d === 'object' ? d.id : d)));
@@ -4322,10 +4436,11 @@ class DashboardManager {
                             ` : Array.from(directSet).map(id => {
                                 const a = allergens.find(x => x.id === id);
                                 if (!a) return `<span class="matrix-badge-x" style="padding:4px 8px; width:auto; height:auto;">${id}</span>`;
+                                const displayName = a.name_es || a.name_en || a.name || id;
                                 return `
                                     <div style="display:inline-flex; align-items:center; gap:6px; background:#FEE2E2; border:1px solid #FECACA; color:#B91C1C; padding:6px 12px; border-radius:999px; font-size:12.5px; font-weight:700;">
-                                        <span class="material-symbols-outlined" style="font-size:16px;">${a.icon}</span>
-                                        <span>${isEn ? a.name_en : a.name_es}</span>
+                                        <span class="material-symbols-outlined" style="font-size:16px;">${a.icon || 'shield'}</span>
+                                        <span>${displayName}</span>
                                     </div>
                                 `;
                             }).join('')}
@@ -4344,10 +4459,11 @@ class DashboardManager {
                             ` : Array.from(crossSet).map(id => {
                                 const a = allergens.find(x => x.id === id);
                                 if (!a) return `<span class="matrix-badge-o" style="padding:4px 8px; width:auto; height:auto;">${id}</span>`;
+                                const displayName = a.name_es || a.name_en || a.name || id;
                                 return `
                                     <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF3C7; border:1px solid #FDE68A; color:#B45309; padding:6px 12px; border-radius:999px; font-size:12.5px; font-weight:700;">
-                                        <span class="material-symbols-outlined" style="font-size:16px;">${a.icon}</span>
-                                        <span>${isEn ? a.name_en : a.name_es}</span>
+                                        <span class="material-symbols-outlined" style="font-size:16px;">${a.icon || 'shield'}</span>
+                                        <span>${displayName}</span>
                                     </div>
                                 `;
                             }).join('')}
@@ -4440,9 +4556,53 @@ class DashboardManager {
         const tabMount = document.getElementById('allergenTabContent');
         if (!tabMount) return;
 
-        const allergens = window.UK_ALLERGENS || [];
+        if (!window.restaurantMenu || !window.restaurantMenu.hasMenu) {
+            tabMount.innerHTML = `
+                <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; margin-top: 16px;">
+                    <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 38px; color: #2563EB;">shield_with_heart</span>
+                    </div>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
+                        ${isEn ? 'No Restaurant Dishes for Safe Diner' : 'Comensal Seguro sin carta activa'}
+                    </h3>
+                    <p style="color: #64748B; max-width: 480px; margin: 0 auto 20px auto; font-size: 14px; line-height: 1.5;">
+                        ${isEn 
+                            ? 'Create or link your restaurant menu to filter safe dishes according to multi-allergen exclusions.' 
+                            : 'Crea tu menú o vincula la carta de tu restaurante para poder filtrar platos 100% seguros y avisos de contaminación para tus clientes.'}
+                    </p>
+                    <button class="btn-primary" onclick="window.dashboard.switchView('menu')" style="border-radius: 999px; padding: 0 24px; height: 42px; font-weight: 700;">
+                        ${isEn ? 'Go to Menu Management' : 'Ir a Gestión de Menú'}
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
+        if (allergens.length === 0) {
+            tabMount.innerHTML = `
+                <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; margin-top: 16px;">
+                    <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 38px; color: #059669;">shield_with_heart</span>
+                    </div>
+                    <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
+                        ${isEn ? 'No Allergens Configured' : 'Sin alérgenos para filtrar'}
+                    </h3>
+                    <p style="color: #64748B; max-width: 480px; margin: 0 auto 20px auto; font-size: 14px; line-height: 1.5;">
+                        ${isEn 
+                            ? 'Configure your kitchen allergens in the "Allergens Guide" tab to filter safe dishes for diners with intolerances.' 
+                            : 'Configura los alérgenos de tu restaurante en la pestaña "Guía de Alérgenos" para filtrar platos seguros para tus comensales.'}
+                    </p>
+                    <button class="btn-primary" onclick="window.dashboard.setAllergenTab('guide')" style="border-radius: 999px; padding: 0 24px; height: 42px; font-weight: 700;">
+                        ${isEn ? 'Go to Allergens Guide' : 'Ir a Guía de Alérgenos'}
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
         const dietaryProfiles = window.UK_DIETARY_PROFILES || [];
-        const allRecipes = window.STANLEYS_OFFICIAL_ALLERGENS || [];
+        const allRecipes = window.restaurantMenu.getOfficialAllergens();
 
         let safeRecipes = [];
         let warningRecipes = [];
@@ -4489,7 +4649,7 @@ class DashboardManager {
                     <div class="safe-pc-pills-header">
                         <div class="safe-pc-pills-title">
                             <span class="material-symbols-outlined" style="color: #059669;">shield</span>
-                            <span>${isEn ? 'The 14 UK FSA Allergens (Click to exclude)' : 'Los 14 Alérgenos UK FSA (Haz clic para excluir)'}</span>
+                            <span>${isEn ? 'Kitchen Allergens (Click to exclude)' : 'Alérgenos Registrados (Haz clic para excluir)'}</span>
                         </div>
                         ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
                             <button class="filter-clear-link" onclick="window.dashboard.clearSafeExclusions()" type="button">
@@ -4501,17 +4661,18 @@ class DashboardManager {
                     <div class="allergen-chips-selector">
                         ${allergens.map(a => {
                             const isSelected = this.selectedSafeExclusions && this.selectedSafeExclusions.has(a.id);
+                            const displayName = a.name_es || a.name_en || a.name;
                             return `
                                 <button 
                                     type="button"
                                     class="allergen-toggle-chip ${isSelected ? 'selected' : ''}" 
                                     onclick="window.dashboard.toggleSafeAllergenExclusion('${a.id}', event)"
-                                    title="${isSelected ? (isEn ? `Remove exclusion for ${a.name_en}` : `Quitar exclusión de ${a.name_es}`) : (isEn ? `Exclude ${a.name_en}` : `Excluir ${a.name_es}`)}"
+                                    title="${isSelected ? (isEn ? `Remove exclusion for ${displayName}` : `Quitar exclusión de ${displayName}`) : (isEn ? `Exclude ${displayName}` : `Excluir ${displayName}`)}"
                                 >
-                                    <span class="material-symbols-outlined" style="color: ${isSelected ? '#DC2626' : a.color}; font-size: 20px;">
-                                        ${isSelected ? 'check_circle' : a.icon}
+                                    <span class="material-symbols-outlined" style="color: ${isSelected ? '#DC2626' : (a.color || '#10B981')}; font-size: 20px;">
+                                        ${isSelected ? 'check_circle' : (a.icon || 'shield')}
                                     </span>
-                                    <span>${a.name_en} (${a.name_es})</span>
+                                    <span>${displayName}</span>
                                     ${isSelected ? `<span class="chip-action-cross"><span class="material-symbols-outlined" style="font-size: 16px;">close</span></span>` : ''}
                                 </button>
                             `;
@@ -4536,12 +4697,12 @@ class DashboardManager {
                             </button>
                         </div>
 
-                        <!-- Dropdown 14 UK Allergens -->
+                        <!-- Dropdown Allergens -->
                         <div id="safeAllergenDropdown" class="m3-split-dropdown allergen-list-dropdown ${this.safeFilterDropdownOpen ? '' : 'hidden'}">
                             <div class="m3-split-dropdown-header">
                                 <div class="filter-header-left">
                                     <span class="material-symbols-outlined" style="color: #059669; font-size: 18px;">shield</span>
-                                    <span>${isEn ? 'The 14 UK FSA Allergens' : 'Los 14 Alérgenos UK FSA'}</span>
+                                    <span>${isEn ? 'Kitchen Allergens' : 'Alérgenos Registrados'}</span>
                                 </div>
                                 ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
                                     <button class="filter-clear-link" onclick="window.dashboard.clearSafeExclusions()">
@@ -4554,6 +4715,7 @@ class DashboardManager {
                             <div class="allergen-vertical-list">
                                 ${allergens.map(a => {
                                     const isSelected = this.selectedSafeExclusions && this.selectedSafeExclusions.has(a.id);
+                                    const displayName = a.name_es || a.name_en || a.name;
                                     return `
                                         <div 
                                             class="allergen-list-item ${isSelected ? 'selected' : ''}" 
@@ -4562,10 +4724,10 @@ class DashboardManager {
                                             tabindex="0"
                                         >
                                             <div class="allergen-list-item-left">
-                                                <div class="allergen-list-icon-wrap" style="background: ${isSelected ? '#FEE2E2' : a.color + '18'}; color: ${isSelected ? '#DC2626' : a.color};">
-                                                    <span class="material-symbols-outlined">${a.icon}</span>
+                                                <div class="allergen-list-icon-wrap" style="background: ${isSelected ? '#FEE2E2' : (a.color || '#10B981') + '18'}; color: ${isSelected ? '#DC2626' : (a.color || '#10B981')};">
+                                                    <span class="material-symbols-outlined">${a.icon || 'shield'}</span>
                                                 </div>
-                                                <span class="allergen-list-name">${a.name_en} (${a.name_es})</span>
+                                                <span class="allergen-list-name">${displayName}</span>
                                             </div>
                                             <div class="allergen-list-checkbox ${isSelected ? 'checked' : ''}">
                                                 <span class="material-symbols-outlined">${isSelected ? 'check' : ''}</span>

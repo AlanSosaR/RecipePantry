@@ -127,6 +127,11 @@ class ShareModalManager {
             );
             const count = folderRecipes.length;
             if (subElem) subElem.textContent = `${targetId} • ${count} ${count === 1 ? 'elemento' : 'elementos'}`;
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (titleElem) titleElem.textContent = isEn ? 'Share Restaurant' : 'Compartir Restaurante';
+            if (iconElem) iconElem.textContent = 'storefront';
+            const menuName = window.restaurantMenu?.restaurantName || "Stanley's SW16";
+            if (subElem) subElem.textContent = `${menuName} • ${isEn ? 'Menu & Allergen Matrix' : 'Carta de platos y Matriz de alérgenos'}`;
         } else {
             const recipe = window.dashboard?.currentRecipes?.find(r => r.id === targetId);
             const recipeName = recipe ? (recipe.name_es || recipe.name_en || 'Receta') : 'Receta';
@@ -428,6 +433,28 @@ class ShareModalManager {
                         shares = Array.from(map.values());
                     }
                 }
+            } else if (this.targetType === 'menu' || this.targetType === 'restaurant') {
+                if (window.supabaseClient && this.targetId) {
+                    const { data, error } = await window.supabaseClient
+                        .from('shared_restaurant_menus')
+                        .select(`
+                            id,
+                            permission,
+                            recipient:recipient_user_id (
+                                id,
+                                first_name,
+                                last_name,
+                                email,
+                                avatar_url,
+                                prefix
+                            )
+                        `)
+                        .eq('menu_id', this.targetId);
+
+                    if (!error && data) {
+                        shares = data;
+                    }
+                }
             } else {
                 if (window.supabaseClient && this.targetId) {
                     const { data, error } = await window.supabaseClient
@@ -507,9 +534,13 @@ class ShareModalManager {
 
     async changePermission(shareId, newPermiso) {
         try {
+            const table = (this.targetType === 'menu' || this.targetType === 'restaurant')
+                ? 'shared_restaurant_menus'
+                : 'shared_recipes';
+
             if (newPermiso === 'remove') {
                 if (window.supabaseClient) {
-                    await window.supabaseClient.from('shared_recipes').delete().eq('id', shareId);
+                    await window.supabaseClient.from(table).delete().eq('id', shareId);
                 }
                 this.currentShares = this.currentShares.filter(s => s.id !== shareId);
                 this.renderShares();
@@ -518,6 +549,13 @@ class ShareModalManager {
                 } else if (window.showToast) {
                     window.showToast('Acceso eliminado', 'success');
                 }
+            } else {
+                if (window.supabaseClient) {
+                    await window.supabaseClient.from(table).update({ permission: newPermiso }).eq('id', shareId);
+                }
+                const s = this.currentShares.find(x => x.id === shareId);
+                if (s) s.permission = newPermiso;
+                this.renderShares();
             }
         } catch (err) {
             console.error('Error changing permission:', err);
@@ -569,7 +607,45 @@ class ShareModalManager {
                 recipeIds = [this.targetId];
             }
 
-            if (recipeIds.length > 0 && window.supabaseClient && currentUserId) {
+            if (this.targetType === 'menu' || this.targetType === 'restaurant') {
+                if (this.targetId && window.supabaseClient && currentUserId) {
+                    const inserts = [];
+                    const notifications = [];
+                    const menuName = window.restaurantMenu?.restaurantName || "Stanley's SW16";
+
+                    for (const user of this.selectedUsers) {
+                        inserts.push({
+                            menu_id: this.targetId,
+                            owner_user_id: currentUserId,
+                            recipient_user_id: user.id,
+                            permission: permission === 'view' ? 'view' : 'edit',
+                            status: 'pending'
+                        });
+
+                        notifications.push({
+                            user_id: user.id,
+                            from_user_id: currentUserId,
+                            recipe_id: null,
+                            leido: false,
+                            type: 'menu_shared',
+                            metadata: {
+                                menu_id: this.targetId,
+                                restaurant_name: menuName,
+                                message: optionalMessage || null
+                            }
+                        });
+                    }
+
+                    if (inserts.length > 0) {
+                        const { error } = await window.supabaseClient.from('shared_restaurant_menus').insert(inserts);
+                        if (error && error.code !== '23505') throw error;
+                    }
+
+                    if (notifications.length > 0) {
+                        await window.supabaseClient.from('notifications').insert(notifications);
+                    }
+                }
+            } else if (recipeIds.length > 0 && window.supabaseClient && currentUserId) {
                 const inserts = [];
                 const notifications = [];
 
