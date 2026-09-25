@@ -1008,12 +1008,10 @@ class NotificationManager {
      * Guarda la receta compartida en la carpeta o raíz seleccionada por el usuario
      */
     async executeSaveRecipeToFolder(notificationId, recipeId, targetFolder, recipeName) {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
         try {
             const user = window.authManager.currentUser;
             if (!user) return;
-
-            const isEn = window.i18n && window.i18n.getLang() === 'en';
-            window.utils.showToast(isEn ? 'Saving recipe...' : 'Guardando receta...', 'info');
 
             const cleanFolder = (targetFolder && typeof targetFolder === 'string') ? targetFolder.trim() : '';
 
@@ -1024,28 +1022,61 @@ class NotificationManager {
                 return;
             }
 
-            // 2. Si la carpeta es nueva y tiene nombre, asegurarse de registrarla
+            // 2. Si la carpeta es nueva y tiene nombre, registrarla inmediatamente
             if (cleanFolder && window.db && window.db.createFolder) {
-                await window.db.createFolder(cleanFolder);
+                window.db.createFolder(cleanFolder);
             }
 
-            // 3. Eliminar de compartidas definitivamente
-            await window.db.deleteSharedRecipe(user.id, recipeId);
+            // 3. ACTUALIZACIÓN INSTANTÁNEA OPTIMISTA A 0 MILISEGUNDOS
+            const newRecData = duplicateResult.newRecipe || {};
+            const savedRecipeObj = {
+                ...newRecData,
+                id: duplicateResult.newRecipeId || newRecData.id || recipeId,
+                name_es: newRecData.name_es || recipeName || 'Receta',
+                name_en: newRecData.name_en || null,
+                pantry_es: cleanFolder,
+                pantry_en: cleanFolder,
+                is_favorite: false,
+                is_active: true,
+                sharingContext: null,
+                updated_at: newRecData.updated_at || new Date().toISOString()
+            };
 
-            // 4. Marcar notificación como leída en el servidor
-            const { error: notifError } = await window.supabaseClient
-                .from('notifications')
-                .update({ leido: true })
-                .eq('user_id', user.id)
-                .eq('recipe_id', recipeId)
-                .eq('type', 'recipe_shared');
+            const d = window.dashboard || window.dashboardManager;
+            if (d) {
+                if (Array.isArray(d.currentRecipes)) {
+                    d.currentRecipes = d.currentRecipes.filter(r => r.id !== savedRecipeObj.id);
+                    d.currentRecipes.unshift(savedRecipeObj);
+                }
+                if (Array.isArray(d.allRecipes)) {
+                    d.allRecipes = d.allRecipes.filter(r => r.id !== savedRecipeObj.id);
+                    d.allRecipes.unshift(savedRecipeObj);
+                }
 
-            if (notifError) {
-                console.error('⚠️ [Notifications] Error marcando como leída:', notifError);
-                await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+                d.currentView = 'recipes';
+                try { localStorage.setItem('recipe_pantry_current_view', 'recipes'); } catch (e) {}
+
+                // Navegar y abrir la carpeta inmediatamente (0 ms)
+                if (typeof d.openFolder === 'function') {
+                    d.openFolder(cleanFolder, true);
+                } else if (typeof d.selectFolder === 'function') {
+                    d.selectFolder(cleanFolder, true);
+                } else {
+                    d.currentFolder = cleanFolder || null;
+                }
+
+                // Renderizar inmediatamente la UI a 0ms sin requerir refrescar la página
+                if (typeof d.renderFolders === 'function') d.renderFolders();
+                if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+                if (typeof d.updateTitleHeader === 'function') d.updateTitleHeader();
             }
 
-            // 5. Actualizar UI de notificaciones localmente
+            // Disparar eventos de sincronización instantánea
+            window.dispatchEvent(new CustomEvent('recipes-index-updated'));
+            window.dispatchEvent(new CustomEvent('recipe-created', { detail: savedRecipeObj }));
+            try { localStorage.setItem('rp_recipe_mutation', Date.now().toString()); } catch (e) {}
+
+            // Actualizar UI de notificaciones localmente
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
             this.updateBadge();
             this.renderMenu();
@@ -1053,24 +1084,31 @@ class NotificationManager {
             const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
             window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
 
-            // 6. Navegar a la carpeta o raíz y refrescar la lista de recetas
-            if (window.dashboard) {
-                if (cleanFolder) {
-                    window.dashboard.selectFolder(cleanFolder);
-                } else {
-                    window.dashboard.currentFolder = null;
-                    window.dashboard.switchView('recipes');
+            // 4. LIMPIEZA Y PERSISTENCIA EN SEGUNDO PLANO
+            (async () => {
+                try {
+                    // Eliminar de compartidas definitivamente
+                    await window.db.deleteSharedRecipe(user.id, recipeId);
+
+                    // Marcar notificación como leída en el servidor
+                    const { error: notifError } = await window.supabaseClient
+                        .from('notifications')
+                        .update({ leido: true })
+                        .eq('user_id', user.id)
+                        .eq('recipe_id', recipeId)
+                        .eq('type', 'recipe_shared');
+
+                    if (notifError) {
+                        await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+                    }
+                } catch (bgErr) {
+                    console.warn('⚠️ [Notifications] Sincronización en segundo plano:', bgErr);
                 }
-                if (typeof window.dashboard.loadRecipes === 'function') {
-                    await window.dashboard.loadRecipes();
-                }
-            } else if (window.dashboardManager) {
-                window.dashboardManager.switchView('recipes');
-            }
+            })();
 
         } catch (err) {
             console.error('Error guardando receta compartida en carpeta:', err);
-            window.utils.showToast(window.i18n && window.i18n.getLang() === 'en' ? 'Error saving recipe' : 'Error al guardar la receta', 'error');
+            window.utils.showToast(isEn ? 'Error saving recipe' : 'Error al guardar la receta', 'error');
         }
     }
 

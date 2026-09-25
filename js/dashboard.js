@@ -2119,6 +2119,10 @@ class DashboardManager {
         });
     }
 
+    selectFolder(folderName, replaceUrl = false) {
+        return this.openFolder(folderName, replaceUrl);
+    }
+
     openFolder(folderName, replaceUrl = false) {
         this.currentFolder = folderName ? folderName.trim() : null;
         this.clearSelection();

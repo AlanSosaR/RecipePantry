@@ -766,14 +766,21 @@ class DatabaseManager {
                 const completelyDuplicatedRecipe = { ...newRecipeData, sharingContext: null, ingredients: recipe.ingredients, preparation_steps: steps };
                 await window.localDB.put('recipes_full', completelyDuplicatedRecipe);
                 await window.localDB.put('recipes_index', {
-                    id: newRecipeData.id, name_es: newRecipeData.name_es, name_en: newRecipeData.name_en,
-                    updated_at: newRecipeData.updated_at,
-                    is_favorite: false, sharingContext: null
+                    id: newRecipeData.id,
+                    name_es: newRecipeData.name_es,
+                    name_en: newRecipeData.name_en,
+                    pantry_es: targetPantry || '',
+                    pantry_en: targetPantry || '',
+                    description_es: newRecipeData.description_es,
+                    description_en: newRecipeData.description_en,
+                    updated_at: newRecipeData.updated_at || new Date().toISOString(),
+                    is_favorite: false,
+                    sharingContext: null
                 });
             }
 
             console.log(`✅ Receta duplicada: ${sourceRecipeId} → ${newRecipeId}`);
-            return { success: true, newRecipeId: newRecipeId };
+            return { success: true, newRecipeId: newRecipeId, newRecipe: newRecipeData };
         } catch (error) {
             console.error('❌ Error duplicando receta:', error);
             return { success: false, error: error.message };
