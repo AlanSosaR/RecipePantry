@@ -205,6 +205,18 @@ class DashboardManager {
             // Check for deep link in hash
             this.checkDeepLink();
 
+            // Comprobar si hay una receta compartida pendiente de guardar desde la URL
+            const saveSharedRecipeId = urlParams.get('saveSharedRecipe');
+            if (saveSharedRecipeId) {
+                const notifId = urlParams.get('notifId') || '';
+                const recName = urlParams.get('recipeName') ? decodeURIComponent(urlParams.get('recipeName')) : '';
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+                setTimeout(() => {
+                    this.openSaveSharedRecipeModal(notifId, saveSharedRecipeId, recName);
+                }, 400);
+            }
+
             // 3. Persistencia de almacenamiento (Evitar que el navegador limpie caches)
             this.requestPersistence();
 
@@ -2291,39 +2303,13 @@ class DashboardManager {
         this.openMoveModal([recipeId]);
     }
 
-    async openMoveModal(recipeIds = []) {
-        if (!recipeIds || recipeIds.length === 0) return;
-        this.pendingMoveRecipeIds = recipeIds;
-        this.selectedMoveTargetFolder = null;
-
-        // Cerrar cualquier menú contextual abierto
-        document.querySelectorAll('.recipe-context-menu').forEach(m => m.remove());
-
-        const modal = document.getElementById('moveRecipeModal');
-        const titleEl = document.getElementById('moveModalTitle');
+    async populateMoveModalFolderList(currentFolderOfItem = null) {
         const listEl = document.getElementById('moveModalFolderList');
-        const confirmBtn = document.getElementById('btnConfirmMoveModal');
-        const newFolderRow = document.getElementById('moveModalNewFolderRow');
-        const newFolderInput = document.getElementById('moveModalNewFolderInput');
-
-        if (!modal || !listEl) return;
-
-        // Reset inline new folder row
-        if (newFolderRow) newFolderRow.classList.add('hidden');
-        if (newFolderInput) newFolderInput.value = '';
-        if (confirmBtn) confirmBtn.disabled = true;
+        if (!listEl) return;
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
-        if (titleEl) {
-            titleEl.textContent = recipeIds.length === 1
-                ? (isEn ? 'Move 1 item to...' : 'Mover 1 elemento a...')
-                : (isEn ? `Move ${recipeIds.length} items to...` : `Mover ${recipeIds.length} elementos a...`);
-        }
-
-        // Helper para raíz
         const isRoot = (f) => !f || typeof f !== 'string' || !f.trim() || (window.db && window.db._isRootFolderName && window.db._isRootFolderName(f));
 
-        // Obtener todas las recetas disponibles para conteos fiables
         let allRecs = [];
         if (window.localDB) {
             try {
@@ -2334,29 +2320,15 @@ class DashboardManager {
             allRecs = Array.isArray(this.currentRecipes) ? this.currentRecipes : [];
         }
 
-        // Determinar carpeta actual si es un solo elemento o si estamos dentro de una carpeta
-        let currentFolderOfItem = null;
-        if (recipeIds.length === 1) {
-            const rec = allRecs.find(r => r.id === recipeIds[0]) || (this.currentRecipes || []).find(r => r.id === recipeIds[0]);
-            currentFolderOfItem = (rec && rec.pantry_es) ? rec.pantry_es.trim() : '';
-        } else if (this.currentFolder) {
-            currentFolderOfItem = this.currentFolder.trim();
-        } else {
-            currentFolderOfItem = '';
-        }
-
-        // Obtener carpetas disponibles (registro + recetas) con nombres canónicos
         const dbFolders = await window.db.getMyFolders();
         const folderMap = new Map();
 
-        // 1. Desde registro de carpetas
         (dbFolders || []).forEach(f => {
             if (f && !isRoot(f)) {
                 folderMap.set(f.trim().toLowerCase(), f.trim());
             }
         });
 
-        // 2. Desde recetas en índice o memoria
         allRecs.forEach(r => {
             const f = (r.pantry_es || '').trim();
             if (f && !isRoot(f) && f.toLowerCase() !== 'prueba 2') {
@@ -2370,7 +2342,6 @@ class DashboardManager {
             .filter(f => f && f.trim().toLowerCase() !== 'prueba 2')
             .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
-        // Contar recetas por carpeta de forma insensible a mayúsculas/minúsculas
         const countMap = new Map();
         allRecs.forEach(r => {
             const f = (r.pantry_es || '').trim();
@@ -2380,11 +2351,8 @@ class DashboardManager {
             }
         });
 
-        // Generar items de la lista
         let html = '';
-
-        // Opción: Raíz (Mis Recetas / Sin carpeta)
-        const isCurrentRoot = !currentFolderOfItem;
+        const isCurrentRoot = (currentFolderOfItem !== null) && !currentFolderOfItem;
         html += `
             <div class="move-modal-folder-item ${isCurrentRoot ? 'current-location' : ''}" 
                  data-folder="" 
@@ -2401,7 +2369,6 @@ class DashboardManager {
             </div>
         `;
 
-        // Opciones: Cada carpeta
         folders.forEach(f => {
             const safeF = f.replace(/'/g, "\\'");
             const isCurrent = currentFolderOfItem !== null && currentFolderOfItem.toLowerCase() === f.toLowerCase();
@@ -2426,6 +2393,99 @@ class DashboardManager {
         });
 
         listEl.innerHTML = html;
+    }
+
+    async openMoveModal(recipeIds = []) {
+        if (!recipeIds || recipeIds.length === 0) return;
+        this.pendingSaveSharedRecipe = null;
+        this.pendingMoveRecipeIds = recipeIds;
+        this.selectedMoveTargetFolder = null;
+
+        // Cerrar cualquier menú contextual abierto
+        document.querySelectorAll('.recipe-context-menu').forEach(m => m.remove());
+
+        const modal = document.getElementById('moveRecipeModal');
+        const titleEl = document.getElementById('moveModalTitle');
+        const listEl = document.getElementById('moveModalFolderList');
+        const confirmBtn = document.getElementById('btnConfirmMoveModal');
+        const newFolderRow = document.getElementById('moveModalNewFolderRow');
+        const newFolderInput = document.getElementById('moveModalNewFolderInput');
+
+        if (!modal || !listEl) return;
+
+        // Reset inline new folder row
+        if (newFolderRow) newFolderRow.classList.add('hidden');
+        if (newFolderInput) newFolderInput.value = '';
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = isEn ? 'Move' : 'Mover';
+        }
+
+        if (titleEl) {
+            titleEl.textContent = recipeIds.length === 1
+                ? (isEn ? 'Move 1 item to...' : 'Mover 1 elemento a...')
+                : (isEn ? `Move ${recipeIds.length} items to...` : `Mover ${recipeIds.length} elementos a...`);
+        }
+
+        let allRecs = [];
+        if (window.localDB) {
+            try {
+                allRecs = await window.localDB.getAll('recipes_index') || [];
+            } catch (e) {}
+        }
+        if (!allRecs || allRecs.length === 0) {
+            allRecs = Array.isArray(this.currentRecipes) ? this.currentRecipes : [];
+        }
+
+        // Determinar carpeta actual si es un solo elemento o si estamos dentro de una carpeta
+        let currentFolderOfItem = null;
+        if (recipeIds.length === 1) {
+            const rec = allRecs.find(r => r.id === recipeIds[0]) || (this.currentRecipes || []).find(r => r.id === recipeIds[0]);
+            currentFolderOfItem = (rec && rec.pantry_es) ? rec.pantry_es.trim() : '';
+        } else if (this.currentFolder) {
+            currentFolderOfItem = this.currentFolder.trim();
+        } else {
+            currentFolderOfItem = '';
+        }
+
+        await this.populateMoveModalFolderList(currentFolderOfItem);
+        modal.classList.remove('hidden');
+    }
+
+    async openSaveSharedRecipeModal(notificationId, recipeId, recipeName) {
+        if (!recipeId) return;
+        this.pendingMoveRecipeIds = null;
+        this.pendingSaveSharedRecipe = { notificationId, recipeId, recipeName };
+        this.selectedMoveTargetFolder = null;
+
+        document.querySelectorAll('.recipe-context-menu').forEach(m => m.remove());
+
+        const modal = document.getElementById('moveRecipeModal');
+        const titleEl = document.getElementById('moveModalTitle');
+        const listEl = document.getElementById('moveModalFolderList');
+        const confirmBtn = document.getElementById('btnConfirmMoveModal');
+        const newFolderRow = document.getElementById('moveModalNewFolderRow');
+        const newFolderInput = document.getElementById('moveModalNewFolderInput');
+
+        if (!modal || !listEl) return;
+
+        if (newFolderRow) newFolderRow.classList.add('hidden');
+        if (newFolderInput) newFolderInput.value = '';
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = isEn ? 'Save' : 'Guardar';
+        }
+
+        if (titleEl) {
+            const displayName = recipeName ? `"${recipeName}"` : (isEn ? 'recipe' : 'receta');
+            titleEl.textContent = isEn ? `Save ${displayName} to...` : `Guardar ${displayName} en...`;
+        }
+
+        await this.populateMoveModalFolderList(null);
         modal.classList.remove('hidden');
     }
 
@@ -2433,6 +2493,7 @@ class DashboardManager {
         const modal = document.getElementById('moveRecipeModal');
         if (modal) modal.classList.add('hidden');
         this.pendingMoveRecipeIds = null;
+        this.pendingSaveSharedRecipe = null;
         this.selectedMoveTargetFolder = null;
     }
 
@@ -2463,13 +2524,28 @@ class DashboardManager {
     }
 
     async executeMoveModal() {
-        if (this.selectedMoveTargetFolder === null || !this.pendingMoveRecipeIds || this.pendingMoveRecipeIds.length === 0) {
+        if (this.selectedMoveTargetFolder === null) {
             return;
         }
 
         const targetFolder = this.selectedMoveTargetFolder.trim();
-        const ids = [...this.pendingMoveRecipeIds];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        // Caso especial: Guardar receta compartida
+        if (this.pendingSaveSharedRecipe) {
+            const { notificationId, recipeId, recipeName } = this.pendingSaveSharedRecipe;
+            this.closeMoveModal();
+            if (window.notificationManager && typeof window.notificationManager.executeSaveRecipeToFolder === 'function') {
+                await window.notificationManager.executeSaveRecipeToFolder(notificationId, recipeId, targetFolder, recipeName);
+            }
+            return;
+        }
+
+        if (!this.pendingMoveRecipeIds || this.pendingMoveRecipeIds.length === 0) {
+            return;
+        }
+
+        const ids = [...this.pendingMoveRecipeIds];
 
         // 1. CERRAR MODAL INMEDIATAMENTE
         this.closeMoveModal();
@@ -2550,11 +2626,18 @@ class DashboardManager {
         try {
             await window.db.createFolder(name);
             this.cancelCreateFolderInMoveModal();
-            // Re-render move modal keeping current pendingMoveRecipeIds
-            const currentPending = this.pendingMoveRecipeIds;
-            await this.openMoveModal(currentPending);
-            // Pre-seleccionar la carpeta recién creada
-            this.selectMoveTarget(name);
+
+            if (this.pendingSaveSharedRecipe) {
+                const { notificationId, recipeId, recipeName } = this.pendingSaveSharedRecipe;
+                await this.openSaveSharedRecipeModal(notificationId, recipeId, recipeName);
+                this.selectMoveTarget(name);
+            } else {
+                // Re-render move modal keeping current pendingMoveRecipeIds
+                const currentPending = this.pendingMoveRecipeIds;
+                await this.openMoveModal(currentPending);
+                // Pre-seleccionar la carpeta recién creada
+                this.selectMoveTarget(name);
+            }
         } catch (err) {
             console.error('[confirmCreateFolderInMoveModal] Error:', err);
         }

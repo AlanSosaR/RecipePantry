@@ -653,13 +653,8 @@ class NotificationManager {
                                         <span>${isEn ? 'Save folder' : 'Guardar toda la carpeta'}</span>
                                     </button>
                                     <div style="display:flex; gap:9px;">
-                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineFolder('${n.id}', '${safeRecipeIdsJson}')"
-                                            style="flex:1; min-height:38px; padding:8px 10px; background:rgba(255,255,255,0.06); color:#E4E4E7; border:1px solid rgba(255,255,255,0.14); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                            onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-                                            ${isEn ? 'In shared' : 'Dejar en compartidas'}
-                                        </button>
                                         <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
-                                            style="flex:1; min-height:38px; padding:8px 10px; background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.22); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                            style="width:100%; min-height:38px; padding:8px 10px; background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.22); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
                                             onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'"
                                             title="${isEn ? 'Dismiss' : 'Omitir'}">
                                             ✕ ${isEn ? 'Dismiss' : 'Omitir'}
@@ -745,19 +740,15 @@ class NotificationManager {
                             
                             <!-- Action buttons -->
                             <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px; ${isRecipeIdValid ? '' : 'opacity:0.5; pointer-events:none;'}">
-                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${safeRecipeId}')"
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${safeRecipeId}', '${(n.recipeName || '').replace(/'/g, "\\'")}')"
                                     style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: transform 0.15s, filter 0.15s;"
                                     onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                    ✅ ${isEn ? 'Add to my recipes' : 'Agregar a mis recetas'}
+                                    <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
+                                    <span>${isEn ? 'Save recipe in...' : 'Guardar receta en...'}</span>
                                 </button>
                                 <div style="display:flex; gap:9px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineRecipe('${n.id}', '${safeRecipeId}')"
-                                        style="flex:1; min-height:38px; padding:8px 10px; background:rgba(255,255,255,0.06); color:#E4E4E7; border:1px solid rgba(255,255,255,0.14); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                        onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-                                        ${isEn ? 'In shared' : 'Dejar en compartidas'}
-                                    </button>
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
-                                        style="flex:1; min-height:38px; padding:8px 10px; background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.22); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                        style="width:100%; min-height:38px; padding:8px 10px; background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.22); border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
                                         onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'"
                                         title="${isEn ? 'Dismiss' : 'Omitir'}">
                                         ✕ ${isEn ? 'Dismiss' : 'Omitir'}
@@ -986,50 +977,52 @@ class NotificationManager {
     }
 
     /**
-     * Accept: Convierte la receta en propia
+    /**
+     * Accept: Abre el selector de destino para decidir si guardarla en la raíz, en una carpeta existente o crear una nueva
      */
-    async handleAcceptRecipe(notificationId, recipeId) {
+    handleAcceptRecipe(notificationId, recipeId, recipeName) {
+        this.closeMenu();
+        if (window.dashboard && typeof window.dashboard.openSaveSharedRecipeModal === 'function') {
+            window.dashboard.openSaveSharedRecipeModal(notificationId, recipeId, recipeName);
+            return;
+        }
+        // Si no estamos en el index principal (ej. estamos en ocr.html, notas.html, profile.html), redirigir pasando parámetros
+        const params = new URLSearchParams();
+        params.set('saveSharedRecipe', recipeId);
+        params.set('notifId', notificationId);
+        if (recipeName) params.set('recipeName', recipeName);
+        window.location.href = `/?${params.toString()}`;
+    }
+
+    /**
+     * Guarda la receta compartida en la carpeta o raíz seleccionada por el usuario
+     */
+    async executeSaveRecipeToFolder(notificationId, recipeId, targetFolder, recipeName) {
         try {
             const user = window.authManager.currentUser;
             if (!user) return;
 
-            // 0. Verificar si el nombre ya existe en mis recetas (excluyendo la que estamos aceptando)
-            const n = this.notifications.find(item => item.id === notificationId);
-            if (n && n.recipeName) {
-                const exists = await window.db.recipeNameExists(n.recipeName, { 
-                    includeShared: false, 
-                    excludeId: recipeId // v250: Crítico para que no se autodetecte como duplicado
-                });
-                if (exists) {
-                    window.utils.showToast(
-                        window.i18n && window.i18n.getLang() === 'en' ?
-                            'A recipe with this name already exists in your recipes' :
-                            'esta receta con este nobree ya esta en tus recetas',
-                        'warning'
-                    );
-                    return;
-                }
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Saving recipe...' : 'Guardando receta...', 'info');
+
+            const cleanFolder = (targetFolder && typeof targetFolder === 'string') ? targetFolder.trim() : '';
+
+            // 1. Duplicar la receta en la carpeta de destino
+            const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id, cleanFolder, false);
+            if (!duplicateResult.success) {
+                window.utils.showToast(duplicateResult.error || (isEn ? 'Error saving recipe' : 'Error al guardar la receta'), 'warning');
+                return;
             }
 
-            window.utils.showToast(window.i18n ? window.i18n.t('savingRecipe') : 'Guardando receta...', 'info');
-
-            // 1. Actualizar estado en el servidor (shared_recipes) - Opcional si vamos a borrar, pero mantenemos flujo
-            const { error: shareError } = await window.supabaseClient
-                .from('shared_recipes')
-                .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-                .eq('recipe_id', recipeId)
-                .eq('recipient_user_id', user.id);
-
-            if (shareError) throw shareError;
-
-            // 2. Duplicar la receta
-            const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id);
-            if (!duplicateResult.success) throw new Error(duplicateResult.error);
+            // 2. Si la carpeta es nueva y tiene nombre, asegurarse de registrarla
+            if (cleanFolder && window.db && window.db.createFolder) {
+                await window.db.createFolder(cleanFolder);
+            }
 
             // 3. Eliminar de compartidas definitivamente
             await window.db.deleteSharedRecipe(user.id, recipeId);
 
-            // 4. Marcar notificación como leída (y cualquier otra duplicada para esta receta)
+            // 4. Marcar notificación como leída en el servidor
             const { error: notifError } = await window.supabaseClient
                 .from('notifications')
                 .update({ leido: true })
@@ -1039,27 +1032,35 @@ class NotificationManager {
 
             if (notifError) {
                 console.error('⚠️ [Notifications] Error marcando como leída:', notifError);
-                // Intentar backup por ID exacto si el filtro complejo falla
                 await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
             }
 
-            // 5. Actualizar UI
+            // 5. Actualizar UI de notificaciones localmente
             this.notifications = this.notifications.filter(n => n.id !== notificationId);
             this.updateBadge();
             this.renderMenu();
 
-            window.utils.showToast('✅ ¡Receta agregada a tu colección!', 'success');
+            const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
+            window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
 
-            // 6. NAVEGACIÓN AUTOMÁTICA a "Mis Recetas"
-            if (window.dashboardManager) {
+            // 6. Navegar a la carpeta o raíz y refrescar la lista de recetas
+            if (window.dashboard) {
+                if (cleanFolder) {
+                    window.dashboard.selectFolder(cleanFolder);
+                } else {
+                    window.dashboard.currentFolder = null;
+                    window.dashboard.switchView('recipes');
+                }
+                if (typeof window.dashboard.loadRecipes === 'function') {
+                    await window.dashboard.loadRecipes();
+                }
+            } else if (window.dashboardManager) {
                 window.dashboardManager.switchView('recipes');
-            } else if (window.dashboard) {
-                window.dashboard.switchView('recipes');
             }
 
         } catch (err) {
-            console.error('Error aceptando receta:', err);
-            window.utils.showToast('Error al agregar la receta', 'error');
+            console.error('Error guardando receta compartida en carpeta:', err);
+            window.utils.showToast(window.i18n && window.i18n.getLang() === 'en' ? 'Error saving recipe' : 'Error al guardar la receta', 'error');
         }
     }
 

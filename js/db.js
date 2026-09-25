@@ -680,7 +680,7 @@ class DatabaseManager {
             const { success, recipe, error: fetchError } = await this.getRecipeById(sourceRecipeId, true);
             if (!success) throw new Error(fetchError);
 
-            const targetPantry = (overrideFolder !== null) ? overrideFolder : (recipe.pantry_es || null);
+            const targetPantry = (overrideFolder !== null) ? (this._isRootFolderName(overrideFolder) ? null : overrideFolder.trim()) : (recipe.pantry_es || null);
 
             // 2. Verificar si el nombre ya existe en la misma carpeta de la colección del usuario 
             // v250: Pasamos sourceRecipeId para evitar que la receta compartida se bloquee a sí misma
@@ -710,7 +710,7 @@ class DatabaseManager {
                 description_es: recipe.description_es,
                 description_en: recipe.description_en,
                 pantry_es: targetPantry,
-                pantry_en: recipe.pantry_en,
+                pantry_en: (overrideFolder !== null) ? targetPantry : recipe.pantry_en,
                 personal_notes: recipe.personal_notes,
                 tags: recipe.tags,
                 is_active: true,
