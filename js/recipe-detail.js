@@ -351,7 +351,9 @@ class RecipeDetailManager {
         const btnEdit = document.getElementById('btnEdit');
         if (btnEdit) {
             btnEdit.addEventListener('click', () => {
-                window.location.href = `/recipe-form?id=${this.recipeId}`;
+                const folder = this.currentRecipe?.pantry_es || this.currentRecipe?.pantry_en || '';
+                const folderParam = folder ? `&folder=${encodeURIComponent(folder)}` : '';
+                window.location.href = `/recipe-form?id=${this.recipeId}${folderParam}`;
             });
         }
 
@@ -363,7 +365,18 @@ class RecipeDetailManager {
             });
         }
 
-        // Eventos básicos omitidos o simplificados para el nuevo diseño premium
+        // Sincronización instantánea ante mutaciones (0ms)
+        window.addEventListener('storage', async (e) => {
+            if (e.key === 'rp_recipe_mutation') {
+                try {
+                    const data = JSON.parse(e.newValue || '{}');
+                    if (data.recipeId === this.recipeId) {
+                        console.log('⚡ Mutación detectada en storage para esta receta, recargando a 0ms');
+                        await this.loadRecipeData();
+                    }
+                } catch(err) {}
+            }
+        });
 
         // Listener para actualizaciones en segundo plano (Cache-First Revalidation)
         window.addEventListener('recipe-detail-updated', (e) => {

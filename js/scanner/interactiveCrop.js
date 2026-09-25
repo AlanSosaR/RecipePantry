@@ -50,15 +50,12 @@ class InteractiveCrop {
         const w = this.image.width;
         const h = this.image.height;
 
-        // Default: inset 6% from edges
-        const insetX = w * 0.06;
-        const insetY = h * 0.06;
-
+        // Selección completa de toda la imagen por defecto
         this.corners = [
-            { x: insetX, y: insetY },         // Top-Left
-            { x: w - insetX, y: insetY },     // Top-Right
-            { x: w - insetX, y: h - insetY }, // Bottom-Right
-            { x: insetX, y: h - insetY }      // Bottom-Left
+            { x: 0, y: 0 },         // Top-Left
+            { x: w, y: 0 },         // Top-Right
+            { x: w, y: h },         // Bottom-Right
+            { x: 0, y: h }          // Bottom-Left
         ];
     }
 
@@ -109,38 +106,11 @@ class InteractiveCrop {
     }
 
     /**
-     * Auto-detect corners using OpenCV DocumentDetector
+     * Auto-detect corners - Selecciona siempre la imagen completa (100% borde a borde)
      */
     autoDetect() {
-        if (!window.cv || !window.DocumentDetector || !this.image) return false;
-        try {
-            const detector = new window.DocumentDetector();
-            const tempCanvas = document.createElement('canvas');
-            const maxDim = 800;
-            let w = this.image.width;
-            let h = this.image.height;
-            const scale = Math.min(1, maxDim / Math.max(w, h));
-            tempCanvas.width = Math.round(w * scale);
-            tempCanvas.height = Math.round(h * scale);
-            const tctx = tempCanvas.getContext('2d');
-            tctx.drawImage(this.image, 0, 0, tempCanvas.width, tempCanvas.height);
-
-            const src = cv.imread(tempCanvas);
-            const detected = detector.detect(src);
-            src.delete();
-
-            if (detected && detected.length === 4) {
-                this.corners = detected.map(p => ({
-                    x: p.x / scale,
-                    y: p.y / scale
-                }));
-                this.render();
-                return true;
-            }
-        } catch (e) {
-            console.warn("Auto-detect failed:", e);
-        }
-        return false;
+        this.resetToFull();
+        return true;
     }
 
     /**
@@ -166,31 +136,47 @@ class InteractiveCrop {
         const dpr = Math.min(window.devicePixelRatio || 1, 3);
         const containerRect = this.container.getBoundingClientRect();
         const availableW = Math.round(containerRect.width || 360);
-        const availableH = Math.round(containerRect.height || 480);
+        const maxH = Math.round(Math.min(window.innerHeight * 0.65, 580));
 
-        // Fit image into container while preserving aspect ratio
-        const scaleX = availableW / this.image.width;
-        const scaleY = availableH / this.image.height;
-        this.displayScale = Math.min(scaleX, scaleY) * 0.95;
+        // Margin around image to ensure corner circular handles are 100% visible and not clipped
+        const handleMargin = 16;
+        const availInnerW = Math.max(100, availableW - (handleMargin * 2));
+        const maxInnerH = Math.max(100, maxH - (handleMargin * 2));
 
-        const drawW = Math.round(this.image.width * this.displayScale);
-        const drawH = Math.round(this.image.height * this.displayScale);
+        const imgAspect = this.image.height / this.image.width;
+        let targetW = availInnerW;
+        let targetH = Math.round(targetW * imgAspect);
+
+        if (targetH > maxInnerH) {
+            targetH = maxInnerH;
+            targetW = Math.round(targetH / imgAspect);
+        }
+
+        const totalW = targetW + (handleMargin * 2);
+        const totalH = targetH + (handleMargin * 2);
+
+        this.container.style.height = `${totalH}px`;
+        this.container.style.minHeight = 'unset';
+
+        this.displayScale = targetW / this.image.width;
+        const drawW = targetW;
+        const drawH = targetH;
 
         // High-DPI Retina canvas configuration (prevents pixelation and blur)
-        this.canvas.width = Math.round(availableW * dpr);
-        this.canvas.height = Math.round(availableH * dpr);
-        this.canvas.style.width = `${availableW}px`;
-        this.canvas.style.height = `${availableH}px`;
+        this.canvas.width = Math.round(totalW * dpr);
+        this.canvas.height = Math.round(totalH * dpr);
+        this.canvas.style.width = `${totalW}px`;
+        this.canvas.style.height = `${totalH}px`;
 
-        this.offsetX = Math.round((availableW - drawW) / 2);
-        this.offsetY = Math.round((availableH - drawH) / 2);
+        this.offsetX = handleMargin;
+        this.offsetY = handleMargin;
 
         const ctx = this.ctx;
         ctx.save();
         ctx.scale(dpr, dpr);
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        ctx.clearRect(0, 0, availableW, availableH);
+        ctx.clearRect(0, 0, totalW, totalH);
 
         // 1. Draw Image with high-definition rendering
         ctx.drawImage(this.image, this.offsetX, this.offsetY, drawW, drawH);
@@ -201,7 +187,7 @@ class InteractiveCrop {
         ctx.save();
         ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.beginPath();
-        ctx.rect(0, 0, availableW, availableH);
+        ctx.rect(0, 0, totalW, totalH);
         ctx.moveTo(screenCorners[0].x, screenCorners[0].y);
         for (let i = 1; i < 4; i++) {
             ctx.lineTo(screenCorners[i].x, screenCorners[i].y);
@@ -228,7 +214,7 @@ class InteractiveCrop {
         ctx.stroke();
         ctx.restore();
 
-        // 4. Draw Corner Handles & Mid-side Handles
+        // 4. Draw Corner Handles (100% visible, fully rounded without edge clipping)
         screenCorners.forEach((pt, idx) => {
             const isHovered = (this.activeCornerIndex === idx);
             
@@ -236,7 +222,7 @@ class InteractiveCrop {
             ctx.beginPath();
             ctx.arc(pt.x, pt.y, isHovered ? 16 : 14, 0, Math.PI * 2);
             ctx.fillStyle = '#FFFFFF';
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
             ctx.shadowBlur = 8;
             ctx.fill();
 
@@ -259,39 +245,43 @@ class InteractiveCrop {
 
     /**
      * Updates magnifier zoom lens preview with Retina crispness
+     * Floats HIGH above the finger so it's never occluded or hidden behind
      */
-    updateMagnifier(screenX, screenY, imgPt) {
+    updateMagnifier(containerX, containerY, imgPt) {
         if (!this.image) return;
 
         this.magnifier.style.display = 'block';
 
-        // Position magnifier slightly above the user's finger so it's not occluded
-        const lensRadius = 55;
-        let lensLeft = screenX - lensRadius;
-        let lensTop = screenY - 140;
+        // Position magnifier 145px ABOVE the user's finger touch point
+        const lensRadius = 60; // 120px diameter
+        let lensLeft = containerX - lensRadius;
+        let lensTop = containerY - 145;
 
         const containerRect = this.container.getBoundingClientRect();
         const availableW = containerRect.width || 360;
 
-        if (lensTop < 10) lensTop = screenY + 40; // Flip below if near top
-        if (lensLeft < 10) lensLeft = 10;
-        if (lensLeft > availableW - 120) lensLeft = availableW - 120;
+        // Keep horizontal position within safe container bounds
+        if (lensLeft < 8) lensLeft = 8;
+        if (lensLeft > availableW - 128) lensLeft = availableW - 128;
+
+        // Allow lens to pop out above container (overflow: visible) and never flip under the finger!
+        if (lensTop < -75) lensTop = -75;
 
         this.magnifier.style.left = `${lensLeft}px`;
         this.magnifier.style.top = `${lensTop}px`;
 
         // Render zoomed portion with Retina sharpness
         const dpr = Math.min(window.devicePixelRatio || 1, 3);
-        const targetPixelSize = Math.round(110 * dpr);
+        const targetPixelSize = Math.round(120 * dpr);
         if (this.magnifierCanvas.width !== targetPixelSize) {
             this.magnifierCanvas.width = targetPixelSize;
             this.magnifierCanvas.height = targetPixelSize;
-            this.magnifierCanvas.style.width = '110px';
-            this.magnifierCanvas.style.height = '110px';
+            this.magnifierCanvas.style.width = '120px';
+            this.magnifierCanvas.style.height = '120px';
         }
 
         const zoomFactor = 2.4;
-        const sampleSize = Math.round(110 / zoomFactor);
+        const sampleSize = Math.round(120 / zoomFactor);
         const sx = Math.max(0, Math.min(this.image.width - sampleSize, imgPt.x - sampleSize / 2));
         const sy = Math.max(0, Math.min(this.image.height - sampleSize, imgPt.y - sampleSize / 2));
 
@@ -300,23 +290,23 @@ class InteractiveCrop {
         mctx.scale(dpr, dpr);
         mctx.imageSmoothingEnabled = true;
         mctx.imageSmoothingQuality = 'high';
-        mctx.clearRect(0, 0, 110, 110);
-        mctx.drawImage(this.image, sx, sy, sampleSize, sampleSize, 0, 0, 110, 110);
+        mctx.clearRect(0, 0, 120, 120);
+        mctx.drawImage(this.image, sx, sy, sampleSize, sampleSize, 0, 0, 120, 120);
 
         // Draw crosshair on magnifier
         mctx.strokeStyle = '#10B981';
         mctx.lineWidth = 1.5;
         mctx.beginPath();
-        mctx.moveTo(55, 35);
-        mctx.lineTo(55, 75);
-        mctx.moveTo(35, 55);
-        mctx.lineTo(75, 55);
+        mctx.moveTo(60, 38);
+        mctx.lineTo(60, 82);
+        mctx.moveTo(38, 60);
+        mctx.lineTo(82, 60);
         mctx.stroke();
 
         // Center dot
         mctx.fillStyle = '#EF4444';
         mctx.beginPath();
-        mctx.arc(55, 55, 3, 0, Math.PI * 2);
+        mctx.arc(60, 60, 3.5, 0, Math.PI * 2);
         mctx.fill();
 
         mctx.restore();
@@ -327,27 +317,32 @@ class InteractiveCrop {
     }
 
     initEvents() {
-        const getTouchPos = (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const getCoords = (e) => {
+            const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+            
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const containerRect = this.container.getBoundingClientRect();
+
             return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+                canvasX: clientX - canvasRect.left,
+                canvasY: clientY - canvasRect.top,
+                containerX: clientX - containerRect.left,
+                containerY: clientY - containerRect.top
             };
         };
 
         const onStart = (e) => {
             if (!this.image) return;
-            const pos = getTouchPos(e);
-            const hitRadius = 32; // Generous hit target for mobile fingers
+            const coords = getCoords(e);
+            const hitRadius = 34; // Generous hit target for mobile fingers
 
             let closestDist = Infinity;
             let closestIdx = -1;
 
             this.corners.forEach((pt, idx) => {
                 const screenPt = this.imageToScreen(pt);
-                const dist = Math.hypot(screenPt.x - pos.x, screenPt.y - pos.y);
+                const dist = Math.hypot(screenPt.x - coords.canvasX, screenPt.y - coords.canvasY);
                 if (dist < hitRadius && dist < closestDist) {
                     closestDist = dist;
                     closestIdx = idx;
@@ -358,7 +353,7 @@ class InteractiveCrop {
                 e.preventDefault();
                 this.activeCornerIndex = closestIdx;
                 const imgPt = this.corners[closestIdx];
-                this.updateMagnifier(pos.x, pos.y, imgPt);
+                this.updateMagnifier(coords.containerX, coords.containerY, imgPt);
                 this.render();
             }
         };
@@ -366,10 +361,10 @@ class InteractiveCrop {
         const onMove = (e) => {
             if (this.activeCornerIndex === -1 || !this.image) return;
             e.preventDefault();
-            const pos = getTouchPos(e);
-            const imgPt = this.screenToImage(pos);
+            const coords = getCoords(e);
+            const imgPt = this.screenToImage({ x: coords.canvasX, y: coords.canvasY });
             this.corners[this.activeCornerIndex] = imgPt;
-            this.updateMagnifier(pos.x, pos.y, imgPt);
+            this.updateMagnifier(coords.containerX, coords.containerY, imgPt);
             this.render();
         };
 

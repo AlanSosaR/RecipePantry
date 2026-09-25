@@ -11,3 +11,10 @@ dist/
 .DS_Store
 scratch/
 supabase/.temp/
+tmp/
+yt_source.html
+js/core/firebase-config.js
+js/core/firebase-sw-config.js
+*.dump
+
+

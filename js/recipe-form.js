@@ -51,21 +51,44 @@ class RecipeFormManager {
     }
 
     async loadFolders() {
-        const select = document.getElementById('pantryFolderSelect');
-        if (!select || !window.db || !window.db.getMyFolders) return;
+        if (!window.db || !window.db.getMyFolders) return;
         try {
             const folders = await window.db.getMyFolders();
-            select.innerHTML = `
-                <option value="">📁 Sin carpeta (Principal)</option>
-                ${folders.map(f => `<option value="${f}">📁 ${f}</option>`).join('')}
-                <option value="__NEW__">➕ Crear nueva carpeta...</option>
-            `;
+
+            // Inicializar componente Material 3 Expressive si existe
+            if (!this.m3FolderDropdown && typeof window.initM3FolderDropdown === 'function') {
+                this.m3FolderDropdown = window.initM3FolderDropdown({
+                    wrapperId: 'pantryFolderWrapper',
+                    triggerId: 'pantryFolderTrigger',
+                    menuId: 'pantryFolderMenu',
+                    itemsContainerId: 'pantryFolderItems',
+                    selectId: 'pantryFolderSelect',
+                    newFolderBoxId: 'pantryNewFolderBox',
+                    newFolderInputId: 'newFolderCustomInput'
+                });
+            }
+
+            if (this.m3FolderDropdown) {
+                this.m3FolderDropdown.setFolders(folders);
+            }
+
+            // Sincronizar select nativo oculto para compatibilidad
+            const select = document.getElementById('pantryFolderSelect');
+            if (select) {
+                select.innerHTML = `
+                    <option value="">Sin carpeta (Principal)</option>
+                    ${folders.map(f => `<option value="${f}">${f}</option>`).join('')}
+                    <option value="__NEW__">Crear nueva carpeta...</option>
+                `;
+            }
 
             const urlFolder = new URLSearchParams(window.location.search).get('folder');
             if (this.currentRecipe && this.currentRecipe.pantry_es) {
-                select.value = this.currentRecipe.pantry_es;
+                if (this.m3FolderDropdown) this.m3FolderDropdown.setValue(this.currentRecipe.pantry_es);
+                else if (select) select.value = this.currentRecipe.pantry_es;
             } else if (urlFolder) {
-                select.value = urlFolder;
+                if (this.m3FolderDropdown) this.m3FolderDropdown.setValue(urlFolder);
+                else if (select) select.value = urlFolder;
             }
         } catch (e) {
             console.warn('Error cargando carpetas en formulario:', e);
@@ -88,11 +111,15 @@ class RecipeFormManager {
             form.name.value = isEn ? (r.name_en || r.name_es) : r.name_es;
             form.description.value = isEn ? (r.description_en || r.description_es || '') : (r.description_es || '');
 
-
-            // Seleccionar carpeta de la receta
-            const folderSelect = document.getElementById('pantryFolderSelect');
-            if (folderSelect) {
-                folderSelect.value = r.pantry_es || '';
+            // Seleccionar carpeta de la receta en dropdown M3 y select nativo
+            if (r.pantry_es) {
+                if (this.m3FolderDropdown) {
+                    this.m3FolderDropdown.setValue(r.pantry_es);
+                }
+                const folderSelect = document.getElementById('pantryFolderSelect');
+                if (folderSelect) {
+                    folderSelect.value = r.pantry_es;
+                }
             }
 
             // Trigger has-value for all inputs/selects loaded
@@ -111,12 +138,27 @@ class RecipeFormManager {
     }
 
     setupEventListeners() {
-
+        const btnBack = document.getElementById('btnFormBack');
+        if (btnBack) {
+            btnBack.addEventListener('click', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const folder = urlParams.get('folder');
+                const returnTo = urlParams.get('returnTo');
+                if (returnTo === 'folder' && folder) {
+                    window.location.href = `/?view=recipes&folder=${encodeURIComponent(folder)}`;
+                } else if (window.history.length > 1) {
+                    window.history.back();
+                } else if (folder) {
+                    window.location.href = `/?view=recipes&folder=${encodeURIComponent(folder)}`;
+                } else {
+                    window.location.href = `/?view=recipes`;
+                }
+            });
+        }
 
         // Botones Agregar
         document.getElementById('btnAddIngredient').addEventListener('click', () => this.addIngredient());
         document.getElementById('btnAddStep').addEventListener('click', () => this.addStep());
-
 
         document.getElementById('recipeForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -481,20 +523,77 @@ class RecipeFormManager {
                 }
             }
 
-            window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada con éxito!', 'success');
-
-            // Invalidar caché local para que recipe-detail cargue datos frescos con ingredientes y pasos
+            // 4. Actualizar inmediatamente la caché local (IndexedDB) para visualización instantánea (0ms)
             try {
                 if (window.localDB) {
-                    await window.localDB.delete('recipes_full', recipeId);
-                    await window.localDB.delete('recipes_index', recipeId);
-                    await window.localDB.delete('recipes', recipeId);
-                }
-            } catch (e) { /* ignorar errores de caché */ }
+                    const currentFull = (await window.localDB.get('recipes_full', recipeId)) || {};
+                    const currentIndex = (await window.localDB.get('recipes_index', recipeId)) || {};
 
-            setTimeout(() => {
-                window.location.href = `/recipe-detail?id=${recipeId}&f=1`;
-            }, 300);
+                    const timestamp = new Date().toISOString();
+                    const fullRecord = {
+                        ...currentFull,
+                        ...(result.recipe || {}),
+                        id: recipeId,
+                        user_id: window.authManager?.currentUser?.id || currentFull.user_id,
+                        name_es: isEn ? (currentFull.name_es || form.name.value.trim()) : form.name.value.trim(),
+                        name_en: isEn ? form.name.value.trim() : (currentFull.name_en || form.name.value.trim()),
+                        description_es: isEn ? (currentFull.description_es || form.description.value.trim()) : form.description.value.trim(),
+                        description_en: isEn ? form.description.value.trim() : (currentFull.description_en || form.description.value.trim()),
+                        pantry_es: selectedFolder || null,
+                        pantry_en: selectedFolder || null,
+                        ingredients: ingredientsData,
+                        steps: stepsData,
+                        preparation_steps: stepsData,
+                        updated_at: timestamp
+                    };
+
+                    const indexRecord = {
+                        ...currentIndex,
+                        id: recipeId,
+                        name_es: fullRecord.name_es,
+                        name_en: fullRecord.name_en,
+                        image_url: fullRecord.image_url || currentIndex.image_url || null,
+                        updated_at: timestamp,
+                        is_favorite: fullRecord.is_favorite ?? currentIndex.is_favorite ?? false,
+                        pantry_es: selectedFolder || null,
+                        pantry_en: selectedFolder || null,
+                        tags: fullRecord.tags || currentIndex.tags || [],
+                        user_id: fullRecord.user_id
+                    };
+
+                    await window.localDB.put('recipes_full', fullRecord);
+                    await window.localDB.put('recipes_index', indexRecord);
+
+                    // Notificar a otras vistas/pestañas para sincronización 0ms
+                    try {
+                        localStorage.setItem('rp_recipe_mutation', JSON.stringify({
+                            action: this.isEditing ? 'update' : 'create',
+                            recipeId,
+                            folder: selectedFolder || '',
+                            timestamp: Date.now()
+                        }));
+                    } catch (e) {}
+
+                    window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: [indexRecord] }));
+                }
+            } catch (e) {
+                console.warn('Error sincronizando caché local:', e);
+            }
+
+            window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada con éxito!', 'success');
+
+            // Redirección inmediata a 0 milisegundos (sin delay artificial ni forceRefresh de red)
+            const targetFolder = selectedFolder ? encodeURIComponent(selectedFolder) : '';
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnTo = urlParams.get('returnTo');
+
+            if (returnTo === 'folder' && selectedFolder) {
+                window.location.href = `/?view=recipes&folder=${targetFolder}`;
+            } else if (returnTo === 'recipes') {
+                window.location.href = `/?view=recipes`;
+            } else {
+                window.location.href = `/recipe-detail?id=${recipeId}${targetFolder ? '&folder=' + targetFolder : ''}`;
+            }
 
         } catch (err) {
             console.error(err);

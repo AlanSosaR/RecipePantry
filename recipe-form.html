@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="671">
+<html lang="es" data-app-version="679">
 
 <head>
     <meta charset="UTF-8">
@@ -42,8 +42,8 @@
         rel="stylesheet" />
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=671">
-    <link rel="stylesheet" href="css/components.css?v=671">
+    <link rel="stylesheet" href="css/styles.css?v=679">
+    <link rel="stylesheet" href="css/components.css?v=679">
 
     <style>
         :root {
@@ -917,6 +917,9 @@
         <!-- Top App Bar -->
         <header class="m3-top-bar">
             <div class="left">
+                <button type="button" id="btnFormBack" class="m3-icon-btn" title="Volver" style="margin-right: 4px;">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
                 <button id="btnOpenMenu" class="btn-menu-m3-premium mobile-only" 
                         onclick="event.stopPropagation(); window.toggleSidebar(true)">
                     <span class="material-symbols-outlined">menu</span>
@@ -963,17 +966,34 @@
                                 data-i18n="formDescriptionLabel">Descripción</label>
                         </div>
 
-                        <!-- Folder Selector -->
-                        <div class="m3-field m3-field-container" style="margin-bottom: 32px;">
-                            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px;">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--md-primary);">folder</span>
-                                <span>Carpeta:</span>
-                            </label>
-                            <select id="pantryFolderSelect" onchange="const inp = document.getElementById('newFolderCustomInput'); if(inp) inp.style.display = this.value === '__NEW__' ? 'block' : 'none';" style="width: 100%; padding: 12px 14px; border-radius: var(--md-shape-md); border: 1.5px solid var(--md-outline-var); background: var(--md-surface-1); font-size: 14px; font-weight: 600; color: var(--md-on-surface); outline: none;">
-                                <option value="">📁 Sin carpeta (Principal)</option>
-                                <option value="__NEW__">➕ Crear nueva carpeta...</option>
+                        <!-- Selector de Carpeta (Material 3 Expressive Google Style) -->
+                        <div class="m3-folder-select-wrapper" id="pantryFolderWrapper">
+                            <div class="m3-folder-trigger" id="pantryFolderTrigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="m3-folder-field-label">Carpeta</span>
+                                <div class="m3-folder-selected-display">
+                                    <span class="material-symbols-outlined m3-folder-icon" style="color: #10B981; font-variation-settings: 'FILL' 1;">inventory_2</span>
+                                    <span class="m3-folder-selected-text">Despensa Principal (Raíz)</span>
+                                </div>
+                                <span class="material-symbols-outlined m3-folder-arrow">expand_more</span>
+                            </div>
+
+                            <div class="m3-folder-menu-popup hidden" id="pantryFolderMenu" role="listbox">
+                                <div class="m3-folder-items-container" id="pantryFolderItems">
+                                    <!-- Opciones generadas con estilo Google Material 3 Expressive -->
+                                </div>
+                            </div>
+
+                            <!-- Native Select sincronizado para 100% retrocompatibilidad -->
+                            <select id="pantryFolderSelect" style="display: none;" tabindex="-1">
+                                <option value="">Despensa Principal (Raíz)</option>
+                                <option value="__NEW__">Crear nueva carpeta...</option>
                             </select>
-                            <input type="text" id="newFolderCustomInput" placeholder="Nombre de la nueva carpeta (ej. Harlem)" style="display: none; width: 100%; margin-top: 10px; padding: 12px 14px; border-radius: var(--md-shape-md); border: 1.5px solid var(--md-primary); font-size: 14px; box-sizing: border-box; outline: none;">
+
+                            <!-- Campo nueva carpeta estilo M3 -->
+                            <div class="m3-new-folder-box hidden" id="pantryNewFolderBox">
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px; font-variation-settings: 'FILL' 1;">create_new_folder</span>
+                                <input type="text" id="newFolderCustomInput" placeholder="Nombre de la nueva carpeta (ej. Harlem)">
+                            </div>
                         </div>
 
 
@@ -1025,18 +1045,19 @@
 
     <!-- Scripts (classic, NO type=module) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=671"></script>
-    <script src="js/supabase-client.js?v=671"></script>
-    <script src="js/auth.js?v=671"></script>
-    <script src="js/localdb.js?v=671"></script>
-    <script src="js/sync-manager.js?v=671"></script>
-    <script src="js/db.js?v=671"></script>
-    <script src="js/utils.js?v=671"></script>
-    <script src="js/ui.js?v=671"></script>
-    <script src="js/i18n.js?v=671"></script>
-    <script src="js/recipe-form.js?v=671"></script>
-    <script src="js/sw-register.js?v=671"></script>
-    <script src="js/pwa-install.js?v=671"></script>
+    <script src="js/config.js?v=679"></script>
+    <script src="js/supabase-client.js?v=679"></script>
+    <script src="js/auth.js?v=679"></script>
+    <script src="js/localdb.js?v=679"></script>
+    <script src="js/sync-manager.js?v=679"></script>
+    <script src="js/db.js?v=679"></script>
+    <script src="js/utils.js?v=679"></script>
+    <script src="js/ui.js?v=679"></script>
+    <script src="js/i18n.js?v=679"></script>
+    <script src="js/m3-folder-dropdown.js?v=679"></script>
+    <script src="js/recipe-form.js?v=679"></script>
+    <script src="js/sw-register.js?v=679"></script>
+    <script src="js/pwa-install.js?v=679"></script>
 
     <script>
         (async () => {

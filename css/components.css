@@ -4261,6 +4261,8 @@ select.input-field {
     padding: 6px 0;
     text-decoration: underline;
     transition: opacity 0.15s;
+    white-space: nowrap !important;
+    flex-shrink: 0;
 }
 
 .btn-folder-config:hover {
@@ -5352,34 +5354,80 @@ html[data-auth-likely="true"] #dashboard-app {
     /* v69: Desaparición física total */
     background: #ffffff;
     color: #10B981;
-    padding: 18px 28px;
+    padding: 14px 20px;
     border-radius: 16px;
     font-size: 15px;
-    align-items: center;
-    gap: 14px;
     box-shadow: none;
     z-index: 6000;
     transition: transform 0.4s var(--m3-easing), opacity 0.3s ease;
-    min-width: 360px;
-    max-width: 92vw;
-    justify-content: flex-start;
+    min-width: 320px;
+    max-width: min(94vw, 460px);
+    width: auto;
     pointer-events: none;
     border: 1.5px solid rgba(16, 185, 129, 0.2);
+    box-sizing: border-box;
 }
 
 .snackbar-m3.active {
     display: flex;
-    /* v69: Aparece solo cuando m3.active */
+    flex-direction: column;
+    gap: 10px;
     transform: translateX(-50%) translateY(0);
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.snackbar-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+
+.snackbar-m3 .snackbar-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.snackbar-m3 .message {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #10B981;
 }
 
 .snackbar-m3 .icon {
     color: #10B981;
-    font-size: 26px;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.snackbar-close-btn {
+    background: transparent;
+    border: none;
+    color: #10B981;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.15s, opacity 0.15s;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.snackbar-close-btn:hover {
+    opacity: 1;
+    background: rgba(16, 185, 129, 0.1);
 }
 
 /* Fix Grid View Text Deformation */
@@ -5463,6 +5511,27 @@ html[data-auth-likely="true"] #dashboard-app {
 .modal-overlay.hidden {
     opacity: 0 !important;
     pointer-events: none !important;
+}
+
+/* ─── Reglas de Visibilidad Estricta por Vista ─── */
+/* Las carpetas y su carrusel SOLO deben ser visibles en la vista 'recipes' */
+html:not([data-current-view="recipes"]) #suggestedCarouselSection,
+body:not([data-current-view="recipes"]) #suggestedCarouselSection,
+html:not([data-current-view="recipes"]) #folderBreadcrumb,
+body:not([data-current-view="recipes"]) #folderBreadcrumb {
+    display: none !important;
+}
+
+/* Ocultar cabecera de recetas en vistas autónomas (alergias, menú, ayuda) */
+html[data-current-view="allergens"] .dashboard-header,
+body[data-current-view="allergens"] .dashboard-header,
+html[data-current-view="menu"] .dashboard-header,
+body[data-current-view="menu"] .dashboard-header,
+html[data-current-view="help"] .dashboard-header,
+body[data-current-view="help"] .dashboard-header,
+html[data-current-view="settings"] .dashboard-header,
+body[data-current-view="settings"] .dashboard-header {
+    display: none !important;
 }
 
 /* ─── Carrusel Sugerido estilo Dropbox ─── */
@@ -13641,4 +13710,279 @@ input:checked~.m3-ingredient-text {
         display: none !important;
     }
 }
+
+/* ─── Material 3 Expressive Folder Dropdown Menu ─── */
+.m3-folder-select-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 24px;
+    user-select: none;
+}
+
+.m3-folder-trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 10px 16px;
+    background: #FFFFFF;
+    border: 2px solid #E5E7EB;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-sizing: border-box;
+}
+
+.m3-folder-trigger:hover {
+    border-color: #D1D5DB;
+    background: #FDFEFE;
+}
+
+.m3-folder-trigger:focus-visible,
+.m3-folder-select-wrapper.is-open .m3-folder-trigger {
+    border-color: #10B981;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.16);
+    outline: none;
+}
+
+.m3-folder-field-label {
+    position: absolute;
+    top: -9px;
+    left: 14px;
+    background: #FFFFFF;
+    padding: 0 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6B7280;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
+    border-radius: 4px;
+}
+
+.m3-folder-select-wrapper.is-open .m3-folder-field-label {
+    color: #059669;
+}
+
+.m3-folder-selected-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.m3-folder-selected-display .m3-folder-icon {
+    font-size: 22px;
+    color: #10B981;
+    font-variation-settings: 'FILL' 1;
+    flex-shrink: 0;
+}
+
+.m3-folder-selected-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m3-folder-arrow {
+    font-size: 24px;
+    color: #6B7280;
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), color 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.m3-folder-select-wrapper.is-open .m3-folder-arrow {
+    transform: rotate(180deg);
+    color: #10B981;
+}
+
+/* ─── Popup Menu Material 3 Expressive (Match 1:1 Screenshot) ─── */
+.m3-folder-menu-popup {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
+    max-height: 280px;
+    overflow-y: auto;
+    animation: m3FolderMenuIn 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes m3FolderMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.m3-folder-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.m3-folder-option-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    min-height: 48px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    box-sizing: border-box;
+}
+
+.m3-folder-option-item:hover {
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.m3-folder-option-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.m3-folder-option-text-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.m3-folder-option-icon {
+    font-size: 22px;
+    color: #10B981;
+    font-variation-settings: 'FILL' 1;
+    flex-shrink: 0;
+}
+
+.m3-folder-option-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1F2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m3-folder-option-sub {
+    font-size: 11.5px;
+    color: #6B7280;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m3-folder-option-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.m3-folder-option-badge {
+    font-size: 12px;
+    color: #9CA3AF;
+    font-weight: 500;
+}
+
+.m3-folder-check-icon {
+    font-size: 20px;
+    color: #10B981;
+    font-weight: 700;
+    display: none;
+    flex-shrink: 0;
+}
+
+/* Estado Seleccionado Estilo Material 3 Expressive (Pastilla suave verde + Check) */
+.m3-folder-option-item.is-selected {
+    background: #E8F5E9 !important;
+}
+
+.m3-folder-option-item.is-selected .m3-folder-option-name {
+    color: #065F46;
+    font-weight: 700;
+}
+
+.m3-folder-option-item.is-selected .m3-folder-option-sub {
+    color: #047857;
+}
+
+.m3-folder-option-item.is-selected .m3-folder-option-badge {
+    color: #059669;
+}
+
+.m3-folder-option-item.is-selected .m3-folder-check-icon {
+    display: inline-flex;
+}
+
+.m3-folder-option-item.is-selected .m3-folder-option-icon {
+    color: #059669;
+}
+
+/* Opción Crear nueva carpeta */
+.m3-folder-divider {
+    height: 1px;
+    background: #E5E7EB;
+    margin: 6px 4px;
+}
+
+.m3-folder-option-create {
+    color: #059669;
+    font-weight: 700;
+}
+
+.m3-folder-option-create .m3-folder-option-icon {
+    color: #10B981;
+}
+
+/* Input para nueva carpeta estilo M3 */
+.m3-new-folder-box {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #FFFFFF;
+    border: 2px solid #10B981;
+    border-radius: 12px;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    animation: m3FolderMenuIn 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-new-folder-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    background: transparent;
+}
+
+.m3-new-folder-box input::placeholder {
+    color: #9CA3AF;
+    font-weight: 400;
+}
+
 

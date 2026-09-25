@@ -254,8 +254,11 @@ class OCRScanner {
         const percentTexts = [document.getElementById('ocrPercent'), document.getElementById('ocrPercentModal')];
         const progressTexts = [document.getElementById('processingStatus'), document.getElementById('processingStatusModal')];
         const progressBars = [document.getElementById('progressBar'), document.getElementById('progressBarModal')];
+        const clipRect = document.getElementById('m3WaveClipRect');
+        if (clipRect) clipRect.setAttribute('width', `${p}%`);
         
         const m3Blobs = [document.getElementById('m3Blob'), document.getElementById('m3BlobModal')];
+        const m3WavyBoxes = [document.getElementById('m3WavyCircleBox'), document.getElementById('m3WavyCircleBoxModal')];
         const m3Checkmarks = [document.getElementById('m3Checkmark'), document.getElementById('m3CheckmarkModal')];
         const glassOverlays = [document.getElementById('ocrGlassOverlay'), document.getElementById('ocrGlassOverlayModal')];
 
@@ -270,8 +273,9 @@ class OCRScanner {
         // Animación de Éxito al llegar a 100%
         if (p >= 100 || message.status === 'completado') {
             m3Blobs.forEach(el => { if (el) el.classList.add('success'); });
+            m3WavyBoxes.forEach(el => { if (el) el.classList.add('success'); });
             m3Checkmarks.forEach(el => { if (el) el.style.opacity = '1'; });
-            glassOverlays.forEach(el => { if (el) el.style.opacity = '0'; }); // Quitar frosted glass
+            glassOverlays.forEach(el => { if (el) el.style.opacity = '0'; });
         }
     }
 
@@ -520,18 +524,36 @@ class OCRScanner {
             updateBadge('confidenceBadge');
             updateBadge('confidenceBadgeStep1');
 
-            // Cargar carpetas existentes en el selector de carpeta
+            // Cargar carpetas en el selector Material 3 Expressive (Google M3 Style)
+            if (typeof window.initM3FolderDropdown === 'function' && !window.ocrM3FolderDropdown) {
+                window.ocrM3FolderDropdown = window.initM3FolderDropdown({
+                    wrapperId: 'ocrFolderWrapper',
+                    triggerId: 'ocrFolderTrigger',
+                    menuId: 'ocrFolderMenu',
+                    itemsContainerId: 'ocrFolderItems',
+                    selectId: 'ocrFolderSelect',
+                    newFolderBoxId: 'ocrNewFolderBox',
+                    newFolderInputId: 'ocrNewFolderCustomInput'
+                });
+            }
+
             if (window.db && window.db.getMyFolders) {
                 window.db.getMyFolders().then(folders => {
+                    if (window.ocrM3FolderDropdown) {
+                        window.ocrM3FolderDropdown.setFolders(folders);
+                    }
                     const select = document.getElementById('ocrFolderSelect');
                     if (select) {
-                        const existingVal = select.value;
+                        const existingVal = (window.ocrM3FolderDropdown ? window.ocrM3FolderDropdown.getValue() : select.value) || '';
                         select.innerHTML = `
-                            <option value="">📁 Sin carpeta (Principal)</option>
-                            ${folders.map(f => `<option value="${f}">📁 ${f}</option>`).join('')}
-                            <option value="__NEW__">➕ Crear nueva carpeta...</option>
+                            <option value="">Sin carpeta (Principal)</option>
+                            ${folders.map(f => `<option value="${f}">${f}</option>`).join('')}
+                            <option value="__NEW__">Crear nueva carpeta...</option>
                         `;
-                        if (existingVal) select.value = existingVal;
+                        if (existingVal) {
+                            if (window.ocrM3FolderDropdown) window.ocrM3FolderDropdown.setValue(existingVal);
+                            select.value = existingVal;
+                        }
                     }
                 }).catch(() => {});
             }

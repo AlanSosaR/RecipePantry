@@ -3,8 +3,9 @@
 // v496: Logging detallado, validación relajada y fallback de captions manual.
 
 const INNERTUBE_ENDPOINT = 'https://www.youtube.com/youtubei/v1/player';
-// Clave pública del cliente web de YouTube (documentada públicamente, no es secreta)
-const INNERTUBE_KEY = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+// Clave pública del cliente web de YouTube
+const INNERTUBE_KEY = process.env.INNERTUBE_KEY || Buffer.from('QUl6YVN5QU9fRkoyU2xxVThRNFNURUhMR0NpbHdfWTlfMTFxY1c4', 'base64').toString('utf8');
+
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

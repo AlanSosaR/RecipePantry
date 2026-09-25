@@ -7,6 +7,7 @@ const fs = require('fs');
 
 const FILES = [
   'sw.js',
+  'ocr.html',
   'nota-form.html',
   'notas.html',
   'index.html',

@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v671';
-const BUILD_ID = 'v671';
-const CACHE_NAME = `recipe-pantry-v671`;
-const STATIC_CACHE = 'static-v671';
-const DATA_CACHE = 'data-v671';
+const VERSION = 'v679';
+const BUILD_ID = 'v679';
+const CACHE_NAME = `recipe-pantry-v679`;
+const STATIC_CACHE = 'static-v679';
+const DATA_CACHE = 'data-v679';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -291,20 +291,22 @@ self.addEventListener('notificationclick', (event) => {
 
 // 6. Firebase Cloud Messaging (FCM Background Handler)
 try {
-    importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-    importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+    // 1. Intentar cargar configuración local si existe
+    try { importScripts('/js/core/firebase-sw-config.js'); } catch (e) {}
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCcp8u2ckTy8E1Un1Fp5s-ZuYqJoxVYct4",
-        authDomain: "recipepantry-e8ef8.firebaseapp.com",
-        projectId: "recipepantry-e8ef8",
-        storageBucket: "recipepantry-e8ef8.firebasestorage.app",
-        messagingSenderId: "547631229279",
-        appId: "1:547631229279:web:5ad75d816f2c37f75e6eea"
-    };
+    // 2. Si no está en local, cargar desde endpoint seguro
+    if (!self.FIREBASE_CONFIG || !self.FIREBASE_CONFIG.apiKey) {
+        try { importScripts('/api/firebase-sw-config.js'); } catch (e) {}
+    }
 
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
+    if (self.FIREBASE_CONFIG && self.FIREBASE_CONFIG.apiKey) {
+        importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+        importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(self.FIREBASE_CONFIG);
+        }
+        const messaging = firebase.messaging();
 
     messaging.onBackgroundMessage((payload) => {
         console.log('[FCM SW] onBackgroundMessage recibido:', payload);

@@ -226,11 +226,16 @@ window.showSnackbar = (message, duration = 4000) => {
         snackbar.id = 'global-snackbar';
         snackbar.className = 'snackbar-m3';
         snackbar.innerHTML = `
-            <div class="snackbar-content">
-                <span class="material-symbols-outlined icon">info</span>
-                <span class="message"></span>
+            <div class="snackbar-header-row">
+                <div class="snackbar-content">
+                    <span class="material-symbols-outlined icon">info</span>
+                    <span class="message"></span>
+                </div>
+                <button class="btn-icon-m3 snackbar-close-btn" aria-label="Cerrar">
+                    <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                </button>
             </div>
-            <div class="snackbar-actions"></div>
+            <div class="snackbar-actions" style="display: none;"></div>
         `;
         document.body.appendChild(snackbar);
     }
@@ -240,25 +245,20 @@ window.showSnackbar = (message, duration = 4000) => {
 
     // Limpiar acciones previas
     const actionsEl = snackbar.querySelector('.snackbar-actions');
-    if (actionsEl) actionsEl.innerHTML = '';
+    if (actionsEl) {
+        actionsEl.innerHTML = '';
+        actionsEl.style.display = 'none';
+    }
+
+    const closeBtn = snackbar.querySelector('.snackbar-close-btn');
+    if (closeBtn) closeBtn.onclick = () => snackbar.classList.remove('active');
 
     // Forzar reinicio de clase active para animar de nuevo si ya estaba visible
     snackbar.classList.remove('active');
     void snackbar.offsetWidth; // Trigger reflow
     snackbar.classList.add('active');
 
-    // Botón de cerrar (dismiss) por defecto si la duración es larga o indefinida
-    if (duration === 0 || duration > 5000) {
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'btn-icon-m3';
-        closeBtn.style.color = 'inherit';
-        closeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">close</span>';
-        closeBtn.onclick = () => snackbar.classList.remove('active');
-        actionsEl.appendChild(closeBtn);
-    }
-
     if (duration > 0) {
-        // Limpiar cualquier timer anterior si existiera
         if (snackbar._timeout) clearTimeout(snackbar._timeout);
         snackbar._timeout = setTimeout(() => {
             snackbar.classList.remove('active');
@@ -267,7 +267,7 @@ window.showSnackbar = (message, duration = 4000) => {
 };
 
 /**
- * Muestra un Snackbar con un botón de acción
+ * Muestra un Snackbar con un botón de acción en la fila inferior
  */
 window.showActionSnackbar = (message, actionText, onAction) => {
     // Eliminar cualquier snackbar anterior del DOM para evitar residuos
@@ -280,11 +280,16 @@ window.showActionSnackbar = (message, actionText, onAction) => {
     // Crear snackbar fresco en el DOM
     const snackbar = document.createElement('div');
     snackbar.id = 'global-snackbar';
-    snackbar.className = 'snackbar-m3';
+    snackbar.className = 'snackbar-m3 snackbar-action-mode';
     snackbar.innerHTML = `
-        <div class="snackbar-content">
-            <span class="material-symbols-outlined icon">info</span>
-            <span class="message"></span>
+        <div class="snackbar-header-row">
+            <div class="snackbar-content">
+                <span class="material-symbols-outlined icon">info</span>
+                <span class="message"></span>
+            </div>
+            <button class="btn-icon-m3 snackbar-close-btn" aria-label="Cerrar">
+                <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+            </button>
         </div>
         <div class="snackbar-actions"></div>
     `;
@@ -294,18 +299,22 @@ window.showActionSnackbar = (message, actionText, onAction) => {
     if (messageEl) messageEl.textContent = message;
 
     const actionsEl = snackbar.querySelector('.snackbar-actions');
+    actionsEl.style.display = 'flex';
 
     // Función de cierre definitivo: quita clase Y elimina del DOM
     const closeSnackbar = () => {
         if (snackbar._timeout) clearTimeout(snackbar._timeout);
         snackbar.classList.remove('active');
-        // Esperar la transición CSS antes de eliminar del DOM
         setTimeout(() => {
             if (snackbar.parentNode) snackbar.remove();
         }, 400);
     };
 
-    // Botón de acción principal (ELIMINAR, ACEPTAR, etc.)
+    // Botón X de cierre
+    const closeBtn = snackbar.querySelector('.snackbar-close-btn');
+    if (closeBtn) closeBtn.onclick = () => closeSnackbar();
+
+    // Botón de acción principal abajo (ELIMINAR, ACEPTAR, etc.)
     const btn = document.createElement('button');
     btn.className = 'snackbar-btn';
     btn.textContent = actionText;
@@ -315,14 +324,6 @@ window.showActionSnackbar = (message, actionText, onAction) => {
         if (onAction) onAction();
     };
     actionsEl.appendChild(btn);
-
-    // Botón X de cierre
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'btn-icon-m3';
-    closeBtn.style.color = 'inherit';
-    closeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;">close</span>';
-    closeBtn.onclick = () => closeSnackbar();
-    actionsEl.appendChild(closeBtn);
 
     // Forzar reflow y mostrar
     void snackbar.offsetWidth;

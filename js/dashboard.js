@@ -167,17 +167,38 @@ class DashboardManager {
             });
 
             // Al restaurar la página desde la caché del navegador (bfcache en móviles)
-            // IMPORTANTE: solo actuar cuando sea una restauración real de bfcache (event.persisted)
-            // para evitar doble-render en carga normal que causa el «flash» y el bloqueo de navegación.
-            window.addEventListener('pageshow', (event) => {
-                if (!event.persisted) return; // carga normal — ya manejada por init()
+            window.addEventListener('pageshow', async (event) => {
                 const p = new URLSearchParams(window.location.search);
                 const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
-                if (this.currentView === 'recipes' && this.currentFolder !== f) {
-                    this.currentFolder = f || null;
-                    this.clearSelection();
-                    this.renderFolders();
-                    this.renderRecipesGrid(this.currentRecipes);
+                if (this.currentView === 'recipes') {
+                    if (this.currentFolder !== f) {
+                        this.currentFolder = f || null;
+                        this.clearSelection();
+                        this.renderFolders();
+                    }
+                    if (event.persisted) {
+                        console.log('⚡ Retorno desde bfcache (pageshow): recargando caché local a 0ms');
+                        await this.loadRecipes({ orderBy: 'name_es', ascending: true });
+                    }
+                }
+            });
+
+            // Sincronización instantánea ante mutaciones en otras pestañas o páginas (0ms)
+            window.addEventListener('storage', async (e) => {
+                if (e.key === 'rp_recipe_mutation') {
+                    console.log('⚡ Mutación de receta detectada en storage, recargando a 0ms');
+                    await this.loadRecipes(this.lastFilters || { orderBy: 'name_es', ascending: true });
+                }
+            });
+
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible') {
+                    const lastMutation = localStorage.getItem('rp_recipe_mutation');
+                    if (lastMutation && (!this._lastRenderMutation || this._lastRenderMutation < lastMutation)) {
+                        this._lastRenderMutation = lastMutation;
+                        console.log('⚡ Visibilidad activa con mutación pendiente, recargando a 0ms');
+                        await this.loadRecipes(this.lastFilters || { orderBy: 'name_es', ascending: true });
+                    }
                 }
             });
 
@@ -417,14 +438,31 @@ class DashboardManager {
             overlay.addEventListener('click', () => this.toggleSidebar(false));
         }
 
-        // Listener para actualizaciones en segundo plano (Cache-First Revalidation)
-        window.addEventListener('recipes-index-updated', (e) => {
-            console.log('🔄 Índice de recetas actualizado en segundo plano');
-            if (e.detail && Array.isArray(e.detail)) {
-                this.currentRecipes = e.detail;
-                if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
-                    this.renderRecipesGrid(this.currentRecipes);
+        // Listener para actualizaciones (Cache-First Revalidation & Mutaciones 0ms)
+        window.addEventListener('recipes-index-updated', async (e) => {
+            console.log('🔄 Índice de recetas actualizado');
+            if (e.detail && Array.isArray(e.detail) && e.detail.length > 0) {
+                if (e.detail.length > 1 || !this.currentRecipes) {
+                    this.currentRecipes = e.detail;
+                } else {
+                    const single = e.detail[0];
+                    if (this.currentRecipes) {
+                        const idx = this.currentRecipes.findIndex(r => r.id === single.id);
+                        if (idx >= 0) {
+                            this.currentRecipes[idx] = { ...this.currentRecipes[idx], ...single };
+                        } else {
+                            this.currentRecipes.unshift(single);
+                        }
+                    } else {
+                        this.currentRecipes = [single];
+                    }
                 }
+            } else if (window.localDB) {
+                this.currentRecipes = await window.localDB.getAll('recipes_index') || [];
+            }
+            if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                this.renderFolders();
+                this.renderRecipesGrid(this.currentRecipes);
             }
         });
 
@@ -528,8 +566,30 @@ class DashboardManager {
             if (navEl) navEl.classList.add('active');
         }
 
+        document.documentElement.setAttribute('data-current-view', view);
+        document.body.setAttribute('data-current-view', view);
+
+        const carousel = document.getElementById('suggestedCarouselSection');
+        const breadcrumb = document.getElementById('folderBreadcrumb');
+        const dashHeader = document.querySelector('.dashboard-header');
+
         if (view !== 'recipes') {
             this.currentFolder = null;
+            if (carousel) {
+                carousel.classList.add('hidden');
+                carousel.style.display = 'none';
+            }
+            if (breadcrumb) {
+                breadcrumb.classList.add('hidden');
+                breadcrumb.style.display = 'none';
+            }
+        }
+
+        if (['allergens', 'menu', 'help', 'settings'].includes(view)) {
+            if (dashHeader) {
+                dashHeader.classList.add('hidden');
+                dashHeader.style.display = 'none';
+            }
         }
 
         if (view === 'favorites') {
@@ -584,17 +644,36 @@ class DashboardManager {
 
     showHelpView() {
         console.log('[Dashboard] Executing showHelpView');
+        this.currentView = 'help';
+        document.documentElement.setAttribute('data-current-view', 'help');
+        document.body.setAttribute('data-current-view', 'help');
+
         const grid = document.getElementById('recipesGrid');
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
         const allergensView = document.getElementById('allergensView');
         const menuView = document.getElementById('menuView');
         const titleEl = document.getElementById('view-title');
+        const dashHeader = document.querySelector('.dashboard-header');
+        const carousel = document.getElementById('suggestedCarouselSection');
+        const breadcrumb = document.getElementById('folderBreadcrumb');
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
         if (allergensView) allergensView.classList.add('hidden');
         if (menuView) menuView.classList.add('hidden');
+        if (dashHeader) {
+            dashHeader.classList.add('hidden');
+            dashHeader.style.display = 'none';
+        }
+        if (carousel) {
+            carousel.classList.add('hidden');
+            carousel.style.display = 'none';
+        }
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.add('hidden');
 
@@ -620,17 +699,35 @@ class DashboardManager {
     showMenuView() {
         console.log('[Dashboard] Executing showMenuView');
         this.currentView = 'menu';
+        document.documentElement.setAttribute('data-current-view', 'menu');
+        document.body.setAttribute('data-current-view', 'menu');
+
         const grid = document.getElementById('recipesGrid');
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
         const allergensView = document.getElementById('allergensView');
         const menuView = document.getElementById('menuView');
         const titleEl = document.getElementById('view-title');
+        const dashHeader = document.querySelector('.dashboard-header');
+        const carousel = document.getElementById('suggestedCarouselSection');
+        const breadcrumb = document.getElementById('folderBreadcrumb');
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
         if (help) help.classList.add('hidden');
         if (allergensView) allergensView.classList.add('hidden');
+        if (dashHeader) {
+            dashHeader.classList.add('hidden');
+            dashHeader.style.display = 'none';
+        }
+        if (carousel) {
+            carousel.classList.add('hidden');
+            carousel.style.display = 'none';
+        }
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.add('hidden');
 
@@ -1205,10 +1302,17 @@ class DashboardManager {
         }
     }
 
+    editRecipe(recipeId) {
+        const recipe = this.currentRecipes?.find(r => r.id === recipeId);
+        const folder = this.currentFolder || recipe?.pantry_es || '';
+        const folderParam = folder ? `&folder=${encodeURIComponent(folder)}&returnTo=folder` : '';
+        window.location.href = `/recipe-form?id=${recipeId}${folderParam}`;
+    }
+
     editSelected() {
         if (this.selectedRecipes.size === 0) return;
         const recipeId = Array.from(this.selectedRecipes).sort()[0];
-        window.location.href = `/recipe-form?id=${recipeId}`;
+        this.editRecipe(recipeId);
     }
 
     renameSelected() {
@@ -1272,9 +1376,10 @@ class DashboardManager {
         const count = selectedIdsArr.length;
         console.log(`[Dashboard] Initializing deleteSelected for ${count} recipes. IDs:`, selectedIdsArr);
 
-        const confirmMsg = window.i18n && window.i18n.getLang() === 'en'
-            ? `Are you sure you want to delete ${count} recipes?`
-            : `¿Seguro que desea eliminar ${count} recetas?`;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const confirmMsg = isEn
+            ? (count === 1 ? 'Are you sure you want to delete 1 recipe?' : `Are you sure you want to delete ${count} recipes?`)
+            : (count === 1 ? '¿Seguro que desea eliminar 1 receta?' : `¿Seguro que desea eliminar ${count} recetas?`);
 
         window.showActionSnackbar(confirmMsg, 'ELIMINAR', async () => {
             try {
@@ -1462,9 +1567,11 @@ class DashboardManager {
         if (option === 'folder') {
             this.promptNewFolder();
         } else if (option === 'document') {
-            window.location.href = '/recipe-form';
+            const folderParam = this.currentFolder ? `?folder=${encodeURIComponent(this.currentFolder)}&returnTo=folder` : '';
+            window.location.href = `/recipe-form${folderParam}`;
         } else if (option === 'scan') {
-            window.location.href = '/ocr';
+            const folderParam = this.currentFolder ? `?folder=${encodeURIComponent(this.currentFolder)}&returnTo=folder` : '';
+            window.location.href = `/ocr${folderParam}`;
         }
     }
 
@@ -1479,8 +1586,19 @@ class DashboardManager {
                 breadcrumb.classList.add('hidden');
                 breadcrumb.style.display = 'none';
             }
-            if (dashHeader && !this.isSelectionMode) {
+            const carouselSection = document.getElementById('suggestedCarouselSection');
+            if (carouselSection) {
+                carouselSection.classList.add('hidden');
+                carouselSection.style.display = 'none';
+            }
+            if (['allergens', 'menu', 'help', 'settings'].includes(this.currentView)) {
+                if (dashHeader) {
+                    dashHeader.classList.add('hidden');
+                    dashHeader.style.display = 'none';
+                }
+            } else if (dashHeader && !this.isSelectionMode) {
                 dashHeader.classList.remove('hidden');
+                dashHeader.style.display = '';
             }
             return;
         }
@@ -1582,6 +1700,7 @@ class DashboardManager {
 
         if (this.currentView !== 'recipes' || this.currentFolder || folders.length === 0) {
             section.classList.add('hidden');
+            section.style.display = 'none';
             track.innerHTML = '';
             return;
         }
@@ -1618,6 +1737,7 @@ class DashboardManager {
 
         track.innerHTML = folderCards;
         section.classList.remove('hidden');
+        section.style.display = '';
 
         // Restaurar estado de visibilidad del ojo (recordar preferencia)
         const isCollapsed = localStorage.getItem('suggested_carousel_collapsed') === 'true';
@@ -2701,7 +2821,7 @@ class DashboardManager {
                         <button class="btn-icon-m3" title="Copiar enlace" onclick="event.stopPropagation(); window.dashboard.copyLink('${recipe.id}')">
                             <span class="material-symbols-outlined">link</span>
                         </button>
-                        <button class="btn-icon-m3" title="Editar" onclick="event.stopPropagation(); window.location.href='/recipe-form?id=${recipe.id}'">
+                        <button class="btn-icon-m3" title="Editar" onclick="event.stopPropagation(); window.dashboard.editRecipe('${recipe.id}')">
                             <span class="material-symbols-outlined">edit</span>
                         </button>
                         <button class="btn-icon-m3" title="Eliminar" style="color: var(--md-error);" onclick="event.stopPropagation(); window.dashboard.confirmDelete('${recipe.id}')">
@@ -3020,7 +3140,7 @@ class DashboardManager {
                 if (deleteBtn) deleteBtn.style.display = 'none';
             } else {
                 if (editBtn) editBtn.addEventListener('click', () => {
-                    window.location.href = `/recipe-form?id=${recipeId}`;
+                    this.editRecipe(recipeId);
                 });
                 if (deleteBtn) deleteBtn.addEventListener('click', async () => {
                     const confirmMsg = window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?';
@@ -3288,7 +3408,7 @@ class DashboardManager {
                     ${window.i18n ? window.i18n.t('shareBtn') : 'Compartir'}
                 </button>
                 <div class="context-menu-divider"></div>
-                <button class="context-menu-item" onclick="window.location.href='/recipe-form?id=${recipe.id}'">
+                <button class="context-menu-item" onclick="window.dashboard.editRecipe('${recipe.id}')">
                     <span class="material-symbols-outlined">edit</span>
                     ${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar receta'}
                 </button>
@@ -3543,17 +3663,35 @@ class DashboardManager {
     showAllergensView() {
         console.log('[Dashboard] Executing showAllergensView');
         this.currentView = 'allergens';
+        document.documentElement.setAttribute('data-current-view', 'allergens');
+        document.body.setAttribute('data-current-view', 'allergens');
+
         const grid = document.getElementById('recipesGrid');
         const empty = document.getElementById('emptyState');
         const help = document.getElementById('helpView');
         const allergensView = document.getElementById('allergensView');
         const menuView = document.getElementById('menuView');
         const titleEl = document.getElementById('view-title');
+        const dashHeader = document.querySelector('.dashboard-header');
+        const carousel = document.getElementById('suggestedCarouselSection');
+        const breadcrumb = document.getElementById('folderBreadcrumb');
 
         if (grid) grid.classList.add('hidden');
         if (empty) empty.classList.add('hidden');
         if (help) help.classList.add('hidden');
         if (menuView) menuView.classList.add('hidden');
+        if (dashHeader) {
+            dashHeader.classList.add('hidden');
+            dashHeader.style.display = 'none';
+        }
+        if (carousel) {
+            carousel.classList.add('hidden');
+            carousel.style.display = 'none';
+        }
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.add('hidden');
 

@@ -627,8 +627,8 @@ class NotificationManager {
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); position:relative;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:rgba(16, 185, 129, 0.2); color:#10B981; font-size:20px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
-                                📁
+                            <div class="notification-avatar" style="flex-shrink:0; background:rgba(16, 185, 129, 0.18); color:#10B981; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
+                                <span class="material-symbols-outlined" style="font-size:24px; color:#10B981; font-variation-settings: 'FILL' 1;">folder</span>
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -638,7 +638,10 @@ class NotificationManager {
                                         onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.35)'"
                                         title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
                                 </div>
-                                <span style="color:#10B981; font-weight:700; display:block; margin-top:3px; font-size:13.5px;">📁 ${folderTitle} <span style="font-weight:400; font-size:12px; color:#A1A1AA;">${countText}</span></span>
+                                <span style="color:#10B981; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
+                                    <span class="material-symbols-outlined" style="font-size:18px; color:#10B981; font-variation-settings: 'FILL' 1; flex-shrink:0;">folder</span>
+                                    <span>${folderTitle} <span style="font-weight:400; font-size:12px; color:#A1A1AA;">${countText}</span></span>
+                                </span>
                                 <span style="color:#71717A; font-size:10.5px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                                 
                                 <!-- Action buttons -->
@@ -646,7 +649,8 @@ class NotificationManager {
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptFolder('${n.id}', '${safeFolderName}', '${safeRecipeIdsJson}')"
                                         style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: transform 0.15s, filter 0.15s;"
                                         onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                        💾 ${isEn ? 'Save folder' : 'Guardar toda la carpeta'}
+                                        <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
+                                        <span>${isEn ? 'Save folder' : 'Guardar toda la carpeta'}</span>
                                     </button>
                                     <div style="display:flex; gap:9px;">
                                         <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineFolder('${n.id}', '${safeRecipeIdsJson}')"

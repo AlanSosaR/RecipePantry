@@ -7,6 +7,28 @@ const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 const ROOT = __dirname;
 
+// Cargar variables de entorno desde .env si existe
+const envFile = path.join(ROOT, '.env');
+if (fs.existsSync(envFile)) {
+    try {
+        const envContent = fs.readFileSync(envFile, 'utf8');
+        envContent.split(/\r?\n/).forEach(line => {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#')) {
+                const idx = trimmed.indexOf('=');
+                if (idx !== -1) {
+                    const k = trimmed.substring(0, idx).trim();
+                    const v = trimmed.substring(idx + 1).trim().replace(/^['"]|['"]$/g, '');
+                    if (!process.env[k]) process.env[k] = v;
+                }
+            }
+        });
+    } catch (e) {
+        console.warn('⚠️ No se pudo leer .env:', e.message);
+    }
+}
+
+
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
@@ -82,7 +104,33 @@ const server = http.createServer(async (req, res) => {
                     const handlerModule = await import('file://' + apiPath.replace(/\\/g, '/'));
                     const handler = handlerModule.default || handlerModule;
                     if (typeof handler === 'function') {
-                        return handler(req, res);
+                        // Augment res with Vercel/Express helpers if missing
+                    if (!res.status) {
+                        res.status = function(code) {
+                            this.statusCode = code;
+                            return this;
+                        };
+                    }
+                    if (!res.json) {
+                        res.json = function(data) {
+                            this.setHeader('Content-Type', 'application/json');
+                            this.end(JSON.stringify(data));
+                            return this;
+                        };
+                    }
+                    if (!res.send) {
+                        res.send = function(data) {
+                            if (typeof data === 'object') {
+                                this.setHeader('Content-Type', 'application/json');
+                                this.end(JSON.stringify(data));
+                            } else {
+                                this.end(data);
+                            }
+                            return this;
+                        };
+                    }
+
+                    return handler(req, res);
                     }
                 } catch (apiErr) {
                     console.error('API Error:', apiErr);

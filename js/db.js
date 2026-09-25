@@ -566,6 +566,8 @@ class DatabaseManager {
             if (localMeta) {
                 if (localMeta.sharingContext) recipe.sharingContext = localMeta.sharingContext;
                 if (localMeta.senderName) recipe.senderName = localMeta.senderName;
+                if (!recipe.pantry_es && localMeta.pantry_es) recipe.pantry_es = localMeta.pantry_es;
+                if (!recipe.pantry_en && localMeta.pantry_en) recipe.pantry_en = localMeta.pantry_en;
             }
             
             await window.localDB.put('recipes_full', recipe);
@@ -574,8 +576,8 @@ class DatabaseManager {
                 id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en,
                 image_url: recipe.image_url, updated_at: recipe.updated_at,
                 is_favorite: recipe.is_favorite,
-                pantry_es: recipe.pantry_es || null,
-                pantry_en: recipe.pantry_en || null,
+                pantry_es: recipe.pantry_es || (localMeta && localMeta.pantry_es) || null,
+                pantry_en: recipe.pantry_en || (localMeta && localMeta.pantry_en) || null,
                 tags: recipe.tags || [],
                 sharingContext: recipe.sharingContext || null,
                 user_id: recipe.user_id || null
