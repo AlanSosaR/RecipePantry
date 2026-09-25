@@ -9,6 +9,9 @@ class NotificationManager {
         this.lastCount = 0;
         this.isReady = false;
         this.pendingNotifications = []; // v217: Cola para notificaciones que llegan antes del init
+        // IDs descartados localmente: evita que fetchNotifications los remuestre
+        // aunque Supabase aún no haya procesado el UPDATE leido=true
+        this._dismissedIds = new Set();
     }
 
     async init() {
@@ -190,6 +193,12 @@ class NotificationManager {
                 return !duplicate;
             });
 
+            // ⚡ Filtrar IDs descartados localmente (Supabase puede tardar en actualizar leido=true)
+            // Esto evita el flash de 1 segundo donde la notificación reaparece brevemente
+            if (this._dismissedIds && this._dismissedIds.size > 0) {
+                this.notifications = this.notifications.filter(n => !this._dismissedIds.has(n.id));
+            }
+
             this.updateBadge();
             if (this.menu && !this.menu.classList.contains('hidden')) {
                 this.renderMenu();
@@ -284,6 +293,19 @@ class NotificationManager {
             this.badge.classList.add('hidden');
         }
         this.lastCount = unreadCount;
+    }
+
+    /**
+     * Descarta una notificación localmente de forma instantánea.
+     * Añade al blocklist (_dismissedIds) para que fetchNotifications nunca la vuelva a mostrar,
+     * incluso si Supabase aún no ha procesado el UPDATE leido=true.
+     */
+    _dismissLocally(notificationId) {
+        if (!notificationId) return;
+        this._dismissedIds.add(notificationId);
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        this.updateBadge();
+        this.renderMenu();
     }
 
     addUpdateNotification(worker) {
@@ -783,9 +805,7 @@ class NotificationManager {
         window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId).then();
 
         // Quitar de la lista local para que desaparezca de la campana
-        this.notifications = this.notifications.filter(n => n.id !== notificationId);
-        this.updateBadge();
-        this.renderMenu();
+        this._dismissLocally(notificationId);
         if (this.menu) this.menu.classList.add('hidden');
 
         // Mostrar el modal que está en index.html
@@ -969,9 +989,7 @@ class NotificationManager {
             window.syncManager.preloadOfflineRecipes({ silent: false });
             
             // Marcar como leída y quitar de la lista
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
             this.menu.classList.add('hidden');
         }
     }
@@ -980,9 +998,7 @@ class NotificationManager {
         if (notificationId && notificationId.startsWith('sync-')) {
             localStorage.setItem('recipepantry_offline_prompt_dismissed', 'true');
         }
-        this.notifications = this.notifications.filter(n => n.id !== notificationId);
-        this.updateBadge();
-        this.renderMenu();
+        this._dismissLocally(notificationId);
     }
 
     /**
@@ -1080,10 +1096,8 @@ class NotificationManager {
             window.dispatchEvent(new CustomEvent('recipe-created', { detail: savedRecipeObj }));
             try { localStorage.setItem('rp_recipe_mutation', Date.now().toString()); } catch (e) {}
 
-            // Actualizar UI de notificaciones localmente
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            // Actualizar UI de notificaciones localmente (blocklist + filter + badge)
+            this._dismissLocally(notificationId);
 
             const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
             window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
@@ -1154,9 +1168,7 @@ class NotificationManager {
             }
 
             // 3. Update UI
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             window.utils.showToast('Receta guardada en compartidas', 'success');
 
@@ -1237,9 +1249,7 @@ class NotificationManager {
                     .eq('id', notificationId);
 
                 // 6. Actualizar UI de notificaciones
-                this.notifications = this.notifications.filter(n => n.id !== notificationId);
-                this.updateBadge();
-                this.renderMenu();
+                this._dismissLocally(notificationId);
             } else {
                 throw new Error('No se pudo guardar ninguna receta');
             }
@@ -1307,9 +1317,7 @@ class NotificationManager {
                 .eq('id', notificationId);
 
             // 3. Actualizar UI
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             window.utils.showToast(isEn ? 'Folder kept in Shared section' : 'Carpeta guardada en compartidas', 'success');
 
@@ -1357,9 +1365,7 @@ class NotificationManager {
                 .eq('id', notificationId);
 
             // 3. Actualizar UI
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             window.utils.showToast(isEn ? 'Folder dismissed' : 'Carpeta omitida', 'info');
@@ -1393,9 +1399,7 @@ class NotificationManager {
                 .eq('id', notificationId);
 
             // 3. Actualizar UI
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             window.utils.showToast(isEn ? 'Recipe dismissed' : 'Receta omitida', 'info');
@@ -1419,11 +1423,9 @@ class NotificationManager {
                 try { localStorage.setItem('recipepantry_preferred_menu_id', resolvedMenuId); } catch (e) {}
             }
 
-            // 1. RESPUESTA SÍNCRONA INMEDIATA A 0ms (Exactamente igual a "Dejar de seguir")
+            // 1. RESPUESTA SÍNCRONA INMEDIATA A 0ms
             if (this.menu) this.menu.classList.add('hidden');
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             const d = window.dashboard || window.dashboardManager;
             if (d && typeof d.switchView === 'function') {
@@ -1569,9 +1571,7 @@ class NotificationManager {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
 
             // 1. Quitar de la lista local y actualizar badge de inmediato (0ms)
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             if (window.utils && window.utils.showToast) {
                 window.utils.showToast(isEn ? 'Menu invitation declined' : 'Invitación a la carta rechazada', 'info');
@@ -1598,9 +1598,7 @@ class NotificationManager {
     async handleDismissMenu(notificationId, menuId) {
         try {
             // 1. UI update al instante (0ms)
-            this.notifications = this.notifications.filter(n => n.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             // 2. Marcar en BD en segundo plano
             if (window.supabaseClient) {
@@ -1625,9 +1623,7 @@ class NotificationManager {
                 .update({ leido: true })
                 .eq('id', notificationId);
 
-            this.notifications = this.notifications.filter(item => item.id !== notificationId);
-            this.updateBadge();
-            this.renderMenu();
+            this._dismissLocally(notificationId);
 
             window.location.href = `/recipe-detail?id=${n.recipeId}`;
             this.menu.classList.add('hidden');
