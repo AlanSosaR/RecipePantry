@@ -1045,11 +1045,12 @@ class NotificationManager {
             const d = window.dashboard || window.dashboardManager;
             if (d) {
                 if (Array.isArray(d.currentRecipes)) {
-                    d.currentRecipes = d.currentRecipes.filter(r => r.id !== savedRecipeObj.id);
+                    // Limpiar tanto el ID nuevo como el ID fuente (receta compartida original)
+                    d.currentRecipes = d.currentRecipes.filter(r => r.id !== savedRecipeObj.id && r.id !== recipeId);
                     d.currentRecipes.unshift(savedRecipeObj);
                 }
                 if (Array.isArray(d.allRecipes)) {
-                    d.allRecipes = d.allRecipes.filter(r => r.id !== savedRecipeObj.id);
+                    d.allRecipes = d.allRecipes.filter(r => r.id !== savedRecipeObj.id && r.id !== recipeId);
                     d.allRecipes.unshift(savedRecipeObj);
                 }
 
@@ -1072,7 +1073,10 @@ class NotificationManager {
             }
 
             // Disparar eventos de sincronización instantánea
-            window.dispatchEvent(new CustomEvent('recipes-index-updated'));
+            // ⚠️ SIEMPRE pasar detail con el array actualizado para evitar que el listener
+            // recargue desde localDB y pise la receta recién añadida optimistamente.
+            const updatedRecipes = d ? (d.currentRecipes || []) : [];
+            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: updatedRecipes }));
             window.dispatchEvent(new CustomEvent('recipe-created', { detail: savedRecipeObj }));
             try { localStorage.setItem('rp_recipe_mutation', Date.now().toString()); } catch (e) {}
 
@@ -1087,20 +1091,26 @@ class NotificationManager {
             // 4. LIMPIEZA Y PERSISTENCIA EN SEGUNDO PLANO
             (async () => {
                 try {
-                    // Eliminar de compartidas definitivamente
-                    await window.db.deleteSharedRecipe(user.id, recipeId);
-
-                    // Marcar notificación como leída en el servidor
-                    const { error: notifError } = await window.supabaseClient
+                    // Marcar notificación como leída por ID exacto PRIMERO (antes de cualquier
+                    // otra operación). Evitar filtros por recipe_id+type que pueden no matchear
+                    // nada y devolver error=null (0 rows updated → notificación reaparece).
+                    await window.supabaseClient
                         .from('notifications')
                         .update({ leido: true })
-                        .eq('user_id', user.id)
-                        .eq('recipe_id', recipeId)
-                        .eq('type', 'recipe_shared');
+                        .eq('id', notificationId);
 
-                    if (notifError) {
-                        await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+                    // También marcar por recipe_id para cubrir posibles duplicados
+                    if (recipeId) {
+                        await window.supabaseClient
+                            .from('notifications')
+                            .update({ leido: true })
+                            .eq('user_id', user.id)
+                            .eq('recipe_id', recipeId);
                     }
+
+                    // Eliminar de compartidas (localDB ya fue actualizado en duplicateRecipe,
+                    // aquí solo se limpia Supabase shared_recipes y caches)
+                    await window.db.deleteSharedRecipe(user.id, recipeId);
                 } catch (bgErr) {
                     console.warn('⚠️ [Notifications] Sincronización en segundo plano:', bgErr);
                 }
