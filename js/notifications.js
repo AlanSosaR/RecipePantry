@@ -506,6 +506,15 @@ class NotificationManager {
         }
     }
 
+    closeMenu() {
+        if (!this.menu) {
+            this.menu = document.getElementById('notifications-menu');
+        }
+        if (this.menu) {
+            this.menu.classList.add('hidden');
+        }
+    }
+
     renderMenu() {
         if (!this.list) {
             this.list = document.getElementById('notifications-list');
@@ -982,8 +991,9 @@ class NotificationManager {
      */
     handleAcceptRecipe(notificationId, recipeId, recipeName) {
         this.closeMenu();
-        if (window.dashboard && typeof window.dashboard.openSaveSharedRecipeModal === 'function') {
-            window.dashboard.openSaveSharedRecipeModal(notificationId, recipeId, recipeName);
+        const d = window.dashboard || window.dashboardManager;
+        if (d && typeof d.openSaveSharedRecipeModal === 'function') {
+            d.openSaveSharedRecipeModal(notificationId, recipeId, recipeName);
             return;
         }
         // Si no estamos en el index principal (ej. estamos en ocr.html, notas.html, profile.html), redirigir pasando parámetros

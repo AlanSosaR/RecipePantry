@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v680';
-const BUILD_ID = 'v680';
-const CACHE_NAME = `recipe-pantry-v680`;
-const STATIC_CACHE = 'static-v680';
-const DATA_CACHE = 'data-v680';
+const VERSION = 'v681';
+const BUILD_ID = 'v681';
+const CACHE_NAME = `recipe-pantry-v681`;
+const STATIC_CACHE = 'static-v681';
+const DATA_CACHE = 'data-v681';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -308,27 +308,28 @@ try {
         }
         const messaging = firebase.messaging();
 
-    messaging.onBackgroundMessage((payload) => {
-        console.log('[FCM SW] onBackgroundMessage recibido:', payload);
+        messaging.onBackgroundMessage((payload) => {
+            console.log('[FCM SW] onBackgroundMessage recibido:', payload);
 
-        const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
-        const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
-        const url   = payload.data?.url   || '/';
-        const tag   = payload.data?.notification_id ? `rp-${payload.data.notification_id}` : (payload.data?.tag || 'rp-push');
+            const title = payload.notification?.title || payload.data?.title || 'Recipe Pantry';
+            const body  = payload.notification?.body  || payload.data?.body  || 'Tienes una nueva notificación';
+            const url   = payload.data?.url   || '/';
+            const tag   = payload.data?.notification_id ? `rp-${payload.data.notification_id}` : (payload.data?.tag || 'rp-push');
 
-        const options = {
-            body,
-            icon:             '/assets/icons/manifest-icon-192.maskable.png',
-            badge:            '/assets/icons/favicon-196.png',
-            data:             { url, ...payload.data },
-            requireInteraction: true,
-            tag:              tag,
-            renotify:         false,
-            vibrate:          [200, 100, 200]
-        };
+            const options = {
+                body,
+                icon:             '/assets/icons/manifest-icon-192.maskable.png',
+                badge:            '/assets/icons/favicon-196.png',
+                data:             { url, ...payload.data },
+                requireInteraction: true,
+                tag:              tag,
+                renotify:         false,
+                vibrate:          [200, 100, 200]
+            };
 
-        self.registration.showNotification(title, options);
-    });
+            self.registration.showNotification(title, options);
+        });
+    }
 } catch (e) {
     console.warn('[SW] Firebase background messaging no inicializado:', e);
 }
