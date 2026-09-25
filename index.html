@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="681">
+<html lang="es" data-app-version="682">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=681">
-  <link rel="stylesheet" href="css/components.css?v=681">
+  <link rel="stylesheet" href="css/styles.css?v=682">
+  <link rel="stylesheet" href="css/components.css?v=682">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -654,9 +654,14 @@
         <!-- Renderizado dinámico de carpetas y opción Raíz -->
       </div>
 
-      <div class="folder-modal-footer" style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-        <button type="button" class="btn-folder-config" style="white-space: nowrap !important; flex-shrink: 0;" onclick="window.dashboard.toggleNewFolderInMoveModal()">Crear carpeta nueva</button>
-        <div class="folder-modal-actions" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+      <div class="move-modal-footer-stacked">
+        <div class="move-modal-footer-top">
+          <button type="button" class="btn-move-new-folder-trigger" onclick="window.dashboard.toggleNewFolderInMoveModal()">
+            <span class="material-symbols-outlined" style="font-size: 20px;">create_new_folder</span>
+            <span id="btnMoveModalNewFolderText">Crear carpeta nueva</span>
+          </button>
+        </div>
+        <div class="move-modal-footer-bottom">
           <button type="button" class="btn-folder-cancel" onclick="window.dashboard.closeMoveModal()">Cancelar</button>
           <button type="button" id="btnConfirmMoveModal" class="btn-folder-create" disabled onclick="window.dashboard.executeMoveModal()">Mover</button>
         </div>
@@ -740,30 +745,30 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=681"></script>
-  <script src="js/supabase-client.js?v=681"></script>
-  <script src="js/localdb.js?v=681"></script>
-  <script src="js/sync-manager.js?v=681"></script>
-  <script src="js/utils.js?v=681"></script>
-  <script src="js/i18n.js?v=681"></script>
-  <script src="js/allergen-data.js?v=681"></script>
-  <script src="js/menu-data.js?v=681"></script>
-  <script src="js/lib/pdf.min.js?v=681"></script>
-  <script src="js/restaurant-menu.js?v=681"></script>
-  <script src="js/db.js?v=681"></script>
-  <script src="js/auth.js?v=681"></script>
-  <script src="js/dashboard.js?v=681"></script>
-  <script src="js/share-modal.js?v=681"></script>
-  <script src="js/help-modal.js?v=681"></script>
+  <script src="js/config.js?v=682"></script>
+  <script src="js/supabase-client.js?v=682"></script>
+  <script src="js/localdb.js?v=682"></script>
+  <script src="js/sync-manager.js?v=682"></script>
+  <script src="js/utils.js?v=682"></script>
+  <script src="js/i18n.js?v=682"></script>
+  <script src="js/allergen-data.js?v=682"></script>
+  <script src="js/menu-data.js?v=682"></script>
+  <script src="js/lib/pdf.min.js?v=682"></script>
+  <script src="js/restaurant-menu.js?v=682"></script>
+  <script src="js/db.js?v=682"></script>
+  <script src="js/auth.js?v=682"></script>
+  <script src="js/dashboard.js?v=682"></script>
+  <script src="js/share-modal.js?v=682"></script>
+  <script src="js/help-modal.js?v=682"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=681"></script>
-  <script src="js/core/push.js?v=681"></script>
-  <script src="js/notifications.js?v=681"></script>
-  <script src="js/ui.js?v=681"></script>
-  <script src="js/sw-register.js?v=681"></script>
-<script src="js/pwa-install.js?v=681"></script>
-  <script src="js/gemini-client.js?v=681"></script>
-  <script type="module" src="js/url-importer.js?v=681"></script>
+  <script type="module" src="js/core/firebase.js?v=682"></script>
+  <script src="js/core/push.js?v=682"></script>
+  <script src="js/notifications.js?v=682"></script>
+  <script src="js/ui.js?v=682"></script>
+  <script src="js/sw-register.js?v=682"></script>
+<script src="js/pwa-install.js?v=682"></script>
+  <script src="js/gemini-client.js?v=682"></script>
+  <script type="module" src="js/url-importer.js?v=682"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

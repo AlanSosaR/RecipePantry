@@ -2418,6 +2418,11 @@ class DashboardManager {
         if (newFolderInput) newFolderInput.value = '';
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        const newFolderTriggerText = document.getElementById('btnMoveModalNewFolderText');
+        if (newFolderTriggerText) {
+            newFolderTriggerText.textContent = isEn ? 'Create new folder' : 'Crear carpeta nueva';
+        }
+
         if (confirmBtn) {
             confirmBtn.disabled = true;
             confirmBtn.textContent = isEn ? 'Move' : 'Mover';
@@ -2474,6 +2479,11 @@ class DashboardManager {
         if (newFolderRow) newFolderRow.classList.add('hidden');
         if (newFolderInput) newFolderInput.value = '';
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        const newFolderTriggerText = document.getElementById('btnMoveModalNewFolderText');
+        if (newFolderTriggerText) {
+            newFolderTriggerText.textContent = isEn ? 'Create new folder' : 'Crear carpeta nueva';
+        }
 
         if (confirmBtn) {
             confirmBtn.disabled = true;

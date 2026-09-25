@@ -4480,6 +4480,51 @@ select.input-field {
     opacity: 0.6;
 }
 
+/* Footer apilado para Modal Mover / Guardar Receta */
+.move-modal-footer-stacked {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-top: 18px !important;
+    padding-top: 14px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.move-modal-footer-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.btn-move-new-folder-trigger {
+    background: transparent;
+    border: none;
+    color: #10B981;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.btn-move-new-folder-trigger:hover {
+    opacity: 0.85;
+    transform: translateX(2px);
+}
+
+.move-modal-footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 100%;
+}
+
 .hamburger-btn {
     display: none;
     /* Desktop hidden */
