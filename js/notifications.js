@@ -8,10 +8,16 @@ class NotificationManager {
         this.notifications = [];
         this.lastCount = 0;
         this.isReady = false;
-        this.pendingNotifications = []; // v217: Cola para notificaciones que llegan antes del init
-        // IDs descartados localmente: evita que fetchNotifications los remuestre
-        // aunque Supabase aún no haya procesado el UPDATE leido=true
-        this._dismissedIds = new Set();
+        this.pendingNotifications = [];
+        // IDs descartados: persisten en localStorage para sobrevivir refresco de página.
+        // Evita que fetchNotifications los vuelva a mostrar aunque Supabase tarde en
+        // actualizar leido=true.
+        try {
+            const saved = localStorage.getItem('rp_dismissed_notif_ids');
+            this._dismissedIds = saved ? new Set(JSON.parse(saved)) : new Set();
+        } catch (e) {
+            this._dismissedIds = new Set();
+        }
     }
 
     async init() {
@@ -303,6 +309,12 @@ class NotificationManager {
     _dismissLocally(notificationId) {
         if (!notificationId) return;
         this._dismissedIds.add(notificationId);
+        // Persistir en localStorage para sobrevivir refresco de página
+        try {
+            // Mantener solo los últimos 50 IDs para no saturar localStorage
+            const arr = Array.from(this._dismissedIds).slice(-50);
+            localStorage.setItem('rp_dismissed_notif_ids', JSON.stringify(arr));
+        } catch (e) {}
         this.notifications = this.notifications.filter(n => n.id !== notificationId);
         this.updateBadge();
         this.renderMenu();
@@ -1102,26 +1114,28 @@ class NotificationManager {
             const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
             window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
 
-            // 4. LIMPIEZA Y PERSISTENCIA EN SEGUNDO PLANO
-            (async () => {
-                try {
-                    // Marcar notificación como leída por ID exacto PRIMERO (antes de cualquier
-                    // otra operación). Evitar filtros por recipe_id+type que pueden no matchear
-                    // nada y devolver error=null (0 rows updated → notificación reaparece).
+            // 4. MARCAR COMO LEÍDA EN SUPABASE (síncrono, antes del toast y de cualquier
+            // posible refresco de página). Si este await falla, el blocklist local lo cubre.
+            try {
+                await window.supabaseClient
+                    .from('notifications')
+                    .update({ leido: true })
+                    .eq('id', notificationId);
+                // También marcar por recipe_id para cubrir posibles duplicados
+                if (recipeId) {
                     await window.supabaseClient
                         .from('notifications')
                         .update({ leido: true })
-                        .eq('id', notificationId);
+                        .eq('user_id', user.id)
+                        .eq('recipe_id', recipeId);
+                }
+            } catch (notifErr) {
+                console.warn('⚠️ [Notifications] Error marcando notificación (cubierto por blocklist):', notifErr);
+            }
 
-                    // También marcar por recipe_id para cubrir posibles duplicados
-                    if (recipeId) {
-                        await window.supabaseClient
-                            .from('notifications')
-                            .update({ leido: true })
-                            .eq('user_id', user.id)
-                            .eq('recipe_id', recipeId);
-                    }
-
+            // 5. LIMPIEZA EN SEGUNDO PLANO (lento, no bloquea la UI)
+            (async () => {
+                try {
                     // Eliminar de compartidas (localDB ya fue actualizado en duplicateRecipe,
                     // aquí solo se limpia Supabase shared_recipes y caches)
                     await window.db.deleteSharedRecipe(user.id, recipeId);
