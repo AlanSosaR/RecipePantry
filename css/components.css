@@ -123,8 +123,9 @@ ol {
         pointer-events: none !important;
     }
 
-    body.selection-mode-active #selectionMoreBtn {
-        display: inline-flex !important;
+    body.selection-mode-active #selectionMoreBtn,
+    body.selection-mode-active #selectionMoreBtnHeader {
+        display: none !important;
     }
 }
 
@@ -5332,28 +5333,27 @@ html[data-auth-likely="true"] #dashboard-app {
 /* Dropbox Context Menu */
 .dropbox-menu-m3 {
     position: fixed;
-    background: #252525;
-    /* Dark Dropbox style */
-    border: 1px solid #333;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
     z-index: 2000;
     min-width: 220px;
-    padding: 8px 0;
-    color: white;
+    padding: 6px 0;
+    color: #111827;
 }
 
 .dropbox-menu-header {
-    padding: 8px 16px 12px;
-    border-bottom: 1px solid #333;
+    padding: 8px 16px 10px;
+    border-bottom: 1px solid #F3F4F6;
     margin-bottom: 4px;
 }
 
 .dropbox-menu-header h4 {
     margin: 0;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 700;
-    color: #fff;
+    color: #111827;
     text-align: left;
 }
 
@@ -5361,30 +5361,35 @@ html[data-auth-likely="true"] #dashboard-app {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 16px;
-    width: 100%;
+    padding: 9px 16px;
+    width: calc(100% - 12px);
+    margin: 1px 6px;
     background: transparent;
     border: none;
+    border-radius: 12px;
     cursor: pointer;
-    color: #e0e0e0;
-    font-size: 14px;
-    transition: background 0.2s;
+    color: #111827;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
     text-align: left;
+    box-sizing: border-box;
 }
 
 .context-menu-item:hover {
-    background: #333;
+    background: #F3F4F6;
+    color: #111827;
 }
 
 .context-menu-item .material-symbols-outlined {
     font-size: 20px;
-    color: #aaa;
+    color: #111827;
 }
 
 .context-menu-divider {
     height: 1px;
-    background: #333;
-    margin: 4px 0;
+    background: #F3F4F6;
+    margin: 4px 6px;
 }
 
 /* Snackbar M3 Premium */
@@ -5882,90 +5887,123 @@ body.dark-theme .folder-inline-rename-input {
     }
 }
 
-/* ─── Popover Opciones de Carpeta estilo Dropbox ─── */
+/* ─── Popover Opciones de Carpeta estilo Dropbox (Light M3) ─── */
 .dropbox-folder-popover {
     position: fixed !important;
     z-index: 9999;
-    background: #1c1c1e;
-    border: 1px solid #3a3a3e;
-    border-radius: 14px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-    width: 220px;
-    padding: 6px 0;
-    color: #fff;
-    animation: modalEntry 150ms ease;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
+    width: 200px;
+    padding: 6px;
+    color: #111827;
+    animation: modalEntry 150ms cubic-bezier(0.2, 0, 0, 1);
     box-sizing: border-box;
 }
 
 .folder-popover-header {
-    padding: 10px 16px;
-    border-bottom: 1px solid #2e2e34;
-}
-
-.folder-popover-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #f3f4f6;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
+    display: none;
 }
 
 .folder-popover-items {
     display: flex;
     flex-direction: column;
-    padding: 4px;
+    gap: 2px;
 }
 
 .folder-popover-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
-    padding: 8px 12px;
-    background: none;
+    padding: 9px 12px;
+    background: transparent;
     border: none;
-    border-radius: 8px;
-    color: #d1d5db;
-    font-size: 13px;
+    border-radius: 12px;
+    color: #111827;
+    font-size: 13.5px;
     font-weight: 500;
     text-align: left;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s ease, color 0.15s ease;
+    box-sizing: border-box;
+    font-family: inherit;
 }
 
-.folder-popover-item:hover {
-    background: #2c2c32;
-    color: #ffffff;
+.folder-popover-item:hover,
+.folder-popover-item:active {
+    background: #F3F4F6;
+    color: #111827;
 }
 
 .folder-popover-item .material-symbols-outlined {
-    font-size: 18px;
-    color: #9ca3af;
+    font-size: 20px;
+    color: #111827;
+    flex-shrink: 0;
 }
 
 .folder-popover-item:hover .material-symbols-outlined {
-    color: #ffffff;
+    color: #111827;
 }
 
 .folder-popover-item.item-danger {
-    color: #f87171;
+    color: #E05353;
 }
 
 .folder-popover-item.item-danger .material-symbols-outlined {
-    color: #f87171;
+    color: #E05353;
 }
 
-.folder-popover-item.item-danger:hover {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+.folder-popover-item.item-danger:hover,
+.folder-popover-item.item-danger:active {
+    background: rgba(239, 68, 68, 0.08);
+    color: #DC2626;
+}
+
+.folder-popover-item.item-danger:hover .material-symbols-outlined {
+    color: #DC2626;
 }
 
 .folder-popover-divider {
     height: 1px;
-    background: #2e2e34;
-    margin: 4px 8px;
+    background: #F3F4F6;
+    margin: 4px 6px;
+}
+
+.dropbox-carousel-card.menu-open {
+    border-color: #10B981 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12) !important;
+}
+
+/* Dark mode support para popover de carpeta */
+body.dark-mode .dropbox-folder-popover,
+body.dark-theme .dropbox-folder-popover {
+    background: #1E1E22;
+    border-color: #2E2E34;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+    color: #FFFFFF;
+}
+
+body.dark-mode .dropbox-folder-popover .folder-popover-item,
+body.dark-theme .dropbox-folder-popover .folder-popover-item {
+    color: #E5E7EB;
+}
+
+body.dark-mode .dropbox-folder-popover .folder-popover-item:hover,
+body.dark-theme .dropbox-folder-popover .folder-popover-item:hover {
+    background: #2C2C32;
+    color: #FFFFFF;
+}
+
+body.dark-mode .dropbox-folder-popover .folder-popover-item .material-symbols-outlined,
+body.dark-theme .dropbox-folder-popover .folder-popover-item .material-symbols-outlined {
+    color: #E5E7EB;
+}
+
+body.dark-mode .dropbox-folder-popover .folder-popover-divider,
+body.dark-theme .dropbox-folder-popover .folder-popover-divider {
+    background: #2E2E34;
 }
 
 /* ─── Folder Breadcrumb / Action Bar ─── */
@@ -6251,15 +6289,15 @@ body.dark-theme .folder-more-btn:hover {
     color: #FFFFFF;
 }
 
-/* ─── Share Modal Estilo Dropbox (Match Exacto del Screenshot) ─── */
+/* ─── Share Modal Estilo Mint / Light (Match Exacto del Screenshot) ─── */
 .dropbox-share-modal-card {
-    background: #1e1e1e;
+    background: #ffffff;
     width: 100%;
     max-width: 530px;
-    border-radius: 16px;
-    border: 1px solid #333333;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
-    color: #ffffff;
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+    color: #111827;
     padding: 24px 28px;
     animation: modalEntry 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
     position: relative;
@@ -6278,9 +6316,9 @@ body.dark-theme .folder-more-btn:hover {
 .dropbox-share-heading {
     font-size: 20px;
     font-weight: 700;
-    color: #ffffff;
+    color: #111827;
     margin: 0 0 4px 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: inherit;
 }
 
 .dropbox-share-subinfo {
@@ -6288,21 +6326,21 @@ body.dark-theme .folder-more-btn:hover {
     align-items: center;
     gap: 6px;
     font-size: 13.5px;
-    color: #8e8e8e;
-    font-weight: 500;
+    color: #4b5563;
+    font-weight: 400;
 }
 
 .subinfo-icon {
     font-size: 16px;
-    color: #8e8e8e;
+    color: #4b5563;
 }
 
 .btn-collaborators-pill {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: #2a2a2a;
-    border: 1px solid #383838;
+    background: #dcf5eb;
+    border: none;
     border-radius: 20px;
     padding: 3px 8px 3px 4px;
     cursor: pointer;
@@ -6310,14 +6348,14 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .btn-collaborators-pill:hover {
-    background: #353535;
+    background: #d4f3e5;
 }
 
 .collaborator-mini-avatar {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #9333ea;
+    background: #006C4C;
     color: #ffffff;
     font-size: 11px;
     font-weight: 800;
@@ -6328,25 +6366,25 @@ body.dark-theme .folder-more-btn:hover {
 
 .chevron-icon {
     font-size: 16px;
-    color: #8e8e8e;
+    color: #4b5563;
     transition: transform 0.2s ease;
 }
 
-/* Fila de Entrada: Input Usuario + Dropdown Permiso */
+/* Fila de Entrada: Input Usuario + Dropdown Permiso horizontal en PC */
 .dropbox-share-row {
     position: relative;
     display: flex;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     align-items: stretch;
 }
 
 .dropbox-input-container {
     flex: 1;
     min-width: 0;
-    background: #262626;
-    border: 1.5px solid #3a3a3a;
-    border-radius: 10px;
+    background: var(--surface-container-high, #f5f5f5);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
     padding: 10px 14px;
     min-height: 48px;
     display: flex;
@@ -6354,12 +6392,13 @@ body.dark-theme .folder-more-btn:hover {
     align-items: center;
     gap: 6px;
     cursor: text;
-    transition: border-color 0.2s;
+    transition: background 0.15s, border-color 0.15s;
     box-sizing: border-box;
 }
 
 .dropbox-input-container:focus-within {
-    border-color: #10B981;
+    background: #ffffff;
+    border-color: #006C4C;
 }
 
 .dropbox-chips-list {
@@ -6372,12 +6411,12 @@ body.dark-theme .folder-more-btn:hover {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #383838;
+    background: #a7f3d0;
     border-radius: 16px;
     padding: 3px 8px;
     font-size: 12.5px;
-    color: #ffffff;
-    font-weight: 500;
+    color: #064e3b;
+    font-weight: 600;
     animation: chipPop 160ms ease forwards;
 }
 
@@ -6385,7 +6424,7 @@ body.dark-theme .folder-more-btn:hover {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #10B981;
+    background: #065f46;
     color: white;
     font-size: 10px;
     font-weight: 700;
@@ -6397,7 +6436,7 @@ body.dark-theme .folder-more-btn:hover {
 .dropbox-chip-remove {
     background: none;
     border: none;
-    color: #aaa;
+    color: #064e3b;
     cursor: pointer;
     font-size: 15px;
     padding: 0;
@@ -6408,22 +6447,24 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .dropbox-chip-remove:hover {
-    color: #fff;
+    color: #000000;
 }
 
 .dropbox-user-input {
     background: transparent;
     border: none;
-    color: #ffffff;
+    color: #111827;
     font-size: 13.5px;
     flex: 1;
-    min-width: 60px;
+    min-width: 80px;
     outline: none;
     padding: 2px 0;
+    font-family: inherit;
 }
 
 .dropbox-user-input::placeholder {
-    color: #737373;
+    color: var(--on-surface-variant, #757575);
+    font-weight: 400;
 }
 
 /* Selector de Permiso estilo Dropbox */
@@ -6435,30 +6476,30 @@ body.dark-theme .folder-more-btn:hover {
 .btn-perm-picker {
     height: 100%;
     min-height: 48px;
-    padding: 0 14px;
-    background: #262626;
-    border: 1.5px solid #3a3a3a;
-    border-radius: 10px;
-    color: #ffffff;
+    padding: 0 16px;
+    background: var(--surface-container-high, #f5f5f5);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    color: #111827;
     font-size: 13.5px;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.15s;
     white-space: nowrap;
     box-sizing: border-box;
+    font-family: inherit;
 }
 
 .btn-perm-picker:hover {
-    background: #303030;
-    border-color: #4a4a4a;
+    background: #eeeeee;
 }
 
 .perm-dropdown-arrow {
-    font-size: 18px;
-    color: #8e8e8e;
+    font-size: 20px;
+    color: #6b7280;
 }
 
 .dropbox-perm-dropdown-menu {
@@ -6466,12 +6507,13 @@ body.dark-theme .folder-more-btn:hover {
     top: calc(100% + 6px);
     right: 0;
     width: 170px;
-    background: #262626;
-    border: 1px solid #3c3c3c;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
     z-index: 120;
     padding: 6px 0;
+    overflow: hidden;
 }
 
 .perm-dropdown-item {
@@ -6480,18 +6522,18 @@ body.dark-theme .folder-more-btn:hover {
     gap: 10px;
     padding: 10px 16px;
     font-size: 13.5px;
-    color: #d4d4d4;
+    color: #374151;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
 
 .perm-dropdown-item:hover {
-    background: #333333;
-    color: #ffffff;
+    background: #f0fdf4;
+    color: #006C4C;
 }
 
 .perm-dropdown-item.active {
-    color: #ffffff;
+    color: #006C4C;
     font-weight: 600;
 }
 
@@ -6499,7 +6541,7 @@ body.dark-theme .folder-more-btn:hover {
     width: 16px;
     font-size: 14px;
     font-weight: 800;
-    color: #ffffff;
+    color: #006C4C;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -6508,13 +6550,13 @@ body.dark-theme .folder-more-btn:hover {
 /* Sugerencias de Búsqueda de Usuarios */
 .search-suggestions {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #262626;
-    border: 1px solid #3c3c3c;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
     max-height: 240px;
     overflow-y: auto;
     z-index: 110;
@@ -6532,7 +6574,7 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .suggestion-item:hover {
-    background: #333333;
+    background: #f0fdf4;
 }
 
 .suggestion-item.is-disabled {
@@ -6545,16 +6587,16 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .suggestion-item.is-selected {
-    background: rgba(0, 97, 254, 0.15);
-    border: 1px solid rgba(0, 97, 254, 0.3);
+    background: rgba(0, 108, 76, 0.1);
+    border: 1px solid rgba(0, 108, 76, 0.25);
 }
 
 .suggestion-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #333338;
-    color: #10B981;
+    background: #dcf5eb;
+    color: #064e3b;
     font-weight: 700;
     font-size: 12px;
     display: flex;
@@ -6562,7 +6604,7 @@ body.dark-theme .folder-more-btn:hover {
     justify-content: center;
     flex-shrink: 0;
     overflow: hidden;
-    border: 1px solid #44444c;
+    border: none;
 }
 
 .suggestion-info {
@@ -6576,7 +6618,7 @@ body.dark-theme .folder-more-btn:hover {
 .suggestion-name {
     font-size: 13.5px;
     font-weight: 600;
-    color: #ffffff;
+    color: #111827;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -6584,7 +6626,7 @@ body.dark-theme .folder-more-btn:hover {
 
 .suggestion-email {
     font-size: 11.5px;
-    color: #8e8e8e;
+    color: #6b7280;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -6599,117 +6641,140 @@ body.dark-theme .folder-more-btn:hover {
 }
 
 .suggestion-badge.badge-shared {
-    background: #333333;
-    color: #a3a3a3;
+    background: #f3f4f6;
+    color: #4b5563;
 }
 
 .suggestion-badge.badge-selected {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+    background: rgba(0, 108, 76, 0.15);
+    color: #006C4C;
 }
 
 .suggestion-add-icon {
-    color: #10B981;
+    color: #006C4C;
     font-size: 18px;
     flex-shrink: 0;
 }
 
 /* Mensaje opcional estilo Dropbox */
 .dropbox-message-container {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .dropbox-message-textarea {
     width: 100%;
     box-sizing: border-box;
-    background: #262626;
-    border: 1.5px solid #3a3a3a;
-    border-radius: 10px;
+    background: var(--surface-container-high, #f5f5f5);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
     padding: 12px 14px;
-    color: #ffffff;
+    color: #111827;
     font-size: 13.5px;
     font-family: inherit;
     resize: vertical;
     outline: none;
-    transition: border-color 0.2s;
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .dropbox-message-textarea::placeholder {
-    color: #737373;
+    color: var(--on-surface-variant, #757575);
 }
 
 .dropbox-message-textarea:focus {
-    border-color: #10B981;
+    background: #ffffff;
+    border-color: #006C4C;
 }
 
-/* Personas con Acceso Drawer */
-.collaborators-drawer {
-    background: #242424;
-    border: 1px solid #333333;
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin-bottom: 20px;
-    max-height: 180px;
-    overflow-y: auto;
-}
-
-.collaborators-drawer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.drawer-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #a3a3a3;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.shares-count-badge {
-    background: #333333;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 99px;
-}
-
-.shares-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.no-shares-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #737373;
-    font-size: 12px;
-    padding: 6px 0;
-}
-
-.share-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 10px;
-    background: #2a2a2a;
-    border-radius: 8px;
-}
-
-.share-avatar {
-    width: 28px;
-    height: 28px;
+/* Botón Cerrar en Header */
+.btn-dropbox-close {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px;
     border-radius: 50%;
-    background: #383838;
-    color: #60a5fa;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+}
+
+.btn-dropbox-close:hover {
+    color: #111827;
+    background: #f3f4f6;
+}
+
+/* Quick Suggestion Chips */
+.dropbox-quick-suggestions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.dropbox-quick-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #dcf5eb;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #064e3b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.dropbox-quick-chip:hover {
+    background: #d4f3e5;
+}
+
+/* Sección Quién tiene acceso */
+.dropbox-access-section {
+    margin-top: 10px;
+    margin-bottom: 24px;
+    border: none;
+    padding-top: 0;
+}
+
+.dropbox-access-header {
+    margin-bottom: 12px;
+}
+
+.dropbox-access-title {
+    font-size: 14px;
     font-weight: 700;
-    font-size: 11px;
+    color: #111827;
+    letter-spacing: -0.1px;
+}
+
+.dropbox-user-row,
+.dropbox-share-modal-card .dropbox-user-row,
+.dropbox-share-modal-card .share-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 6px 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.dropbox-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #a7f3d0 !important;
+    color: #065f46 !important;
+    font-size: 13px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -6717,118 +6782,209 @@ body.dark-theme .folder-more-btn:hover {
     overflow: hidden;
 }
 
-.share-info {
+.dropbox-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.dropbox-user-info {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
 }
 
-.share-name {
+.dropbox-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropbox-user-email {
+    font-size: 12px;
+    color: #6b7280 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropbox-owner-tag {
+    font-size: 13.5px;
+    color: #4b5563;
+    font-weight: 400;
+    margin-right: 4px;
+}
+
+/* Dropdown de permisos para cada colaborador */
+.dropbox-perm-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.dropbox-role-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #dcf5eb !important;
+    border: none !important;
+    border-radius: 8px;
+    color: #064e3b !important;
     font-size: 13px;
     font-weight: 600;
-    color: #ffffff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 6px 28px 6px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.15s ease;
 }
 
-.share-email {
-    font-size: 11px;
-    color: #8e8e8e;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.dropbox-role-select:hover {
+    background: #d4f3e5 !important;
 }
 
-.share-actions {
+.perm-select-arrow {
+    position: absolute;
+    right: 8px;
+    pointer-events: none;
+    font-size: 16px;
+    color: #064e3b;
+}
+
+.shares-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.no-shares-box {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-shrink: 0;
+    color: #4b5563;
+    font-size: 13px;
+    padding: 6px 0;
 }
 
-.permission-tag {
-    font-size: 11px;
-    font-weight: 600;
-    color: #a3a3a3;
-    background: #333333;
-    padding: 2px 7px;
-    border-radius: 6px;
+.no-shares-box .material-symbols-outlined {
+    font-size: 18px;
+    color: #4b5563 !important;
 }
 
-.btn-remove-access {
-    background: none;
-    border: 1px solid #444444;
-    color: #f87171;
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.btn-remove-access:hover {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: #ef4444;
-}
-
-/* Footer estilo Dropbox: Botones Cancelar y Compartir */
+/* Footer estilo Dropbox / Screenshot */
 .dropbox-share-modal-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding-top: 4px;
+    padding-top: 0;
+    border: none;
+    margin-top: 4px;
+}
+
+.btn-dropbox-copylink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px !important;
+    background: #dcf5eb !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    color: #064e3b !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.btn-dropbox-copylink:hover {
+    background: #cff0e2 !important;
+}
+
+.btn-dropbox-copylink .material-symbols-outlined {
+    font-size: 18px;
+    color: #064e3b;
+}
+
+.dropbox-footer-right-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-dropbox-done {
+    padding: 10px 26px !important;
+    background: #006C4C !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    font-family: inherit;
+}
+
+.btn-dropbox-done:hover {
+    background: #00563b !important;
+}
+
+.btn-dropbox-done:active {
+    transform: scale(0.97);
 }
 
 .btn-dropbox-cancel {
-    padding: 10px 24px;
-    background: #262626;
-    border: 1px solid #383838;
-    border-radius: 12px;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
+    padding: 10px 20px !important;
+    background: #f3f4f6 !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    color: #374151 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
     cursor: pointer;
     transition: background 0.15s;
+    font-family: inherit;
 }
 
 .btn-dropbox-cancel:hover {
-    background: #323232;
+    background: #e5e7eb !important;
 }
 
 .btn-dropbox-share {
-    padding: 10px 28px;
-    background: #383838;
-    border: none;
-    border-radius: 12px;
-    color: #787878;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: not-allowed;
-    transition: all 0.2s;
-}
-
-.btn-dropbox-share.ready,
-.btn-dropbox-share:not(:disabled) {
-    background: #10B981;
-    color: #ffffff;
+    padding: 10px 26px !important;
+    background: #006C4C !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
     cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    font-family: inherit;
 }
 
-.btn-dropbox-share.ready:hover,
-.btn-dropbox-share:not(:disabled):hover {
-    background: #059669;
+.btn-dropbox-share:hover {
+    background: #00563b !important;
+}
+
+.btn-dropbox-share:disabled {
+    background: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed;
 }
 
 /* Adaptación responsive para Móvil / Pantallas pequeñas del Modal Compartir */
 @media (max-width: 540px) {
     .dropbox-share-modal-card {
         padding: 20px 16px;
-        border-radius: 16px;
+        border-radius: 20px;
         max-height: calc(100vh - 24px);
     }
 
@@ -6841,33 +6997,39 @@ body.dark-theme .folder-more-btn:hover {
     }
 
     .dropbox-share-row {
-        flex-direction: column;
+        display: flex !important;
+        flex-direction: column !important;
         gap: 8px;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
+        width: 100%;
     }
 
     .dropbox-input-container {
-        width: 100%;
+        width: 100% !important;
+        flex: none !important;
         min-height: 44px;
         padding: 8px 12px;
+        box-sizing: border-box;
     }
 
     .dropbox-user-input {
-        min-width: 100%;
-        font-size: 14px;
+        width: 100%;
+        min-width: 0;
+        font-size: 13.5px;
     }
 
     .dropbox-perm-picker {
-        width: 100%;
+        width: 100% !important;
+        flex: none !important;
     }
 
     .btn-perm-picker {
-        width: 100%;
+        width: 100% !important;
         justify-content: space-between;
-        height: 42px;
-        min-height: 42px;
-        font-size: 13px;
-        padding: 0 12px;
+        min-height: 44px;
+        font-size: 13.5px;
+        padding: 0 14px;
+        box-sizing: border-box;
     }
 
     .dropbox-perm-dropdown-menu {
@@ -6891,9 +7053,7 @@ body.dark-theme .folder-more-btn:hover {
 
     .btn-dropbox-cancel,
     .btn-dropbox-share {
-        flex: 1;
-        text-align: center;
-        padding: 12px 16px;
+        padding: 10px 16px;
         font-size: 14px;
         justify-content: center;
         display: flex;
@@ -7336,9 +7496,7 @@ body.dark-theme .folder-more-btn:hover {
 
 /* Fixed Sticky Header Transparency */
 .dashboard-header,
-.list-header-m3,
-.dashboard-header *,
-.list-header-m3 * {
+.list-header-m3 {
     background: var(--bg);
 }
 
@@ -8343,11 +8501,16 @@ input:checked~.m3-ingredient-text {
         display: none !important;
     }
 
-    /* Keep individual 3 dots visible */
+    /* Hide individual row 3 dots completely during selection mode (Toolbar Material 3 handles actions) */
     #recipesGrid.selection-mode-active .file-row-m3 .mobile-action-btn,
-    #recipesGrid.selection-mode-active .file-row-m3 .col-actions>.btn-icon-m3:last-child {
-        opacity: 1 !important;
-        visibility: visible !important;
+    #recipesGrid.selection-mode-active .file-row-m3 .col-actions,
+    #recipesGrid.selection-mode-active .file-row-m3 .col-actions > .btn-icon-m3,
+    body.selection-mode-active .file-row-m3 .mobile-action-btn,
+    body.selection-mode-active .file-row-m3 .col-actions {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
 }
 
@@ -8369,24 +8532,24 @@ input:checked~.m3-ingredient-text {
     background-color: var(--md-sys-color-secondary-container, rgba(16, 185, 129, 0.12));
 }
 
-/* ─── Material 3 Expressive Context Menu (Dark / Dropbox Style) ─── */
+/* ─── Material 3 Expressive Context Menu (White Theme) ─── */
 .dropbox-menu-m3 {
     position: fixed;
-    background: #1e1f21 !important;
-    color: white !important;
-    min-width: 240px;
+    background: #FFFFFF !important;
+    color: #111827 !important;
+    min-width: 230px;
     max-width: 320px;
-    border-radius: 16px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-    border: 1px solid #333;
+    border-radius: 18px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
     z-index: 2000;
-    padding: 8px 0;
+    padding: 6px 0 !important;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: #555 transparent;
+    scrollbar-color: #CBD5E1 transparent;
     animation: m3-menu-appear 0.18s cubic-bezier(0, 0, 0.2, 1);
     box-sizing: border-box;
 }
@@ -8400,60 +8563,30 @@ input:checked~.m3-ingredient-text {
 }
 
 .dropbox-menu-m3::-webkit-scrollbar-thumb {
-    background: #555;
+    background: #CBD5E1;
     border-radius: 3px;
 }
 
 .dropbox-menu-m3::-webkit-scrollbar-thumb:hover {
-    background: #777;
+    background: #94A3B8;
 }
 
 .dropbox-menu-header {
     position: sticky;
-    top: -8px;
-    background: #1e1f21;
+    top: -6px;
+    background: #FFFFFF !important;
     z-index: 2;
-    padding: 8px 16px 10px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 4px;
+    padding: 10px 18px 8px !important;
+    border-bottom: 1px solid #F3F4F6 !important;
+    margin-bottom: 4px !important;
     flex-shrink: 0;
-}
-
-@keyframes m3-menu-appear {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes m3-sheet-up {
-    from {
-        opacity: 0;
-        transform: translateY(100%);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.dropbox-menu-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 8px;
 }
 
 .dropbox-menu-header h4 {
     margin: 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -8462,40 +8595,104 @@ input:checked~.m3-ingredient-text {
 .context-menu-item {
     display: flex !important;
     align-items: center !important;
-    gap: 16px !important;
-    width: 100% !important;
-    padding: 12px 20px !important;
+    gap: 12px !important;
+    width: calc(100% - 12px) !important;
+    margin: 1px 6px !important;
+    padding: 9px 14px !important;
     background: transparent !important;
     border: none !important;
-    color: #eee !important;
-    font-size: 14px !important;
+    border-radius: 12px !important;
+    color: #111827 !important;
+    font-size: 13.5px !important;
     font-weight: 500 !important;
     text-align: left !important;
     cursor: pointer !important;
-    transition: background 0.2s !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+    box-sizing: border-box;
+    font-family: inherit;
 }
 
 .context-menu-item:hover {
-    background: #333 !important;
+    background: #F3F4F6 !important;
+    color: #111827 !important;
 }
 
 .context-menu-item .material-symbols-outlined {
     font-size: 20px !important;
-    color: #aaa !important;
+    color: #111827 !important;
+    flex-shrink: 0;
 }
 
-.context-menu-item.danger {
-    color: #ff5252 !important;
+.context-menu-item:hover .material-symbols-outlined {
+    color: #111827 !important;
 }
 
-.context-menu-item.danger .material-symbols-outlined {
-    color: #ff5252 !important;
+.context-menu-item.danger,
+.context-menu-item[style*="--md-error"] {
+    color: #E05353 !important;
+}
+
+.context-menu-item.danger .material-symbols-outlined,
+.context-menu-item[style*="--md-error"] .material-symbols-outlined {
+    color: #E05353 !important;
+}
+
+.context-menu-item.danger:hover,
+.context-menu-item[style*="--md-error"]:hover {
+    background: rgba(239, 68, 68, 0.08) !important;
+    color: #DC2626 !important;
+}
+
+.context-menu-item.danger:hover .material-symbols-outlined,
+.context-menu-item[style*="--md-error"]:hover .material-symbols-outlined {
+    color: #DC2626 !important;
 }
 
 .context-menu-divider {
-    height: 1px;
-    background: #333;
-    margin: 8px 0;
+    height: 1px !important;
+    background: #F3F4F6 !important;
+    margin: 4px 6px !important;
+}
+
+/* Dark mode overrides para el menú */
+body.dark-mode .dropbox-menu-m3,
+body.dark-theme .dropbox-menu-m3 {
+    background: #1E1F21 !important;
+    border-color: #2E2E34 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+    color: #FFFFFF !important;
+}
+
+body.dark-mode .dropbox-menu-header,
+body.dark-theme .dropbox-menu-header {
+    background: #1E1F21 !important;
+    border-bottom-color: #2E2E34 !important;
+}
+
+body.dark-mode .dropbox-menu-header h4,
+body.dark-theme .dropbox-menu-header h4 {
+    color: #FFFFFF !important;
+}
+
+body.dark-mode .context-menu-item,
+body.dark-theme .context-menu-item {
+    color: #E5E7EB !important;
+}
+
+body.dark-mode .context-menu-item:hover,
+body.dark-theme .context-menu-item:hover {
+    background: #2C2C32 !important;
+    color: #FFFFFF !important;
+}
+
+body.dark-mode .context-menu-item .material-symbols-outlined,
+body.dark-theme .context-menu-item .material-symbols-outlined {
+    color: #E5E7EB !important;
+}
+
+body.dark-mode .context-menu-divider,
+body.dark-theme .context-menu-divider {
+    background: #2E2E34 !important;
 }
 
 
@@ -14030,4 +14227,458 @@ input:checked~.m3-ingredient-text {
     font-weight: 400;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Floating Mobile Selection Toolbar & Modals (Mover, Etiquetar, Compartir, Eliminar)
+   ═══════════════════════════════════════════════════════════════════ */
 
+.btn-cancel-selection-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: #D2EBE1;
+    color: #004D36;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-cancel-selection-pill:hover {
+    background: #C1E4D6;
+}
+
+.btn-cancel-selection-pill:active {
+    transform: scale(0.96);
+}
+
+/* Floating Mobile Selection Toolbar */
+.floating-selection-toolbar {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2500;
+    background: #25282A;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 36px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: floatingToolbarIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: calc(100vw - 32px);
+    pointer-events: auto;
+}
+
+@keyframes floatingToolbarIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+
+.floating-toolbar-btn {
+    background: transparent;
+    border: none;
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    min-width: 58px;
+    cursor: pointer;
+    border-radius: 18px;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.floating-toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.floating-toolbar-btn:active {
+    background: rgba(255, 255, 255, 0.16);
+    transform: scale(0.94);
+}
+
+.floating-toolbar-btn .toolbar-icon {
+    font-size: 22px;
+    color: #FFFFFF;
+    line-height: 1;
+    display: block;
+    margin-bottom: 3px;
+    font-variation-settings: 'FILL' 0, 'wght' 400;
+}
+
+.floating-toolbar-btn .toolbar-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #E2E8F0;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.floating-toolbar-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.18);
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+.floating-toolbar-btn.danger .toolbar-icon {
+    color: #F87171;
+}
+
+.floating-toolbar-btn.danger .toolbar-label {
+    color: #F87171;
+    font-weight: 600;
+}
+
+.floating-toolbar-btn.danger:hover {
+    background: rgba(248, 113, 113, 0.12);
+}
+
+.floating-toolbar-btn.danger:active {
+    background: rgba(248, 113, 113, 0.22);
+}
+
+/* Ocultar el FAB verde en modo selección */
+body.selection-mode-active #m3FabMenuContainer,
+body.selection-mode-active .fab-m3 {
+    display: none !important;
+}
+
+/* En estado oculto */
+.floating-selection-toolbar.hidden {
+    display: none !important;
+}
+
+/* Tag & Share Export Modals */
+.tag-chip-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #F1F5F9;
+    color: #334155;
+    border: 1px solid #E2E8F0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.tag-chip-pill:hover {
+    background: #E2E8F0;
+    border-color: #CBD5E1;
+}
+
+.tag-chip-pill.selected {
+    background: #D1FAE5;
+    color: #065F46;
+    border-color: #10B981;
+    font-weight: 600;
+}
+
+.tag-chip-pill .remove-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.12);
+    font-size: 11px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    margin-left: 2px;
+}
+
+.tag-chip-pill .remove-chip-btn:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.share-export-card-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    width: 100%;
+    font-family: inherit;
+}
+
+.share-export-card-btn:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+    transform: translateY(-1px);
+}
+
+.share-export-card-btn:active {
+    transform: scale(0.99);
+}
+
+.export-card-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.export-card-icon-box .material-symbols-outlined {
+    font-size: 24px;
+}
+
+.export-card-texts {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.export-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.export-card-desc {
+    font-size: 12px;
+    color: #64748B;
+    margin-top: 2px;
+}
+
+.export-card-arrow {
+    color: #94A3B8;
+    font-size: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PC Selection Action Toolbar (Material 3 Segmented Pill Capsule)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.pc-selection-toolbar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-left: 14px;
+}
+
+/* Cápsula segmentada unificada para Mover, Etiquetar, Compartir */
+.segmented-action-pill {
+    display: inline-flex;
+    align-items: center;
+    background: #cbf2e5;
+    border-radius: 9999px;
+    height: 38px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+.btn-segmented-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent !important;
+    border: none !important;
+    color: #064e3b !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    font-family: inherit;
+    padding: 0 15px !important;
+    height: 38px !important;
+    cursor: pointer;
+    border-radius: 9999px !important;
+    transition: background 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-segmented-action * {
+    background: transparent !important;
+    color: inherit !important;
+}
+
+.btn-segmented-action .material-symbols-outlined {
+    font-size: 19px !important;
+    line-height: 1 !important;
+}
+
+.btn-segmented-action:hover {
+    background: rgba(6, 78, 59, 0.08) !important;
+}
+
+.btn-segmented-action:active {
+    transform: scale(0.97) !important;
+}
+
+.segmented-action-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(6, 78, 59, 0.2);
+    margin: 0 1px;
+    flex-shrink: 0;
+}
+
+/* Botón Eliminar separado (Píldora roja suave) */
+.btn-danger-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #fee2e2 !important;
+    border: none !important;
+    color: #991b1b !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    font-family: inherit;
+    padding: 0 16px !important;
+    height: 38px !important;
+    border-radius: 9999px !important;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+    line-height: 1;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-danger-pill * {
+    background: transparent !important;
+    color: inherit !important;
+}
+
+.btn-danger-pill .material-symbols-outlined {
+    font-size: 19px !important;
+    line-height: 1 !important;
+}
+
+.btn-danger-pill:hover {
+    background: #fecaca !important;
+}
+
+.btn-danger-pill:active {
+    transform: scale(0.97) !important;
+}
+
+/* Botón Anular Selección (Píldora verde suave a la derecha) */
+.btn-cancel-selection-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #cbf2e5 !important;
+    border: none !important;
+    color: #064e3b !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    font-family: inherit;
+    padding: 0 20px !important;
+    height: 38px !important;
+    border-radius: 9999px !important;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1;
+}
+
+.btn-cancel-selection-pill:hover {
+    background: #bbf7d0 !important;
+}
+
+.btn-cancel-selection-pill:active {
+    transform: scale(0.97) !important;
+}
+
+/* Modo Oscuro para la barra segmentada */
+body.dark-theme .segmented-action-pill {
+    background: rgba(16, 185, 129, 0.2) !important;
+}
+
+body.dark-theme .btn-segmented-action {
+    color: #6ee7b7 !important;
+}
+
+body.dark-theme .btn-segmented-action:hover {
+    background: rgba(16, 185, 129, 0.15) !important;
+}
+
+body.dark-theme .segmented-action-divider {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark-theme .btn-danger-pill {
+    background: rgba(239, 68, 68, 0.22) !important;
+    color: #fca5a5 !important;
+}
+
+body.dark-theme .btn-danger-pill:hover {
+    background: rgba(239, 68, 68, 0.32) !important;
+}
+
+body.dark-theme .btn-cancel-selection-pill {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #6ee7b7 !important;
+}
+
+body.dark-theme .btn-cancel-selection-pill:hover {
+    background: rgba(16, 185, 129, 0.3) !important;
+}
+
+@media (min-width: 769px) {
+    body.selection-mode-active .pc-selection-toolbar:not(.hidden) {
+        display: inline-flex !important;
+    }
+
+    body.selection-mode-active .dashboard-header {
+        background: transparent !important;
+        border-bottom: none !important;
+        padding-top: 14px !important;
+        padding-bottom: 10px !important;
+    }
+
+    body.selection-mode-active #view-title {
+        color: #111827 !important;
+        font-size: 17px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.01em !important;
+    }
+
+    body.dark-theme.selection-mode-active #view-title {
+        color: #F3F4F6 !important;
+    }
+
+    /* En PC, la barra flotante móvil se oculta */
+    .floating-selection-toolbar {
+        display: none !important;
+    }
+}

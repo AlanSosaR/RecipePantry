@@ -51,17 +51,15 @@ class DashboardManager {
                 }
             }
 
-            if (!this.isSelectionMode) return;
-
-            // Si el click es fuera de cualquier fila de receta y fuera de la barra de acciones
-            const isClickInsideRow = e.target.closest('.file-row-m3');
-            const isClickInsideBar = e.target.closest('.selection-action-bar');
-            const isClickInsideMenu = e.target.closest('.selection-overflow-menu');
-            const isClickInsideFab = e.target.closest('#fab-container');
-
-            if (!isClickInsideRow && !isClickInsideBar && !isClickInsideMenu && !isClickInsideFab) {
-                this.clearSelection();
-            }
+            // Atajo de teclado: Escape cancela la selección si no hay modales abiertos
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.isSelectionMode) {
+                    const anyModalOpen = document.querySelector('.modal-overlay:not(.hidden)');
+                    if (!anyModalOpen) {
+                        this.clearSelection();
+                    }
+                }
+            });
         });
     }
 
@@ -986,6 +984,11 @@ class DashboardManager {
         const countText = document.getElementById('selectionCountText');
         const countGroup = document.getElementById('selectionActionsGroup');
         const recipesGrid = document.getElementById('recipesGrid');
+        const mobileToolbar = document.getElementById('mobileSelectionToolbar');
+        const pcToolbar = document.getElementById('pcSelectionToolbar');
+        const cancelBtn = document.getElementById('btnCancelSelectionTop');
+        const fabContainer = document.getElementById('m3FabMenuContainer');
+        const mainFab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
 
         if (this.selectedRecipes.size > 0) {
             // Enter Selection Mode (v20.2.2 Refined)
@@ -993,12 +996,21 @@ class DashboardManager {
             document.body.classList.add('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.add('selection-mode-active');
 
+            const isPC = window.innerWidth > 768;
+            const count = this.selectedRecipes.size;
+            const label = count === 1 ? 'seleccionado' : 'seleccionados';
             if (title) {
-                const count = this.selectedRecipes.size;
-                const label = count === 1 ? 'seleccionado' : 'seleccionados';
-                // Format: "seleccionado(s)" (black) + "(count)" (green)
-                title.innerHTML = `${label} <span style="color: var(--primary); font-weight: 800;">(${count})</span>`;
-                title.style.color = '#1B1B1F'; // Dark text
+                if (isPC) {
+                    title.innerHTML = `${count} ${label}`;
+                    title.style.removeProperty('color');
+                    title.style.removeProperty('font-weight');
+                    title.style.removeProperty('font-size');
+                } else {
+                    title.innerHTML = `${label} (${count})`;
+                    title.style.removeProperty('color');
+                    title.style.removeProperty('font-weight');
+                    title.style.removeProperty('font-size');
+                }
             }
             if (countText) {
                 countText.innerHTML = ''; 
@@ -1006,25 +1018,44 @@ class DashboardManager {
             }
 
             if (countGroup) countGroup.classList.remove('hidden');
+            if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+            // Barra de acciones en PC (Mover, Etiquetar, Compartir, Eliminar)
+            if (pcToolbar) {
+                if (isPC) {
+                    pcToolbar.classList.remove('hidden');
+                    pcToolbar.style.display = 'inline-flex';
+                } else {
+                    pcToolbar.classList.add('hidden');
+                    pcToolbar.style.display = 'none';
+                }
+            }
+
+            // Toolbar flotante SOLO para móvil
+            if (mobileToolbar) {
+                if (!isPC) {
+                    mobileToolbar.classList.remove('hidden');
+                    mobileToolbar.style.display = 'flex';
+                } else {
+                    mobileToolbar.classList.add('hidden');
+                    mobileToolbar.style.display = 'none';
+                }
+            }
+
+            // Ocultar FAB (+ verde) para dar protagonismo total al toolbar flotante en móvil
+            if (fabContainer) fabContainer.style.setProperty('display', 'none', 'important');
+            if (mainFab) mainFab.style.setProperty('display', 'none', 'important');
+
+            // En modo selección se oculta el menú de 3 puntos (el Toolbar de Material 3 asume las acciones)
             const moreBtn = document.getElementById('selectionMoreBtn');
             if (moreBtn) {
-                // En móvil: el menú de 3 puntos (⋮) a la derecha
-                if (window.innerWidth <= 768) {
-                    moreBtn.style.setProperty('display', 'flex', 'important');
-                    moreBtn.classList.remove('hidden');
-                } else {
-                    moreBtn.style.setProperty('display', 'none', 'important');
-                    moreBtn.classList.add('hidden');
-                }
+                moreBtn.style.setProperty('display', 'none', 'important');
+                moreBtn.classList.add('hidden');
             }
             const moreBtnHeader = document.getElementById('selectionMoreBtnHeader');
             if (moreBtnHeader) {
-                // En PC: el menú junto al checkbox en el encabezado de la tabla
-                if (window.innerWidth > 768) {
-                    moreBtnHeader.style.setProperty('display', 'inline-flex', 'important');
-                } else {
-                    moreBtnHeader.style.setProperty('display', 'none', 'important');
-                }
+                moreBtnHeader.style.setProperty('display', 'none', 'important');
+                moreBtnHeader.classList.add('hidden');
             }
             // Force PC selection header alignment leftwards next to title
             const dashHeader = document.querySelector('.dashboard-header');
@@ -1042,10 +1073,28 @@ class DashboardManager {
             document.body.classList.remove('selection-mode-active');
             if (recipesGrid) recipesGrid.classList.remove('selection-mode-active');
 
+            // Ocultar toolbars
+            if (mobileToolbar) {
+                mobileToolbar.classList.add('hidden');
+                mobileToolbar.style.display = 'none';
+            }
+            if (pcToolbar) {
+                pcToolbar.classList.add('hidden');
+                pcToolbar.style.display = 'none';
+            }
+
+            if (cancelBtn) cancelBtn.style.display = 'none';
+
+            // Restaurar botón + verde (FAB)
+            if (fabContainer) fabContainer.style.removeProperty('display');
+            if (mainFab) mainFab.style.removeProperty('display');
+
             // Restore original title count via centralized updateTitleHeader
             this.updateTitleHeader();
             if (title) {
                 title.style.color = '';
+                title.style.fontWeight = '';
+                title.style.fontSize = '';
             }
             if (countText) countText.classList.add('hidden');
             // Hide the group completely when no items are selected (user request)
@@ -1183,7 +1232,7 @@ class DashboardManager {
                 </button>
                 <button class="context-menu-item" onclick="window.dashboard.shareSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">share</span>
-                    ${window.i18n ? (count === 1 ? window.i18n.t('shareSelection') : 'Compartir selección') : 'Compartir selección'}
+                    ${isEn ? 'Share' : 'Compartir'}
                 </button>
                 <button class="context-menu-item" onclick="window.dashboard.moveSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">drive_file_move</span>
@@ -1473,19 +1522,228 @@ class DashboardManager {
     }
 
     shareSelected() {
-        if (this.selectedRecipes.size === 0) return;
-        // Asume que shareModal asume múltiples IDs o simplemente mapea el primero como prueba si el diseño no lo prevé
-        const ids = Array.from(this.selectedRecipes);
-        if (ids.length === 1) {
-            this.shareRecipe(ids[0]);
-        } else {
-            // Para múltiples, lo ideal sería abrir un modal especial o enviar múltiples links.
-            // Puesto que la API de Vercel y el modal actual de compartir están atados a 1 receta a la vez, 
-            // podemos simplemente avisar que esta función requiere iterar el modal o iterar los permisos.
-            window.showToast('La compartición múltiple abrirá las configuraciones una por una', 'info');
-            this.shareRecipe(ids[0]);
-            // Podríamos iterar, pero bloquearía la UI. Dejemos el ID [0] como placeholder temporal o implementemos un multi-share
+        if (!this.selectedRecipes || this.selectedRecipes.size === 0) return;
+        const selectedIds = Array.from(this.selectedRecipes);
+        if (window.shareModal) {
+            window.shareModal.open(selectedIds, selectedIds.length === 1 ? 'recipe' : 'recipes');
+        } else if (window.utils?.showToast) {
+            window.utils.showToast(window.i18n ? 'Sharing not available' : 'Funcionalidad de compartir no disponible', 'error');
         }
+    }
+
+    // ─── Modal Etiquetar Selección en Bloque ──────────────────────
+    openTagSelectedModal() {
+        if (!this.selectedRecipes || this.selectedRecipes.size === 0) return;
+        const count = this.selectedRecipes.size;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        const modal = document.getElementById('tagRecipeModal');
+        const titleEl = document.getElementById('tagModalTitle');
+        const subtitleEl = document.getElementById('tagModalSubtitle');
+        const inputEl = document.getElementById('tagModalInput');
+
+        if (!modal) return;
+
+        if (titleEl) {
+            titleEl.textContent = isEn ? `Tag recipes (${count})` : `Etiquetar recetas (${count})`;
+        }
+        if (subtitleEl) {
+            subtitleEl.textContent = isEn 
+                ? `Assign tags to the ${count} selected recipes.` 
+                : `Asigna una o más etiquetas a las ${count} recetas seleccionadas.`;
+        }
+        if (inputEl) inputEl.value = '';
+
+        this.modalSelectedTags = new Set();
+
+        // Sugerencias populares de etiquetas
+        const defaultSuggestions = [
+            'Salsas', 'Postres', 'Bebidas', 'Guarniciones', 
+            'Desayuno', 'Platos Fuertes', 'Cenas', 'Rápidas', 
+            'Vegetariano', 'Saludable', 'Pastas', 'Mariscos', 'Carnes'
+        ];
+
+        // Recolectar etiquetas existentes del recetario para enriquecer sugerencias
+        const existingTagsInDB = new Set();
+        (this.currentRecipes || []).forEach(r => {
+            if (Array.isArray(r.tags)) {
+                r.tags.forEach(t => { if (t && typeof t === 'string' && t.trim()) existingTagsInDB.add(t.trim()); });
+            }
+        });
+
+        const allSuggestions = Array.from(new Set([...defaultSuggestions, ...existingTagsInDB]));
+        this.modalSuggestedTags = allSuggestions;
+
+        this.renderTagModalChips();
+        modal.classList.remove('hidden');
+    }
+
+    closeTagModal() {
+        const modal = document.getElementById('tagRecipeModal');
+        if (modal) modal.classList.add('hidden');
+        this.modalSelectedTags = null;
+    }
+
+    addCustomTagToModal() {
+        const inputEl = document.getElementById('tagModalInput');
+        if (!inputEl) return;
+        const val = inputEl.value.trim();
+        if (!val) return;
+        
+        if (!this.modalSelectedTags) this.modalSelectedTags = new Set();
+        this.modalSelectedTags.add(val);
+        inputEl.value = '';
+        this.renderTagModalChips();
+    }
+
+    toggleModalTag(tag) {
+        if (!this.modalSelectedTags) this.modalSelectedTags = new Set();
+        if (this.modalSelectedTags.has(tag)) {
+            this.modalSelectedTags.delete(tag);
+        } else {
+            this.modalSelectedTags.add(tag);
+        }
+        this.renderTagModalChips();
+    }
+
+    removeModalTag(tag) {
+        if (this.modalSelectedTags) {
+            this.modalSelectedTags.delete(tag);
+            this.renderTagModalChips();
+        }
+    }
+
+    renderTagModalChips() {
+        const selectedContainer = document.getElementById('tagModalSelectedList');
+        const suggestionsContainer = document.getElementById('tagModalSuggestionsList');
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        if (selectedContainer) {
+            if (!this.modalSelectedTags || this.modalSelectedTags.size === 0) {
+                selectedContainer.innerHTML = `<span style="font-size: 13px; color: #94A3B8; font-style: italic;">${isEn ? 'No tags selected yet. Click below or write one.' : 'Ninguna etiqueta seleccionada. Elige una abajo o escribe arriba.'}</span>`;
+            } else {
+                selectedContainer.innerHTML = Array.from(this.modalSelectedTags).map(tag => {
+                    const safeTag = tag.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                    return `
+                        <span class="tag-chip-pill selected">
+                            <span>${tag}</span>
+                            <span class="remove-chip-btn" onclick="window.dashboard.removeModalTag('${safeTag}')" title="Eliminar">✕</span>
+                        </span>
+                    `;
+                }).join('');
+            }
+        }
+
+        if (suggestionsContainer) {
+            const suggestions = this.modalSuggestedTags || [];
+            suggestionsContainer.innerHTML = suggestions.map(tag => {
+                const isSelected = this.modalSelectedTags && this.modalSelectedTags.has(tag);
+                const safeTag = tag.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                return `
+                    <button type="button" class="tag-chip-pill ${isSelected ? 'selected' : ''}" onclick="window.dashboard.toggleModalTag('${safeTag}')">
+                        <span class="material-symbols-outlined" style="font-size: 15px;">${isSelected ? 'check' : 'add'}</span>
+                        <span>${tag}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+    }
+
+    async applyTagsToSelected() {
+        if (!this.modalSelectedTags || this.modalSelectedTags.size === 0) {
+            window.showToast('Por favor añade o selecciona al menos una etiqueta', 'warning');
+            return;
+        }
+
+        const tagsToApply = Array.from(this.modalSelectedTags);
+        const selectedIds = Array.from(this.selectedRecipes);
+        const count = selectedIds.length;
+        const confirmBtn = document.getElementById('btnConfirmTagModal');
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Guardando...';
+        }
+
+        try {
+            window.showToast('Aplicando etiquetas en bloque...', 'info');
+            for (const id of selectedIds) {
+                const recipe = (this.currentRecipes || []).find(r => String(r.id) === String(id));
+                const currentTags = Array.isArray(recipe?.tags) ? recipe.tags : [];
+                // Unir etiquetas sin duplicados
+                const mergedTags = Array.from(new Set([...currentTags, ...tagsToApply]));
+
+                if (window.db && typeof window.db.updateRecipe === 'function') {
+                    await window.db.updateRecipe(id, { tags: mergedTags });
+                } else if (window.supabaseClient) {
+                    await window.supabaseClient.from('recipes').update({ tags: mergedTags }).eq('id', id);
+                }
+
+                if (recipe) {
+                    recipe.tags = mergedTags;
+                }
+            }
+
+            window.showToast(`Etiquetas aplicadas con éxito a ${count} recetas`, 'success');
+            this.closeTagModal();
+            this.clearSelection();
+            await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
+        } catch (err) {
+            console.error('[Dashboard] Error applying tags:', err);
+            window.showToast('Error al guardar etiquetas: ' + (err.message || err), 'error');
+        } finally {
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Aplicar';
+            }
+        }
+    }
+
+
+
+    printSelectedRecipes(recipes) {
+        if (!recipes || recipes.length === 0) return;
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            window.print();
+            return;
+        }
+
+        const itemsHTML = recipes.map((r, i) => {
+            const name = (isEn ? (r.name_en || r.name_es) : r.name_es) || r.name || 'Receta';
+            return `
+                <div style="page-break-inside: avoid; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <h2 style="margin: 0 0 8px 0; color: #047857; font-size: 20px;">${i + 1}. ${name}</h2>
+                    ${r.pantry_es ? `<p style="margin: 0 0 6px 0; font-size: 13px; color: #475569;"><strong>Carpeta:</strong> ${r.pantry_es}</p>` : ''}
+                    ${Array.isArray(r.tags) && r.tags.length > 0 ? `<p style="margin: 0 0 6px 0; font-size: 13px; color: #475569;"><strong>Etiquetas:</strong> ${r.tags.join(', ')}</p>` : ''}
+                    ${r.description_es ? `<p style="margin: 8px 0 12px 0; font-size: 14px; line-height: 1.5; color: #334155;">${r.description_es}</p>` : ''}
+                    <p style="margin: 0; font-size: 11px; color: #94A3B8;">Recipe Pantry • ${window.location.origin}/recipe-detail?id=${r.id}</p>
+                </div>
+            `;
+        }).join('');
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Exportar Recetas - Recipe Pantry</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #0F172A; max-width: 800px; margin: 0 auto; }
+                    h1 { color: #1E293B; border-bottom: 2px solid #10B981; padding-bottom: 12px; font-size: 24px; }
+                    @media print { body { padding: 0; } }
+                </style>
+            </head>
+            <body>
+                <h1>🍳 Recetas Seleccionadas (${recipes.length})</h1>
+                ${itemsHTML}
+                <script>
+                    window.onload = function() { window.print(); }
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     }
     // ─── Menú "Crear" Estilo Dropbox (Desktop) ──────────────────
     toggleNewDropboxMenu(e) {
@@ -1827,14 +2085,16 @@ class DashboardManager {
         const safeF = folderName.replace(/'/g, "\\'");
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+        // Destacar tarjeta de carpeta activa con borde verde
+        document.querySelectorAll('.dropbox-carousel-card.menu-open').forEach(c => c.classList.remove('menu-open'));
+        const card = event.currentTarget.closest('.dropbox-carousel-card') || event.currentTarget;
+        if (card && card.classList) card.classList.add('menu-open');
+
         menu.className = 'dropbox-folder-popover';
         menu.innerHTML = `
-            <div class="folder-popover-header">
-                <span class="folder-popover-title">${folderName}</span>
-            </div>
             <div class="folder-popover-items">
                 <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openFolder('${safeF}')">
-                    <span class="material-symbols-outlined">folder_open</span>
+                    <span class="material-symbols-outlined">folder</span>
                     <span>${isEn ? 'Open folder' : 'Abrir carpeta'}</span>
                 </button>
                 <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
@@ -1845,11 +2105,11 @@ class DashboardManager {
                     <span class="material-symbols-outlined">link</span>
                     <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
                 </button>
-                <div class="folder-popover-divider"></div>
                 <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameFolderByName('${safeF}')">
                     <span class="material-symbols-outlined">edit</span>
                     <span>${isEn ? 'Rename' : 'Cambiar nombre'}</span>
                 </button>
+                <div class="folder-popover-divider"></div>
                 <button type="button" class="folder-popover-item item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteFolderByName('${safeF}')">
                     <span class="material-symbols-outlined">delete</span>
                     <span>${isEn ? 'Delete' : 'Eliminar'}</span>
@@ -1857,9 +2117,8 @@ class DashboardManager {
             </div>
         `;
 
-        const card = event.currentTarget.closest('.dropbox-carousel-card') || event.currentTarget;
         const cardRect = card.getBoundingClientRect();
-        const menuWidth = 220;
+        const menuWidth = 200;
         const menuHeight = 220;
 
         menu.style.position = 'fixed';
@@ -1934,6 +2193,7 @@ class DashboardManager {
     closeFolderCardMenu() {
         const menu = document.getElementById('folderCardMenu');
         if (menu) menu.classList.add('hidden');
+        document.querySelectorAll('.dropbox-carousel-card.menu-open').forEach(c => c.classList.remove('menu-open'));
         this._activeFolderMenuName = null;
     }
 

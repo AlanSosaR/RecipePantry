@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="686">
+<html lang="es" data-app-version="701">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=686">
-  <link rel="stylesheet" href="css/components.css?v=686">
+  <link rel="stylesheet" href="css/styles.css?v=701">
+  <link rel="stylesheet" href="css/components.css?v=701">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -523,14 +523,33 @@
             <span class="m3-checkbox-visual"></span>
           </div>
           <h3 id="view-title" data-i18n="myRecipes">Mis Recetas</h3>
+          
+          <!-- PC Selection Action Toolbar (Material 3 Segmented Pill Capsule) -->
+          <div id="pcSelectionToolbar" class="pc-selection-toolbar hidden">
+            <div class="segmented-action-pill">
+              <button type="button" class="btn-segmented-action" onclick="window.dashboard.moveSelected()" title="Mover a carpeta">
+                <span class="material-symbols-outlined">folder</span>
+                <span>Mover</span>
+              </button>
+              <div class="segmented-action-divider"></div>
+              <button type="button" class="btn-segmented-action" onclick="window.dashboard.shareSelected()" title="Compartir">
+                <span class="material-symbols-outlined">share</span>
+                <span>Compartir</span>
+              </button>
+            </div>
+
+            <button type="button" class="btn-danger-pill" onclick="window.dashboard.deleteSelected()" title="Eliminar recetas">
+              <span class="material-symbols-outlined">delete</span>
+              <span>Eliminar</span>
+            </button>
+          </div>
+
           <span id="selectionCountText" class="selection-count-text hidden"></span>
         </div>
 
         <div class="header-actions-group">
           <div id="selectionActionsGroup" class="selection-actions-group hidden">
-            <button class="btn-icon-m3" id="selectionMoreBtn" onclick="window.dashboard.toggleSelectionMenu(event)" title="Más opciones">
-              <span class="material-symbols-outlined">more_vert</span>
-            </button>
+            <button type="button" class="btn-cancel-selection-pill" id="btnCancelSelectionTop" onclick="window.dashboard.clearSelection()">Anular selección</button>
           </div>
         </div>
 
@@ -593,6 +612,23 @@
 
       <!-- Pantalla de Menú del Restaurante (Generado por JS) -->
       <div id="menuView" class="hidden"></div>
+
+      <!-- Barra Flotante de Selección Móvil (Mover, Etiquetar, Compartir, Eliminar) -->
+      <div id="mobileSelectionToolbar" class="floating-selection-toolbar hidden">
+        <button type="button" class="floating-toolbar-btn" onclick="window.dashboard.moveSelected()" title="Mover a carpeta">
+          <span class="material-symbols-outlined toolbar-icon">folder</span>
+          <span class="toolbar-label">Mover</span>
+        </button>
+        <button type="button" class="floating-toolbar-btn" onclick="window.dashboard.shareSelected()" title="Compartir">
+          <span class="material-symbols-outlined toolbar-icon">share</span>
+          <span class="toolbar-label">Compartir</span>
+        </button>
+        <div class="floating-toolbar-divider"></div>
+        <button type="button" class="floating-toolbar-btn danger" onclick="window.dashboard.deleteSelected()" title="Eliminar">
+          <span class="material-symbols-outlined toolbar-icon">delete</span>
+          <span class="toolbar-label">Eliminar</span>
+        </button>
+      </div>
     </main>
   </div>
 
@@ -672,19 +708,18 @@
   <!-- Share Modal Estilo Dropbox (Match Exacto del Screenshot) -->
   <div id="share-modal" class="modal-overlay hidden" onclick="if(event.target === this) window.shareModal.close()">
     <div class="dropbox-share-modal-card">
-      <!-- Header con título, subtítulo e icono de colaboradores -->
+      <!-- Header con título, subtítulo y botón de cerrar -->
       <div class="dropbox-share-header">
         <div class="dropbox-share-titles">
-          <h3 id="dropbox-share-title" class="dropbox-share-heading">Compartir carpeta</h3>
+          <h3 id="dropbox-share-title" class="dropbox-share-heading">Compartir receta</h3>
           <div class="dropbox-share-subinfo">
-            <span class="material-symbols-outlined subinfo-icon" id="dropbox-share-type-icon">folder</span>
-            <span id="dropbox-share-target-name">prueba • 0 elementos</span>
+            <span class="material-symbols-outlined subinfo-icon" id="dropbox-share-type-icon">description</span>
+            <span id="dropbox-share-target-name">Apple crumble • 1 elemento</span>
           </div>
         </div>
         
-        <button type="button" class="btn-collaborators-pill" onclick="window.shareModal.toggleCollaboratorsList()" title="Personas con acceso">
-          <div class="collaborator-mini-avatar" id="myMiniAvatar">A</div>
-          <span class="material-symbols-outlined chevron-icon" id="collaboratorsChevron">chevron_right</span>
+        <button type="button" class="btn-dropbox-close" onclick="window.shareModal.close()" title="Cerrar">
+          <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
@@ -692,25 +727,25 @@
       <div class="dropbox-share-row">
         <div class="dropbox-input-container" onclick="document.getElementById('user-search-input')?.focus()">
           <div id="selected-users-chips" class="dropbox-chips-list" style="display: none;"></div>
-          <input type="text" id="user-search-input" class="dropbox-user-input" placeholder="Añadir un correo electrónico o nombre" autocomplete="off">
+          <input type="text" id="user-search-input" class="dropbox-user-input" placeholder="Añadir personas por nombre o correo electrónico" autocomplete="off">
         </div>
 
         <!-- Selector de Permiso estilo Dropbox -->
         <div class="dropbox-perm-picker">
           <button type="button" id="btnPermDropdown" class="btn-perm-picker" onclick="window.shareModal.togglePermDropdown(event)">
             <span id="currentPermLabel">pueden editar</span>
-            <span class="material-symbols-outlined perm-dropdown-arrow">expand_more</span>
+            <span class="material-symbols-outlined perm-dropdown-arrow">arrow_drop_down</span>
           </button>
 
           <!-- Menú desplegable flotante de permisos -->
           <div id="permDropdownMenu" class="dropbox-perm-dropdown-menu hidden">
-            <div class="perm-dropdown-item" id="permOptionView" onclick="window.shareModal.selectPermission('view')">
-              <span class="perm-check-mark" id="checkPermView"></span>
-              <span class="perm-dropdown-text">pueden ver</span>
-            </div>
             <div class="perm-dropdown-item active" id="permOptionEdit" onclick="window.shareModal.selectPermission('view_and_copy')">
               <span class="perm-check-mark" id="checkPermEdit">✓</span>
               <span class="perm-dropdown-text">pueden editar</span>
+            </div>
+            <div class="perm-dropdown-item" id="permOptionView" onclick="window.shareModal.selectPermission('view')">
+              <span class="perm-check-mark" id="checkPermView"></span>
+              <span class="perm-dropdown-text">solo ver</span>
             </div>
           </div>
         </div>
@@ -720,55 +755,106 @@
       </div>
 
       <!-- Caja de Mensaje opcional -->
-      <div class="dropbox-message-container">
-        <textarea id="share-message-input" class="dropbox-message-textarea" placeholder="Añade un mensaje (opcional)" rows="4"></textarea>
+      <div id="dropboxMessageContainer" class="dropbox-message-container hidden">
+        <textarea id="share-message-input" class="dropbox-message-textarea" placeholder="Añade un mensaje (opcional)" rows="3"></textarea>
       </div>
 
-      <!-- Panel Desplegable de Personas con Acceso -->
-      <div id="collaboratorsDrawer" class="collaborators-drawer hidden">
-        <div class="collaborators-drawer-header">
-          <span class="drawer-title">Personas con acceso</span>
-          <span id="current-shares-count" class="shares-count-badge">0</span>
+      <!-- Sección Quién tiene acceso (Visible directamente, estilo Dropbox) -->
+      <div class="dropbox-access-section">
+        <div class="dropbox-access-header">
+          <span class="dropbox-access-title">Quién tiene acceso</span>
         </div>
-        <div id="current-shares-list" class="shares-list">
-          <!-- Renderizado dinámicamente -->
+        
+        <!-- Fila del Propietario (Alan Sosa) -->
+        <div class="dropbox-user-row owner-row">
+          <div class="dropbox-avatar" id="dropboxOwnerAvatar">AS</div>
+          <div class="dropbox-user-info">
+            <span class="dropbox-user-name" id="dropboxOwnerName">Alan Sosa</span>
+          </div>
+          <span class="dropbox-owner-tag">propietario</span>
         </div>
+
+        <!-- Lista de colaboradores compartidos -->
+        <div id="current-shares-list" class="shares-list"></div>
       </div>
 
-      <!-- Footer con botones Cancelar y Compartir -->
+      <!-- Footer estilo Dropbox: Copiar enlace a la izquierda, Hecho / Compartir a la derecha -->
       <div class="dropbox-share-modal-footer">
-        <button type="button" class="btn-dropbox-cancel" onclick="window.shareModal.close()">Cancelar</button>
-        <button type="button" id="btn-share-submit" class="btn-dropbox-share" onclick="window.shareModal.submitShare()" disabled>Compartir</button>
+        <button type="button" class="btn-dropbox-copylink" onclick="window.shareModal.copyShareLink()" title="Copiar enlace directo">
+          <span class="material-symbols-outlined">link</span>
+          <span>Copiar enlace</span>
+        </button>
+
+        <div class="dropbox-footer-right-buttons">
+          <button type="button" id="btn-share-cancel" class="btn-dropbox-cancel hidden" onclick="window.shareModal.cancelInvite()">Cancelar</button>
+          <button type="button" id="btn-share-submit" class="btn-dropbox-share hidden" onclick="window.shareModal.submitShare()">Compartir</button>
+          <button type="button" id="btn-share-done" class="btn-dropbox-done" onclick="window.shareModal.close()">Hecho</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Etiquetar Recetas en Bloque -->
+  <div id="tagRecipeModal" class="modal-overlay hidden" onclick="if(event.target === this) window.dashboard.closeTagModal()">
+    <div class="dropbox-folder-modal" onclick="event.stopPropagation()" style="max-width: 440px;">
+      <div class="move-modal-header" style="padding-bottom: 12px;">
+        <h3 id="tagModalTitle" class="move-modal-title">Etiquetar recetas</h3>
+        <p id="tagModalSubtitle" style="font-size: 13px; color: #64748B; margin: 4px 0 0 0;">Asigna etiquetas a las recetas seleccionadas</p>
+      </div>
+
+      <div style="padding: 0 20px 16px 20px;">
+        <!-- Input para nueva etiqueta -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <input type="text" id="tagModalInput" class="folder-modal-input" placeholder="Escribe una etiqueta (ej. Salsas, Postres...)" style="flex: 1; height: 42px; font-size: 14px;" onkeydown="if(event.key==='Enter') window.dashboard.addCustomTagToModal()">
+          <button type="button" class="btn-folder-create" style="padding: 0 16px; height: 42px; width: auto; font-size: 13px;" onclick="window.dashboard.addCustomTagToModal()">Añadir</button>
+        </div>
+
+        <!-- Etiquetas seleccionadas activas -->
+        <label class="folder-modal-label" style="font-size: 12px; margin-bottom: 8px; display: block; color: #475569;">Etiquetas a asignar:</label>
+        <div id="tagModalSelectedList" style="min-height: 38px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; padding: 8px 12px; background: #F8FAFC; border-radius: 12px; border: 1px dashed #CBD5E1; align-items: center;">
+          <!-- Chips renderizados dinámicamente -->
+        </div>
+
+        <!-- Sugerencias rápidas -->
+        <label class="folder-modal-label" style="font-size: 12px; margin-bottom: 8px; display: block; color: #475569;">Sugerencias populares:</label>
+        <div id="tagModalSuggestionsList" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 130px; overflow-y: auto;">
+          <!-- Chips sugeridos -->
+        </div>
+      </div>
+
+      <div class="folder-modal-footer">
+        <button type="button" class="btn-folder-cancel" onclick="window.dashboard.closeTagModal()">Cancelar</button>
+        <button type="button" id="btnConfirmTagModal" class="btn-folder-create" onclick="window.dashboard.applyTagsToSelected()">Aplicar</button>
       </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=686"></script>
-  <script src="js/supabase-client.js?v=686"></script>
-  <script src="js/localdb.js?v=686"></script>
-  <script src="js/sync-manager.js?v=686"></script>
-  <script src="js/utils.js?v=686"></script>
-  <script src="js/i18n.js?v=686"></script>
-  <script src="js/allergen-data.js?v=686"></script>
-  <script src="js/menu-data.js?v=686"></script>
-  <script src="js/lib/pdf.min.js?v=686"></script>
-  <script src="js/restaurant-menu.js?v=686"></script>
-  <script src="js/db.js?v=686"></script>
-  <script src="js/auth.js?v=686"></script>
-  <script src="js/dashboard.js?v=686"></script>
-  <script src="js/share-modal.js?v=686"></script>
-  <script src="js/help-modal.js?v=686"></script>
+  <script src="js/config.js?v=701"></script>
+  <script src="js/supabase-client.js?v=701"></script>
+  <script src="js/localdb.js?v=701"></script>
+  <script src="js/sync-manager.js?v=701"></script>
+  <script src="js/utils.js?v=701"></script>
+  <script src="js/i18n.js?v=701"></script>
+  <script src="js/allergen-data.js?v=701"></script>
+  <script src="js/menu-data.js?v=701"></script>
+  <script src="js/lib/pdf.min.js?v=701"></script>
+  <script src="js/restaurant-menu.js?v=701"></script>
+  <script src="js/db.js?v=701"></script>
+  <script src="js/auth.js?v=701"></script>
+  <script src="js/dashboard.js?v=701"></script>
+  <script src="js/share-modal.js?v=701"></script>
+  <script src="js/help-modal.js?v=701"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=686"></script>
-  <script src="js/core/push.js?v=686"></script>
-  <script src="js/notifications.js?v=686"></script>
-  <script src="js/ui.js?v=686"></script>
-  <script src="js/sw-register.js?v=686"></script>
-<script src="js/pwa-install.js?v=686"></script>
-  <script src="js/gemini-client.js?v=686"></script>
-  <script type="module" src="js/url-importer.js?v=686"></script>
+  <script type="module" src="js/core/firebase.js?v=701"></script>
+  <script src="js/core/push.js?v=701"></script>
+  <script src="js/notifications.js?v=701"></script>
+  <script src="js/ui.js?v=701"></script>
+  <script src="js/sw-register.js?v=701"></script>
+<script src="js/pwa-install.js?v=701"></script>
+  <script src="js/gemini-client.js?v=701"></script>
+  <script type="module" src="js/url-importer.js?v=701"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

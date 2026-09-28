@@ -100,24 +100,22 @@ class ShareModalManager {
         this.hideSuggestions();
         this.closePermDropdown();
         this.renderChips();
-        this.updateShareButton();
         this.selectPermission('view_and_copy');
-
-        // Cerrar drawer de colaboradores al abrir
-        const drawer = document.getElementById('collaboratorsDrawer');
-        const chevron = document.getElementById('collaboratorsChevron');
-        if (drawer) drawer.classList.add('hidden');
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
 
         // Títulos e información del header estilo Dropbox
         const titleElem = document.getElementById('dropbox-share-title');
         const subElem = document.getElementById('dropbox-share-target-name');
         const iconElem = document.getElementById('dropbox-share-type-icon');
-        const myMiniAvatar = document.getElementById('myMiniAvatar');
 
+        // Configurar fila del propietario (Alan Sosa)
         const myUser = window.authManager?.currentUser;
-        const myInitial = (myUser?.first_name?.[0] || myUser?.email?.[0] || 'A').toUpperCase();
-        if (myMiniAvatar) myMiniAvatar.textContent = myInitial;
+        const myName = [myUser?.first_name, myUser?.last_name].filter(Boolean).join(' ') || myUser?.name || myUser?.email || 'Alan Sosa';
+        const myInitial = ((myUser?.first_name?.[0] || '') + (myUser?.last_name?.[0] || '')).toUpperCase() || (myUser?.email?.[0] || 'A').toUpperCase();
+
+        const ownerAvatar = document.getElementById('dropboxOwnerAvatar');
+        const ownerName = document.getElementById('dropboxOwnerName');
+        if (ownerAvatar) ownerAvatar.textContent = myInitial;
+        if (ownerName) ownerName.textContent = myName;
 
         if (this.targetType === 'folder') {
             if (titleElem) titleElem.textContent = 'Compartir carpeta';
@@ -127,17 +125,39 @@ class ShareModalManager {
             );
             const count = folderRecipes.length;
             if (subElem) subElem.textContent = `${targetId} • ${count} ${count === 1 ? 'elemento' : 'elementos'}`;
+        } else if (this.targetType === 'menu' || this.targetType === 'restaurant') {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             if (titleElem) titleElem.textContent = isEn ? 'Share Restaurant' : 'Compartir Restaurante';
             if (iconElem) iconElem.textContent = 'storefront';
             const menuName = window.restaurantMenu?.restaurantName || "Stanley's SW16";
             if (subElem) subElem.textContent = `${menuName} • ${isEn ? 'Menu & Allergen Matrix' : 'Carta de platos y Matriz de alérgenos'}`;
         } else {
-            const recipe = window.dashboard?.currentRecipes?.find(r => r.id === targetId);
-            const recipeName = recipe ? (recipe.name_es || recipe.name_en || 'Receta') : 'Receta';
-            if (titleElem) titleElem.textContent = 'Compartir receta';
             if (iconElem) iconElem.textContent = 'description';
-            if (subElem) subElem.textContent = `${recipeName} • 1 elemento`;
+            const allRecs = window.dashboard?.currentRecipes || [];
+
+            if (Array.isArray(targetId)) {
+                const count = targetId.length;
+                if (count === 1) {
+                    const recipe = allRecs.find(r => String(r.id) === String(targetId[0]));
+                    const recipeName = recipe ? (recipe.name_es || recipe.name_en || 'Receta') : 'Receta';
+                    if (titleElem) titleElem.textContent = 'Compartir receta';
+                    if (subElem) subElem.textContent = `${recipeName} • 1 elemento`;
+                } else {
+                    const firstRecipe = allRecs.find(r => String(r.id) === String(targetId[0]));
+                    const firstName = firstRecipe ? (firstRecipe.name_es || firstRecipe.name_en) : null;
+                    if (titleElem) titleElem.textContent = 'Compartir receta';
+                    if (subElem) {
+                        subElem.textContent = firstName 
+                            ? `${firstName} • ${count} elementos` 
+                            : `${count} elementos`;
+                    }
+                }
+            } else {
+                const recipe = allRecs.find(r => String(r.id) === String(targetId));
+                const recipeName = recipe ? (recipe.name_es || recipe.name_en || 'Receta') : 'Receta';
+                if (titleElem) titleElem.textContent = 'Compartir receta';
+                if (subElem) subElem.textContent = `${recipeName} • 1 elemento`;
+            }
         }
 
         // Cargar usuarios en caché de manera asíncrona
@@ -145,6 +165,12 @@ class ShareModalManager {
 
         // Cargar personas con acceso
         await this.loadExistingShares();
+
+        // Sugerencias rápidas (+ Wildryn C.)
+        this.renderQuickSuggestions();
+
+        // Actualizar botones (Hecho vs Cancelar / Compartir)
+        this.updateShareButton();
     }
 
     close() {
@@ -181,7 +207,7 @@ class ShareModalManager {
         const optEdit = document.getElementById('permOptionEdit');
 
         if (label) {
-            label.textContent = type === 'view' ? 'pueden ver' : 'pueden editar';
+            label.textContent = type === 'view' ? 'solo ver' : 'pueden editar';
         }
         if (checkView) checkView.textContent = type === 'view' ? '✓' : '';
         if (checkEdit) checkEdit.textContent = type === 'view_and_copy' ? '✓' : '';
@@ -191,17 +217,62 @@ class ShareModalManager {
         this.closePermDropdown();
     }
 
-    toggleCollaboratorsList() {
-        const drawer = document.getElementById('collaboratorsDrawer');
-        const chevron = document.getElementById('collaboratorsChevron');
-        if (!drawer) return;
-        const isHidden = drawer.classList.contains('hidden');
-        if (isHidden) {
-            drawer.classList.remove('hidden');
-            if (chevron) chevron.style.transform = 'rotate(90deg)';
+    renderQuickSuggestions() {
+        const container = document.getElementById('dropboxQuickSuggestions');
+        if (!container) return;
+
+        const available = (this.allUsers || []).filter(u => {
+            const isSelected = this.selectedUsers.some(su => su.id === u.id);
+            const isAlreadyShared = this.currentShares.some(s => s.recipient?.id === u.id);
+            return !isSelected && !isAlreadyShared;
+        });
+
+        if (available.length === 0) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'flex';
+        const topUsers = available.slice(0, 3);
+        container.innerHTML = topUsers.map(user => {
+            const shortName = `${user.first_name || ''} ${user.last_name ? user.last_name[0] + '.' : ''}`.trim() || user.email;
+            return `
+                <button type="button" class="dropbox-quick-chip" onclick="window.shareModal.selectUserById('${user.id}')">
+                    + ${shortName}
+                </button>
+            `;
+        }).join('');
+    }
+
+    selectUserById(userId) {
+        const user = (this.allUsers || []).find(u => u.id === userId);
+        if (user) {
+            const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email;
+            this.addUser(user.id, fullName, user.email, user.prefix, user.avatar_url);
+            if (this.searchInput) this.searchInput.value = '';
+            this.hideSuggestions();
+        }
+    }
+
+    copyShareLink() {
+        let url = window.location.origin;
+        if (Array.isArray(this.targetId) && this.targetId.length > 0) {
+            url = `${window.location.origin}/recipe-detail?id=${this.targetId[0]}`;
+        } else if (this.targetId && this.targetType !== 'folder') {
+            url = `${window.location.origin}/recipe-detail?id=${this.targetId}`;
+        }
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+                const toastMsg = window.i18n ? window.i18n.t('linkCopied') || '🔗 Enlace copiado al portapapeles' : '🔗 Enlace copiado al portapapeles';
+                if (window.utils?.showToast) window.utils.showToast(toastMsg, 'success');
+                else if (window.showToast) window.showToast(toastMsg, 'success');
+            }).catch(() => {
+                prompt('Copia este enlace:', url);
+            });
         } else {
-            drawer.classList.add('hidden');
-            if (chevron) chevron.style.transform = 'rotate(0deg)';
+            prompt('Copia este enlace:', url);
         }
     }
 
@@ -379,18 +450,37 @@ class ShareModalManager {
     }
 
     updateShareButton() {
-        if (!this.btnShare) return;
         const count = this.selectedUsers.length;
+        const btnDone = document.getElementById('btn-share-done');
+        const btnCancel = document.getElementById('btn-share-cancel');
+        const btnShare = document.getElementById('btn-share-submit');
+        const msgContainer = document.getElementById('dropboxMessageContainer');
 
         if (count > 0) {
-            this.btnShare.disabled = false;
-            this.btnShare.classList.add('ready');
-            this.btnShare.textContent = 'Compartir';
+            if (btnDone) btnDone.classList.add('hidden');
+            if (btnCancel) btnCancel.classList.remove('hidden');
+            if (btnShare) {
+                btnShare.classList.remove('hidden');
+                btnShare.disabled = false;
+                btnShare.textContent = 'Compartir';
+            }
+            if (msgContainer) msgContainer.classList.remove('hidden');
         } else {
-            this.btnShare.disabled = true;
-            this.btnShare.classList.remove('ready');
-            this.btnShare.textContent = 'Compartir';
+            if (btnDone) btnDone.classList.remove('hidden');
+            if (btnCancel) btnCancel.classList.add('hidden');
+            if (btnShare) btnShare.classList.add('hidden');
+            if (msgContainer) msgContainer.classList.add('hidden');
         }
+
+        this.renderQuickSuggestions();
+    }
+
+    cancelInvite() {
+        this.selectedUsers = [];
+        if (this.searchInput) this.searchInput.value = '';
+        if (this.messageInput) this.messageInput.value = '';
+        this.renderChips();
+        this.updateShareButton();
     }
 
     // --- Personas con Acceso Existentes ---
@@ -456,12 +546,20 @@ class ShareModalManager {
                     }
                 }
             } else {
-                if (window.supabaseClient && this.targetId) {
-                    const { data, error } = await window.supabaseClient
+                let recipeIds = [];
+                if (Array.isArray(this.targetId)) {
+                    recipeIds = this.targetId;
+                } else if (this.targetId) {
+                    recipeIds = [this.targetId];
+                }
+
+                if (window.supabaseClient && recipeIds.length > 0) {
+                    const query = window.supabaseClient
                         .from('shared_recipes')
                         .select(`
                             id,
                             permission,
+                            recipe_id,
                             recipient:recipient_user_id (
                                 id,
                                 first_name,
@@ -470,11 +568,20 @@ class ShareModalManager {
                                 avatar_url,
                                 prefix
                             )
-                        `)
-                        .eq('recipe_id', this.targetId);
+                        `);
+
+                    const { data, error } = recipeIds.length === 1
+                        ? await query.eq('recipe_id', recipeIds[0])
+                        : await query.in('recipe_id', recipeIds);
 
                     if (!error && data) {
-                        shares = data;
+                        const map = new Map();
+                        data.forEach(s => {
+                            if (s.recipient?.id && !map.has(s.recipient.id)) {
+                                map.set(s.recipient.id, s);
+                            }
+                        });
+                        shares = Array.from(map.values());
                     }
                 }
             }
@@ -491,13 +598,12 @@ class ShareModalManager {
     renderShares() {
         if (!this.sharesList) return;
         const count = this.currentShares.length;
-        if (this.sharesCount) this.sharesCount.textContent = count;
 
         if (count === 0) {
             this.sharesList.innerHTML = `
                 <div class="no-shares-box">
-                    <span class="material-symbols-outlined" style="font-size: 20px; color: #52525b;">group_off</span>
-                    <span>Nadie tiene acceso aún.</span>
+                    <span class="material-symbols-outlined" style="font-size: 17px; color: #52525b;">group</span>
+                    <span>Solo tú tienes acceso por ahora.</span>
                 </div>
             `;
             return;
@@ -506,26 +612,30 @@ class ShareModalManager {
         this.sharesList.innerHTML = this.currentShares.map(share => {
             const user = share.recipient;
             if (!user) return '';
-            const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Usuario';
-            const initials = (user.first_name?.[0] || fullName[0] || 'U').toUpperCase();
-            const permLabel = share.permission === 'view_and_copy' ? 'pueden editar' : 'pueden ver';
+            const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+            const displayName = fullName || user.email || 'Usuario';
+            const showEmail = user.email && fullName && fullName !== user.email;
+            const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || (displayName[0] || 'U').toUpperCase();
+            const isEdit = share.permission === 'view_and_copy';
 
             const avatarContent = user.avatar_url 
                 ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
                 : initials;
 
             return `
-                <div class="share-row" id="share-row-${share.id}">
-                    <div class="share-avatar">${avatarContent}</div>
-                    <div class="share-info">
-                        <span class="share-name">${user.prefix || 'Chef'} ${fullName}</span>
-                        <span class="share-email">${user.email || ''}</span>
+                <div class="dropbox-user-row" id="share-row-${share.id}">
+                    <div class="dropbox-avatar">${avatarContent}</div>
+                    <div class="dropbox-user-info">
+                        <span class="dropbox-user-name">${displayName}</span>
+                        ${showEmail ? `<span class="dropbox-user-email">${user.email}</span>` : ''}
                     </div>
-                    <div class="share-actions">
-                        <span class="permission-tag">${permLabel}</span>
-                        <button type="button" class="btn-remove-access" onclick="window.shareModal.changePermission('${share.id}', 'remove')" title="Quitar acceso">
-                            Quitar
-                        </button>
+                    <div class="dropbox-perm-select-wrapper">
+                        <select class="dropbox-role-select" onchange="window.shareModal.changePermission('${share.id}', this.value)">
+                            <option value="view_and_copy" ${isEdit ? 'selected' : ''}>pueden editar</option>
+                            <option value="view" ${!isEdit ? 'selected' : ''}>solo ver</option>
+                            <option value="remove">Quitar acceso</option>
+                        </select>
+                        <span class="material-symbols-outlined perm-select-arrow">expand_more</span>
                     </div>
                 </div>
             `;
@@ -603,6 +713,8 @@ class ShareModalManager {
                         console.warn('⚠️ Fallback query de carpeta falló:', fErr);
                     }
                 }
+            } else if (Array.isArray(this.targetId)) {
+                recipeIds = this.targetId;
             } else if (this.targetId) {
                 recipeIds = [this.targetId];
             }
@@ -650,7 +762,7 @@ class ShareModalManager {
                 const notifications = [];
 
                 for (const user of this.selectedUsers) {
-                    // Registrar acceso individual para cada receta de la carpeta en shared_recipes
+                    // Registrar acceso individual para cada receta en shared_recipes
                     for (const rId of recipeIds) {
                         inserts.push({
                             recipe_id: rId,
@@ -661,7 +773,7 @@ class ShareModalManager {
                         });
                     }
 
-                    // Enviar UNA SOLA notificación agrupada si es carpeta, o individual si es receta
+                    // Enviar notificación agrupada si es carpeta o lote, o individual si es 1 receta
                     if (this.targetType === 'folder') {
                         notifications.push({
                             user_id: user.id,
@@ -671,6 +783,19 @@ class ShareModalManager {
                             type: 'folder_shared',
                             metadata: {
                                 folder_name: this.targetId,
+                                recipe_ids: recipeIds,
+                                recipe_count: recipeIds.length,
+                                message: optionalMessage || null
+                            }
+                        });
+                    } else if (recipeIds.length > 1) {
+                        notifications.push({
+                            user_id: user.id,
+                            from_user_id: currentUserId,
+                            recipe_id: recipeIds[0] || null,
+                            leido: false,
+                            type: 'recipes_shared',
+                            metadata: {
                                 recipe_ids: recipeIds,
                                 recipe_count: recipeIds.length,
                                 message: optionalMessage || null
@@ -700,10 +825,13 @@ class ShareModalManager {
                 }
             }
 
-            const names = this.selectedUsers.map(u => `${u.prefix} ${u.name}`).join(', ');
-            const successMsg = this.targetType === 'folder' 
-                ? `✅ Carpeta "${this.targetId}" compartida con ${names}`
-                : `✅ Compartido con ${names}`;
+            const names = this.selectedUsers.map(u => `${u.prefix || ''} ${u.name || ''}`.trim()).filter(Boolean).join(', ') || 'usuarios';
+            let successMsg = `✅ Compartido con ${names}`;
+            if (this.targetType === 'folder') {
+                successMsg = `✅ Carpeta "${this.targetId}" compartida con ${names}`;
+            } else if (recipeIds.length > 1) {
+                successMsg = `✅ ${recipeIds.length} recetas compartidas con ${names}`;
+            }
 
             if (window.utils?.showToast) {
                 window.utils.showToast(successMsg, 'success');
