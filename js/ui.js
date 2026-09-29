@@ -34,6 +34,10 @@ window.setupMobileMenu = function () {
 window.closeSidebar = function () {
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) sidebar.classList.remove('active');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    document.body.classList.remove('sidebar-open');
 }
 
 window.toggleSidebar = function (open) {
@@ -45,10 +49,12 @@ window.toggleSidebar = function (open) {
         sidebar.classList.add('active');
         if (overlay) overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
+        document.body.classList.add('sidebar-open');
     } else {
         sidebar.classList.remove('active');
         if (overlay) overlay.classList.remove('active');
         document.body.style.overflow = '';
+        document.body.classList.remove('sidebar-open');
     }
 }
 

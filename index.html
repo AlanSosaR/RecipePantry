@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="701">
+<html lang="es" data-app-version="705">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=701">
-  <link rel="stylesheet" href="css/components.css?v=701">
+  <link rel="stylesheet" href="css/styles.css?v=705">
+  <link rel="stylesheet" href="css/components.css?v=705">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -424,9 +424,6 @@
           <!-- Menú Popover estilo Dropbox (Crear: Carpeta, Documento, Escanear) - Disponible en desktop y móvil -->
           <div id="newDropboxMenu" class="dropbox-create-popover hidden">
           <div class="dropbox-create-top">
-            <button type="button" class="dropbox-close-btn" onclick="window.dashboard.closeNewDropboxMenu(event)" title="Cerrar">
-              <span class="material-symbols-outlined">close</span>
-            </button>
             <h4 class="dropbox-create-heading">Crear</h4>
           </div>
           <div class="dropbox-create-items">
@@ -435,21 +432,18 @@
                 <span class="material-symbols-outlined">folder</span>
               </div>
               <span class="row-title">Carpeta</span>
-              <span class="material-symbols-outlined row-chevron">chevron_right</span>
             </div>
             <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('document')">
               <div class="row-icon-box">
                 <span class="material-symbols-outlined">description</span>
               </div>
               <span class="row-title">Documento</span>
-              <span class="material-symbols-outlined row-chevron">chevron_right</span>
             </div>
             <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('scan')">
               <div class="row-icon-box">
                 <span class="material-symbols-outlined">document_scanner</span>
               </div>
               <span class="row-title">Escanear Receta</span>
-              <span class="material-symbols-outlined row-chevron">chevron_right</span>
             </div>
 </div>
         </div>
@@ -469,7 +463,12 @@
             <div id="notifications-menu" class="notifications-menu hidden">
               <div class="notifications-header"><h4 data-i18n="notifications">Notificaciones</h4></div>
               <div id="notifications-list" class="notifications-list">
-                <div class="notifications-empty"><p data-i18n="noNotifications">No tienes notificaciones nuevas</p></div>
+                <div class="notifications-empty">
+                  <div class="notifications-empty-icon">
+                    <span class="material-symbols-outlined">notifications</span>
+                  </div>
+                  <p data-i18n="notifEmpty">Sin notificaciones</p>
+                </div>
               </div>
             </div>
           </div>
@@ -484,10 +483,10 @@
             <span class="material-symbols-outlined suggested-eye-icon" id="suggestedEyeIcon">visibility</span>
           </div>
           <div class="carousel-nav-buttons" id="carouselNavButtons">
-            <button type="button" class="btn-carousel-nav" id="btnCarouselPrev" onclick="window.dashboard.scrollCarousel(-1)" title="Anterior">
+            <button type="button" class="btn-carousel-nav disabled" id="btnCarouselPrev" onclick="window.dashboard.scrollCarousel(-1)" title="Anterior" disabled>
               <span class="material-symbols-outlined">chevron_left</span>
             </button>
-            <button type="button" class="btn-carousel-nav" id="btnCarouselNext" onclick="window.dashboard.scrollCarousel(1)" title="Siguiente">
+            <button type="button" class="btn-carousel-nav is-active" id="btnCarouselNext" onclick="window.dashboard.scrollCarousel(1)" title="Siguiente">
               <span class="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
@@ -831,30 +830,30 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=701"></script>
-  <script src="js/supabase-client.js?v=701"></script>
-  <script src="js/localdb.js?v=701"></script>
-  <script src="js/sync-manager.js?v=701"></script>
-  <script src="js/utils.js?v=701"></script>
-  <script src="js/i18n.js?v=701"></script>
-  <script src="js/allergen-data.js?v=701"></script>
-  <script src="js/menu-data.js?v=701"></script>
-  <script src="js/lib/pdf.min.js?v=701"></script>
-  <script src="js/restaurant-menu.js?v=701"></script>
-  <script src="js/db.js?v=701"></script>
-  <script src="js/auth.js?v=701"></script>
-  <script src="js/dashboard.js?v=701"></script>
-  <script src="js/share-modal.js?v=701"></script>
-  <script src="js/help-modal.js?v=701"></script>
+  <script src="js/config.js?v=705"></script>
+  <script src="js/supabase-client.js?v=705"></script>
+  <script src="js/localdb.js?v=705"></script>
+  <script src="js/sync-manager.js?v=705"></script>
+  <script src="js/utils.js?v=705"></script>
+  <script src="js/i18n.js?v=705"></script>
+  <script src="js/allergen-data.js?v=705"></script>
+  <script src="js/menu-data.js?v=705"></script>
+  <script src="js/lib/pdf.min.js?v=705"></script>
+  <script src="js/restaurant-menu.js?v=705"></script>
+  <script src="js/db.js?v=705"></script>
+  <script src="js/auth.js?v=705"></script>
+  <script src="js/dashboard.js?v=705"></script>
+  <script src="js/share-modal.js?v=705"></script>
+  <script src="js/help-modal.js?v=705"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=701"></script>
-  <script src="js/core/push.js?v=701"></script>
-  <script src="js/notifications.js?v=701"></script>
-  <script src="js/ui.js?v=701"></script>
-  <script src="js/sw-register.js?v=701"></script>
-<script src="js/pwa-install.js?v=701"></script>
-  <script src="js/gemini-client.js?v=701"></script>
-  <script type="module" src="js/url-importer.js?v=701"></script>
+  <script type="module" src="js/core/firebase.js?v=705"></script>
+  <script src="js/core/push.js?v=705"></script>
+  <script src="js/notifications.js?v=705"></script>
+  <script src="js/ui.js?v=705"></script>
+  <script src="js/sw-register.js?v=705"></script>
+<script src="js/pwa-install.js?v=705"></script>
+  <script src="js/gemini-client.js?v=705"></script>
+  <script type="module" src="js/url-importer.js?v=705"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

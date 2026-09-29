@@ -655,6 +655,7 @@ body.notes-is-reordering {
     border: 2px dashed #10B981 !important;
     z-index: 1000;
     cursor: grabbing;
+    pointer-events: none;
 }
 
 .note-card:hover {

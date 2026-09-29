@@ -159,6 +159,7 @@
                         .select('*, note_items(*)')
                         .eq('user_id', userId)
                         .order('is_pinned', { ascending: false })
+                        .order('order_index', { ascending: true })
                         .order('created_at', { ascending: false });
 
                     if (error) throw error;
@@ -393,13 +394,15 @@
                 card.addEventListener('touchmove', (e) => {
                     const touch = e.touches[0];
                     const dist = Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY);
-                    if (!isCardDragging && dist > 8) {
-                        clearTimeout(longPressTimer);
+                    if (!isCardDragging) {
+                        if (dist > 10) clearTimeout(longPressTimer);
                         return;
                     }
                     if (isCardDragging) {
                         if (e.cancelable) e.preventDefault();
+                        card.style.visibility = 'hidden';
                         const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                        card.style.visibility = '';
                         const targetCard = elementBelow?.closest('.note-card');
                         if (targetCard && targetCard !== card && targetCard.parentNode === grid) {
                             const rect = targetCard.getBoundingClientRect();

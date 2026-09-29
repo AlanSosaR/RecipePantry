@@ -1155,19 +1155,19 @@ class DashboardManager {
             const isSent = recipe.sharingContext === 'sent';
 
             const sharedLabelHTML = isReceived ? `
-                <div style="font-size: 12px; color: #10B981; padding: 0 16px 8px 16px; margin-top: -4px;">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">groups</span>
-                    ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
+                <div style="font-size: 12px; color: #0d5f3a; margin-top: 5px; display: flex; align-items: center; gap: 6px; line-height: 1.35; word-break: break-word;">
+                    <span class="material-symbols-outlined" style="font-size:15px;flex-shrink:0;">groups</span>
+                    <span>${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: <strong>${recipe.senderName || 'Chef'}</strong></span>
                 </div>
             ` : isSent && recipe.sharedWith ? `
-                <div style="font-size: 12px; color: var(--primary); padding: 0 16px 8px 16px; margin-top: -4px;">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">group</span>
-                    ${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: ${recipe.sharedWith}
+                <div style="font-size: 12px; color: #0d5f3a; margin-top: 5px; display: flex; align-items: center; gap: 6px; line-height: 1.35; word-break: break-word;">
+                    <span class="material-symbols-outlined" style="font-size:15px;flex-shrink:0;">group</span>
+                    <span>${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: <strong>${recipe.sharedWith}</strong></span>
                 </div>
             ` : `
-                <div style="font-size: 12px; color: #aaa; padding: 0 16px 8px 16px; margin-top: -4px;">
-                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">person</span>
-                    Solo tú
+                <div style="font-size: 12px; color: #6b7280; margin-top: 5px; display: flex; align-items: center; gap: 6px; line-height: 1.35;">
+                    <span class="material-symbols-outlined" style="font-size:15px;flex-shrink:0;">person</span>
+                    <span>Solo tú</span>
                 </div>
             `;
 
@@ -1176,8 +1176,8 @@ class DashboardManager {
             menu.innerHTML = `
                 <div class="dropbox-menu-header">
                     <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
+                    ${sharedLabelHTML}
                 </div>
-                ${sharedLabelHTML}
                 <button class="context-menu-item" onclick="window.dashboard.copyLinkSelected(); this.closest('.dropbox-menu-m3')?.remove();">
                     <span class="material-symbols-outlined">link</span>
                     ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
@@ -2009,6 +2009,16 @@ class DashboardManager {
         section.classList.remove('hidden');
         section.style.display = '';
 
+        // Escuchar scroll para actualizar flechas activas/desactivadas dinámicamente
+        if (!track._scrollListenerAttached) {
+            track._scrollListenerAttached = true;
+            track.addEventListener('scroll', () => {
+                this.updateCarouselNavState();
+            }, { passive: true });
+        }
+        requestAnimationFrame(() => this.updateCarouselNavState());
+        setTimeout(() => this.updateCarouselNavState(), 120);
+
         // Restaurar estado de visibilidad del ojo (recordar preferencia)
         const isCollapsed = localStorage.getItem('suggested_carousel_collapsed') === 'true';
         this.updateSuggestedCarouselState(isCollapsed);
@@ -2039,6 +2049,7 @@ class DashboardManager {
             if (track) track.classList.remove('hidden');
             if (navButtons) navButtons.classList.remove('hidden');
             if (eyeIcon) eyeIcon.textContent = 'visibility';
+            this.updateCarouselNavState();
         }
     }
 
@@ -2046,7 +2057,40 @@ class DashboardManager {
         const track = document.getElementById('suggestedCarouselTrack');
         if (track) {
             track.scrollBy({ left: direction * 280, behavior: 'smooth' });
+            setTimeout(() => this.updateCarouselNavState(), 320);
         }
+    }
+
+    updateCarouselNavState() {
+        const track = document.getElementById('suggestedCarouselTrack');
+        const prevBtn = document.getElementById('btnCarouselPrev');
+        const nextBtn = document.getElementById('btnCarouselNext');
+        if (!track || !prevBtn || !nextBtn) return;
+
+        const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+        const scrollLeft = track.scrollLeft;
+
+        // Si todas las carpetas caben sin scroll
+        if (maxScroll <= 5) {
+            prevBtn.disabled = true;
+            prevBtn.classList.add('disabled');
+            prevBtn.classList.remove('is-active');
+            nextBtn.disabled = true;
+            nextBtn.classList.add('disabled');
+            nextBtn.classList.remove('is-active');
+            return;
+        }
+
+        const canScrollPrev = scrollLeft > 8;
+        const canScrollNext = scrollLeft < maxScroll - 8;
+
+        prevBtn.disabled = !canScrollPrev;
+        prevBtn.classList.toggle('disabled', !canScrollPrev);
+        prevBtn.classList.toggle('is-active', canScrollPrev);
+
+        nextBtn.disabled = !canScrollNext;
+        nextBtn.classList.toggle('disabled', !canScrollNext);
+        nextBtn.classList.toggle('is-active', canScrollNext);
     }
 
     openShareFolderModal(folderName) {
@@ -3677,7 +3721,7 @@ class DashboardManager {
             const addedMsg = window.i18n ? window.i18n.t('favAdded') : 'Añadido a favoritos';
             const removedMsg = window.i18n ? window.i18n.t('favRemoved') : 'Eliminado de favoritos';
             window.utils.showToast(result.isFavorite ? addedMsg : removedMsg, 'success');
-            const recipe = this.currentRecipes.find(r => r.id === recipeId);
+            const recipe = this.currentRecipes.find(r => String(r.id) === String(recipeId));
             if (recipe) {
                 recipe.is_favorite = result.isFavorite;
                 this.renderRecipesGrid(this.currentRecipes);
@@ -3705,112 +3749,337 @@ class DashboardManager {
     showMoreOptions(recipeId, event) {
         if (event) event.stopPropagation();
 
-        const recipe = this.currentRecipes.find(r => r.id === recipeId);
+        const trigger = (event && event.currentTarget) ? event.currentTarget : ((event?.target?.closest('button')) || event?.target);
+
+        // Si se acaba de cerrar porque se pulsó en el mismo botón trigger
+        if (this._lastMenuClosedRecipeId === String(recipeId) && (Date.now() - (this._lastMenuClosedTime || 0)) < 350) {
+            this._lastMenuClosedRecipeId = null;
+            return;
+        }
+
+        const existingMenu = document.querySelector('.m3-modal-bottom-sheet, .dropbox-menu-m3');
+        const existingBackdrop = document.getElementById('m3SheetBackdrop');
+        if (existingMenu) {
+            const isSameRecipe = existingMenu.dataset.recipeId === String(recipeId);
+            existingMenu.remove();
+            if (existingBackdrop) existingBackdrop.remove();
+            if (isSameRecipe) {
+                return;
+            }
+        }
+        if (existingBackdrop) existingBackdrop.remove();
+
+        const recipe = this.currentRecipes.find(r => String(r.id) === String(recipeId));
         if (!recipe) return;
 
-        const existingMenu = document.querySelector('.dropbox-menu-m3');
-        if (existingMenu) existingMenu.remove();
-
-        const menu = document.createElement('div');
-        menu.className = 'dropbox-menu-m3';
-
+        const isMobile = window.innerWidth < 600;
         const isShared = recipe.sharingContext === 'received';
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const recipeName = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+        const isFav = Boolean(recipe.is_favorite && recipe.is_favorite !== '0' && recipe.is_favorite !== 'false');
 
         const sharedLabelHTML = recipe.sharingContext === 'received' ? `
-            <div style="font-size: 12px; color: var(--on-surface-variant); padding: 0 16px 8px 16px; margin-top: -4px;">
-                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">person</span>
-                ${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: ${recipe.senderName || 'Chef'}
+            <div style="font-size: 12px; color: #4b5563; margin-top: 4px; display: flex; align-items: center; gap: 6px; line-height: 1.35; word-break: break-word;">
+                <span class="material-symbols-outlined" style="font-size:15px; flex-shrink:0; color:#6b7280;">person</span>
+                <span>${window.i18n ? window.i18n.t('sharedBy') : 'Compartida por'}: <strong>${recipe.senderName || 'Chef'}</strong></span>
             </div>
         ` : recipe.sharingContext === 'sent' && recipe.sharedWith ? `
-            <div style="font-size: 12px; color: var(--primary); padding: 0 16px 8px 16px; margin-top: -4px;">
-                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">group</span>
-                ${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: ${recipe.sharedWith}
+            <div style="font-size: 12px; color: #0d5f3a; margin-top: 4px; display: flex; align-items: center; gap: 6px; line-height: 1.35; word-break: break-word;">
+                <span class="material-symbols-outlined" style="font-size:15px; flex-shrink:0; color:#0d5f3a;">group</span>
+                <span>${window.i18n ? window.i18n.t('sharedWith') : 'Compartida con'}: <strong>${recipe.sharedWith}</strong></span>
             </div>
         ` : '';
 
-        if (isShared) {
-            menu.innerHTML = `
-                <div class="dropbox-menu-header">
-                    <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
+        const menu = document.createElement('div');
+        menu.dataset.recipeId = String(recipeId);
+
+        let backdrop = null;
+
+        if (isMobile) {
+            // Material 3 Expressive Modal Bottom Sheet Expandable
+            menu.className = 'm3-modal-bottom-sheet';
+
+            const folderName = recipe.pantry_es || (isEn ? 'General' : 'General');
+            const dateStr = recipe.updated_at ? new Date(recipe.updated_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const servingsStr = recipe.servings ? `${recipe.servings} ${isEn ? 'servings' : 'porciones'}` : '';
+
+            let sheetHTML = `
+                <div class="m3-sheet-drag-handle" title="Toca o desliza para expandir"></div>
+                <div class="m3-sheet-header">
+                    <h4>${recipeName}</h4>
+                    ${sharedLabelHTML}
                 </div>
-                ${sharedLabelHTML}
-                <button class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}')">
-                    <span class="material-symbols-outlined">library_add</span>
-                    ${window.i18n ? window.i18n.t('addToMyRecipes') : 'Agregar a mis recetas'}
-                </button>
-                <div class="context-menu-divider"></div>
-                <button class="context-menu-item" onclick="window.dashboard.copyLink('${recipe.id}')">
-                    <span class="material-symbols-outlined">link</span>
-                    ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
-                </button>
-                <div class="context-menu-divider"></div>
-                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
-                    <span class="material-symbols-outlined">delete</span>
-                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar'}
-                </button>
-            `;
-        } else {
-            menu.innerHTML = `
-                <div class="dropbox-menu-header">
-                    <h4>${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
+                <div class="m3-sheet-details-expanded">
+                    ${folderName ? `
+                        <div class="m3-sheet-detail-row">
+                            <span class="m3-sheet-detail-label">
+                                <span class="material-symbols-outlined m3-sheet-detail-icon">folder</span>
+                                <span>${isEn ? 'Folder' : 'Carpeta'}</span>
+                            </span>
+                            <span class="m3-sheet-detail-val">${folderName}</span>
+                        </div>` : ''}
+                    ${dateStr ? `
+                        <div class="m3-sheet-detail-row">
+                            <span class="m3-sheet-detail-label">
+                                <span class="material-symbols-outlined m3-sheet-detail-icon icon-time">schedule</span>
+                                <span>${isEn ? 'Last modified' : 'Última modificación'}</span>
+                            </span>
+                            <span class="m3-sheet-detail-val">${dateStr}</span>
+                        </div>` : ''}
+                    ${servingsStr ? `
+                        <div class="m3-sheet-detail-row">
+                            <span class="m3-sheet-detail-label">
+                                <span class="material-symbols-outlined m3-sheet-detail-icon icon-servings">restaurant</span>
+                                <span>${isEn ? 'Servings' : 'Porciones'}</span>
+                            </span>
+                            <span class="m3-sheet-detail-val">${servingsStr}</span>
+                        </div>` : ''}
                 </div>
-                ${sharedLabelHTML}
-                <button class="context-menu-item" onclick="window.dashboard.copyLink('${recipe.id}')">
-                    <span class="material-symbols-outlined">link</span>
-                    ${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}
-                </button>
-                <button class="context-menu-item" onclick="window.dashboard.shareRecipe('${recipe.id}')">
-                    <span class="material-symbols-outlined">share</span>
-                    ${window.i18n ? window.i18n.t('shareBtn') : 'Compartir'}
-                </button>
-                <div class="context-menu-divider"></div>
-                <button class="context-menu-item" onclick="window.dashboard.editRecipe('${recipe.id}')">
-                    <span class="material-symbols-outlined">edit</span>
-                    ${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar receta'}
-                </button>
-                <button class="context-menu-item" onclick="window.dashboard.startRename('${recipe.id}', event)">
-                    <span class="material-symbols-outlined">edit_square</span>
-                    ${window.i18n ? window.i18n.t('rename') : 'Renombrar'}
-                </button>
-                <button class="context-menu-item" onclick="window.dashboard.promptMoveSingle('${recipe.id}')">
-                    <span class="material-symbols-outlined">drive_file_move</span>
-                    <span>${window.i18n && window.i18n.getLang() === 'en' ? 'Move to folder...' : 'Mover a carpeta...'}</span>
-                </button>
-                <button class="context-menu-item" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
-                    <span class="material-symbols-outlined">${recipe.is_favorite ? 'star' : 'star_border'}</span>
-                    ${recipe.is_favorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}
-                </button>
-                <div class="context-menu-divider"></div>
-                <button class="context-menu-item" style="color: var(--md-error);" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
-                    <span class="material-symbols-outlined">delete</span>
-                    ${window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar receta'}
-                </button>
             `;
-        }
 
-        document.body.appendChild(menu);
+            if (isShared) {
+                sheetHTML += `
+                    <div class="m3-sheet-quick-row">
+                        <button type="button" class="m3-quick-pill" onclick="window.dashboard.copyLink('${recipe.id}');">
+                            <span class="material-symbols-outlined">link</span>
+                            <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
+                        </button>
+                    </div>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}');">
+                        <span class="material-symbols-outlined">library_add</span>
+                        <span>${window.i18n ? window.i18n.t('addToMyRecipes') : 'Agregar a mis recetas'}</span>
+                    </button>
+                    <div class="context-menu-divider"></div>
+                    <button type="button" class="context-menu-item danger" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}');">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                    </button>
+                `;
+            } else {
+                sheetHTML += `
+                    <div class="m3-sheet-quick-row">
+                        <button type="button" class="m3-quick-pill" onclick="window.dashboard.copyLink('${recipe.id}');">
+                            <span class="material-symbols-outlined">link</span>
+                            <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
+                        </button>
+                        <button type="button" class="m3-quick-pill" onclick="window.dashboard.shareRecipe('${recipe.id}');">
+                            <span class="material-symbols-outlined">share</span>
+                            <span>${isEn ? 'Share' : 'Compartir'}</span>
+                        </button>
+                        <button type="button" class="m3-quick-pill ${isFav ? 'is-favorite' : ''}" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${isFav});">
+                            <span class="material-symbols-outlined" style="${isFav ? 'font-variation-settings: \'FILL\' 1 !important; color: #eab308 !important;' : ''}">
+                                ${isFav ? 'star' : 'star_border'}
+                            </span>
+                            <span>${isEn ? (isFav ? 'Favorited' : 'Favorite') : (isFav ? 'En favoritos' : 'Favorito')}</span>
+                        </button>
+                    </div>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.editRecipe('${recipe.id}');">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar Receta'}</span>
+                    </button>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.startRename('${recipe.id}', event);">
+                        <span class="material-symbols-outlined">edit_square</span>
+                        <span>${window.i18n ? window.i18n.t('rename') : 'Renombrar'}</span>
+                    </button>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.promptMoveSingle('${recipe.id}');">
+                        <span class="material-symbols-outlined">drive_file_move</span>
+                        <span>${isEn ? 'Move to folder...' : 'Mover a carpeta...'}</span>
+                    </button>
+                    <div class="context-menu-divider"></div>
+                    <button type="button" class="context-menu-item danger" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}');">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                    </button>
+                `;
+            }
 
-        const trigger = (event.currentTarget || event.target).closest('button') || event.target;
-        const rect = trigger.getBoundingClientRect();
-        const menuWidth = 240;
-        const vh = window.innerHeight;
-        const vw = window.innerWidth;
-        const margin = 12;
+            menu.innerHTML = sheetHTML;
 
-        if (vw < 600) {
-            // MOBILE: Center Sheet Style (v205)
-            menu.classList.add('mobile-bottom-sheet');
-            menu.style.position = 'fixed';
-            menu.style.bottom = '40%';
-            menu.style.left = '5%';
-            menu.style.width = '90%';
-            menu.style.top = 'auto';
-            menu.style.transform = 'none';
-            menu.style.borderRadius = '24px';
-            menu.style.animation = 'm3-sheet-up 0.3s cubic-bezier(0, 0, 0.2, 1)';
+            backdrop = document.createElement('div');
+            backdrop.className = 'm3-sheet-backdrop';
+            backdrop.id = 'm3SheetBackdrop';
+            backdrop.onclick = (e) => dismiss(e);
+            document.body.appendChild(backdrop);
+            document.body.appendChild(menu);
+
+            // Control de expansión interactivo al arrastrar hacia arriba o abajo
+            let touchStartY = 0;
+            let touchDiffY = 0;
+            let isExpanded = false;
+            let initialHeight = 0;
+            const smoothCurve = 'height 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+
+            const measureBaseHeight = () => {
+                if (!isExpanded && menu.offsetHeight > 50) {
+                    initialHeight = menu.offsetHeight;
+                    menu.style.height = `${initialHeight}px`;
+                }
+            };
+
+            requestAnimationFrame(measureBaseHeight);
+            setTimeout(measureBaseHeight, 60);
+
+            // Tocar el tirador alterna entre expandido y normal con transición suave y pausada
+            const dragHandle = menu.querySelector('.m3-sheet-drag-handle');
+            if (dragHandle) {
+                dragHandle.onclick = (e) => {
+                    e.stopPropagation();
+                    if (!initialHeight) initialHeight = menu.offsetHeight || 360;
+                    isExpanded = !isExpanded;
+                    menu.style.transition = smoothCurve;
+                    void menu.offsetHeight; // Forzar reflow para asegurar animación suave
+                    menu.classList.toggle('is-expanded', isExpanded);
+                    if (isExpanded) {
+                        menu.style.height = '92vh';
+                    } else {
+                        menu.style.height = `${initialHeight}px`;
+                    }
+                    menu.style.transform = '';
+                };
+            }
+
+            menu.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+                touchDiffY = 0;
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 360;
+            }, { passive: true });
+
+            menu.addEventListener('touchmove', (e) => {
+                touchDiffY = e.touches[0].clientY - touchStartY;
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 360;
+
+                if (!isExpanded) {
+                    if (touchDiffY < 0) {
+                        // Jalando hacia arriba: sube dinámicamente hacia 92vh
+                        const targetH = Math.min(window.innerHeight * 0.92, initialHeight - touchDiffY);
+                        menu.style.transition = 'none';
+                        menu.style.height = `${targetH}px`;
+                        menu.style.transform = '';
+                    } else {
+                        // Jalando hacia abajo: se desliza hacia abajo
+                        menu.style.transition = 'none';
+                        menu.style.transform = `translateY(${touchDiffY}px)`;
+                    }
+                } else {
+                    // Si ya está expandido y está arriba del scroll, contraer hacia abajo dinámicamente
+                    if (menu.scrollTop <= 2 && touchDiffY > 0) {
+                        const startH = window.innerHeight * 0.92;
+                        const targetH = Math.max(initialHeight, startH - touchDiffY);
+                        menu.style.transition = 'none';
+                        menu.style.height = `${targetH}px`;
+                        menu.style.transform = '';
+                    }
+                }
+            }, { passive: true });
+
+            menu.addEventListener('touchend', () => {
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 360;
+                menu.style.transition = smoothCurve;
+                void menu.offsetHeight; // Forzar reflow para aplicar transición en todos los navegadores
+
+                if (!isExpanded) {
+                    if (touchDiffY < -35) {
+                        // Se jaló hacia arriba: expandir a pantalla casi completa (92vh) con transición suave
+                        isExpanded = true;
+                        menu.classList.add('is-expanded');
+                        menu.style.height = '92vh';
+                        menu.style.transform = '';
+                    } else if (touchDiffY > 80) {
+                        // Deslizado hacia abajo: cerrar con animación suave
+                        dismiss();
+                    } else {
+                        // Regresar suavemente a la altura inicial
+                        menu.style.height = `${initialHeight}px`;
+                        menu.style.transform = 'translateY(0)';
+                    }
+                } else {
+                    if (touchDiffY > 40) {
+                        // Se jaló hacia abajo: contraer suavemente a la mitad/altura normal (misma curva que al subir)
+                        isExpanded = false;
+                        menu.classList.remove('is-expanded');
+                        menu.style.height = `${initialHeight}px`;
+                        menu.style.transform = '';
+                    } else {
+                        // Regresar suavemente a expandido 92vh
+                        menu.style.height = '92vh';
+                        menu.style.transform = '';
+                    }
+                }
+                touchDiffY = 0;
+            });
+
         } else {
-            // DESKTOP: Estilo Dropbox con límites de pantalla y scroll vertical
+            // DESKTOP: Menú desplegable anclado
+            menu.className = 'dropbox-menu-m3';
+
+            if (isShared) {
+                menu.innerHTML = `
+                    <div class="dropbox-menu-header">
+                        <h4>${recipeName}</h4>
+                        ${sharedLabelHTML}
+                    </div>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.saveSharedRecipe('${recipe.id}')">
+                        <span class="material-symbols-outlined">library_add</span>
+                        <span>${window.i18n ? window.i18n.t('addToMyRecipes') : 'Agregar a mis recetas'}</span>
+                    </button>
+                    <div class="context-menu-divider"></div>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.copyLink('${recipe.id}')">
+                        <span class="material-symbols-outlined">link</span>
+                        <span>${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}</span>
+                    </button>
+                    <div class="context-menu-divider"></div>
+                    <button type="button" class="context-menu-item danger" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                    </button>
+                `;
+            } else {
+                menu.innerHTML = `
+                    <div class="dropbox-menu-header">
+                        <h4>${recipeName}</h4>
+                        ${sharedLabelHTML}
+                    </div>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.copyLink('${recipe.id}')">
+                        <span class="material-symbols-outlined">link</span>
+                        <span>${window.i18n ? window.i18n.t('copyLinkLabel') : 'Copiar enlace'}</span>
+                    </button>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.shareRecipe('${recipe.id}')">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>${window.i18n ? window.i18n.t('shareBtn') : 'Compartir'}</span>
+                    </button>
+                    <div class="context-menu-divider"></div>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.editRecipe('${recipe.id}')">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>${window.i18n ? window.i18n.t('formEditRecipe') : 'Editar Receta'}</span>
+                    </button>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.startRename('${recipe.id}', event)">
+                        <span class="material-symbols-outlined">edit_square</span>
+                        <span>${window.i18n ? window.i18n.t('rename') : 'Renombrar'}</span>
+                    </button>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.promptMoveSingle('${recipe.id}');">
+                        <span class="material-symbols-outlined">drive_file_move</span>
+                        <span>${isEn ? 'Move to folder...' : 'Mover a carpeta...'}</span>
+                    </button>
+                    <button type="button" class="context-menu-item" onclick="window.dashboard.toggleFavorite('${recipe.id}', ${recipe.is_favorite})">
+                        <span class="material-symbols-outlined">${recipe.is_favorite ? 'star' : 'star_border'}</span>
+                        <span>${recipe.is_favorite ? (window.i18n ? window.i18n.t('removeFav') : 'Quitar de favoritos') : (window.i18n ? window.i18n.t('addFav') : 'Añadir a favoritos')}</span>
+                    </button>
+                    <div class="context-menu-divider"></div>
+                    <button type="button" class="context-menu-item danger" onclick="window.dashboard.confirmDeleteFromMenu('${recipe.id}')">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                    </button>
+                `;
+            }
+
+            document.body.appendChild(menu);
+
+            const rect = trigger?.getBoundingClientRect ? trigger.getBoundingClientRect() : { top: 0, bottom: 0, left: 0, right: 0 };
+            const menuWidth = 255;
+            const vh = window.innerHeight;
+            const vw = window.innerWidth;
+            const margin = 12;
+
             menu.style.position = 'fixed';
             menu.style.width = `${menuWidth}px`;
 
@@ -3820,17 +4089,14 @@ class DashboardManager {
             let top;
             let maxH;
 
-            // Si hay espacio suficiente abajo (al menos 260px) o hay más espacio abajo que arriba, abre hacia abajo
             if (spaceBelow >= 260 || spaceBelow >= spaceAbove) {
                 top = rect.bottom + 6;
                 maxH = Math.min(spaceBelow - 8, 420);
             } else {
-                // Abre hacia arriba, asegurando que NUNCA suba de la pantalla (mínimo margin)
                 maxH = Math.min(spaceAbove - 8, 420);
                 top = Math.max(margin, rect.top - maxH - 6);
             }
 
-            // Evitar que se desborde horizontalmente
             let left = rect.right - menuWidth;
             if (left + menuWidth > vw - margin) {
                 left = vw - menuWidth - margin;
@@ -3846,13 +4112,39 @@ class DashboardManager {
             menu.style.overflowX = 'hidden';
         }
 
-        const closeMenu = (e) => {
+        const dismiss = (e) => {
+            if (trigger && e && trigger.contains(e.target)) {
+                this._lastMenuClosedTime = Date.now();
+                this._lastMenuClosedRecipeId = String(recipeId);
+            }
+            menu.remove();
+            if (backdrop) backdrop.remove();
+            const anyBd = document.getElementById('m3SheetBackdrop');
+            if (anyBd) anyBd.remove();
+            cleanup();
+        };
+
+        const onDocClick = (e) => {
             if (!menu.contains(e.target)) {
-                menu.remove();
-                document.removeEventListener('mousedown', closeMenu);
+                dismiss(e);
             }
         };
-        setTimeout(() => document.addEventListener('mousedown', closeMenu), 10);
+
+        const cleanup = () => {
+            document.removeEventListener('click', onDocClick);
+            document.removeEventListener('touchstart', onDocClick);
+        };
+
+        setTimeout(() => {
+            document.addEventListener('click', onDocClick);
+            document.addEventListener('touchstart', onDocClick, { passive: true });
+        }, 50);
+
+        menu.addEventListener('click', (e) => {
+            if (e.target.closest('button')) {
+                dismiss();
+            }
+        });
     }
 
     downloadRecipe(recipeId) {
