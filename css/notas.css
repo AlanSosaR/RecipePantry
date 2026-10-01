@@ -177,8 +177,36 @@
     .notas-main .top-bar-m3 {
         padding: 12px 16px !important;
         height: 64px !important;
-        background: #fff;
     }
+}
+
+/* Botón de alternar Vista Lista / Cuadrícula (Header) */
+#btnViewMode {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: #475467;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    flex-shrink: 0;
+}
+
+#btnViewMode:hover {
+    background: rgba(60, 64, 67, 0.08);
+    color: #111827;
+}
+
+#btnViewMode:active {
+    transform: scale(0.92);
+}
+
+#btnViewMode .material-symbols-outlined {
+    font-size: 24px;
 }
 
 /* ── SCROLL AREA ── */
@@ -598,349 +626,358 @@
     transform: rotate(-10deg) scale(1.1);
 }
 
-.recipe-masonry {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
+/* ─── Google Keep Style Sections ─── */
+.notes-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #5f6368;
+    margin: 18px 0 8px 4px;
     width: 100%;
-    align-items: start;
+    user-select: none;
 }
 
-@media (min-width: 640px) {
+[data-theme="dark"] .notes-section-title {
+    color: #9aa0a6;
+}
+
+.notes-cards-container {
+    width: 100%;
+}
+
+/* ─── Modo Cuadrícula (Verdadero Masonry Estilo Google Keep) ─── */
+.recipe-masonry {
+    column-width: 240px;
+    column-gap: 14px;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
     .recipe-masonry {
-        grid-template-columns: repeat(2, 1fr);
+        column-count: 2;
+        column-width: auto;
+        column-gap: 12px;
     }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 600px) {
     .recipe-masonry {
-        grid-template-columns: repeat(3, 1fr);
+        column-count: 2;
+        column-width: auto;
+        column-gap: 8px;
     }
 }
 
-@media (min-width: 1440px) {
-    .recipe-masonry {
-        grid-template-columns: repeat(4, 1fr);
-    }
+/* ─── Modo Lista (Google Keep List View) ─── */
+#notas-main-container.view-list .recipe-masonry {
+    column-count: 1 !important;
+    column-width: auto !important;
+    display: block !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
 }
 
+#notas-main-container.view-list .note-card,
+#notas-main-container.view-list .note-card-placeholder {
+    width: 100% !important;
+    max-width: 600px !important;
+    margin: 0 auto 12px auto !important;
+}
+
+/* ─── Tarjeta de Nota Estilo Google Keep ─── */
 .note-card {
-    margin-bottom: 0;
-    align-self: start;
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 14px;
     background: #ffffff;
-    border: 1px solid rgba(0,0,0,0.05);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.22s ease, border-color 0.2s ease, opacity 0.2s ease;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 14px 16px 10px 16px;
+    box-shadow: none;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     text-decoration: none;
-    display: block;
+    box-sizing: border-box;
+    word-break: break-word;
     touch-action: pan-y;
-    -webkit-touch-callout: none;
-}
-
-body.notes-is-reordering {
     user-select: none;
     -webkit-user-select: none;
-    touch-action: none;
 }
 
-.note-card.note-card--dragging {
-    opacity: 0.92;
-    transform: scale(1.04) rotate(1.2deg);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-    border: 2px dashed #10B981 !important;
-    z-index: 1000;
-    cursor: grabbing;
-    pointer-events: none;
-}
-
-.note-card:hover {
-    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
-    transform: translateY(-4px);
-    border-color: rgba(16, 185, 129, 0.2);
-}
-
-.note-card .note-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--md-spacing-3);
-}
-
-.note-spacer {
-    flex: 1;
-}
-
-.checklist-item-preview {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-}
-
-.note-card .note-menu-btn {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    background: #FEE4E2;
-    border: none;
-    color: #D92D20;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.note-card .note-menu-btn:hover {
-    background: var(--md-surface-variant);
-}
-
-.note-card:hover .note-menu-btn {
-    opacity: 1;
-}
-
-@media (hover: none) {
-    .note-card .note-menu-btn {
-        opacity: 1;
+@media (max-width: 900px) {
+    .note-card {
+        margin-bottom: 12px;
     }
 }
 
-.note-card h3 {
-    font-size: 19px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: #10B981;
-    line-height: 1.3;
+@media (max-width: 600px) {
+    .note-card {
+        margin-bottom: 8px;
+    }
 }
 
+.note-card:hover {
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    border-color: #d1d5db;
+}
+
+/* Dark mode note card */
+[data-theme="dark"] .note-card {
+    background: #202124;
+    border-color: #5f6368;
+    color: #e8eaed;
+}
+
+[data-theme="dark"] .note-card:hover {
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.6), 0 4px 8px 3px rgba(0,0,0,0.3);
+}
+
+/* Botón Fijar / Pin estilo Google Keep (Top-Right) */
+.note-pin-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5f6368;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+    z-index: 4;
+}
+
+.note-card:hover .note-pin-btn,
+.note-pin-btn.pinned {
+    opacity: 1;
+}
+
+.note-pin-btn.pinned {
+    color: #202124;
+}
+
+[data-theme="dark"] .note-pin-btn.pinned {
+    color: #ffffff;
+}
+
+.note-pin-btn.pinned .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+.note-pin-btn:hover {
+    background: rgba(60, 64, 67, 0.08);
+}
+
+@media (hover: none) {
+    .note-pin-btn {
+        opacity: 0.7;
+    }
+}
+
+/* Título de nota estilo Google Keep */
+.note-card h3.note-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0 0 8px 0;
+    color: #202124;
+    padding-right: 28px;
+    letter-spacing: 0.05px;
+}
+
+[data-theme="dark"] .note-card h3.note-title {
+    color: #e8eaed;
+}
+
+/* Texto del contenido */
 .note-card p.note-text {
     color: #3c4043;
     font-size: 14px;
     line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 15;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
     white-space: pre-wrap;
+    word-break: break-word;
     margin: 0;
 }
 
-/* Checklist items preview like Google Keep */
-.note-items-preview {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+[data-theme="dark"] .note-card p.note-text {
+    color: #bdc1c6;
 }
 
-.note-item-preview {
+.note-card p.note-text a {
+    color: #1a73e8;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.note-card p.note-text a:hover {
+    color: #174ea6;
+}
+
+/* Checklist items Google Keep style */
+.note-checklist-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
-    font-size: 13px;
+    margin-top: 6px;
+    font-size: 13.5px;
     color: #3c4043;
+    line-height: 1.4;
 }
 
-.note-item-preview .material-symbols-outlined {
-    font-size: 16px;
+[data-theme="dark"] .note-checklist-item {
+    color: #bdc1c6;
+}
+
+.note-checklist-item .material-symbols-outlined {
+    font-size: 18px;
     color: #5f6368;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    flex-shrink: 0;
+    margin-top: 1px;
 }
 
-.note-item-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.note-item-text.checked {
+.note-checklist-item.completed {
     text-decoration: line-through;
     color: #80868b;
 }
 
-.note-more-items {
-    font-size: 12px;
-    color: #5f6368;
-    margin-top: 4px;
-    font-weight: 500;
-}
-
-.note-card .note-footer {
-    margin-top: var(--md-spacing-4);
+/* Footer de acciones estilo Google Keep */
+.note-card-footer {
+    margin-top: 12px;
     display: flex;
     align-items: center;
-    font-size: 12px;
-    color: var(--md-outline);
-}
-
-.note-card .note-footer .material-symbols-outlined {
-    font-size: 14px;
-    margin-right: 4px;
-}
-
-.checklist-preview {
-    margin-top: var(--md-spacing-3);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.checklist-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.checklist-item.completed {
-    opacity: 0.5;
-}
-
-.checklist-item.completed .item-text {
-    text-decoration: line-through;
-}
-
-.checklist-checkbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--md-outline);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.checklist-item.completed .checklist-checkbox {
-    border-color: var(--md-primary);
-    background: var(--md-primary);
-    color: white;
-}
-
-.checklist-item.completed .checklist-checkbox .material-symbols-outlined {
-    font-size: 16px;
-}
-
-.item-text {
-    font-size: 15px;
-    color: var(--md-on-surface);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* FAB Actions */
-.fab-container {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 16px;
-    z-index: 100;
-}
-
-.fab-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
+    justify-content: flex-end;
+    gap: 4px;
     opacity: 0;
-    pointer-events: none;
-    transform: translateY(20px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.15s ease;
 }
 
-.fab-container.active .fab-actions {
+.note-card:hover .note-card-footer {
     opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
 }
 
-.fab-action-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    background: none;
+@media (hover: none) {
+    .note-card-footer {
+        opacity: 1;
+    }
+}
+
+.note-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     border: none;
-    padding: 0;
-    text-decoration: none;
-}
-
-.fab-action-label {
-    background: #ffffff;
-    padding: 8px 16px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    color: #1e1e1e;
-    font-weight: 600;
-    font-size: 14px;
-    border: 1px solid rgba(0,0,0,0.03);
-}
-
-.fab-action-icon {
-    width: 48px;
-    height: 48px;
-    background: #ffffff;
-    color: #00A66C;
-    border-radius: 16px;
+    background: transparent;
+    color: #5f6368;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-    border: 1px solid rgba(0,0,0,0.03);
-}
-
-.fab-action-icon .material-symbols-outlined {
-    font-size: 22px;
-}
-
-.fab-action-btn:hover .fab-action-icon {
-    transform: scale(1.1) translateY(-4px);
-    background: #00A66C;
-    color: #ffffff;
-}
-
-/* Animación para el icono del FAB */
-.main-fab .material-symbols-outlined {
-    font-size: 32px;
-    font-weight: 500;
-    color: #ffffff; /* Asegurar que el ícono sea blanco sobre el fondo verde */
-    transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
-}
-
-.main-fab {
-    width: 64px;
-    height: 64px;
-    background: #00A66C;
-    color: #ffffff;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 12px 32px rgba(0, 166, 108, 0.35);
-    border: none;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.main-fab .material-symbols-outlined {
-    font-size: 32px;
-    font-weight: 500;
-    transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+.note-action-btn:hover {
+    background: rgba(60, 64, 67, 0.08);
+    color: #202124;
 }
 
-.fab-container.active .main-fab {
-    background: #1e1e1e;
-    transform: rotate(135deg);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+.note-action-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Estado de Arrastre (Drag & Drop estilo Google Keep) */
+body.notes-is-reordering {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    touch-action: none !important;
+    cursor: grabbing !important;
+}
+
+/* Tarjeta flotante que se levanta y sobresale mientras se mueve (Estilo Google Keep) */
+.note-card.note-card--floating {
+    position: fixed !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 16px 36px 0 rgba(0, 0, 0, 0.28), 0 6px 14px 0 rgba(0, 0, 0, 0.15) !important;
+    transform: scale(1.03) !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    padding: 14px 16px 10px 16px !important;
+    box-sizing: border-box !important;
+    will-change: left, top;
+    cursor: grabbing !important;
+    transition: none !important;
+}
+
+[data-theme="dark"] .note-card.note-card--floating {
+    background-color: #202124;
+    border: 1px solid #5f6368 !important;
+    box-shadow: 0 18px 40px 0 rgba(0, 0, 0, 0.75), 0 8px 18px 0 rgba(0, 0, 0, 0.5) !important;
+    color: #e8eaed !important;
+}
+
+.note-card.note-card--floating .note-card-footer {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.note-card.note-card--floating .note-pin-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hueco / Placeholder limpio sin líneas ni recuadros dibujados (Estilo Google Keep) */
+.note-card-placeholder {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 14px;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    pointer-events: none !important;
+}
+
+@media (max-width: 900px) {
+    .note-card-placeholder {
+        margin-bottom: 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .note-card-placeholder {
+        margin-bottom: 8px;
+    }
+}
+
+[data-theme="dark"] .note-card-placeholder {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* FAB Speed Dial uses unified .m3-fab-menu-container from components.css (Only visible on mobile) */
+@media (min-width: 769px) {
+    #m3FabMenuContainer,
+    .m3-fab-menu-container.mobile-only {
+        display: none !important;
+    }
 }
 
 /* Square Icon Buttons for Header */
@@ -1376,27 +1413,72 @@ body.notes-is-reordering {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
-/* Floating Color Palette */
+/* Card in palette open state: lock visibility and highlight owner */
+.note-card.note-card--palette-open {
+    overflow: visible !important;
+    z-index: 2000 !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22) !important;
+}
+
+[data-theme="dark"] .note-card.note-card--palette-open {
+    border-color: #34D399 !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7) !important;
+}
+
+.note-card.note-card--palette-open .note-card-footer {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.note-card.note-card--palette-open .note-pin-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Floating Color Palette anchored directly to the card (Google Keep Pill Style) */
 .note-color-palette {
     position: absolute;
-    display: none;
-    flex-wrap: wrap;
-    gap: 8px;
+    bottom: -8px;
+    left: 4px;
+    transform: translateY(100%);
     background: #ffffff;
-    padding: 8px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
-    z-index: 1500;
-    width: 140px;
-    justify-content: center;
-    animation: fadeInScale 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 999px;
+    padding: 4px 8px;
+    box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    z-index: 3000;
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    overflow-x: auto;
+    scrollbar-width: none;
+    animation: fadeInScale 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.note-color-palette::-webkit-scrollbar {
+    display: none;
+}
+
+.note-color-palette.palette-placement-top {
+    bottom: auto;
+    top: -8px;
+    transform: translateY(-100%);
+}
+
+[data-theme="dark"] .note-color-palette {
+    background: #28292c;
+    border-color: #5f6368;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes fadeInScale {
     from {
         opacity: 0;
-        transform: scale(0.9) translateY(-10px);
+        transform: scale(0.95) translateY(-4px);
     }
     to {
         opacity: 1;
@@ -1407,29 +1489,1011 @@ body.notes-is-reordering {
 .color-option {
     width: 26px;
     height: 26px;
+    min-width: 26px;
     border-radius: 50%;
     cursor: pointer;
-    border: 1.5px solid rgba(0,0,0,0.05);
+    border: 1.5px solid rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    box-sizing: border-box;
+    position: relative;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .color-option {
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .color-option:hover {
-    transform: scale(1.2);
-    border-color: #5f6368;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: scale(1.18);
+    border-color: #3c4043;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.color-option.default {
-    background: #ffffff;
-    border: 1.5px solid #dadce0;
+.color-option.active-color {
+    border: 2px solid #a855f7 !important;
 }
 
-/* Mobile specific: Always show actions */
+.color-option .color-check-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 14px;
+    height: 14px;
+    background: #a855f7;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.color-option .color-check-badge .material-symbols-outlined {
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* Mobile specific: En la cuadrícula de móvil, ocultar los botones de acción (color y eliminar). Solo se muestran al abrir la nota como Google Keep */
 @media (max-width: 768px) {
     .note-card-footer {
+        display: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════
+   NOTA-FORM COLOR THEME & CONTRAST
+   ═══════════════════════════════════════════ */
+.nf-topbar-right {
+    position: relative;
+}
+
+.nf-btn-color {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.nf-btn-color:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.08);
+}
+
+.nf-btn-color .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.note-color-palette--form {
+    position: absolute;
+    top: 50px;
+    right: 50px;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    z-index: 500;
+}
+
+/* Dark contrast styling for dark-colored notes in editor */
+body.nf-dark-contrast .nf-title-input {
+    color: #ffffff !important;
+}
+
+body.nf-dark-contrast .nf-title-input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.nf-dark-contrast .nf-content-input {
+    color: #f3f4f6 !important;
+}
+
+body.nf-dark-contrast .nf-content-input::placeholder {
+    color: rgba(255, 255, 255, 0.45) !important;
+}
+
+body.nf-dark-contrast .checklist-item-input {
+    color: #ffffff !important;
+}
+
+body.nf-dark-contrast .checklist-item-input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.nf-dark-contrast .checklist-checkbox {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.nf-dark-contrast .checklist-checkbox .material-symbols-outlined {
+    color: #ffffff !important;
+}
+
+body.nf-dark-contrast .nf-add-item-btn {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+body.nf-dark-contrast .nf-bar-title {
+    color: #ffffff !important;
+}
+
+.nf-btn-back {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #10B981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nf-btn-back .material-symbols-outlined {
+    font-size: 24px;
+    color: #10B981;
+    transition: transform 0.2s ease;
+}
+
+.nf-btn-back:hover {
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.nf-btn-back:active {
+    background: rgba(16, 185, 129, 0.12);
+    transform: scale(0.92);
+}
+
+body.nf-dark-contrast .nf-btn-back,
+.km-dark-contrast .nf-btn-back {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+
+body.nf-dark-contrast .nf-btn-back .material-symbols-outlined,
+.km-dark-contrast .nf-btn-back .material-symbols-outlined {
+    color: #ffffff !important;
+}
+
+body.nf-dark-contrast .nf-btn-color {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+body.nf-dark-contrast .nf-btn-color:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.nf-dark-contrast .nf-btn-back:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.nf-dark-contrast .nf-btn-back:active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(0.92) !important;
+}
+
+body.nf-dark-contrast .nf-btn-pin {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+body.nf-dark-contrast .nf-btn-pin:hover {
+    background: rgba(255, 255, 255, 0.32) !important;
+}
+
+body.nf-dark-contrast .nf-divider {
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.3), transparent) !important;
+}
+
+/* ═══════════════════════════════════════════
+   GOOGLE KEEP FLOATING MODAL EDITOR
+   ═══════════════════════════════════════════ */
+.keep-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    transition: opacity 0.24s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.keep-modal-backdrop:not(.active) {
+    display: none !important;
+}
+
+.keep-modal-backdrop.active {
+    display: flex !important;
+}
+
+.keep-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 18px 3px rgba(0,0,0,0.25);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden; /* Corta el footer sombreado para abrazar los bordes curvos inferiores */
+    will-change: transform, border-radius, opacity;
+    transform-origin: top left;
+}
+
+[data-theme="dark"] .keep-modal-card {
+    background: #202124;
+    border-color: #5f6368;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.5), 0 6px 24px 4px rgba(0,0,0,0.6);
+}
+
+.keep-modal-header {
+    position: relative;
+    padding: 16px 20px 4px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.keep-modal-pin-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+
+.keep-modal-pin-btn:hover {
+    background: rgba(60, 64, 67, 0.08);
+    color: #202124;
+}
+
+.keep-modal-pin-btn.pinned {
+    color: #10B981 !important;
+}
+
+.keep-modal-pin-btn.pinned .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+.keep-modal-title {
+    width: calc(100% - 44px);
+    border: none;
+    background: transparent;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    color: #202124;
+    outline: none;
+    padding: 0;
+    box-sizing: border-box;
+    letter-spacing: -0.01em;
+}
+
+[data-theme="dark"] .keep-modal-title {
+    color: #e8eaed;
+}
+
+.keep-modal-title::placeholder {
+    color: #5f6368;
+    font-weight: 500;
+}
+
+.keep-modal-body-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 20px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.keep-modal-body-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.keep-modal-body-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.keep-modal-body-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.keep-modal-content {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #3c4043;
+    outline: none;
+    resize: none;
+    min-height: 120px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+[data-theme="dark"] .keep-modal-content {
+    color: #e8eaed;
+}
+
+.keep-modal-content::placeholder {
+    color: #80868b;
+}
+
+/* Modal Checklist */
+.keep-modal-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.keep-modal-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.keep-modal-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.keep-modal-checklist-item.completed .keep-modal-checkbox {
+    color: #10B981;
+}
+
+.keep-modal-item-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: #202124;
+    outline: none;
+}
+
+[data-theme="dark"] .keep-modal-item-input {
+    color: #e8eaed;
+}
+
+.keep-modal-checklist-item.completed .keep-modal-item-input {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.keep-modal-item-del {
+    border: none;
+    background: transparent;
+    color: #80868b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.keep-modal-checklist-item:hover .keep-modal-item-del,
+.keep-modal-item-input:focus ~ .keep-modal-item-del {
+    opacity: 1;
+}
+
+.keep-modal-add-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    color: #80868b;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.keep-modal-add-item:hover {
+    color: #202124;
+}
+
+/* ═══════════════════════════════════════════
+   FOOTER CON EFECTO SOMBREADO GOOGLE KEEP
+   ═══════════════════════════════════════════ */
+.keep-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    min-height: 48px;
+    padding: 4px 12px 4px 16px;
+    background: rgba(0, 0, 0, 0.04);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    position: relative;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    flex-shrink: 0;
+}
+
+/* Efecto sombreado distintivo de Google Keep cuando la tarjeta tiene color */
+.keep-modal-card.has-color .keep-modal-footer {
+    background: rgba(0, 0, 0, 0.09) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-footer {
+    background: rgba(0, 0, 0, 0.28) !important; /* Barra oscura auténtica de Google Keep en tonos oscuros/borgoña */
+    border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.keep-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.keep-modal-actions .note-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.keep-modal-actions .note-action-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #202124;
+}
+
+.keep-modal-actions .note-color-palette {
+    bottom: 44px;
+    left: 0;
+    transform: none;
+    z-index: 10000;
+}
+
+.keep-modal-close-btn {
+    height: 36px;
+    padding: 0 24px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: #202124;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+[data-theme="dark"] .keep-modal-close-btn {
+    color: #e8eaed;
+}
+
+.keep-modal-close-btn:hover {
+    background: rgba(60, 64, 67, 0.08);
+}
+
+/* Modal dark contrast */
+.keep-modal-card.km-dark-contrast {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-title {
+    color: #ffffff !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-title::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-content {
+    color: #e8eaed !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-content::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-item-input {
+    color: #ffffff !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-checkbox {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-add-item {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-add-item:hover {
+    color: #ffffff !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-pin-btn {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-pin-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-actions .note-action-btn {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-actions .note-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-close-btn {
+    color: #ffffff !important;
+}
+
+.keep-modal-card.km-dark-contrast .keep-modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ═══════════════════════════════════════════
+   GOOGLE KEEP MOBILE FULL-SCREEN EDITOR & TRANSITIONS (<= 768px)
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .keep-modal-backdrop {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        background: transparent !important; /* Permite ver las demás notas del grid alrededor durante la transición */
+        z-index: 9999 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        overflow: hidden !important;
+        pointer-events: auto;
+    }
+
+    .keep-modal-backdrop:not(.active) {
+        display: none !important;
+    }
+
+    .keep-modal-backdrop.active {
+        display: flex !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+    }
+
+    .keep-modal-card {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        max-width: 100vw !important;
+        max-height: 100dvh !important;
+        border-radius: 0;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+        animation: none !important;
+        will-change: transform, border-radius, opacity;
+        z-index: 10000 !important;
+        background: #ffffff;
+    }
+
+    [data-theme="dark"] .keep-modal-card {
+        background: #202124 !important;
+    }
+
+    .keep-modal-header {
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 6px 14px 0 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        border-bottom: none !important;
+        flex-shrink: 0 !important;
+    }
+
+    .keep-modal-header .nf-btn-back {
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    .keep-modal-title {
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 21px !important;
+        font-weight: 600 !important;
+        flex: 1 !important;
+        width: auto !important;
+        outline: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 4px !important;
+    }
+
+    .keep-modal-body-scroll {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding: 10px 18px 16px 18px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+    }
+
+    .keep-modal-content {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 16px !important;
+        line-height: 1.55 !important;
+        flex-grow: 1 !important;
+        min-height: 140px !important;
+        resize: none !important;
+        border: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .keep-modal-footer {
+        height: 52px !important;
+        min-height: 52px !important;
+        padding: 0 16px !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+        border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+        background: rgba(0, 0, 0, 0.03) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        flex-shrink: 0 !important;
+    }
+
+    .keep-modal-footer-right {
+        display: none !important;
+    }
+
+    .keep-modal-actions {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .keep-modal-actions .note-action-btn {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+    }
+
+    .keep-modal-actions .note-action-btn .material-symbols-outlined {
+        font-size: 22px !important;
+    }
+}
+
+/* ═══════════════════════════════════════════
+   MATERIAL 3 BOTTOM SHEET — SELECTOR DE COLOR EN MÓVIL
+   ═══════════════════════════════════════════ */
+/* Backdrop transparente: no oculta ni difumina la nota, permitiendo leer todo el contenido como Google Keep */
+.color-sheet-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    z-index: 2990;
+}
+
+.color-bottom-sheet {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff;
+    padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px !important;
+    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.22) !important;
+    border-top-left-radius: 28px !important;
+    border-top-right-radius: 28px !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border: none !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    z-index: 3000 !important;
+    box-sizing: border-box !important;
+    animation: m3SheetSlideUp 0.25s cubic-bezier(0.1, 0.9, 0.2, 1) forwards !important;
+}
+
+body.nf-dark-contrast .color-bottom-sheet {
+    border-top-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.6) !important;
+}
+
+.color-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 2px 4px;
+}
+
+.color-sheet-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+}
+
+[data-theme="dark"] .color-sheet-title,
+body.nf-dark-contrast .color-sheet-title {
+    color: #f3f4f6;
+}
+
+.color-sheet-scroll {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 6px 4px 14px 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.color-sheet-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.color-sheet-circle {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), border-color 0.15s ease;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .color-sheet-circle,
+body.nf-dark-contrast .color-sheet-circle {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.color-sheet-circle:active {
+    transform: scale(0.92);
+}
+
+.color-sheet-circle.active-color {
+    border: 3px solid #10B981 !important;
+}
+
+.color-sheet-reset-icon {
+    font-size: 20px;
+    color: #64748b;
+}
+
+[data-theme="dark"] .color-sheet-reset-icon,
+body.nf-dark-contrast .color-sheet-reset-icon {
+    color: #94a3b8;
+}
+
+.color-sheet-circle .color-check-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 18px;
+    height: 18px;
+    background: #10B981;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.color-sheet-circle .color-check-badge .material-symbols-outlined {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@keyframes m3SheetSlideDown {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(100%); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════
+   NOTA-FORM BOTTOM TOOLBAR (Estilo Google Keep Móvil)
+   ═══════════════════════════════════════════ */
+.nf-bottom-bar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px calc(env(safe-area-inset-bottom, 0px));
+    background: transparent;
+    border-top: none;
+    z-index: 100;
+    transition: background-color 0.25s ease;
+    flex-shrink: 0;
+}
+
+body.nf-dark-contrast .nf-bottom-bar {
+    border-top: none;
+}
+
+.nf-bottom-bar-left,
+.nf-bottom-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nf-bottom-action-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.nf-bottom-action-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.nf-bottom-action-btn:active {
+    transform: scale(0.92);
+}
+
+.nf-bottom-action-btn .material-symbols-outlined {
+    font-size: 22px;
+}
+
+body.nf-dark-contrast .nf-bottom-action-btn {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+body.nf-dark-contrast .nf-bottom-action-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.nf-bottom-action-btn.nf-delete-btn {
+    color: #ef4444;
+}
+
+body.nf-dark-contrast .nf-bottom-action-btn.nf-delete-btn {
+    color: #f87171;
+}
+
+.nf-btn-pin-top {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nf-btn-pin-top:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.nf-btn-pin-top.pinned {
+    color: #10B981 !important;
+}
+
+.nf-btn-pin-top.pinned .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+body.nf-dark-contrast .nf-btn-pin-top {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+body.nf-dark-contrast .nf-btn-pin-top.pinned {
+    color: #34d399 !important;
+}
+
+/* ── Google Keep: la tarjeta aparece limpiamente al regresar (sin rebote) ── */
+.note-card--settle {
+    animation: noteCardSettle 0.28s ease-out forwards !important;
+}
+
+@keyframes noteCardSettle {
+    from {
+        opacity: 0.6;
+    }
+    to {
         opacity: 1;
     }
 }
+
+
+
+
+

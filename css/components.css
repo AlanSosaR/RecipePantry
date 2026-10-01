@@ -3930,6 +3930,7 @@ select.input-field {
 
 @media (max-width: 767px) {
     .m3-fab-menu-container {
+        display: flex !important;
         bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         right: 20px;
     }
@@ -4022,13 +4023,16 @@ select.input-field {
 }
 
 /* Efecto escalonado (Staggered Animation M3) */
-.m3-fab-actions.active .m3-fab-action-item:nth-child(3) {
+.m3-fab-actions.active .m3-fab-action-item:nth-child(3),
+.m3-fab-actions.active .m3-fab-action-item:nth-last-child(1) {
     transition-delay: 0.03s;
 }
-.m3-fab-actions.active .m3-fab-action-item:nth-child(2) {
+.m3-fab-actions.active .m3-fab-action-item:nth-child(2),
+.m3-fab-actions.active .m3-fab-action-item:nth-last-child(2) {
     transition-delay: 0.07s;
 }
-.m3-fab-actions.active .m3-fab-action-item:nth-child(1) {
+.m3-fab-actions.active .m3-fab-action-item:nth-child(1),
+.m3-fab-actions.active .m3-fab-action-item:nth-last-child(3) {
     transition-delay: 0.11s;
 }
 
@@ -4115,6 +4119,31 @@ select.input-field {
     background: #10B981;
     color: #ffffff;
     box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    transform: scale(1.08);
+}
+
+/* Colores para Notas: Lista de ingredientes (Checklist) y Nota de texto */
+.m3-fab-action-item[data-action="checklist"] .m3-fab-mini-btn {
+    color: #059669;
+    background: #ECFDF5;
+    border: 1px solid rgba(5, 150, 105, 0.18);
+}
+.m3-fab-action-item[data-action="checklist"]:hover .m3-fab-mini-btn {
+    background: #10B981;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    transform: scale(1.08);
+}
+
+.m3-fab-action-item[data-action="text"] .m3-fab-mini-btn {
+    color: #2563EB;
+    background: #EFF6FF;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+}
+.m3-fab-action-item[data-action="text"]:hover .m3-fab-mini-btn {
+    background: #2563EB;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
     transform: scale(1.08);
 }
 

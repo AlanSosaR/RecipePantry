@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light" data-app-version="705">
+<html lang="es" data-theme="light" data-app-version="728">
 
 <head>
     <meta charset="utf-8" />
@@ -16,26 +16,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=705">
-    <link rel="stylesheet" href="css/components.css?v=705">
-    <link rel="stylesheet" href="css/notas.css?v=705">
+    <link rel="stylesheet" href="css/styles.css?v=728">
+    <link rel="stylesheet" href="css/components.css?v=728">
+    <link rel="stylesheet" href="css/notas.css?v=728">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CORE SCRIPTS -->
-    <script src="js/config.js?v=705"></script>
-    <script src="js/supabase-client.js?v=705"></script>
-    <script src="js/utils.js?v=705"></script>
-    <script src="js/i18n.js?v=705"></script>
-    <script src="js/auth.js?v=705"></script>
-    <script src="js/localdb.js?v=705"></script>
-    <script src="js/db.js?v=705"></script>
-    <script src="js/ui.js?v=705"></script>
-    <script src="js/notifications.js?v=705"></script>
+    <script src="js/config.js?v=728"></script>
+    <script src="js/supabase-client.js?v=728"></script>
+    <script src="js/utils.js?v=728"></script>
+    <script src="js/i18n.js?v=728"></script>
+    <script src="js/auth.js?v=728"></script>
+    <script src="js/localdb.js?v=728"></script>
+    <script src="js/db.js?v=728"></script>
+    <script src="js/ui.js?v=728"></script>
+    <script src="js/notifications.js?v=728"></script>
 
     <!-- Notas Specific Scripts -->
-    <script defer src="js/notas.js?v=705"></script>
-    <script defer src="js/pwa-install.js?v=705"></script>
+    <script defer src="js/notas.js?v=728"></script>
+    <script defer src="js/pwa-install.js?v=728"></script>
 
     <script>
         document.documentElement.setAttribute('data-theme', 'light');
@@ -115,7 +115,34 @@
                 <button id="btnMenuMobile" class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)" aria-label="Abrir menú">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <div class="top-bar-spacer desktop-only" style="width: 40px;" aria-hidden="true"></div>
+                <!-- Contenedor con position:relative para anclar el popover (+ Nuevo en Desktop) -->
+                <div class="dropbox-new-wrapper desktop-only" style="position:relative; display:inline-block;">
+                    <button class="btn-new-dropbox" id="btnNewNoteTop" onclick="window.notasManager && window.notasManager.toggleNewDropboxMenu(event)" title="Crear">
+                        <span class="material-symbols-outlined">add</span>
+                        <span data-i18n="newRecipeBtn">Nuevo</span>
+                    </button>
+
+                    <!-- Menú Popover estilo Dropbox (Crear: Lista de ingredientes, Nota de texto) -->
+                    <div id="newDropboxMenu" class="dropbox-create-popover hidden">
+                        <div class="dropbox-create-top">
+                            <h4 class="dropbox-create-heading">Crear</h4>
+                        </div>
+                        <div class="dropbox-create-items">
+                            <div class="dropbox-create-row" onclick="window.notasManager && window.notasManager.handleNewOption('checklist')">
+                                <div class="row-icon-box">
+                                    <span class="material-symbols-outlined">checklist</span>
+                                </div>
+                                <span class="row-title">Lista de ingredientes</span>
+                            </div>
+                            <div class="dropbox-create-row" onclick="window.notasManager && window.notasManager.handleNewOption('text')">
+                                <div class="row-icon-box">
+                                    <span class="material-symbols-outlined">description</span>
+                                </div>
+                                <span class="row-title">Nota de texto</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="search-container-m3">
                     <div class="search-wrapper-m3" id="searchWrapper">
                         <span class="material-symbols-outlined">search</span>
@@ -123,23 +150,9 @@
                     </div>
                 </div>
                 <div class="top-bar-actions-m3">
-                    <div class="notifications-wrapper">
-                        <button id="btn-notifications" class="btn-icon-m3" onclick="window.notificationManager ? window.notificationManager.toggleMenu(event) : null" title="Notificaciones">
-                            <span class="material-symbols-outlined">notifications</span>
-                            <span id="notifications-badge" class="badge-dot hidden"></span>
-                        </button>
-                        <div id="notifications-menu" class="notifications-menu hidden">
-                            <div class="notifications-header"><h4 data-i18n="notifications">Notificaciones</h4></div>
-                            <div id="notifications-list" class="notifications-list">
-                                <div class="notifications-empty">
-                                    <div class="notifications-empty-icon">
-                                        <span class="material-symbols-outlined">notifications</span>
-                                    </div>
-                                    <p data-i18n="notifEmpty">Sin notificaciones</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <button id="btnViewMode" class="btn-icon-m3" onclick="window.notasManager && window.notasManager.toggleViewMode()" title="Vista de lista" aria-label="Cambiar vista">
+                        <span class="material-symbols-outlined" id="viewModeIcon">view_agenda</span>
+                    </button>
                 </div>
             </header>
 
@@ -186,27 +199,25 @@
                 </div>
             </div>
 
-            <!-- FAB Cluster (main-fab inside for rotation animation) -->
-            <div class="fab-container" id="fab-container">
-                <div class="fab-actions">
-                    <button class="fab-action-btn" onclick="window.notasManager.createNewNote('checklist')">
-                        <span class="fab-action-label" data-i18n="actionChecklist">Lista de ingredientes</span>
-                        <div class="fab-action-icon">
+            <!-- FAB Menu para Notas (Material 3 Speed Dial / Mismo efecto que Dashboard - Sólo en móvil) -->
+            <div id="m3FabMenuContainer" class="m3-fab-menu-container mobile-only">
+                <div id="m3FabScrim" class="m3-fab-scrim hidden" onclick="window.notasManager && window.notasManager.closeFabMenu()"></div>
+                <div id="m3FabActions" class="m3-fab-actions hidden">
+                    <div class="m3-fab-action-item" data-action="checklist" onclick="window.notasManager && window.notasManager.handleFabOption('checklist')">
+                        <span class="m3-fab-action-label" data-i18n="actionChecklist">Lista de ingredientes</span>
+                        <button type="button" class="m3-fab-mini-btn" title="Lista de ingredientes">
                             <span class="material-symbols-outlined">checklist</span>
-                        </div>
-                    </button>
-                    <button class="fab-action-btn" onclick="window.notasManager.createNewNote('text')">
-                        <span class="fab-action-label" data-i18n="actionTextNote">Nota de texto</span>
-                        <div class="fab-action-icon">
+                        </button>
+                    </div>
+                    <div class="m3-fab-action-item" data-action="text" onclick="window.notasManager && window.notasManager.handleFabOption('text')">
+                        <span class="m3-fab-action-label" data-i18n="actionTextNote">Nota de texto</span>
+                        <button type="button" class="m3-fab-mini-btn" title="Nota de texto">
                             <span class="material-symbols-outlined">description</span>
-                        </div>
-                    </button>
+                        </button>
+                    </div>
                 </div>
-                <!-- Main FAB (rota 135° al activar) -->
-                <button class="main-fab" id="main-fab-btn"
-                    onclick="this.closest('.fab-container').classList.toggle('active')"
-                    aria-label="Nueva nota">
-                    <span class="material-symbols-outlined">add</span>
+                <button type="button" class="fab-m3" id="mainFabBtn" onclick="window.notasManager && window.notasManager.toggleFabMenu(event)" aria-label="Nueva nota" aria-expanded="false" title="Nueva nota">
+                    <span class="material-symbols-outlined fab-icon">add</span>
                 </button>
             </div>
 
@@ -216,6 +227,56 @@
                 onclick="window.notasManager && window.notasManager.togglePinSelected && window.notasManager.togglePinSelected()">
                 <span class="material-symbols-outlined">push_pin</span>
             </button>
+
+            <!-- Modal Editor Flotante estilo Google Keep -->
+            <div id="keep-modal-backdrop" class="keep-modal-backdrop" style="display:none;" onclick="window.notasManager && window.notasManager.handleModalBackdropClick(event)">
+                <div id="keep-modal-card" class="keep-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+                    
+                    <!-- Header con Flecha atrás (móvil), Título y Pin -->
+                    <div class="keep-modal-header">
+                        <button type="button" id="modal-back-btn" class="nf-btn-back m3-icon-btn mobile-only" onclick="event.stopPropagation(); window.notasManager && window.notasManager.closeKeepModal(true)" aria-label="Volver a Notas" title="Volver">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </button>
+                        <input type="text" id="modal-note-title" class="keep-modal-title" placeholder="Título" autocomplete="off">
+                        <button type="button" class="keep-modal-pin-btn" id="modal-pin-btn" title="Fijar nota" onclick="window.notasManager.toggleModalPin(event)">
+                            <span class="material-symbols-outlined">push_pin</span>
+                        </button>
+                    </div>
+
+                    <!-- Área central con scroll (la barra inferior queda fija al fondo) -->
+                    <div class="keep-modal-body-scroll">
+                        <!-- Área de contenido texto -->
+                        <textarea id="modal-note-content" class="keep-modal-content" placeholder="Añade una nota..." rows="3"></textarea>
+
+                        <!-- Área de checklist -->
+                        <div id="modal-checklist-container" class="keep-modal-checklist" style="display:none;">
+                            <div id="modal-checklist-items" class="keep-modal-checklist-items"></div>
+                            <div class="keep-modal-add-item" onclick="window.notasManager.addModalChecklistItem()">
+                                <span class="material-symbols-outlined">add</span>
+                                <span>Elemento de lista</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Barra inferior de herramientas (Footer sombreado estilo Google Keep) -->
+                    <div class="keep-modal-footer">
+                        <div class="keep-modal-actions">
+                            <button type="button" class="note-action-btn" id="modal-color-btn" title="Opciones de fondo" onclick="window.notasManager.showModalColorPalette(event)">
+                                <span class="material-symbols-outlined">palette</span>
+                            </button>
+                            <button type="button" class="note-action-btn" id="modal-delete-btn" title="Eliminar nota" onclick="window.notasManager.deleteModalNote()">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                        <div class="keep-modal-footer-right">
+                            <button type="button" class="keep-modal-close-btn" onclick="window.notasManager.closeKeepModal(true)">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
 
         </main>
     </div>
