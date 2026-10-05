@@ -851,19 +851,50 @@
     color: #80868b;
 }
 
-/* Footer de acciones estilo Google Keep */
+/* Footer de acciones estilo Google Keep (Herramientas a la izquierda, 3 puntos a la derecha) */
 .note-card-footer {
     margin-top: 12px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
+    justify-content: space-between;
+    width: 100%;
     opacity: 0;
     transition: opacity 0.15s ease;
+    position: relative;
+    box-sizing: border-box;
 }
 
-.note-card:hover .note-card-footer {
-    opacity: 1;
+.note-card-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.note-card-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+}
+
+.note-card:hover .note-card-footer,
+.note-card.note-card--palette-open .note-card-footer,
+.note-card.note-card--menu-open .note-card-footer {
+    opacity: 1 !important;
+}
+
+.note-card.note-card--menu-open {
+    z-index: 50 !important;
+}
+
+.card-popover,
+.note-card-footer-right .modal-more-sheet.desktop-popover {
+    position: absolute !important;
+    bottom: calc(100% + 6px) !important;
+    right: 0 !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: 10050 !important;
 }
 
 @media (hover: none) {

@@ -382,20 +382,24 @@
                     ${contentHtml}
                 </div>
                 <div class="note-card-footer">
-                    <button type="button" class="note-action-btn color-btn" title="Cambiar color" 
-                        onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.showColorPalette(event, '${note.id}')">
-                        <span class="material-symbols-outlined">palette</span>
-                    </button>
-                    <button type="button" class="note-action-btn delete-btn" title="Eliminar nota" 
-                        onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.deleteNotePrompt('${note.id}')">
-                        <span class="material-symbols-outlined">delete</span>
-                    </button>
+                    <div class="note-card-footer-left">
+                        <button type="button" class="note-action-btn color-btn" title="Opciones de fondo" 
+                            onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.showColorPalette(event, '${note.id}')">
+                            <span class="material-symbols-outlined">palette</span>
+                        </button>
+                    </div>
+                    <div class="note-card-footer-right">
+                        <button type="button" class="note-action-btn more-btn" title="Más opciones" 
+                            onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.showCardMoreMenu(event, '${note.id}')">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
             const openNote = (e) => {
                 if (this.isDragging || this.justDragged) return;
-                if (e.target.closest('.note-card-footer') || e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('.note-color-palette') || e.target.closest('#note-color-palette') || e.target.closest('a')) return;
+                if (e.target.closest('.note-card-footer') || e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('.note-color-palette') || e.target.closest('#note-color-palette') || e.target.closest('.modal-more-sheet') || e.target.closest('.card-popover') || e.target.closest('a')) return;
                 
                 // Abrir con efecto Google Keep expansivo desde la tarjeta
                 this.openKeepModal(note.id, 'text', card);
@@ -548,6 +552,8 @@
 
                     const startLift = (clientX, clientY) => {
                         if (hasLifted || this.isDragging) return;
+                        this.closeCardMoreMenu();
+                        this.closeAllColorPalettes();
                         hasLifted = true;
                         this.isDragging = true;
 
@@ -1094,6 +1100,90 @@
             if (oldPalette) oldPalette.remove();
         }
 
+        // ── Menú de 3 puntos en tarjeta desde afuera (Google Keep Desktop) ──
+        showCardMoreMenu(event, noteId) {
+            event?.stopPropagation();
+            event?.preventDefault();
+
+            const btn = event.currentTarget;
+            const card = btn.closest('.note-card');
+            if (!card) return;
+
+            // Si ya está abierto en esta misma tarjeta, cerrarlo
+            const existingSheet = card.querySelector('#card-more-sheet');
+            if (existingSheet) {
+                this.closeCardMoreMenu();
+                return;
+            }
+
+            this.closeCardMoreMenu();
+            this.closeAllColorPalettes();
+            this.closeModalMoreMenu();
+
+            const note = this.notes.find(n => n.id === noteId);
+            if (!note) return;
+
+            const editTimeText = this.formatNoteEditedTime(note.updated_at || note.created_at);
+            const isCustom = note.color && note.color !== 'transparent';
+            const isDark = isCustom ? this.isDarkColor(note.color) : (document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark');
+
+            card.classList.add('note-card--menu-open');
+
+            const sheet = document.createElement('div');
+            sheet.id = 'card-more-sheet';
+            sheet.className = `modal-more-sheet desktop-popover card-popover ${isDark ? 'dark-contrast' : ''}`;
+            sheet.onclick = (e) => e.stopPropagation();
+
+            sheet.innerHTML = `
+                <div class="modal-more-header">${editTimeText}</div>
+                <div class="modal-more-list">
+                    <button type="button" class="modal-more-item" id="card-more-share-btn">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>Compartir</span>
+                    </button>
+                    <button type="button" class="modal-more-item danger-item" id="card-more-delete-btn">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>Eliminar nota</span>
+                    </button>
+                </div>
+            `;
+
+            const footerRight = btn.parentElement || card;
+            footerRight.appendChild(sheet);
+
+            const shareBtn = sheet.querySelector('#card-more-share-btn');
+            if (shareBtn) {
+                shareBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.closeCardMoreMenu();
+                    this.openShareModalForNote(note.id);
+                };
+            }
+
+            const delBtn = sheet.querySelector('#card-more-delete-btn');
+            if (delBtn) {
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.closeCardMoreMenu();
+                    this.deleteNotePrompt(note.id);
+                };
+            }
+
+            const closeOnDocClick = (e) => {
+                if (!sheet.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                    this.closeCardMoreMenu();
+                    document.removeEventListener('click', closeOnDocClick, true);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', closeOnDocClick, true), 20);
+        }
+
+        closeCardMoreMenu() {
+            const sheet = document.getElementById('card-more-sheet');
+            if (sheet) sheet.remove();
+            document.querySelectorAll('.note-card--menu-open').forEach(c => c.classList.remove('note-card--menu-open'));
+        }
+
         async updateNoteColor(noteId, color) {
             // No cerramos la paleta para que el usuario pueda seguir probando colores
             const user = window.authManager?.currentUser;
@@ -1223,6 +1313,7 @@
             if (!backdrop || !card) return;
 
             this.closeAllColorPalettes();
+            this.closeCardMoreMenu();
             this.isKeepModalOpen = true;
             this.isModalClosing = false;
 
@@ -1932,7 +2023,17 @@
             }
         }
 
-        async openShareModalForNote() {
+        async openShareModalForNote(specificNoteId = null) {
+            const noteId = specificNoteId || this.activeModalNote?.id;
+            if (specificNoteId) {
+                if (window.shareModal && typeof window.shareModal.open === 'function') {
+                    window.shareModal.open(specificNoteId, 'note');
+                } else {
+                    console.warn('Share modal no disponible');
+                }
+                return;
+            }
+
             if (!this.activeModalNote) return;
 
             // Si la nota aún no tiene ID (es nueva en edición), persistirla primero
@@ -1979,11 +2080,11 @@
                 }
             }
 
-            const noteId = this.activeModalNote.id;
-            if (!noteId) return;
+            const currentId = this.activeModalNote.id;
+            if (!currentId) return;
 
             if (window.shareModal && typeof window.shareModal.open === 'function') {
-                window.shareModal.open(noteId, 'note');
+                window.shareModal.open(currentId, 'note');
             } else {
                 console.warn('Share modal no disponible');
             }
