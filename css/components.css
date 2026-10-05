@@ -5591,6 +5591,10 @@ html[data-auth-likely="true"] #dashboard-app {
     box-sizing: border-box;
 }
 
+#share-modal {
+    z-index: 10050 !important;
+}
+
 .modal-overlay.hidden {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -6994,10 +6998,15 @@ body.dark-theme .folder-more-btn:hover {
     color: #064e3b;
 }
 
+.btn-dropbox-copylink.hidden {
+    display: none !important;
+}
+
 .dropbox-footer-right-buttons {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-left: auto;
 }
 
 .btn-dropbox-done {
@@ -7871,27 +7880,41 @@ input:checked~.m3-ingredient-text {
 
 /* Badge inner: número visible por defecto, check oculto */
 .m3-step-badge .step-num {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: translateY(-1px);
-    /* Ajuste óptico para centrado perfecto */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    transform: none !important;
 }
 
 .m3-step-badge .step-check {
     display: none;
-    font-size: 18px;
+    font-size: 24px;
+    color: #ffffff;
 }
 
 /* Al marcar: ocultar número, mostrar check */
 .m3-step-checkable.step-done .m3-step-badge .step-num {
-    display: none;
+    display: none !important;
 }
 
 .m3-step-checkable.step-done .m3-step-badge .step-check {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    font-size: 24px !important;
+    color: #ffffff !important;
 }
 
 .m3-step-badge {
@@ -7921,6 +7944,8 @@ input:checked~.m3-ingredient-text {
     padding-top: 4px;
     transition: opacity 0.3s, text-decoration 0.3s;
     margin: 0;
+    white-space: pre-line;
+    word-break: break-word;
 }
 
 .m3-steps-timeline {
@@ -13098,12 +13123,19 @@ body.dark-theme .context-menu-divider {
     margin-top: 2px;
 }
 
+.recipe-story {
+    white-space: pre-line;
+    word-break: break-word;
+}
+
 .pc-detail-scroll .recipe-story {
     font-size: 16px;
     line-height: 1.65;
     color: var(--on-surface-variant);
     font-weight: 500;
     margin: 0;
+    white-space: pre-line;
+    word-break: break-word;
 }
 
 /* Steps en panel */

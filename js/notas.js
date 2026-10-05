@@ -321,7 +321,8 @@
 
         formatNoteContent(content) {
             if (!content) return '';
-            const escaped = this.escapeHTML(content);
+            const cleanContent = typeof content === 'string' ? content.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n') : content;
+            const escaped = this.escapeHTML(cleanContent);
             const urlRegex = /(https?:\/\/[^\s<]+)/g;
             return escaped.replace(urlRegex, (url) => {
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${url}</a>`;
@@ -601,28 +602,63 @@
 
                         // Localizar tarjeta o contenedor debajo del punto
                         const hitEl = document.elementFromPoint(clientX, clientY);
-                        if (!hitEl) return;
+                        let targetContainer = hitEl ? hitEl.closest('.notes-cards-container') : null;
 
-                        const targetCard = hitEl.closest('.note-card');
-                        const targetContainer = hitEl.closest('.notes-cards-container');
-
-                        if (targetCard && targetCard !== card && targetCard.parentElement) {
-                            const targetRect = targetCard.getBoundingClientRect();
-                            const centerY = targetRect.top + targetRect.height / 2;
-                            const isAfter = clientY > centerY;
-
-                            if (isAfter) {
-                                if (targetCard.nextElementSibling !== placeholder) {
-                                    targetCard.after(placeholder);
-                                }
-                            } else {
-                                if (targetCard.previousElementSibling !== placeholder) {
-                                    targetCard.before(placeholder);
-                                }
+                        // Si el cursor está sobre un título de sección o espacio vacío, encontrar contenedor más cercano
+                        if (!targetContainer) {
+                            const containers = Array.from(document.querySelectorAll('.notes-cards-container'));
+                            if (containers.length === 1) {
+                                targetContainer = containers[0];
+                            } else if (containers.length > 1) {
+                                let bestDist = Infinity;
+                                containers.forEach(ct => {
+                                    const r = ct.getBoundingClientRect();
+                                    const dist = Math.abs(clientY - (r.top + r.height / 2));
+                                    if (dist < bestDist) {
+                                        bestDist = dist;
+                                        targetContainer = ct;
+                                    }
+                                });
                             }
-                        } else if (!targetCard && targetContainer && placeholder) {
-                            if (targetContainer !== placeholder.parentElement) {
+                        }
+
+                        if (!targetContainer) return;
+
+                        // Obtener tarjetas presentes en este contenedor (excluyendo la flotante)
+                        const cards = Array.from(targetContainer.querySelectorAll('.note-card:not(.note-card--floating)'));
+                        if (cards.length === 0) {
+                            if (placeholder.parentElement !== targetContainer) {
                                 targetContainer.appendChild(placeholder);
+                            }
+                            return;
+                        }
+
+                        // Determinar la posición de inserción adecuada (soporta filas/grid y lista)
+                        let inserted = false;
+                        for (let i = 0; i < cards.length; i++) {
+                            const c = cards[i];
+                            const rect = c.getBoundingClientRect();
+
+                            // 1. Si el cursor está por encima de la tarjeta
+                            const isAbove = clientY < rect.top;
+                            // 2. Si el cursor está en la misma fila verticalmente:
+                            const isWithinRow = (clientY >= rect.top && clientY <= rect.bottom);
+                            const isLeftHalf = clientX < (rect.left + rect.width / 2);
+                            const isUpperHalf = clientY < (rect.top + rect.height / 2);
+
+                            if (isAbove || (isWithinRow && (isLeftHalf || isUpperHalf))) {
+                                if (c.previousElementSibling !== placeholder) {
+                                    c.before(placeholder);
+                                }
+                                inserted = true;
+                                break;
+                            }
+                        }
+
+                        if (!inserted) {
+                            const lastCard = cards[cards.length - 1];
+                            if (lastCard && lastCard.nextElementSibling !== placeholder) {
+                                lastCard.after(placeholder);
                             }
                         }
                     };
@@ -779,6 +815,13 @@
                 reordered.push(rem);
             }
             this.notes = reordered;
+
+            const user = window.authManager?.currentUser;
+            const userId = user?.auth_user_id || user?.id;
+            if (userId) {
+                this.setNotesToCache(userId, this.notes);
+            }
+
             this.saveCustomOrder();
         }
 
@@ -814,8 +857,18 @@
                         if (a.is_pinned !== b.is_pinned) {
                             return a.is_pinned ? -1 : 1;
                         }
-                        const indexA = orderMap.has(a.id) ? orderMap.get(a.id) : 999999;
-                        const indexB = orderMap.has(b.id) ? orderMap.get(b.id) : 999999;
+                        const indexA = orderMap.has(a.id) ? orderMap.get(a.id) : (a.order_index ?? 999999);
+                        const indexB = orderMap.has(b.id) ? orderMap.get(b.id) : (b.order_index ?? 999999);
+                        if (indexA !== indexB) return indexA - indexB;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                } else {
+                    this.notes.sort((a, b) => {
+                        if (a.is_pinned !== b.is_pinned) {
+                            return a.is_pinned ? -1 : 1;
+                        }
+                        const indexA = a.order_index ?? 999999;
+                        const indexB = b.order_index ?? 999999;
                         if (indexA !== indexB) return indexA - indexB;
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
@@ -1226,6 +1279,11 @@
                 pinBtn.title = this.activeModalNote.is_pinned ? 'Desfijar nota' : 'Fijar nota';
             }
 
+            const typeIcon = document.getElementById('modal-type-icon');
+            if (typeIcon) {
+                typeIcon.textContent = type === 'checklist' ? 'description' : 'check_box';
+            }
+
             const deleteBtn = document.getElementById('modal-delete-btn');
             if (deleteBtn) {
                 deleteBtn.style.display = noteId ? 'flex' : 'none';
@@ -1343,6 +1401,7 @@
             const modalPalette = document.getElementById('modal-color-palette');
             if (modalPalette) modalPalette.remove();
             this.closeFormColorBottomSheet();
+            this.closeModalMoreMenu();
 
             if (!fromPopstate && history.state?.keepModalOpen) {
                 try { history.replaceState({}, '', '/notas'); } catch (_) {}
@@ -1511,6 +1570,12 @@
                 this.isModalClosing = false;
                 this.activeModalNote = null;
                 document.body.style.overflow = '';
+                const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark';
+                const metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.setAttribute('content', isDarkTheme ? '#202124' : '#ffffff');
+                document.documentElement.style.backgroundColor = '';
+                document.body.style.backgroundColor = '';
+                this.closeModalMoreMenu();
                 return;
             }
 
@@ -1561,6 +1626,12 @@
                     this.isModalClosing = false;
                     this.activeModalNote = null;
                     document.body.style.overflow = '';
+                    const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark';
+                    const metaTheme = document.querySelector('meta[name="theme-color"]');
+                    if (metaTheme) metaTheme.setAttribute('content', isDarkTheme ? '#202124' : '#ffffff');
+                    document.documentElement.style.backgroundColor = '';
+                    document.body.style.backgroundColor = '';
+                    this.closeModalMoreMenu();
 
                     // Actualizar el grid con los datos actualizados y asentar la tarjeta
                     this.renderNotesList();
@@ -1605,6 +1676,12 @@
                 this.isModalClosing = false;
                 this.activeModalNote = null;
                 document.body.style.overflow = '';
+                const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark';
+                const metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.setAttribute('content', isDarkTheme ? '#202124' : '#ffffff');
+                document.documentElement.style.backgroundColor = '';
+                document.body.style.backgroundColor = '';
+                this.closeModalMoreMenu();
                 this.renderNotesList();
             }, 300);
         }
@@ -1635,18 +1712,290 @@
 
             const isCustom = color && color !== 'transparent';
             const isDark = isCustom ? this.isDarkColor(color) : (document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark');
+            const defaultBg = isDark ? '#202124' : '#ffffff';
+            const effectiveBg = isCustom ? color : defaultBg;
 
             if (isCustom) {
-                card.style.backgroundColor = color;
-                card.style.borderColor = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)';
+                card.style.setProperty('background-color', color, 'important');
+                card.style.setProperty('border-color', isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)', 'important');
                 card.classList.add('has-color');
             } else {
-                card.style.backgroundColor = '';
-                card.style.borderColor = '';
+                card.style.removeProperty('background-color');
+                card.style.removeProperty('border-color');
                 card.classList.remove('has-color');
             }
 
+            // Sincronizar theme-color del navegador (Pixel, Android gesture bar & status bar)
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.setAttribute('name', 'theme-color');
+                document.head.appendChild(metaTheme);
+            }
+            metaTheme.setAttribute('content', effectiveBg);
+
+            // En móvil, sincronizar también el fondo de html y body para que no haya franjas blancas en la barra de navegación del Pixel
+            if (window.innerWidth <= 768) {
+                document.documentElement.style.backgroundColor = effectiveBg;
+                document.body.style.backgroundColor = effectiveBg;
+            }
+
+            // También actualizar el fondo del bottom sheet de color si está visible
+            const sheet = document.getElementById('form-color-sheet');
+            if (sheet) {
+                sheet.style.setProperty('background-color', effectiveBg, 'important');
+            }
+
+            // También actualizar el fondo del menú de 3 puntos si está visible
+            const moreSheet = document.getElementById('modal-more-sheet');
+            if (moreSheet) {
+                moreSheet.style.setProperty('background-color', effectiveBg, 'important');
+                moreSheet.classList.toggle('dark-contrast', isDark);
+            }
+
             card.classList.toggle('km-dark-contrast', isDark);
+        }
+
+        toggleModalNoteType(event) {
+            event?.stopPropagation();
+            if (!this.activeModalNote) return;
+
+            const contentArea = document.getElementById('modal-note-content');
+            const checklistContainer = document.getElementById('modal-checklist-container');
+            const typeIcon = document.getElementById('modal-type-icon');
+
+            const currentType = this.activeModalNote.type || 'text';
+
+            if (currentType === 'text') {
+                const rawText = contentArea ? contentArea.value : '';
+                const lines = rawText.split('\n').filter(l => l.trim().length > 0);
+                const newItems = lines.length > 0
+                    ? lines.map((line, idx) => ({ id: 'temp-' + Date.now() + '-' + idx, content: line.trim(), is_completed: false }))
+                    : [{ id: 'temp-' + Date.now() + '-0', content: '', is_completed: false }];
+
+                this.activeModalNote.type = 'checklist';
+                this.activeModalNote.note_items = newItems;
+
+                if (contentArea) contentArea.style.display = 'none';
+                if (checklistContainer) checklistContainer.style.display = 'flex';
+                if (typeIcon) typeIcon.textContent = 'description';
+
+                this.renderModalChecklist();
+            } else {
+                const items = (this.activeModalNote.note_items || []).filter(i => !i._deleted && (i.content || '').trim() !== '');
+                const joinedText = items.map(i => i.content).join('\n');
+
+                this.activeModalNote.type = 'text';
+                this.activeModalNote.content = joinedText;
+
+                if (checklistContainer) checklistContainer.style.display = 'none';
+                if (contentArea) {
+                    contentArea.style.display = 'block';
+                    contentArea.value = joinedText;
+                    contentArea.style.height = 'auto';
+                    contentArea.style.height = Math.max(120, contentArea.scrollHeight) + 'px';
+                }
+                if (typeIcon) typeIcon.textContent = 'check_box';
+            }
+        }
+
+        formatNoteEditedTime(dateString) {
+            if (!dateString) return 'Editado recientemente';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Editado recientemente';
+
+            const now = new Date();
+            const isToday = date.toDateString() === now.toDateString();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            if (isToday) {
+                return `Se editó hoy a las ${hours}:${minutes}`;
+            }
+
+            const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            const day = date.getDate();
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+
+            if (year === now.getFullYear()) {
+                return `Se editó el ${day} ${month}`;
+            }
+            return `Se editó el ${day} ${month} ${year}`;
+        }
+
+        showModalMoreMenu(event) {
+            event?.stopPropagation();
+            if (!this.activeModalNote) return;
+
+            if (document.getElementById('modal-more-sheet')) {
+                this.closeModalMoreMenu();
+                return;
+            }
+
+            const isDesktop = window.innerWidth > 768;
+            const note = this.activeModalNote;
+            const editTimeText = this.formatNoteEditedTime(note.updated_at || note.created_at);
+            const isCustom = note.color && note.color !== 'transparent';
+            const isDark = isCustom ? this.isDarkColor(note.color) : (document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark');
+
+            const sheet = document.createElement('div');
+            sheet.id = 'modal-more-sheet';
+            sheet.className = `modal-more-sheet ${isDesktop ? 'desktop-popover' : ''} ${isDark ? 'dark-contrast' : ''}`;
+
+            if (!isDesktop) {
+                const defaultBg = isDark ? '#252628' : '#ffffff';
+                const sheetBg = isCustom ? note.color : defaultBg;
+                sheet.style.setProperty('background-color', sheetBg, 'important');
+            }
+            sheet.onclick = (e) => e.stopPropagation();
+
+            sheet.innerHTML = `
+                <div class="modal-more-header">${editTimeText}</div>
+                <div class="modal-more-list">
+                    <button type="button" class="modal-more-item" id="more-share-btn">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>Compartir</span>
+                    </button>
+                    <button type="button" class="modal-more-item danger-item" id="more-delete-btn">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>Eliminar</span>
+                    </button>
+                </div>
+            `;
+
+            if (isDesktop) {
+                const actionsRight = document.querySelector('.keep-modal-actions-right') || document.querySelector('.keep-modal-actions') || document.getElementById('keep-modal-card');
+                if (actionsRight) {
+                    actionsRight.style.position = 'relative';
+                    actionsRight.appendChild(sheet);
+                } else {
+                    document.body.appendChild(sheet);
+                }
+
+                const moreBtn = document.getElementById('modal-more-btn');
+                const closeOnDocClick = (e) => {
+                    if (!sheet.contains(e.target) && (!moreBtn || !moreBtn.contains(e.target))) {
+                        this.closeModalMoreMenu();
+                        document.removeEventListener('click', closeOnDocClick, true);
+                    }
+                };
+                setTimeout(() => document.addEventListener('click', closeOnDocClick, true), 20);
+            } else {
+                const backdrop = document.createElement('div');
+                backdrop.id = 'modal-more-backdrop';
+                backdrop.className = 'modal-more-backdrop';
+                backdrop.onclick = (e) => {
+                    e.stopPropagation();
+                    this.closeModalMoreMenu();
+                };
+                document.body.appendChild(backdrop);
+                document.body.appendChild(sheet);
+            }
+
+            const shareBtn = sheet.querySelector('#more-share-btn');
+            if (shareBtn) {
+                shareBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.closeModalMoreMenu();
+                    this.openShareModalForNote();
+                };
+            }
+
+            const delBtn = sheet.querySelector('#more-delete-btn');
+            if (delBtn) {
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.closeModalMoreMenu();
+                    this.deleteModalNote();
+                };
+            }
+        }
+
+        closeModalMoreMenu() {
+            const sheet = document.getElementById('modal-more-sheet');
+            const backdrop = document.getElementById('modal-more-backdrop');
+            if (!sheet && !backdrop) return;
+
+            if (sheet) {
+                if (sheet.classList.contains('desktop-popover')) {
+                    sheet.remove();
+                } else {
+                    sheet.classList.add('closing');
+                    setTimeout(() => sheet.remove(), 180);
+                }
+            }
+            if (backdrop) {
+                backdrop.style.opacity = '0';
+                backdrop.style.transition = 'opacity 0.18s ease';
+                setTimeout(() => backdrop.remove(), 180);
+            }
+        }
+
+        async openShareModalForNote() {
+            if (!this.activeModalNote) return;
+
+            // Si la nota aún no tiene ID (es nueva en edición), persistirla primero
+            if (!this.activeModalNote.id) {
+                const title = (document.getElementById('modal-note-title')?.value || '').trim();
+                const type = this.activeModalNote.type || 'text';
+                const content = type === 'text' ? (document.getElementById('modal-note-content')?.value || '').trim() : '';
+                const items = type === 'checklist' ? (this.activeModalNote.note_items || []).filter(i => !i._deleted && (i.content || '').trim() !== '') : [];
+
+                const user = window.authManager?.currentUser;
+                const userId = user?.auth_user_id || user?.id;
+                const tempId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('note-' + Date.now());
+
+                const newNote = {
+                    id: tempId,
+                    user_id: userId,
+                    title: title || (type === 'text' ? 'Nota sin título' : 'Lista sin título'),
+                    content: type === 'text' ? content : '',
+                    type: type,
+                    color: this.activeModalNote.color || 'transparent',
+                    is_pinned: !!this.activeModalNote.is_pinned,
+                    note_items: items,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                this.activeModalNote.id = tempId;
+                this.notes.unshift(newNote);
+                if (userId) {
+                    this.saveNoteToCache(userId, newNote);
+                    this.saveCustomOrder();
+                }
+
+                if (window.supabaseClient) {
+                    window.supabaseClient.from('notes').insert([{
+                        id: tempId,
+                        user_id: userId,
+                        title: newNote.title,
+                        content: newNote.content,
+                        type: newNote.type,
+                        color: newNote.color,
+                        is_pinned: newNote.is_pinned
+                    }]).then(() => {});
+                }
+            }
+
+            const noteId = this.activeModalNote.id;
+            if (!noteId) return;
+
+            if (window.shareModal && typeof window.shareModal.open === 'function') {
+                window.shareModal.open(noteId, 'note');
+            } else {
+                console.warn('Share modal no disponible');
+            }
+        }
+
+        deleteModalNote() {
+            if (!this.activeModalNote) return;
+            const noteId = this.activeModalNote.id;
+            this.closeKeepModal(false);
+            if (noteId) {
+                this.deleteNote(noteId);
+            }
         }
 
         showModalColorPalette(event) {
@@ -1994,7 +2343,7 @@
             }
 
             const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark';
-            const currentColor = this.currentNote?.color || 'transparent';
+            const currentColor = (this.currentNote?.color || this.activeModalNote?.color) || 'transparent';
             const isCustom = currentColor && currentColor !== 'transparent';
             const isNoteDark = isCustom ? this.isDarkColor(currentColor) : isDarkTheme;
 
@@ -2089,9 +2438,44 @@
         }
 
         selectFormColor(color) {
-            if (!this.currentNote) this.currentNote = {};
-            this.currentNote.color = color;
-            this.applyFormNoteColor(color);
+            if (!this.currentNote && !this.activeModalNote) return;
+
+            // Detectar con precisión si estamos dentro del modal Keep (isKeepModalOpen o presencia de keep-modal-card)
+            const isModal = Boolean(this.isKeepModalOpen || (this.activeModalNote && document.getElementById('keep-modal-card')));
+
+            if (isModal && this.activeModalNote) {
+                this.activeModalNote.color = color;
+                this.applyModalColor(color);
+
+                // Guardar en Supabase y actualizar cache local
+                if (this.activeModalNote.id) {
+                    const user = window.authManager?.currentUser;
+                    const userId = user?.auth_user_id || user?.id;
+                    if (userId) this.updateNoteInCache(userId, { id: this.activeModalNote.id, color: color });
+                    window.supabaseClient
+                        ?.from('notes')
+                        .update({ color: color })
+                        .eq('id', this.activeModalNote.id)
+                        .then(() => {})
+                        .catch(err => console.error('Error saving color in Supabase:', err));
+                }
+            } else {
+                if (!this.currentNote) this.currentNote = {};
+                this.currentNote.color = color;
+                this.applyFormNoteColor(color);
+
+                if (this.currentNote.id) {
+                    const user = window.authManager?.currentUser;
+                    const userId = user?.auth_user_id || user?.id;
+                    if (userId) this.updateNoteInCache(userId, { id: this.currentNote.id, color: color });
+                    window.supabaseClient
+                        ?.from('notes')
+                        .update({ color: color })
+                        .eq('id', this.currentNote.id)
+                        .then(() => {})
+                        .catch(err => console.error('Error saving color in Supabase:', err));
+                }
+            }
 
             // Actualizar selección visual en el bottom sheet si está abierto
             const sheet = document.getElementById('form-color-sheet');
@@ -2108,19 +2492,6 @@
                         opt.appendChild(newBadge);
                     }
                 });
-            }
-
-            if (this.currentNote.id) {
-                const user = window.authManager?.currentUser;
-                const userId = user?.auth_user_id || user?.id;
-                if (userId) this.updateNoteInCache(userId, { id: this.currentNote.id, color: color });
-
-                window.supabaseClient
-                    ?.from('notes')
-                    .update({ color: color })
-                    .eq('id', this.currentNote.id)
-                    .then(() => {})
-                    .catch(err => console.error('Error saving color in Supabase:', err));
             }
         }
 

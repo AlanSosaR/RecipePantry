@@ -2128,57 +2128,242 @@ class DashboardManager {
         this._activeFolderMenuName = folderName;
         const safeF = folderName.replace(/'/g, "\\'");
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const isMobile = window.innerWidth <= 768;
 
         // Destacar tarjeta de carpeta activa con borde verde
         document.querySelectorAll('.dropbox-carousel-card.menu-open').forEach(c => c.classList.remove('menu-open'));
         const card = event.currentTarget.closest('.dropbox-carousel-card') || event.currentTarget;
         if (card && card.classList) card.classList.add('menu-open');
 
-        menu.className = 'dropbox-folder-popover';
-        menu.innerHTML = `
-            <div class="folder-popover-items">
-                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openFolder('${safeF}')">
-                    <span class="material-symbols-outlined">folder</span>
+        // Limpiar backdrop previo
+        const oldBd = document.getElementById('m3SheetBackdrop');
+        if (oldBd) oldBd.remove();
+
+        // Calcular estadísticas de la carpeta
+        const folderRecipes = (this.currentRecipes || []).filter(r => (r.pantry_es || r.pantry_en || '').trim().toLowerCase() === folderName.trim().toLowerCase());
+        const recipeCount = folderRecipes.length;
+        const countStr = `${recipeCount} ${isEn ? (recipeCount === 1 ? 'recipe' : 'recipes') : (recipeCount === 1 ? 'receta' : 'recetas')}`;
+
+        let latestDate = null;
+        folderRecipes.forEach(r => {
+            const d = r.updated_at ? new Date(r.updated_at) : (r.created_at ? new Date(r.created_at) : null);
+            if (d && !isNaN(d.getTime())) {
+                if (!latestDate || d > latestDate) latestDate = d;
+            }
+        });
+        const dateStr = latestDate
+            ? latestDate.toLocaleDateString(isEn ? 'en-US' : 'es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+            : (isEn ? 'No modifications' : 'Sin modificaciones');
+
+        if (isMobile) {
+            menu.className = 'm3-modal-bottom-sheet';
+            menu.style.position = '';
+            menu.style.top = '';
+            menu.style.left = '';
+            menu.style.width = '';
+            menu.style.height = '';
+            menu.style.transform = '';
+
+            menu.innerHTML = `
+                <div class="m3-sheet-drag-handle" title="${isEn ? 'Tap or swipe to expand' : 'Toca o desliza para expandir'}"></div>
+                <div class="m3-sheet-header">
+                    <h4>${folderName}</h4>
+                </div>
+                <div class="m3-sheet-details-expanded">
+                    <div class="m3-sheet-detail-row">
+                        <span class="m3-sheet-detail-label">
+                            <span class="material-symbols-outlined m3-sheet-detail-icon">menu_book</span>
+                            <span>${isEn ? 'Recipes' : 'Recetas'}</span>
+                        </span>
+                        <span class="m3-sheet-detail-val">${countStr}</span>
+                    </div>
+                    <div class="m3-sheet-detail-row">
+                        <span class="m3-sheet-detail-label">
+                            <span class="material-symbols-outlined m3-sheet-detail-icon icon-time">schedule</span>
+                            <span>${isEn ? 'Last modified' : 'Última modificación'}</span>
+                        </span>
+                        <span class="m3-sheet-detail-val">${dateStr}</span>
+                    </div>
+                </div>
+                <div class="m3-sheet-quick-row">
+                    <button type="button" class="m3-quick-pill" onclick="window.dashboard.copyFolderLink('${safeF}'); window.dashboard.closeFolderCardMenu();">
+                        <span class="material-symbols-outlined">link</span>
+                        <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
+                    </button>
+                    <button type="button" class="m3-quick-pill" onclick="window.dashboard.openShareFolderModal('${safeF}'); window.dashboard.closeFolderCardMenu();">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>${isEn ? 'Share' : 'Compartir'}</span>
+                    </button>
+                </div>
+                <button type="button" class="context-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openFolder('${safeF}')">
+                    <span class="material-symbols-outlined">folder_open</span>
                     <span>${isEn ? 'Open folder' : 'Abrir carpeta'}</span>
                 </button>
-                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
-                    <span class="material-symbols-outlined">share</span>
-                    <span>${isEn ? 'Share' : 'Compartir'}</span>
-                </button>
-                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.copyFolderLink('${safeF}')">
-                    <span class="material-symbols-outlined">link</span>
-                    <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
-                </button>
-                <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameFolderByName('${safeF}')">
-                    <span class="material-symbols-outlined">edit</span>
+                <button type="button" class="context-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameFolderByName('${safeF}')">
+                    <span class="material-symbols-outlined">edit_square</span>
                     <span>${isEn ? 'Rename' : 'Cambiar nombre'}</span>
                 </button>
-                <div class="folder-popover-divider"></div>
-                <button type="button" class="folder-popover-item item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteFolderByName('${safeF}')">
+                <div class="context-menu-divider"></div>
+                <button type="button" class="context-menu-item danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteFolderByName('${safeF}')">
                     <span class="material-symbols-outlined">delete</span>
                     <span>${isEn ? 'Delete' : 'Eliminar'}</span>
                 </button>
-            </div>
-        `;
+            `;
 
-        const cardRect = card.getBoundingClientRect();
-        const menuWidth = 200;
-        const menuHeight = 220;
+            const backdrop = document.createElement('div');
+            backdrop.className = 'm3-sheet-backdrop';
+            backdrop.id = 'm3SheetBackdrop';
+            backdrop.onclick = () => this.closeFolderCardMenu();
+            document.body.appendChild(backdrop);
 
-        menu.style.position = 'fixed';
-        let topPos = cardRect.bottom + 6;
-        if (topPos + menuHeight > window.innerHeight - 10) {
-            topPos = Math.max(10, cardRect.top - menuHeight - 6);
+            menu.classList.remove('hidden');
+
+            let touchStartY = 0;
+            let touchDiffY = 0;
+            let isExpanded = false;
+            let initialHeight = 0;
+            const smoothCurve = 'height 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+
+            const measureBaseHeight = () => {
+                if (!isExpanded && menu.offsetHeight > 50) {
+                    initialHeight = menu.offsetHeight;
+                    menu.style.height = `${initialHeight}px`;
+                }
+            };
+            requestAnimationFrame(measureBaseHeight);
+            setTimeout(measureBaseHeight, 60);
+
+            const dragHandle = menu.querySelector('.m3-sheet-drag-handle');
+            if (dragHandle) {
+                dragHandle.onclick = (e) => {
+                    e.stopPropagation();
+                    if (!initialHeight) initialHeight = menu.offsetHeight || 320;
+                    isExpanded = !isExpanded;
+                    menu.style.transition = smoothCurve;
+                    void menu.offsetHeight;
+                    menu.classList.toggle('is-expanded', isExpanded);
+                    if (isExpanded) {
+                        menu.style.height = '92vh';
+                    } else {
+                        menu.style.height = `${initialHeight}px`;
+                    }
+                    menu.style.transform = '';
+                };
+            }
+
+            menu.ontouchstart = (e) => {
+                touchStartY = e.touches[0].clientY;
+                touchDiffY = 0;
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 320;
+            };
+
+            menu.ontouchmove = (e) => {
+                touchDiffY = e.touches[0].clientY - touchStartY;
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 320;
+
+                if (!isExpanded) {
+                    if (touchDiffY < 0) {
+                        const targetH = Math.min(window.innerHeight * 0.92, initialHeight - touchDiffY);
+                        menu.style.transition = 'none';
+                        menu.style.height = `${targetH}px`;
+                        menu.style.transform = '';
+                    } else {
+                        menu.style.transition = 'none';
+                        menu.style.transform = `translateY(${touchDiffY}px)`;
+                    }
+                } else {
+                    if (menu.scrollTop <= 2 && touchDiffY > 0) {
+                        const startH = window.innerHeight * 0.92;
+                        const targetH = Math.max(initialHeight, startH - touchDiffY);
+                        menu.style.transition = 'none';
+                        menu.style.height = `${targetH}px`;
+                        menu.style.transform = '';
+                    }
+                }
+            };
+
+            menu.ontouchend = () => {
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 320;
+                menu.style.transition = smoothCurve;
+                void menu.offsetHeight;
+
+                if (!isExpanded) {
+                    if (touchDiffY < -35) {
+                        isExpanded = true;
+                        menu.classList.add('is-expanded');
+                        menu.style.height = '92vh';
+                        menu.style.transform = '';
+                    } else if (touchDiffY > 70) {
+                        this.closeFolderCardMenu();
+                    } else {
+                        menu.style.height = `${initialHeight}px`;
+                        menu.style.transform = 'translateY(0)';
+                    }
+                } else {
+                    if (touchDiffY > 40) {
+                        isExpanded = false;
+                        menu.classList.remove('is-expanded');
+                        menu.style.height = `${initialHeight}px`;
+                        menu.style.transform = '';
+                    } else {
+                        menu.style.height = '92vh';
+                        menu.style.transform = '';
+                    }
+                }
+                touchDiffY = 0;
+            };
+
+        } else {
+            // DESKTOP: Popover anclado
+            menu.className = 'dropbox-folder-popover';
+            menu.style.transform = '';
+            menu.ontouchstart = null;
+            menu.ontouchmove = null;
+            menu.ontouchend = null;
+            menu.innerHTML = `
+                <div class="folder-popover-items">
+                    <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openFolder('${safeF}')">
+                        <span class="material-symbols-outlined">folder</span>
+                        <span>${isEn ? 'Open folder' : 'Abrir carpeta'}</span>
+                    </button>
+                    <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>${isEn ? 'Share' : 'Compartir'}</span>
+                    </button>
+                    <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.copyFolderLink('${safeF}')">
+                        <span class="material-symbols-outlined">link</span>
+                        <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
+                    </button>
+                    <button type="button" class="folder-popover-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameFolderByName('${safeF}')">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>${isEn ? 'Rename' : 'Cambiar nombre'}</span>
+                    </button>
+                    <div class="folder-popover-divider"></div>
+                    <button type="button" class="folder-popover-item item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteFolderByName('${safeF}')">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                    </button>
+                </div>
+            `;
+
+            const cardRect = card.getBoundingClientRect();
+            const menuWidth = 200;
+            const menuHeight = 220;
+
+            menu.style.position = 'fixed';
+            let topPos = cardRect.bottom + 6;
+            if (topPos + menuHeight > window.innerHeight - 10) {
+                topPos = Math.max(10, cardRect.top - menuHeight - 6);
+            }
+            menu.style.top = `${topPos}px`;
+
+            let leftPos = cardRect.left;
+            if (leftPos + menuWidth > window.innerWidth - 12) {
+                leftPos = Math.max(12, cardRect.right - menuWidth);
+            }
+            menu.style.left = `${leftPos}px`;
+            menu.classList.remove('hidden');
         }
-        menu.style.top = `${topPos}px`;
-
-        // Ubicar exactamente debajo de la tarjeta de la carpeta que lo abre
-        let leftPos = cardRect.left;
-        if (leftPos + menuWidth > window.innerWidth - 12) {
-            leftPos = Math.max(12, cardRect.right - menuWidth);
-        }
-        menu.style.left = `${leftPos}px`;
-        menu.classList.remove('hidden');
     }
 
     toggleCurrentFolderMenu(event) {
@@ -2199,44 +2384,232 @@ class DashboardManager {
         this._activeFolderMenuName = '__current_folder__';
         const safeF = this.currentFolder.replace(/'/g, "\\'");
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const isMobile = window.innerWidth <= 768;
 
-        menu.className = 'm3-expressive-menu';
-        menu.innerHTML = `
-            <div class="m3-menu-header">
-                <span class="m3-menu-title">${this.currentFolder}</span>
-            </div>
-            <div class="m3-menu-items">
-                <button type="button" class="m3-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameCurrentFolder()">
-                    <span class="material-symbols-outlined">edit</span>
-                    <span>${isEn ? 'Edit name' : 'Editar'}</span>
+        const oldBd = document.getElementById('m3SheetBackdrop');
+        if (oldBd) oldBd.remove();
+
+        // Calcular estadísticas de la carpeta
+        const folderRecipes = (this.currentRecipes || []).filter(r => (r.pantry_es || r.pantry_en || '').trim().toLowerCase() === this.currentFolder.trim().toLowerCase());
+        const recipeCount = folderRecipes.length;
+        const countStr = `${recipeCount} ${isEn ? (recipeCount === 1 ? 'recipe' : 'recipes') : (recipeCount === 1 ? 'receta' : 'recetas')}`;
+
+        let latestDate = null;
+        folderRecipes.forEach(r => {
+            const d = r.updated_at ? new Date(r.updated_at) : (r.created_at ? new Date(r.created_at) : null);
+            if (d && !isNaN(d.getTime())) {
+                if (!latestDate || d > latestDate) latestDate = d;
+            }
+        });
+        const dateStr = latestDate
+            ? latestDate.toLocaleDateString(isEn ? 'en-US' : 'es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+            : (isEn ? 'No modifications' : 'Sin modificaciones');
+
+        if (isMobile) {
+            menu.className = 'm3-modal-bottom-sheet';
+            menu.style.position = '';
+            menu.style.top = '';
+            menu.style.left = '';
+            menu.style.width = '';
+            menu.style.height = '';
+            menu.style.transform = '';
+
+            menu.innerHTML = `
+                <div class="m3-sheet-drag-handle" title="${isEn ? 'Tap or swipe to expand' : 'Toca o desliza para expandir'}"></div>
+                <div class="m3-sheet-header">
+                    <h4>${this.currentFolder}</h4>
+                </div>
+                <div class="m3-sheet-details-expanded">
+                    <div class="m3-sheet-detail-row">
+                        <span class="m3-sheet-detail-label">
+                            <span class="material-symbols-outlined m3-sheet-detail-icon">menu_book</span>
+                            <span>${isEn ? 'Recipes' : 'Recetas'}</span>
+                        </span>
+                        <span class="m3-sheet-detail-val">${countStr}</span>
+                    </div>
+                    <div class="m3-sheet-detail-row">
+                        <span class="m3-sheet-detail-label">
+                            <span class="material-symbols-outlined m3-sheet-detail-icon icon-time">schedule</span>
+                            <span>${isEn ? 'Last modified' : 'Última modificación'}</span>
+                        </span>
+                        <span class="m3-sheet-detail-val">${dateStr}</span>
+                    </div>
+                </div>
+                <div class="m3-sheet-quick-row">
+                    <button type="button" class="m3-quick-pill" onclick="window.dashboard.copyFolderLink('${safeF}'); window.dashboard.closeFolderCardMenu();">
+                        <span class="material-symbols-outlined">link</span>
+                        <span>${isEn ? 'Copy link' : 'Copiar enlace'}</span>
+                    </button>
+                    <button type="button" class="m3-quick-pill" onclick="window.dashboard.openShareFolderModal('${safeF}'); window.dashboard.closeFolderCardMenu();">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>${isEn ? 'Share' : 'Compartir'}</span>
+                    </button>
+                </div>
+                <button type="button" class="context-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameCurrentFolder()">
+                    <span class="material-symbols-outlined">edit_square</span>
+                    <span>${isEn ? 'Edit name' : 'Cambiar nombre'}</span>
                 </button>
-                <button type="button" class="m3-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
-                    <span class="material-symbols-outlined">share</span>
-                    <span>${isEn ? 'Share' : 'Compartir'}</span>
-                </button>
-                <div class="m3-menu-divider"></div>
-                <button type="button" class="m3-menu-item m3-item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteCurrentFolder()">
+                <div class="context-menu-divider"></div>
+                <button type="button" class="context-menu-item danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteCurrentFolder()">
                     <span class="material-symbols-outlined">delete</span>
-                    <span>${isEn ? 'Delete folder' : 'Eliminar'}</span>
+                    <span>${isEn ? 'Delete folder' : 'Eliminar carpeta'}</span>
                 </button>
-            </div>
-        `;
+            `;
 
-        const btn = event.currentTarget;
-        const rect = btn.getBoundingClientRect();
-        const menuWidth = 190;
-        menu.style.position = 'fixed';
-        menu.style.width = `${menuWidth}px`;
-        menu.style.top = `${rect.bottom + 6}px`;
-        let leftPos = rect.right - menuWidth;
-        if (leftPos < 10) leftPos = 10;
-        menu.style.left = `${leftPos}px`;
-        menu.classList.remove('hidden');
+            const backdrop = document.createElement('div');
+            backdrop.className = 'm3-sheet-backdrop';
+            backdrop.id = 'm3SheetBackdrop';
+            backdrop.onclick = () => this.closeFolderCardMenu();
+            document.body.appendChild(backdrop);
+
+            menu.classList.remove('hidden');
+
+            let touchStartY = 0;
+            let touchDiffY = 0;
+            let isExpanded = false;
+            let initialHeight = 0;
+            const smoothCurve = 'height 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+
+            const measureBaseHeight = () => {
+                if (!isExpanded && menu.offsetHeight > 50) {
+                    initialHeight = menu.offsetHeight;
+                    menu.style.height = `${initialHeight}px`;
+                }
+            };
+            requestAnimationFrame(measureBaseHeight);
+            setTimeout(measureBaseHeight, 60);
+
+            const dragHandle = menu.querySelector('.m3-sheet-drag-handle');
+            if (dragHandle) {
+                dragHandle.onclick = (e) => {
+                    e.stopPropagation();
+                    if (!initialHeight) initialHeight = menu.offsetHeight || 320;
+                    isExpanded = !isExpanded;
+                    menu.style.transition = smoothCurve;
+                    void menu.offsetHeight;
+                    menu.classList.toggle('is-expanded', isExpanded);
+                    if (isExpanded) {
+                        menu.style.height = '92vh';
+                    } else {
+                        menu.style.height = `${initialHeight}px`;
+                    }
+                    menu.style.transform = '';
+                };
+            }
+
+            menu.ontouchstart = (e) => {
+                touchStartY = e.touches[0].clientY;
+                touchDiffY = 0;
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 320;
+            };
+
+            menu.ontouchmove = (e) => {
+                touchDiffY = e.touches[0].clientY - touchStartY;
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 320;
+
+                if (!isExpanded) {
+                    if (touchDiffY < 0) {
+                        const targetH = Math.min(window.innerHeight * 0.92, initialHeight - touchDiffY);
+                        menu.style.transition = 'none';
+                        menu.style.height = `${targetH}px`;
+                        menu.style.transform = '';
+                    } else {
+                        menu.style.transition = 'none';
+                        menu.style.transform = `translateY(${touchDiffY}px)`;
+                    }
+                } else {
+                    if (menu.scrollTop <= 2 && touchDiffY > 0) {
+                        const startH = window.innerHeight * 0.92;
+                        const targetH = Math.max(initialHeight, startH - touchDiffY);
+                        menu.style.transition = 'none';
+                        menu.style.height = `${targetH}px`;
+                        menu.style.transform = '';
+                    }
+                }
+            };
+
+            menu.ontouchend = () => {
+                if (!initialHeight && !isExpanded) initialHeight = menu.offsetHeight || 320;
+                menu.style.transition = smoothCurve;
+                void menu.offsetHeight;
+
+                if (!isExpanded) {
+                    if (touchDiffY < -35) {
+                        isExpanded = true;
+                        menu.classList.add('is-expanded');
+                        menu.style.height = '92vh';
+                        menu.style.transform = '';
+                    } else if (touchDiffY > 70) {
+                        this.closeFolderCardMenu();
+                    } else {
+                        menu.style.height = `${initialHeight}px`;
+                        menu.style.transform = 'translateY(0)';
+                    }
+                } else {
+                    if (touchDiffY > 40) {
+                        isExpanded = false;
+                        menu.classList.remove('is-expanded');
+                        menu.style.height = `${initialHeight}px`;
+                        menu.style.transform = '';
+                    } else {
+                        menu.style.height = '92vh';
+                        menu.style.transform = '';
+                    }
+                }
+                touchDiffY = 0;
+            };
+
+        } else {
+            menu.className = 'm3-expressive-menu';
+            menu.style.transform = '';
+            menu.ontouchstart = null;
+            menu.ontouchmove = null;
+            menu.ontouchend = null;
+            menu.innerHTML = `
+                <div class="m3-menu-header">
+                    <span class="m3-menu-title">${this.currentFolder}</span>
+                </div>
+                <div class="m3-menu-items">
+                    <button type="button" class="m3-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.renameCurrentFolder()">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>${isEn ? 'Edit name' : 'Editar'}</span>
+                    </button>
+                    <button type="button" class="m3-menu-item" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.openShareFolderModal('${safeF}')">
+                        <span class="material-symbols-outlined">share</span>
+                        <span>${isEn ? 'Share' : 'Compartir'}</span>
+                    </button>
+                    <div class="m3-menu-divider"></div>
+                    <button type="button" class="m3-menu-item m3-item-danger" onclick="window.dashboard.closeFolderCardMenu(); window.dashboard.deleteCurrentFolder()">
+                        <span class="material-symbols-outlined">delete</span>
+                        <span>${isEn ? 'Delete folder' : 'Eliminar'}</span>
+                    </button>
+                </div>
+            `;
+
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            const menuWidth = 190;
+            menu.style.position = 'fixed';
+            menu.style.width = `${menuWidth}px`;
+            menu.style.top = `${rect.bottom + 6}px`;
+            let leftPos = rect.right - menuWidth;
+            if (leftPos < 10) leftPos = 10;
+            menu.style.left = `${leftPos}px`;
+            menu.classList.remove('hidden');
+        }
     }
 
     closeFolderCardMenu() {
         const menu = document.getElementById('folderCardMenu');
-        if (menu) menu.classList.add('hidden');
+        if (menu) {
+            menu.classList.add('hidden');
+            menu.style.transform = '';
+            menu.ontouchstart = null;
+            menu.ontouchmove = null;
+            menu.ontouchend = null;
+        }
+        const bd = document.getElementById('m3SheetBackdrop');
+        if (bd) bd.remove();
         document.querySelectorAll('.dropbox-carousel-card.menu-open').forEach(c => c.classList.remove('menu-open'));
         this._activeFolderMenuName = null;
     }
@@ -3502,7 +3875,7 @@ class DashboardManager {
                                 <span class="material-symbols-outlined section-icon">format_list_numbered</span>
                                 <h2 class="section-title">Preparation</h2>
                             </div>
-                            <div id="panelStepsList" style="position:relative;display:flex;flex-direction:column;gap:48px;">
+                            <div id="panelStepsList" style="position:relative;display:flex;flex-direction:column;gap:8px;">
                                 ${renderSteps()}
                             </div>
                         </section>` : ''}

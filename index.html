@@ -42,8 +42,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=728">
-  <link rel="stylesheet" href="css/components.css?v=728">
+  <link rel="stylesheet" href="css/styles.css?v=729">
+  <link rel="stylesheet" href="css/components.css?v=729">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -76,8 +76,16 @@
     html[data-active-folder] #suggestedCarouselSection {
       display: none !important;
     }
+    /* En modo selección dentro de carpeta, mostrar el header para "Seleccionar todo" y "Anular selección" */
+    html[data-active-folder] body.selection-mode-active .dashboard-header {
+      display: flex !important;
+    }
     html[data-active-folder] #folderBreadcrumb {
       display: flex !important;
+    }
+    /* En modo selección dentro de carpeta, ocultar el breadcrumb para dar espacio al header */
+    html[data-active-folder] body.selection-mode-active #folderBreadcrumb {
+      display: none !important;
     }
 
     /* ─── Recipe Pantry Original Landing UI ─── */
@@ -779,7 +787,7 @@
 
       <!-- Footer estilo Dropbox: Copiar enlace a la izquierda, Hecho / Compartir a la derecha -->
       <div class="dropbox-share-modal-footer">
-        <button type="button" class="btn-dropbox-copylink" onclick="window.shareModal.copyShareLink()" title="Copiar enlace directo">
+        <button type="button" id="btn-share-copylink" class="btn-dropbox-copylink" onclick="window.shareModal.copyShareLink()" title="Copiar enlace directo">
           <span class="material-symbols-outlined">link</span>
           <span>Copiar enlace</span>
         </button>
@@ -843,12 +851,12 @@
   <script src="js/db.js?v=728"></script>
   <script src="js/auth.js?v=728"></script>
   <script src="js/dashboard.js?v=728"></script>
-  <script src="js/share-modal.js?v=728"></script>
-  <script src="js/help-modal.js?v=728"></script>
+  <script src="js/share-modal.js?v=731"></script>
+  <script src="js/help-modal.js?v=731"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=728"></script>
-  <script src="js/core/push.js?v=728"></script>
-  <script src="js/notifications.js?v=728"></script>
+  <script type="module" src="js/core/firebase.js?v=731"></script>
+  <script src="js/core/push.js?v=731"></script>
+  <script src="js/notifications.js?v=733"></script>
   <script src="js/ui.js?v=728"></script>
   <script src="js/sw-register.js?v=728"></script>
 <script src="js/pwa-install.js?v=728"></script>

@@ -168,13 +168,19 @@ class NotificationManager {
                     try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
                 }
                 const isMenu = n.type === 'menu_shared';
+                const isNote = n.type === 'note_shared';
                 const restaurantName = meta.restaurant_name || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
+                const noteTitle = meta.note_title || (isEn ? 'Shared Note' : 'Nota compartida');
+                const noteId = meta.note_id || n.recipe_id || null;
 
                 return {
                     id: n.id,
                     recipeId: n.recipe_id,
-                    recipeName: isMenu ? restaurantName : (recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida')),
+                    recipeName: isMenu ? restaurantName : (isNote ? noteTitle : (recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida'))),
                     type: n.type || 'recipe_shared',
+                    noteId: noteId,
+                    noteTitle: noteTitle,
+                    metadata: meta,
                     folderName: meta.folder_name || '',
                     recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (n.recipe_id ? [n.recipe_id] : []),
                     recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
@@ -762,6 +768,50 @@ class NotificationManager {
                 `;
             }
 
+            if (n.type === 'note_shared') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const safeNoteId = n.noteId || '';
+                const noteTitle = n.noteTitle || (isEn ? 'Shared Note' : 'Nota compartida');
+
+                return `
+                    <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center;">
+                                <span class="material-symbols-outlined" style="font-size:20px;">description</span>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} ${isEn ? 'has shared a note with you' : 'te ha compartido una nota'}</span>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
+                                        style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                                </div>
+                                <span style="color:#111827 !important; font-weight:800; display:block; margin-top:3px; font-size:14.5px;">📝 ${noteTitle}</span>
+                                <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                
+                                <!-- Action buttons -->
+                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptNote('${n.id}', '${safeNoteId}')"
+                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                        <span class="material-symbols-outlined" style="font-size:18px;">note_add</span>
+                                        <span>${isEn ? 'Save note' : 'Guardar nota'}</span>
+                                    </button>
+                                    <div style="display:flex; gap:9px;">
+                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
+                                            style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                            title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                            ✕ ${isEn ? 'Dismiss' : 'Omitir'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             const safeRecipeId = n.recipeId || '';
             const isRecipeIdValid = safeRecipeId.length > 10 && safeRecipeId !== 'undefined';
             
@@ -769,7 +819,7 @@ class NotificationManager {
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
                         <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center;">
-                            ${n.sender ? n.sender.charAt(0).toUpperCase() : '?'}
+                            <span class="material-symbols-outlined" style="font-size:20px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">menu_book</span>
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -1623,6 +1673,130 @@ class NotificationManager {
             }
         } catch (err) {
             console.error('❌ [Notifications] Error en handleDismissMenu:', err);
+        }
+    }
+
+    async handleAcceptNote(notificationId, noteId) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+            const targetUserId = user.auth_user_id || user.id;
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (window.utils?.showToast) {
+                window.utils.showToast(isEn ? 'Saving note...' : 'Guardando nota en tus notas...', 'info');
+            }
+
+            // 1. Obtener la nota original
+            let noteData = null;
+            const notif = this.notifications.find(n => n.id === notificationId);
+            const meta = notif?.metadata || {};
+
+            if (meta.note_data) {
+                noteData = meta.note_data;
+            } else if (window.supabaseClient && noteId) {
+                const { data: dbNote } = await window.supabaseClient.from('notes').select('*').eq('id', noteId).maybeSingle();
+                noteData = dbNote;
+            }
+
+            if (!noteData && notif) {
+                noteData = {
+                    title: notif.noteTitle || 'Nota compartida',
+                    content: meta.content || meta.message || '',
+                    type: meta.note_type || 'text',
+                    color: meta.color || '#fff475'
+                };
+            }
+
+            if (noteData) {
+                const newNoteId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('note-' + Date.now());
+                const newNote = {
+                    id: newNoteId,
+                    user_id: targetUserId,
+                    title: noteData.title || (isEn ? 'Shared Note' : 'Nota compartida'),
+                    content: noteData.content || '',
+                    type: noteData.type || 'text',
+                    color: noteData.color || 'transparent',
+                    is_pinned: false,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                if (window.supabaseClient) {
+                    await window.supabaseClient.from('notes').insert([newNote]);
+                }
+
+                if (noteData.type === 'checklist' && window.supabaseClient) {
+                    let items = noteData.note_items || [];
+                    if ((!items || items.length === 0) && noteId) {
+                        const { data: dbItems } = await window.supabaseClient.from('note_items').select('*').eq('note_id', noteId);
+                        items = dbItems || [];
+                    }
+                    if (items.length > 0) {
+                        const newItems = items.map((item, idx) => ({
+                            note_id: newNoteId,
+                            content: item.content,
+                            is_completed: !!item.is_completed,
+                            order_index: idx
+                        }));
+                        await window.supabaseClient.from('note_items').insert(newItems);
+                    }
+                }
+
+                if (window.notasManager) {
+                    window.notasManager.notes.unshift(newNote);
+                    if (user.auth_user_id) window.notasManager.saveNoteToCache(user.auth_user_id, newNote);
+                    if (user.id) window.notasManager.saveNoteToCache(user.id, newNote);
+                    window.notasManager.renderNotesList();
+                } else {
+                    // Si estamos en otra página (ej. dashboard), agregar a localStorage directamente
+                    try {
+                        const keys = [user.auth_user_id, user.id].filter(Boolean);
+                        keys.forEach(k => {
+                            const cacheKey = `pantry_notes_cache_${k}`;
+                            let existing = [];
+                            try { existing = JSON.parse(localStorage.getItem(cacheKey)) || []; } catch (_) {}
+                            existing.unshift(newNote);
+                            localStorage.setItem(cacheKey, JSON.stringify(existing));
+                        });
+                    } catch (_) {}
+                }
+            }
+
+            // 2. Marcar notificación como leída
+            if (window.supabaseClient) {
+                await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+            }
+            this._dismissLocally(notificationId);
+
+            if (window.utils?.showToast) {
+                window.utils.showToast(isEn ? 'Note saved!' : '¡Nota guardada en tus notas!', 'success');
+            }
+
+            // 3. Abrir /notas
+            setTimeout(() => {
+                window.location.href = '/notas';
+            }, 400);
+
+        } catch (err) {
+            console.error('❌ Error al guardar nota compartida:', err);
+            if (window.utils?.showToast) {
+                window.utils.showToast('Error al guardar la nota', 'error');
+            }
+        }
+    }
+
+    async handleDismissNote(notificationId) {
+        try {
+            this._dismissLocally(notificationId);
+            if (window.supabaseClient) {
+                await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+            }
+            if (window.utils?.showToast) {
+                window.utils.showToast('Notificación descartada', 'info');
+            }
+        } catch (err) {
+            console.error('❌ Error al descartar nota:', err);
         }
     }
 

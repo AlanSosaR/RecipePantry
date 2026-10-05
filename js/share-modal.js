@@ -131,6 +131,13 @@ class ShareModalManager {
             if (iconElem) iconElem.textContent = 'storefront';
             const menuName = window.restaurantMenu?.restaurantName || "Stanley's SW16";
             if (subElem) subElem.textContent = `${menuName} • ${isEn ? 'Menu & Allergen Matrix' : 'Carta de platos y Matriz de alérgenos'}`;
+        } else if (this.targetType === 'note') {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (titleElem) titleElem.textContent = isEn ? 'Share note' : 'Compartir nota';
+            if (iconElem) iconElem.textContent = 'description';
+            const note = (window.notasManager?.notes || []).find(n => String(n.id) === String(targetId)) || window.notasManager?.activeModalNote;
+            const noteName = note ? (note.title || (note.type === 'checklist' ? 'Lista sin título' : 'Nota sin título')) : 'Nota';
+            if (subElem) subElem.textContent = `${noteName} • 1 elemento`;
         } else {
             if (iconElem) iconElem.textContent = 'description';
             const allRecs = window.dashboard?.currentRecipes || [];
@@ -257,7 +264,9 @@ class ShareModalManager {
 
     copyShareLink() {
         let url = window.location.origin;
-        if (Array.isArray(this.targetId) && this.targetId.length > 0) {
+        if (this.targetType === 'note' && this.targetId) {
+            url = `${window.location.origin}/notas?id=${encodeURIComponent(this.targetId)}`;
+        } else if (Array.isArray(this.targetId) && this.targetId.length > 0) {
             url = `${window.location.origin}/recipe-detail?id=${this.targetId[0]}`;
         } else if (this.targetId && this.targetType !== 'folder') {
             url = `${window.location.origin}/recipe-detail?id=${this.targetId}`;
@@ -454,6 +463,7 @@ class ShareModalManager {
         const btnDone = document.getElementById('btn-share-done');
         const btnCancel = document.getElementById('btn-share-cancel');
         const btnShare = document.getElementById('btn-share-submit');
+        const btnCopyLink = document.getElementById('btn-share-copylink') || document.querySelector('.btn-dropbox-copylink');
         const msgContainer = document.getElementById('dropboxMessageContainer');
 
         if (count > 0) {
@@ -464,11 +474,13 @@ class ShareModalManager {
                 btnShare.disabled = false;
                 btnShare.textContent = 'Compartir';
             }
+            if (btnCopyLink) btnCopyLink.classList.add('hidden');
             if (msgContainer) msgContainer.classList.remove('hidden');
         } else {
             if (btnDone) btnDone.classList.remove('hidden');
             if (btnCancel) btnCancel.classList.add('hidden');
             if (btnShare) btnShare.classList.add('hidden');
+            if (btnCopyLink) btnCopyLink.classList.remove('hidden');
             if (msgContainer) msgContainer.classList.add('hidden');
         }
 
@@ -490,7 +502,10 @@ class ShareModalManager {
 
         try {
             let shares = [];
-            if (this.targetType === 'folder') {
+            if (this.targetType === 'note') {
+                this.sharesList.innerHTML = '<div style="padding: 6px 0; color: #64748B; font-size: 13px; display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="font-size: 18px;">group</span><span>Solo tú tienes acceso por ahora.</span></div>';
+                return;
+            } else if (this.targetType === 'folder') {
                 const folderRecipes = (window.dashboard?.currentRecipes || []).filter(
                     r => (r.pantry_es || '').trim().toLowerCase() === String(this.targetId).toLowerCase()
                 );
@@ -719,7 +734,40 @@ class ShareModalManager {
                 recipeIds = [this.targetId];
             }
 
-            if (this.targetType === 'menu' || this.targetType === 'restaurant') {
+            if (this.targetType === 'note') {
+                if (this.targetId && window.supabaseClient && currentUserId) {
+                    const notifications = [];
+                    const note = (window.notasManager?.notes || []).find(n => String(n.id) === String(this.targetId)) || window.notasManager?.activeModalNote;
+                    const noteTitle = note?.title || 'Nota';
+
+                    for (const user of this.selectedUsers) {
+                        notifications.push({
+                            user_id: user.id,
+                            from_user_id: currentUserId,
+                            recipe_id: null,
+                            leido: false,
+                            type: 'note_shared',
+                            metadata: {
+                                note_id: this.targetId,
+                                note_title: noteTitle,
+                                permission: permission,
+                                message: optionalMessage || null,
+                                note_data: note ? {
+                                    title: note.title,
+                                    content: note.content,
+                                    type: note.type,
+                                    color: note.color,
+                                    note_items: note.note_items || []
+                                } : null
+                            }
+                        });
+                    }
+
+                    if (notifications.length > 0) {
+                        await window.supabaseClient.from('notifications').insert(notifications);
+                    }
+                }
+            } else if (this.targetType === 'menu' || this.targetType === 'restaurant') {
                 if (this.targetId && window.supabaseClient && currentUserId) {
                     const inserts = [];
                     const notifications = [];
@@ -829,6 +877,10 @@ class ShareModalManager {
             let successMsg = `✅ Compartido con ${names}`;
             if (this.targetType === 'folder') {
                 successMsg = `✅ Carpeta "${this.targetId}" compartida con ${names}`;
+            } else if (this.targetType === 'note') {
+                const note = (window.notasManager?.notes || []).find(n => String(n.id) === String(this.targetId)) || window.notasManager?.activeModalNote;
+                const noteTitle = note?.title || 'Nota';
+                successMsg = `✅ Nota "${noteTitle}" compartida con ${names}`;
             } else if (recipeIds.length > 1) {
                 successMsg = `✅ ${recipeIds.length} recetas compartidas con ${names}`;
             }

@@ -143,6 +143,39 @@
             line-height: 1.6;
             color: var(--on-surface-variant);
             font-weight: 500;
+            white-space: pre-line;
+            word-break: break-word;
+        }
+
+        .m3-step-badge .step-num {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            color: #ffffff !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            line-height: 1 !important;
+            text-align: center !important;
+            transform: none !important;
+        }
+
+        .m3-step-checkable.step-done .m3-step-badge .step-num {
+            display: none !important;
+        }
+
+        .m3-step-checkable.step-done .m3-step-badge .step-check {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            font-size: 24px !important;
+            color: #ffffff !important;
         }
 
         /* Ingredients Styles are now in components.css as .m3-ingredient-item */
@@ -225,7 +258,7 @@
                     <span class="material-symbols-outlined section-icon">format_list_numbered</span>
                     <h2 class="section-title" data-i18n="detailSteps">Preparación</h2>
                 </div>
-                <div id="stepsList" style="position: relative; display: flex; flex-direction: column; gap: 48px;">
+                <div id="stepsList" style="position: relative; display: flex; flex-direction: column; gap: 8px;">
                     <!-- Cargado via JS -->
                 </div>
             </section>
