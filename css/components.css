@@ -4739,7 +4739,7 @@ select.input-field {
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding: 36px 20px 20px;
+    padding: 36px 20px 16px;
     text-align: center;
     background: transparent;
     transition: all 0.3s var(--m3-easing);
@@ -4747,6 +4747,18 @@ select.input-field {
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+}
+
+/* Línea divisoria elegante debajo del perfil de usuario */
+.sidebar-user-profile::after {
+    content: '';
+    display: block;
+    width: 84%;
+    height: 1px;
+    background: var(--outline-variant, #E5E7EB);
+    margin-top: 14px;
+    border-radius: 1px;
+    opacity: 0.9;
 }
 
 .sidebar-user-profile:hover {
@@ -4942,11 +4954,30 @@ select.input-field {
         border-radius: 0 !important;
         transition: left 0.3s var(--m3-easing);
         box-shadow: 20px 0 50px rgba(0, 0, 0, 0.25);
+        border-right: 1px solid var(--outline-variant, #E5E7EB) !important;
     }
 
     .sidebar.active {
         left: 0;
     }
+}
+
+/* Línea divisoria antes de Cerrar Sesión */
+.nav-item.nav-logout-m3 {
+    margin-top: 10px !important;
+    position: relative;
+}
+
+.nav-item.nav-logout-m3::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: var(--outline-variant, #E5E7EB);
+    border-radius: 1px;
+    opacity: 0.9;
 }
 
 /* Ocultar el botón flotante (FAB) cuando el menú lateral está abierto para evitar que compita por protagonismo */

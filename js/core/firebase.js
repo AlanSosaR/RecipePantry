@@ -16,18 +16,7 @@ async function loadFirebaseConfig() {
     return window.FIREBASE_CONFIG;
   }
 
-  // 2. Archivo de configuración local (.gitignore - desarrollo local)
-  try {
-    const mod = await import('./firebase-config.js');
-    const local = mod.default || mod.firebaseConfig;
-    if (local && local.apiKey && !local.apiKey.includes('TU_FIREBASE_API_KEY')) {
-      return local;
-    }
-  } catch (e) {
-    // Normal cuando el archivo no existe en el despliegue
-  }
-
-  // 3. Endpoint dinámico seguro (Vercel serverless / dev-server)
+  // 2. Endpoint dinámico seguro (Vercel serverless / dev-server)
   try {
     const res = await fetch('/api/firebase-config');
     if (res.ok) {
@@ -38,6 +27,20 @@ async function loadFirebaseConfig() {
     }
   } catch (e) {
     // Modo offline o sin backend
+  }
+
+  // 3. Archivo de configuración local (desarrollo local / localhost)
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  if (isLocalhost) {
+    try {
+      const mod = await import('./firebase-config.js');
+      const local = mod.default || mod.firebaseConfig;
+      if (local && local.apiKey && !local.apiKey.includes('TU_FIREBASE_API_KEY')) {
+        return local;
+      }
+    } catch (e) {
+      // Ignorar si no existe
+    }
   }
 
   return null;

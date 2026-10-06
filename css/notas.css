@@ -37,8 +37,20 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding: 40px 24px 24px;
+    padding: 40px 24px 20px;
     text-align: center;
+    position: relative;
+}
+
+.notas-sidebar-profile::after {
+    content: '';
+    display: block;
+    width: 84%;
+    height: 1px;
+    background: var(--border, #E5E7EB);
+    margin-top: 14px;
+    border-radius: 1px;
+    opacity: 0.9;
 }
 
 .notas-avatar-ring {

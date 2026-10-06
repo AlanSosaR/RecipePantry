@@ -11,7 +11,7 @@ export default function handler(req, res) {
   }
 
   const config = {
-    apiKey: process.env.FIREBASE_API_KEY || '',
+    apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyCcp8u2ckTy8E1Un1Fp5s-ZuYqJoxVYct4',
     authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'recipepantry-e8ef8.firebaseapp.com',
     projectId: process.env.FIREBASE_PROJECT_ID || 'recipepantry-e8ef8',
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'recipepantry-e8ef8.firebasestorage.app',
