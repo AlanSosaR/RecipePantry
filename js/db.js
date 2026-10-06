@@ -361,9 +361,14 @@ class DatabaseManager {
 
             return { success: true, recipes: safeRecipes, fromCache: false };
         } catch (error) {
-            console.error('❌ Edge API Error _fetchRecipesFromServer:', error);
-            // v231: Corregido almacen fallback (recipes_index en lugar de recipes)
-            const localRecipes = await window.localDB?.getAll('recipes_index') || [];
+            let localRecipes = await window.localDB?.getAll('recipes_index') || [];
+            if (filters.search && filters.search.trim()) {
+                const s = filters.search.trim().toLowerCase();
+                localRecipes = localRecipes.filter(r =>
+                    (r.name_es && r.name_es.toLowerCase().includes(s)) ||
+                    (r.name_en && r.name_en.toLowerCase().includes(s))
+                );
+            }
             return { success: true, recipes: localRecipes, fromCache: true };
         }
     }

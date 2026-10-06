@@ -3346,10 +3346,20 @@ class DashboardManager {
             return !f.trim();
         };
 
-        // Filtrar por carpeta actual si estamos en la vista de recetas
+        // Filtrar por búsqueda o por carpeta actual
         let displayRecipes = recipes;
         const isSearching = !!(this.lastFilters && this.lastFilters.search && this.lastFilters.search.trim());
-        if (this.currentView === 'recipes' && !isSearching) {
+        if (isSearching) {
+            const s = this.lastFilters.search.trim().toLowerCase();
+            displayRecipes = (recipes || []).filter(r => {
+                const nameEs = (r.name_es || '').toLowerCase();
+                const nameEn = (r.name_en || '').toLowerCase();
+                return nameEs.includes(s) || nameEn.includes(s);
+            });
+            if (this.currentFolder) {
+                displayRecipes = displayRecipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
+            }
+        } else if (this.currentView === 'recipes') {
             if (this.currentFolder) {
                 // Dentro de una carpeta: solo recetas pertenecientes a esa carpeta
                 displayRecipes = recipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
@@ -3357,8 +3367,6 @@ class DashboardManager {
                 // En la vista global (raíz): recetas sueltas sin carpeta asignada
                 displayRecipes = recipes.filter(r => isRootFolder(r.pantry_es));
             }
-        } else if (this.currentView === 'recipes' && this.currentFolder && isSearching) {
-            displayRecipes = recipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
         }
 
         // Renderizar sección de carpetas o breadcrumb
@@ -3367,8 +3375,8 @@ class DashboardManager {
         // Sincronizar contador en cabecera con el número exacto de recetas mostradas
         this.updateTitleHeader(displayRecipes ? displayRecipes.length : null);
 
-        // Renderizar o esconder carrusel de carpetas sugeridas
-        if (this.currentView === 'recipes' && !this.currentFolder) {
+        // Renderizar o esconder carrusel de carpetas sugeridas (sólo si no se está buscando)
+        if (this.currentView === 'recipes' && !this.currentFolder && !isSearching) {
             const savedFolders = (window.db && window.db.getMyFoldersSync) ? window.db.getMyFoldersSync() : [];
             const folderMap = new Map();
 
@@ -3419,7 +3427,21 @@ class DashboardManager {
                 const desc = document.getElementById('emptyStateDesc');
                 const btn = document.getElementById('emptyStateBtn');
 
-                if (this.currentFolder) {
+                if (isSearching) {
+                    const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    const term = this.lastFilters.search.trim();
+                    if (imgGroup) imgGroup.innerHTML = '<span class="material-symbols-outlined" style="font-size: 72px; color: #10B981; margin: 0 auto; display: block;">search_off</span>';
+                    if (title) {
+                        title.textContent = isEn ? `No recipe matches "${term}"` : `No existe ninguna receta con el nombre "${term}"`;
+                        title.style.color = '#111827';
+                    }
+                    if (desc) {
+                        desc.textContent = isEn ? 'Check the spelling or try searching for another dish or ingredient.' : 'Comprueba la ortografía o prueba a buscar otro plato o ingrediente.';
+                        desc.style.color = '#6B7280';
+                        desc.style.opacity = '1';
+                    }
+                    if (btn) btn.classList.add('hidden');
+                } else if (this.currentFolder) {
                     const isEn = window.i18n && window.i18n.getLang() === 'en';
                     if (imgGroup) imgGroup.innerHTML = '<span class="material-symbols-outlined" style="font-size: 80px; color: #10B981; margin: 0 auto; display: block; opacity: 0.85;">folder_open</span>';
                     if (title) {
@@ -4804,8 +4826,8 @@ class DashboardManager {
 
         container.innerHTML = `
             <div class="allergens-module">
-                <!-- Hero Header Material 3 Expressive -->
-                <div class="allergens-hero-m3">
+                <!-- Hero Header Material 3 Expressive (Visible en PC siempre, y en Móvil solo si no es safe) -->
+                <div class="allergens-hero-m3 ${this.currentAllergenTab === 'safe' ? 'desktop-only' : ''}">
                     <span class="m3-uk-fsa-badge hero-corner-badge">
                         <span class="material-symbols-outlined" style="font-size: 15px;">verified_user</span>
                         <span>${isEn ? 'Food Safety' : 'Seguridad Alimentaria'}</span>
@@ -4853,14 +4875,14 @@ class DashboardManager {
                     </div>
                 </div>
 
-                <!-- Material 3 Expressive Segmented Tabs -->
+                <!-- Material 3 Segmented Navigation Tabs -->
                 <div class="allergens-tabs-m3">
                     <button class="m3-nav-tab ${this.currentAllergenTab === 'safe' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('safe')">
                         <span class="material-symbols-outlined">shield</span>
                         <span class="tab-label-text">
                             <span>${isEn ? 'Safe Diner' : 'Comensal Seguro'}</span>
                         </span>
-                        ${this.selectedSafeExclusions.size > 0 ? `<span class="tab-counter-badge">${this.selectedSafeExclusions.size}</span>` : ''}
+                        ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `<span class="tab-counter-badge">${this.selectedSafeExclusions.size}</span>` : ''}
                     </button>
                     <button class="m3-nav-tab ${this.currentAllergenTab === 'guide' ? 'active' : ''}" onclick="window.dashboard.setAllergenTab('guide')">
                         <span class="material-symbols-outlined">menu_book</span>
@@ -5712,38 +5734,21 @@ class DashboardManager {
         }
     }
 
+    toggleShowAllSafeAllergens() {
+        this.showAllSafeAllergens = !this.showAllSafeAllergens;
+        this.renderAllergensView();
+    }
+
     renderAllergenSafeTab(isEn, t) {
         const tabMount = document.getElementById('allergenTabContent');
         if (!tabMount) return;
 
+        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
         if (!window.restaurantMenu || !window.restaurantMenu.hasMenu) {
             tabMount.innerHTML = `
                 <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; margin-top: 16px;">
                     <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center;">
                         <span class="material-symbols-outlined" style="font-size: 38px; color: #2563EB;">shield_with_heart</span>
-                    </div>
-                    <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
-                        ${isEn ? 'No Restaurant Dishes for Safe Diner' : 'Comensal Seguro sin carta activa'}
-                    </h3>
-                    <p style="color: #64748B; max-width: 480px; margin: 0 auto 20px auto; font-size: 14px; line-height: 1.5;">
-                        ${isEn 
-                            ? 'Create or link your restaurant menu to filter safe dishes according to multi-allergen exclusions.' 
-                            : 'Crea tu menú o vincula la carta de tu restaurante para poder filtrar platos 100% seguros y avisos de contaminación para tus clientes.'}
-                    </p>
-                    <button class="btn-primary" onclick="window.dashboard.switchView('menu')" style="border-radius: 999px; padding: 0 24px; height: 42px; font-weight: 700;">
-                        ${isEn ? 'Go to Menu Management' : 'Ir a Gestión de Menú'}
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        const allergens = window.restaurantMenu ? window.restaurantMenu.getAllergens() : [];
-        if (allergens.length === 0) {
-            tabMount.innerHTML = `
-                <div class="allergens-empty-state" style="padding: 56px 20px; text-align: center; background: #FFFFFF; border-radius: 20px; border: 1.5px solid #E2E8F0; margin-top: 16px;">
-                    <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center;">
-                        <span class="material-symbols-outlined" style="font-size: 38px; color: #059669;">shield_with_heart</span>
                     </div>
                     <h3 style="font-size: 19px; font-weight: 800; color: #0F172A; margin: 0 0 8px 0;">
                         ${isEn ? 'No Allergens Configured' : 'Sin alérgenos para filtrar'}
@@ -5761,14 +5766,15 @@ class DashboardManager {
             return;
         }
 
-        const dietaryProfiles = window.UK_DIETARY_PROFILES || [];
-        const allRecipes = window.restaurantMenu.getOfficialAllergens();
+        const allRecipes = (window.restaurantMenu && window.restaurantMenu.getOfficialAllergens)
+            ? window.restaurantMenu.getOfficialAllergens()
+            : (Array.isArray(this.currentRecipes) ? this.currentRecipes : []);
 
         let safeRecipes = [];
         let warningRecipes = [];
         let excludedRecipes = [];
 
-        if (this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0) {
+        if (this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 && allRecipes.length > 0) {
             allRecipes.forEach(recipe => {
                 const direct = recipe.allergens || (window.detectRecipeAllergens ? window.detectRecipeAllergens(recipe) : []);
                 const directIds = direct.map(d => (typeof d === 'object' ? d.id : d));
@@ -5788,7 +5794,10 @@ class DashboardManager {
             });
         }
 
-        tabMount.innerHTML = `
+        const hasExclusions = this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0;
+
+        // --- 1. HTML PARA ESCRITORIO (PC) - 100% IDÉNTICO AL ORIGINAL ---
+        const pcHtml = `
             <div class="safe-filter-panel">
                 <div class="safe-filter-header">
                     <div class="safe-filter-title">
@@ -5804,14 +5813,14 @@ class DashboardManager {
                     </div>
                 </div>
 
-                <!-- Direct Allergen Pills Selector Grid (Desktop PC Only) -->
-                <div class="safe-pc-pills-container desktop-only">
+                <!-- Direct Allergen Pills Selector Grid (Desktop PC) -->
+                <div class="safe-pc-pills-container">
                     <div class="safe-pc-pills-header">
                         <div class="safe-pc-pills-title">
                             <span class="material-symbols-outlined" style="color: #059669;">shield</span>
                             <span>${isEn ? 'Kitchen Allergens (Click to exclude)' : 'Alérgenos Registrados (Haz clic para excluir)'}</span>
                         </div>
-                        ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
+                        ${hasExclusions ? `
                             <button class="filter-clear-link" onclick="window.dashboard.clearSafeExclusions()" type="button">
                                 <span class="material-symbols-outlined">restart_alt</span>
                                 <span>${isEn ? 'Clear filters' : 'Limpiar filtros'}</span>
@@ -5840,128 +5849,8 @@ class DashboardManager {
                     </div>
                 </div>
 
-                <!-- Split Buttons Bar (Mobile Only) -->
-                <div class="safe-split-buttons-bar mobile-only">
-                    <!-- Filter Split Button -->
-                    <div class="m3-split-button-wrapper" id="allergenFilterSplitWrapper">
-                        <div class="m3-split-button filter-split-button ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? 'has-active-filter' : ''}">
-                            <button class="m3-split-btn-main" onclick="window.dashboard.toggleSafeAllergenDropdown(event)" type="button">
-                                <span class="material-symbols-outlined">${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? 'filter_alt' : 'tune'}</span>
-                                <span class="split-btn-title">${isEn ? 'Filter by Allergens' : 'Filtro de Alérgenos'}</span>
-                                ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
-                                    <span class="split-count-badge">${this.selectedSafeExclusions.size}</span>
-                                ` : ''}
-                            </button>
-                            <button class="m3-split-btn-arrow" onclick="window.dashboard.toggleSafeAllergenDropdown(event)" type="button" aria-label="${isEn ? 'Open allergen list' : 'Abrir lista de alérgenos'}">
-                                <span class="material-symbols-outlined arrow-icon ${this.safeFilterDropdownOpen ? 'open' : ''}">expand_more</span>
-                            </button>
-                        </div>
-
-                        <!-- Dropdown Allergens -->
-                        <div id="safeAllergenDropdown" class="m3-split-dropdown allergen-list-dropdown ${this.safeFilterDropdownOpen ? '' : 'hidden'}">
-                            <div class="m3-split-dropdown-header">
-                                <div class="filter-header-left">
-                                    <span class="material-symbols-outlined" style="color: #059669; font-size: 18px;">shield</span>
-                                    <span>${isEn ? 'Kitchen Allergens' : 'Alérgenos Registrados'}</span>
-                                </div>
-                                ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
-                                    <button class="filter-clear-link" onclick="window.dashboard.clearSafeExclusions()">
-                                        <span class="material-symbols-outlined">restart_alt</span>
-                                        <span>${isEn ? 'Clear' : 'Limpiar'}</span>
-                                    </button>
-                                ` : ''}
-                            </div>
-
-                            <div class="allergen-vertical-list">
-                                ${allergens.map(a => {
-                                    const isSelected = this.selectedSafeExclusions && this.selectedSafeExclusions.has(a.id);
-                                    const displayName = a.name_es || a.name_en || a.name;
-                                    return `
-                                        <div 
-                                            class="allergen-list-item ${isSelected ? 'selected' : ''}" 
-                                            onclick="window.dashboard.toggleSafeAllergenExclusion('${a.id}', event)"
-                                            role="button"
-                                            tabindex="0"
-                                        >
-                                            <div class="allergen-list-item-left">
-                                                <div class="allergen-list-icon-wrap" style="background: ${isSelected ? '#FEE2E2' : (a.color || '#10B981') + '18'}; color: ${isSelected ? '#DC2626' : (a.color || '#10B981')};">
-                                                    <span class="material-symbols-outlined">${a.icon || 'shield'}</span>
-                                                </div>
-                                                <span class="allergen-list-name">${displayName}</span>
-                                            </div>
-                                            <div class="allergen-list-checkbox ${isSelected ? 'checked' : ''}">
-                                                <span class="material-symbols-outlined">${isSelected ? 'check' : ''}</span>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-
-                            <div class="m3-filter-dropdown-footer">
-                                <span class="footer-hint">
-                                    ${!this.selectedSafeExclusions || this.selectedSafeExclusions.size === 0 
-                                        ? (isEn ? 'Tap allergens to exclude' : 'Toca alérgenos para excluir')
-                                        : (isEn ? `${this.selectedSafeExclusions.size} selected for exclusion` : `${this.selectedSafeExclusions.size} seleccionada(s)`)}
-                                </span>
-                                <button class="btn-close-filter" onclick="window.dashboard.toggleSafeAllergenDropdown(event)" type="button">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">check</span>
-                                    <span>${isEn ? 'Done' : 'Listo'}</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Excluded Count Split Button -->
-                    ${excludedRecipes.length > 0 ? `
-                        <div class="m3-split-button-wrapper" id="excludedRecipesSplitWrapper">
-                            <div class="m3-split-button danger-split-button">
-                                <button class="m3-split-btn-main" onclick="window.dashboard.toggleExcludedRecipesDropdown(event)" type="button">
-                                    <span class="material-symbols-outlined" style="color: #DC2626; font-size: 20px;">warning</span>
-                                    <span class="split-btn-title">${isEn ? `${excludedRecipes.length} Excluded Dishes` : `${excludedRecipes.length} Platos Excluidos`}</span>
-                                </button>
-                                <button class="m3-split-btn-arrow" onclick="window.dashboard.toggleExcludedRecipesDropdown(event)" type="button">
-                                    <span class="material-symbols-outlined arrow-icon ${this.excludedRecipesDropdownOpen ? 'open' : ''}">expand_more</span>
-                                </button>
-                            </div>
-
-                            <div id="excludedRecipesDropdown" class="m3-split-dropdown excluded-recipes-dropdown ${this.excludedRecipesDropdownOpen ? '' : 'hidden'}">
-                                <div class="m3-split-dropdown-header danger-header">
-                                    <div class="filter-header-left">
-                                        <span class="material-symbols-outlined" style="color: #DC2626; font-size: 18px;">crisis_alert</span>
-                                        <span>${isEn ? `${excludedRecipes.length} Excluded Dishes (Direct Allergen)` : `${excludedRecipes.length} Platos Excluidos (Alérgeno Directo)`}</span>
-                                    </div>
-                                </div>
-                                <div class="split-recipes-scroll-list">
-                                    ${excludedRecipes.map(({ recipe, offendingDirect }) => {
-                                        const offendingNames = offendingDirect.map(id => {
-                                            const found = allergens.find(a => a.id === id);
-                                            return found ? found.name_en : id;
-                                        });
-
-                                        return `
-                                            <div class="split-recipe-item danger-item" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
-                                                <div class="split-recipe-item-info">
-                                                    <div class="split-recipe-item-title-row">
-                                                        <span class="split-recipe-name">${recipe.name_en || recipe.name || recipe.name_es}</span>
-                                                        <span class="split-danger-badge">${isEn ? 'Contains' : 'Contiene'}</span>
-                                                    </div>
-                                                    <div class="split-offending-tags">
-                                                        <span class="offending-label">${isEn ? 'Allergen(s):' : 'Alérgenos:'}</span>
-                                                        ${offendingNames.map(n => `<span class="split-offending-pill">${n}</span>`).join('')}
-                                                    </div>
-                                                </div>
-                                                <span class="material-symbols-outlined split-item-arrow">chevron_right</span>
-                                            </div>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-
-                <!-- Active Filter Pills -->
-                ${this.selectedSafeExclusions && this.selectedSafeExclusions.size > 0 ? `
+                <!-- Active Filter Pills Row -->
+                ${hasExclusions ? `
                     <div class="active-exclusions-pills-row">
                         <div class="active-exclusions-left">
                             <span class="active-exclusions-label">
@@ -5971,9 +5860,9 @@ class DashboardManager {
                             <div class="active-exclusions-pills-list">
                                 ${Array.from(this.selectedSafeExclusions).map(id => {
                                     const a = allergens.find(x => x.id === id);
-                                    const name = a ? `${a.name_en} (${a.name_es})` : id;
+                                    const name = a ? `${a.name_en || a.name_es} (${a.name_es || a.name_en})` : id;
                                     return `
-                                        <button class="active-exclusion-pill" onclick="window.dashboard.toggleSafeAllergenExclusion('${id}', event)" title="${isEn ? 'Remove from filter' : 'Quitar del filtro'}">
+                                        <button class="active-exclusion-pill" onclick="window.dashboard.toggleSafeAllergenExclusion('${id}', event)" type="button" title="${isEn ? 'Remove from filter' : 'Quitar del filtro'}">
                                             <span>${name}</span>
                                             <span class="material-symbols-outlined pill-remove-icon">close</span>
                                         </button>
@@ -6003,10 +5892,9 @@ class DashboardManager {
                                     <span class="material-symbols-outlined" style="font-size: 44px; color: #94A3B8;">no_meals</span>
                                     <p>${isEn ? 'No dishes match this safe criteria.' : 'No se encontraron platos completamente libres de estos alérgenos.'}</p>
                                 </div>
-                            ` : safeRecipes.map(({ recipe, directIds, crossIds }) => {
+                            ` : safeRecipes.map(({ recipe }) => {
                                 const displayName = isEn ? (recipe.name_en || recipe.name || recipe.name_es) : (recipe.name_es || recipe.name_en || recipe.name);
                                 const subName = isEn ? recipe.name_es : recipe.name_en;
-
                                 return `
                                     <div class="safe-recipe-card" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
                                         <div class="safe-recipe-info">
@@ -6053,7 +5941,6 @@ class DashboardManager {
                                         return found ? (isEn ? found.name_en : found.name_es) : id;
                                     });
                                     const displayName = isEn ? (recipe.name_en || recipe.name || recipe.name_es) : (recipe.name_es || recipe.name_en || recipe.name);
-
                                     return `
                                         <div class="safe-recipe-card" style="border-color: #FDE68A; background: #FFFDF5;" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
                                             <div class="safe-recipe-info">
@@ -6081,6 +5968,50 @@ class DashboardManager {
                         </div>
                     ` : ''}
 
+                    <!-- 3. Platos Excluidos (PC) -->
+                    ${excludedRecipes.length > 0 ? `
+                        <div class="safe-recipes-section" style="margin-top: 24px;">
+                            <div class="safe-section-header" style="border-bottom-color: #FECACA;">
+                                <div class="safe-header-left">
+                                    <span class="material-symbols-outlined" style="color: #DC2626; font-size: 22px;">block</span>
+                                    <span class="safe-header-count" style="color: #991B1B;">${isEn ? `${excludedRecipes.length} Excluded Dishes (Direct Allergen)` : `${excludedRecipes.length} Platos Excluidos (Alérgeno Directo)`}</span>
+                                </div>
+                                <span class="safe-header-sub" style="color: #7F1D1D;">${isEn ? 'Dishes containing one or more of your excluded allergens' : 'Platos que contienen uno o más de los alérgenos seleccionados'}</span>
+                            </div>
+
+                            <div class="safe-recipes-list">
+                                ${excludedRecipes.map(({ recipe, offendingDirect }) => {
+                                    const offendingNames = offendingDirect.map(id => {
+                                        const found = allergens.find(a => a.id === id);
+                                        return found ? (isEn ? found.name_en : found.name_es) : id;
+                                    });
+                                    const displayName = isEn ? (recipe.name_en || recipe.name || recipe.name_es) : (recipe.name_es || recipe.name_en || recipe.name);
+                                    return `
+                                        <div class="safe-recipe-card" style="border-color: #FECACA; background: #FFF5F5;" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
+                                            <div class="safe-recipe-info">
+                                                <div class="safe-recipe-header-row">
+                                                    <h4 class="safe-recipe-title" style="color: #991B1B;">${displayName}</h4>
+                                                    <span class="split-danger-badge" style="background:#FEE2E2; color:#991B1B; border:1px solid #FECACA;">
+                                                        <span class="material-symbols-outlined" style="font-size:14px;">block</span>
+                                                        <span>${isEn ? 'Excluded' : 'Excluido'}</span>
+                                                    </span>
+                                                    ${recipe.section ? `<span class="matrix-section-pill-tag">${recipe.section}</span>` : ''}
+                                                </div>
+                                                <div style="font-size: 12px; color: #DC2626; margin-top: 4px;">
+                                                    <strong>${isEn ? 'Contains:' : 'Contiene:'}</strong> ${offendingNames.join(', ')}
+                                                </div>
+                                            </div>
+                                            <div class="safe-recipe-action">
+                                                <button class="btn-m3-tonal" type="button" style="color: #DC2626;">
+                                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 ` : `
                     <div class="safe-banner-prompt">
                         <span class="material-symbols-outlined" style="color: #059669;">tune</span>
@@ -6089,6 +6020,225 @@ class DashboardManager {
                             : 'Selecciona los alérgenos arriba para clasificar los platos y encontrar opciones seguras.'}</span>
                     </div>
                 `}
+            </div>
+        `;
+
+        // --- 2. HTML PARA MÓVIL - REDISEÑO FLUIDO MATERIAL 3 ---
+        const SAFE_ALLERGEN_PRESETS = [
+            { id: 'gluten', name_es: 'Gluten', name_en: 'Gluten', icon: 'bakery_dining', iconColor: '#D97706', iconBg: '#FEF3C7' },
+            { id: 'milk', name_es: 'Lácteos', name_en: 'Dairy', icon: 'water_drop', iconColor: '#2563EB', iconBg: '#EFF6FF' },
+            { id: 'eggs', name_es: 'Huevos', name_en: 'Eggs', icon: 'egg', iconColor: '#CA8A04', iconBg: '#FEF9C3' },
+            { id: 'fish', name_es: 'Pescado', name_en: 'Fish', icon: 'set_meal', iconColor: '#0284C7', iconBg: '#E0F2FE' },
+            { id: 'nuts', name_es: 'Frutos secos', name_en: 'Tree Nuts', icon: 'nature', iconColor: '#7C2D12', iconBg: '#FFEDD5' },
+            { id: 'peanuts', name_es: 'Maní', name_en: 'Peanuts', icon: 'nutrition', iconColor: '#B45309', iconBg: '#FEF3C7' },
+            { id: 'soya', name_es: 'Soja', name_en: 'Soya', icon: 'eco', iconColor: '#16A34A', iconBg: '#DCFCE7' },
+            { id: 'crustaceans', name_es: 'Crustáceos', name_en: 'Crustaceans', icon: 'phishing', iconColor: '#DC2626', iconBg: '#FEE2E2' },
+            { id: 'celery', name_es: 'Apio', name_en: 'Celery', icon: 'spa', iconColor: '#2E7D32', iconBg: '#E8F5E9' },
+            { id: 'mustard', name_es: 'Mostaza', name_en: 'Mustard', icon: 'grain', iconColor: '#EAB308', iconBg: '#FEFCE8' },
+            { id: 'sesame', name_es: 'Sésamo', name_en: 'Sesame', icon: 'scatter_plot', iconColor: '#78716C', iconBg: '#F5F5F4' },
+            { id: 'molluscs', name_es: 'Moluscos', name_en: 'Molluscs', icon: 'water', iconColor: '#0D9488', iconBg: '#CCFBF1' },
+            { id: 'lupin', name_es: 'Altramuces', name_en: 'Lupin', icon: 'local_florist', iconColor: '#9333EA', iconBg: '#F3E8FF' },
+            { id: 'sulphites', name_es: 'Sulfitos', name_en: 'Sulphites', icon: 'science', iconColor: '#9F1239', iconBg: '#FFE4E6' }
+        ];
+
+        const primaryIds = ['gluten', 'milk', 'eggs', 'fish', 'nuts', 'peanuts', 'soya'];
+        let mobileDisplayList = [];
+        if (this.showAllSafeAllergens) {
+            mobileDisplayList = SAFE_ALLERGEN_PRESETS;
+        } else {
+            const extrasSelected = SAFE_ALLERGEN_PRESETS.filter(a => !primaryIds.includes(a.id) && this.selectedSafeExclusions && this.selectedSafeExclusions.has(a.id));
+            mobileDisplayList = SAFE_ALLERGEN_PRESETS.filter(a => primaryIds.includes(a.id)).concat(extrasSelected);
+        }
+
+        const mobileHtml = `
+            <div class="safe-diner-view-fluid">
+                <!-- 1. Tarjeta Hero Normal (Sin fondo verde) -->
+                <div class="safe-hero-card-m3">
+                    <div class="safe-hero-badge">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">verified_user</span>
+                        <span>${isEn ? 'Food Safety' : 'Seguridad Alimentaria'}</span>
+                    </div>
+                    <h2 class="safe-hero-title">${isEn ? 'Diner Allergens' : 'Alergias del comensal'}</h2>
+                    <p class="safe-hero-subtitle">${isEn 
+                        ? 'Select allergens to exclude. Dishes will be categorized automatically.' 
+                        : 'Marca los alérgenos a excluir. Los platos se clasificarán automáticamente.'}</p>
+                </div>
+
+                <!-- 2. Cuadrícula de 2 Columnas de Chips Táctiles Blancos -->
+                <div class="safe-chips-grid-m3">
+                    ${mobileDisplayList.map(a => {
+                        const isSelected = this.selectedSafeExclusions && this.selectedSafeExclusions.has(a.id);
+                        const displayName = isEn ? a.name_en : a.name_es;
+                        return `
+                            <button type="button" 
+                                    class="safe-allergen-chip ${isSelected ? 'is-selected' : ''}" 
+                                    onclick="window.dashboard.toggleSafeAllergenExclusion('${a.id}', event)"
+                                    title="${isSelected ? (isEn ? `Remove exclusion for ${displayName}` : `Quitar exclusión de ${displayName}`) : (isEn ? `Exclude ${displayName}` : `Excluir ${displayName}`)}">
+                                <div class="safe-chip-avatar" style="${!isSelected ? `background: ${a.iconBg}; color: ${a.iconColor};` : ''}">
+                                    <span class="material-symbols-outlined">${a.icon}</span>
+                                </div>
+                                <span class="safe-chip-label">${displayName}</span>
+                                ${isSelected ? `
+                                    <div class="safe-chip-check">
+                                        <span class="material-symbols-outlined">check</span>
+                                    </div>
+                                ` : ''}
+                            </button>
+                        `;
+                    }).join('')}
+
+                    <!-- Botón + Ver todos / Ver menos -->
+                    <button type="button" 
+                            class="safe-chip-toggle-all" 
+                            onclick="window.dashboard.toggleShowAllSafeAllergens()">
+                        <span class="material-symbols-outlined">${this.showAllSafeAllergens ? 'expand_less' : 'add'}</span>
+                        <span>${this.showAllSafeAllergens 
+                            ? (isEn ? 'Show top' : 'Ver menos') 
+                            : (isEn ? 'View all' : 'Ver todos')}</span>
+                    </button>
+                </div>
+
+                <!-- 3. Resultados o Estado Vacío Flotante (Sin icono, solo texto) -->
+                ${!hasExclusions ? `
+                    <div class="safe-empty-state-fluid">
+                        <p class="safe-empty-text">
+                            ${isEn 
+                                ? 'Select allergens above to categorize dishes and discover safe options.' 
+                                : 'Selecciona los alérgenos arriba para clasificar los platos y encontrar opciones seguras.'}
+                        </p>
+                    </div>
+                ` : `
+                    <!-- Barra de Filtros Activos -->
+                    <div class="safe-active-bar-m3">
+                        <div class="safe-active-bar-left">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #059669;">tune</span>
+                            <span>${isEn 
+                                ? `Excluding ${this.selectedSafeExclusions.size} allergen${this.selectedSafeExclusions.size > 1 ? 's' : ''}` 
+                                : `Excluyendo ${this.selectedSafeExclusions.size} alérgeno${this.selectedSafeExclusions.size > 1 ? 's' : ''}`}</span>
+                        </div>
+                        <button class="btn-clear-safe-m3" onclick="window.dashboard.clearSafeExclusions()" type="button">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">restart_alt</span>
+                            <span>${isEn ? 'Clear filters' : 'Limpiar filtros'}</span>
+                        </button>
+                    </div>
+
+                    <!-- 1. Platos 100% Seguros -->
+                    <div class="safe-results-group-m3">
+                        <div class="safe-group-header-m3">
+                            <div class="safe-group-title-m3">
+                                <span class="material-symbols-outlined" style="color: #059669; font-size: 22px;">verified</span>
+                                <span>${isEn ? `${safeRecipes.length} Safe Dishes (100% Free)` : `${safeRecipes.length} Platos 100% Seguros`}</span>
+                            </div>
+                        </div>
+
+                        ${safeRecipes.length === 0 ? `
+                            <div style="padding: 24px 16px; text-align: center; color: #64748B; font-size: 13.5px; background: #FFFFFF; border-radius: 16px;">
+                                ${isEn ? 'No dishes match this safe criteria.' : 'No se encontraron platos libres de estos alérgenos.'}
+                            </div>
+                        ` : safeRecipes.map(({ recipe }) => {
+                            const displayName = isEn ? (recipe.name_en || recipe.name || recipe.name_es) : (recipe.name_es || recipe.name_en || recipe.name);
+                            const subName = isEn ? recipe.name_es : recipe.name_en;
+                            return `
+                                <div class="safe-recipe-card-fluid" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            <h4 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #0F172A;">${displayName}</h4>
+                                            <span style="display: inline-flex; align-items: center; gap: 3px; background: #ECFDF5; color: #065F46; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px;">
+                                                <span class="material-symbols-outlined" style="font-size: 13px;">verified</span>
+                                                ${isEn ? 'Safe' : 'Seguro'}
+                                            </span>
+                                            ${recipe.section ? `<span style="background: #F1F5F9; color: #475569; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600;">${recipe.section}</span>` : ''}
+                                        </div>
+                                        ${subName && subName !== displayName ? `<p style="margin: 3px 0 0 0; font-size: 12px; color: #64748B;">${subName}</p>` : ''}
+                                    </div>
+                                    <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">chevron_right</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- 2. Platos con Riesgo de Contaminación Cruzada (O) -->
+                    ${warningRecipes.length > 0 ? `
+                        <div class="safe-results-group-m3" style="margin-top: 18px;">
+                            <div class="safe-group-header-m3">
+                                <div class="safe-group-title-m3" style="color: #B45309;">
+                                    <span class="material-symbols-outlined" style="color: #D97706; font-size: 22px;">warning</span>
+                                    <span>${isEn ? `${warningRecipes.length} Cross-Contamination Risk (O)` : `${warningRecipes.length} Riesgo Contaminación Cruzada (O)`}</span>
+                                </div>
+                            </div>
+
+                            ${warningRecipes.map(({ recipe, offendingCross }) => {
+                                const offendingNames = offendingCross.map(id => {
+                                    const found = allergens.find(a => a.id === id);
+                                    return found ? (isEn ? found.name_en : found.name_es) : id;
+                                });
+                                const displayName = isEn ? (recipe.name_en || recipe.name || recipe.name_es) : (recipe.name_es || recipe.name_en || recipe.name);
+                                return `
+                                    <div class="safe-recipe-card-fluid" style="background: #FFFDF5; border-color: #FEF3C7;" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <h4 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #92400E;">${displayName}</h4>
+                                                <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px;">
+                                                    <span class="material-symbols-outlined" style="font-size: 13px;">warning</span>
+                                                    ${isEn ? 'Cross-Risk' : 'Aviso Cruzado'}
+                                                </span>
+                                            </div>
+                                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #B45309;">
+                                                <strong>${isEn ? 'Shared with:' : 'Equipo compartido:'}</strong> ${offendingNames.join(', ')}
+                                            </p>
+                                        </div>
+                                        <span class="material-symbols-outlined" style="color: #D97706; font-size: 20px;">chevron_right</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    ` : ''}
+
+                    <!-- 3. Platos Excluidos (Móvil) -->
+                    ${excludedRecipes.length > 0 ? `
+                        <div class="safe-results-group-m3" style="margin-top: 18px;">
+                            <div class="safe-group-header-m3">
+                                <div class="safe-group-title-m3" style="color: #991B1B;">
+                                    <span class="material-symbols-outlined" style="color: #DC2626; font-size: 22px;">block</span>
+                                    <span>${isEn ? `${excludedRecipes.length} Excluded Dishes` : `${excludedRecipes.length} Platos Excluidos`}</span>
+                                </div>
+                            </div>
+
+                            ${excludedRecipes.map(({ recipe, offendingDirect }) => {
+                                const offendingNames = offendingDirect.map(id => {
+                                    const found = allergens.find(a => a.id === id);
+                                    return found ? (isEn ? found.name_en : found.name_es) : id;
+                                });
+                                const displayName = isEn ? (recipe.name_en || recipe.name || recipe.name_es) : (recipe.name_es || recipe.name_en || recipe.name);
+                                return `
+                                    <div class="safe-recipe-card-fluid" style="background: #FFFBFB; border-color: #FEE2E2; opacity: 0.9;" onclick="window.dashboard.openRecipeDetails('${recipe.id}')">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <h4 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #991B1B;">${displayName}</h4>
+                                                <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEE2E2; color: #991B1B; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px;">
+                                                    ${isEn ? 'Excluded' : 'Excluido'}
+                                                </span>
+                                            </div>
+                                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #DC2626;">
+                                                <strong>${isEn ? 'Contains:' : 'Contiene:'}</strong> ${offendingNames.join(', ')}
+                                            </p>
+                                        </div>
+                                        <span class="material-symbols-outlined" style="color: #EF4444; font-size: 20px;">chevron_right</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    ` : ''}
+                `}
+            </div>
+        `;
+
+        tabMount.innerHTML = `
+            <div class="safe-pc-view desktop-only">
+                ${pcHtml}
+            </div>
+            <div class="safe-mobile-view mobile-only">
+                ${mobileHtml}
             </div>
         `;
     }

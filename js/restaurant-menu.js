@@ -1776,7 +1776,7 @@
                             <div>
                                 <h1 style="margin: 0; font-size: clamp(19px, 3vw, 24px); font-weight: 800; color: #111827; display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;">
                                     <span class="material-symbols-outlined" style="color: #DC2626; font-size: 24px;">picture_as_pdf</span>
-                                    <span>${isEn ? `Official Menu for ${restaurantTitle}` : `Carta Oficial de ${restaurantTitle} (Documento / Foto)`}</span>
+                                    <span>${isEn ? `Official Menu for ${restaurantTitle}` : `Carta Oficial de ${restaurantTitle}`}</span>
                                 </h1>
                                 <p style="margin: 3px 0 0 0; font-size: 13px; color: #6B7280;">
                                     ${isEn ? 'View official menu document or upload new photos when kitchen changes.' : 'Visualiza la carta oficial o sube fotos nuevas cuando cambie la carta.'}
@@ -1800,33 +1800,31 @@
                     </div>
 
                     <!-- Actions & Controls Toolbar -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); border-radius: 16px 16px 0 0; border-bottom: none; flex-wrap: wrap; gap: 10px;">
+                    <div class="menu-doc-toolbar" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); border-radius: 16px 16px 0 0; border-bottom: none; flex-wrap: wrap; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <input type="file" id="menuDocFileInput" accept="image/*,application/pdf" style="display: none;" onchange="window.restaurantMenu.handleDocumentUpload(event)">
-                            <button type="button" class="btn-primary" onclick="document.getElementById('menuDocFileInput').click()" style="border-radius: 999px; height: 38px; padding: 0 18px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">upload_file</span>
-                                <span>${isEn ? 'Upload New Photo or PDF' : 'Subir Nueva Foto o PDF'}</span>
+                            <button type="button" id="btnDocUpload" class="btn-icon-m3" onclick="document.getElementById('menuDocFileInput').click()" title="${isEn ? 'Upload New Photo or PDF' : 'Subir Nueva Foto o PDF'}" style="width: 36px; height: 36px; min-width: 36px; background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #059669; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #059669;">upload_file</span>
                             </button>
-                            <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 38px; padding: 0 16px; font-size: 13px; font-weight: 600; align-items: center; gap: 6px;" title="Restaurar o eliminar documento actual">
+                            <button type="button" id="btnResetDoc" class="btn-secondary" onclick="window.restaurantMenu.resetCurrentDocToDefault()" style="display: none; border-radius: 999px; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 600; align-items: center; gap: 6px;" title="Restaurar o eliminar documento actual">
                                 <span class="material-symbols-outlined" style="font-size: 17px;">restore</span>
-                                <span>${isEn ? 'Reset / Remove' : 'Restaurar / Eliminar'}</span>
+                                <span>${isEn ? 'Reset' : 'Restaurar'}</span>
                             </button>
                         </div>
 
-                        <div id="docControlsGroup" style="display: flex; align-items: center; gap: 6px;">
-                            <button type="button" id="btnDocZoomOut" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">zoom_out</span>
-                            </button>
-                            <span id="docZoomLevel" style="font-size: 13px; font-weight: 800; color: #374151; min-width: 50px; text-align: center;">100%</span>
-                            <button type="button" id="btnDocZoomIn" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">zoom_in</span>
-                            </button>
-                            <div style="width: 1px; height: 22px; background: #E5E7EB; margin: 0 4px;"></div>
+                        <div id="docControlsGroup" class="menu-doc-controls" style="display: flex; align-items: center; gap: 6px;">
+                            <div class="menu-doc-zoom-buttons" style="display: flex; align-items: center; gap: 6px;">
+                                <button type="button" id="btnDocZoomOut" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(-0.2)" title="${isEn ? 'Zoom Out' : 'Reducir'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">zoom_out</span>
+                                </button>
+                                <span id="docZoomLevel" style="font-size: 13px; font-weight: 800; color: #374151; min-width: 50px; text-align: center;">100%</span>
+                                <button type="button" id="btnDocZoomIn" class="btn-icon-m3" onclick="window.restaurantMenu.zoomDoc(0.2)" title="${isEn ? 'Zoom In' : 'Ampliar'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">zoom_in</span>
+                                </button>
+                                <div class="menu-doc-zoom-separator" style="width: 1px; height: 22px; background: #E5E7EB; margin: 0 4px;"></div>
+                            </div>
                             <button type="button" id="btnDocDownload" class="btn-icon-m3" onclick="window.restaurantMenu.downloadCurrentDoc()" title="${isEn ? 'Download file' : 'Descargar archivo'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">download</span>
-                            </button>
-                            <button type="button" id="btnDocNewTab" class="btn-icon-m3" onclick="window.restaurantMenu.openDocInNewTab()" title="${isEn ? 'Open in new window' : 'Abrir en nueva ventana'}" style="width: 36px; height: 36px; background: #F9FAFB; border: 1px solid #E5E7EB;">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">open_in_new</span>
                             </button>
                         </div>
                     </div>
@@ -1866,6 +1864,7 @@
             this.docZoom = 1.0;
             const zEl = document.getElementById('docZoomLevel');
             if (zEl) zEl.textContent = '100%';
+            this.resetDocTouchZoom();
             this.loadCurrentDocument();
         }
 
@@ -1882,8 +1881,15 @@
             if (oldEmpty) oldEmpty.remove();
 
             if (loadingEl) loadingEl.style.display = 'flex';
-            if (canvasEl) canvasEl.style.display = 'none';
-            if (imgEl) imgEl.style.display = 'none';
+            if (canvasEl) {
+                canvasEl.style.display = 'none';
+                canvasEl.classList.add('doc-element-hidden');
+            }
+            if (imgEl) {
+                imgEl.style.display = 'none';
+                imgEl.classList.add('doc-element-hidden');
+                imgEl.removeAttribute('src');
+            }
 
             try {
                 const isSunday = this.currentDocTab === 'sunday';
@@ -1954,14 +1960,26 @@
                 const isImage = (docType && docType.startsWith('image/')) || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(docUrl);
 
                 if (isImage) {
+                    if (canvasEl) {
+                        canvasEl.style.display = 'none';
+                        canvasEl.classList.add('doc-element-hidden');
+                    }
                     if (imgEl) {
                         imgEl.src = docUrl;
                         imgEl.style.display = 'block';
+                        imgEl.classList.remove('doc-element-hidden');
                         imgEl.style.transform = `scale(${this.docZoom})`;
                     }
                     if (loadingEl) loadingEl.style.display = 'none';
+                    this.setupDocTouchZoom();
                 } else {
+                    if (imgEl) {
+                        imgEl.style.display = 'none';
+                        imgEl.classList.add('doc-element-hidden');
+                        imgEl.removeAttribute('src');
+                    }
                     await this.renderPdfDoc(docUrl);
+                    this.setupDocTouchZoom();
                 }
             } catch (err) {
                 console.error('Error loading menu document:', err);
@@ -1978,6 +1996,7 @@
         async renderPdfDoc(srcOrData) {
             const loadingEl = document.getElementById('docViewerLoading');
             const canvasEl = document.getElementById('docViewerCanvas');
+            const imgEl = document.getElementById('docViewerImage');
             if (!canvasEl) return;
 
             if (window.pdfjsLib) {
@@ -1997,8 +2016,15 @@
                 await page.render(renderContext).promise;
 
                 if (loadingEl) loadingEl.style.display = 'none';
+                if (imgEl) {
+                    imgEl.style.display = 'none';
+                    imgEl.classList.add('doc-element-hidden');
+                    imgEl.removeAttribute('src');
+                }
                 canvasEl.style.display = 'block';
+                canvasEl.classList.remove('doc-element-hidden');
                 canvasEl.style.transform = `scale(${this.docZoom})`;
+                this.setupDocTouchZoom();
             } else {
                 // Fallback embebido
                 const vp = document.getElementById('docViewport');
@@ -2176,6 +2202,148 @@
             window.open(this.activeDocFile.dataUrl, '_blank');
         }
 
+        resetDocTouchZoom() {
+            const img = document.getElementById('docViewerImage');
+            const canvas = document.getElementById('docViewerCanvas');
+            if (img) {
+                img.style.transform = 'translate3d(0, 0, 0) scale(1)';
+                img.style.transition = 'none';
+            }
+            if (canvas) {
+                canvas.style.transform = 'translate3d(0, 0, 0) scale(1)';
+                canvas.style.transition = 'none';
+            }
+            if (this._docTouchState) {
+                this._docTouchState.currentScale = 1;
+                this._docTouchState.currentX = 0;
+                this._docTouchState.currentY = 0;
+            }
+        }
+
+        setupDocTouchZoom() {
+            const viewport = document.getElementById('docViewport');
+            if (!viewport) return;
+            if (viewport.dataset.touchInit === 'true') {
+                this.resetDocTouchZoom();
+                return;
+            }
+            viewport.dataset.touchInit = 'true';
+
+            this._docTouchState = {
+                currentScale: 1,
+                currentX: 0,
+                currentY: 0,
+                initialDist: 0,
+                initialScale: 1,
+                startX: 0,
+                startY: 0,
+                isPinching: false,
+                isPanning: false,
+                lastTapTime: 0
+            };
+            const s = this._docTouchState;
+
+            const getTarget = () => {
+                const img = document.getElementById('docViewerImage');
+                if (img && img.style.display !== 'none') return img;
+                const canvas = document.getElementById('docViewerCanvas');
+                if (canvas && canvas.style.display !== 'none') return canvas;
+                return null;
+            };
+
+            const updateTransform = (animate = false) => {
+                const target = getTarget();
+                if (!target) return;
+                target.style.transition = animate ? 'transform 0.22s cubic-bezier(0.2, 0, 0, 1)' : 'none';
+                target.style.transformOrigin = 'center top';
+                target.style.transform = `translate3d(${s.currentX}px, ${s.currentY}px, 0) scale(${s.currentScale})`;
+            };
+
+            const getDistance = (t1, t2) => Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+            // Doble toque para zoom inmediato (2.4x / 1x)
+            viewport.addEventListener('touchend', (e) => {
+                if (e.touches.length === 0) {
+                    const now = Date.now();
+                    const diff = now - s.lastTapTime;
+                    if (diff < 320 && diff > 40) {
+                        if (s.currentScale > 1.15) {
+                            s.currentScale = 1;
+                            s.currentX = 0;
+                            s.currentY = 0;
+                        } else {
+                            s.currentScale = 2.4;
+                            s.currentX = 0;
+                            s.currentY = 0;
+                        }
+                        updateTransform(true);
+                        if (e.cancelable) e.preventDefault();
+                    }
+                    s.lastTapTime = now;
+                }
+            });
+
+            viewport.addEventListener('touchstart', (e) => {
+                const target = getTarget();
+                if (!target) return;
+
+                if (e.touches.length === 2) {
+                    s.isPinching = true;
+                    s.isPanning = false;
+                    s.initialDist = getDistance(e.touches[0], e.touches[1]);
+                    s.initialScale = s.currentScale;
+                } else if (e.touches.length === 1 && s.currentScale > 1.05) {
+                    s.isPanning = true;
+                    s.startX = e.touches[0].clientX - s.currentX;
+                    s.startY = e.touches[0].clientY - s.currentY;
+                }
+            }, { passive: false });
+
+            viewport.addEventListener('touchmove', (e) => {
+                const target = getTarget();
+                if (!target) return;
+
+                if (s.isPinching && e.touches.length === 2) {
+                    if (e.cancelable) e.preventDefault();
+                    const dist = getDistance(e.touches[0], e.touches[1]);
+                    if (s.initialDist > 0) {
+                        const factor = dist / s.initialDist;
+                        s.currentScale = Math.max(1, Math.min(4.5, s.initialScale * factor));
+                        updateTransform(false);
+                    }
+                } else if (s.isPanning && e.touches.length === 1 && s.currentScale > 1.05) {
+                    if (e.cancelable) e.preventDefault();
+                    s.currentX = e.touches[0].clientX - s.startX;
+                    s.currentY = e.touches[0].clientY - s.startY;
+
+                    const maxBoundX = (window.innerWidth * (s.currentScale - 1)) / 1.3;
+                    const maxBoundY = (window.innerHeight * (s.currentScale - 1)) * 1.5;
+                    s.currentX = Math.max(-maxBoundX, Math.min(maxBoundX, s.currentX));
+                    s.currentY = Math.max(-maxBoundY, Math.min(maxBoundY, s.currentY));
+
+                    updateTransform(false);
+                }
+            }, { passive: false });
+
+            const onTouchEnd = (e) => {
+                if (e.touches.length < 2) {
+                    s.isPinching = false;
+                }
+                if (e.touches.length === 0) {
+                    s.isPanning = false;
+                    if (s.currentScale <= 1.05) {
+                        s.currentScale = 1;
+                        s.currentX = 0;
+                        s.currentY = 0;
+                        updateTransform(true);
+                    }
+                }
+            };
+
+            viewport.addEventListener('touchend', onTouchEnd);
+            viewport.addEventListener('touchcancel', onTouchEnd);
+        }
+
         showHelpModal() {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const modalHtml = `
@@ -2270,6 +2438,39 @@
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        toggleOptionsMenu(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const dropdown = document.getElementById('menuHeroDropdown');
+            const btn = e?.currentTarget || document.querySelector('.menu-hero-more-btn');
+            if (!dropdown) return;
+            const isOpen = dropdown.classList.contains('is-open');
+            if (isOpen) {
+                this.closeOptionsMenu();
+            } else {
+                dropdown.classList.add('is-open');
+                btn?.setAttribute('aria-expanded', 'true');
+                const closeOnClickOutside = (evt) => {
+                    if (!dropdown.contains(evt.target) && evt.target !== btn && !btn?.contains(evt.target)) {
+                        this.closeOptionsMenu();
+                        document.removeEventListener('click', closeOnClickOutside);
+                    }
+                };
+                setTimeout(() => {
+                    document.addEventListener('click', closeOnClickOutside);
+                }, 10);
+            }
+        }
+
+        closeOptionsMenu() {
+            const dropdown = document.getElementById('menuHeroDropdown');
+            if (dropdown) dropdown.classList.remove('is-open');
+            const btn = document.querySelector('.menu-hero-more-btn');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
         }
 
         getRemovedItems() {
@@ -2549,12 +2750,73 @@
                 <div class="allergens-module menu-module-container">
                     <!-- Modern Header Banner -->
                     <div class="menu-hero-card">
-                        <!-- Botón de Ayuda circular en esquina superior derecha -->
-                        <button type="button" class="menu-hero-help-btn" onclick="window.restaurantMenu.showHelpModal()" title="${isEn ? 'How updates and dishes work' : '¿Cómo funciona la gestión del menú?'}" aria-label="${isEn ? 'Help' : 'Ayuda'}">
-                            <span class="material-symbols-outlined">help</span>
-                        </button>
+                        <!-- Botón de 3 puntos (Opciones del menú) en esquina superior derecha -->
+                        <div class="menu-hero-more-wrapper">
+                            <button type="button" 
+                                    class="menu-hero-more-btn" 
+                                    onclick="window.restaurantMenu.toggleOptionsMenu(event)" 
+                                    title="${isEn ? 'Menu details & options' : 'Detalles y opciones de la carta'}" 
+                                    aria-label="${isEn ? 'Options' : 'Opciones'}">
+                                <span class="material-symbols-outlined">more_vert</span>
+                            </button>
+                            <div id="menuHeroDropdown" class="menu-hero-dropdown-menu">
+                                <div class="menu-hero-dropdown-header">
+                                    <p class="menu-hero-dropdown-subtitle">
+                                        ${this.isOwner 
+                                            ? `${isEn ? 'Owner' : 'Propietario'} • ${totalDishesAll} ${isEn ? 'active dishes' : 'platos activos'}` 
+                                            : `${isEn ? 'Collaborator' : 'Colaborador'}${this.sharedBy?.first_name ? ` (${isEn ? 'by' : 'por'} ${this.sharedBy.first_name})` : ''} • ${totalDishesAll} ${isEn ? 'active dishes' : 'platos activos'}`}
+                                    </p>
+                                </div>
+                                
+                                <div class="menu-hero-dropdown-actions">
+                                    ${this.isOwner ? `
+                                        <!-- Editar carta -->
+                                        <button type="button" class="menu-hero-dropdown-btn" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.openEditMenuModal();">
+                                            <span class="material-symbols-outlined">edit</span>
+                                            <span>${isEn ? 'Edit menu' : 'Editar carta'}</span>
+                                        </button>
 
-                        <!-- Header Top Row (Logo, Website, Name & Badge) -->
+                                        <!-- Compartir con Equipo -->
+                                        <button type="button" class="menu-hero-dropdown-btn" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.shareRestaurantMenu();">
+                                            <span class="material-symbols-outlined">group</span>
+                                            <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
+                                        </button>
+                                    ` : ''}
+
+                                    <!-- Menú oficial -->
+                                    <button type="button" class="menu-hero-dropdown-btn" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.openDocumentViewer();">
+                                        <span class="material-symbols-outlined">description</span>
+                                        <span>${isEn ? 'Official menu' : 'Menú oficial'}</span>
+                                    </button>
+
+                                    <!-- Ayuda -->
+                                    <button type="button" class="menu-hero-dropdown-btn" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.showHelpModal();">
+                                        <span class="material-symbols-outlined">help_outline</span>
+                                        <span>${isEn ? 'How updates work? (Help)' : '¿Cómo funciona? (Ayuda)'}</span>
+                                    </button>
+
+                                    <div class="menu-hero-dropdown-divider"></div>
+
+                                    ${this.isShared ? `
+                                        <!-- Dejar de seguir -->
+                                        <button type="button" class="menu-hero-dropdown-btn btn-danger" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.leaveSharedMenu();">
+                                            <span class="material-symbols-outlined">logout</span>
+                                            <span>${isEn ? 'Leave Menu' : 'Dejar de seguir'}</span>
+                                        </button>
+                                    ` : ''}
+
+                                    ${this.isOwner ? `
+                                        <!-- Eliminar Carta -->
+                                        <button type="button" class="menu-hero-dropdown-btn btn-danger" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.confirmDeleteRestaurantMenu();">
+                                            <span class="material-symbols-outlined">delete</span>
+                                            <span>${isEn ? 'Delete Menu' : 'Eliminar Carta'}</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Header Top Row (Logo, Website, Name & Description) -->
                         <div class="allergens-hero-top-row" style="align-items: center;">
                             ${website ? `
                                 <a href="${website}" target="_blank" rel="noopener noreferrer" class="menu-hero-logo" title="${isEn ? 'Visit official website' : 'Visitar página web oficial'}" style="text-decoration: none; cursor: pointer; display: inline-flex; width: 62px; height: 62px; border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1.5px solid #E2E8F0; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 4px; box-sizing: border-box;">
@@ -2566,74 +2828,25 @@
                                 </div>
                             `}
                             <div class="allergens-hero-heading-block" style="flex: 1;">
-                                <div class="menu-hero-badge-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span class="m3-uk-fsa-badge" style="background: #EFF6FF; color: #1E40AF; font-weight: 800;">
-                                        ${totalDishesAll} ${isEn ? 'Active Dishes' : 'Platos Activos'}
-                                    </span>
-                                    ${this.isOwner ? `
-                                        <span class="m3-uk-fsa-badge" style="background: #FEF3C7; color: #92400E; font-weight: 800;">
-                                            👑 ${isEn ? 'Owner' : 'Propietario'}
-                                        </span>
-                                    ` : ''}
-                                    ${this.isShared ? `
-                                        <span class="m3-uk-fsa-badge" style="background: #E0E7FF; color: #3730A3; font-weight: 800;">
-                                            👥 ${isEn ? 'Collaborator' : 'Colaborador'}
-                                        </span>
-                                    ` : ''}
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h1 style="margin: 4px 0 2px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
-                                        ${this.restaurantName || (isEn ? 'Food Menu' : 'Carta de Comida')}
-                                    </h1>
-                                    ${this.isOwner ? `
-                                        <button type="button" onclick="window.restaurantMenu.openEditMenuModal()" title="${isEn ? 'Edit restaurant details (name, logo, web)' : 'Editar restaurante (nombre, logo, web)'}" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 50%; width: 32px; height: 32px; min-width: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #475569; transition: all 0.2s;" onmouseenter="this.style.background='#E2E8F0'" onmouseleave="this.style.background='#F1F5F9'">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
-                                        </button>
-                                    ` : ''}
-                                </div>
-                                <p style="margin: 0; font-size: 13.5px; color: #4B5563;">
-                                    ${isEn ? 'Complete digital restaurant menu. Dishes can be marked out-of-stock (86) or updated dynamically.' : 'Carta digital completa y abierta. Puedes marcar platos agotados (86) o agregar novedades cuando cambie la web.'}
+                                <h1 style="margin: 0 0 3px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
+                                    ${this.restaurantName || (isEn ? 'Food Menu' : 'Carta de Comida')}
+                                </h1>
+                                <p style="margin: 2px 0 0 0; font-size: 13.5px; color: #4B5563;">
+                                    ${isEn ? 'Open digital menu for service.' : 'Menú digital abierto para servicio.'}
                                 </p>
                             </div>
                         </div>
 
-                        <!-- Header Action Buttons -->
-                        <div class="menu-hero-actions">
-                            ${this.isOwner ? `
-                                <button type="button" class="menu-action-pill" onclick="window.restaurantMenu.shareRestaurantMenu()" title="${isEn ? 'Share menu and allergen matrix with your kitchen team' : 'Compartir carta y matriz de alérgenos con tu equipo'}" style="background: #ECFDF5; color: #065F46; border: 1.5px solid #A7F3D0; font-weight: 700;">
-                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">group_add</span>
-                                    <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
-                                </button>
-                                <button type="button" class="menu-action-pill" onclick="window.restaurantMenu.confirmDeleteRestaurantMenu()" title="${isEn ? 'Permanently delete this restaurant menu and clear space' : 'Eliminar permanentemente esta carta y dejar el espacio vacío'}" style="background: #FFF1F2; color: #E11D48; border: 1.5px solid #FECDD3; font-weight: 700;">
-                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #E11D48;">delete</span>
-                                    <span>${isEn ? 'Delete Menu' : 'Eliminar Carta'}</span>
-                                </button>
-                            ` : ''}
-
-                            ${this.isShared ? `
-                                <span class="menu-action-pill" style="background: #F1F5F9; color: #334155; border: 1.5px solid #CBD5E1; cursor: default;">
-                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #64748B;">group</span>
-                                    <span>${isEn ? 'Shared by' : 'Compartido por'}: <strong>${this.sharedBy?.first_name || this.sharedBy?.email || 'Propietario'}</strong></span>
-                                </span>
-                                <button type="button" class="menu-action-pill" onclick="window.restaurantMenu.leaveSharedMenu()" title="${isEn ? 'Leave shared menu' : 'Dejar de seguir esta carta'}" style="background: #FFF1F2; color: #9F1239; border: 1.5px solid #FECDD3;">
-                                    <span class="material-symbols-outlined" style="font-size: 17px; color: #E11D48;">logout</span>
-                                    <span>${isEn ? 'Leave Menu' : 'Dejar de seguir'}</span>
-                                </button>
-                            ` : ''}
-
-                            <button type="button" class="menu-action-pill menu-pdf-pill" onclick="window.restaurantMenu.openDocumentViewer()" title="${isEn ? 'View official menu PDF / photos and upload new' : 'Ver carta oficial en PDF / foto y actualizar'}">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">picture_as_pdf</span>
-                                <span>${isEn ? 'Official Menu (PDF / Photo)' : 'Carta Oficial (PDF / Foto)'}</span>
-                            </button>
-
-                            ${this.removedItemIds.length > 0 ? `
+                        <!-- Header Action Buttons (Solo si hay platos fuera de la carta) -->
+                        ${this.removedItemIds.length > 0 ? `
+                            <div class="menu-hero-actions">
                                 <button class="menu-action-pill" onclick="window.restaurantMenu.showRemovedItemsModal()" title="${isEn ? 'View dishes currently off the menu' : 'Ver platos fuera de la carta'}" style="background: #FEF3C7; color: #92400E; border: 1.5px solid #FDE68A;">
                                     <span class="material-symbols-outlined" style="font-size: 17px; color: #D97706;">visibility_off</span>
                                     <span>${isEn ? 'Dishes Off Menu' : 'Platos Fuera del Menú'}</span>
                                     <span class="chip-count" style="background: #D97706; color: #FFFFFF; font-weight: 800; margin-left: 4px; padding: 2px 7px; border-radius: 999px;">${this.removedItemIds.length}</span>
                                 </button>
-                            ` : ''}
-                        </div>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <!-- Macro Tabs (Solo si es Stanley o si hay más de 1 sección macro con platos) -->

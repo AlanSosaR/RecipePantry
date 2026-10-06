@@ -4153,14 +4153,14 @@ select.input-field {
 
 /* ─── Modal "Crear Carpeta" Estilo Dropbox (Screenshot 1:1) ─── */
 .dropbox-folder-modal {
-    background: #1e1e1e !important;
-    color: #ffffff;
-    border-radius: 16px;
+    background: #ffffff !important;
+    color: #111827;
+    border-radius: 20px;
     width: 440px;
     max-width: calc(100vw - 32px);
-    padding: 26px 24px 22px 24px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 24px 26px 22px 26px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+    border: none;
     font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     animation: dropboxModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
@@ -4185,35 +4185,36 @@ select.input-field {
 .folder-modal-label {
     font-size: 14.5px;
     font-weight: 700;
-    color: #ffffff;
+    color: #111827;
     margin-bottom: 8px;
     letter-spacing: -0.1px;
 }
 
 .folder-modal-sublabel {
     font-size: 13px;
-    color: #9ca3af;
+    color: #4b5563;
     margin: 0 0 12px 0;
     line-height: 1.4;
 }
 
 .folder-modal-input {
-    background: #1e1e1e;
-    border: 1.5px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 15px;
-    padding: 12px 14px;
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    color: #111827;
+    font-size: 14.5px;
+    padding: 11px 14px;
     outline: none;
     font-family: inherit;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
     box-sizing: border-box;
     width: 100%;
 }
 
 .folder-modal-input:focus {
-    border-color: #60a5fa;
-    background: #252525;
+    border-color: #006C4C;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 108, 76, 0.1);
 }
 
 .folder-access-group {
@@ -4227,22 +4228,27 @@ select.input-field {
     align-items: center;
     gap: 12px;
     padding: 13px 16px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: transparent;
+    border-radius: 12px;
+    border: 1.5px solid #e5e7eb;
+    background: #ffffff;
     cursor: pointer;
     transition: all 0.15s ease;
     user-select: none;
 }
 
+.folder-access-card:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
 .folder-access-card.active {
-    border: 1.5px solid #ffffff;
-    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid #006C4C;
+    background: #e8f5e9;
 }
 
 .folder-access-card .access-icon {
     font-size: 20px;
-    color: #ffffff;
+    color: #006C4C;
     display: none;
 }
 
@@ -4255,7 +4261,7 @@ select.input-field {
 .folder-access-card .access-text {
     font-size: 14.5px;
     font-weight: 600;
-    color: #ffffff;
+    color: #111827;
 }
 
 .folder-modal-footer {
@@ -4268,19 +4274,19 @@ select.input-field {
 .btn-folder-config {
     background: transparent;
     border: none;
-    color: #ffffff;
-    font-size: 14px;
+    color: #4b5563;
+    font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
     padding: 6px 0;
     text-decoration: underline;
-    transition: opacity 0.15s;
+    transition: color 0.15s;
     white-space: nowrap !important;
     flex-shrink: 0;
 }
 
 .btn-folder-config:hover {
-    opacity: 0.8;
+    color: #111827;
 }
 
 .folder-modal-actions {
@@ -4290,35 +4296,38 @@ select.input-field {
 }
 
 .btn-folder-cancel {
-    background: transparent;
+    background: #f3f4f6;
     border: none;
-    color: #ffffff;
+    color: #374151;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    padding: 10px 18px;
-    border-radius: 8px;
-    transition: background 0.15s;
+    padding: 9px 18px;
+    border-radius: 9999px;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
 }
 
 .btn-folder-cancel:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: #e5e7eb;
+    color: #111827;
 }
 
 .btn-folder-create {
-    background: #52525b;
+    background: #006C4C;
     border: none;
     color: #ffffff;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    padding: 10px 22px;
-    border-radius: 10px;
+    padding: 9px 24px;
+    border-radius: 9999px;
     transition: background 0.18s ease, transform 0.1s ease;
+    font-family: inherit;
 }
 
 .btn-folder-create:hover {
-    background: #71717a;
+    background: #00563b;
 }
 
 .btn-folder-create:active {
@@ -4339,17 +4348,17 @@ select.input-field {
 }
 
 .move-modal-title {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
-    color: #ffffff;
+    color: #111827;
     margin: 0;
     letter-spacing: -0.2px;
 }
 
 .move-modal-section-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #9ca3af;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6b7280;
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -4373,7 +4382,7 @@ select.input-field {
     background: transparent;
 }
 .move-modal-folder-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
 }
 
@@ -4382,7 +4391,7 @@ select.input-field {
     align-items: center;
     gap: 14px;
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
     border: 1.5px solid transparent;
@@ -4390,16 +4399,16 @@ select.input-field {
 }
 
 .move-modal-folder-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #f3f4f6;
 }
 
 .move-modal-folder-item.selected {
-    background: rgba(16, 185, 129, 0.16) !important;
+    background: #e8f5e9 !important;
     border-color: #10B981 !important;
 }
 
 .move-modal-folder-item.current-location {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: default;
 }
 
@@ -4420,7 +4429,7 @@ select.input-field {
 .move-modal-item-name {
     font-size: 14.5px;
     font-weight: 600;
-    color: #ffffff;
+    color: #111827;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -4428,13 +4437,13 @@ select.input-field {
 
 .move-modal-item-sub {
     font-size: 12px;
-    color: #9ca3af;
+    color: #6b7280;
     margin-top: 1px;
 }
 
 .move-modal-item-access {
     font-size: 12.5px;
-    color: #9ca3af;
+    color: #6b7280;
     flex-shrink: 0;
     margin-left: 8px;
 }
@@ -4444,54 +4453,55 @@ select.input-field {
     align-items: center;
     gap: 8px;
     margin-bottom: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #f9fafb;
     padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px dashed rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    border: 1.5px dashed #d1d5db;
 }
 
 .btn-move-inline-confirm {
-    background: #10B981;
+    background: #006C4C;
     color: #ffffff;
     border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
+    border-radius: 8px;
+    padding: 7px 14px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.15s;
+    font-family: inherit;
 }
 .btn-move-inline-confirm:hover {
-    background: #059669;
+    background: #00563b;
 }
 
 .btn-move-inline-cancel {
     background: transparent;
-    color: #9ca3af;
+    color: #6b7280;
     border: none;
     font-size: 16px;
     cursor: pointer;
     padding: 4px 6px;
 }
 .btn-move-inline-cancel:hover {
-    color: #ffffff;
+    color: #111827;
 }
 
 #btnConfirmMoveModal:enabled {
-    background: #10B981 !important;
+    background: #006C4C !important;
     color: #ffffff !important;
     cursor: pointer !important;
 }
 
 #btnConfirmMoveModal:enabled:hover {
-    background: #059669 !important;
+    background: #00563b !important;
 }
 
 #btnConfirmMoveModal:disabled {
-    background: #3f3f46 !important;
-    color: #71717a !important;
+    background: #e5e7eb !important;
+    color: #9ca3af !important;
     cursor: not-allowed !important;
-    opacity: 0.6;
+    opacity: 1 !important;
 }
 
 /* Footer apilado para Modal Mover / Guardar Receta */
@@ -4502,7 +4512,7 @@ select.input-field {
     gap: 12px !important;
     margin-top: 18px !important;
     padding-top: 14px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-top: 1px solid #e5e7eb !important;
 }
 
 .move-modal-footer-top {
@@ -4515,19 +4525,22 @@ select.input-field {
 .btn-move-new-folder-trigger {
     background: transparent;
     border: none;
-    color: #10B981;
+    color: #006C4C;
     font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
-    padding: 2px 0;
+    padding: 4px 6px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    transition: opacity 0.15s, transform 0.15s;
+    transition: background 0.15s, opacity 0.15s, transform 0.15s;
+    font-family: inherit;
 }
 
 .btn-move-new-folder-trigger:hover {
-    opacity: 0.85;
+    background: #f0fdf4;
+    color: #00563b;
     transform: translateX(2px);
 }
 
@@ -9644,13 +9657,13 @@ body.dark-theme .context-menu-divider {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
-/* Hero Header Material 3 Expressive */
+/* Hero Header Material 3 Expressive (Fondo blanco normal, sin verde) */
 .allergens-hero-m3 {
-    background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 55%, #ECFDF5 100%);
-    border: 1.5px solid rgba(16, 185, 129, 0.22);
-    border-radius: 28px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 24px;
     padding: 28px 36px;
-    box-shadow: 0 12px 36px -10px rgba(16, 185, 129, 0.12), 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -9659,15 +9672,7 @@ body.dark-theme .context-menu-divider {
 }
 
 .allergens-hero-m3::after {
-    content: '';
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 160px;
-    height: 160px;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
-    border-radius: 50%;
-    pointer-events: none;
+    display: none;
 }
 
 .m3-uk-fsa-badge.hero-corner-badge {
@@ -9785,6 +9790,7 @@ body.dark-theme .context-menu-divider {
     border: 1px solid #E2E8F0;
     align-self: flex-start;
     flex-wrap: wrap;
+    order: 2;
 }
 
 .m3-nav-tab {
@@ -12369,37 +12375,57 @@ body.dark-theme .context-menu-divider {
         gap: 5px;
     }
 
-    /* 2. Responsive Segmented Tab Bar - No awkward egg shape */
+    /* 2. Responsive Segmented Tab Bar - Direct Floating Pills (Mobile Only) */
     .allergens-tabs-m3 {
         display: flex;
         width: 100%;
         box-sizing: border-box;
-        border-radius: 16px;
-        padding: 4px;
-        gap: 4px;
+        border-radius: 0;
+        padding: 0 0 6px 0;
+        gap: 8px;
         flex-wrap: nowrap;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        background: #F1F5F9;
+        background: transparent;
+        border: none;
+        order: 1 !important;
+        margin-bottom: 0;
     }
 
     .allergens-tabs-m3::-webkit-scrollbar {
         display: none;
     }
 
+    .allergens-hero-m3 {
+        order: 2 !important;
+    }
+
+    #allergenTabContent {
+        order: 3 !important;
+    }
+
     .m3-nav-tab {
-        flex: 1 1 0;
+        flex: 0 0 auto;
         justify-content: center;
-        padding: 9px 8px;
-        font-size: 12px;
+        padding: 9px 16px;
+        font-size: 13px;
         white-space: nowrap;
-        border-radius: 12px;
-        gap: 5px;
+        border-radius: 9999px;
+        gap: 6px;
+        background: #E8EDF2;
+        color: #475569;
+    }
+
+    .m3-nav-tab.active {
+        background: #10B981;
+        color: #064E3B;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
     }
 
     .m3-nav-tab .material-symbols-outlined {
-        font-size: 18px;
+        font-size: 19px;
     }
 
     .tab-label-desktop {
@@ -13453,33 +13479,150 @@ body.dark-theme .context-menu-divider {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-.menu-hero-help-btn {
+/* Menu Hero More Options (3 Dots) & Popover Dropdown */
+.menu-hero-more-wrapper {
     position: absolute;
     top: 20px;
     right: 20px;
+    z-index: 30;
+}
+
+.menu-hero-more-btn {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #EFF6FF;
-    color: #2563EB;
-    border: 1px solid #DBEAFE;
+    background: #ECFDF5;
+    color: #059669;
+    border: 1.5px solid #A7F3D0;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.12);
     transition: all 0.2s ease;
-    z-index: 5;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.menu-hero-help-btn:hover {
-    background: #DBEAFE;
+.menu-hero-more-btn:hover {
+    background: #D1FAE5;
+    border-color: #6EE7B7;
+    color: #047857;
     transform: scale(1.06);
 }
 
-.menu-hero-help-btn .material-symbols-outlined {
-    font-size: 20px;
-    color: #2563EB;
+.menu-hero-more-btn .material-symbols-outlined {
+    font-size: 22px;
+    color: #059669;
+}
+
+.menu-hero-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 270px;
+    max-width: calc(100vw - 32px);
+    background: #FFFFFF;
+    border-radius: 22px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 20px 16px 14px 16px;
+    box-sizing: border-box;
+    display: none;
+    z-index: 70;
+    transform-origin: top right;
+    animation: menuHeroDropdownFade 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.menu-hero-dropdown-menu.is-open {
+    display: block;
+}
+
+@keyframes menuHeroDropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.menu-hero-dropdown-header {
+    padding: 0 6px 12px 6px;
+    border-bottom: 1px solid #F3F4F6;
+    margin-bottom: 8px;
+}
+
+.menu-hero-dropdown-subtitle {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #64748B;
+    line-height: 1.35;
+}
+
+.menu-hero-dropdown-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.menu-hero-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    padding: 10px 10px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: #1F2937;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.menu-hero-dropdown-btn:hover {
+    background: #F0FDF4;
+    color: #111827;
+}
+
+.menu-hero-dropdown-btn .material-symbols-outlined {
+    font-size: 21px;
+    color: #059669;
+    flex-shrink: 0;
+}
+
+.menu-hero-dropdown-divider {
+    height: 1px;
+    background: #F3F4F6;
+    margin: 10px 4px 6px 4px;
+}
+
+.menu-hero-dropdown-btn.btn-danger {
+    color: #DC2626;
+}
+
+.menu-hero-dropdown-btn.btn-danger .material-symbols-outlined {
+    color: #DC2626;
+}
+
+.menu-hero-dropdown-btn.btn-danger:hover {
+    background: #FEF2F2;
+    color: #B91C1C;
+}
+
+.menu-hero-dropdown-btn.btn-danger:hover .material-symbols-outlined {
+    color: #B91C1C;
+}
+
+.menu-hero-help-btn {
+    display: none;
 }
 
 /* Sunday Roast Banner */
@@ -13932,6 +14075,11 @@ body.dark-theme .context-menu-divider {
 
 /* Mobile specific tweaks */
 @media (max-width: 768px) {
+    .menu-hero-more-wrapper {
+        top: 14px;
+        right: 14px;
+    }
+
     .menu-hero-card {
         padding: 16px 14px 14px 14px;
         border-radius: 18px;
@@ -13980,27 +14128,85 @@ body.dark-theme .context-menu-divider {
     }
 
     .menu-doc-view-container {
-        padding: 8px 0 60px 0 !important;
+        padding: 4px 0 160px 0 !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+        background: transparent !important;
+        border: none !important;
     }
 
+    /* Ocultar controles de zoom (+, -, 100%) en móvil ya que se controla con pellizco / dedos */
+    .menu-doc-zoom-buttons,
+    #btnDocZoomOut,
+    #docZoomLevel,
+    #btnDocZoomIn,
+    .menu-doc-zoom-separator {
+        display: none !important;
+    }
+
+    /* Barra de herramientas sin tarjeta ni marco en móvil */
+    .menu-doc-toolbar {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 6px 0 12px 0 !important;
+        box-shadow: none !important;
+    }
+
+    #btnDocUpload:hover {
+        background: #D1FAE5 !important;
+        border-color: #6EE7B7 !important;
+        color: #047857 !important;
+    }
+
+    /* Ocultar tajantemente cualquier elemento marcado como oculto o inactivo */
+    .menu-doc-viewport .doc-element-hidden,
+    .menu-doc-viewport canvas.doc-element-hidden,
+    .menu-doc-viewport img.doc-element-hidden,
+    .menu-doc-viewport canvas[style*="display: none"],
+    .menu-doc-viewport img[style*="display: none"],
+    .menu-doc-viewport canvas[style*="display:none"],
+    .menu-doc-viewport img[style*="display:none"] {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Quitar marco / tarjeta: el documento se muestra solo, centrado y con scroll vertical libre */
     .menu-doc-viewport {
-        padding: 10px 8px 16px 8px !important;
-        min-height: auto !important;
-        border-radius: 0 0 16px 16px !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 0 20px 0 !important;
+        margin: 0 !important;
         width: 100% !important;
+        min-height: auto !important;
         box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        overflow: visible !important;
+        touch-action: pan-y !important;
     }
 
-    .menu-doc-viewport canvas,
-    .menu-doc-viewport img {
+    .menu-doc-viewport canvas:not(.doc-element-hidden),
+    .menu-doc-viewport img:not(.doc-element-hidden) {
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        margin: 0 auto !important;
+        display: block !important;
+        touch-action: pan-y !important;
     }
 
     .menu-pdf-iframe {
@@ -15048,4 +15254,396 @@ body.dark-theme .btn-cancel-selection-pill:hover {
     .floating-selection-toolbar {
         display: none !important;
     }
+}
+
+/* ==========================================================================
+   MATERIAL 3 EXPRESSIVE - COMENSAL SEGURO (PC & MÓVIL SEPARADOS)
+   ========================================================================== */
+.safe-pc-view {
+    display: none;
+    width: 100%;
+}
+
+.safe-mobile-view,
+.safe-diner-view-fluid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (min-width: 769px) {
+    .safe-pc-view {
+        display: block !important;
+    }
+    .safe-mobile-view,
+    .safe-diner-view-fluid {
+        display: none !important;
+    }
+    .allergens-hero-m3 {
+        display: flex !important;
+        order: 1 !important;
+    }
+    .allergens-tabs-m3 {
+        order: 2 !important;
+    }
+    #allergenTabContent {
+        order: 3 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .safe-pc-view {
+        display: none !important;
+    }
+    .safe-mobile-view,
+    .safe-diner-view-fluid {
+        display: flex !important;
+    }
+}
+
+/* 1. Tarjeta Hero Normal Móvil (Sin fondo verde) */
+.safe-hero-card-m3 {
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 22px 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid #E2E8F0;
+    position: relative;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.safe-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #F1F5F9;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #475569;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 12px;
+}
+
+.safe-hero-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.safe-hero-subtitle {
+    font-size: 14px;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.45;
+    font-weight: 500;
+    max-width: 480px;
+}
+
+/* 2. Cuadrícula de 2 Columnas de Chips Táctiles */
+.safe-chips-grid-m3 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+    margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.safe-allergen-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 10px;
+    border-radius: 9999px;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    color: #1E293B;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    min-height: 54px;
+    box-sizing: border-box;
+    text-align: left;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    user-select: none;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.safe-allergen-chip:hover {
+    transform: translateY(-1px);
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+}
+
+.safe-allergen-chip:active {
+    transform: scale(0.97);
+}
+
+.safe-allergen-chip.is-selected {
+    background: #10B981 !important;
+    border-color: #10B981 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.32) !important;
+}
+
+.safe-chip-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: background 0.2s, color 0.2s;
+}
+
+.safe-chip-avatar .material-symbols-outlined {
+    font-size: 21px;
+}
+
+.safe-allergen-chip.is-selected .safe-chip-avatar {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #FFFFFF !important;
+}
+
+.safe-chip-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14.5px;
+    font-weight: 700;
+}
+
+.safe-chip-check {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #064E3B;
+    flex-shrink: 0;
+}
+
+.safe-chip-check .material-symbols-outlined {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* Botón + Ver todos / Ver menos */
+.safe-chip-toggle-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1E293B;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    min-height: 54px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.safe-chip-toggle-all:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #0F172A;
+    transform: translateY(-1px);
+}
+
+.safe-chip-toggle-all:active {
+    transform: scale(0.97);
+}
+
+.safe-chip-toggle-all .material-symbols-outlined {
+    font-size: 20px;
+    color: #64748B;
+}
+
+/* 3. Estado Vacío Amable y Flotante (Sin Icono ni Cajas Concétricas) */
+.safe-empty-state-fluid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 20px;
+    gap: 10px;
+    background: transparent;
+    border: none;
+}
+
+.safe-empty-illustration {
+    display: none !important;
+}
+
+.safe-empty-text {
+    font-size: 14.5px;
+    color: #64748B;
+    max-width: 360px;
+    line-height: 1.5;
+    font-weight: 500;
+    margin: 0;
+    text-align: center;
+}
+
+/* 4. Barra de Filtros Activos */
+.safe-active-bar-m3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    background: #ECFDF5;
+    border-radius: 9999px;
+    margin-top: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+}
+
+.safe-active-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #065F46;
+}
+
+.btn-clear-safe-m3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #FFFFFF;
+    border: 1px solid #A7F3D0;
+    border-radius: 9999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #047857;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-clear-safe-m3:hover {
+    background: #047857;
+    color: #FFFFFF;
+    border-color: #047857;
+}
+
+/* 5. Tarjetas de Recetas Clasificadas Fluidas */
+.safe-results-group-m3 {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.safe-group-header-m3 {
+    margin-bottom: 4px;
+    padding: 0 4px;
+}
+
+.safe-group-title-m3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #065F46;
+}
+
+.safe-recipe-card-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid #E2E8F0;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    user-select: none;
+}
+
+.safe-recipe-card-fluid:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    border-color: #CBD5E1;
+}
+
+/* Dark Theme Support */
+body.dark-theme .allergens-hero-m3,
+body.dark-theme .safe-hero-card-m3 {
+    background: #1E293B;
+    border: 1px solid #334155;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .safe-hero-badge {
+    background: #334155;
+    color: #CBD5E1;
+    border-color: #475569;
+}
+
+body.dark-theme .safe-hero-title {
+    color: #F8FAFC;
+}
+
+body.dark-theme .safe-hero-subtitle {
+    color: #94A3B8;
+}
+
+body.dark-theme .m3-nav-tab {
+    background: #1E293B;
+    color: #94A3B8;
+}
+
+body.dark-theme .m3-nav-tab:hover {
+    background: #334155;
+    color: #F1F5F9;
+}
+
+body.dark-theme .m3-nav-tab.active {
+    background: #10B981;
+    color: #064E3B;
+}
+
+body.dark-theme .safe-chip-toggle-all {
+    background: #1E293B;
+    border-color: #334155;
+    color: #F1F5F9;
+}
+
+body.dark-theme .safe-empty-text {
+    color: #94A3B8;
+}
+
+body.dark-theme .safe-recipe-card-fluid {
+    background: #1E293B;
+    border-color: #334155;
+}
+
+body.dark-theme .safe-recipe-card-fluid h4 {
+    color: #F1F5F9 !important;
 }

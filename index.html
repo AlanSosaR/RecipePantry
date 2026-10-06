@@ -43,7 +43,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/styles.css?v=729">
-  <link rel="stylesheet" href="css/components.css?v=729">
+  <link rel="stylesheet" href="css/components.css?v=748">
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -685,7 +685,7 @@
 
       <!-- Fila para crear carpeta nueva directamente en el modal -->
       <div id="moveModalNewFolderRow" class="move-modal-new-folder-row hidden">
-        <span class="material-symbols-outlined" style="font-size: 22px; color: #10B981; flex-shrink: 0;">create_new_folder</span>
+        <span class="material-symbols-outlined" style="font-size: 22px; color: #006C4C; flex-shrink: 0;">create_new_folder</span>
         <input type="text" id="moveModalNewFolderInput" class="folder-modal-input" placeholder="Nombre de carpeta" style="padding: 7px 10px; font-size: 13.5px; height: 36px;" onkeydown="if(event.key==='Enter') window.dashboard.confirmCreateFolderInMoveModal()">
         <button type="button" class="btn-move-inline-confirm" onclick="window.dashboard.confirmCreateFolderInMoveModal()">Crear</button>
         <button type="button" class="btn-move-inline-cancel" onclick="window.dashboard.cancelCreateFolderInMoveModal()">✕</button>
@@ -847,10 +847,10 @@
   <script src="js/allergen-data.js?v=728"></script>
   <script src="js/menu-data.js?v=728"></script>
   <script src="js/lib/pdf.min.js?v=728"></script>
-  <script src="js/restaurant-menu.js?v=728"></script>
-  <script src="js/db.js?v=728"></script>
+  <script src="js/restaurant-menu.js?v=748"></script>
+  <script src="js/db.js?v=748"></script>
   <script src="js/auth.js?v=728"></script>
-  <script src="js/dashboard.js?v=728"></script>
+  <script src="js/dashboard.js?v=749"></script>
   <script src="js/share-modal.js?v=731"></script>
   <script src="js/help-modal.js?v=731"></script>
   <!-- Firebase Push Notifications -->
