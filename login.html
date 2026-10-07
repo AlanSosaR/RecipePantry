@@ -655,6 +655,9 @@
             updateTranslations();
 
             const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('blocked') === 'true') {
+                showError('⛔ Tu acceso a Recipe Pantry ha sido suspendido por el administrador.');
+            }
             if (urlParams.get('mode') === 'register') {
                 isLogin = false;
                 document.getElementById('name-group').classList.remove('hidden-m3');

@@ -123,6 +123,19 @@ class AuthManager {
                 return true; 
             }
 
+            // Verificación de acceso concedido / revocado por el Super Admin
+            if (userData && userData.is_active === false) {
+                console.warn('⛔ Acceso denegado: Usuario revocado por el administrador');
+                await this.clearLocalCache();
+                localStorage.removeItem('recipe_pantry_user_profile');
+                this.currentUser = null;
+                this.session = null;
+                document.documentElement.removeAttribute('data-auth-likely');
+                try { await window.supabaseClient.auth.signOut(); } catch(e){}
+                window.location.replace('/login.html?blocked=true');
+                return false;
+            }
+
             // EXITO: Guardar y actualizar
             if (userData && userData.id) {
                 this.currentUser = userData;
@@ -281,6 +294,20 @@ class AuthManager {
                     first_name: data.user.user_metadata?.first_name || data.user.email.split('@')[0],
                     last_name: data.user.user_metadata?.last_name || '',
                     is_partial: true
+                };
+            }
+
+            // Verificación de acceso concedido / revocado por el Super Admin
+            if (userData && userData.is_active === false) {
+                console.warn('⛔ Login rechazado: cuenta revocada');
+                await this.clearLocalCache();
+                localStorage.removeItem('recipe_pantry_user_profile');
+                this.currentUser = null;
+                this.session = null;
+                try { await window.supabaseClient.auth.signOut(); } catch(e){}
+                return {
+                    success: false,
+                    error: 'Tu acceso a Recipe Pantry ha sido suspendido por el administrador.'
                 };
             }
 

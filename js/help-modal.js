@@ -51,6 +51,9 @@ class SettingsViewManager {
                     </div>
                 </div>
 
+                <!-- 0. Panel Super Administrador (Exclusivo alansosa225@gmail.com) -->
+                <div id="superadmin-users-section"></div>
+
                 <!-- 1. Panel: Uso Offline y Almacenamiento -->
                 <div class="settings-panel-m3">
                     <div class="safe-filter-header" style="margin-bottom: 14px;">
@@ -176,6 +179,12 @@ class SettingsViewManager {
                 <div style="height: 60px; width: 100%;"></div>
             </div>
         `;
+
+        // Renderizar sección de Super Administrador si aplica
+        const adminSection = document.getElementById('superadmin-users-section');
+        if (adminSection && window.adminUsersManager) {
+            window.adminUsersManager.render(adminSection);
+        }
 
         // Cargar estado offline asíncronamente
         this.loadOfflineStatus();
