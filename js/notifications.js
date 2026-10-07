@@ -336,6 +336,10 @@ class NotificationManager {
         }
 
         console.log('🔔 [Notifications] Agregando tarjeta de actualización manual...');
+        if (sessionStorage.getItem('rp_dismissed_update_notification') === 'true' || (this._dismissedIds && this._dismissedIds.has('update-1'))) {
+            console.log('🔔 [Notifications] Actualización ya descartada previamente.');
+            return;
+        }
         this.updateWorker = worker;
         // Evitar duplicados en la lista de UI
         if (this.notifications.some(n => n.type === 'app_update')) return;
@@ -884,17 +888,37 @@ class NotificationManager {
         window._progressHandlingReload = true;
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-        // 1. Cerrar inmediatamente el menú de notificaciones para no obstruir la vista
+        // 1. Cerrar inmediatamente el menú de notificaciones y limpiar animación de campana
         if (this.menu) {
             this.menu.classList.add('hidden');
         }
+        const btn = document.getElementById('btn-notifications');
+        if (btn) btn.classList.remove('bell-update-pulse');
 
-        // 2. Quitar la tarjeta de actualización de la lista y actualizar contador de campana
+        // 2. Marcar como actualizado en la sesión para evitar bucles
+        sessionStorage.setItem('rp_dismissed_update_notification', 'true');
+        sessionStorage.setItem('recipe_pantry_just_updated', 'true');
+
+        // 3. Quitar la tarjeta de actualización de la lista
+        this._dismissLocally(notificationId);
         this.notifications = this.notifications.filter(n => n.id !== notificationId && n.type !== 'app_update');
         this.updateBadge();
         this.renderMenu();
 
-        // 3. Mostrar barra de progreso interactiva Material 3 Expressive
+        // 4. Solicitar SKIP_WAITING a todos los Service Workers posibles
+        if (this.updateWorker && this.updateWorker.state !== 'redundant') {
+            try { this.updateWorker.postMessage({ type: 'SKIP_WAITING' }); } catch (err) {}
+        }
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let reg of registrations) {
+                    if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    if (reg.active) reg.active.postMessage({ type: 'SKIP_WAITING' });
+                }
+            }).catch(() => {});
+        }
+
+        // 5. Mostrar barra de progreso interactiva y recargar
         this.showUpdateProgressUI(isEn);
     }
 
@@ -1036,14 +1060,16 @@ class NotificationManager {
         }
 
         // Si el Service Worker cambia de controlador, finalizar con éxito
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            finishUpdate();
-        }, { once: true });
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                finishUpdate();
+            }, { once: true });
+        }
 
-        // Fallback de seguridad por si el worker ya estaba activo o tarda
+        // Fallback de seguridad: recargar de inmediato tras un segundo
         setTimeout(() => {
             finishUpdate();
-        }, 1300);
+        }, 900);
     }
 
     handleSyncDownload(notificationId) {
@@ -1057,6 +1083,12 @@ class NotificationManager {
     }
 
     dismissNotification(notificationId) {
+        if (notificationId && (notificationId === 'update-1' || notificationId.startsWith('update-'))) {
+            const btn = document.getElementById('btn-notifications');
+            if (btn) btn.classList.remove('bell-update-pulse');
+            sessionStorage.setItem('rp_dismissed_update_notification', 'true');
+            if (this.menu) this.menu.classList.add('hidden');
+        }
         if (notificationId && notificationId.startsWith('sync-')) {
             localStorage.setItem('recipepantry_offline_prompt_dismissed', 'true');
         }
@@ -1135,6 +1167,11 @@ class NotificationManager {
                 d.currentView = 'recipes';
                 try { localStorage.setItem('recipe_pantry_current_view', 'recipes'); } catch (e) {}
 
+                // Guardar carpeta activa en sessionStorage para navegación atrás
+                if (cleanFolder) {
+                    try { sessionStorage.setItem('rp_current_folder', cleanFolder); } catch (e) {}
+                }
+
                 // Navegar y abrir la carpeta inmediatamente (0 ms)
                 if (typeof d.openFolder === 'function') {
                     d.openFolder(cleanFolder, true);
@@ -1150,13 +1187,38 @@ class NotificationManager {
                 if (typeof d.updateTitleHeader === 'function') d.updateTitleHeader();
             }
 
+            // Guardar inmediatamente en recipes_index local para que persista a 0ms al salir/volver
+            if (window.localDB) {
+                try {
+                    await window.localDB.put('recipes_index', {
+                        id: savedRecipeObj.id,
+                        name_es: savedRecipeObj.name_es,
+                        name_en: savedRecipeObj.name_en || null,
+                        pantry_es: cleanFolder || null,
+                        pantry_en: cleanFolder || null,
+                        image_url: savedRecipeObj.image_url || null,
+                        updated_at: savedRecipeObj.updated_at,
+                        is_favorite: false,
+                        sharingContext: null,
+                        user_id: user.id
+                    });
+                } catch (idxErr) {
+                    console.warn('⚠️ Error guardando en localDB recipes_index:', idxErr);
+                }
+            }
+
             // Disparar eventos de sincronización instantánea
-            // ⚠️ SIEMPRE pasar detail con el array actualizado para evitar que el listener
-            // recargue desde localDB y pise la receta recién añadida optimistamente.
             const updatedRecipes = d ? (d.currentRecipes || []) : [];
             window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: updatedRecipes }));
             window.dispatchEvent(new CustomEvent('recipe-created', { detail: savedRecipeObj }));
-            try { localStorage.setItem('rp_recipe_mutation', Date.now().toString()); } catch (e) {}
+            try {
+                localStorage.setItem('rp_recipe_mutation', JSON.stringify({
+                    action: 'create',
+                    recipeId: savedRecipeObj.id,
+                    folder: cleanFolder,
+                    timestamp: Date.now()
+                }));
+            } catch (e) {}
 
             // Actualizar UI de notificaciones localmente (blocklist + filter + badge)
             this._dismissLocally(notificationId);

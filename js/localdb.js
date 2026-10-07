@@ -121,11 +121,14 @@ class LocalDBManager {
     }
 
     async put(storeName, item) {
-        const store = await this._getTransaction(storeName, 'readwrite');
+        if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
+            const tx = this.db.transaction([storeName], 'readwrite');
+            const store = tx.objectStore(storeName);
             const request = store.put(item);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+            tx.oncomplete = () => resolve(request.result);
+            tx.onerror = () => reject(tx.error || request.error);
+            tx.onabort = () => reject(tx.error);
         });
     }
 
@@ -134,43 +137,44 @@ class LocalDBManager {
             console.error(`[LocalDB] Error crítico: putAll(${storeName}) esperaba un array, recibió:`, typeof items, items);
             return Promise.resolve(); // Fail safely without crashing the execution
         }
+        if (items.length === 0) return Promise.resolve();
         
-        const store = await this._getTransaction(storeName, 'readwrite');
+        if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
-            let completed = 0;
-            if (items.length === 0) return resolve();
-
+            const tx = this.db.transaction([storeName], 'readwrite');
+            const store = tx.objectStore(storeName);
             for (const item of items) {
-                if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                    completed++;
-                    if (completed === items.length) resolve();
-                    continue;
+                if (item && typeof item === 'object' && !Array.isArray(item)) {
+                    store.put(item);
                 }
-                const req = store.put(item);
-                req.onsuccess = () => {
-                    completed++;
-                    if (completed === items.length) resolve();
-                };
-                req.onerror = () => reject(req.error);
             }
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
         });
     }
 
     async delete(storeName, id) {
-        const store = await this._getTransaction(storeName, 'readwrite');
+        if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
-            const request = store.delete(id);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction([storeName], 'readwrite');
+            const store = tx.objectStore(storeName);
+            store.delete(id);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
         });
     }
 
     async clear(storeName) {
-        const store = await this._getTransaction(storeName, 'readwrite');
+        if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
-            const request = store.clear();
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            const tx = this.db.transaction([storeName], 'readwrite');
+            const store = tx.objectStore(storeName);
+            store.clear();
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
         });
     }
 

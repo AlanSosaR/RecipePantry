@@ -89,11 +89,12 @@ class DashboardManager {
             }
 
             if (this.currentView === 'recipes') {
-                // SOLO usar el parámetro de la URL — nunca sessionStorage como fallback
-                // para evitar que una carpeta anterior «contamine» la navegación al root.
                 const folderParam = urlParams.get('folder');
+                const sessionFolder = sessionStorage.getItem('rp_current_folder');
                 if (folderParam) {
                     this.currentFolder = decodeURIComponent(folderParam).trim();
+                } else if (sessionFolder && window.location.search.includes('folder=')) {
+                    this.currentFolder = sessionFolder.trim();
                 } else {
                     this.currentFolder = null; // siempre resetear al root si no hay param
                 }
@@ -101,6 +102,19 @@ class DashboardManager {
 
             // Aplicar de inmediato el estado visual de la carpeta (oculta header general "Mis Recetas" y muestra el breadcrumb)
             this.renderFolders();
+
+            // ⚡ CARGA INMEDIATA A 0 MILISEGUNDOS DESDE LOCALDB (IndexedDB)
+            // Renderiza instantáneamente las recetas y carpetas locales sin bloquearse por autenticación o Supabase
+            if (window.localDB && ['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                window.localDB.getAll('recipes_index').then(cachedRecipes => {
+                    if (Array.isArray(cachedRecipes) && cachedRecipes.length > 0) {
+                        this.currentRecipes = cachedRecipes;
+                        this.renderFolders();
+                        this.renderRecipesGrid(this.currentRecipes);
+                        this.updateTitleHeader();
+                    }
+                }).catch(() => {});
+            }
 
             // 1. Verificar autenticación silenciosamente
             const isAuthenticated = await window.authManager.checkAuth();
@@ -146,37 +160,59 @@ class DashboardManager {
 
             this.setupEventListeners();
 
-            // Sincronizar navegación atrás/adelante del navegador
-            window.addEventListener('popstate', () => {
+            // Sincronizar navegación atrás/adelante del navegador (0ms garantizados)
+            window.addEventListener('popstate', async (e) => {
                 const p = new URLSearchParams(window.location.search);
                 const v = p.get('view') || 'recipes';
-                // Usar SOLO la URL — sin sessionStorage para evitar carpetas fantasma
                 const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
                 if (v && v !== this.currentView) {
                     const nav = document.querySelector(`.nav-item[data-view="${v}"]`);
                     this.switchView(v, nav);
                 }
-                if (this.currentView === 'recipes' && this.currentFolder !== f) {
-                    this.currentFolder = f;
-                    this.clearSelection();
-                    this.renderFolders();
-                    this.renderRecipesGrid(this.currentRecipes);
+                this.currentFolder = f;
+                this.clearSelection();
+                this.renderFolders();
+
+                // ⚡ Sincronización instantánea a 0ms con base de datos local
+                if (window.localDB && ['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                    try {
+                        const localRecipes = await window.localDB.getAll('recipes_index');
+                        if (Array.isArray(localRecipes) && localRecipes.length > 0) {
+                            this.currentRecipes = localRecipes;
+                        }
+                    } catch (err) {}
                 }
+                this.renderRecipesGrid(this.currentRecipes);
+                this.updateTitleHeader();
             });
 
-            // Al restaurar la página desde la caché del navegador (bfcache en móviles)
+            // Al restaurar la página desde la caché del navegador o volver atrás (pageshow)
             window.addEventListener('pageshow', async (event) => {
                 const p = new URLSearchParams(window.location.search);
-                const f = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
+                const urlFolder = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
+                const sessionFolder = sessionStorage.getItem('rp_current_folder');
+                const f = urlFolder || sessionFolder || null;
+
                 if (this.currentView === 'recipes') {
-                    if (this.currentFolder !== f) {
-                        this.currentFolder = f || null;
-                        this.clearSelection();
-                        this.renderFolders();
-                    }
-                    if (event.persisted) {
-                        console.log('⚡ Retorno desde bfcache (pageshow): recargando caché local a 0ms');
-                        await this.loadRecipes({ orderBy: 'name_es', ascending: true });
+                    this.currentFolder = f || null;
+                    this.clearSelection();
+                    this.renderFolders();
+                }
+
+                // ⚡ Recarga INMEDIATA a 0ms desde la caché local (IndexedDB)
+                // Se ejecuta SIEMPRE al volver atrás, sin depender de flags de persisted ni esperar a la red
+                if (window.localDB && ['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                    try {
+                        console.log('⚡ Retorno a dashboard (pageshow): sincronizando caché local a 0ms');
+                        const localRecipes = await window.localDB.getAll('recipes_index');
+                        if (Array.isArray(localRecipes) && localRecipes.length > 0) {
+                            this.currentRecipes = localRecipes;
+                            this.renderFolders();
+                            this.renderRecipesGrid(this.currentRecipes);
+                            this.updateTitleHeader();
+                        }
+                    } catch (err) {
+                        console.warn('Error en pageshow local sync:', err);
                     }
                 }
             });
@@ -185,17 +221,47 @@ class DashboardManager {
             window.addEventListener('storage', async (e) => {
                 if (e.key === 'rp_recipe_mutation') {
                     console.log('⚡ Mutación de receta detectada en storage, recargando a 0ms');
-                    await this.loadRecipes(this.lastFilters || { orderBy: 'name_es', ascending: true });
+                    if (window.localDB && ['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                        try {
+                            const localRecipes = await window.localDB.getAll('recipes_index');
+                            if (Array.isArray(localRecipes) && localRecipes.length > 0) {
+                                this.currentRecipes = localRecipes;
+                                this.renderFolders();
+                                this.renderRecipesGrid(this.currentRecipes);
+                                this.updateTitleHeader();
+                            }
+                        } catch (err) {}
+                    }
                 }
             });
 
             document.addEventListener('visibilitychange', async () => {
                 if (document.visibilityState === 'visible') {
-                    const lastMutation = localStorage.getItem('rp_recipe_mutation');
-                    if (lastMutation && (!this._lastRenderMutation || this._lastRenderMutation < lastMutation)) {
-                        this._lastRenderMutation = lastMutation;
+                    const rawMutation = localStorage.getItem('rp_recipe_mutation');
+                    let mutTs = 0;
+                    if (rawMutation) {
+                        try {
+                            const parsed = JSON.parse(rawMutation);
+                            mutTs = Number(parsed.timestamp || parsed) || 0;
+                        } catch {
+                            mutTs = Number(rawMutation) || 0;
+                        }
+                    }
+
+                    if (mutTs > (this._lastRenderMutationTime || 0)) {
+                        this._lastRenderMutationTime = mutTs;
                         console.log('⚡ Visibilidad activa con mutación pendiente, recargando a 0ms');
-                        await this.loadRecipes(this.lastFilters || { orderBy: 'name_es', ascending: true });
+                        if (window.localDB && ['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+                            try {
+                                const localRecipes = await window.localDB.getAll('recipes_index');
+                                if (Array.isArray(localRecipes) && localRecipes.length > 0) {
+                                    this.currentRecipes = localRecipes;
+                                    this.renderFolders();
+                                    this.renderRecipesGrid(this.currentRecipes);
+                                    this.updateTitleHeader();
+                                }
+                            } catch (err) {}
+                        }
                     }
                 }
             });
@@ -794,9 +860,12 @@ class DashboardManager {
         if (this.currentView === 'recipes') {
             if (this.currentFolder) {
                 // Dentro de una carpeta: cuenta sólo las recetas de esa carpeta
-                const folderCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => 
-                    (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()
-                ).length;
+                const targetFolderClean = this.currentFolder.trim().toLowerCase();
+                const folderCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => {
+                    const fEs = (r.pantry_es || '').trim().toLowerCase();
+                    const fEn = (r.pantry_en || '').trim().toLowerCase();
+                    return fEs === targetFolderClean || fEn === targetFolderClean;
+                }).length;
                 titleEl.textContent = `${this.currentFolder} (${folderCount})`;
             } else if (isSearching) {
                 const s = this.lastFilters.search.trim().toLowerCase();
@@ -1889,9 +1958,14 @@ class DashboardManager {
                 breadcrumb.classList.remove('hidden');
                 breadcrumb.style.display = 'flex';
                 // Contar recetas dentro de esta carpeta (si ya cargaron)
+                const targetFolderClean = this.currentFolder.trim().toLowerCase();
                 const hasRecs = this.currentRecipes && this.currentRecipes.length > 0;
                 const folderCount = hasRecs
-                    ? (this.currentRecipes || []).filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase()).length
+                    ? (this.currentRecipes || []).filter(r => {
+                        const fEs = (r.pantry_es || '').trim().toLowerCase();
+                        const fEn = (r.pantry_en || '').trim().toLowerCase();
+                        return fEs === targetFolderClean || fEn === targetFolderClean;
+                    }).length
                     : null;
                 if (folderLabel) folderLabel.textContent = folderCount !== null ? `${this.currentFolder} (${folderCount})` : this.currentFolder;
             }
@@ -2826,7 +2900,24 @@ class DashboardManager {
             console.warn('[Dashboard] Could not update URL state for folder:', e);
         }
 
+        // Renderizado inmediato a 0ms con datos en memoria
+        this.renderFolders();
         this.renderRecipesGrid(this.currentRecipes);
+        this.updateTitleHeader();
+
+        // ⚡ Verificación complementaria ultra-rápida desde localDB
+        if (window.localDB) {
+            window.localDB.getAll('recipes_index').then(localRecipes => {
+                if (Array.isArray(localRecipes) && localRecipes.length > 0) {
+                    if (localRecipes.length !== (this.currentRecipes || []).length) {
+                        this.currentRecipes = localRecipes;
+                        this.renderFolders();
+                        this.renderRecipesGrid(this.currentRecipes);
+                        this.updateTitleHeader();
+                    }
+                }
+            }).catch(() => {});
+        }
     }
 
     promptNewFolder() {
@@ -3362,10 +3453,15 @@ class DashboardManager {
         } else if (this.currentView === 'recipes') {
             if (this.currentFolder) {
                 // Dentro de una carpeta: solo recetas pertenecientes a esa carpeta
-                displayRecipes = recipes.filter(r => (r.pantry_es || '').trim().toLowerCase() === this.currentFolder.toLowerCase());
+                const targetFolderClean = this.currentFolder.trim().toLowerCase();
+                displayRecipes = (recipes || []).filter(r => {
+                    const fEs = (r.pantry_es || '').trim().toLowerCase();
+                    const fEn = (r.pantry_en || '').trim().toLowerCase();
+                    return fEs === targetFolderClean || fEn === targetFolderClean;
+                });
             } else {
                 // En la vista global (raíz): recetas sueltas sin carpeta asignada
-                displayRecipes = recipes.filter(r => isRootFolder(r.pantry_es));
+                displayRecipes = (recipes || []).filter(r => isRootFolder(r.pantry_es) && isRootFolder(r.pantry_en));
             }
         }
 
@@ -3586,7 +3682,7 @@ class DashboardManager {
                 </div>
 
                 <div class="col-name text-ellipsis" style="display: flex; align-items: center; gap: 8px;">
-                    <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</span>
+                    <span class="recipe-name">${isEn ? (recipe.name_en || recipe.name_es) : (recipe.name_es || recipe.name_en)}</span>
                     ${(!this.currentFolder && recipe.pantry_es && recipe.pantry_es.trim()) ? `
                         <span class="badge-folder-pill" onclick="event.stopPropagation(); window.dashboard.openFolder('${recipe.pantry_es.trim().replace(/'/g, "\\'")}')" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #047857; background: #D1FAE5; padding: 2px 8px; border-radius: 6px; cursor: pointer; flex-shrink: 0;" title="Carpeta: ${recipe.pantry_es.trim()}">
                             <span class="material-symbols-outlined" style="font-size: 13px;">folder</span>
@@ -3668,7 +3764,7 @@ class DashboardManager {
                     <span class="material-symbols-outlined">restaurant</span>
                 </div>
                 <div class="recipe-card-content">
-                    <h4 class="recipe-card-title">${isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es}</h4>
+                    <h4 class="recipe-card-title">${isEn ? (recipe.name_en || recipe.name_es) : (recipe.name_es || recipe.name_en)}</h4>
                     <div class="recipe-card-meta">
                         <span>${date}</span>
                     </div>
@@ -4028,6 +4124,18 @@ class DashboardManager {
         this.renderFolders();
         this.updateTitleHeader();
         this.renderRecipesGrid(this.currentRecipes);
+
+        // ⚡ Sincronización instantánea con localDB por si hubo ediciones o mutaciones mientras estaba en panel
+        if (window.localDB) {
+            window.localDB.getAll('recipes_index').then(localRecipes => {
+                if (Array.isArray(localRecipes) && localRecipes.length > 0) {
+                    this.currentRecipes = localRecipes;
+                    this.renderFolders();
+                    this.renderRecipesGrid(this.currentRecipes);
+                    this.updateTitleHeader();
+                }
+            }).catch(() => {});
+        }
     }
 
     updateSelectionUI() {

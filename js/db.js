@@ -69,37 +69,22 @@ class DatabaseManager {
 
     async getMyRecipes(filters = {}) {
         await this._checkLocalDB();
-        const isUnfiltered = !filters.search && !filters.categoryId && !filters.favorite && !filters.shared;
-        const forceRefresh = filters.forceRefresh === true;
+        const isOnline = this._isOnline || (typeof navigator !== 'undefined' && navigator.onLine);
 
-        // 1. Mostrar de caché local a menos que se fuerce el refresco
-        let recipes = [];
-        if (window.localDB && !forceRefresh) {
-            recipes = await window.localDB.getAll('recipes_index');
-            // v623: Reparar índice corrupto que perdió pantry_es/pantry_en al refrescar
-            // el detalle de una receta (db.js _fetchFullRecipeFromServer). Se rellena
-            // desde recipes_full, que sí conserva la carpeta, sin borrar datos.
-            const missingFolder = recipes.filter(r => !r.pantry_es);
-            if (missingFolder.length > 0) {
-                const allFull = await window.localDB.getAll('recipes_full') || [];
-                const fullMap = new Map(allFull.map(f => [f.id, f]));
-                let repaired = 0;
-                for (const item of missingFolder) {
-                    const full = fullMap.get(item.id);
-                    if (full && full.pantry_es) {
-                        item.pantry_es = full.pantry_es;
-                        if (full.pantry_en) item.pantry_en = full.pantry_en;
-                        await window.localDB.put('recipes_index', item);
-                        repaired++;
-                    }
-                }
-                if (repaired > 0) console.log(`🔧 recipes_index reparado: ${repaired} recetas con carpeta restaurada`);
+        // ⚡ OBLIGATORIO: Cuando hay conexión, consultar DIRECTAMENTE a Supabase para tener la información fresca al instante
+        if (isOnline) {
+            console.log(`📡 [DB] getMyRecipes: Consultando directamente a Supabase sin cachés intermedias...`);
+            const serverResult = await this._fetchRecipesFromServer(filters);
+            if (serverResult.success) {
+                return serverResult;
             }
+            console.warn(`⚠️ Error en Supabase getMyRecipes, usando fallback local:`, serverResult.error);
+        }
 
-            // v623: Normalizar carpetas huérfanas. Si una receta apunta a una carpeta
-            // que ya no está en el registro (la eliminaste), se devuelve a la raíz
-            // aunque la caché o Supabase quedaran con datos viejos. No afecta a
-            // recetas recibidas/compartidas (no se deben reubicar).
+        // Fallback local: Leer de caché local únicamente si estamos 100% offline o falló la red
+        let recipes = [];
+        if (window.localDB) {
+            recipes = await window.localDB.getAll('recipes_index') || [];
             await this._normalizeOrphanFolders(recipes);
         }
 
@@ -132,29 +117,10 @@ class DatabaseManager {
                 return 0;
             });
 
-            // CORRECCIÓN CRÍTICA: Si el filtro específico (ej. shared) no devolvió nada, 
-            // pero tenemos recetas en caché, NO asumimos que no hay. Vamos al servidor.
-            const hasSpecificFilter = filters.shared || filters.favorite || filters.categoryId || filters.search;
-            if (filteredRecipes.length === 0 && hasSpecificFilter && this._isOnline) {
-                console.log(`🔍 Filtro local vacío para ${JSON.stringify(filters)}, reintentando desde servidor...`);
-                return this._fetchRecipesFromServer(filters);
-            }
-
-            console.log(`⚡ ${filteredRecipes.length} recetas desde caché (recipes_index)`);
-            
-            // Trigger event for listeners like SyncManager
-            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: filteredRecipes }));
-
-            // 2. Refresco silencioso en segundo plano
-            if (this._isOnline) {
-                this._refreshRecipesInBackground(filters);
-            }
-
             return { success: true, recipes: filteredRecipes, fromCache: true };
         }
 
-        // Si no hay nada en caché o se forzó el refresco, ir a la red
-        return this._fetchRecipesFromServer(filters);
+        return { success: false, error: isOnline ? "Error al cargar recetas" : "Sin conexión y no hay copia local", recipes: [] };
     }
 
     // Limpia local (caché) y servidor ÚNICAMENTE para recetas que apuntan a nombres reservados
@@ -485,24 +451,10 @@ class DatabaseManager {
         await this._checkLocalDB();
         const isOnline = this._isOnline || (typeof navigator !== 'undefined' && navigator.onLine);
 
-        if (!forceRefresh) {
-            console.log('📦 db.getRecipeById: Buscando en localDB.recipes_full...');
-            let recipe = await window.localDB.get('recipes_full', recipeId);
-            
-            // Validar si la receta en caché está completa (no es parcial y tiene ingredientes o pasos)
-            if (recipe && !recipe.isPartial && Array.isArray(recipe.ingredients) && (recipe.ingredients.length > 0 || (Array.isArray(recipe.steps) && recipe.steps.length > 0))) {
-                console.log(`ℹ️ Cargando receta completa ${recipeId} (Caché local)`);
-                if (isOnline) this._revalidateRecipeInBackground(recipeId, recipe.updated_at);
-                return { success: true, recipe: recipe, fromCache: true };
-            }
-        } else {
-            console.log(`🚀 Forzando carga de red para receta ${recipeId}...`);
-        }
-
-        // Si estamos online, SIEMPRE consultar al servidor de forma transparente e inmediata
+        // ⚡ OBLIGATORIO: Cuando hay conexión, consultar DIRECTAMENTE a Supabase para tener la receta fresca al instante
         if (isOnline) {
-            console.log(`📡 Consultando receta completa ${recipeId} desde Supabase...`);
-            const serverResult = await this._fetchFullRecipeFromServer(recipeId, forceRefresh);
+            console.log(`📡 Consultando receta completa ${recipeId} directamente desde Supabase...`);
+            const serverResult = await this._fetchFullRecipeFromServer(recipeId, true);
             if (serverResult.success) {
                 return serverResult;
             }
@@ -650,14 +602,32 @@ class DatabaseManager {
 
         if (this._isOnline) {
             try {
-                const { data: recipe, error } = await window.supabaseClient.from('recipes').update(updates).eq('id', recipeId).select().single();
+                const updatesWithTime = {
+                    ...updates,
+                    updated_at: updates.updated_at || new Date().toISOString()
+                };
+                const { data: recipe, error } = await window.supabaseClient.from('recipes').update(updatesWithTime).eq('id', recipeId).select().single();
                 if (error) throw error;
                 if (window.localDB && recipe) {
-                    await window.localDB.put('recipes_full', recipe);
+                    const fullMerged = {
+                        ...(cachedFull || {}),
+                        ...recipe,
+                        ingredients: cachedFull?.ingredients || [],
+                        steps: cachedFull?.steps || cachedFull?.preparation_steps || [],
+                        preparation_steps: cachedFull?.steps || cachedFull?.preparation_steps || []
+                    };
+                    await window.localDB.put('recipes_full', fullMerged);
                     await window.localDB.put('recipes_index', {
-                        id: recipe.id, name_es: recipe.name_es, name_en: recipe.name_en, image_url: recipe.image_url,
-                        updated_at: recipe.updated_at, is_favorite: recipe.is_favorite, pantry_es: recipe.pantry_es || null,
-                        pantry_en: recipe.pantry_en || null, tags: recipe.tags || []
+                        ...(cachedIndex || {}),
+                        id: recipe.id,
+                        name_es: recipe.name_es,
+                        name_en: recipe.name_en,
+                        image_url: recipe.image_url || cachedIndex?.image_url,
+                        updated_at: recipe.updated_at,
+                        is_favorite: recipe.is_favorite ?? cachedIndex?.is_favorite ?? false,
+                        pantry_es: recipe.pantry_es || null,
+                        pantry_en: recipe.pantry_en || null,
+                        tags: recipe.tags || []
                     });
                 }
                 if ('caches' in window) {
@@ -780,7 +750,8 @@ class DatabaseManager {
                     description_en: newRecipeData.description_en,
                     updated_at: newRecipeData.updated_at || new Date().toISOString(),
                     is_favorite: false,
-                    sharingContext: null
+                    sharingContext: null,
+                    user_id: targetUserId
                 });
             }
 

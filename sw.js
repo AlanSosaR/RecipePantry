@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v730';
-const BUILD_ID = 'v730';
-const CACHE_NAME = `recipe-pantry-v730`;
-const STATIC_CACHE = 'static-v730';
-const DATA_CACHE = 'data-v730';
+const VERSION = 'v733';
+const BUILD_ID = 'v733';
+const CACHE_NAME = `recipe-pantry-v733`;
+const STATIC_CACHE = 'static-v733';
+const DATA_CACHE = 'data-v733';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -106,7 +106,17 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
-        }).then(() => {
+        }).then(async () => {
+            // Limpieza estricta: borrar de Cache Storage cualquier URL de Supabase atrapada
+            try {
+                const currentCache = await caches.open(CACHE_NAME);
+                const keys = await currentCache.keys();
+                for (const req of keys) {
+                    if (req.url.includes('supabase.co') || req.url.includes('/rest/v1/')) {
+                        await currentCache.delete(req);
+                    }
+                }
+            } catch (e) {}
             return self.clients.claim();
         })
     );
@@ -118,6 +128,14 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
 
     if (!request.url.startsWith('http')) return;
+
+    // ⚡ CRÍTICO: NUNCA interceptar ni cachear peticiones a Supabase, APIs REST o auth en el Service Worker.
+    // La sincronización y soporte offline de datos se gestiona exclusivamente por IndexedDB (localDB.js).
+    if (url.hostname.includes('supabase.co') || 
+        url.pathname.includes('/rest/v1/') || 
+        url.pathname.includes('/auth/v1/')) {
+        return; // Pasa directo a la red sin pasar por el Cache Storage
+    }
 
     // v482: SIEMPRE intentar Red Primero para index.html y ocr.html / ocr
     const isNavigation = (request.mode === 'navigate' || 

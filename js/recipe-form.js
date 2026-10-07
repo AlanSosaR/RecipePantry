@@ -99,7 +99,7 @@ class RecipeFormManager {
 
     async loadRecipeData() {
         document.getElementById('formTitle').textContent = window.i18n ? window.i18n.t('formEditRecipe') : 'Editar Receta';
-        const result = await window.db.getRecipeById(this.recipeId);
+        const result = await window.db.getRecipeById(this.recipeId, true);
 
         if (result.success) {
             const r = result.recipe;
@@ -108,8 +108,15 @@ class RecipeFormManager {
             // Llenar campos básicos (prefiriendo el idioma actual si existe, sino fallback a ES)
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const form = document.getElementById('recipeForm');
-            form.name.value = isEn ? (r.name_en || r.name_es) : r.name_es;
-            form.description.value = isEn ? (r.description_en || r.description_es || '') : (r.description_es || '');
+            const nameInput = document.getElementById('name');
+            const descInput = document.getElementById('description');
+            const recipeNameVal = isEn ? (r.name_en || r.name_es) : (r.name_es || r.name_en || '');
+            const recipeDescVal = isEn ? (r.description_en || r.description_es || '') : (r.description_es || r.description_en || '');
+
+            if (nameInput) nameInput.value = recipeNameVal;
+            if (descInput) descInput.value = recipeDescVal;
+            if (form && form.name) form.name.value = recipeNameVal;
+            if (form && form.description) form.description.value = recipeDescVal;
 
             // Seleccionar carpeta de la receta en dropdown M3 y select nativo
             if (r.pantry_es) {
@@ -355,16 +362,22 @@ class RecipeFormManager {
         try {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
 
+            const nameInput = document.getElementById('name');
+            const descInput = document.getElementById('description');
+            const cleanName = (nameInput ? nameInput.value : (form.name_es?.value || form.name?.value || '')).trim();
+            const cleanDesc = (descInput ? descInput.value : (form.description_es?.value || form.description?.value || '')).trim();
+
             // ─── Validación en cadena ────────────────────────────
             // 1) Nombre obligatorio
             const nameGroup = document.getElementById('recipe-name-group');
-            const recipeName = form.name.value.trim();
-            if (!recipeName) {
+            if (!cleanName) {
                 if (nameGroup) nameGroup.classList.add('has-error');
-                form.name.focus();
+                if (nameInput) nameInput.focus();
                 return; // Para aquí, NO sigue validando
             }
             if (nameGroup) nameGroup.classList.remove('has-error');
+
+            const recipeName = cleanName;
 
             // 1.1) Validar nombre único dentro de la misma carpeta
             const currentFolderVal = document.getElementById('pantryFolderSelect')?.value || '';
@@ -384,7 +397,7 @@ class RecipeFormManager {
                         : `"${recipeName}" ya existe en tus recetas, cámbialo para que puedas guardarla.`;
                     window.utils.showToast(errorMsg, 'error');
                     if (nameGroup) nameGroup.classList.add('has-error');
-                    form.name.focus();
+                    if (nameInput) nameInput.focus();
                     return;
                 }
             }
@@ -431,16 +444,14 @@ class RecipeFormManager {
             }
 
             const recipeData = {
-                pantry_es: selectedFolder,
-                pantry_en: selectedFolder
+                pantry_es: selectedFolder || null,
+                pantry_en: selectedFolder || null,
+                name_es: cleanName,
+                name_en: cleanName,
+                description_es: cleanDesc,
+                description_en: cleanDesc,
+                updated_at: new Date().toISOString()
             };
-            if (isEn) {
-                recipeData.name_en = form.name.value;
-                recipeData.description_en = form.description.value;
-            } else {
-                recipeData.name_es = form.name.value;
-                recipeData.description_es = form.description.value;
-            }
 
             let recipeId = this.recipeId;
             let result;
@@ -456,8 +467,6 @@ class RecipeFormManager {
                 console.error('❌ Error de creación/actualización:', result.error);
                 throw new Error(result.error);
             }
-
-
 
             // 2. Recolectar y Guardar Ingredientes (Selector más robusto por clase de input)
             const ingredientInputs = document.querySelectorAll('#ingredientsList .ingredient-input');
@@ -535,10 +544,10 @@ class RecipeFormManager {
                         ...(result.recipe || {}),
                         id: recipeId,
                         user_id: window.authManager?.currentUser?.id || currentFull.user_id,
-                        name_es: isEn ? (currentFull.name_es || form.name.value.trim()) : form.name.value.trim(),
-                        name_en: isEn ? form.name.value.trim() : (currentFull.name_en || form.name.value.trim()),
-                        description_es: isEn ? (currentFull.description_es || form.description.value.trim()) : form.description.value.trim(),
-                        description_en: isEn ? form.description.value.trim() : (currentFull.description_en || form.description.value.trim()),
+                        name_es: recipeData.name_es,
+                        name_en: recipeData.name_en,
+                        description_es: recipeData.description_es,
+                        description_en: recipeData.description_en,
                         pantry_es: selectedFolder || null,
                         pantry_en: selectedFolder || null,
                         ingredients: ingredientsData,
@@ -550,8 +559,8 @@ class RecipeFormManager {
                     const indexRecord = {
                         ...currentIndex,
                         id: recipeId,
-                        name_es: fullRecord.name_es,
-                        name_en: fullRecord.name_en,
+                        name_es: recipeData.name_es,
+                        name_en: recipeData.name_en,
                         image_url: fullRecord.image_url || currentIndex.image_url || null,
                         updated_at: timestamp,
                         is_favorite: fullRecord.is_favorite ?? currentIndex.is_favorite ?? false,
@@ -572,6 +581,9 @@ class RecipeFormManager {
                             folder: selectedFolder || '',
                             timestamp: Date.now()
                         }));
+                        if (selectedFolder) {
+                            sessionStorage.setItem('rp_current_folder', selectedFolder);
+                        }
                     } catch (e) {}
 
                     window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: [indexRecord] }));
@@ -582,18 +594,9 @@ class RecipeFormManager {
 
             window.showToast(window.i18n ? window.i18n.t('saveSuccess') : '¡Receta guardada con éxito!', 'success');
 
-            // Redirección inmediata a 0 milisegundos (sin delay artificial ni forceRefresh de red)
+            // Redirección SIEMPRE a la vista previa de la receta con f=1 para sincronización total y fresca
             const targetFolder = selectedFolder ? encodeURIComponent(selectedFolder) : '';
-            const urlParams = new URLSearchParams(window.location.search);
-            const returnTo = urlParams.get('returnTo');
-
-            if (returnTo === 'folder' && selectedFolder) {
-                window.location.href = `/?view=recipes&folder=${targetFolder}`;
-            } else if (returnTo === 'recipes') {
-                window.location.href = `/?view=recipes`;
-            } else {
-                window.location.href = `/recipe-detail?id=${recipeId}${targetFolder ? '&folder=' + targetFolder : ''}`;
-            }
+            window.location.href = `/recipe-detail?id=${recipeId}&f=1${targetFolder ? '&folder=' + targetFolder : ''}`;
 
         } catch (err) {
             console.error(err);

@@ -27,7 +27,7 @@ class RecipeDetailManager {
         return !trimmed || trimmed === 'general' || trimmed === 'mis recetas' || trimmed === 'my recipes' || trimmed === 'todas las recetas' || trimmed === 'all recipes';
     }
 
-    goBack() {
+    async goBack() {
         if (this._isGoingBack) return;
         this._isGoingBack = true;
 
@@ -42,12 +42,36 @@ class RecipeDetailManager {
             }
         }
 
-        // Limpiar sessionStorage siempre para evitar estado residual
-        try { sessionStorage.removeItem('rp_current_folder'); } catch (e) {}
+        // Si aún no se resolvió, consultar sessionStorage como respaldo
+        if (!folder) {
+            try {
+                const sess = sessionStorage.getItem('rp_current_folder');
+                if (sess && !this.isRootFolder(sess)) {
+                    folder = sess.trim();
+                }
+            } catch (e) {}
+        }
 
         if (folder && folder.trim()) {
-            window.location.href = `/?view=recipes&folder=${encodeURIComponent(folder.trim())}`;
+            const cleanFolder = folder.trim();
+            try {
+                sessionStorage.setItem('rp_current_folder', cleanFolder);
+                if (window.localDB && this.currentRecipe) {
+                    const idx = (await window.localDB.get('recipes_index', this.currentRecipe.id)) || {};
+                    idx.id = this.currentRecipe.id;
+                    idx.pantry_es = cleanFolder;
+                    idx.pantry_en = cleanFolder;
+                    const rName = this.currentRecipe.name_es || this.currentRecipe.name_en;
+                    if (rName) {
+                        idx.name_es = rName;
+                        idx.name_en = rName;
+                    }
+                    await window.localDB.put('recipes_index', idx);
+                }
+            } catch (e) {}
+            window.location.href = `/?view=recipes&folder=${encodeURIComponent(cleanFolder)}`;
         } else {
+            try { sessionStorage.removeItem('rp_current_folder'); } catch (e) {}
             window.location.href = '/?view=recipes';
         }
     }
@@ -73,6 +97,25 @@ class RecipeDetailManager {
         const descEl = document.getElementById('recipeDescription');
 
         try {
+            // ⚡ 0ms INMEDIATO: Renderizar primero desde caché local (IndexedDB) para visualización instantánea
+            if (window.localDB) {
+                try {
+                    const cached = await window.localDB.get('recipes_full', this.recipeId);
+                    if (cached && (cached.name_es || cached.name_en)) {
+                        console.log('⚡ Renderizando receta instantánea (0ms) desde localDB:', cached.name_es || cached.name_en);
+                        this.currentRecipe = cached;
+                        this.currentRecipe.ingredients = this.currentRecipe.ingredients || [];
+                        this.currentRecipe.steps = this.currentRecipe.steps || this.currentRecipe.preparation_steps || [];
+                        this.baseServings = this.currentRecipe.servings || 2;
+                        this.currentPortions = this.baseServings;
+                        this.currentScale = 1;
+                        this.renderRecipe();
+                    }
+                } catch (e) {
+                    console.warn('Error leyendo localDB antes de fetch:', e);
+                }
+            }
+
             const params = new URLSearchParams(window.location.search);
             const forceRefresh = params.get('f') === '1';
 
@@ -81,26 +124,42 @@ class RecipeDetailManager {
             console.log('🔍 loadRecipeData: Resultado de db.getRecipeById:', result.success ? 'Success' : 'Fail', result.fromCache ? '(Cache)' : '(Network)');
 
             if (!result.success || !result.recipe) {
-                console.error('Error cargando receta:', result.error);
-                if (titleEl) titleEl.textContent = window.i18n ? window.i18n.t('recipeNotFound') : 'Receta no encontrada';
-                if (descEl) descEl.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'No pudimos cargar esta receta. Verifica tu conexión.';
-                window.showToast?.(window.i18n ? window.i18n.t('noRecipesTitle') : 'Receta no encontrada', 'error');
+                if (!this.currentRecipe) {
+                    console.error('Error cargando receta:', result.error);
+                    if (titleEl) titleEl.textContent = window.i18n ? window.i18n.t('recipeNotFound') : 'Receta no encontrada';
+                    if (descEl) descEl.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'No pudimos cargar esta receta. Verifica tu conexión.';
+                    window.showToast?.(window.i18n ? window.i18n.t('noRecipesTitle') : 'Receta no encontrada', 'error');
+                }
                 return;
             }
 
-            // Si fue forzado, limpiar la URL de forma silenciosa para que un refresh posterior use caché
+            // Si fue forzado, limpiar la URL de forma silenciosa para que un refresh posterior use caché (manteniendo folder)
             if (forceRefresh) {
                 console.log('✅ Sincronización instantánea activada. Cargando datos frescos...');
-                const newUrl = window.location.pathname + '?id=' + this.recipeId + (this.permission ? '&permission=' + this.permission : '');
+                const folderParam = params.get('folder');
+                const newUrl = window.location.pathname + '?id=' + this.recipeId + 
+                    (this.permission ? '&permission=' + this.permission : '') + 
+                    (folderParam ? '&folder=' + encodeURIComponent(folderParam) : '');
                 window.history.replaceState({}, '', newUrl);
             }
 
-            this.currentRecipe = result.recipe;
+            // Si la receta local en memoria es más reciente que el resultado de red, no degradar
+            const currentTs = new Date(this.currentRecipe?.updated_at || 0).getTime();
+            const resultTs = new Date(result.recipe.updated_at || 0).getTime();
+            if (resultTs >= currentTs || !this.currentRecipe) {
+                this.currentRecipe = {
+                    ...this.currentRecipe,
+                    ...result.recipe,
+                    ingredients: result.recipe.ingredients || this.currentRecipe?.ingredients || [],
+                    steps: result.recipe.steps || this.currentRecipe?.steps || []
+                };
+            }
             this.currentRecipe.ingredients = this.currentRecipe.ingredients || [];
             this.currentRecipe.steps = this.currentRecipe.steps || this.currentRecipe.preparation_steps || [];
             this.baseServings = this.currentRecipe.servings || 2;
             this.currentPortions = this.baseServings;
             this.currentScale = 1;
+            this.renderRecipe();
 
             // Check if this recipe was shared with the current user
             this.sharedBy = null;
@@ -164,7 +223,7 @@ class RecipeDetailManager {
         const categoryEl = document.getElementById('recipeCategory'); // Assuming this element exists for category
 
         // Título: Primera palabra en color primario
-        const name = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+        const name = isEn ? (recipe.name_en || recipe.name_es) : (recipe.name_es || recipe.name_en);
         const fullTitle = name || (window.i18n ? window.i18n.t('recipeNotFound') : 'Receta');
         const titleParts = fullTitle.split(' ');
         const firstWord = titleParts[0];
@@ -177,7 +236,7 @@ class RecipeDetailManager {
         // La insignia "Compartida por" fue removida por diseño.
 
         if (descEl) {
-            descEl.textContent = isEn ? (recipe.description_en || recipe.description_es) : recipe.description_es;
+            descEl.textContent = isEn ? (recipe.description_en || recipe.description_es) : (recipe.description_es || recipe.description_en);
             if (!descEl.textContent) {
                 descEl.textContent = window.i18n ? window.i18n.t('noDescription') : 'No hay descripción disponible.';
             }
@@ -351,8 +410,9 @@ class RecipeDetailManager {
         const btnEdit = document.getElementById('btnEdit');
         if (btnEdit) {
             btnEdit.addEventListener('click', () => {
-                const folder = this.currentRecipe?.pantry_es || this.currentRecipe?.pantry_en || '';
-                const folderParam = folder ? `&folder=${encodeURIComponent(folder)}` : '';
+                const params = new URLSearchParams(window.location.search);
+                const folder = params.get('folder') || this.currentRecipe?.pantry_es || this.currentRecipe?.pantry_en || sessionStorage.getItem('rp_current_folder') || '';
+                const folderParam = folder && !this.isRootFolder(folder) ? `&folder=${encodeURIComponent(folder.trim())}` : '';
                 window.location.href = `/recipe-form?id=${this.recipeId}${folderParam}`;
             });
         }
@@ -378,6 +438,12 @@ class RecipeDetailManager {
             }
         });
 
+        // Sincronización al restaurar desde caché del navegador (bfcache)
+        window.addEventListener('pageshow', async () => {
+            console.log('⚡ pageshow en recipe-detail: sincronizando a 0ms');
+            await this.loadRecipeData();
+        });
+
         // Listener para actualizaciones en segundo plano (Cache-First Revalidation)
         window.addEventListener('recipe-detail-updated', (e) => {
             const freshRecipe = e.detail;
@@ -385,7 +451,6 @@ class RecipeDetailManager {
                 console.log('🔄 Detalle de receta actualizado en segundo plano');
                 this.currentRecipe = freshRecipe;
                 this.renderRecipe();
-                window.showToast(window.i18n ? window.i18n.t('recipeUpdated') : 'Receta actualizada', 'info');
             }
         });
 
