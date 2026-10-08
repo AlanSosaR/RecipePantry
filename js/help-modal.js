@@ -32,128 +32,35 @@ class SettingsViewManager {
 
         this.container.innerHTML = `
             <div class="allergens-module" style="padding-top: 4px;">
-                <!-- Hero Header Material 3 Expressive (idéntico a Alergias) -->
-                <div class="allergens-hero-m3">
-                    <span class="m3-uk-fsa-badge hero-corner-badge">
-                        <span class="material-symbols-outlined" style="font-size: 15px;">tune</span>
-                        <span>${isEn ? 'System Settings' : 'Ajustes del Sistema'}</span>
-                    </span>
-                    <div class="allergens-hero-top-row">
-                        <div class="allergens-hero-icon" style="background: #10B981; color: white;">
-                            <span class="material-symbols-outlined">settings</span>
-                        </div>
-                        <div class="allergens-hero-heading-block">
-                            <h2>${t('settingsTitle', isEn ? 'Settings' : 'Configuración')}</h2>
-                            <p class="allergens-hero-desc">
-                                ${t('settingsSubtitle', isEn ? 'Manage offline storage, cache and app preferences.' : 'Administra el almacenamiento offline, caché y preferencias de la aplicación.')}
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- 0. Panel Super Administrador (Exclusivo alansosa225@gmail.com) -->
-                <div id="superadmin-users-section"></div>
-
-                <!-- 1. Panel: Uso Offline y Almacenamiento -->
-                <div class="settings-panel-m3">
-                    <div class="safe-filter-header" style="margin-bottom: 14px;">
-                        <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
-                            <div class="safe-title-icon" style="background: rgba(16, 185, 129, 0.12); color: #10B981; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 24px;">cloud_download</span>
-                            </div>
-                            <div>
-                                <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0F172A;">
-                                    ${t('offlineStorageTitle', isEn ? 'Offline Usage & Storage' : 'Uso Offline y Almacenamiento')}
-                                </h3>
-                                <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
-                                    ${isEn ? 'IndexedDB local recipe database' : 'Base de datos local en IndexedDB'}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p style="font-size: 13.5px; color: #475569; margin: 0 0 16px 0; line-height: 1.5;">
-                        ${t('offlineStorageDesc', isEn 
-                            ? 'You can access your recipes with internet without downloading anything. If you plan to cook or travel offline, you can download all your recipes to this device.' 
-                            : 'Puedes acceder a tus recetas directamente con internet sin necesidad de descargar nada. Si planeas cocinar o viajar sin conexión, puedes descargar todas tus recetas completas a este dispositivo.')}
-                    </p>
-
-                    <!-- Estado de almacenamiento -->
-                    <div id="settings-offline-status" style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #1F2937; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px 16px; margin-bottom: 16px;">
-                        <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">info</span>
-                        <span>${isEn ? 'Verifying local storage...' : 'Verificando datos locales...'}</span>
-                    </div>
-
-                    <!-- Botones de acción offline -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                        <button type="button" id="btn-settings-download-offline" onclick="window.helpModal.handleDownloadOffline()" 
-                            style="padding: 13px 18px; background: #10B981; color: white; border: none; border-radius: 14px; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
-                            onmouseover="this.style.background='#059669'"
-                            onmouseout="this.style.background='#10B981'">
-                            <span class="material-symbols-outlined" style="font-size: 19px;">download</span>
-                            <span>${t('offlineDownloadFullBtn', isEn ? 'Download all recipes for offline' : 'Descargar recetas para offline')}</span>
-                        </button>
-
-                        <button type="button" id="btn-settings-clear-offline" onclick="window.helpModal.handleClearOffline()" 
-                            style="padding: 13px 18px; background: transparent; color: #EF4444; border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 14px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
-                            onmouseover="this.style.background='rgba(239, 68, 68, 0.06)'"
-                            onmouseout="this.style.background='transparent'">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">delete_outline</span>
-                            <span>${t('offlineClearBtn', isEn ? 'Free up local space' : 'Liberar espacio local')}</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. Panel: Mantenimiento del Sistema -->
-                <div class="settings-panel-m3">
-                    <div class="safe-filter-header" style="margin-bottom: 14px;">
-                        <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
-                            <div class="safe-title-icon" style="background: rgba(59, 130, 246, 0.12); color: #3B82F6; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 24px;">cached</span>
-                            </div>
-                            <div>
-                                <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0F172A;">
-                                    ${t('cacheToolsTitle', isEn ? 'System Maintenance' : 'Mantenimiento del Sistema')}
-                                </h3>
-                                <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
-                                    Service Worker & Caches API
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p style="font-size: 13.5px; color: #475569; margin: 0 0 16px 0; line-height: 1.5;">
-                        ${t('cacheClearDesc', isEn 
-                            ? 'Clears local cached files, offline databases and resets client cache, reloading the freshest data from the server.' 
-                            : 'Borra los archivos locales en caché, bases de datos sin conexión y fuerza un reset limpio desde el servidor (mantiene tu sesión iniciada).')}
-                    </p>
-
-                    <button type="button" onclick="window.helpModal.handleClearCache()"
-                        style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 14px; cursor: pointer; text-align: left; width: 100%; transition: all 0.2s;"
-                        onmouseover="this.style.background='#F1F5F9'"
-                        onmouseout="this.style.background='#F8FAFC'">
-                        <span class="material-symbols-outlined" style="font-size: 22px; color: #3B82F6; flex-shrink: 0;">refresh</span>
-                        <div style="flex: 1;">
-                            <div style="font-size: 14px; font-weight: 700; color: #1E293B; margin-bottom: 2px;">
-                                ${t('cacheClearBtn', isEn ? 'Clear cache & reload' : 'Borrar caché y recargar')}
-                            </div>
-                            <div style="font-size: 12px; color: #64748B;">
-                                ${isEn ? 'Recommended if recipes, folders or updates are not showing up properly' : 'Recomendado si hay problemas de sincronización o no se ven actualizaciones'}
-                            </div>
-                        </div>
-                        <span class="material-symbols-outlined" style="font-size: 18px; color: #94A3B8;">chevron_right</span>
-                    </button>
-                </div>
-
-                <!-- 3. Panel: Idioma / Language -->
-                <div class="settings-panel-m3">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                <!-- 1. Encabezado de Configuración e Idioma EN PLANO (fuera de la tarjeta) -->
+                <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; padding: 4px 6px;">
+                    
+                    <!-- Cabecera de Configuración en plano -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
-                            <div class="safe-title-icon" style="background: rgba(245, 158, 11, 0.12); color: #F59E0B; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 24px;">language</span>
+                            <div style="background: linear-gradient(135deg, #10B981, #059669); color: white; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
+                                <span class="material-symbols-outlined" style="font-size: 26px;">settings</span>
                             </div>
                             <div>
-                                <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0F172A;">
+                                <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: -0.02em;">
+                                    ${t('settingsTitle', isEn ? 'Settings' : 'Configuración')}
+                                </h2>
+                                <p style="margin: 4px 0 0 0; font-size: 13.5px; color: #64748B; line-height: 1.4;">
+                                    ${t('settingsSubtitle', isEn ? 'Manage offline storage, cache and app preferences.' : 'Administra el almacenamiento offline, caché y preferencias de la aplicación.')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Idioma en plano -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-top: 4px;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <div class="safe-title-icon" style="background: rgba(245, 158, 11, 0.12); color: #F59E0B; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">language</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0F172A;">
                                     ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
                                 </h3>
                                 <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
@@ -163,17 +70,118 @@ class SettingsViewManager {
                         </div>
 
                         <!-- Selector pills -->
-                        <div style="display: flex; background: #F1F5F9; border: 1.5px solid #E2E8F0; border-radius: 100px; padding: 4px;">
+                        <div style="display: flex; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 100px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
                             <button type="button" onclick="window.helpModal.setLanguage('es')"
-                                style="border: none; padding: 8px 20px; border-radius: 100px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                style="border: none; padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
                                 Español
                             </button>
                             <button type="button" onclick="window.helpModal.setLanguage('en')"
-                                style="border: none; padding: 8px 20px; border-radius: 100px; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                style="border: none; padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
                                 English
                             </button>
                         </div>
                     </div>
+                </div>
+
+                <!-- TARJETA ÚNICA DE GESTIÓN Y ALMACENAMIENTO -->
+                <div class="settings-panel-m3" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 24px;">
+                    
+                    <!-- 1. Sección Super Administrador: Gestión de Usuarios -->
+                    <div id="superadmin-users-section"></div>
+
+                    <!-- Sección B: Uso Offline y Almacenamiento -->
+                    <div>
+                        <div class="safe-filter-header" style="margin-bottom: 12px;">
+                            <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
+                                <div class="safe-title-icon" style="background: rgba(16, 185, 129, 0.12); color: #10B981; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 24px;">cloud_download</span>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 700; color: #0F172A;">
+                                        ${t('offlineStorageTitle', isEn ? 'Offline Usage & Storage' : 'Uso Offline y Almacenamiento')}
+                                    </h3>
+                                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
+                                        ${isEn ? 'IndexedDB local recipe database' : 'Base de datos local en IndexedDB'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 13.5px; color: #475569; margin: 0 0 14px 0; line-height: 1.5;">
+                            ${t('offlineStorageDesc', isEn 
+                                ? 'You can access your recipes with internet without downloading anything. If you plan to cook or travel offline, you can download all your recipes to this device.' 
+                                : 'Puedes acceder a tus recetas directamente con internet sin necesidad de descargar nada. Si planeas cocinar o viajar sin conexión, puedes descargar todas tus recetas completas a este dispositivo.')}
+                        </p>
+
+                        <!-- Estado de almacenamiento -->
+                        <div id="settings-offline-status" style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #1F2937; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">info</span>
+                            <span>${isEn ? 'Verifying local storage...' : 'Verificando datos locales...'}</span>
+                        </div>
+
+                        <!-- Botones de acción offline -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                            <button type="button" id="btn-settings-download-offline" onclick="window.helpModal.handleDownloadOffline()" 
+                                style="padding: 12px 18px; background: #10B981; color: white; border: none; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
+                                onmouseover="this.style.background='#059669'"
+                                onmouseout="this.style.background='#10B981'">
+                                <span class="material-symbols-outlined" style="font-size: 19px;">download</span>
+                                <span>${t('offlineDownloadFullBtn', isEn ? 'Download all recipes for offline' : 'Descargar recetas para offline')}</span>
+                            </button>
+
+                            <button type="button" id="btn-settings-clear-offline" onclick="window.helpModal.handleClearOffline()" 
+                                style="padding: 12px 18px; background: transparent; color: #EF4444; border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 14px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;"
+                                onmouseover="this.style.background='rgba(239, 68, 68, 0.06)'"
+                                onmouseout="this.style.background='transparent'">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">delete_outline</span>
+                                <span>${t('offlineClearBtn', isEn ? 'Free up local space' : 'Liberar espacio local')}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid #E2E8F0; margin: 0 -2px;"></div>
+
+                    <!-- Sección C: Mantenimiento del Sistema / Caché -->
+                    <div>
+                        <div class="safe-filter-header" style="margin-bottom: 12px;">
+                            <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
+                                <div class="safe-title-icon" style="background: rgba(59, 130, 246, 0.12); color: #3B82F6; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 24px;">cached</span>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 700; color: #0F172A;">
+                                        ${t('cacheToolsTitle', isEn ? 'System Maintenance' : 'Mantenimiento del Sistema')}
+                                    </h3>
+                                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
+                                        Service Worker & Caches API
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 13.5px; color: #475569; margin: 0 0 14px 0; line-height: 1.5;">
+                            ${t('cacheClearDesc', isEn 
+                                ? 'Clears local cached files, offline databases and resets client cache, reloading the freshest data from the server.' 
+                                : 'Borra los archivos locales en caché, bases de datos sin conexión y fuerza un reset limpio desde el servidor (mantiene tu sesión iniciada).')}
+                        </p>
+
+                        <button type="button" onclick="window.helpModal.handleClearCache()"
+                            style="display: flex; align-items: center; gap: 12px; padding: 13px 18px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 14px; cursor: pointer; text-align: left; width: 100%; transition: all 0.2s;"
+                            onmouseover="this.style.background='#F1F5F9'"
+                            onmouseout="this.style.background='#F8FAFC'">
+                            <span class="material-symbols-outlined" style="font-size: 22px; color: #3B82F6; flex-shrink: 0;">refresh</span>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13.5px; font-weight: 700; color: #1E293B; margin-bottom: 2px;">
+                                    ${t('cacheClearBtn', isEn ? 'Clear cache & reload' : 'Borrar caché y recargar')}
+                                </div>
+                                <div style="font-size: 12px; color: #64748B;">
+                                    ${isEn ? 'Recommended if recipes, folders or updates are not showing up properly' : 'Recomendado si hay problemas de sincronización o no se ven actualizaciones'}
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #94A3B8;">chevron_right</span>
+                        </button>
+                    </div>
+
                 </div>
 
                 <div style="height: 60px; width: 100%;"></div>

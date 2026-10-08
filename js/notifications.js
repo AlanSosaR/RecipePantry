@@ -1041,7 +1041,15 @@ class NotificationManager {
             sessionStorage.setItem('recipe_pantry_just_updated', 'true');
 
             // Dar tiempo a ver el estado "Actualizado" y recargar
-            setTimeout(() => {
+            setTimeout(async () => {
+                try {
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        await Promise.all(keys.map(k => caches.delete(k)));
+                    }
+                } catch (e) {
+                    console.warn('[Update] Error limpiando cache:', e);
+                }
                 modal.style.animation = 'm3UpdateSlideUp 0.3s cubic-bezier(0.2, 0, 0, 1) reverse forwards';
                 setTimeout(() => {
                     modal.remove();

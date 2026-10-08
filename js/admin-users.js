@@ -160,15 +160,7 @@
             const isEn = this.isEnglish();
 
             container.innerHTML = `
-                <div class="settings-panel-m3 admin-m3-container" style="
-                    background: #FFFFFF;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 24px;
-                    padding: 24px;
-                    margin-bottom: 24px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-                    position: relative;
-                ">
+                <div class="admin-m3-section" style="position: relative; display: flex; flex-direction: column; gap: 16px;">
                     <!-- Estilos para Carrusel de Métricas M3 (Móvil) y Grid (Desktop) -->
                     <style>
                         .admin-metrics-carousel-wrapper {
@@ -244,6 +236,156 @@
                             border-radius: 10px;
                             background: #10B981;
                         }
+
+                        /* Modal (PC) y Bottom Sheet (Móvil) M3 Expressive para Detalle de Usuario */
+                        .admin-detail-backdrop {
+                            position: fixed;
+                            inset: 0;
+                            background: rgba(15, 23, 42, 0.45);
+                            backdrop-filter: blur(4px);
+                            -webkit-backdrop-filter: blur(4px);
+                            z-index: 99999;
+                            display: flex;
+                            opacity: 0;
+                            pointer-events: none;
+                            transition: opacity 0.3s ease;
+                        }
+                        .admin-detail-sheet {
+                            background: var(--surface, #FFFFFF);
+                            box-sizing: border-box;
+                            overflow-y: auto;
+                            -webkit-overflow-scrolling: touch;
+                            font-family: var(--font-display, 'Poppins', sans-serif);
+                            will-change: transform, opacity;
+                        }
+
+                        /* Desktop: Modal Card centrado */
+                        @media (min-width: 641px) {
+                            .admin-detail-backdrop {
+                                align-items: center;
+                                justify-content: center;
+                                padding: 24px;
+                            }
+                            .admin-detail-sheet {
+                                border-radius: var(--radius-xl, 28px);
+                                max-width: 520px;
+                                width: 100%;
+                                max-height: 90vh;
+                                box-shadow: var(--shadow-lg, 0 25px 60px -15px rgba(0, 0, 0, 0.3));
+                                border: 1px solid var(--border, rgba(226, 232, 240, 0.8));
+                                transform: scale(0.95) translateY(16px);
+                                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                            }
+                            .admin-sheet-drag-handle {
+                                display: none !important;
+                            }
+                            .admin-sheet-header {
+                                border-radius: var(--radius-xl, 28px) var(--radius-xl, 28px) 0 0;
+                                padding: 22px 24px 18px 24px;
+                            }
+                            .admin-sheet-body {
+                                padding: 22px 24px 24px 24px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 14px;
+                            }
+                            .admin-sheet-status-card {
+                                padding: 14px 16px;
+                                border-radius: 16px;
+                            }
+                            .admin-sheet-tech-card {
+                                padding: 18px;
+                                border-radius: 18px;
+                                gap: 12px;
+                            }
+                            .admin-sheet-action-btn {
+                                padding: 13px 20px;
+                                border-radius: 16px;
+                                font-size: 13.5px;
+                            }
+                        }
+
+                        /* Móvil: Material 3 Expressive Bottom Sheet con la misma física y transición de las recetas */
+                        @media (max-width: 640px) {
+                            .admin-detail-backdrop {
+                                align-items: flex-end;
+                                justify-content: center;
+                                padding: 0;
+                            }
+                            .admin-detail-sheet {
+                                width: 100% !important;
+                                max-width: 100% !important;
+                                border-radius: 28px 28px 0 0 !important;
+                                max-height: 92vh !important;
+                                box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22) !important;
+                                border-top: 1px solid var(--border, #E2E8F0) !important;
+                                border-left: none !important;
+                                border-right: none !important;
+                                border-bottom: none !important;
+                                transform: translateY(0);
+                                transition: height 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+                                padding-bottom: max(16px, env(safe-area-inset-bottom));
+                                overscroll-behavior: contain;
+                                overflow-y: auto !important;
+                                overflow-x: hidden !important;
+                                touch-action: pan-y;
+                                box-sizing: border-box !important;
+                            }
+                            .admin-detail-sheet.is-expanded {
+                                height: 92vh !important;
+                                max-height: 92vh !important;
+                            }
+                            .admin-sheet-drag-handle {
+                                display: block !important;
+                                width: 38px;
+                                height: 4px;
+                                background: #CBD5E1;
+                                border-radius: 4px;
+                                margin: 6px auto 14px auto;
+                                cursor: pointer;
+                                flex-shrink: 0;
+                                transition: background 0.2s, transform 0.15s;
+                            }
+                            .admin-sheet-drag-handle:active {
+                                background: #94A3B8;
+                                transform: scaleX(1.2);
+                            }
+                            .admin-sheet-header {
+                                border-radius: 28px 28px 0 0 !important;
+                                padding: 12px 18px 10px 18px !important;
+                            }
+                            .admin-sheet-header .admin-user-avatar {
+                                width: 44px !important;
+                                height: 44px !important;
+                                border-radius: 14px !important;
+                                font-size: 16px !important;
+                            }
+                            .admin-sheet-header h3 {
+                                font-size: 15.5px !important;
+                            }
+                            .admin-sheet-header .admin-user-email {
+                                font-size: 12px !important;
+                            }
+                            .admin-sheet-body {
+                                padding: 12px 16px 14px 16px !important;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 10px !important;
+                            }
+                            .admin-sheet-status-card {
+                                padding: 10px 14px !important;
+                                border-radius: 14px !important;
+                            }
+                            .admin-sheet-tech-card {
+                                padding: 11px 13px !important;
+                                border-radius: 14px !important;
+                                gap: 7px !important;
+                            }
+                            .admin-sheet-action-btn {
+                                padding: 11px 16px !important;
+                                border-radius: 14px !important;
+                                font-size: 12.5px !important;
+                        }
                     </style>
 
                     <!-- Header M3 Expressive en color verde -->
@@ -315,20 +457,21 @@
                         </button>
                     </div>
 
-                    <!-- Métricas M3 Expressive (KPIs) en Carrusel Móvil / Grid Desktop -->
-                    <div class="admin-metrics-carousel-wrapper">
-                        <div id="admin-users-metrics" class="admin-metrics-carousel-track">
-                            <!-- Skeleton inicial -->
-                            <div class="admin-metric-card" style="justify-content: center; text-align: center;">
-                                <span class="material-symbols-outlined" style="font-size: 22px; color: #94A3B8; animation: spin 1.2s linear infinite;">sync</span>
-                                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">${isEn ? 'Loading metrics...' : 'Cargando métricas...'}</div>
-                            </div>
-                        </div>
-                        <!-- Puntos indicadores del carrusel para móvil -->
-                        <div id="admin-metrics-dots" class="admin-metrics-carousel-dots">
-                            <span class="admin-metrics-dot active" onclick="window.adminUsersManager.scrollToMetricCard(0)"></span>
-                            <span class="admin-metrics-dot" onclick="window.adminUsersManager.scrollToMetricCard(1)"></span>
-                            <span class="admin-metrics-dot" onclick="window.adminUsersManager.scrollToMetricCard(2)"></span>
+                    <!-- Métricas M3 Expressive (KPIs) en una sola barra unificada -->
+                    <div id="admin-users-metrics" style="
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 8px;
+                        background: #F8FAFC;
+                        border: 1px solid #E2E8F0;
+                        border-radius: 16px;
+                        padding: 12px 10px;
+                        margin-bottom: 8px;
+                    ">
+                        <!-- Skeleton inicial -->
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 8px; color: #64748B; font-size: 13px;">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #10B981; animation: spin 1.2s linear infinite; vertical-align: middle;">sync</span>
+                            <span style="margin-left: 6px;">${isEn ? 'Loading metrics...' : 'Cargando métricas...'}</span>
                         </div>
                     </div>
 
@@ -344,37 +487,12 @@
                         <!-- Se llena dinámicamente -->
                     </div>
                 </div>
+                <div style="border-top: 1px solid #E2E8F0; margin: 4px -2px 0 -2px;"></div>
 
-                <!-- Modal de Detalle de Usuario M3 Expressive -->
-                <!-- Cierre por click en backdrop (if(event.target===this)) -->
-                <div id="admin-user-detail-modal" class="hidden" 
-                    onclick="if(event.target===this) window.adminUsersManager.closeUserModal()" 
-                    style="
-                        position: fixed;
-                        inset: 0;
-                        background: rgba(15, 23, 42, 0.6);
-                        backdrop-filter: blur(8px);
-                        z-index: 99999;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        padding: 16px;
-                        opacity: 0;
-                        pointer-events: none;
-                        transition: opacity 0.25s ease;
-                    ">
-                    <div id="admin-user-detail-card" style="
-                        background: #FFFFFF;
-                        border-radius: 28px;
-                        max-width: 520px;
-                        width: 100%;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3);
-                        border: 1px solid rgba(226, 232, 240, 0.8);
-                        transform: scale(0.95) translateY(10px);
-                        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    ">
+                <!-- Modal (PC) / Bottom Sheet (Móvil) de Detalle de Usuario M3 Expressive -->
+                <div id="admin-user-detail-modal" class="admin-detail-backdrop hidden" 
+                    onclick="if(event.target===this) window.adminUsersManager.closeUserModal()">
+                    <div id="admin-user-detail-card" class="admin-detail-sheet">
                         <!-- Contenido dinámico del detalle -->
                     </div>
                 </div>
@@ -477,83 +595,35 @@
 
             metricsEl.innerHTML = `
                 <!-- Total Usuarios -->
-                <div class="admin-metric-card">
-                    <div style="
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 14px;
-                        background: rgba(16, 185, 129, 0.12);
-                        color: #10B981;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        flex-shrink: 0;
-                    ">
-                        <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+                <div style="display: flex; align-items: center; justify-content: center; text-align: center; flex-direction: column; padding: 4px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">group</span>
+                        <span style="font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1;">${total}</span>
                     </div>
-                    <div>
-                        <div style="font-size: 24px; font-weight: 800; color: #1E293B; line-height: 1;">
-                            ${total}
-                        </div>
-                        <div style="font-size: 12px; font-weight: 600; color: #64748B; margin-top: 4px;">
-                            ${isEn ? 'App Users' : 'Usuarios en la App'}
-                        </div>
-                    </div>
+                    <span style="font-size: 11.5px; font-weight: 600; color: #64748B; margin-top: 4px;">${isEn ? 'Users' : 'Usuarios'}</span>
                 </div>
 
                 <!-- Activos -->
-                <div class="admin-metric-card">
-                    <div style="
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 14px;
-                        background: rgba(16, 185, 129, 0.12);
-                        color: #059669;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        flex-shrink: 0;
-                    ">
-                        <span class="material-symbols-outlined" style="font-size: 24px;">check_circle</span>
+                <div style="display: flex; align-items: center; justify-content: center; text-align: center; flex-direction: column; padding: 4px; border-left: 1px solid #E2E8F0; border-right: 1px solid #E2E8F0;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">check_circle</span>
+                        <span style="font-size: 20px; font-weight: 800; color: #047857; line-height: 1;">${activos}</span>
                     </div>
-                    <div>
-                        <div style="font-size: 24px; font-weight: 800; color: #047857; line-height: 1;">
-                            ${activos}
-                        </div>
-                        <div style="font-size: 12px; font-weight: 600; color: #64748B; margin-top: 4px;">
-                            ${isEn ? 'Access Granted' : 'Acceso Concedido'}
-                        </div>
-                    </div>
+                    <span style="font-size: 11.5px; font-weight: 600; color: #047857; margin-top: 4px;">${isEn ? 'Active' : 'Activos'}</span>
                 </div>
 
-                <!-- Revocados -->
-                <div class="admin-metric-card">
-                    <div style="
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 14px;
-                        background: rgba(239, 68, 68, 0.12);
-                        color: #EF4444;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        flex-shrink: 0;
-                    ">
-                        <span class="material-symbols-outlined" style="font-size: 24px;">block</span>
+                <!-- Bloqueados -->
+                <div style="display: flex; align-items: center; justify-content: center; text-align: center; flex-direction: column; padding: 4px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #EF4444;">block</span>
+                        <span style="font-size: 20px; font-weight: 800; color: #B91C1C; line-height: 1;">${inactivos}</span>
                     </div>
-                    <div>
-                        <div style="font-size: 24px; font-weight: 800; color: #B91C1C; line-height: 1;">
-                            ${inactivos}
-                        </div>
-                        <div style="font-size: 12px; font-weight: 600; color: #64748B; margin-top: 4px;">
-                            ${isEn ? 'Access Revoked' : 'Acceso Revocado'}
-                        </div>
-                    </div>
+                    <span style="font-size: 11.5px; font-weight: 600; color: #B91C1C; margin-top: 4px;">${isEn ? 'Blocked' : 'Bloqueados'}</span>
                 </div>
             `;
-
-            this.setupMetricsCarousel();
         }
+
+        setupMetricsCarousel() {}
 
         /**
          * Inicializa eventos de scroll para actualizar los puntos del carrusel de métricas en móvil
@@ -856,21 +926,22 @@
             const statusIcon = user.is_active ? 'check_circle' : 'block';
 
             card.innerHTML = `
-                <!-- Cabecera del modal en verde M3 -->
-                <div style="
-                    padding: 24px 24px 20px 24px;
+                <!-- Drag Handle para Mobile Bottom Sheet M3 Expressive -->
+                <div class="admin-sheet-drag-handle" onclick="window.adminUsersManager.toggleSheetExpand()" title="Deslizar o tocar para expandir"></div>
+
+                <!-- Cabecera del modal / bottom sheet en verde M3 -->
+                <div class="admin-sheet-header" style="
                     border-bottom: 1px solid #E2E8F0;
                     display: flex;
                     align-items: flex-start;
                     justify-content: space-between;
                     background: linear-gradient(135deg, #F8FAFC 0%, #ECFDF5 100%);
-                    border-radius: 28px 28px 0 0;
                 ">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="
-                            width: 52px;
-                            height: 52px;
-                            border-radius: 18px;
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div class="admin-user-avatar" style="
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 16px;
                             background: linear-gradient(135deg, #10B981, #059669);
                             color: white;
                             font-size: 18px;
@@ -878,24 +949,25 @@
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+                            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
                             overflow: hidden;
+                            flex-shrink: 0;
                         ">
-                            ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : (isSuperAdminUser ? '<span class="material-symbols-outlined" style="font-size: 28px;">shield_person</span>' : initials)}
+                            ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : (isSuperAdminUser ? '<span class="material-symbols-outlined" style="font-size: 26px;">shield_person</span>' : initials)}
                         </div>
                         <div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <h3 style="margin: 0; font-size: 17.5px; font-weight: 800; color: #064E3B;">
+                                <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #064E3B;">
                                     ${fullName}
                                 </h3>
                                 ${isSuperAdminUser ? `
-                                    <span style="background: #059669; color: white; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px;">
-                                        <span class="material-symbols-outlined" style="font-size: 13px;">shield_person</span>
+                                    <span style="background: #059669; color: white; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 100px; display: inline-flex; align-items: center; gap: 3px;">
+                                        <span class="material-symbols-outlined" style="font-size: 12px;">shield_person</span>
                                         Super Admin
                                     </span>
                                 ` : ''}
                             </div>
-                            <div style="font-size: 13px; color: #64748B; margin-top: 2px;">
+                            <div class="admin-user-email" style="font-size: 13px; color: #64748B; margin-top: 2px; word-break: break-all;">
                                 ${user.email}
                             </div>
                         </div>
@@ -905,37 +977,36 @@
                         background: rgba(255,255,255,0.9);
                         border: 1px solid #CBD5E1;
                         border-radius: 50%;
-                        width: 34px;
-                        height: 34px;
+                        width: 32px;
+                        height: 32px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         color: #64748B;
                         cursor: pointer;
+                        flex-shrink: 0;
                     ">
-                        <span class="material-symbols-outlined" style="font-size: 19px;">close</span>
+                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
                     </button>
                 </div>
 
                 <!-- Cuerpo con Datos Completos del Usuario -->
-                <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                <div class="admin-sheet-body">
                     <!-- Estado Actual Banner M3 -->
-                    <div style="
+                    <div class="admin-sheet-status-card" style="
                         background: ${statusBg};
                         border: 1px solid ${user.is_active ? '#A7F3D0' : '#FECACA'};
-                        border-radius: 16px;
-                        padding: 14px 16px;
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
                     ">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: ${statusTextColor};">${statusIcon}</span>
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: ${statusTextColor};">${statusIcon}</span>
                             <div>
-                                <div style="font-size: 13.5px; font-weight: 800; color: ${statusTextColor};">
+                                <div style="font-size: 13px; font-weight: 800; color: ${statusTextColor};">
                                     ${statusText}
                                 </div>
-                                <div style="font-size: 12px; color: #475569; margin-top: 1px;">
+                                <div style="font-size: 11.5px; color: #475569; margin-top: 1px;">
                                     ${user.is_active 
                                         ? (isEn ? 'The user has full access to the application.' : 'El usuario tiene acceso completo a la aplicación.')
                                         : (isEn ? 'The user is denied access and cannot use the app.' : 'El usuario tiene el acceso denegado y no puede usar la app.')}
@@ -945,66 +1016,84 @@
                     </div>
 
                     <!-- Ficha de Datos Técnicos M3 -->
-                    <div style="
+                    <div class="admin-sheet-tech-card" style="
                         background: #F8FAFC;
                         border: 1px solid #E2E8F0;
-                        border-radius: 18px;
-                        padding: 18px;
                         display: flex;
                         flex-direction: column;
-                        gap: 12px;
                     ">
-                        <div style="font-size: 12px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">
                             ${isEn ? 'Account Information' : 'Información de la Cuenta'}
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Registration Date:' : 'Fecha de Registro:'}</span>
-                                <div style="font-size: 12.5px; font-weight: 600; color: #1E293B;">
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Registration Date:' : 'Fecha de Registro:'}</span>
+                                <div style="font-size: 12px; font-weight: 600; color: #1E293B;">
                                     ${createdDate}
                                 </div>
                             </div>
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Last Modified:' : 'Última Modificación:'}</span>
-                                <div style="font-size: 12.5px; font-weight: 600; color: #1E293B;">
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Last Modified:' : 'Última Modificación:'}</span>
+                                <div style="font-size: 12px; font-weight: 600; color: #1E293B;">
                                     ${updatedDate}
                                 </div>
                             </div>
                         </div>
 
                         <!-- Conteo real de Recetas y Notas -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Created Recipes:' : 'Recetas Creadas:'}</span>
-                                <div id="user-recipes-count-${user.id}" style="font-size: 14px; font-weight: 800; color: #059669;">
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Created Recipes:' : 'Recetas Creadas:'}</span>
+                                <div id="user-recipes-count-${user.id}" style="font-size: 13.5px; font-weight: 800; color: #059669;">
                                     ${user.recipes_count !== undefined ? user.recipes_count : (isEn ? 'Loading...' : 'Consultando...')}
                                 </div>
                             </div>
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Created Notes:' : 'Notas Creadas:'}</span>
-                                <div id="user-notes-count-${user.id}" style="font-size: 14px; font-weight: 800; color: #059669;">
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Created Notes:' : 'Notas Creadas:'}</span>
+                                <div id="user-notes-count-${user.id}" style="font-size: 13.5px; font-weight: 800; color: #059669;">
                                     ${user.notes_count !== undefined ? user.notes_count : (isEn ? 'Loading...' : 'Consultando...')}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Panel de Acción: Conceder / Revocar Acceso y Eliminación Definitiva -->
-                    <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Panel de Acción: Restablecer Contraseña, Conceder / Revocar Acceso y Eliminación Definitiva -->
+                    <div style="margin-top: 4px; display: flex; flex-direction: column; gap: 8px;">
+                        
+                        <!-- Botón Enviar Enlace para Restablecer Contraseña -->
+                        <button type="button" id="btn-admin-reset-password" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleSendPasswordReset('${user.id}')" style="
+                            width: 100%;
+                            background: #EFF6FF;
+                            color: #2563EB;
+                            border: 1.5px solid rgba(37, 99, 235, 0.3);
+                            font-weight: 700;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            transition: all 0.2s;
+                        "
+                        onmouseover="this.style.background='#2563EB'; this.style.color='#FFFFFF';"
+                        onmouseout="this.style.background='#EFF6FF'; this.style.color='#2563EB';"
+                        >
+                            <span class="material-symbols-outlined" style="font-size: 19px;">lock_reset</span>
+                            <span>${isEn ? 'Send Password Reset Link' : 'Enviar Enlace para Restablecer Contraseña'}</span>
+                        </button>
                         ${isSuperAdminUser ? `
                             <div style="
                                 background: #F0FDF4;
                                 border: 1px solid #BBF7D0;
-                                border-radius: 16px;
-                                padding: 14px;
+                                border-radius: 14px;
+                                padding: 12px;
                                 text-align: center;
-                                font-size: 12.5px;
+                                font-size: 12px;
                                 color: #166534;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                gap: 8px;
+                                gap: 6px;
                             ">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">lock</span>
                                 <span>${isEn ? 'Your Super Admin account is protected against revocation or deletion.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación o eliminación.'}</span>
@@ -1012,14 +1101,11 @@
                         ` : `
                             <!-- Botón Conceder / Revocar Acceso -->
                             ${user.is_active ? `
-                                <button type="button" id="btn-admin-toggle-access" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', false)" style="
+                                <button type="button" id="btn-admin-toggle-access" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', false)" style="
                                     width: 100%;
-                                    padding: 13px 20px;
                                     background: #FEF2F2;
                                     color: #DC2626;
                                     border: 1.5px solid rgba(220, 38, 38, 0.3);
-                                    border-radius: 16px;
-                                    font-size: 13.5px;
                                     font-weight: 700;
                                     cursor: pointer;
                                     display: flex;
@@ -1031,18 +1117,15 @@
                                 onmouseover="this.style.background='#DC2626'; this.style.color='#FFFFFF';"
                                 onmouseout="this.style.background='#FEF2F2'; this.style.color='#DC2626';"
                                 >
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">block</span>
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">block</span>
                                     <span>${isEn ? 'Revoke App Access' : 'Revocar Acceso a mi Aplicación'}</span>
                                 </button>
                             ` : `
-                                <button type="button" id="btn-admin-toggle-access" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', true)" style="
+                                <button type="button" id="btn-admin-toggle-access" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', true)" style="
                                     width: 100%;
-                                    padding: 13px 20px;
                                     background: #10B981;
                                     color: #FFFFFF;
                                     border: none;
-                                    border-radius: 16px;
-                                    font-size: 13.5px;
                                     font-weight: 700;
                                     cursor: pointer;
                                     display: flex;
@@ -1055,20 +1138,17 @@
                                 onmouseover="this.style.background='#059669';"
                                 onmouseout="this.style.background='#10B981';"
                                 >
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+                                    <span class="material-symbols-outlined" style="font-size: 19px;">check_circle</span>
                                     <span>${isEn ? 'Grant App Access' : 'Conceder Acceso a mi Aplicación'}</span>
                                 </button>
                             `}
 
                             <!-- Botón para Eliminar Usuario de la BD -->
-                            <button type="button" id="btn-admin-delete-user" onclick="window.adminUsersManager.handleDeleteUser('${user.id}')" style="
+                            <button type="button" id="btn-admin-delete-user" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleDeleteUser('${user.id}')" style="
                                 width: 100%;
-                                padding: 12px 20px;
                                 background: #FFF1F2;
                                 color: #E11D48;
                                 border: 1.5px solid rgba(225, 29, 72, 0.3);
-                                border-radius: 16px;
-                                font-size: 13.5px;
                                 font-weight: 700;
                                 cursor: pointer;
                                 display: flex;
@@ -1076,7 +1156,6 @@
                                 justify-content: center;
                                 gap: 8px;
                                 transition: all 0.2s;
-                                margin-top: 4px;
                             "
                             onmouseover="this.style.background='#E11D48'; this.style.color='#FFFFFF';"
                             onmouseout="this.style.background='#FFF1F2'; this.style.color='#E11D48';"
@@ -1089,31 +1168,268 @@
                 </div>
             `;
 
+            const isMobile = window.matchMedia('(max-width: 640px)').matches;
             modal.classList.remove('hidden');
             modal.style.pointerEvents = 'auto';
-            requestAnimationFrame(() => {
-                modal.style.opacity = '1';
-                card.style.transform = 'scale(1) translateY(0)';
-            });
+
+            this._touchStartY = 0;
+            this._touchDiffY = 0;
+            this._isSheetExpanded = false;
+            this._initialSheetHeight = 0;
+            const smoothCurve = 'height 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+
+            if (isMobile) {
+                card.classList.remove('is-expanded');
+                card.style.height = 'auto';
+                card.style.transform = 'translateY(100%)';
+                card.style.transition = 'transform 0.38s cubic-bezier(0.1, 0.9, 0.2, 1)';
+                modal.style.transition = 'opacity 0.28s ease';
+
+                const measureBaseHeight = () => {
+                    if (!this._isSheetExpanded && card.offsetHeight > 50) {
+                        this._initialSheetHeight = card.offsetHeight;
+                        card.style.height = `${this._initialSheetHeight}px`;
+                    }
+                };
+
+                requestAnimationFrame(() => {
+                    modal.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                    requestAnimationFrame(measureBaseHeight);
+                    setTimeout(measureBaseHeight, 60);
+                });
+            } else {
+                card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                modal.style.transition = 'opacity 0.3s ease';
+                requestAnimationFrame(() => {
+                    modal.style.opacity = '1';
+                    card.style.transform = 'scale(1) translateY(0)';
+                });
+            }
+
+            // Gestos táctiles de deslizamiento interactivo hacia arriba o abajo idénticos a los de las recetas
+            if (!this._touchInitialized) {
+                this._touchInitialized = true;
+
+                card.addEventListener('touchstart', (e) => {
+                    if (window.matchMedia('(max-width: 640px)').matches) {
+                        this._touchStartY = e.touches[0].clientY;
+                        this._touchDiffY = 0;
+                        if (!this._initialSheetHeight && !this._isSheetExpanded) {
+                            this._initialSheetHeight = card.offsetHeight || 380;
+                        }
+                    }
+                }, { passive: true });
+
+                card.addEventListener('touchmove', (e) => {
+                    if (window.matchMedia('(max-width: 640px)').matches && this._touchStartY > 0) {
+                        this._touchDiffY = e.touches[0].clientY - this._touchStartY;
+                        if (!this._initialSheetHeight && !this._isSheetExpanded) {
+                            this._initialSheetHeight = card.offsetHeight || 380;
+                        }
+
+                        if (!this._isSheetExpanded) {
+                            if (this._touchDiffY < 0) {
+                                // Jalando hacia arriba: sube dinámicamente hacia 92vh
+                                const targetH = Math.min(window.innerHeight * 0.92, this._initialSheetHeight - this._touchDiffY);
+                                card.style.transition = 'none';
+                                card.style.height = `${targetH}px`;
+                                card.style.transform = 'translateY(0)';
+                            } else {
+                                // Jalando hacia abajo: se desliza hacia abajo
+                                card.style.transition = 'none';
+                                card.style.transform = `translateY(${this._touchDiffY}px)`;
+                            }
+                        } else {
+                            // Si ya está expandido y está arriba del scroll, contraer hacia abajo dinámicamente
+                            if (card.scrollTop <= 2 && this._touchDiffY > 0) {
+                                const startH = window.innerHeight * 0.92;
+                                const targetH = Math.max(this._initialSheetHeight, startH - this._touchDiffY);
+                                card.style.transition = 'none';
+                                card.style.height = `${targetH}px`;
+                                card.style.transform = 'translateY(0)';
+                            }
+                        }
+                    }
+                }, { passive: true });
+
+                card.addEventListener('touchend', () => {
+                    if (window.matchMedia('(max-width: 640px)').matches && this._touchStartY > 0) {
+                        if (!this._initialSheetHeight && !this._isSheetExpanded) {
+                            this._initialSheetHeight = card.offsetHeight || 380;
+                        }
+                        card.style.transition = smoothCurve;
+                        void card.offsetHeight; // Forzar reflow para aplicar transición en todos los navegadores
+
+                        if (!this._isSheetExpanded) {
+                            if (this._touchDiffY < -35) {
+                                // Se jaló hacia arriba: expandir a pantalla casi completa (92vh) con transición suave
+                                this._isSheetExpanded = true;
+                                card.classList.add('is-expanded');
+                                card.style.height = '92vh';
+                                card.style.transform = 'translateY(0)';
+                            } else if (this._touchDiffY > 80) {
+                                // Deslizado hacia abajo: cerrar con animación suave
+                                this.closeUserModal();
+                            } else {
+                                // Regresar suavemente a la altura inicial
+                                card.style.height = `${this._initialSheetHeight}px`;
+                                card.style.transform = 'translateY(0)';
+                            }
+                        } else {
+                            if (this._touchDiffY > 40) {
+                                // Se jaló hacia abajo: contraer suavemente a la altura normal (misma curva que al subir)
+                                this._isSheetExpanded = false;
+                                card.classList.remove('is-expanded');
+                                card.style.height = `${this._initialSheetHeight}px`;
+                                card.style.transform = 'translateY(0)';
+                            } else {
+                                // Regresar suavemente a expandido 92vh
+                                card.style.height = '92vh';
+                                card.style.transform = 'translateY(0)';
+                            }
+                        }
+                        this._touchStartY = 0;
+                        this._touchDiffY = 0;
+                    }
+                }, { passive: true });
+            }
 
             // Disparar carga real de estadísticas (notas y recetas)
             this.loadUserStats(user);
         }
 
         /**
-         * Cierra el modal de detalle
+         * Alterna o fuerza la expansión completa del Bottom Sheet hacia arriba en móvil con la curva de receta
+         */
+        toggleSheetExpand(forceExpand = null) {
+            const card = document.getElementById('admin-user-detail-card');
+            if (!card || !window.matchMedia('(max-width: 640px)').matches) return;
+            const smoothCurve = 'height 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+            if (!this._initialSheetHeight) this._initialSheetHeight = card.offsetHeight || 380;
+            const shouldExpand = forceExpand !== null ? forceExpand : !this._isSheetExpanded;
+
+            this._isSheetExpanded = shouldExpand;
+            card.style.transition = smoothCurve;
+            void card.offsetHeight; // Forzar reflow para asegurar animación suave
+            card.classList.toggle('is-expanded', this._isSheetExpanded);
+            if (this._isSheetExpanded) {
+                card.style.height = '92vh';
+            } else {
+                card.style.height = `${this._initialSheetHeight}px`;
+            }
+            card.style.transform = 'translateY(0)';
+        }
+
+        /**
+         * Cierra el modal / bottom sheet de detalle con animación orgánica
          */
         closeUserModal() {
             const modal = document.getElementById('admin-user-detail-modal');
             const card = document.getElementById('admin-user-detail-card');
             if (!modal || !card) return;
 
+            const isMobile = window.matchMedia('(max-width: 640px)').matches;
+            modal.style.transition = 'opacity 0.28s ease';
             modal.style.opacity = '0';
-            card.style.transform = 'scale(0.95) translateY(10px)';
             modal.style.pointerEvents = 'none';
+
+            if (isMobile) {
+                card.style.transition = 'transform 0.32s cubic-bezier(0.4, 0, 1, 1), height 0.32s cubic-bezier(0.4, 0, 1, 1)';
+                card.style.transform = 'translateY(100%)';
+            } else {
+                card.style.transition = 'transform 0.25s ease';
+                card.style.transform = 'scale(0.95) translateY(12px)';
+            }
+
             setTimeout(() => {
                 modal.classList.add('hidden');
-            }, 250);
+                card.classList.remove('is-expanded');
+                card.style.height = '';
+                this._isSheetExpanded = false;
+                this._initialSheetHeight = 0;
+            }, 320);
+        }
+
+        /**
+         * Manejador para enviar enlace de recuperación de contraseña al correo del usuario
+         */
+        async handleSendPasswordReset(userId) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user || !user.email) {
+                const isEn = this.isEnglish();
+                this.notify(isEn ? '⚠️ User has no valid email registered' : '⚠️ El usuario no tiene un correo válido registrado', 'error', 3000);
+                return;
+            }
+
+            const isEn = this.isEnglish();
+            const confirmMsg = isEn
+                ? `Send password reset email to ${user.email}?`
+                : `¿Enviar enlace para restablecer contraseña a ${user.email}?`;
+
+            const actionBtn = isEn ? 'Send Email' : 'Enviar Correo';
+            const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
+
+            const doSend = async () => {
+                await this._executeSendPasswordReset(userId);
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: actionBtn,
+                    cancelText: cancelBtn,
+                    actionColor: '#2563EB',
+                    type: 'info',
+                    onConfirm: doSend
+                });
+            } else {
+                await doSend();
+            }
+        }
+
+        /**
+         * Ejecuta el envío de restablecimiento de contraseña mediante Supabase Auth
+         */
+        async _executeSendPasswordReset(userId) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user || !user.email) return;
+
+            const isEn = this.isEnglish();
+            const btn = document.getElementById('btn-admin-reset-password');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> ${isEn ? 'Sending link...' : 'Enviando enlace...'}`;
+            }
+
+            try {
+                const redirectUrl = window.location.origin + '/reset-password.html';
+                const { error } = await window.supabaseClient.auth.resetPasswordForEmail(user.email, {
+                    redirectTo: redirectUrl
+                });
+
+                if (error) throw error;
+
+                const successMsg = isEn 
+                    ? `📧 Reset link sent to ${user.email}` 
+                    : `📧 Enlace de restablecimiento enviado a ${user.email}`;
+                this.notify(successMsg, 'success', 3500);
+
+            } catch (err) {
+                console.error('❌ Error enviando reset de contraseña:', err);
+                const errMsg = isEn 
+                    ? `❌ Error sending reset email: ${err.message || 'Unknown error'}` 
+                    : `❌ Error al enviar enlace: ${err.message || 'Error desconocido'}`;
+                this.notify(errMsg, 'error', 4000);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
+                }
+            }
         }
 
         /**
@@ -1282,14 +1598,20 @@
             try {
                 const userIdentities = [user.id, user.auth_user_id].filter(Boolean);
 
-                // 1. Intentar RPC de borrado administrativo si existe
+                // 1. Intentar RPC de borrado administrativo seguro (SECURITY DEFINER)
                 let rpcDeleted = false;
                 try {
-                    const { error: rpcErr } = await window.supabaseClient.rpc('admin_delete_user', {
+                    const { data: rpcData, error: rpcErr } = await window.supabaseClient.rpc('admin_delete_user', {
                         target_user_id: userId
                     });
-                    if (!rpcErr) rpcDeleted = true;
-                } catch (_) {}
+                    if (rpcErr) throw rpcErr;
+                    if (rpcData && rpcData.success === false) {
+                        throw new Error(rpcData.message || 'No se pudo eliminar el usuario de la BD.');
+                    }
+                    rpcDeleted = true;
+                } catch (rpcEx) {
+                    console.warn('RPC admin_delete_user falló, intentando cascada directa:', rpcEx);
+                }
 
                 // 2. Si no hubo RPC o para garantizar limpieza, eliminar registros asociados en cascada
                 if (!rpcDeleted) {
