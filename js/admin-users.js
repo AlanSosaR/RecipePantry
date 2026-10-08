@@ -169,6 +169,83 @@
                     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
                     position: relative;
                 ">
+                    <!-- Estilos para Carrusel de Métricas M3 (Móvil) y Grid (Desktop) -->
+                    <style>
+                        .admin-metrics-carousel-wrapper {
+                            position: relative;
+                            margin-bottom: 20px;
+                        }
+                        .admin-metrics-carousel-track {
+                            display: flex;
+                            gap: 12px;
+                            overflow-x: auto;
+                            scroll-snap-type: x mandatory;
+                            scroll-behavior: smooth;
+                            -webkit-overflow-scrolling: touch;
+                            padding: 4px 2px 8px 2px;
+                            scrollbar-width: none;
+                        }
+                        .admin-metrics-carousel-track::-webkit-scrollbar {
+                            display: none;
+                        }
+                        .admin-metric-card {
+                            flex: 0 0 76%;
+                            min-width: 200px;
+                            max-width: 280px;
+                            scroll-snap-align: start;
+                            background: #FFFFFF;
+                            border: 1px solid #E2E8F0;
+                            border-radius: 18px;
+                            padding: 16px;
+                            display: flex;
+                            align-items: center;
+                            gap: 14px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                            transition: transform 0.2s, box-shadow 0.2s;
+                            box-sizing: border-box;
+                        }
+                        .admin-metric-card:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+                        }
+                        @media (min-width: 640px) {
+                            .admin-metrics-carousel-track {
+                                display: grid !important;
+                                grid-template-columns: repeat(3, 1fr) !important;
+                                overflow-x: visible !important;
+                                padding-bottom: 0 !important;
+                            }
+                            .admin-metric-card {
+                                flex: 1 1 0 !important;
+                                max-width: none !important;
+                                min-width: 0 !important;
+                            }
+                            .admin-metrics-carousel-dots {
+                                display: none !important;
+                            }
+                        }
+                        .admin-metrics-carousel-dots {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            gap: 6px;
+                            margin-top: 6px;
+                        }
+                        .admin-metrics-dot {
+                            width: 7px;
+                            height: 7px;
+                            border-radius: 50%;
+                            background: #CBD5E1;
+                            transition: all 0.25s ease;
+                            cursor: pointer;
+                        }
+                        .admin-metrics-dot.active {
+                            width: 20px;
+                            border-radius: 10px;
+                            background: #10B981;
+                        }
+                    </style>
+
                     <!-- Header M3 Expressive en color verde -->
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
@@ -238,17 +315,20 @@
                         </button>
                     </div>
 
-                    <!-- Métricas M3 Expressive (KPIs) -->
-                    <div id="admin-users-metrics" style="
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                        gap: 12px;
-                        margin-bottom: 20px;
-                    ">
-                        <!-- Skeleton inicial -->
-                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px; text-align: center;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: #94A3B8; animation: spin 1.2s linear infinite;">sync</span>
-                            <div style="font-size: 12px; color: #64748B; margin-top: 4px;">${isEn ? 'Loading metrics...' : 'Cargando métricas...'}</div>
+                    <!-- Métricas M3 Expressive (KPIs) en Carrusel Móvil / Grid Desktop -->
+                    <div class="admin-metrics-carousel-wrapper">
+                        <div id="admin-users-metrics" class="admin-metrics-carousel-track">
+                            <!-- Skeleton inicial -->
+                            <div class="admin-metric-card" style="justify-content: center; text-align: center;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: #94A3B8; animation: spin 1.2s linear infinite;">sync</span>
+                                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">${isEn ? 'Loading metrics...' : 'Cargando métricas...'}</div>
+                            </div>
+                        </div>
+                        <!-- Puntos indicadores del carrusel para móvil -->
+                        <div id="admin-metrics-dots" class="admin-metrics-carousel-dots">
+                            <span class="admin-metrics-dot active" onclick="window.adminUsersManager.scrollToMetricCard(0)"></span>
+                            <span class="admin-metrics-dot" onclick="window.adminUsersManager.scrollToMetricCard(1)"></span>
+                            <span class="admin-metrics-dot" onclick="window.adminUsersManager.scrollToMetricCard(2)"></span>
                         </div>
                     </div>
 
@@ -397,16 +477,7 @@
 
             metricsEl.innerHTML = `
                 <!-- Total Usuarios -->
-                <div style="
-                    background: #FFFFFF;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 18px;
-                    padding: 16px;
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-                ">
+                <div class="admin-metric-card">
                     <div style="
                         width: 44px;
                         height: 44px;
@@ -431,16 +502,7 @@
                 </div>
 
                 <!-- Activos -->
-                <div style="
-                    background: #FFFFFF;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 18px;
-                    padding: 16px;
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-                ">
+                <div class="admin-metric-card">
                     <div style="
                         width: 44px;
                         height: 44px;
@@ -465,16 +527,7 @@
                 </div>
 
                 <!-- Revocados -->
-                <div style="
-                    background: #FFFFFF;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 18px;
-                    padding: 16px;
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-                ">
+                <div class="admin-metric-card">
                     <div style="
                         width: 44px;
                         height: 44px;
@@ -498,6 +551,49 @@
                     </div>
                 </div>
             `;
+
+            this.setupMetricsCarousel();
+        }
+
+        /**
+         * Inicializa eventos de scroll para actualizar los puntos del carrusel de métricas en móvil
+         */
+        setupMetricsCarousel() {
+            const track = document.getElementById('admin-users-metrics');
+            const dots = document.querySelectorAll('.admin-metrics-dot');
+            if (!track || !dots.length) return;
+
+            if (this._carouselScrollHandler) {
+                track.removeEventListener('scroll', this._carouselScrollHandler);
+            }
+
+            this._carouselScrollHandler = () => {
+                const scrollLeft = track.scrollLeft;
+                const card = track.querySelector('.admin-metric-card');
+                const cardWidth = card ? card.offsetWidth + 12 : 210;
+                const activeIndex = Math.min(dots.length - 1, Math.max(0, Math.round(scrollLeft / cardWidth)));
+                dots.forEach((dot, idx) => {
+                    if (idx === activeIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            };
+
+            track.addEventListener('scroll', this._carouselScrollHandler, { passive: true });
+        }
+
+        /**
+         * Desplaza el carrusel de métricas a la tarjeta seleccionada
+         */
+        scrollToMetricCard(index) {
+            const track = document.getElementById('admin-users-metrics');
+            if (!track) return;
+            const cards = track.querySelectorAll('.admin-metric-card');
+            if (cards[index]) {
+                cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            }
         }
 
         /**
