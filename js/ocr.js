@@ -447,26 +447,31 @@ class OCRScanner {
                 const renderIngs = (listId) => {
                     const list = document.getElementById(listId);
                     if (!list) return;
-                    list.innerHTML = (results.ingredientes || []).map((ing, idx) => `
+                    list.innerHTML = (results.ingredientes || []).map((ing, idx) => {
+                        const nombre = typeof ing === 'string' ? ing : (ing.nombre || ing.name || '');
+                        const cantidad = typeof ing === 'object' && ing ? (ing.cantidad || ing.quantity || '') : '';
+                        const unidad = typeof ing === 'object' && ing ? (ing.unidad || ing.unit || '') : '';
+                        return `
                         <div class="ocr-edit-card">
                             <span style="color: var(--primary); font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 1px;">•</span>
                             <div contenteditable="true" data-idx="${idx}" data-type="ing" style="font-size: 14px; color: var(--md-on-surface); line-height: 1.4;">
-                                ${ing.cantidad ? `<strong style="color: var(--primary);">${ing.cantidad}</strong>` : ''}
-                                ${ing.unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${ing.unidad}</span>` : ''}
-                                <span>${ing.nombre}</span>
+                                ${cantidad ? `<strong style="color: var(--primary);">${cantidad}</strong>` : ''}
+                                ${unidad ? `<span style="opacity: 0.8; font-weight: 500; margin-right: 4px;">${unidad}</span>` : ''}
+                                <span>${nombre}</span>
                             </div>
                             <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary); opacity: 0.8;">check_circle</span>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 };
-
-
 
                 const renderSteps = (listId) => {
                     const list = document.getElementById(listId);
                     if (!list) return;
                     list.innerHTML = (results.pasos || []).map((paso, idx) => {
-                        const instruccion = typeof paso === 'string' ? paso : (paso.instruccion || paso.instruction || JSON.stringify(paso));
+                        const instruccion = typeof paso === 'string'
+                            ? paso
+                            : (paso.instruccion || paso.instruction || paso.text || JSON.stringify(paso));
                         return `
                         <div class="ocr-edit-card" style="gap: 16px;">
                             <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;">${idx + 1}</span>
