@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v733';
-const BUILD_ID = 'v733';
-const CACHE_NAME = `recipe-pantry-v733`;
-const STATIC_CACHE = 'static-v733';
-const DATA_CACHE = 'data-v733';
+const VERSION = 'v751';
+const BUILD_ID = 'v751';
+const CACHE_NAME = `recipe-pantry-v751`;
+const STATIC_CACHE = 'static-v751';
+const DATA_CACHE = 'data-v751';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -45,6 +45,8 @@ const STATIC_RESOURCES = [
     '/js/allergen-data.js',
     '/js/menu-data.js',
     '/js/restaurant-menu.js',
+    '/js/help-modal.js',
+    '/js/admin-users.js',
     '/css/styles.css',
     '/css/components.css',
     '/js/lib/pdf.min.js',

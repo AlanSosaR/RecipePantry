@@ -2,6 +2,7 @@
  * Recipe Pantry - AdminUsersManager (Material 3 Expressive)
  * Panel de Gestión de Usuarios y Control de Acceso exclusivo para Super Administrador.
  * Autorizado exclusivamente para: alansosa225@gmail.com
+ * Optimizado con soporte bilingüe (ES/EN), UX M3 Expressive, caché en memoria y detección reactiva de auth.
  */
 
 (function () {
@@ -14,6 +15,81 @@
             this.searchQuery = '';
             this.isLoading = false;
             this.initialized = false;
+            this._keyboardInitialized = false;
+            this._reactiveAuthInitialized = false;
+
+            this.initKeyboardEvents();
+            this.initReactiveAuth();
+        }
+
+        /**
+         * Inicializa el cierre del modal con tecla Escape
+         */
+        initKeyboardEvents() {
+            if (this._keyboardInitialized) return;
+            this._keyboardInitialized = true;
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    const modal = document.getElementById('admin-user-detail-modal');
+                    if (modal && !modal.classList.contains('hidden')) {
+                        this.closeUserModal();
+                    }
+                }
+            });
+        }
+
+        /**
+         * Detección reactiva de autenticación para enlaces directos (?view=help)
+         * cuando el perfil termine de resolverse en segundo plano.
+         */
+        initReactiveAuth() {
+            if (this._reactiveAuthInitialized) return;
+            this._reactiveAuthInitialized = true;
+
+            const checkAndRender = () => {
+                if (typeof document === 'undefined' || !document.getElementById) return;
+                const adminSection = document.getElementById('superadmin-users-section');
+                if (adminSection && this.isSuperAdmin() && adminSection.children.length === 0) {
+                    console.log('⚡ [AdminUsersManager] Autenticación reactiva detectada: renderizando panel Super Admin');
+                    this.render(adminSection);
+                }
+            };
+
+            // Escuchar eventos globales de autenticación
+            window.addEventListener('auth-changed', checkAndRender);
+            window.addEventListener('auth-ready', checkAndRender);
+
+            // Escuchar cambios de sesión directamente en Supabase Auth
+            if (window.supabaseClient?.auth?.onAuthStateChange) {
+                try {
+                    window.supabaseClient.auth.onAuthStateChange(() => {
+                        setTimeout(checkAndRender, 60);
+                    });
+                } catch (e) {}
+            }
+
+            // Detección periódica ligera para enlaces directos con ?view=help
+            if (typeof window !== 'undefined' && window.location) {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('view') === 'help') {
+                    let attempts = 0;
+                    const interval = setInterval(() => {
+                        attempts++;
+                        checkAndRender();
+                        if (this.isSuperAdmin() || attempts > 15) {
+                            clearInterval(interval);
+                        }
+                    }, 350);
+                }
+            }
+        }
+
+        /**
+         * Determina si el idioma activo es inglés
+         */
+        isEnglish() {
+            return Boolean(window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en');
         }
 
         /**
@@ -29,7 +105,8 @@
         }
 
         /**
-         * Renderiza el contenedor principal en la vista de configuración
+         * Renderiza el contenedor principal en la vista de configuración/help
+         * Optimización: Si this.users.length > 0, reutiliza datos en memoria sin bloquear con spinner.
          */
         async render(container) {
             if (!container) return;
@@ -39,6 +116,8 @@
                 container.innerHTML = '';
                 return;
             }
+
+            const isEn = this.isEnglish();
 
             container.innerHTML = `
                 <div class="settings-panel-m3 admin-m3-container" style="
@@ -83,7 +162,7 @@
                             <div>
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #1E1B4B; letter-spacing: -0.02em;">
-                                        Gestión de Usuarios
+                                        ${isEn ? 'User Management' : 'Gestión de Usuarios'}
                                     </h3>
                                     <span style="
                                         background: rgba(79, 70, 229, 0.12);
@@ -104,7 +183,9 @@
                                     </span>
                                 </div>
                                 <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748B;">
-                                    Control global de cuentas, accesos al sistema y estadísticas en tiempo real.
+                                    ${isEn 
+                                        ? 'Global account control, system authorization and real-time metrics.' 
+                                        : 'Control global de cuentas, accesos al sistema y estadísticas en tiempo real.'}
                                 </p>
                             </div>
                         </div>
@@ -126,7 +207,7 @@
                             transition: all 0.2s;
                         " onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='rgba(255, 255, 255, 0.9)'">
                             <span class="material-symbols-outlined" style="font-size: 17px;">refresh</span>
-                            <span>Actualizar</span>
+                            <span>${isEn ? 'Refresh' : 'Actualizar'}</span>
                         </button>
                     </div>
 
@@ -140,7 +221,7 @@
                         <!-- Skeleton loader inicial -->
                         <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px; text-align: center;">
                             <span class="material-symbols-outlined" style="font-size: 22px; color: #94A3B8; animation: spin 1.2s linear infinite;">sync</span>
-                            <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Cargando métricas...</div>
+                            <div style="font-size: 12px; color: #64748B; margin-top: 4px;">${isEn ? 'Loading metrics...' : 'Cargando métricas...'}</div>
                         </div>
                     </div>
 
@@ -155,7 +236,9 @@
                             font-size: 20px;
                             pointer-events: none;
                         ">search</span>
-                        <input type="text" id="admin-user-search-input" placeholder="Buscar usuario por nombre, apellido o correo..." 
+                        <input type="text" id="admin-user-search-input" 
+                            placeholder="${isEn ? 'Search user by name, surname or email...' : 'Buscar usuario por nombre, apellido o correo...'}" 
+                            value="${this.searchQuery || ''}"
                             oninput="window.adminUsersManager.handleSearch(this.value)"
                             style="
                                 width: 100%;
@@ -174,7 +257,7 @@
                             onblur="this.style.borderColor='#E2E8F0'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.02)';"
                         />
                         <button type="button" id="admin-user-search-clear" onclick="window.adminUsersManager.clearSearch()" style="
-                            display: none;
+                            display: ${this.searchQuery ? 'block' : 'none'};
                             position: absolute;
                             right: 12px;
                             top: 50%;
@@ -204,20 +287,23 @@
                 </div>
 
                 <!-- Modal de Detalle de Usuario M3 Expressive -->
-                <div id="admin-user-detail-modal" class="hidden" style="
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(15, 23, 42, 0.6);
-                    backdrop-filter: blur(8px);
-                    z-index: 99999;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 16px;
-                    opacity: 0;
-                    pointer-events: none;
-                    transition: opacity 0.25s ease;
-                ">
+                <!-- Cierre del modal por click en backdrop (if(event.target===this)) -->
+                <div id="admin-user-detail-modal" class="hidden" 
+                    onclick="if(event.target===this) window.adminUsersManager.closeUserModal()" 
+                    style="
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(15, 23, 42, 0.6);
+                        backdrop-filter: blur(8px);
+                        z-index: 99999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 16px;
+                        opacity: 0;
+                        pointer-events: none;
+                        transition: opacity 0.25s ease;
+                    ">
                     <div id="admin-user-detail-card" style="
                         background: #FFFFFF;
                         border-radius: 28px;
@@ -235,7 +321,16 @@
                 </div>
             `;
 
-            await this.loadUsers(false);
+            // Optimización de caché en memoria:
+            // Si this.users.length > 0, reutilizar datos en render() tras cambio de idioma o navegación interna
+            // sin bloquear con spinner, reservando la recarga de red para el botón Actualizar.
+            if (this.users && this.users.length > 0) {
+                this.applyFilter();
+                this.renderMetrics();
+                this.renderList();
+            } else {
+                await this.loadUsers(false);
+            }
         }
 
         /**
@@ -245,12 +340,15 @@
             if (this.isLoading) return;
             this.isLoading = true;
 
+            const isEn = this.isEnglish();
             const listEl = document.getElementById('admin-users-list');
             if (listEl && showFeedback) {
                 listEl.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #64748B;">
                         <span class="material-symbols-outlined" style="font-size: 32px; color: #6366F1; animation: spin 1s linear infinite;">sync</span>
-                        <p style="margin: 8px 0 0 0; font-size: 13.5px; font-weight: 600;">Sincronizando usuarios...</p>
+                        <p style="margin: 8px 0 0 0; font-size: 13.5px; font-weight: 600;">
+                            ${isEn ? 'Synchronizing users...' : 'Sincronizando usuarios...'}
+                        </p>
                     </div>
                 `;
             }
@@ -282,8 +380,15 @@
                 this.renderMetrics();
                 this.renderList();
 
-                if (showFeedback && window.utils?.showToast) {
-                    window.utils.showToast(`✅ ${this.users.length} usuarios sincronizados`, 'success', 2000);
+                if (showFeedback) {
+                    const toastMsg = isEn 
+                        ? `✅ ${this.users.length} users synchronized`
+                        : `✅ ${this.users.length} usuarios sincronizados`;
+                    if (window.utils?.showToast) {
+                        window.utils.showToast(toastMsg, 'success', 2000);
+                    } else if (window.showToast) {
+                        window.showToast(toastMsg, 'success');
+                    }
                 }
             } catch (err) {
                 console.error('❌ Error al cargar usuarios para Super Admin:', err);
@@ -292,10 +397,10 @@
                         <div style="text-align: center; padding: 30px; background: #FEF2F2; border-radius: 16px; border: 1px solid #FEE2E2;">
                             <span class="material-symbols-outlined" style="font-size: 32px; color: #EF4444;">error</span>
                             <p style="margin: 6px 0 0 0; font-size: 13.5px; font-weight: 700; color: #991B1B;">
-                                Error al obtener usuarios
+                                ${isEn ? 'Error fetching users' : 'Error al obtener usuarios'}
                             </p>
                             <p style="margin: 4px 0 0 0; font-size: 12px; color: #B91C1C;">
-                                ${err.message || 'Verifica tu conexión y permisos.'}
+                                ${err.message || (isEn ? 'Verify your connection and permissions.' : 'Verifica tu conexión y permisos.')}
                             </p>
                         </div>
                     `;
@@ -312,6 +417,7 @@
             const metricsEl = document.getElementById('admin-users-metrics');
             if (!metricsEl) return;
 
+            const isEn = this.isEnglish();
             const total = this.users.length;
             const activos = this.users.filter(u => u.is_active).length;
             const inactivos = total - activos;
@@ -346,7 +452,7 @@
                             ${total}
                         </div>
                         <div style="font-size: 12px; font-weight: 600; color: #64748B; margin-top: 4px;">
-                            Usuarios en la App
+                            ${isEn ? 'App Users' : 'Usuarios en la App'}
                         </div>
                     </div>
                 </div>
@@ -380,7 +486,7 @@
                             ${activos}
                         </div>
                         <div style="font-size: 12px; font-weight: 600; color: #64748B; margin-top: 4px;">
-                            Acceso Concedido
+                            ${isEn ? 'Access Granted' : 'Acceso Concedido'}
                         </div>
                     </div>
                 </div>
@@ -414,7 +520,7 @@
                             ${inactivos}
                         </div>
                         <div style="font-size: 12px; font-weight: 600; color: #64748B; margin-top: 4px;">
-                            Acceso Revocado
+                            ${isEn ? 'Access Revoked' : 'Acceso Revocado'}
                         </div>
                     </div>
                 </div>
@@ -459,12 +565,14 @@
             const listEl = document.getElementById('admin-users-list');
             if (!listEl) return;
 
+            const isEn = this.isEnglish();
+
             if (this.filteredUsers.length === 0) {
                 listEl.innerHTML = `
                     <div style="text-align: center; padding: 36px; background: white; border-radius: 16px; border: 1px dashed #CBD5E1;">
                         <span class="material-symbols-outlined" style="font-size: 32px; color: #94A3B8;">search_off</span>
                         <p style="margin: 6px 0 0 0; font-size: 13.5px; font-weight: 600; color: #64748B;">
-                            No se encontraron usuarios coincidentes
+                            ${isEn ? 'No matching users found' : 'No se encontraron usuarios coincidentes'}
                         </p>
                     </div>
                 `;
@@ -474,21 +582,22 @@
             listEl.innerHTML = this.filteredUsers.map(user => {
                 const isSuperAdminUser = (user.email || '').toLowerCase().trim() === this.SUPER_ADMIN_EMAIL;
                 const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || 'U';
-                const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Sin Nombre';
+                const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || (isEn ? 'No Name' : 'Sin Nombre');
                 const createdDate = user.created_at ? new Date(user.created_at).toLocaleDateString(undefined, {
                     year: 'numeric', month: 'short', day: 'numeric'
-                }) : 'Fecha no registrada';
+                }) : (isEn ? 'Unrecorded date' : 'Fecha no registrada');
 
                 const statusColor = user.is_active ? '#10B981' : '#EF4444';
-                const statusBg = user.is_active ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)';
-                const statusTextColor = user.is_active ? '#047857' : '#B91C1C';
-                const statusText = user.is_active ? 'Acceso Concedido' : 'Acceso Revocado';
-                const statusIcon = user.is_active ? 'check_circle' : 'block';
+                const statusBg = user.is_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                const statusText = user.is_active 
+                    ? (isEn ? 'Active' : 'Activo') 
+                    : (isEn ? 'Blocked' : 'Bloqueado');
+                const statusBorder = user.is_active ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)';
 
                 return `
                     <div class="admin-user-card" onclick="window.adminUsersManager.openUserModal('${user.id}')" style="
                         background: white;
-                        border: 1.5px solid ${isSuperAdminUser ? 'rgba(99, 102, 241, 0.4)' : '#E2E8F0'};
+                        border: 1px solid #E2E8F0;
                         border-radius: 18px;
                         padding: 14px 18px;
                         display: flex;
@@ -497,76 +606,88 @@
                         gap: 14px;
                         cursor: pointer;
                         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-                        ${isSuperAdminUser ? 'background: linear-gradient(90deg, #FFFFFF 0%, #F5F3FF 100%);' : ''}
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.015);
                     "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.06)'; this.style.borderColor='#6366F1';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.02)'; this.style.borderColor='${isSuperAdminUser ? 'rgba(99, 102, 241, 0.4)' : '#E2E8F0'}';"
+                    onmouseover="this.style.borderColor='#818CF8'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(99, 102, 241, 0.08)';"
+                    onmouseout="this.style.borderColor='#E2E8F0'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.015)';"
                     >
-                        <!-- Izquierda: Avatar y Datos Principales -->
-                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
                             <!-- Avatar con iniciales o foto -->
                             <div style="
                                 width: 44px;
                                 height: 44px;
                                 border-radius: 14px;
-                                background: ${isSuperAdminUser ? 'linear-gradient(135deg, #4F46E5, #7C3AED)' : 'linear-gradient(135deg, #E0E7FF, #C7D2FE)'};
-                                color: ${isSuperAdminUser ? 'white' : '#4338CA'};
-                                font-weight: 800;
+                                background: linear-gradient(135deg, #6366F1, #8B5CF6);
+                                color: white;
                                 font-size: 15px;
+                                font-weight: 800;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
                                 flex-shrink: 0;
                                 overflow: hidden;
                             ">
-                                ${user.avatar_url ? `<img src="${user.avatar_url}" alt="${fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
+                                ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
                             </div>
 
-                            <div style="min-width: 0; flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="font-weight: 700; font-size: 14.5px; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <!-- Información principal -->
+                            <div style="min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="
+                                        font-size: 14.5px;
+                                        font-weight: 700;
+                                        color: #1E293B;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                    ">
                                         ${fullName}
-                                    </span>
+                                    </div>
                                     ${isSuperAdminUser ? `
-                                        <span style="
-                                            background: #4F46E5;
-                                            color: white;
-                                            font-size: 10px;
-                                            font-weight: 800;
-                                            padding: 2px 8px;
-                                            border-radius: 100px;
-                                            text-transform: uppercase;
-                                            letter-spacing: 0.04em;
-                                        ">Tú (Super Admin)</span>
+                                        <span style="background: #4F46E5; color: white; font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 6px; letter-spacing: 0.03em;">
+                                            SUPER ADMIN
+                                        </span>
                                     ` : ''}
                                 </div>
-                                <div style="font-size: 12.5px; color: #64748B; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${user.email || 'Sin correo registrado'}
+                                <div style="
+                                    font-size: 12.5px;
+                                    color: #64748B;
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                    margin-top: 2px;
+                                ">
+                                    ${user.email}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Derecha: Estado Chip e Indicador -->
+                        <!-- Estado y Flecha -->
                         <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-                            <!-- Chip de Acceso -->
-                            <span style="
-                                background: ${statusBg};
-                                color: ${statusTextColor};
-                                font-size: 11.5px;
-                                font-weight: 700;
-                                padding: 5px 12px;
-                                border-radius: 100px;
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 5px;
-                                border: 1px solid ${statusColor}33;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 14px;">${statusIcon}</span>
-                                <span>${statusText}</span>
-                            </span>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                                <span style="
+                                    background: ${statusBg};
+                                    color: ${statusColor};
+                                    border: 1px solid ${statusBorder};
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    padding: 2.5px 10px;
+                                    border-radius: 100px;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
+                                ">
+                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor};"></span>
+                                    ${statusText}
+                                </span>
+                                <span style="font-size: 11px; color: #94A3B8;">
+                                    ${isEn ? 'Registered:' : 'Registrado:'} ${createdDate}
+                                </span>
+                            </div>
 
-                            <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">chevron_right</span>
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #CBD5E1;">
+                                chevron_right
+                            </span>
                         </div>
                     </div>
                 `;
@@ -581,19 +702,22 @@
             if (!user) return;
             this.selectedUser = user;
 
+            const isEn = this.isEnglish();
             const modal = document.getElementById('admin-user-detail-modal');
             const card = document.getElementById('admin-user-detail-card');
             if (!modal || !card) return;
 
             const isSuperAdminUser = (user.email || '').toLowerCase().trim() === this.SUPER_ADMIN_EMAIL;
             const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || 'U';
-            const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Sin Nombre';
-            const createdDate = user.created_at ? new Date(user.created_at).toLocaleString() : 'No registrado';
-            const updatedDate = user.updated_at ? new Date(user.updated_at).toLocaleString() : 'No registrado';
+            const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || (isEn ? 'No Name' : 'Sin Nombre');
+            const createdDate = user.created_at ? new Date(user.created_at).toLocaleString() : (isEn ? 'Unrecorded' : 'No registrado');
+            const updatedDate = user.updated_at ? new Date(user.updated_at).toLocaleString() : (isEn ? 'Unrecorded' : 'No registrado');
 
             const statusBg = user.is_active ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)';
             const statusTextColor = user.is_active ? '#047857' : '#B91C1C';
-            const statusText = user.is_active ? 'Acceso Permitido (Activo)' : 'Acceso Revocado (Bloqueado)';
+            const statusText = user.is_active 
+                ? (isEn ? 'Access Granted (Active)' : 'Acceso Permitido (Activo)') 
+                : (isEn ? 'Access Revoked (Blocked)' : 'Acceso Revocado (Bloqueado)');
             const statusIcon = user.is_active ? 'check_circle' : 'block';
 
             card.innerHTML = `
@@ -676,7 +800,9 @@
                                     ${statusText}
                                 </div>
                                 <div style="font-size: 12px; color: #475569; margin-top: 1px;">
-                                    ${user.is_active ? 'El usuario tiene acceso completo a la aplicación.' : 'El usuario tiene el acceso denegado y no puede usar la app.'}
+                                    ${user.is_active 
+                                        ? (isEn ? 'The user has full access to the application.' : 'El usuario tiene acceso completo a la aplicación.')
+                                        : (isEn ? 'The user is denied access and cannot use the app.' : 'El usuario tiene el acceso denegado y no puede usar la app.')}
                                 </div>
                             </div>
                         </div>
@@ -693,12 +819,12 @@
                         gap: 12px;
                     ">
                         <div style="font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">
-                            Información de la Cuenta
+                            ${isEn ? 'Account Information' : 'Información de la Cuenta'}
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">ID de Perfil:</span>
+                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Profile ID:' : 'ID de Perfil:'}</span>
                                 <div style="font-size: 12.5px; font-family: monospace; font-weight: 600; color: #1E293B; word-break: break-all;">
                                     ${user.id}
                                 </div>
@@ -706,20 +832,20 @@
                             <div>
                                 <span style="font-size: 11.5px; color: #94A3B8;">Auth UUID:</span>
                                 <div style="font-size: 12.5px; font-family: monospace; font-weight: 600; color: #1E293B; word-break: break-all;">
-                                    ${user.auth_user_id || 'Vinculado'}
+                                    ${user.auth_user_id || (isEn ? 'Linked' : 'Vinculado')}
                                 </div>
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">Fecha de Registro:</span>
+                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Registration Date:' : 'Fecha de Registro:'}</span>
                                 <div style="font-size: 12.5px; font-weight: 600; color: #1E293B;">
                                     ${createdDate}
                                 </div>
                             </div>
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">Última Modificación:</span>
+                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Last Modified:' : 'Última Modificación:'}</span>
                                 <div style="font-size: 12.5px; font-weight: 600; color: #1E293B;">
                                     ${updatedDate}
                                 </div>
@@ -728,13 +854,13 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">Recetas Creadas:</span>
+                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Created Recipes:' : 'Recetas Creadas:'}</span>
                                 <div style="font-size: 13.5px; font-weight: 700; color: #4F46E5;">
-                                    ${user.recipes_count !== undefined ? user.recipes_count : 'Consultando...'}
+                                    ${user.recipes_count !== undefined ? user.recipes_count : (isEn ? 'Loading...' : 'Consultando...')}
                                 </div>
                             </div>
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">Notas Creadas:</span>
+                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Created Notes:' : 'Notas Creadas:'}</span>
                                 <div style="font-size: 13.5px; font-weight: 700; color: #4F46E5;">
                                     ${user.notes_count !== undefined ? user.notes_count : '0'}
                                 </div>
@@ -759,7 +885,7 @@
                                 gap: 8px;
                             ">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #4F46E5;">lock</span>
-                                <span>Tu propia cuenta de Super Administrador está protegida contra revocación.</span>
+                                <span>${isEn ? 'Your Super Admin account is protected against revocation.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación.'}</span>
                             </div>
                         ` : `
                             ${user.is_active ? `
@@ -783,10 +909,12 @@
                                 onmouseout="this.style.background='#FEF2F2'; this.style.color='#DC2626';"
                                 >
                                     <span class="material-symbols-outlined" style="font-size: 20px;">block</span>
-                                    <span>Revocar Acceso a mi Aplicación</span>
+                                    <span>${isEn ? 'Revoke App Access' : 'Revocar Acceso a mi Aplicación'}</span>
                                 </button>
                                 <p style="margin: 8px 0 0 0; text-align: center; font-size: 11.5px; color: #94A3B8;">
-                                    El usuario no podrá iniciar sesión ni realizar acciones hasta que se restablezca el acceso.
+                                    ${isEn 
+                                        ? 'The user will not be able to log in or perform actions until access is restored.' 
+                                        : 'El usuario no podrá iniciar sesión ni realizar acciones hasta que se restablezca el acceso.'}
                                 </p>
                             ` : `
                                 <button type="button" id="btn-admin-toggle-access" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', true)" style="
@@ -810,10 +938,12 @@
                                 onmouseout="this.style.background='#10B981';"
                                 >
                                     <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
-                                    <span>Conceder Acceso a mi Aplicación</span>
+                                    <span>${isEn ? 'Grant App Access' : 'Conceder Acceso a mi Aplicación'}</span>
                                 </button>
                                 <p style="margin: 8px 0 0 0; text-align: center; font-size: 11.5px; color: #94A3B8;">
-                                    El usuario podrá iniciar sesión normalmente con sus credenciales.
+                                    ${isEn 
+                                        ? 'The user will be able to log in normally with their credentials.' 
+                                        : 'El usuario podrá iniciar sesión normalmente con sus credenciales.'}
                                 </p>
                             `}
                         `}
@@ -846,24 +976,66 @@
         }
 
         /**
-         * Ejecuta la revocación o concesión de acceso mediante Supabase RPC o Update
+         * Manejador de confirmación para conceder o revocar acceso
+         * Sustituye confirm() bloqueante por window.showActionToast / window.utils?.showActionToast estilo M3
          */
         async handleToggleAccess(userId, grantAccess) {
             const user = this.users.find(u => u.id === userId);
             if (!user) return;
 
-            const actionVerb = grantAccess ? 'conceder' : 'revocar';
+            const isEn = this.isEnglish();
             const confirmMsg = grantAccess
-                ? `¿Deseas conceder acceso a ${user.email}? El usuario podrá volver a usar la aplicación.`
-                : `¿Estás seguro de revocar el acceso a ${user.email}? Su sesión se cerrará inmediatamente y no podrá ingresar a la app.`;
+                ? (isEn 
+                    ? `Grant access to ${user.email}? The user will be able to use the application again.` 
+                    : `¿Deseas conceder acceso a ${user.email}? El usuario podrá volver a usar la aplicación.`)
+                : (isEn 
+                    ? `Are you sure you want to revoke access for ${user.email}? Their session will close immediately.` 
+                    : `¿Estás seguro de revocar el acceso a ${user.email}? Su sesión se cerrará inmediatamente y no podrá ingresar a la app.`);
 
-            if (!confirm(confirmMsg)) return;
+            const actionBtn = grantAccess 
+                ? (isEn ? 'Grant Access' : 'Conceder Acceso') 
+                : (isEn ? 'Revoke Access' : 'Revocar Acceso');
+            const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
+
+            const doExecution = async () => {
+                await this._executeToggleAccess(userId, grantAccess);
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: actionBtn,
+                    cancelText: cancelBtn,
+                    actionColor: grantAccess ? '#10B981' : '#EF4444',
+                    type: grantAccess ? 'success' : 'error',
+                    onConfirm: doExecution
+                });
+            } else {
+                if (confirm(confirmMsg)) {
+                    await doExecution();
+                }
+            }
+        }
+
+        /**
+         * Ejecuta la revocación o concesión de acceso mediante Supabase RPC o Update
+         */
+        async _executeToggleAccess(userId, grantAccess) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+
+            const isEn = this.isEnglish();
+            const actionVerb = grantAccess 
+                ? (isEn ? 'grant' : 'conceder') 
+                : (isEn ? 'revoke' : 'revocar');
 
             const btn = document.getElementById('btn-admin-toggle-access');
             const origHTML = btn ? btn.innerHTML : '';
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> Guardando cambios...`;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> ${isEn ? 'Saving changes...' : 'Guardando cambios...'}`;
             }
 
             try {
@@ -890,7 +1062,7 @@
                     if (updateErr) throw updateErr;
                 }
 
-                // 3. Actualizar estado local
+                // 3. Actualizar estado local en memoria
                 user.is_active = grantAccess;
                 user.updated_at = new Date().toISOString();
 
@@ -900,20 +1072,31 @@
                 this.openUserModal(userId); // Reabrir modal con estado actualizado
 
                 const toastMsg = grantAccess
-                    ? `✅ Acceso concedido a ${user.first_name || user.email}`
-                    : `⛔ Acceso revocado a ${user.first_name || user.email}`;
+                    ? (isEn 
+                        ? `✅ Access granted to ${user.first_name || user.email}`
+                        : `✅ Acceso concedido a ${user.first_name || user.email}`)
+                    : (isEn 
+                        ? `⛔ Access revoked for ${user.first_name || user.email}`
+                        : `⛔ Acceso revocado a ${user.first_name || user.email}`);
 
                 if (window.utils?.showToast) {
                     window.utils.showToast(toastMsg, grantAccess ? 'success' : 'error', 3000);
+                } else if (window.showToast) {
+                    window.showToast(toastMsg, grantAccess ? 'success' : 'error');
                 } else {
                     alert(toastMsg);
                 }
 
             } catch (err) {
                 console.error('❌ Error al cambiar acceso de usuario:', err);
-                const errMsg = `Error al ${actionVerb} acceso: ${err.message || 'Error del servidor'}`;
+                const errMsg = isEn 
+                    ? `Error attempting to ${actionVerb} access: ${err.message || 'Server error'}`
+                    : `Error al ${actionVerb} acceso: ${err.message || 'Error del servidor'}`;
+
                 if (window.utils?.showToast) {
                     window.utils.showToast(errMsg, 'error');
+                } else if (window.showToast) {
+                    window.showToast(errMsg, 'error');
                 } else {
                     alert(errMsg);
                 }
@@ -926,6 +1109,5 @@
         }
     }
 
-    // Instancia global
     window.adminUsersManager = new AdminUsersManager();
 })();
