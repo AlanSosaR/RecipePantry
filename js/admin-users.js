@@ -852,21 +852,6 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Profile ID:' : 'ID de Perfil:'}</span>
-                                <div style="font-size: 12.5px; font-family: monospace; font-weight: 600; color: #1E293B; word-break: break-all;">
-                                    ${user.id}
-                                </div>
-                            </div>
-                            <div>
-                                <span style="font-size: 11.5px; color: #94A3B8;">Auth UUID:</span>
-                                <div style="font-size: 12.5px; font-family: monospace; font-weight: 600; color: #1E293B; word-break: break-all;">
-                                    ${user.auth_user_id || (isEn ? 'Linked' : 'Vinculado')}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
-                            <div>
                                 <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Registration Date:' : 'Fecha de Registro:'}</span>
                                 <div style="font-size: 12.5px; font-weight: 600; color: #1E293B;">
                                     ${createdDate}
