@@ -694,12 +694,12 @@
                                 flex-shrink: 0;
                                 overflow: hidden;
                             ">
-                                ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
+                                ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : (isSuperAdminUser ? '<span class="material-symbols-outlined" style="font-size: 24px;">shield_person</span>' : initials)}
                             </div>
 
                             <!-- Información principal -->
                             <div style="min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
                                     <div style="
                                         font-size: 14.5px;
                                         font-weight: 700;
@@ -711,8 +711,19 @@
                                         ${fullName}
                                     </div>
                                     ${isSuperAdminUser ? `
-                                        <span style="background: #059669; color: white; font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 6px; letter-spacing: 0.03em;">
-                                            SUPER ADMIN
+                                        <span title="Super Admin" style="
+                                            background: linear-gradient(135deg, #10B981, #059669);
+                                            color: #FFFFFF;
+                                            width: 20px;
+                                            height: 20px;
+                                            border-radius: 6px;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            flex-shrink: 0;
+                                            box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+                                        ">
+                                            <span class="material-symbols-outlined" style="font-size: 13px;">shield_person</span>
                                         </span>
                                     ` : ''}
                                 </div>
@@ -870,7 +881,7 @@
                             box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
                             overflow: hidden;
                         ">
-                            ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
+                            ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : (isSuperAdminUser ? '<span class="material-symbols-outlined" style="font-size: 28px;">shield_person</span>' : initials)}
                         </div>
                         <div>
                             <div style="display: flex; align-items: center; gap: 8px;">
@@ -878,7 +889,8 @@
                                     ${fullName}
                                 </h3>
                                 ${isSuperAdminUser ? `
-                                    <span style="background: #059669; color: white; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 100px;">
+                                    <span style="background: #059669; color: white; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined" style="font-size: 13px;">shield_person</span>
                                         Super Admin
                                     </span>
                                 ` : ''}
