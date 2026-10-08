@@ -447,6 +447,10 @@ class DashboardManager {
                         if (window.restaurantMenu) {
                             window.restaurantMenu.setSearchQuery(query);
                         }
+                    } else if (this.currentView === 'help') {
+                        if (window.adminUsersManager && window.adminUsersManager.isSuperAdmin()) {
+                            window.adminUsersManager.handleSearch(query);
+                        }
                     } else {
                         this.loadRecipes({ search: query });
                         if (query.length > 2) {
@@ -455,7 +459,7 @@ class DashboardManager {
                     }
                 }, 200);
 
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help') {
                     // Update suggestions only for recipes
                     this.searchHistory.showSuggestions(query);
                 } else {
@@ -769,6 +773,22 @@ class DashboardManager {
 
         if (titleEl) {
             titleEl.textContent = (window.i18n && window.i18n.t) ? window.i18n.t('navHelp', 'Configuración') : 'Configuración';
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            if (window.adminUsersManager && window.adminUsersManager.isSuperAdmin()) {
+                searchInput.placeholder = isEn 
+                    ? 'Search user by name or email...' 
+                    : 'Buscar usuario por nombre o correo...';
+                searchInput.value = window.adminUsersManager.searchQuery || '';
+            } else {
+                searchInput.placeholder = isEn ? 'Search settings...' : 'Buscar en ajustes...';
+                searchInput.value = '';
+            }
+            const clearBtn = document.getElementById('searchClear');
+            if (clearBtn) clearBtn.classList.toggle('hidden', !searchInput.value);
         }
     }
 

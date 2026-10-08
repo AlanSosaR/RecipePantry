@@ -1,8 +1,9 @@
 /**
- * Recipe Pantry - AdminUsersManager (Material 3 Expressive)
+ * Recipe Pantry - AdminUsersManager (Material 3 Expressive - Green Theme)
  * Panel de Gestión de Usuarios y Control de Acceso exclusivo para Super Administrador.
  * Autorizado exclusivamente para: alansosa225@gmail.com
- * Optimizado con soporte bilingüe (ES/EN), UX M3 Expressive, caché en memoria y detección reactiva de auth.
+ * Tarjeta limpia blanca, acentos verdes Material 3, integración con buscador global,
+ * conteo real de notas/recetas, eliminación definitiva de usuarios y notificaciones snackbar.
  */
 
 (function () {
@@ -17,9 +18,11 @@
             this.initialized = false;
             this._keyboardInitialized = false;
             this._reactiveAuthInitialized = false;
+            this._globalSearchBound = false;
 
             this.initKeyboardEvents();
             this.initReactiveAuth();
+            this.initGlobalSearch();
         }
 
         /**
@@ -56,11 +59,9 @@
                 }
             };
 
-            // Escuchar eventos globales de autenticación
             window.addEventListener('auth-changed', checkAndRender);
             window.addEventListener('auth-ready', checkAndRender);
 
-            // Escuchar cambios de sesión directamente en Supabase Auth
             if (window.supabaseClient?.auth?.onAuthStateChange) {
                 try {
                     window.supabaseClient.auth.onAuthStateChange(() => {
@@ -69,7 +70,6 @@
                 } catch (e) {}
             }
 
-            // Detección periódica ligera para enlaces directos con ?view=help
             if (typeof window !== 'undefined' && window.location) {
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('view') === 'help') {
@@ -82,6 +82,46 @@
                         }
                     }, 350);
                 }
+            }
+        }
+
+        /**
+         * Conecta el buscador global existente (#searchInput) con este módulo
+         */
+        initGlobalSearch() {
+            if (this._globalSearchBound) return;
+
+            const bindSearch = () => {
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput && !this._globalSearchBound) {
+                    this._globalSearchBound = true;
+                    searchInput.addEventListener('input', (e) => {
+                        const currentView = document.documentElement.getAttribute('data-current-view') || 
+                                            (window.dashboard && window.dashboard.currentView);
+                        if (currentView === 'help' && this.isSuperAdmin()) {
+                            this.handleSearch(e.target.value);
+                        }
+                    });
+                }
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bindSearch);
+            } else {
+                bindSearch();
+            }
+        }
+
+        /**
+         * Muestra una notificación snackbar sin bloqueo modal
+         */
+        notify(message, type = 'info', timeout = 3000) {
+            if (window.utils?.showToast) {
+                window.utils.showToast(message, type, timeout);
+            } else if (window.showToast) {
+                window.showToast(message, type);
+            } else {
+                console.log(`[Toast ${type}]`, message);
             }
         }
 
@@ -106,7 +146,7 @@
 
         /**
          * Renderiza el contenedor principal en la vista de configuración/help
-         * Optimización: Si this.users.length > 0, reutiliza datos en memoria sin bloquear con spinner.
+         * Tarjeta completamente blanca sin difuminados, acentos verdes Material 3.
          */
         async render(container) {
             if (!container) return;
@@ -121,32 +161,19 @@
 
             container.innerHTML = `
                 <div class="settings-panel-m3 admin-m3-container" style="
-                    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.03) 100%);
-                    border: 1.5px solid rgba(99, 102, 241, 0.25);
+                    background: #FFFFFF;
+                    border: 1px solid #E2E8F0;
                     border-radius: 24px;
                     padding: 24px;
                     margin-bottom: 24px;
-                    box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.12);
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
                     position: relative;
-                    overflow: hidden;
                 ">
-                    <!-- Decoración visual M3 -->
-                    <div style="
-                        position: absolute;
-                        top: -40px;
-                        right: -40px;
-                        width: 140px;
-                        height: 140px;
-                        border-radius: 50%;
-                        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%);
-                        pointer-events: none;
-                    "></div>
-
-                    <!-- Header M3 Expressive -->
+                    <!-- Header M3 Expressive en color verde -->
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
                             <div style="
-                                background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+                                background: linear-gradient(135deg, #10B981 0%, #059669 100%);
                                 color: white;
                                 width: 48px;
                                 height: 48px;
@@ -155,25 +182,25 @@
                                 align-items: center;
                                 justify-content: center;
                                 flex-shrink: 0;
-                                box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+                                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
                             ">
                                 <span class="material-symbols-outlined" style="font-size: 26px;">admin_panel_settings</span>
                             </div>
                             <div>
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #1E1B4B; letter-spacing: -0.02em;">
+                                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #064E3B; letter-spacing: -0.02em;">
                                         ${isEn ? 'User Management' : 'Gestión de Usuarios'}
                                     </h3>
                                     <span style="
-                                        background: rgba(79, 70, 229, 0.12);
-                                        color: #4338CA;
+                                        background: rgba(16, 185, 129, 0.12);
+                                        color: #047857;
                                         font-size: 11px;
                                         font-weight: 800;
                                         padding: 3px 10px;
                                         border-radius: 100px;
                                         text-transform: uppercase;
                                         letter-spacing: 0.05em;
-                                        border: 1px solid rgba(79, 70, 229, 0.2);
+                                        border: 1px solid rgba(16, 185, 129, 0.25);
                                         display: inline-flex;
                                         align-items: center;
                                         gap: 4px;
@@ -184,28 +211,28 @@
                                 </div>
                                 <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748B;">
                                     ${isEn 
-                                        ? 'Global account control, system authorization and real-time metrics.' 
-                                        : 'Control global de cuentas, accesos al sistema y estadísticas en tiempo real.'}
+                                        ? 'Global account control, authorization, and database management.' 
+                                        : 'Control global de cuentas, autorización de accesos y gestión de la base de datos.'}
                                 </p>
                             </div>
                         </div>
 
-                        <!-- Botón Refrescar -->
+                        <!-- Botón Refrescar en verde -->
                         <button type="button" id="btn-admin-refresh-users" onclick="window.adminUsersManager.loadUsers(true)" style="
                             padding: 8px 16px;
-                            background: rgba(255, 255, 255, 0.9);
+                            background: rgba(255, 255, 255, 0.95);
                             border: 1px solid #E2E8F0;
                             border-radius: 12px;
                             font-size: 12.5px;
                             font-weight: 600;
-                            color: #4F46E5;
+                            color: #059669;
                             cursor: pointer;
                             display: flex;
                             align-items: center;
                             gap: 6px;
                             box-shadow: 0 2px 6px rgba(0,0,0,0.03);
                             transition: all 0.2s;
-                        " onmouseover="this.style.background='#EEF2FF'" onmouseout="this.style.background='rgba(255, 255, 255, 0.9)'">
+                        " onmouseover="this.style.background='#ECFDF5'" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'">
                             <span class="material-symbols-outlined" style="font-size: 17px;">refresh</span>
                             <span>${isEn ? 'Refresh' : 'Actualizar'}</span>
                         </button>
@@ -218,59 +245,11 @@
                         gap: 12px;
                         margin-bottom: 20px;
                     ">
-                        <!-- Skeleton loader inicial -->
-                        <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px; text-align: center;">
+                        <!-- Skeleton inicial -->
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px; text-align: center;">
                             <span class="material-symbols-outlined" style="font-size: 22px; color: #94A3B8; animation: spin 1.2s linear infinite;">sync</span>
                             <div style="font-size: 12px; color: #64748B; margin-top: 4px;">${isEn ? 'Loading metrics...' : 'Cargando métricas...'}</div>
                         </div>
-                    </div>
-
-                    <!-- Buscador M3 Expressive -->
-                    <div style="position: relative; margin-bottom: 18px;">
-                        <span class="material-symbols-outlined" style="
-                            position: absolute;
-                            left: 14px;
-                            top: 50%;
-                            transform: translateY(-50%);
-                            color: #94A3B8;
-                            font-size: 20px;
-                            pointer-events: none;
-                        ">search</span>
-                        <input type="text" id="admin-user-search-input" 
-                            placeholder="${isEn ? 'Search user by name, surname or email...' : 'Buscar usuario por nombre, apellido o correo...'}" 
-                            value="${this.searchQuery || ''}"
-                            oninput="window.adminUsersManager.handleSearch(this.value)"
-                            style="
-                                width: 100%;
-                                box-sizing: border-box;
-                                padding: 12px 40px 12px 44px;
-                                background: white;
-                                border: 1.5px solid #E2E8F0;
-                                border-radius: 16px;
-                                font-size: 13.5px;
-                                color: #1E293B;
-                                outline: none;
-                                transition: all 0.2s;
-                                box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-                            "
-                            onfocus="this.style.borderColor='#6366F1'; this.style.boxShadow='0 0 0 3px rgba(99, 102, 241, 0.15)';"
-                            onblur="this.style.borderColor='#E2E8F0'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.02)';"
-                        />
-                        <button type="button" id="admin-user-search-clear" onclick="window.adminUsersManager.clearSearch()" style="
-                            display: ${this.searchQuery ? 'block' : 'none'};
-                            position: absolute;
-                            right: 12px;
-                            top: 50%;
-                            transform: translateY(-50%);
-                            background: transparent;
-                            border: none;
-                            color: #94A3B8;
-                            cursor: pointer;
-                            padding: 4px;
-                            border-radius: 50%;
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-                        </button>
                     </div>
 
                     <!-- Lista de Usuarios M3 -->
@@ -287,7 +266,7 @@
                 </div>
 
                 <!-- Modal de Detalle de Usuario M3 Expressive -->
-                <!-- Cierre del modal por click en backdrop (if(event.target===this)) -->
+                <!-- Cierre por click en backdrop (if(event.target===this)) -->
                 <div id="admin-user-detail-modal" class="hidden" 
                     onclick="if(event.target===this) window.adminUsersManager.closeUserModal()" 
                     style="
@@ -321,9 +300,9 @@
                 </div>
             `;
 
+            this.initGlobalSearch();
+
             // Optimización de caché en memoria:
-            // Si this.users.length > 0, reutilizar datos en render() tras cambio de idioma o navegación interna
-            // sin bloquear con spinner, reservando la recarga de red para el botón Actualizar.
             if (this.users && this.users.length > 0) {
                 this.applyFilter();
                 this.renderMetrics();
@@ -345,7 +324,7 @@
             if (listEl && showFeedback) {
                 listEl.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #64748B;">
-                        <span class="material-symbols-outlined" style="font-size: 32px; color: #6366F1; animation: spin 1s linear infinite;">sync</span>
+                        <span class="material-symbols-outlined" style="font-size: 32px; color: #10B981; animation: spin 1s linear infinite;">sync</span>
                         <p style="margin: 8px 0 0 0; font-size: 13.5px; font-weight: 600;">
                             ${isEn ? 'Synchronizing users...' : 'Sincronizando usuarios...'}
                         </p>
@@ -354,14 +333,12 @@
             }
 
             try {
-                // Intentar mediante la RPC de Super Admin
                 let usersData = null;
                 const { data: rpcData, error: rpcError } = await window.supabaseClient.rpc('admin_get_all_users');
 
                 if (!rpcError && Array.isArray(rpcData)) {
                     usersData = rpcData;
                 } else {
-                    console.warn('⚠️ admin_get_all_users RPC falló o no existe, usando select fallback:', rpcError?.message);
                     const { data: selectData, error: selectError } = await window.supabaseClient
                         .from('users')
                         .select('*')
@@ -373,7 +350,7 @@
 
                 this.users = usersData.map(u => ({
                     ...u,
-                    is_active: u.is_active !== false // Por defecto true si null
+                    is_active: u.is_active !== false
                 }));
 
                 this.applyFilter();
@@ -384,11 +361,7 @@
                     const toastMsg = isEn 
                         ? `✅ ${this.users.length} users synchronized`
                         : `✅ ${this.users.length} usuarios sincronizados`;
-                    if (window.utils?.showToast) {
-                        window.utils.showToast(toastMsg, 'success', 2000);
-                    } else if (window.showToast) {
-                        window.showToast(toastMsg, 'success');
-                    }
+                    this.notify(toastMsg, 'success', 2000);
                 }
             } catch (err) {
                 console.error('❌ Error al cargar usuarios para Super Admin:', err);
@@ -411,7 +384,7 @@
         }
 
         /**
-         * Renderiza tarjetas de métricas en estilo M3 Expressive
+         * Renderiza tarjetas de métricas en verde M3
          */
         renderMetrics() {
             const metricsEl = document.getElementById('admin-users-metrics');
@@ -425,21 +398,21 @@
             metricsEl.innerHTML = `
                 <!-- Total Usuarios -->
                 <div style="
-                    background: white;
+                    background: #FFFFFF;
                     border: 1px solid #E2E8F0;
                     border-radius: 18px;
                     padding: 16px;
                     display: flex;
                     align-items: center;
                     gap: 14px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
                 ">
                     <div style="
                         width: 44px;
                         height: 44px;
                         border-radius: 14px;
-                        background: rgba(99, 102, 241, 0.12);
-                        color: #4F46E5;
+                        background: rgba(16, 185, 129, 0.12);
+                        color: #10B981;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -459,21 +432,21 @@
 
                 <!-- Activos -->
                 <div style="
-                    background: white;
+                    background: #FFFFFF;
                     border: 1px solid #E2E8F0;
                     border-radius: 18px;
                     padding: 16px;
                     display: flex;
                     align-items: center;
                     gap: 14px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
                 ">
                     <div style="
                         width: 44px;
                         height: 44px;
                         border-radius: 14px;
                         background: rgba(16, 185, 129, 0.12);
-                        color: #10B981;
+                        color: #059669;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -493,14 +466,14 @@
 
                 <!-- Revocados -->
                 <div style="
-                    background: white;
+                    background: #FFFFFF;
                     border: 1px solid #E2E8F0;
                     border-radius: 18px;
                     padding: 16px;
                     display: flex;
                     align-items: center;
                     gap: 14px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
                 ">
                     <div style="
                         width: 44px;
@@ -528,22 +501,20 @@
         }
 
         /**
-         * Maneja la búsqueda en tiempo real
+         * Maneja la búsqueda conectada al buscador global (#searchInput)
          */
         handleSearch(val) {
             this.searchQuery = (val || '').toLowerCase().trim();
-            const clearBtn = document.getElementById('admin-user-search-clear');
-            if (clearBtn) {
-                clearBtn.style.display = this.searchQuery ? 'block' : 'none';
-            }
             this.applyFilter();
             this.renderList();
         }
 
         clearSearch() {
-            const input = document.getElementById('admin-user-search-input');
-            if (input) input.value = '';
-            this.handleSearch('');
+            this.searchQuery = '';
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            this.applyFilter();
+            this.renderList();
         }
 
         applyFilter() {
@@ -569,7 +540,7 @@
 
             if (this.filteredUsers.length === 0) {
                 listEl.innerHTML = `
-                    <div style="text-align: center; padding: 36px; background: white; border-radius: 16px; border: 1px dashed #CBD5E1;">
+                    <div style="text-align: center; padding: 36px; background: #F8FAFC; border-radius: 16px; border: 1px dashed #CBD5E1;">
                         <span class="material-symbols-outlined" style="font-size: 32px; color: #94A3B8;">search_off</span>
                         <p style="margin: 6px 0 0 0; font-size: 13.5px; font-weight: 600; color: #64748B;">
                             ${isEn ? 'No matching users found' : 'No se encontraron usuarios coincidentes'}
@@ -596,7 +567,7 @@
 
                 return `
                     <div class="admin-user-card" onclick="window.adminUsersManager.openUserModal('${user.id}')" style="
-                        background: white;
+                        background: #FFFFFF;
                         border: 1px solid #E2E8F0;
                         border-radius: 18px;
                         padding: 14px 18px;
@@ -608,16 +579,16 @@
                         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                         box-shadow: 0 2px 6px rgba(0,0,0,0.015);
                     "
-                    onmouseover="this.style.borderColor='#818CF8'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(99, 102, 241, 0.08)';"
+                    onmouseover="this.style.borderColor='#10B981'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.08)';"
                     onmouseout="this.style.borderColor='#E2E8F0'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.015)';"
                     >
                         <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
-                            <!-- Avatar con iniciales o foto -->
+                            <!-- Avatar verde M3 -->
                             <div style="
                                 width: 44px;
                                 height: 44px;
                                 border-radius: 14px;
-                                background: linear-gradient(135deg, #6366F1, #8B5CF6);
+                                background: linear-gradient(135deg, #10B981, #059669);
                                 color: white;
                                 font-size: 15px;
                                 font-weight: 800;
@@ -644,7 +615,7 @@
                                         ${fullName}
                                     </div>
                                     ${isSuperAdminUser ? `
-                                        <span style="background: #4F46E5; color: white; font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 6px; letter-spacing: 0.03em;">
+                                        <span style="background: #059669; color: white; font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 6px; letter-spacing: 0.03em;">
                                             SUPER ADMIN
                                         </span>
                                     ` : ''}
@@ -695,6 +666,63 @@
         }
 
         /**
+         * Carga de forma asíncrona y exacta el conteo real de notas y recetas del usuario
+         */
+        async loadUserStats(user) {
+            if (!user) return;
+            const targetUserId = user.auth_user_id || user.id;
+            const profileId = user.id;
+
+            let notesCount = 0;
+            // 1. Revisar caché local en localStorage (útil para el admin actual)
+            try {
+                const cachedRaw = localStorage.getItem(`pantry_notes_cache_${targetUserId}`) || 
+                                  localStorage.getItem(`pantry_notes_cache_${profileId}`);
+                if (cachedRaw) {
+                    const parsed = JSON.parse(cachedRaw);
+                    if (Array.isArray(parsed)) {
+                        notesCount = parsed.length;
+                    }
+                }
+            } catch (_) {}
+
+            // 2. Consultar conteo exacto en Supabase para 'notes'
+            try {
+                const { count, error } = await window.supabaseClient
+                    .from('notes')
+                    .select('*', { count: 'exact', head: true })
+                    .or(`user_id.eq.${targetUserId},user_id.eq.${profileId}`);
+
+                if (!error && typeof count === 'number') {
+                    notesCount = Math.max(notesCount, count);
+                }
+            } catch (_) {}
+
+            user.notes_count = notesCount;
+
+            // 3. Consultar conteo exacto en Supabase para 'recipes'
+            let recipesCount = 0;
+            try {
+                const { count, error } = await window.supabaseClient
+                    .from('recipes')
+                    .select('*', { count: 'exact', head: true })
+                    .or(`user_id.eq.${targetUserId},user_id.eq.${profileId}`);
+
+                if (!error && typeof count === 'number') {
+                    recipesCount = count;
+                }
+            } catch (_) {}
+
+            user.recipes_count = recipesCount;
+
+            // Actualizar elementos en el DOM si el modal está abierto para este usuario
+            const recEl = document.getElementById(`user-recipes-count-${user.id}`);
+            if (recEl) recEl.textContent = user.recipes_count;
+            const noteEl = document.getElementById(`user-notes-count-${user.id}`);
+            if (noteEl) noteEl.textContent = user.notes_count;
+        }
+
+        /**
          * Abre el Modal con la información detallada del usuario y opciones de control de acceso
          */
         openUserModal(userId) {
@@ -721,14 +749,14 @@
             const statusIcon = user.is_active ? 'check_circle' : 'block';
 
             card.innerHTML = `
-                <!-- Cabecera del modal -->
+                <!-- Cabecera del modal en verde M3 -->
                 <div style="
                     padding: 24px 24px 20px 24px;
                     border-bottom: 1px solid #E2E8F0;
                     display: flex;
                     align-items: flex-start;
                     justify-content: space-between;
-                    background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
+                    background: linear-gradient(135deg, #F8FAFC 0%, #ECFDF5 100%);
                     border-radius: 28px 28px 0 0;
                 ">
                     <div style="display: flex; align-items: center; gap: 16px;">
@@ -736,25 +764,25 @@
                             width: 52px;
                             height: 52px;
                             border-radius: 18px;
-                            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+                            background: linear-gradient(135deg, #10B981, #059669);
                             color: white;
                             font-size: 18px;
                             font-weight: 800;
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+                            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
                             overflow: hidden;
                         ">
                             ${user.avatar_url ? `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
                         </div>
                         <div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <h3 style="margin: 0; font-size: 17.5px; font-weight: 800; color: #0F172A;">
+                                <h3 style="margin: 0; font-size: 17.5px; font-weight: 800; color: #064E3B;">
                                     ${fullName}
                                 </h3>
                                 ${isSuperAdminUser ? `
-                                    <span style="background: #4F46E5; color: white; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 100px;">
+                                    <span style="background: #059669; color: white; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 100px;">
                                         Super Admin
                                     </span>
                                 ` : ''}
@@ -766,7 +794,7 @@
                     </div>
 
                     <button type="button" onclick="window.adminUsersManager.closeUserModal()" style="
-                        background: rgba(255,255,255,0.8);
+                        background: rgba(255,255,255,0.9);
                         border: 1px solid #CBD5E1;
                         border-radius: 50%;
                         width: 34px;
@@ -818,7 +846,7 @@
                         flex-direction: column;
                         gap: 12px;
                     ">
-                        <div style="font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <div style="font-size: 12px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">
                             ${isEn ? 'Account Information' : 'Información de la Cuenta'}
                         </div>
 
@@ -852,51 +880,53 @@
                             </div>
                         </div>
 
+                        <!-- Conteo real de Recetas y Notas -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
                             <div>
                                 <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Created Recipes:' : 'Recetas Creadas:'}</span>
-                                <div style="font-size: 13.5px; font-weight: 700; color: #4F46E5;">
+                                <div id="user-recipes-count-${user.id}" style="font-size: 14px; font-weight: 800; color: #059669;">
                                     ${user.recipes_count !== undefined ? user.recipes_count : (isEn ? 'Loading...' : 'Consultando...')}
                                 </div>
                             </div>
                             <div>
                                 <span style="font-size: 11.5px; color: #94A3B8;">${isEn ? 'Created Notes:' : 'Notas Creadas:'}</span>
-                                <div style="font-size: 13.5px; font-weight: 700; color: #4F46E5;">
-                                    ${user.notes_count !== undefined ? user.notes_count : '0'}
+                                <div id="user-notes-count-${user.id}" style="font-size: 14px; font-weight: 800; color: #059669;">
+                                    ${user.notes_count !== undefined ? user.notes_count : (isEn ? 'Loading...' : 'Consultando...')}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Panel de Acción: Conceder / Revocar Acceso -->
-                    <div style="margin-top: 8px;">
+                    <!-- Panel de Acción: Conceder / Revocar Acceso y Eliminación Definitiva -->
+                    <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
                         ${isSuperAdminUser ? `
                             <div style="
-                                background: #F1F5F9;
-                                border: 1px solid #CBD5E1;
+                                background: #F0FDF4;
+                                border: 1px solid #BBF7D0;
                                 border-radius: 16px;
                                 padding: 14px;
                                 text-align: center;
                                 font-size: 12.5px;
-                                color: #64748B;
+                                color: #166534;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
                                 gap: 8px;
                             ">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: #4F46E5;">lock</span>
-                                <span>${isEn ? 'Your Super Admin account is protected against revocation.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación.'}</span>
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">lock</span>
+                                <span>${isEn ? 'Your Super Admin account is protected against revocation or deletion.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación o eliminación.'}</span>
                             </div>
                         ` : `
+                            <!-- Botón Conceder / Revocar Acceso -->
                             ${user.is_active ? `
                                 <button type="button" id="btn-admin-toggle-access" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', false)" style="
                                     width: 100%;
-                                    padding: 14px 20px;
+                                    padding: 13px 20px;
                                     background: #FEF2F2;
                                     color: #DC2626;
                                     border: 1.5px solid rgba(220, 38, 38, 0.3);
                                     border-radius: 16px;
-                                    font-size: 14px;
+                                    font-size: 13.5px;
                                     font-weight: 700;
                                     cursor: pointer;
                                     display: flex;
@@ -911,20 +941,15 @@
                                     <span class="material-symbols-outlined" style="font-size: 20px;">block</span>
                                     <span>${isEn ? 'Revoke App Access' : 'Revocar Acceso a mi Aplicación'}</span>
                                 </button>
-                                <p style="margin: 8px 0 0 0; text-align: center; font-size: 11.5px; color: #94A3B8;">
-                                    ${isEn 
-                                        ? 'The user will not be able to log in or perform actions until access is restored.' 
-                                        : 'El usuario no podrá iniciar sesión ni realizar acciones hasta que se restablezca el acceso.'}
-                                </p>
                             ` : `
                                 <button type="button" id="btn-admin-toggle-access" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', true)" style="
                                     width: 100%;
-                                    padding: 14px 20px;
+                                    padding: 13px 20px;
                                     background: #10B981;
                                     color: #FFFFFF;
                                     border: none;
                                     border-radius: 16px;
-                                    font-size: 14px;
+                                    font-size: 13.5px;
                                     font-weight: 700;
                                     cursor: pointer;
                                     display: flex;
@@ -940,12 +965,32 @@
                                     <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
                                     <span>${isEn ? 'Grant App Access' : 'Conceder Acceso a mi Aplicación'}</span>
                                 </button>
-                                <p style="margin: 8px 0 0 0; text-align: center; font-size: 11.5px; color: #94A3B8;">
-                                    ${isEn 
-                                        ? 'The user will be able to log in normally with their credentials.' 
-                                        : 'El usuario podrá iniciar sesión normalmente con sus credenciales.'}
-                                </p>
                             `}
+
+                            <!-- Botón para Eliminar Usuario de la BD -->
+                            <button type="button" id="btn-admin-delete-user" onclick="window.adminUsersManager.handleDeleteUser('${user.id}')" style="
+                                width: 100%;
+                                padding: 12px 20px;
+                                background: #FFF1F2;
+                                color: #E11D48;
+                                border: 1.5px solid rgba(225, 29, 72, 0.3);
+                                border-radius: 16px;
+                                font-size: 13.5px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                transition: all 0.2s;
+                                margin-top: 4px;
+                            "
+                            onmouseover="this.style.background='#E11D48'; this.style.color='#FFFFFF';"
+                            onmouseout="this.style.background='#FFF1F2'; this.style.color='#E11D48';"
+                            >
+                                <span class="material-symbols-outlined" style="font-size: 19px;">delete_forever</span>
+                                <span>${isEn ? 'Permanently Delete User from DB' : 'Eliminar Usuario de la BD'}</span>
+                            </button>
                         `}
                     </div>
                 </div>
@@ -957,6 +1002,9 @@
                 modal.style.opacity = '1';
                 card.style.transform = 'scale(1) translateY(0)';
             });
+
+            // Disparar carga real de estadísticas (notas y recetas)
+            this.loadUserStats(user);
         }
 
         /**
@@ -976,8 +1024,7 @@
         }
 
         /**
-         * Manejador de confirmación para conceder o revocar acceso
-         * Sustituye confirm() bloqueante por window.showActionToast / window.utils?.showActionToast estilo M3
+         * Manejador de confirmación para conceder o revocar acceso vía snackbar / showActionToast
          */
         async handleToggleAccess(userId, grantAccess) {
             const user = this.users.find(u => u.id === userId);
@@ -990,7 +1037,7 @@
                     : `¿Deseas conceder acceso a ${user.email}? El usuario podrá volver a usar la aplicación.`)
                 : (isEn 
                     ? `Are you sure you want to revoke access for ${user.email}? Their session will close immediately.` 
-                    : `¿Estás seguro de revocar el acceso a ${user.email}? Su sesión se cerrará inmediatamente y no podrá ingresar a la app.`);
+                    : `¿Estás seguro de revocar el acceso a ${user.email}? Su sesión se cerrará inmediatamente.`);
 
             const actionBtn = grantAccess 
                 ? (isEn ? 'Grant Access' : 'Conceder Acceso') 
@@ -1013,14 +1060,12 @@
                     onConfirm: doExecution
                 });
             } else {
-                if (confirm(confirmMsg)) {
-                    await doExecution();
-                }
+                await doExecution();
             }
         }
 
         /**
-         * Ejecuta la revocación o concesión de acceso mediante Supabase RPC o Update
+         * Ejecuta la revocación o concesión de acceso mediante Supabase
          */
         async _executeToggleAccess(userId, grantAccess) {
             const user = this.users.find(u => u.id === userId);
@@ -1039,7 +1084,6 @@
             }
 
             try {
-                // 1. Intentar vía RPC segura de administración
                 let rpcSucceeded = false;
                 const { data: rpcRes, error: rpcErr } = await window.supabaseClient.rpc('admin_toggle_user_access', {
                     target_user_id: userId,
@@ -1049,8 +1093,6 @@
                 if (!rpcErr) {
                     rpcSucceeded = true;
                 } else {
-                    console.warn('⚠️ Fallback a update directo de users:', rpcErr.message);
-                    // 2. Fallback con update directo
                     const { error: updateErr } = await window.supabaseClient
                         .from('users')
                         .update({
@@ -1062,14 +1104,12 @@
                     if (updateErr) throw updateErr;
                 }
 
-                // 3. Actualizar estado local en memoria
                 user.is_active = grantAccess;
                 user.updated_at = new Date().toISOString();
 
-                // 4. Actualizar interfaz
                 this.renderMetrics();
                 this.renderList();
-                this.openUserModal(userId); // Reabrir modal con estado actualizado
+                this.openUserModal(userId);
 
                 const toastMsg = grantAccess
                     ? (isEn 
@@ -1079,13 +1119,7 @@
                         ? `⛔ Access revoked for ${user.first_name || user.email}`
                         : `⛔ Acceso revocado a ${user.first_name || user.email}`);
 
-                if (window.utils?.showToast) {
-                    window.utils.showToast(toastMsg, grantAccess ? 'success' : 'error', 3000);
-                } else if (window.showToast) {
-                    window.showToast(toastMsg, grantAccess ? 'success' : 'error');
-                } else {
-                    alert(toastMsg);
-                }
+                this.notify(toastMsg, grantAccess ? 'success' : 'error', 3000);
 
             } catch (err) {
                 console.error('❌ Error al cambiar acceso de usuario:', err);
@@ -1093,13 +1127,121 @@
                     ? `Error attempting to ${actionVerb} access: ${err.message || 'Server error'}`
                     : `Error al ${actionVerb} acceso: ${err.message || 'Error del servidor'}`;
 
-                if (window.utils?.showToast) {
-                    window.utils.showToast(errMsg, 'error');
-                } else if (window.showToast) {
-                    window.showToast(errMsg, 'error');
-                } else {
-                    alert(errMsg);
+                this.notify(errMsg, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
                 }
+            }
+        }
+
+        /**
+         * Manejador de confirmación para eliminar usuario permanentemente de la BD vía snackbar / showActionToast
+         */
+        async handleDeleteUser(userId) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+
+            const isEn = this.isEnglish();
+            const confirmMsg = isEn 
+                ? `⚠️ Permanently delete ${user.email} from database? All user data will be deleted.`
+                : `⚠️ ¿Eliminar permanentemente a ${user.email} de la base de datos? Se eliminarán todos sus datos.`;
+
+            const actionBtn = isEn ? 'Delete Permanently' : 'Eliminar Definitivamente';
+            const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
+
+            const doDelete = async () => {
+                await this._executeDeleteUser(userId);
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: actionBtn,
+                    cancelText: cancelBtn,
+                    actionColor: '#E11D48',
+                    type: 'error',
+                    onConfirm: doDelete
+                });
+            } else {
+                await doDelete();
+            }
+        }
+
+        /**
+         * Ejecuta la eliminación definitiva del usuario en Supabase (users, notes, recipes)
+         */
+        async _executeDeleteUser(userId) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+
+            const isEn = this.isEnglish();
+            const btn = document.getElementById('btn-admin-delete-user');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> ${isEn ? 'Deleting from DB...' : 'Eliminando de la BD...'}`;
+            }
+
+            try {
+                const userIdentities = [user.id, user.auth_user_id].filter(Boolean);
+
+                // 1. Intentar RPC de borrado administrativo si existe
+                let rpcDeleted = false;
+                try {
+                    const { error: rpcErr } = await window.supabaseClient.rpc('admin_delete_user', {
+                        target_user_id: userId
+                    });
+                    if (!rpcErr) rpcDeleted = true;
+                } catch (_) {}
+
+                // 2. Si no hubo RPC o para garantizar limpieza, eliminar registros asociados en cascada
+                if (!rpcDeleted) {
+                    try {
+                        await window.supabaseClient.from('recipes').delete().in('user_id', userIdentities);
+                    } catch (e) {
+                        console.warn('Limpieza de recetas omitida o sin permisos:', e);
+                    }
+
+                    try {
+                        await window.supabaseClient.from('notes').delete().in('user_id', userIdentities);
+                    } catch (e) {
+                        console.warn('Limpieza de notas omitida o sin permisos:', e);
+                    }
+
+                    const { error: delErr } = await window.supabaseClient
+                        .from('users')
+                        .delete()
+                        .eq('id', userId);
+
+                    if (delErr) throw delErr;
+                }
+
+                // 3. Remover del listado local en memoria
+                this.users = this.users.filter(u => u.id !== userId);
+
+                // 4. Actualizar interfaz y cerrar modal
+                this.closeUserModal();
+                this.applyFilter();
+                this.renderMetrics();
+                this.renderList();
+
+                const successMsg = isEn 
+                    ? `🗑️ User ${user.email} permanently deleted from database`
+                    : `🗑️ Usuario ${user.email} eliminado permanentemente de la base de datos`;
+
+                this.notify(successMsg, 'success', 3500);
+
+            } catch (err) {
+                console.error('❌ Error al eliminar usuario de la BD:', err);
+                const errMsg = isEn 
+                    ? `Error deleting user: ${err.message || 'Server error'}`
+                    : `Error al eliminar usuario: ${err.message || 'Error del servidor'}`;
+
+                this.notify(errMsg, 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
