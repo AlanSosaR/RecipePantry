@@ -4147,6 +4147,31 @@ select.input-field {
     transform: scale(1.08);
 }
 
+/* Colores para Proveedores y Catálogo de Productos */
+.m3-fab-action-item[data-action="supplier"] .m3-fab-mini-btn {
+    color: #047857;
+    background: #ECFDF5;
+    border: 1px solid rgba(4, 120, 87, 0.18);
+}
+.m3-fab-action-item[data-action="supplier"]:hover .m3-fab-mini-btn {
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
+    transform: scale(1.08);
+}
+
+.m3-fab-action-item[data-action="supplier-item"] .m3-fab-mini-btn {
+    color: #0284C7;
+    background: #F0F9FF;
+    border: 1px solid rgba(2, 132, 199, 0.18);
+}
+.m3-fab-action-item[data-action="supplier-item"]:hover .m3-fab-mini-btn {
+    background: #0284C7;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+    transform: scale(1.08);
+}
+
 .m3-fab-action-item:active .m3-fab-mini-btn {
     transform: scale(0.92);
 }
@@ -15678,3 +15703,168 @@ body.dark-theme .safe-recipe-card-fluid {
 body.dark-theme .safe-recipe-card-fluid h4 {
     color: #F1F5F9 !important;
 }
+
+/* ==========================================================================
+   M3 Expressive - Suppliers & Orders Management (Drive Emerald Theme)
+   ========================================================================== */
+.supplier-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    background: #FFFFFF;
+    color: #475569;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.supplier-filter-pill:hover {
+    background: var(--surface);
+    color: #1E293B;
+}
+
+.supplier-filter-pill.active {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15);
+}
+
+.m3-day-chip-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+}
+
+.m3-day-chip-toggle:hover {
+    filter: brightness(0.97);
+}
+
+.supplier-card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.supplier-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.supplier-item-card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.supplier-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.supplier-item-card:hover img {
+    transform: scale(1.04);
+}
+
+@media (max-width: 640px) {
+    .suppliers-view-container {
+        padding: 16px 12px 100px 12px !important;
+    }
+    .suppliers-header-card {
+        padding: 16px !important;
+    }
+    .supplier-card {
+        padding: 16px !important;
+    }
+    .supplier-items-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+}
+
+/* M3 Expressive Full-Page Form Subviews for Suppliers & Items */
+.suppliers-subview-page {
+    animation: fadeInSubView 0.22s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes fadeInSubView {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-supplier-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 18px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    font-size: 13.5px;
+    font-family: var(--font-display);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-supplier-back:hover {
+    background: #F1F5F9;
+    border-color: #CBD5E1;
+    transform: translateX(-2px);
+}
+
+.btn-supplier-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 24px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    font-size: 14px;
+    font-family: var(--font-display);
+    background: var(--primary-dark);
+    color: #FFFFFF;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-supplier-save:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+.btn-supplier-cancel {
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    padding: 0 18px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    font-size: 14px;
+    font-family: var(--font-display);
+    background: #F1F5F9;
+    color: #475569;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-supplier-cancel:hover {
+    background: #E2E8F0;
+    color: #1E293B;
+}
+

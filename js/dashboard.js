@@ -80,11 +80,11 @@ class DashboardManager {
             const urlParams = new URLSearchParams(window.location.search);
             let viewParam = urlParams.get('view');
             const rawHash = (window.location.hash || '').replace('#', '').toLowerCase();
-            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu'].includes(rawHash)) {
+            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu', 'suppliers'].includes(rawHash)) {
                 viewParam = rawHash;
             }
             if (viewParam === 'settings') viewParam = 'help';
-            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu'].includes(viewParam)) {
+            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu', 'suppliers'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
 
@@ -451,6 +451,10 @@ class DashboardManager {
                         if (window.adminUsersManager && window.adminUsersManager.isSuperAdmin()) {
                             window.adminUsersManager.handleSearch(query);
                         }
+                    } else if (this.currentView === 'suppliers') {
+                        if (window.suppliersManager) {
+                            window.suppliersManager.handleSearch(query);
+                        }
                     } else {
                         this.loadRecipes({ search: query });
                         if (query.length > 2) {
@@ -459,7 +463,7 @@ class DashboardManager {
                     }
                 }, 200);
 
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers') {
                     // Update suggestions only for recipes
                     this.searchHistory.showSuggestions(query);
                 } else {
@@ -468,7 +472,7 @@ class DashboardManager {
             });
 
             searchInput.addEventListener('focus', () => {
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers') {
                     this.searchHistory.showSuggestions(searchInput.value.trim());
                 }
             });
@@ -489,6 +493,10 @@ class DashboardManager {
                     } else if (this.currentView === 'menu') {
                         if (window.restaurantMenu) {
                             window.restaurantMenu.setSearchQuery('');
+                        }
+                    } else if (this.currentView === 'suppliers') {
+                        if (window.suppliersManager) {
+                            window.suppliersManager.handleSearch('');
                         }
                     } else {
                         this.loadRecipes({ search: '' });
@@ -665,7 +673,7 @@ class DashboardManager {
             }
         }
 
-        if (['allergens', 'menu', 'help', 'settings'].includes(view)) {
+        if (['allergens', 'menu', 'help', 'settings', 'suppliers'].includes(view)) {
             if (dashHeader) {
                 dashHeader.classList.add('hidden');
                 dashHeader.style.display = 'none';
@@ -684,6 +692,8 @@ class DashboardManager {
             this.showAllergensView();
         } else if (view === 'menu') {
             this.showMenuView();
+        } else if (view === 'suppliers') {
+            this.showSuppliersView();
         }
 
         // Actualizar botón "+ Nuevo" en la barra superior según la vista
@@ -701,6 +711,13 @@ class DashboardManager {
                     }
                 };
                 btnNew.title = isEn ? 'Add dish to menu' : 'Agregar plato a la carta';
+            } else if (view === 'suppliers') {
+                btnNew.innerHTML = `
+                    <span class="material-symbols-outlined">add</span>
+                    <span data-i18n="newRecipeBtn">${(window.i18n && window.i18n.t) ? window.i18n.t('newRecipeBtn', 'Nuevo') : 'Nuevo'}</span>
+                `;
+                btnNew.onclick = (e) => { this.toggleNewDropboxMenu(e); };
+                btnNew.title = (window.i18n && window.i18n.t) ? window.i18n.t('newRecipe', 'Crear') : 'Crear';
             } else {
                 btnNew.innerHTML = `
                     <span class="material-symbols-outlined">add</span>
@@ -711,7 +728,10 @@ class DashboardManager {
             }
         }
 
-        if (view !== 'allergens' && view !== 'menu') {
+        // Sincronizar items del menú Dropbox para la vista actual de inmediato
+        this.updateDropboxMenuItems();
+
+        if (view !== 'allergens' && view !== 'menu' && view !== 'suppliers' && view !== 'help') {
             this.allergenSearchQuery = '';
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
@@ -742,6 +762,11 @@ class DashboardManager {
         if (empty) empty.classList.add('hidden');
         if (allergensView) allergensView.classList.add('hidden');
         if (menuView) menuView.classList.add('hidden');
+        const suppliersView = document.getElementById('suppliersView');
+        if (suppliersView) {
+            suppliersView.classList.add('hidden');
+            suppliersView.style.display = 'none';
+        }
         if (dashHeader) {
             dashHeader.classList.add('hidden');
             dashHeader.style.display = 'none';
@@ -812,6 +837,11 @@ class DashboardManager {
         if (empty) empty.classList.add('hidden');
         if (help) help.classList.add('hidden');
         if (allergensView) allergensView.classList.add('hidden');
+        const suppliersView = document.getElementById('suppliersView');
+        if (suppliersView) {
+            suppliersView.classList.add('hidden');
+            suppliersView.style.display = 'none';
+        }
         if (dashHeader) {
             dashHeader.classList.add('hidden');
             dashHeader.style.display = 'none';
@@ -854,6 +884,73 @@ class DashboardManager {
                 ? 'Search any dish, roast, burger, pizza or ingredient...' 
                 : 'Buscar plato, pizza, asado, hamburguesa o ingrediente...';
             searchInput.value = (window.restaurantMenu && window.restaurantMenu.searchQuery) || '';
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !searchInput.value);
+            }
+        }
+    }
+
+    showSuppliersView() {
+        console.log('[Dashboard] Executing showSuppliersView');
+        this.currentView = 'suppliers';
+        document.documentElement.setAttribute('data-current-view', 'suppliers');
+        document.body.setAttribute('data-current-view', 'suppliers');
+
+        const grid = document.getElementById('recipesGrid');
+        const empty = document.getElementById('emptyState');
+        const help = document.getElementById('helpView');
+        const allergensView = document.getElementById('allergensView');
+        const menuView = document.getElementById('menuView');
+        const suppliersView = document.getElementById('suppliersView');
+        const titleEl = document.getElementById('view-title');
+        const dashHeader = document.querySelector('.dashboard-header');
+        const carousel = document.getElementById('suggestedCarouselSection');
+        const breadcrumb = document.getElementById('folderBreadcrumb');
+
+        if (grid) grid.classList.add('hidden');
+        if (empty) empty.classList.add('hidden');
+        if (help) help.classList.add('hidden');
+        if (allergensView) allergensView.classList.add('hidden');
+        if (menuView) menuView.classList.add('hidden');
+        if (dashHeader) {
+            dashHeader.classList.add('hidden');
+            dashHeader.style.display = 'none';
+        }
+        if (carousel) {
+            carousel.classList.add('hidden');
+            carousel.style.display = 'none';
+        }
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.remove('hidden');
+        const fabContainer = document.getElementById('m3FabMenuContainer');
+        if (fabContainer) fabContainer.classList.remove('hidden');
+
+        if (this.isSelectionMode) this.clearSelection();
+
+        if (suppliersView) {
+            suppliersView.classList.remove('hidden');
+            suppliersView.style.display = 'block';
+            if (window.suppliersManager) {
+                window.suppliersManager.render(suppliersView);
+            }
+        }
+
+        if (titleEl) {
+            titleEl.textContent = (window.i18n && window.i18n.t) ? (window.i18n.t('navSuppliers') || 'Proveedores') : 'Proveedores';
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            searchInput.placeholder = isEn 
+                ? 'Search supplier or product...' 
+                : 'Buscar proveedor o producto...';
+            searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
             if (clearBtn) {
                 clearBtn.classList.toggle('hidden', !searchInput.value);
             }
@@ -936,6 +1033,12 @@ class DashboardManager {
 
         const menuView = document.getElementById('menuView');
         if (menuView) menuView.classList.add('hidden');
+
+        const suppliersView = document.getElementById('suppliersView');
+        if (suppliersView) {
+            suppliersView.classList.add('hidden');
+            suppliersView.style.display = 'none';
+        }
 
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.remove('hidden');
@@ -1835,6 +1938,58 @@ class DashboardManager {
         printWindow.document.close();
     }
     // ─── Menú "Crear" Estilo Dropbox (Desktop) ──────────────────
+    updateDropboxMenuItems() {
+        const menu = document.getElementById('newDropboxMenu');
+        if (!menu) return;
+        const itemsContainer = menu.querySelector('.dropbox-create-items');
+        const heading = menu.querySelector('.dropbox-create-heading');
+        const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+
+        if (this.currentView === 'suppliers') {
+            if (heading) heading.textContent = isEn ? 'Suppliers & Products' : 'Proveedores y Productos';
+            if (itemsContainer) {
+                itemsContainer.innerHTML = `
+                    <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('supplier')">
+                        <div class="row-icon-box" style="background: rgba(16, 185, 129, 0.12); color: var(--primary-dark);">
+                            <span class="material-symbols-outlined">add_business</span>
+                        </div>
+                        <span class="row-title">${isEn ? 'New Supplier' : 'Nuevo Proveedor'}</span>
+                    </div>
+                    <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('supplier-item')">
+                        <div class="row-icon-box" style="background: rgba(16, 185, 129, 0.12); color: var(--primary-dark);">
+                            <span class="material-symbols-outlined">add_photo_alternate</span>
+                        </div>
+                        <span class="row-title">${isEn ? 'Add Product' : 'Agregar Producto'}</span>
+                    </div>
+                `;
+            }
+        } else {
+            if (heading) heading.textContent = isEn ? 'Create' : 'Crear';
+            if (itemsContainer) {
+                itemsContainer.innerHTML = `
+                    <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('folder')">
+                        <div class="row-icon-box">
+                            <span class="material-symbols-outlined">folder</span>
+                        </div>
+                        <span class="row-title">${isEn ? 'Folder' : 'Carpeta'}</span>
+                    </div>
+                    <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('document')">
+                        <div class="row-icon-box">
+                            <span class="material-symbols-outlined">description</span>
+                        </div>
+                        <span class="row-title">${isEn ? 'Document' : 'Documento'}</span>
+                    </div>
+                    <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('scan')">
+                        <div class="row-icon-box">
+                            <span class="material-symbols-outlined">document_scanner</span>
+                        </div>
+                        <span class="row-title">${isEn ? 'Scan Recipe' : 'Escanear Receta'}</span>
+                    </div>
+                `;
+            }
+        }
+    }
+
     toggleNewDropboxMenu(e) {
         if (e) {
             e.stopPropagation();
@@ -1844,6 +1999,7 @@ class DashboardManager {
         if (!menu) return;
         const isHidden = menu.classList.contains('hidden');
         if (isHidden) {
+            this.updateDropboxMenuItems();
             menu.classList.remove('hidden');
         } else {
             menu.classList.add('hidden');
@@ -1874,6 +2030,47 @@ class DashboardManager {
         const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
         const actions = document.getElementById('m3FabActions');
         const scrim = document.getElementById('m3FabScrim');
+
+        if (actions) {
+            const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+            if (this.currentView === 'suppliers') {
+                actions.innerHTML = `
+                    <div class="m3-fab-action-item" data-action="supplier" onclick="window.dashboard.handleDropboxOption('supplier')">
+                        <span class="m3-fab-action-label">${isEn ? 'New Supplier' : 'Nuevo Proveedor'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'New Supplier' : 'Nuevo Proveedor'}">
+                            <span class="material-symbols-outlined">add_business</span>
+                        </button>
+                    </div>
+                    <div class="m3-fab-action-item" data-action="supplier-item" onclick="window.dashboard.handleDropboxOption('supplier-item')">
+                        <span class="m3-fab-action-label">${isEn ? 'Add Product' : 'Agregar Producto'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'Add Product' : 'Agregar Producto'}">
+                            <span class="material-symbols-outlined">add_photo_alternate</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                actions.innerHTML = `
+                    <div class="m3-fab-action-item" data-action="folder" onclick="window.dashboard.handleDropboxOption('folder')">
+                        <span class="m3-fab-action-label" data-i18n="newFolder">${isEn ? 'Folder' : 'Carpeta'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'New Folder' : 'Nueva Carpeta'}">
+                            <span class="material-symbols-outlined">create_new_folder</span>
+                        </button>
+                    </div>
+                    <div class="m3-fab-action-item" data-action="document" onclick="window.dashboard.handleDropboxOption('document')">
+                        <span class="m3-fab-action-label" data-i18n="newRecipeDoc">${isEn ? 'Document' : 'Documento'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'New Document' : 'Nuevo Documento'}">
+                            <span class="material-symbols-outlined">description</span>
+                        </button>
+                    </div>
+                    <div class="m3-fab-action-item" data-action="scan" onclick="window.dashboard.handleDropboxOption('scan')">
+                        <span class="m3-fab-action-label" data-i18n="scanRecipeBtn">${isEn ? 'Scan Recipe' : 'Escanear Receta'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'Scan Recipe' : 'Escanear Receta'}">
+                            <span class="material-symbols-outlined">document_scanner</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
 
         if (fab) {
             fab.classList.add('fab-menu-open');
@@ -1923,7 +2120,15 @@ class DashboardManager {
     handleDropboxOption(option) {
         this.closeNewDropboxMenu();
         this.closeFabMenu();
-        if (option === 'folder') {
+        if (option === 'supplier') {
+            if (window.suppliersManager) {
+                window.suppliersManager.openSupplierForm();
+            }
+        } else if (option === 'supplier-item') {
+            if (window.suppliersManager) {
+                window.suppliersManager.openItemForm();
+            }
+        } else if (option === 'folder') {
             this.promptNewFolder();
         } else if (option === 'document') {
             const folderParam = this.currentFolder ? `?folder=${encodeURIComponent(this.currentFolder)}&returnTo=folder` : '';
@@ -4852,6 +5057,11 @@ class DashboardManager {
         if (empty) empty.classList.add('hidden');
         if (help) help.classList.add('hidden');
         if (menuView) menuView.classList.add('hidden');
+        const suppliersView = document.getElementById('suppliersView');
+        if (suppliersView) {
+            suppliersView.classList.add('hidden');
+            suppliersView.style.display = 'none';
+        }
         if (dashHeader) {
             dashHeader.classList.add('hidden');
             dashHeader.style.display = 'none';
