@@ -15868,3 +15868,519 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     color: #1E293B;
 }
 
+/* ==========================================================================
+   M3 Expressive Supplier Dropbox-Style Table & Floating Hover Actions
+   ========================================================================== */
+
+.supplier-dropbox-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-subtle);
+    display: flex;
+    flex-direction: column;
+}
+
+.supplier-dropbox-header {
+    display: grid;
+    grid-template-columns: 56px 1.5fr 1.2fr 1.2fr 110px;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--outline-variant);
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #64748B;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.supplier-row-dropbox {
+    display: grid;
+    grid-template-columns: 56px 1.5fr 1.2fr 1.2fr 110px;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--bg);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s var(--m3-easing);
+}
+
+.supplier-row-dropbox:last-child {
+    border-bottom: none;
+}
+
+.supplier-row-dropbox:hover {
+    background: var(--surface);
+}
+
+.supplier-row-dropbox:active {
+    transform: scale(0.998);
+}
+
+/* Columna Logo */
+.col-sup-logo {
+    display: flex;
+    align-items: center;
+}
+
+.supplier-row-avatar-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid #CBD5E1;
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.supplier-row-avatar-fallback {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ECFDF5;
+    color: #047857;
+    font-weight: 800;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #A7F3D0;
+}
+
+/* Columna Info / Nombre */
+.col-sup-info {
+    min-width: 0;
+    padding-right: 12px;
+}
+
+.supplier-row-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.supplier-row-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    color: #0F172A;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.supplier-row-items-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #059669;
+    background: #ECFDF5;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    border: 1px solid #A7F3D0;
+    flex-shrink: 0;
+}
+
+.supplier-row-mobile-sub {
+    display: none;
+}
+
+/* Columna Categoría / Tipo */
+.col-sup-cat,
+.col-sup-thumb,
+.col-sup-type {
+    display: flex;
+    align-items: center;
+}
+
+.supplier-cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    background: #F1F5F9;
+    color: #334155;
+    border: 1px solid #E2E8F0;
+    white-space: nowrap;
+}
+
+/* Columna Días de Reparto (Solo activos) */
+.col-sup-days {
+    display: flex;
+    align-items: center;
+}
+
+.supplier-days-chips-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.supplier-day-dot.active {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #059669;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25);
+}
+
+/* Columna Acciones y Barra Flotante en Hover */
+.col-sup-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+}
+
+/* Barra de acciones flotante en hover (PC) — oculta por defecto, visible solo en hover */
+.supplier-hover-actions {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    padding: 4px 8px;
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    border: 1px solid var(--border);
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.supplier-row-dropbox:hover .supplier-hover-actions {
+    display: flex;
+}
+
+/* Botón pill de acción dentro del hover bar */
+.btn-supplier-hover-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-body);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+}
+
+.btn-supplier-hover-pill:hover {
+    background: var(--primary);
+    color: var(--on-primary);
+    transform: scale(1.03);
+}
+
+.btn-supplier-hover-pill .material-symbols-outlined {
+    font-size: 15px;
+}
+
+/* Soporte legacy por si alguna fila aún usa row-actions-dropbox */
+.supplier-row-dropbox .row-actions-dropbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: var(--surface);
+    padding: 4px 8px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+    position: absolute;
+    right: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.supplier-row-dropbox:hover .row-actions-dropbox {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.supplier-row-dropbox .mobile-action-btn {
+    display: none;
+}
+
+/* Drawer / Acordeón de Productos */
+.supplier-products-drawer {
+    background: #F8FAFC;
+    border-bottom: 1px solid var(--outline-variant);
+    padding: 16px 20px 20px 76px;
+    animation: fadeInSubView 0.2s ease;
+}
+
+.supplier-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.btn-supplier-mini-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-supplier-mini-add:hover {
+    background: #D1FAE5;
+}
+
+/* ==========================================================================
+   Estructura de la lista de proveedores (alineada con el markup del JS)
+   ========================================================================== */
+
+.suppliers-list-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.suppliers-filter-bar {
+    flex-wrap: wrap;
+}
+
+.suppliers-filters-container {
+    row-gap: 10px;
+}
+
+.suppliers-list-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.sup-primary-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.supplier-type-pill,
+.supplier-type-pill-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.supplier-type-pill .material-symbols-outlined,
+.supplier-type-pill-mobile .material-symbols-outlined {
+    font-size: 14px;
+}
+
+.supplier-days-pill-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+/* Metadatos de tipo y días: solo visibles en móvil */
+.sup-mobile-meta {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.supplier-integrated-more-btn {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Responsive Móvil para la Vista de Proveedores
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .supplier-dropbox-header {
+        display: none !important;
+    }
+
+    .supplier-row-dropbox {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 12px 14px !important;
+        gap: 12px !important;
+    }
+
+    .suppliers-filters-container {
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+    }
+
+    .suppliers-filter-bar {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 2px 2px 6px 2px;
+    }
+
+    .suppliers-filter-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .suppliers-filter-bar .supplier-filter-pill,
+    .suppliers-filter-bar > div {
+        flex: 0 0 auto;
+    }
+
+    .supplier-filter-pill {
+        white-space: nowrap;
+    }
+
+    .col-sup-logo {
+        flex-shrink: 0;
+    }
+
+    .col-sup-info {
+        flex: 1;
+        min-width: 0;
+        padding-right: 4px;
+    }
+
+    .col-sup-type,
+    .col-sup-cat,
+    .col-sup-days {
+        display: none !important;
+    }
+
+    .sup-mobile-meta {
+        display: flex !important;
+    }
+
+    .supplier-integrated-more-btn {
+        display: inline-flex !important;
+    }
+
+    .supplier-row-mobile-sub {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-top: 4px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .supplier-cat-pill.mobile-inline {
+        padding: 2px 7px !important;
+        font-size: 11px !important;
+    }
+
+    .supplier-mobile-days-text {
+        font-size: 11.5px !important;
+        font-weight: 700 !important;
+        color: #059669 !important;
+    }
+
+    .supplier-row-dropbox .row-actions-dropbox,
+    .supplier-row-dropbox .supplier-hover-actions,
+    .supplier-row-dropbox:hover .supplier-hover-actions {
+        display: none !important;
+    }
+
+    .supplier-row-dropbox .mobile-action-btn {
+        display: flex !important;
+        background: transparent;
+        border: none;
+        color: var(--on-surface-variant);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 50%;
+    }
+
+    .supplier-products-drawer {
+        padding: 14px 12px !important;
+    }
+}
+
+/* ==========================================================================
+   Catálogo de Productos: Acciones Hover en PC y Móvil M3
+   ========================================================================== */
+
+.product-row-dropbox {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    gap: 14px;
+    border-radius: var(--radius-md);
+    background: transparent;
+    position: relative;
+    transition: background 0.15s ease;
+}
+
+.product-row-dropbox:hover {
+    background: var(--surface);
+}
+
+.product-hover-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    background: var(--surface);
+    padding: 3px 6px;
+    border-radius: var(--radius-full);
+}
+
+.product-row-dropbox:hover .product-hover-actions {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.product-mobile-more-btn {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .product-hover-actions {
+        display: none !important;
+    }
+    .product-mobile-more-btn {
+        display: inline-flex !important;
+    }
+}
+
+
