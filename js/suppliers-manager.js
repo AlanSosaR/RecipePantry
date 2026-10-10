@@ -2219,7 +2219,6 @@
                 image_url,
                 phone,
                 contact_name,
-                delivery_days,
                 cutoff_time,
                 notes,
                 updated_at: new Date().toISOString()
