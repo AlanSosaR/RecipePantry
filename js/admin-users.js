@@ -1900,14 +1900,32 @@
 
             try {
                 // Actualizar campo en tabla users
-                const { error: updateErr } = await window.supabaseClient
+                let updateErr = null;
+                const fullPayload = {
+                    can_access_suppliers: grantAccess,
+                    suppliers_mode: suppliersMode,
+                    updated_at: new Date().toISOString()
+                };
+
+                const res = await window.supabaseClient
                     .from('users')
-                    .update({
-                        can_access_suppliers: grantAccess,
-                        suppliers_mode: suppliersMode,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update(fullPayload)
                     .eq('id', userId);
+
+                updateErr = res.error;
+
+                // Fallback defensivo si la columna suppliers_mode aún estuviera recargándose en el schema cache
+                if (updateErr && (updateErr.message || '').includes('suppliers_mode')) {
+                    console.warn('⚠️ Reintentando actualización sin suppliers_mode por caché de schema...');
+                    const fallbackRes = await window.supabaseClient
+                        .from('users')
+                        .update({
+                            can_access_suppliers: grantAccess,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', userId);
+                    updateErr = fallbackRes.error;
+                }
 
                 if (updateErr) throw updateErr;
 
