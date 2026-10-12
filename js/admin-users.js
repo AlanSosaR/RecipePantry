@@ -548,7 +548,8 @@
 
                 this.users = usersData.map(u => ({
                     ...u,
-                    is_active: u.is_active !== false
+                    is_active: u.is_active !== false,
+                    can_access_suppliers: u.can_access_suppliers === true
                 }));
 
                 this.applyFilter();
@@ -622,8 +623,6 @@
                 </div>
             `;
         }
-
-        setupMetricsCarousel() {}
 
         /**
          * Inicializa eventos de scroll para actualizar los puntos del carrusel de métricas en móvil
@@ -813,21 +812,40 @@
                         <!-- Estado y Flecha -->
                         <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                                <span style="
-                                    background: ${statusBg};
-                                    color: ${statusColor};
-                                    border: 1px solid ${statusBorder};
-                                    font-size: 11px;
-                                    font-weight: 700;
-                                    padding: 2.5px 10px;
-                                    border-radius: 100px;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                ">
-                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor};"></span>
-                                    ${statusText}
-                                </span>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                                    ${(isSuperAdminUser || user.can_access_suppliers) ? `
+                                        <span title="${isEn ? 'Access to Suppliers and Orders active' : 'Acceso al módulo de Proveedores activo'}" style="
+                                            background: rgba(16, 185, 129, 0.12);
+                                            color: #047857;
+                                            border: 1px solid rgba(16, 185, 129, 0.25);
+                                            font-size: 10.5px;
+                                            font-weight: 700;
+                                            padding: 2px 8px;
+                                            border-radius: 100px;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 4px;
+                                        ">
+                                            <span class="material-symbols-outlined" style="font-size: 13px; color: #10B981;">local_shipping</span>
+                                            ${isEn ? 'Suppliers' : 'Proveedores'}
+                                        </span>
+                                    ` : ''}
+                                    <span style="
+                                        background: ${statusBg};
+                                        color: ${statusColor};
+                                        border: 1px solid ${statusBorder};
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        padding: 2.5px 10px;
+                                        border-radius: 100px;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 4px;
+                                    ">
+                                        <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor};"></span>
+                                        ${statusText}
+                                    </span>
+                                </div>
                                 <span style="font-size: 11px; color: #94A3B8;">
                                     ${isEn ? 'Registered:' : 'Registrado:'} ${createdDate}
                                 </span>
@@ -1008,8 +1026,62 @@
                                 </div>
                                 <div style="font-size: 11.5px; color: #475569; margin-top: 1px;">
                                     ${user.is_active 
-                                        ? (isEn ? 'The user has full access to the application.' : 'El usuario tiene acceso completo a la aplicación.')
+                                        ? (isEn ? 'The user has general access to the application.' : 'El usuario tiene acceso general a la aplicación.')
                                         : (isEn ? 'The user is denied access and cannot use the app.' : 'El usuario tiene el acceso denegado y no puede usar la app.')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado Módulo de Proveedores y Pedidos M3 -->
+                    <div style="
+                        background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#F0FDF4' : '#F8FAFC'};
+                        border: 1px solid ${(isSuperAdminUser || user.can_access_suppliers) ? '#BBF7D0' : '#E2E8F0'};
+                        border-radius: 16px;
+                        padding: 12px 14px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 12px;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                            <div style="
+                                width: 36px;
+                                height: 36px;
+                                border-radius: 10px;
+                                background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#F1F5F9'};
+                                color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#64748B'};
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">local_shipping</span>
+                            </div>
+                            <div style="min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 13px; font-weight: 800; color: #1E293B;">
+                                        ${isEn ? 'Suppliers & Orders' : 'Proveedores y Pedidos'}
+                                    </span>
+                                    <span style="
+                                        font-size: 10.5px;
+                                        font-weight: 700;
+                                        padding: 1.5px 7px;
+                                        border-radius: 100px;
+                                        background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#E2E8F0'};
+                                        color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#475569'};
+                                    ">
+                                        ${isSuperAdminUser 
+                                            ? (isEn ? 'Super Admin (Full)' : 'Super Admin (Total)') 
+                                            : (user.can_access_suppliers ? (isEn ? 'Enabled' : 'Habilitado') : (isEn ? 'Disabled' : 'Deshabilitado'))}
+                                    </span>
+                                </div>
+                                <div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">
+                                    ${isSuperAdminUser
+                                        ? (isEn ? 'Owner account with full suppliers rights.' : 'Cuenta propietaria con acceso permanente a proveedores.')
+                                        : (user.can_access_suppliers 
+                                            ? (isEn ? 'User can view suppliers, catalog & generate WhatsApp orders.' : 'El usuario puede ver proveedores, catálogo y enviar pedidos.')
+                                            : (isEn ? 'Hidden from user navigation.' : 'Oculto en el menú de este usuario.'))}
                                 </div>
                             </div>
                         </div>
@@ -1099,6 +1171,29 @@
                                 <span>${isEn ? 'Your Super Admin account is protected against revocation or deletion.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación o eliminación.'}</span>
                             </div>
                         ` : `
+                            <!-- Botón Activar / Desactivar Acceso a Proveedores -->
+                            <button type="button" id="btn-admin-toggle-suppliers" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleSuppliersAccess('${user.id}', ${!user.can_access_suppliers})" style="
+                                width: 100%;
+                                background: ${user.can_access_suppliers ? '#FFFBEB' : '#ECFDF5'};
+                                color: ${user.can_access_suppliers ? '#B45309' : '#047857'};
+                                border: 1.5px solid ${user.can_access_suppliers ? 'rgba(217, 119, 6, 0.35)' : 'rgba(16, 185, 129, 0.35)'};
+                                font-weight: 700;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                transition: all 0.2s;
+                            "
+                            onmouseover="this.style.background='${user.can_access_suppliers ? '#D97706' : '#059669'}'; this.style.color='#FFFFFF';"
+                            onmouseout="this.style.background='${user.can_access_suppliers ? '#FFFBEB' : '#ECFDF5'}'; this.style.color='${user.can_access_suppliers ? '#B45309' : '#047857'}';"
+                            >
+                                <span class="material-symbols-outlined" style="font-size: 19px;">${user.can_access_suppliers ? 'unpublished' : 'verified'}</span>
+                                <span>${user.can_access_suppliers 
+                                    ? (isEn ? 'Disable Suppliers Access' : 'Desactivar Acceso a Proveedores') 
+                                    : (isEn ? 'Enable Suppliers Access' : 'Activar Acceso a Proveedores')}</span>
+                            </button>
+
                             <!-- Botón Conceder / Revocar Acceso -->
                             ${user.is_active ? `
                                 <button type="button" id="btn-admin-toggle-access" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', false)" style="
@@ -1424,6 +1519,123 @@
                     ? `❌ Error sending reset email: ${err.message || 'Unknown error'}` 
                     : `❌ Error al enviar enlace: ${err.message || 'Error desconocido'}`;
                 this.notify(errMsg, 'error', 4000);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
+                }
+            }
+        }
+
+        /**
+         * Manejador de confirmación para activar o desactivar acceso al módulo de proveedores
+         */
+        async handleToggleSuppliersAccess(userId, grantAccess) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+
+            const isEn = this.isEnglish();
+            const confirmMsg = grantAccess
+                ? (isEn
+                    ? `Grant suppliers and orders access to ${user.email}? They will see the Suppliers item in navigation.`
+                    : `¿Deseas activar el acceso a Proveedores para ${user.email}? Podrá ver el módulo y armar pedidos.`)
+                : (isEn
+                    ? `Remove suppliers access for ${user.email}? The module will be hidden from their navigation.`
+                    : `¿Deseas desactivar el acceso a Proveedores para ${user.email}? El módulo se ocultará de su navegación.`);
+
+            const actionBtn = grantAccess
+                ? (isEn ? 'Enable Suppliers' : 'Activar Proveedores')
+                : (isEn ? 'Disable Suppliers' : 'Desactivar Proveedores');
+            const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
+
+            const doExecution = async () => {
+                await this._executeToggleSuppliersAccess(userId, grantAccess);
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: actionBtn,
+                    cancelText: cancelBtn,
+                    actionColor: grantAccess ? '#10B981' : '#D97706',
+                    type: grantAccess ? 'success' : 'warning',
+                    onConfirm: doExecution
+                });
+            } else {
+                await doExecution();
+            }
+        }
+
+        /**
+         * Ejecuta la actualización de can_access_suppliers en Supabase
+         */
+        async _executeToggleSuppliersAccess(userId, grantAccess) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+
+            const isEn = this.isEnglish();
+            const actionVerb = grantAccess 
+                ? (isEn ? 'enable' : 'activar') 
+                : (isEn ? 'disable' : 'desactivar');
+
+            const btn = document.getElementById('btn-admin-toggle-suppliers');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> ${isEn ? 'Saving changes...' : 'Guardando cambios...'}`;
+            }
+
+            try {
+                // Actualizar campo en tabla users
+                const { error: updateErr } = await window.supabaseClient
+                    .from('users')
+                    .update({
+                        can_access_suppliers: grantAccess,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+
+                if (updateErr) throw updateErr;
+
+                // Actualizar estado en memoria
+                user.can_access_suppliers = grantAccess;
+                user.updated_at = new Date().toISOString();
+
+                // Si el usuario editado es el usuario actualmente autenticado, refrescar su perfil local
+                const currentAuthId = window.authManager?.currentUser?.id;
+                if (currentAuthId && currentAuthId === userId) {
+                    if (window.authManager.currentUser) {
+                        window.authManager.currentUser.can_access_suppliers = grantAccess;
+                    }
+                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                    if (window.suppliersManager?.updateVisibility) {
+                        window.suppliersManager.updateVisibility();
+                    }
+                }
+
+                // Actualizar interfaz
+                this.renderList();
+                this.openUserModal(userId);
+
+                const toastMsg = grantAccess
+                    ? (isEn
+                        ? `🚚 Suppliers access granted to ${user.first_name || user.email}`
+                        : `🚚 Acceso a Proveedores activado para ${user.first_name || user.email}`)
+                    : (isEn
+                        ? `🚫 Suppliers access disabled for ${user.first_name || user.email}`
+                        : `🚫 Acceso a Proveedores desactivado para ${user.first_name || user.email}`);
+
+                this.notify(toastMsg, grantAccess ? 'success' : 'info', 3000);
+
+            } catch (err) {
+                console.error('❌ Error al actualizar permisos de proveedores:', err);
+                const errMsg = isEn
+                    ? `Error attempting to ${actionVerb} suppliers access: ${err.message || 'Server error'}`
+                    : `Error al ${actionVerb} acceso a proveedores: ${err.message || 'Error del servidor'}`;
+
+                this.notify(errMsg, 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
