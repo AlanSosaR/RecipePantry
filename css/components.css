@@ -16216,10 +16216,21 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 /* Metadatos de tipo y días: solo visibles en móvil */
 .sup-mobile-meta {
     display: none;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
     margin-top: 4px;
-    flex-wrap: wrap;
+    width: 100%;
+}
+
+.sup-mobile-cat-row {
+    display: flex;
+    align-items: center;
+}
+
+.sup-mobile-days-row {
+    display: flex;
+    align-items: center;
 }
 
 .supplier-integrated-more-btn {
@@ -16288,6 +16299,10 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 
     .sup-mobile-meta {
         display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 5px !important;
+        width: 100% !important;
     }
 
     .supplier-integrated-more-btn {

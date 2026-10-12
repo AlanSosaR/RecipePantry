@@ -868,19 +868,23 @@
                             </button>
                         </div>
 
-                        <!-- Metadatos visibles en móvil (Tipo y Días con Círculos) -->
+                        <!-- Metadatos visibles en móvil: Categoría arriba y Días en su propia fila abajo -->
                         <div class="sup-mobile-meta">
-                            <span class="supplier-type-pill-mobile" style="background: ${cat.bg}; color: ${cat.color};">
-                                <span class="material-symbols-outlined" style="font-size: 12px;">${cat.icon}</span>
-                                <span>${cat.displayLabel}</span>
-                            </span>
+                            <div class="sup-mobile-cat-row">
+                                <span class="supplier-type-pill-mobile" style="background: ${cat.bg}; color: ${cat.color};">
+                                    <span class="material-symbols-outlined" style="font-size: 12px;">${cat.icon}</span>
+                                    <span>${cat.displayLabel}</span>
+                                </span>
+                            </div>
                             ${activeDaysList.length > 0 ? `
-                                <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px;">
-                                    ${activeDaysList.map(d => `
-                                        <div class="supplier-day-dot active" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
-                                            ${d.short}
-                                        </div>
-                                    `).join('')}
+                                <div class="sup-mobile-days-row">
+                                    <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px;">
+                                        ${activeDaysList.map(d => `
+                                            <div class="supplier-day-dot active" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
+                                                ${d.short}
+                                            </div>
+                                        `).join('')}
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
