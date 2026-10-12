@@ -851,21 +851,10 @@
                         `}
                     </div>
 
-                    <!-- 2. Sección del Proveedor (Nombre, Tipo y Menú de 3 puntos - Sin número de productos) -->
+                    <!-- 2. Sección del Proveedor (Nombre, Categoría y Días de reparto) -->
                     <div class="col-sup-info">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
-                            <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
-                                <span class="sup-primary-name" style="font-size: 16px; font-weight: 700; color: var(--text-main); letter-spacing: -0.01em;">${supplier.name}</span>
-                            </div>
-
-                            <!-- Botón de 3 puntos integrado dentro de esta sección -->
-                            <button type="button" 
-                                    class="btn-icon-m3 supplier-integrated-more-btn" 
-                                    onclick="event.stopPropagation(); window.suppliersManager.showMoreOptions('${supplier.id}', event);"
-                                    title="${isEn ? 'Options' : 'Opciones'}"
-                                    style="flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer;">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
-                            </button>
+                        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                            <span class="sup-primary-name" style="font-size: 16px; font-weight: 700; color: var(--text-main); letter-spacing: -0.01em;">${supplier.name}</span>
                         </div>
 
                         <!-- Metadatos visibles en móvil: Categoría arriba y Días en su propia fila abajo -->
@@ -889,6 +878,15 @@
                             ` : ''}
                         </div>
                     </div>
+
+                    <!-- Botón de 3 puntos móvil centrado verticalmente en la tarjeta -->
+                    <button type="button" 
+                            class="btn-icon-m3 supplier-integrated-more-btn" 
+                            onclick="event.stopPropagation(); window.suppliersManager.showMoreOptions('${supplier.id}', event);"
+                            title="${isEn ? 'Options' : 'Opciones'}"
+                            aria-label="${isEn ? 'Options' : 'Opciones'}">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
 
                     <!-- 3. Tipo de Proveedor (Carne, Verduras, Pescados...) -->
                     <div class="col-sup-type">

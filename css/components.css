@@ -16307,6 +16307,32 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 
     .supplier-integrated-more-btn {
         display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        border-radius: 50% !important;
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-secondary, #64748B) !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        margin-left: auto !important;
+        align-self: center !important;
+        flex-shrink: 0 !important;
+        transition: background-color 0.15s ease, transform 0.15s ease, color 0.15s ease !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+
+    .supplier-integrated-more-btn:active {
+        background-color: rgba(0, 0, 0, 0.06) !important;
+        transform: scale(0.94) !important;
+        color: var(--text-main, #1E293B) !important;
+    }
+
+    .supplier-integrated-more-btn .material-symbols-outlined {
+        font-size: 24px !important;
     }
 
     .supplier-row-mobile-sub {
