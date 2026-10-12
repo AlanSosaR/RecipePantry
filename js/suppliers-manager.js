@@ -1592,8 +1592,8 @@
         }
 
         /**
-         * Menú de 3 puntos para productos: abre Bottom Sheet M3 Expressive
-         * Contiene opciones de "Editar Producto" y "Eliminar Producto"
+         * Menú de 3 puntos para productos: abre Toolbar M3 Expressive
+         * Contiene opciones rápidas y compactas de "Editar" y "Eliminar"
          */
         showProductMoreOptions(itemId, event) {
             if (event) {
@@ -1609,11 +1609,11 @@
                 return;
             }
 
-            const existingMenu = document.querySelector('.m3-modal-bottom-sheet, .dropbox-menu-m3');
-            const existingBackdrop = document.getElementById('m3SheetBackdrop');
-            if (existingMenu) {
-                const isSameItem = existingMenu.dataset.itemId === String(itemId);
-                existingMenu.remove();
+            const existingToolbar = document.querySelector('.product-action-toolbar, .m3-modal-bottom-sheet, .dropbox-menu-m3');
+            const existingBackdrop = document.getElementById('productToolbarBackdrop') || document.getElementById('m3SheetBackdrop');
+            if (existingToolbar) {
+                const isSameItem = existingToolbar.dataset.itemId === String(itemId);
+                existingToolbar.remove();
                 if (existingBackdrop) existingBackdrop.remove();
                 if (isSameItem) return;
             }
@@ -1622,137 +1622,105 @@
             const item = this.items.find(it => String(it.id) === String(itemId));
             if (!item) return;
 
-            const isDesktop = window.innerWidth > 768;
             const isEn = this.isEnglish();
 
-            // Modal Bottom Sheet M3 Expressive
-            const menu = document.createElement('div');
-            menu.className = 'm3-modal-bottom-sheet';
-            menu.dataset.itemId = String(itemId);
+            // Toolbar Flotante M3 Expressive
+            const toolbar = document.createElement('div');
+            toolbar.className = 'product-action-toolbar';
+            toolbar.dataset.itemId = String(itemId);
 
-            let sheetHTML = `
-                <div class="m3-sheet-drag-handle" title="${isEn ? 'Swipe or tap to close' : 'Toca o desliza para cerrar'}"></div>
-                <div class="m3-sheet-header" style="display: flex; align-items: center; gap: 12px;">
-                    ${item.image_url ? `
-                        <img src="${item.image_url}" alt="${item.name}" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none';" />
-                    ` : `
-                        <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <span class="material-symbols-outlined" style="font-size: 24px;">restaurant</span>
-                        </div>
-                    `}
-                    <div style="min-width: 0; flex: 1;">
-                        <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h4>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            ${item.package_format || item.unit ? `<span>${item.package_format || item.unit}</span>` : ''}
-                            ${(item.package_format || item.unit) && item.category ? `<span>·</span>` : ''}
-                            ${item.category ? `<span>${item.category}</span>` : ''}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="m3-sheet-quick-row">
-                    <button type="button" class="m3-quick-pill" onclick="window.suppliersManager.closeProductBottomSheet(); window.suppliersManager.openItemModal('${item.id}', '${item.supplier_id}');">
-                        <span class="material-symbols-outlined">edit</span>
-                        <span>${isEn ? 'Edit' : 'Editar'}</span>
-                    </button>
-                    <button type="button" class="m3-quick-pill" style="color: var(--error);" onclick="window.suppliersManager.closeProductBottomSheet(); window.suppliersManager.deleteItem('${item.id}');">
-                        <span class="material-symbols-outlined" style="color: var(--error);">delete</span>
-                        <span>${isEn ? 'Delete' : 'Eliminar'}</span>
-                    </button>
-                </div>
-
-                <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeProductBottomSheet(); window.suppliersManager.openItemModal('${item.id}', '${item.supplier_id}');">
+            toolbar.innerHTML = `
+                <button type="button" class="product-action-toolbar-btn edit" title="${isEn ? 'Edit Product' : 'Editar Producto'}">
                     <span class="material-symbols-outlined">edit</span>
-                    <span>${isEn ? 'Edit Product' : 'Editar Producto'}</span>
+                    <span>${isEn ? 'Editar' : 'Editar'}</span>
                 </button>
-
-                <div class="context-menu-divider"></div>
-
-                <button type="button" class="context-menu-item danger" onclick="window.suppliersManager.closeProductBottomSheet(); window.suppliersManager.deleteItem('${item.id}');">
+                <div class="product-action-toolbar-divider"></div>
+                <button type="button" class="product-action-toolbar-btn danger" title="${isEn ? 'Delete Product' : 'Eliminar Producto'}">
                     <span class="material-symbols-outlined">delete</span>
-                    <span>${isEn ? 'Delete Product' : 'Eliminar Producto'}</span>
+                    <span>${isEn ? 'Eliminar' : 'Eliminar'}</span>
                 </button>
             `;
 
-            menu.innerHTML = sheetHTML;
-
+            // Backdrop transparente para cerrar al hacer clic afuera
             const backdrop = document.createElement('div');
-            backdrop.className = 'm3-sheet-backdrop';
-            backdrop.id = 'm3SheetBackdrop';
-            backdrop.onclick = (e) => dismiss(e);
-            document.body.appendChild(backdrop);
-            document.body.appendChild(menu);
-
-            // Control táctil de arrastre para cerrar
-            let touchStartY = 0;
-            let touchDiffY = 0;
-            let initialHeight = 0;
-            const smoothCurve = 'height 0.35s cubic-bezier(0.25, 1, 0.5, 1), transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
-
-            const measureBaseHeight = () => {
-                if (menu.offsetHeight > 50) {
-                    initialHeight = menu.offsetHeight;
-                    menu.style.height = `${initialHeight}px`;
-                }
-            };
-            requestAnimationFrame(measureBaseHeight);
-
-            const dragHandle = menu.querySelector('.m3-sheet-drag-handle');
-            if (dragHandle) {
-                dragHandle.onclick = (e) => {
-                    e.stopPropagation();
-                    dismiss(e);
-                };
-            }
-
-            menu.addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
-                touchDiffY = 0;
-                if (!initialHeight) initialHeight = menu.offsetHeight || 260;
-            }, { passive: true });
-
-            menu.addEventListener('touchmove', (e) => {
-                touchDiffY = e.touches[0].clientY - touchStartY;
-                if (touchDiffY > 0) {
-                    menu.style.transition = 'none';
-                    menu.style.transform = isDesktop ? `translate(-50%, ${touchDiffY}px)` : `translateY(${touchDiffY}px)`;
-                }
-            }, { passive: true });
-
-            menu.addEventListener('touchend', () => {
-                menu.style.transition = smoothCurve;
-                if (touchDiffY > 70) {
-                    dismiss();
-                } else {
-                    menu.style.transform = isDesktop ? 'translateX(-50%)' : 'translateY(0)';
-                }
-                touchDiffY = 0;
-            });
+            backdrop.id = 'productToolbarBackdrop';
+            backdrop.style.position = 'fixed';
+            backdrop.style.inset = '0';
+            backdrop.style.zIndex = '9998';
+            backdrop.style.background = 'transparent';
 
             const dismiss = (e) => {
                 if (trigger && e && trigger.contains(e.target)) {
                     this._lastMenuClosedTime = Date.now();
                     this._lastMenuClosedItemId = String(itemId);
                 }
-                menu.remove();
-                if (backdrop) backdrop.remove();
-                cleanup();
+                toolbar.remove();
+                backdrop.remove();
+                document.removeEventListener('keydown', onKeydown);
+                window.removeEventListener('scroll', dismiss, true);
+                window.removeEventListener('resize', dismiss);
             };
 
             const onKeydown = (e) => {
                 if (e.key === 'Escape') dismiss(e);
             };
 
-            const cleanup = () => {
-                document.removeEventListener('keydown', onKeydown);
-            };
+            backdrop.addEventListener('click', dismiss);
+            backdrop.addEventListener('touchstart', dismiss, { passive: true });
+
+            const editBtn = toolbar.querySelector('.edit');
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dismiss(e);
+                    this.openItemModal(item.id, item.supplier_id);
+                });
+            }
+
+            const deleteBtn = toolbar.querySelector('.danger');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dismiss(e);
+                    this.deleteItem(item.id);
+                });
+            }
+
+            document.body.appendChild(backdrop);
+            document.body.appendChild(toolbar);
+
+            // Posicionamiento inteligente anclado al trigger
+            if (trigger) {
+                const rect = trigger.getBoundingClientRect();
+                const toolbarWidth = toolbar.offsetWidth || 185;
+                const toolbarHeight = toolbar.offsetHeight || 44;
+
+                let left = rect.left - toolbarWidth - 8;
+                if (left < 12) {
+                    left = rect.right + 8;
+                    if (left + toolbarWidth > window.innerWidth - 12) {
+                        left = Math.max(12, window.innerWidth - toolbarWidth - 12);
+                    }
+                }
+
+                let top = rect.top + (rect.height / 2) - (toolbarHeight / 2);
+                if (top < 12) top = 12;
+                if (top + toolbarHeight > window.innerHeight - 12) {
+                    top = window.innerHeight - toolbarHeight - 12;
+                }
+
+                toolbar.style.top = `${Math.round(top)}px`;
+                toolbar.style.left = `${Math.round(left)}px`;
+            }
 
             document.addEventListener('keydown', onKeydown);
+            window.addEventListener('scroll', dismiss, { capture: true, passive: true, once: true });
+            window.addEventListener('resize', dismiss, { passive: true, once: true });
         }
 
         closeProductBottomSheet() {
-            const sheet = document.querySelector('.m3-modal-bottom-sheet, .dropbox-menu-m3');
-            const backdrop = document.getElementById('m3SheetBackdrop');
+            const sheet = document.querySelector('.product-action-toolbar, .m3-modal-bottom-sheet, .dropbox-menu-m3');
+            const backdrop = document.getElementById('productToolbarBackdrop') || document.getElementById('m3SheetBackdrop');
             if (sheet) sheet.remove();
             if (backdrop) backdrop.remove();
         }
