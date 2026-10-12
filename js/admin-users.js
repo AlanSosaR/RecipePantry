@@ -1066,13 +1066,17 @@
 
                     <!-- Control de Acceso a Proveedores M3 Switch y Selector de Modo -->
                     <div style="
-                        background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#F0FDF4' : '#F8FAFC'};
-                        border: 1px solid ${(isSuperAdminUser || user.can_access_suppliers) ? '#BBF7D0' : '#E2E8F0'};
+                        background: ${(isSuperAdminUser || user.can_access_suppliers) 
+                            ? (user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#F0F7FF' : '#F0FDF4') 
+                            : '#F8FAFC'};
+                        border: 1px solid ${(isSuperAdminUser || user.can_access_suppliers) 
+                            ? (user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#BFDBFE' : '#BBF7D0') 
+                            : '#E2E8F0'};
                         border-radius: 18px;
                         padding: 14px 16px;
                         display: flex;
                         flex-direction: column;
-                        gap: 12px;
+                        gap: 10px;
                         transition: background-color 0.25s ease, border-color 0.25s ease;
                     ">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
@@ -1081,15 +1085,21 @@
                                     width: 40px;
                                     height: 40px;
                                     border-radius: 12px;
-                                    background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#F1F5F9'};
-                                    color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#64748B'};
+                                    background: ${(isSuperAdminUser || user.can_access_suppliers) 
+                                        ? (user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#DBEAFE' : '#DCFCE7') 
+                                        : '#F1F5F9'};
+                                    color: ${(isSuperAdminUser || user.can_access_suppliers) 
+                                        ? (user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#2563EB' : '#047857') 
+                                        : '#64748B'};
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
                                     flex-shrink: 0;
                                     transition: all 0.25s ease;
                                 ">
-                                    <span class="material-symbols-outlined" style="font-size: 22px;">local_shipping</span>
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">
+                                        ${(user.suppliers_mode === 'empty' && !isSuperAdminUser) ? 'inventory_2' : 'local_shipping'}
+                                    </span>
                                 </div>
                                 <div style="min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -1107,26 +1117,15 @@
                                             ">
                                                 ${isEn ? 'Super Admin' : 'Super Admin'}
                                             </span>
-                                        ` : (user.can_access_suppliers ? `
-                                            <span style="
-                                                font-size: 10px;
-                                                font-weight: 800;
-                                                padding: 1.5px 7px;
-                                                border-radius: 100px;
-                                                background: ${user.suppliers_mode === 'empty' ? '#DBEAFE' : '#DCFCE7'};
-                                                color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#047857'};
-                                            ">
-                                                ${user.suppliers_mode === 'empty' ? (isEn ? 'Own Catalog' : 'Módulo Vacío') : (isEn ? 'Shared with Admin' : 'Compartido con Admin')}
-                                            </span>
-                                        ` : '')}
+                                        ` : ''}
                                     </div>
                                     <div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.4;">
                                         ${isSuperAdminUser
                                             ? (isEn ? 'Full permanent access granted.' : 'Acceso total permanente por ser Super Administrador.')
                                             : (user.can_access_suppliers 
                                                 ? (user.suppliers_mode === 'empty'
-                                                    ? (isEn ? 'Access enabled: empty module, user manages own suppliers.' : 'Acceso activado: módulo vacío e independiente (el usuario crea sus propios proveedores).')
-                                                    : (isEn ? 'Access enabled: user can view admin suppliers, catalog and place orders.' : 'Acceso activado: el usuario comparte los proveedores y catálogo del Super Admin.'))
+                                                    ? (isEn ? 'Empty module enabled: user creates and manages their own suppliers.' : 'Acceso activado con catálogo propio (módulo vacío e independiente).')
+                                                    : (isEn ? 'Shared access enabled: user accesses your suppliers and catalog.' : 'Acceso activado compartiendo tus proveedores y catálogo.'))
                                                 : (isEn ? 'Access disabled: hidden from user navigation.' : 'Acceso desactivado: el módulo está oculto en su menú.'))}
                                     </div>
                                 </div>
@@ -1154,51 +1153,41 @@
                         <!-- Selector M3 de Modo cuando el acceso está activado (No Super Admin) -->
                         ${(!isSuperAdminUser && user.can_access_suppliers) ? `
                             <div style="
-                                border-top: 1px dashed rgba(16, 185, 129, 0.3);
-                                padding-top: 10px;
+                                border-top: 1px dashed ${user.suppliers_mode === 'empty' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
+                                padding-top: 8px;
                                 display: flex;
-                                flex-direction: column;
-                                gap: 6px;
+                                align-items: center;
+                                justify-content: space-between;
+                                gap: 10px;
                             ">
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <span style="font-size: 11px; font-weight: 700; color: #065F46; text-transform: uppercase; letter-spacing: 0.04em;">
-                                        ${isEn ? 'Access Mode:' : 'Modo de Acceso:'}
-                                    </span>
-                                    <button type="button" onclick="window.adminUsersManager.openSuppliersModeSelectorModal('${user.id}')" style="
-                                        background: transparent;
-                                        border: none;
-                                        color: #059669;
-                                        font-size: 11.5px;
-                                        font-weight: 700;
-                                        font-family: inherit;
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 3px;
-                                        cursor: pointer;
-                                        padding: 2px 4px;
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 14px;">swap_horiz</span>
-                                        ${isEn ? 'Change Mode' : 'Cambiar Modo'}
-                                    </button>
-                                </div>
-                                <div style="
-                                    background: #FFFFFF;
-                                    border: 1px solid rgba(16, 185, 129, 0.2);
-                                    border-radius: 12px;
-                                    padding: 8px 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 10px;
-                                ">
-                                    <span class="material-symbols-outlined" style="font-size: 18px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#10B981'};">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#059669'};">
                                         ${user.suppliers_mode === 'empty' ? 'inventory_2' : 'group'}
                                     </span>
-                                    <div style="font-size: 12px; color: #1E293B; line-height: 1.35;">
+                                    <span style="font-size: 11.5px; font-weight: 700; color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#065F46'};">
                                         ${user.suppliers_mode === 'empty'
-                                            ? (isEn ? '<strong>Empty Module:</strong> User creates their own suppliers independently.' : '<strong>Módulo Vacío:</strong> El usuario crea sus propios proveedores y catálogo de forma independiente.')
-                                            : (isEn ? '<strong>Shared Suppliers:</strong> User sees and orders from your current supplier catalog.' : '<strong>Compartir Proveedores:</strong> El usuario ve y utiliza los proveedores y catálogo creados por el Super Admin.')}
-                                    </div>
+                                            ? (isEn ? 'Mode: Own Suppliers (Empty)' : 'Modo: Catálogo Propio (Vacío)')
+                                            : (isEn ? 'Mode: Shared Suppliers (Admin)' : 'Modo: Proveedores Compartidos (Admin)')}
+                                    </span>
                                 </div>
+                                <button type="button" onclick="window.adminUsersManager.openSuppliersModeSelectorModal('${user.id}')" style="
+                                    background: ${user.suppliers_mode === 'empty' ? '#EFF6FF' : '#ECFDF5'};
+                                    border: 1px solid ${user.suppliers_mode === 'empty' ? '#BFDBFE' : '#A7F3D0'};
+                                    border-radius: 100px;
+                                    color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#047857'};
+                                    font-size: 11.5px;
+                                    font-weight: 700;
+                                    font-family: inherit;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
+                                    cursor: pointer;
+                                    padding: 4px 10px;
+                                    transition: all 0.2s;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">swap_horiz</span>
+                                    ${isEn ? 'Change Mode' : 'Cambiar Modo'}
+                                </button>
                             </div>
                         ` : ''}
                     </div>
