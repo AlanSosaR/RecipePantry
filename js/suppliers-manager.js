@@ -1376,45 +1376,28 @@
                     <!-- Línea divisoria abajo del nombre del proveedor -->
                     <hr style="border: none; border-top: 1px solid var(--border); margin: 0 0 20px 0;" />
 
-                    <!-- Tarjeta M3 Detalles de Entrega (Exacto al diseño móvil solicitado) -->
-                    <div class="supplier-delivery-card-m3" style="
-                        background: #e8f3ed;
-                        border-radius: 20px;
-                        padding: 18px 20px;
-                        margin-bottom: 24px;
-                    ">
+                    <!-- Tarjeta M3 Detalles de Entrega (Aprovechamiento completo de pantalla y línea unificada de horario) -->
+                    <div class="supplier-delivery-card-m3">
                         <!-- Header de la tarjeta -->
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <div class="delivery-card-header">
                             <span class="material-symbols-outlined" style="font-size: 18px; color: #1e7a46;">local_shipping</span>
-                            <span style="font-size: 11.5px; font-weight: 800; color: #1b4d2e; text-transform: uppercase; letter-spacing: 0.06em;">
+                            <span class="delivery-card-title">
                                 ${isEn ? 'DELIVERY DETAILS' : 'DETALLES DE ENTREGA'}
                             </span>
                         </div>
 
-                        <!-- Fila Responsive: Días de reparto a la izquierda, Hora límite a la derecha en PC -->
-                        <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px 28px; margin-bottom: 14px;">
-                            <!-- Columna Izquierda: Días de reparto -->
-                            <div style="flex: 1; min-width: 230px;">
-                                <div style="font-size: 13px; font-weight: 700; color: #1e2922; margin-bottom: 8px;">
+                        <!-- Fila Responsive: Días de reparto y Horario/Próxima entrega -->
+                        <div class="delivery-card-grid">
+                            <!-- Bloque Días de reparto -->
+                            <div class="delivery-days-block">
+                                <div class="delivery-block-label">
                                     ${isEn ? 'Delivery days' : 'Días de reparto'}
                                 </div>
-                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <div class="delivery-days-pills">
                                     ${this.DAYS.map(d => {
                                         const isActive = activeDays.includes(d.id);
                                         return `
-                                            <div style="
-                                                width: 26px;
-                                                height: 26px;
-                                                border-radius: 50%;
-                                                display: flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                font-size: 11.5px;
-                                                font-weight: 800;
-                                                background: ${isActive ? '#1e7a46' : '#ffffff'};
-                                                color: ${isActive ? '#ffffff' : '#9ca3af'};
-                                                box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-                                            ">
+                                            <div class="delivery-day-dot ${isActive ? 'active' : ''}">
                                                 ${d.short}
                                             </div>
                                         `;
@@ -1422,55 +1405,31 @@
                                 </div>
                             </div>
 
-                            <!-- Columna Derecha: Hora límite y Próxima entrega (a la derecha en PC) -->
-                            <div style="flex: 1; min-width: 260px;">
-                                <div style="font-size: 13px; font-weight: 700; color: #1e2922; margin-bottom: 8px;">
-                                    ${isEn ? 'Cut-off time:' : 'Hora límite:'}
-                                </div>
-                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <!-- Bloque: Hora límite y Próxima entrega en una sola línea -->
+                            <div class="delivery-timing-block">
+                                <div class="delivery-timing-row">
                                     <!-- Pill Hora límite -->
-                                    <div style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 6px;
-                                        background: #ffffff;
-                                        padding: 6px 14px;
-                                        border-radius: var(--radius-full);
-                                        font-size: 13px;
-                                        font-weight: 700;
-                                        color: #1e2922;
-                                        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 16px; color: #5a6660;">schedule</span>
-                                        <span>${status.cutoffFormatted} hrs</span>
+                                    <div class="delivery-timing-pill cutoff" title="${isEn ? 'Cut-off time' : 'Hora límite de pedido'}">
+                                        <span class="timing-label">${isEn ? 'Cut-off:' : 'Hora límite:'}</span>
+                                        <span class="material-symbols-outlined icon">schedule</span>
+                                        <span class="timing-value">${status.cutoffFormatted} hrs</span>
                                     </div>
 
                                     <!-- Pill Próxima entrega -->
-                                    <div style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 6px;
-                                        background: #1e7a46;
-                                        color: #ffffff;
-                                        padding: 6px 14px;
-                                        border-radius: var(--radius-full);
-                                        font-size: 13px;
-                                        font-weight: 700;
-                                        box-shadow: 0 1px 3px rgba(30,122,70,0.25);
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 16px; color: #ffffff;">calendar_month</span>
-                                        <span>${isEn ? 'Next delivery:' : 'Próxima entrega:'} ${nextDayName}</span>
+                                    <div class="delivery-timing-pill next-delivery" title="${isEn ? 'Next delivery day' : 'Día de la próxima entrega'}">
+                                        <span class="material-symbols-outlined icon">calendar_month</span>
+                                        <span class="timing-value">${isEn ? 'Next:' : 'Próxima entrega:'} <strong>${nextDayName}</strong></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Notas / Instrucciones -->
-                        <div>
-                            <div style="font-size: 13px; font-weight: 700; color: #1e2922; margin-bottom: 4px;">
+                        <div class="delivery-notes-block">
+                            <div class="delivery-notes-label">
                                 ${isEn ? 'Notes / Instructions:' : 'Notas / Instrucciones:'}
                             </div>
-                            <div style="font-size: 13px; color: #3d4a42; line-height: 1.45;">
+                            <div class="delivery-notes-content">
                                 ${displayNotes}
                             </div>
                         </div>
