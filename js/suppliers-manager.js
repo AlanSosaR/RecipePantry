@@ -1030,28 +1030,24 @@
             let sheetHTML = `
                 <div class="m3-sheet-drag-handle" title="${isEn ? 'Swipe or tap to expand' : 'Toca o desliza para expandir'}"></div>
                 <div class="m3-sheet-header">
-                    <h4>${supplier.name}</h4>
-                    <div style="margin-top: 6px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
-                        <!-- Fila 1: Categoría / Tipo -->
-                        <div style="display: flex; align-items: center;">
-                            <span style="display: inline-flex; align-items: center; gap: 4px; background: ${cat.bg}; color: ${cat.color}; padding: 3px 10px; border-radius: var(--radius-full); font-weight: 700; font-size: 12px;">
-                                <span class="material-symbols-outlined" style="font-size: 13px;">${cat.icon}</span>
-                                <span>${cat.displayLabel}</span>
-                            </span>
-                        </div>
-
-                        <!-- Fila 2 (Salto de línea): Días de Reparto en su propia fila -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                        <h4 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.2;">${supplier.name}</h4>
                         ${activeDaysList.length > 0 ? `
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px;">
-                                    ${activeDaysList.map(d => `
-                                        <div class="supplier-day-dot active" style="width: 22px; height: 22px; font-size: 10.5px;" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
-                                            ${d.short}
-                                        </div>
-                                    `).join('')}
-                                </div>
+                            <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0;">
+                                ${activeDaysList.map(d => `
+                                    <div class="supplier-day-dot active" style="width: 22px; height: 22px; font-size: 10.5px;" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
+                                        ${d.short}
+                                    </div>
+                                `).join('')}
                             </div>
                         ` : ''}
+                    </div>
+
+                    <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-flex; align-items: center; gap: 4px; background: ${cat.bg}; color: ${cat.color}; padding: 3px 10px; border-radius: var(--radius-full); font-weight: 700; font-size: 12px;">
+                            <span class="material-symbols-outlined" style="font-size: 13px;">${cat.icon}</span>
+                            <span>${cat.displayLabel}</span>
+                        </span>
                     </div>
                 </div>
 
