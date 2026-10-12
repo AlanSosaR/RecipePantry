@@ -16486,7 +16486,7 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 
 .product-action-toolbar {
     position: fixed;
-    z-index: 2500;
+    z-index: 10000;
     background: #1E293B;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-full, 9999px);

@@ -1612,7 +1612,11 @@
             backdrop.style.zIndex = '9998';
             backdrop.style.background = 'transparent';
 
+            let isDismissed = false;
             const dismiss = (e) => {
+                if (isDismissed) return;
+                isDismissed = true;
+
                 if (trigger && e && trigger.contains(e.target)) {
                     this._lastMenuClosedTime = Date.now();
                     this._lastMenuClosedItemId = String(itemId);
@@ -1620,33 +1624,51 @@
                 toolbar.remove();
                 backdrop.remove();
                 document.removeEventListener('keydown', onKeydown);
-                window.removeEventListener('scroll', dismiss, true);
+                window.removeEventListener('scroll', onScroll, true);
                 window.removeEventListener('resize', dismiss);
+            };
+
+            const onScroll = (e) => {
+                // Si el evento de scroll proviene del interior de la toolbar no descartar
+                if (e.target && toolbar.contains(e.target)) return;
+                dismiss(e);
             };
 
             const onKeydown = (e) => {
                 if (e.key === 'Escape') dismiss(e);
             };
 
-            backdrop.addEventListener('click', dismiss);
-            backdrop.addEventListener('touchstart', dismiss, { passive: true });
+            backdrop.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dismiss(e);
+            });
+            backdrop.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                dismiss(e);
+            }, { passive: true });
 
             const editBtn = toolbar.querySelector('.edit');
             if (editBtn) {
-                editBtn.addEventListener('click', (e) => {
+                const handleEdit = (e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     dismiss(e);
-                    this.openItemModal(item.id, item.supplier_id);
-                });
+                    window.suppliersManager.openItemModal(item.id, item.supplier_id);
+                };
+                editBtn.addEventListener('click', handleEdit);
+                editBtn.addEventListener('touchend', handleEdit);
             }
 
             const deleteBtn = toolbar.querySelector('.danger');
             if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
+                const handleDelete = (e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     dismiss(e);
-                    this.deleteItem(item.id);
-                });
+                    window.suppliersManager.deleteItem(item.id);
+                };
+                deleteBtn.addEventListener('click', handleDelete);
+                deleteBtn.addEventListener('touchend', handleDelete);
             }
 
             document.body.appendChild(backdrop);
@@ -1677,8 +1699,13 @@
             }
 
             document.addEventListener('keydown', onKeydown);
-            window.addEventListener('scroll', dismiss, { capture: true, passive: true, once: true });
-            window.addEventListener('resize', dismiss, { passive: true, once: true });
+            // Pequeño retardo antes de escuchar scroll para evitar que el tap inicial dispare dismiss
+            setTimeout(() => {
+                if (!isDismissed) {
+                    window.addEventListener('scroll', onScroll, { capture: true, passive: true, once: true });
+                    window.addEventListener('resize', dismiss, { passive: true, once: true });
+                }
+            }, 100);
         }
 
         closeProductBottomSheet() {
