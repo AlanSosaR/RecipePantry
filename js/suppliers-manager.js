@@ -122,14 +122,35 @@
             }
         }
 
+        /** Obtiene el modo de proveedores configurado para el usuario actual ('shared' o 'empty') */
+        getSuppliersMode() {
+            if (this.isSuperAdmin()) return 'shared';
+            try {
+                const profile = window.authManager?.currentUser || 
+                                JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+                return profile.suppliers_mode === 'empty' ? 'empty' : 'shared';
+            } catch (e) {
+                return 'shared';
+            }
+        }
+
+        /** Clave de caché para proveedores según usuario y modo */
+        _getCacheKey(baseKey) {
+            if (!this.isSuperAdmin() && this.getSuppliersMode() === 'empty') {
+                const uid = window.authManager?.currentUser?.id || 'anon';
+                return `${baseKey}_user_${uid}`;
+            }
+            return baseKey;
+        }
+
         /** Carga instantánea de caché local */
         loadCache() {
             try {
-                const s = localStorage.getItem('recipe_pantry_suppliers_cache');
+                const s = localStorage.getItem(this._getCacheKey('recipe_pantry_suppliers_cache'));
                 if (s) this.suppliers = JSON.parse(s);
-                const it = localStorage.getItem('recipe_pantry_supplier_items_cache');
+                const it = localStorage.getItem(this._getCacheKey('recipe_pantry_supplier_items_cache'));
                 if (it) this.items = JSON.parse(it);
-                const cart = localStorage.getItem('recipe_pantry_supplier_cart');
+                const cart = localStorage.getItem(this._getCacheKey('recipe_pantry_supplier_cart'));
                 if (cart) this.orderCart = JSON.parse(cart);
             } catch (e) {
                 console.warn('⚠️ Error al leer caché de proveedores:', e);
@@ -139,9 +160,9 @@
         /** Guarda datos en caché local */
         saveCache() {
             try {
-                localStorage.setItem('recipe_pantry_suppliers_cache', JSON.stringify(this.suppliers));
-                localStorage.setItem('recipe_pantry_supplier_items_cache', JSON.stringify(this.items));
-                localStorage.setItem('recipe_pantry_supplier_cart', JSON.stringify(this.orderCart));
+                localStorage.setItem(this._getCacheKey('recipe_pantry_suppliers_cache'), JSON.stringify(this.suppliers));
+                localStorage.setItem(this._getCacheKey('recipe_pantry_supplier_items_cache'), JSON.stringify(this.items));
+                localStorage.setItem(this._getCacheKey('recipe_pantry_supplier_cart'), JSON.stringify(this.orderCart));
             } catch (e) {}
         }
 
@@ -362,10 +383,22 @@
                 const sb = window.supabaseClient;
                 if (!sb) return;
 
+                const currentMode = this.getSuppliersMode();
+                const currentUserId = window.authManager?.currentUser?.id || 
+                                      window.authManager?.session?.user?.id ||
+                                      (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+
                 // 1. Cargar proveedores
-                const { data: supData, error: supErr } = await sb
-                    .from('suppliers')
-                    .select('*')
+                let supQuery = sb.from('suppliers').select('*');
+                if (!this.isSuperAdmin() && currentMode === 'empty') {
+                    if (currentUserId) {
+                        supQuery = supQuery.eq('user_id', currentUserId);
+                    } else {
+                        supQuery = supQuery.eq('user_id', '00000000-0000-0000-0000-000000000000');
+                    }
+                }
+
+                const { data: supData, error: supErr } = await supQuery
                     .order('order_index', { ascending: true })
                     .order('name', { ascending: true });
 
@@ -373,9 +406,16 @@
                 if (supData) this.suppliers = supData;
 
                 // 2. Cargar productos
-                const { data: itemData, error: itemErr } = await sb
-                    .from('supplier_items')
-                    .select('*')
+                let itemQuery = sb.from('supplier_items').select('*');
+                if (!this.isSuperAdmin() && currentMode === 'empty') {
+                    if (currentUserId) {
+                        itemQuery = itemQuery.eq('user_id', currentUserId);
+                    } else {
+                        itemQuery = itemQuery.eq('user_id', '00000000-0000-0000-0000-000000000000');
+                    }
+                }
+
+                const { data: itemData, error: itemErr } = await itemQuery
                     .order('order_index', { ascending: true })
                     .order('name', { ascending: true });
 

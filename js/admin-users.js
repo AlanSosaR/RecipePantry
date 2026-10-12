@@ -549,7 +549,8 @@
                 this.users = usersData.map(u => ({
                     ...u,
                     is_active: u.is_active !== false,
-                    can_access_suppliers: u.can_access_suppliers === true
+                    can_access_suppliers: u.can_access_suppliers === true,
+                    suppliers_mode: u.suppliers_mode || 'shared'
                 }));
 
                 this.applyFilter();
@@ -813,11 +814,13 @@
                         <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-                                    ${(isSuperAdminUser || user.can_access_suppliers) ? `
-                                        <span title="${isEn ? 'Access to Suppliers and Orders active' : 'Acceso al módulo de Proveedores activo'}" style="
-                                            background: rgba(16, 185, 129, 0.12);
-                                            color: #047857;
-                                            border: 1px solid rgba(16, 185, 129, 0.25);
+                                     ${(isSuperAdminUser || user.can_access_suppliers) ? `
+                                        <span title="${isEn 
+                                            ? (isSuperAdminUser ? 'Super Admin' : (user.suppliers_mode === 'empty' ? 'Suppliers: Empty Module (Own catalog)' : 'Suppliers: Shared catalog')) 
+                                            : (isSuperAdminUser ? 'Super Admin' : (user.suppliers_mode === 'empty' ? 'Proveedores: Módulo Vacío (Propio)' : 'Proveedores: Compartidos con Admin'))}" style="
+                                            background: ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? 'rgba(59, 130, 246, 0.12)' : 'rgba(16, 185, 129, 0.12)'};
+                                            color: ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#1D4ED8' : '#047857'};
+                                            border: 1px solid ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? 'rgba(59, 130, 246, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
                                             font-size: 10.5px;
                                             font-weight: 700;
                                             padding: 2px 8px;
@@ -826,8 +829,12 @@
                                             align-items: center;
                                             gap: 4px;
                                         ">
-                                            <span class="material-symbols-outlined" style="font-size: 13px; color: #10B981;">local_shipping</span>
-                                            ${isEn ? 'Suppliers' : 'Proveedores'}
+                                            <span class="material-symbols-outlined" style="font-size: 13px; color: ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#3B82F6' : '#10B981'};">
+                                                ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? 'inventory_2' : 'local_shipping'}
+                                            </span>
+                                            ${isEn 
+                                                ? (isSuperAdminUser ? 'Suppliers' : (user.suppliers_mode === 'empty' ? 'Own Suppliers' : 'Shared Suppliers')) 
+                                                : (isSuperAdminUser ? 'Proveedores' : (user.suppliers_mode === 'empty' ? 'Prov. Propios' : 'Prov. Compartidos'))}
                                         </span>
                                     ` : ''}
                                     <span style="
@@ -1080,78 +1087,143 @@
                         </div>
                     </div>
 
-                    <!-- Control de Acceso a Proveedores M3 Switch -->
+                    <!-- Control de Acceso a Proveedores M3 Switch y Selector de Modo -->
                     <div style="
                         background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#F0FDF4' : '#F8FAFC'};
                         border: 1px solid ${(isSuperAdminUser || user.can_access_suppliers) ? '#BBF7D0' : '#E2E8F0'};
                         border-radius: 18px;
                         padding: 14px 16px;
                         display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        gap: 14px;
+                        flex-direction: column;
+                        gap: 12px;
                         transition: background-color 0.25s ease, border-color 0.25s ease;
                     ">
-                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                            <div style="
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 12px;
-                                background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#F1F5F9'};
-                                color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#64748B'};
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                flex-shrink: 0;
-                                transition: all 0.25s ease;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 22px;">local_shipping</span>
-                            </div>
-                            <div style="min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
-                                        ${isEn ? 'Suppliers & Orders' : 'Módulo de Proveedores'}
-                                    </span>
-                                    ${isSuperAdminUser ? `
-                                        <span style="
-                                            font-size: 10px;
-                                            font-weight: 800;
-                                            padding: 1.5px 7px;
-                                            border-radius: 100px;
-                                            background: #DCFCE7;
-                                            color: #047857;
-                                        ">
-                                            ${isEn ? 'Super Admin' : 'Super Admin'}
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                                <div style="
+                                    width: 40px;
+                                    height: 40px;
+                                    border-radius: 12px;
+                                    background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#F1F5F9'};
+                                    color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#64748B'};
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    flex-shrink: 0;
+                                    transition: all 0.25s ease;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">local_shipping</span>
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
+                                            ${isEn ? 'Suppliers & Orders' : 'Módulo de Proveedores'}
                                         </span>
-                                    ` : ''}
+                                        ${isSuperAdminUser ? `
+                                            <span style="
+                                                font-size: 10px;
+                                                font-weight: 800;
+                                                padding: 1.5px 7px;
+                                                border-radius: 100px;
+                                                background: #DCFCE7;
+                                                color: #047857;
+                                            ">
+                                                ${isEn ? 'Super Admin' : 'Super Admin'}
+                                            </span>
+                                        ` : (user.can_access_suppliers ? `
+                                            <span style="
+                                                font-size: 10px;
+                                                font-weight: 800;
+                                                padding: 1.5px 7px;
+                                                border-radius: 100px;
+                                                background: ${user.suppliers_mode === 'empty' ? '#DBEAFE' : '#DCFCE7'};
+                                                color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#047857'};
+                                            ">
+                                                ${user.suppliers_mode === 'empty' ? (isEn ? 'Own Catalog' : 'Módulo Vacío') : (isEn ? 'Shared with Admin' : 'Compartido con Admin')}
+                                            </span>
+                                        ` : '')}
+                                    </div>
+                                    <div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.4;">
+                                        ${isSuperAdminUser
+                                            ? (isEn ? 'Full permanent access granted.' : 'Acceso total permanente por ser Super Administrador.')
+                                            : (user.can_access_suppliers 
+                                                ? (user.suppliers_mode === 'empty'
+                                                    ? (isEn ? 'Access enabled: empty module, user manages own suppliers.' : 'Acceso activado: módulo vacío e independiente (el usuario crea sus propios proveedores).')
+                                                    : (isEn ? 'Access enabled: user can view admin suppliers, catalog and place orders.' : 'Acceso activado: el usuario comparte los proveedores y catálogo del Super Admin.'))
+                                                : (isEn ? 'Access disabled: hidden from user navigation.' : 'Acceso desactivado: el módulo está oculto en su menú.'))}
+                                    </div>
                                 </div>
-                                <div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.4;">
-                                    ${isSuperAdminUser
-                                        ? (isEn ? 'Full permanent access granted.' : 'Acceso total permanente por ser Super Administrador.')
-                                        : (user.can_access_suppliers 
-                                            ? (isEn ? 'Access enabled: user can view suppliers, catalog and place orders.' : 'Acceso activado: el usuario puede ver proveedores, catálogo y enviar pedidos.')
-                                            : (isEn ? 'Access disabled: hidden from user navigation.' : 'Acceso desactivado: el módulo está oculto en su menú.'))}
-                                </div>
+                            </div>
+
+                            <!-- Switch M3 Expressive -->
+                            <div style="display: flex; align-items: center; flex-shrink: 0;">
+                                ${isSuperAdminUser ? `
+                                    <span class="material-symbols-outlined" title="${isEn ? 'Protected' : 'Protegido'}" style="font-size: 20px; color: #10B981; padding: 6px;">lock</span>
+                                ` : `
+                                    <label class="m3-switch" title="${user.can_access_suppliers ? (isEn ? 'Click to disable' : 'Clic para desactivar') : (isEn ? 'Click to enable' : 'Clic para activar')}">
+                                        <input type="checkbox" id="switch-suppliers-access-${user.id}" 
+                                            ${user.can_access_suppliers ? 'checked' : ''} 
+                                            onchange="window.adminUsersManager.handleToggleSuppliersAccess('${user.id}', this.checked)" />
+                                        <span class="m3-switch-track">
+                                            <span class="m3-switch-thumb">
+                                                <span class="material-symbols-outlined">${user.can_access_suppliers ? 'check' : 'close'}</span>
+                                            </span>
+                                        </span>
+                                    </label>
+                                `}
                             </div>
                         </div>
 
-                        <!-- Switch M3 Expressive -->
-                        <div style="display: flex; align-items: center; flex-shrink: 0;">
-                            ${isSuperAdminUser ? `
-                                <span class="material-symbols-outlined" title="${isEn ? 'Protected' : 'Protegido'}" style="font-size: 20px; color: #10B981; padding: 6px;">lock</span>
-                            ` : `
-                                <label class="m3-switch" title="${user.can_access_suppliers ? (isEn ? 'Click to disable' : 'Clic para desactivar') : (isEn ? 'Click to enable' : 'Clic para activar')}">
-                                    <input type="checkbox" id="switch-suppliers-access-${user.id}" 
-                                        ${user.can_access_suppliers ? 'checked' : ''} 
-                                        onchange="window.adminUsersManager.handleToggleSuppliersAccess('${user.id}', this.checked)" />
-                                    <span class="m3-switch-track">
-                                        <span class="m3-switch-thumb">
-                                            <span class="material-symbols-outlined">${user.can_access_suppliers ? 'check' : 'close'}</span>
-                                        </span>
+                        <!-- Selector M3 de Modo cuando el acceso está activado (No Super Admin) -->
+                        ${(!isSuperAdminUser && user.can_access_suppliers) ? `
+                            <div style="
+                                border-top: 1px dashed rgba(16, 185, 129, 0.3);
+                                padding-top: 10px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 6px;
+                            ">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <span style="font-size: 11px; font-weight: 700; color: #065F46; text-transform: uppercase; letter-spacing: 0.04em;">
+                                        ${isEn ? 'Access Mode:' : 'Modo de Acceso:'}
                                     </span>
-                                </label>
-                            `}
-                        </div>
+                                    <button type="button" onclick="window.adminUsersManager.openSuppliersModeSelectorModal('${user.id}')" style="
+                                        background: transparent;
+                                        border: none;
+                                        color: #059669;
+                                        font-size: 11.5px;
+                                        font-weight: 700;
+                                        font-family: inherit;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 3px;
+                                        cursor: pointer;
+                                        padding: 2px 4px;
+                                    ">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">swap_horiz</span>
+                                        ${isEn ? 'Change Mode' : 'Cambiar Modo'}
+                                    </button>
+                                </div>
+                                <div style="
+                                    background: #FFFFFF;
+                                    border: 1px solid rgba(16, 185, 129, 0.2);
+                                    border-radius: 12px;
+                                    padding: 8px 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#10B981'};">
+                                        ${user.suppliers_mode === 'empty' ? 'inventory_2' : 'group'}
+                                    </span>
+                                    <div style="font-size: 12px; color: #1E293B; line-height: 1.35;">
+                                        ${user.suppliers_mode === 'empty'
+                                            ? (isEn ? '<strong>Empty Module:</strong> User creates their own suppliers independently.' : '<strong>Módulo Vacío:</strong> El usuario crea sus propios proveedores y catálogo de forma independiente.')
+                                            : (isEn ? '<strong>Shared Suppliers:</strong> User sees and orders from your current supplier catalog.' : '<strong>Compartir Proveedores:</strong> El usuario ve y utiliza los proveedores y catálogo creados por el Super Admin.')}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <!-- Ficha de Datos Técnicos M3 -->
@@ -1535,21 +1607,23 @@
             if (!user) return;
 
             const isEn = this.isEnglish();
-            const confirmMsg = grantAccess
-                ? (isEn
-                    ? `Grant suppliers and orders access to ${user.email}? They will see the Suppliers item in navigation.`
-                    : `¿Deseas activar el acceso a Proveedores para ${user.email}? Podrá ver el módulo y armar pedidos.`)
-                : (isEn
-                    ? `Remove suppliers access for ${user.email}? The module will be hidden from their navigation.`
-                    : `¿Deseas desactivar el acceso a Proveedores para ${user.email}? El módulo se ocultará de su navegación.`);
 
-            const actionBtn = grantAccess
-                ? (isEn ? 'Enable Suppliers' : 'Activar Proveedores')
-                : (isEn ? 'Disable Suppliers' : 'Desactivar Proveedores');
+            // Si se desea activar, abrir el diálogo selector M3 para elegir: Compartir Proveedores vs Módulo Vacío
+            if (grantAccess) {
+                this.openSuppliersModeSelectorModal(userId, true);
+                return;
+            }
+
+            // Si se desea desactivar, pedir confirmación estándar
+            const confirmMsg = isEn
+                ? `Remove suppliers access for ${user.email}? The module will be hidden from their navigation.`
+                : `¿Deseas desactivar el acceso a Proveedores para ${user.email}? El módulo se ocultará de su navegación.`;
+
+            const actionBtn = isEn ? 'Disable Suppliers' : 'Desactivar Proveedores';
             const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
 
             const doExecution = async () => {
-                await this._executeToggleSuppliersAccess(userId, grantAccess);
+                await this._executeToggleSuppliersAccess(userId, false, user.suppliers_mode || 'shared');
             };
 
             const rollbackSwitch = () => {
@@ -1566,8 +1640,8 @@
                     message: confirmMsg,
                     actionText: actionBtn,
                     cancelText: cancelBtn,
-                    actionColor: grantAccess ? '#10B981' : '#D97706',
-                    type: grantAccess ? 'success' : 'warning',
+                    actionColor: '#D97706',
+                    type: 'warning',
                     onConfirm: doExecution,
                     onCancel: rollbackSwitch
                 });
@@ -1577,9 +1651,265 @@
         }
 
         /**
-         * Ejecuta la actualización de can_access_suppliers en Supabase
+         * Abre un modal/diálogo interactivo M3 Expressive para elegir el modo de acceso a Proveedores:
+         * 1. Compartir Proveedores del Admin
+         * 2. Módulo Vacío e Independiente (crear sus propios proveedores)
          */
-        async _executeToggleSuppliersAccess(userId, grantAccess) {
+        openSuppliersModeSelectorModal(userId, isEnabling = false) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+
+            const isEn = this.isEnglish();
+            const currentMode = user.suppliers_mode || 'shared';
+
+            // Eliminar cualquier modal previo
+            const oldOverlay = document.getElementById('suppliers-mode-modal-overlay');
+            if (oldOverlay) oldOverlay.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'suppliers-mode-modal-overlay';
+            overlay.className = 'modal-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.55);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                z-index: 100005;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+                opacity: 0;
+                transition: opacity 0.25s ease;
+            `;
+
+            overlay.innerHTML = `
+                <div id="suppliers-mode-modal-dialog" style="
+                    background: #FFFFFF;
+                    border: 1px solid #E2E8F0;
+                    border-radius: 28px;
+                    box-shadow: 0 20px 48px rgba(0,0,0,0.22);
+                    padding: 24px;
+                    width: 100%;
+                    max-width: 480px;
+                    font-family: var(--font-display, 'Poppins', sans-serif);
+                    transform: scale(0.92) translateY(10px);
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                ">
+                    <!-- Encabezado con Icono M3 -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="
+                                width: 44px;
+                                height: 44px;
+                                border-radius: 14px;
+                                background: linear-gradient(135deg, #10B981, #059669);
+                                color: white;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 24px;">local_shipping</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #064E3B; letter-spacing: -0.01em;">
+                                    ${isEn ? 'Suppliers Module Access' : 'Acceso a Proveedores'}
+                                </h3>
+                                <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
+                                    ${user.first_name || user.email}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-close-mode-modal" style="
+                            background: #F1F5F9;
+                            border: none;
+                            border-radius: 50%;
+                            width: 30px;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #64748B;
+                            cursor: pointer;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                        </button>
+                    </div>
+
+                    <!-- Mensaje explicativo -->
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #334155; line-height: 1.45;">
+                        ${isEn 
+                            ? 'Choose how this user will access the suppliers module:'
+                            : 'Selecciona cómo deseas habilitar el módulo de proveedores para este usuario:'}
+                    </p>
+
+                    <!-- Opciones Expresivas M3 en Tarjetas Seleccionables -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;">
+                        
+                        <!-- Opción 1: Compartir Proveedores del Admin -->
+                        <label id="opt-suppliers-shared" style="
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 12px;
+                            padding: 14px;
+                            border: 2px solid ${currentMode === 'shared' ? '#10B981' : '#E2E8F0'};
+                            background: ${currentMode === 'shared' ? '#F0FDF4' : '#FFFFFF'};
+                            border-radius: 18px;
+                            cursor: pointer;
+                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        ">
+                            <input type="radio" name="suppliers_mode_choice" value="shared" ${currentMode === 'shared' ? 'checked' : ''} style="margin-top: 3px; accent-color: #10B981; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">group</span>
+                                    <span style="font-size: 13.5px; font-weight: 700; color: #064E3B;">
+                                        ${isEn ? 'Share Admin Suppliers' : 'Compartir mis Proveedores'}
+                                    </span>
+                                </div>
+                                <div style="font-size: 12px; color: #475569; margin-top: 3px; line-height: 1.4;">
+                                    ${isEn 
+                                        ? 'The user will see your suppliers, catalog and product list, and can place orders.'
+                                        : 'El usuario tendrá acceso a tus proveedores y catálogo existentes, pudiendo consultar insumos y armar pedidos.'}
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Opción 2: Módulo Vacío e Independiente -->
+                        <label id="opt-suppliers-empty" style="
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 12px;
+                            padding: 14px;
+                            border: 2px solid ${currentMode === 'empty' ? '#2563EB' : '#E2E8F0'};
+                            background: ${currentMode === 'empty' ? '#EFF6FF' : '#FFFFFF'};
+                            border-radius: 18px;
+                            cursor: pointer;
+                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        ">
+                            <input type="radio" name="suppliers_mode_choice" value="empty" ${currentMode === 'empty' ? 'checked' : ''} style="margin-top: 3px; accent-color: #2563EB; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #2563EB;">inventory_2</span>
+                                    <span style="font-size: 13.5px; font-weight: 700; color: #1E3A8A;">
+                                        ${isEn ? 'Empty Module (Independent)' : 'Módulo Vacío e Independiente'}
+                                    </span>
+                                </div>
+                                <div style="font-size: 12px; color: #475569; margin-top: 3px; line-height: 1.4;">
+                                    ${isEn 
+                                        ? 'The user starts with zero suppliers and creates their own suppliers and catalog.'
+                                        : 'El usuario iniciará sin proveedores y podrá crear, editar y gestionar sus propios proveedores de manera aislada.'}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Botones de Acción M3 -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                        <button type="button" id="btn-cancel-mode-modal" style="
+                            background: #F1F5F9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 100px;
+                            padding: 10px 18px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            font-family: inherit;
+                            cursor: pointer;
+                            transition: background-color 0.2s;
+                        ">
+                            ${isEn ? 'Cancel' : 'Cancelar'}
+                        </button>
+                        <button type="button" id="btn-confirm-mode-modal" style="
+                            background: linear-gradient(135deg, #10B981, #059669);
+                            color: #FFFFFF;
+                            border: none;
+                            border-radius: 100px;
+                            padding: 10px 22px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            font-family: inherit;
+                            cursor: pointer;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 6px;
+                            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+                            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                            <span>${isEn ? 'Save Preference' : (isEnabling ? 'Conceder Acceso' : 'Guardar Modo')}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Escuchadores de interactividad en radios
+            const optShared = overlay.querySelector('#opt-suppliers-shared');
+            const optEmpty = overlay.querySelector('#opt-suppliers-empty');
+            const radios = overlay.querySelectorAll('input[name="suppliers_mode_choice"]');
+
+            const updateCardStyles = (val) => {
+                if (val === 'shared') {
+                    optShared.style.border = '2px solid #10B981';
+                    optShared.style.background = '#F0FDF4';
+                    optEmpty.style.border = '2px solid #E2E8F0';
+                    optEmpty.style.background = '#FFFFFF';
+                } else {
+                    optEmpty.style.border = '2px solid #2563EB';
+                    optEmpty.style.background = '#EFF6FF';
+                    optShared.style.border = '2px solid #E2E8F0';
+                    optShared.style.background = '#FFFFFF';
+                }
+            };
+
+            radios.forEach(r => {
+                r.addEventListener('change', () => updateCardStyles(r.value));
+            });
+
+            const closeModal = () => {
+                const dialog = overlay.querySelector('#suppliers-mode-modal-dialog');
+                if (dialog) dialog.style.transform = 'scale(0.92) translateY(10px)';
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 240);
+
+                // Si se estaba activando y canceló, restablecer el switch visual
+                if (isEnabling) {
+                    const switchEl = document.getElementById(`switch-suppliers-access-${userId}`);
+                    if (switchEl) switchEl.checked = user.can_access_suppliers === true;
+                }
+            };
+
+            overlay.querySelector('#btn-close-mode-modal').addEventListener('click', closeModal);
+            overlay.querySelector('#btn-cancel-mode-modal').addEventListener('click', closeModal);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeModal();
+            });
+
+            // Confirmar y guardar
+            overlay.querySelector('#btn-confirm-mode-modal').addEventListener('click', async () => {
+                const selectedRadio = overlay.querySelector('input[name="suppliers_mode_choice"]:checked');
+                const chosenMode = selectedRadio ? selectedRadio.value : 'shared';
+                closeModal();
+                await this._executeToggleSuppliersAccess(userId, true, chosenMode);
+            });
+
+            // Animación de entrada
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                const dialog = overlay.querySelector('#suppliers-mode-modal-dialog');
+                if (dialog) dialog.style.transform = 'scale(1) translateY(0)';
+            });
+        }
+
+        /**
+         * Ejecuta la actualización de can_access_suppliers y suppliers_mode en Supabase
+         */
+        async _executeToggleSuppliersAccess(userId, grantAccess, suppliersMode = 'shared') {
             const user = this.users.find(u => u.id === userId);
             if (!user) return;
 
@@ -1597,6 +1927,7 @@
                     .from('users')
                     .update({
                         can_access_suppliers: grantAccess,
+                        suppliers_mode: suppliersMode,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', userId);
@@ -1605,6 +1936,7 @@
 
                 // Actualizar estado en memoria
                 user.can_access_suppliers = grantAccess;
+                user.suppliers_mode = suppliersMode;
                 user.updated_at = new Date().toISOString();
 
                 // Si el usuario editado es el usuario actualmente autenticado, refrescar su perfil local
@@ -1612,10 +1944,14 @@
                 if (currentAuthId && currentAuthId === userId) {
                     if (window.authManager.currentUser) {
                         window.authManager.currentUser.can_access_suppliers = grantAccess;
+                        window.authManager.currentUser.suppliers_mode = suppliersMode;
                     }
                     localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
                     if (window.suppliersManager?.updateVisibility) {
                         window.suppliersManager.updateVisibility();
+                    }
+                    if (window.suppliersManager?.syncData) {
+                        window.suppliersManager.syncData();
                     }
                 }
 
@@ -1623,15 +1959,19 @@
                 this.renderList();
                 this.openUserModal(userId);
 
+                const modeLabel = suppliersMode === 'empty'
+                    ? (isEn ? 'Empty module' : 'Módulo vacío (propio)')
+                    : (isEn ? 'Shared suppliers' : 'Proveedores compartidos');
+
                 const toastMsg = grantAccess
                     ? (isEn
-                        ? `🚚 Suppliers access granted to ${user.first_name || user.email}`
-                        : `🚚 Acceso a Proveedores activado para ${user.first_name || user.email}`)
+                        ? `🚚 Suppliers access granted to ${user.first_name || user.email} (${modeLabel})`
+                        : `🚚 Acceso a Proveedores activado para ${user.first_name || user.email} (${modeLabel})`)
                     : (isEn
                         ? `🚫 Suppliers access disabled for ${user.first_name || user.email}`
                         : `🚫 Acceso a Proveedores desactivado para ${user.first_name || user.email}`);
 
-                this.notify(toastMsg, grantAccess ? 'success' : 'info', 3000);
+                this.notify(toastMsg, grantAccess ? 'success' : 'info', 3500);
 
             } catch (err) {
                 console.error('❌ Error al actualizar permisos de proveedores:', err);
