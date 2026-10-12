@@ -1015,6 +1015,18 @@
             menu.className = 'm3-modal-bottom-sheet';
             menu.dataset.supplierId = String(supplierId);
 
+            // Formateo de fecha de creación del proveedor
+            let createdDateStr = '—';
+            if (supplier.created_at) {
+                try {
+                    createdDateStr = typeof window.formatDate === 'function' 
+                        ? window.formatDate(supplier.created_at) 
+                        : new Date(supplier.created_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                } catch (e) {
+                    createdDateStr = String(supplier.created_at).substring(0, 10);
+                }
+            }
+
             let sheetHTML = `
                 <div class="m3-sheet-drag-handle" title="${isEn ? 'Swipe or tap to expand' : 'Toca o desliza para expandir'}"></div>
                 <div class="m3-sheet-header">
@@ -1038,6 +1050,34 @@
                     </div>
                 </div>
 
+                <!-- Sección Expandible al Deslizar hacia Arriba: Cantidad de Productos y Fecha de Creación -->
+                <div class="m3-sheet-details-expanded">
+                    <div class="m3-sheet-detail-row">
+                        <span class="m3-sheet-detail-label">
+                            <span class="material-symbols-outlined m3-sheet-detail-icon">inventory_2</span>
+                            <span>${isEn ? 'Products in catalog' : 'Productos en catálogo'}</span>
+                        </span>
+                        <span class="m3-sheet-detail-val">${supItems.length} ${isEn ? (supItems.length === 1 ? 'product' : 'products') : (supItems.length === 1 ? 'producto' : 'productos')}</span>
+                    </div>
+                    <div class="m3-sheet-detail-row">
+                        <span class="m3-sheet-detail-label">
+                            <span class="material-symbols-outlined m3-sheet-detail-icon icon-time">calendar_today</span>
+                            <span>${isEn ? 'Registration date' : 'Fecha de creación'}</span>
+                        </span>
+                        <span class="m3-sheet-detail-val">${createdDateStr}</span>
+                    </div>
+                    ${supplier.email ? `
+                        <div class="m3-sheet-detail-row">
+                            <span class="m3-sheet-detail-label">
+                                <span class="material-symbols-outlined m3-sheet-detail-icon">mail</span>
+                                <span>${isEn ? 'Email' : 'Correo'}</span>
+                            </span>
+                            <span class="m3-sheet-detail-val" style="font-size: 12.5px;">${supplier.email}</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Fila Horizontal de Acciones Rápidas (Productos, Armar Pedido y Editar) -->
                 <div class="m3-sheet-quick-row">
                     <button type="button" class="m3-quick-pill" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openSupplierDetail('${supplier.id}');">
                         <span class="material-symbols-outlined">inventory_2</span>
@@ -1054,23 +1094,6 @@
                         </button>
                     ` : ''}
                 </div>
-
-                <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openSupplierDetail('${supplier.id}');">
-                    <span class="material-symbols-outlined">inventory_2</span>
-                    <span>${isEn ? 'View Products & Catalog' : 'Ver Catálogo de Productos'}</span>
-                </button>
-
-                <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openOrderForm('${supplier.id}');">
-                    <span class="material-symbols-outlined">shopping_cart_checkout</span>
-                    <span>${isEn ? 'Create Order' : 'Armar Pedido'} ${cartCount > 0 ? `(${cartCount})` : ''}</span>
-                </button>
-
-                ${this.isSuperAdmin() ? `
-                    <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openSupplierForm('${supplier.id}');">
-                        <span class="material-symbols-outlined">edit</span>
-                        <span>${isEn ? 'Edit Supplier' : 'Editar Proveedor'}</span>
-                    </button>
-                ` : ''}
 
                 ${whatsappUrl ? `
                     <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.open('${whatsappUrl}', '_blank');">
