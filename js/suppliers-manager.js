@@ -1506,43 +1506,104 @@
 
                     <!-- Sección: Catálogo de Productos del Proveedor (Plano, sin caja y sin botón redundante) -->
                     <div style="margin: 0 0 12px 0;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">inventory_2</span>
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
-                                ${isEn ? 'Product Catalog' : 'Catálogo de Productos'}
-                            </h2>
-                            <span style="font-size: 12px; font-weight: 700; color: var(--primary-dark); background: var(--primary-light); padding: 2px 8px; border-radius: var(--radius-full); border: 1px solid var(--border);">${supItems.length}</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">inventory_2</span>
+                                <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
+                                    ${isEn ? 'Product Catalog' : 'Catálogo de Productos'}
+                                </h2>
+                                <span id="supplierProductsCountBadge" style="font-size: 12px; font-weight: 700; color: var(--primary-dark); background: var(--primary-light); padding: 2px 8px; border-radius: var(--radius-full); border: 1px solid var(--border);">${supItems.length}</span>
+                            </div>
+
+                            <!-- Indicador si hay búsqueda de producto activa -->
+                            <div id="supplierProductSearchTag" style="${this.searchQuery ? 'display: inline-flex;' : 'display: none;'} align-items: center; gap: 6px; background: var(--secondary-light); border: 1px solid var(--border); color: var(--on-secondary); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700;">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">search</span>
+                                <span>${isEn ? 'Filtering:' : 'Filtrando:'} "${this.searchQuery}"</span>
+                                <button type="button" onclick="window.suppliersManager.clearSearch()" style="background: none; border: none; color: var(--on-secondary); cursor: pointer; font-size: 13px; padding: 0 0 0 4px; display: flex; align-items: center;" title="${isEn ? 'Clear' : 'Limpiar'}">✕</button>
+                            </div>
                         </div>
                         <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
                             ${isEn ? 'Products available from this supplier with packaging and rapid order quantities.' : 'Insumos disponibles de este proveedor con formato y cantidades para pedido.'}
                         </p>
                     </div>
 
-                    ${supItems.length === 0 ? `
+                    <!-- Contenedor dinámico de lista de productos para actualización instantánea por búsqueda -->
+                    <div id="supplier-products-mount">
+                        ${this.renderSupplierProductsListHTML(supplier.id)}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Genera el HTML de la lista de productos de un proveedor (con soporte de búsqueda instantánea)
+         */
+        renderSupplierProductsListHTML(supplierId) {
+            const isEn = this.isEnglish();
+            let supItems = this.items.filter(it => it.supplier_id === supplierId);
+
+            if (this.searchQuery && this.searchQuery.trim()) {
+                const q = this.searchQuery.toLowerCase().trim();
+                supItems = supItems.filter(it => {
+                    const matchName = it.name && it.name.toLowerCase().includes(q);
+                    const matchCat = it.category && it.category.toLowerCase().includes(q);
+                    const matchUnit = (it.package_format || it.unit) && (it.package_format || it.unit).toLowerCase().includes(q);
+                    const matchNotes = it.notes && it.notes.toLowerCase().includes(q);
+                    return matchName || matchCat || matchUnit || matchNotes;
+                });
+            }
+
+            if (supItems.length === 0) {
+                if (this.searchQuery && this.searchQuery.trim()) {
+                    return `
                         <div style="
                             background: transparent;
                             border: 1.5px dashed var(--border);
                             border-radius: var(--radius-lg);
-                            padding: 48px 16px;
+                            padding: 36px 16px;
                             text-align: center;
                             margin-top: 12px;
                         ">
-                            <span class="material-symbols-outlined" style="font-size: 40px; color: var(--text-secondary); margin-bottom: 8px;">inventory_2</span>
-                            <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: var(--text-main);">
-                                ${isEn ? 'No products registered yet' : 'Aún no hay productos registrados'}
+                            <span class="material-symbols-outlined" style="font-size: 36px; color: var(--text-secondary); margin-bottom: 8px;">search_off</span>
+                            <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: var(--text-main);">
+                                ${isEn ? 'No products match your search' : 'No se encontraron productos que coincidan'}
                             </h4>
-                            <p style="margin: 0; color: var(--text-secondary); font-size: 13.5px; max-width: 400px; margin-left: auto; margin-right: auto;">
-                                ${isEn ? 'Add products using the "+ New" button at the top.' : 'Agrega insumos usando el botón "+ Nuevo" en la barra superior.'}
+                            <p style="margin: 0 0 14px 0; color: var(--text-secondary); font-size: 13px;">
+                                ${isEn ? `No products found with "${this.searchQuery}"` : `No hay productos con el término "${this.searchQuery}"`}
                             </p>
+                            <button type="button" onclick="window.suppliersManager.clearSearch()" class="btn-primary" style="padding: 6px 18px; border-radius: var(--radius-full); font-size: 12.5px; font-weight: 700; cursor: pointer;">
+                                ${isEn ? 'Clear Search' : 'Limpiar Búsqueda'}
+                            </button>
                         </div>
-                    ` : `
-                        <div class="products-list-view">
-                            <!-- Filas de productos M3 Expressive limpias con menú de 3 puntos -->
-                            <div class="products-list-body" style="display: flex; flex-direction: column; gap: 4px;">
-                                ${supItems.map(item => this.renderProductRow(item, supplier.id)).join('')}
-                            </div>
-                        </div>
-                    `}
+                    `;
+                }
+
+                return `
+                    <div style="
+                        background: transparent;
+                        border: 1.5px dashed var(--border);
+                        border-radius: var(--radius-lg);
+                        padding: 48px 16px;
+                        text-align: center;
+                        margin-top: 12px;
+                    ">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: var(--text-secondary); margin-bottom: 8px;">inventory_2</span>
+                        <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: var(--text-main);">
+                            ${isEn ? 'No products registered yet' : 'Aún no hay productos registrados'}
+                        </h4>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 13.5px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                            ${isEn ? 'Add products using the "+ New" button at the top.' : 'Agrega insumos usando el botón "+ Nuevo" en la barra superior.'}
+                        </p>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="products-list-view">
+                    <!-- Filas de productos M3 Expressive limpias con menú de 3 puntos -->
+                    <div class="products-list-body" style="display: flex; flex-direction: column; gap: 4px;">
+                        ${supItems.map(item => this.renderProductRow(item, supplierId)).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -1787,6 +1848,34 @@
         /** Manejador de búsqueda sincronizado con el buscador global */
         handleSearch(val) {
             this.searchQuery = val ? val.trim() : '';
+
+            // Si estamos en la vista de detalle del proveedor:
+            if (this.currentSubView === 'supplier-detail' && this.selectedSupplierDetailId) {
+                const tag = document.getElementById('supplierProductSearchTag');
+                if (tag) {
+                    if (this.searchQuery) {
+                        const isEn = this.isEnglish();
+                        tag.innerHTML = `
+                            <span class="material-symbols-outlined" style="font-size: 14px;">search</span>
+                            <span>${isEn ? 'Filtering:' : 'Filtrando:'} "${this.searchQuery}"</span>
+                            <button type="button" onclick="window.suppliersManager.clearSearch()" style="background: none; border: none; color: var(--on-secondary); cursor: pointer; font-size: 13px; padding: 0 0 0 4px; display: flex; align-items: center;" title="${isEn ? 'Clear' : 'Limpiar'}">✕</button>
+                        `;
+                        tag.style.display = 'inline-flex';
+                    } else {
+                        tag.style.display = 'none';
+                    }
+                }
+
+                const mount = document.getElementById('supplier-products-mount');
+                if (mount) {
+                    mount.innerHTML = this.renderSupplierProductsListHTML(this.selectedSupplierDetailId);
+                } else {
+                    this.render();
+                }
+                return;
+            }
+
+            // Si estamos en el listado general de proveedores:
             const tag = document.getElementById('supplierSearchGlobalTag');
             if (tag) {
                 if (this.searchQuery) {
@@ -1811,6 +1900,19 @@
             const clearBtn = document.getElementById('clearSearch');
             if (searchInput) searchInput.value = '';
             if (clearBtn) clearBtn.classList.add('hidden');
+
+            if (this.currentSubView === 'supplier-detail' && this.selectedSupplierDetailId) {
+                const tag = document.getElementById('supplierProductSearchTag');
+                if (tag) tag.style.display = 'none';
+                const mount = document.getElementById('supplier-products-mount');
+                if (mount) {
+                    mount.innerHTML = this.renderSupplierProductsListHTML(this.selectedSupplierDetailId);
+                } else {
+                    this.render();
+                }
+                return;
+            }
+
             const tag = document.getElementById('supplierSearchGlobalTag');
             if (tag) tag.style.display = 'none';
             this.renderContent();
