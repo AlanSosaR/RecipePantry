@@ -1010,26 +1010,73 @@
 
                 <!-- Cuerpo con Datos Completos del Usuario -->
                 <div class="admin-sheet-body">
-                    <!-- Estado Actual Banner M3 -->
-                    <div class="admin-sheet-status-card" style="
-                        background: ${statusBg};
-                        border: 1px solid ${user.is_active ? '#A7F3D0' : '#FECACA'};
+                    <!-- Control de Acceso General a la App M3 Switch -->
+                    <div style="
+                        background: ${user.is_active ? '#F0FDF4' : '#FEF2F2'};
+                        border: 1px solid ${user.is_active ? '#BBF7D0' : '#FECACA'};
+                        border-radius: 18px;
+                        padding: 14px 16px;
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
+                        gap: 14px;
+                        transition: background-color 0.25s ease, border-color 0.25s ease;
                     ">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: ${statusTextColor};">${statusIcon}</span>
-                            <div>
-                                <div style="font-size: 13px; font-weight: 800; color: ${statusTextColor};">
-                                    ${statusText}
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                            <div style="
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 12px;
+                                background: ${user.is_active ? '#DCFCE7' : '#FEE2E2'};
+                                color: ${user.is_active ? '#047857' : '#DC2626'};
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                                transition: all 0.25s ease;
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">${user.is_active ? 'check_circle' : 'block'}</span>
+                            </div>
+                            <div style="min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
+                                        ${isEn ? 'App Access' : 'Acceso a la Aplicación'}
+                                    </span>
+                                    <span style="
+                                        font-size: 10px;
+                                        font-weight: 800;
+                                        padding: 1.5px 7px;
+                                        border-radius: 100px;
+                                        background: ${user.is_active ? '#DCFCE7' : '#FEE2E2'};
+                                        color: ${user.is_active ? '#047857' : '#B91C1C'};
+                                    ">
+                                        ${user.is_active ? (isEn ? 'Active' : 'Activo') : (isEn ? 'Blocked' : 'Bloqueado')}
+                                    </span>
                                 </div>
-                                <div style="font-size: 11.5px; color: #475569; margin-top: 1px;">
+                                <div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.4;">
                                     ${user.is_active 
-                                        ? (isEn ? 'The user has general access to the application.' : 'El usuario tiene acceso general a la aplicación.')
-                                        : (isEn ? 'The user is denied access and cannot use the app.' : 'El usuario tiene el acceso denegado y no puede usar la app.')}
+                                        ? (isEn ? 'Full access granted to use recipes, folders and notes.' : 'El usuario tiene acceso normal y completo a la aplicación.')
+                                        : (isEn ? 'Access denied: user session is blocked and cannot use the app.' : 'Acceso denegado: el usuario no puede iniciar sesión ni usar la app.')}
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Switch M3 Expressive para Acceso a la App -->
+                        <div style="display: flex; align-items: center; flex-shrink: 0;">
+                            ${isSuperAdminUser ? `
+                                <span class="material-symbols-outlined" title="${isEn ? 'Super Admin Protected' : 'Super Admin Protegido'}" style="font-size: 20px; color: #10B981; padding: 6px;">lock</span>
+                            ` : `
+                                <label class="m3-switch" title="${user.is_active ? (isEn ? 'Click to revoke access' : 'Clic para revocar acceso') : (isEn ? 'Click to grant access' : 'Clic para conceder acceso')}">
+                                    <input type="checkbox" id="switch-app-access-${user.id}" 
+                                        ${user.is_active ? 'checked' : ''} 
+                                        onchange="window.adminUsersManager.handleToggleAccess('${user.id}', this.checked)" />
+                                    <span class="m3-switch-track">
+                                        <span class="m3-switch-thumb">
+                                            <span class="material-symbols-outlined">${user.is_active ? 'check' : 'close'}</span>
+                                        </span>
+                                    </span>
+                                </label>
+                            `}
                         </div>
                     </div>
 
@@ -1191,50 +1238,6 @@
                                 <span>${isEn ? 'Your Super Admin account is protected against revocation or deletion.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación o eliminación.'}</span>
                             </div>
                         ` : `
-                            <!-- Botón Conceder / Revocar Acceso -->
-                            ${user.is_active ? `
-                                <button type="button" id="btn-admin-toggle-access" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', false)" style="
-                                    width: 100%;
-                                    background: #FEF2F2;
-                                    color: #DC2626;
-                                    border: 1.5px solid rgba(220, 38, 38, 0.3);
-                                    font-weight: 700;
-                                    cursor: pointer;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    gap: 8px;
-                                    transition: all 0.2s;
-                                "
-                                onmouseover="this.style.background='#DC2626'; this.style.color='#FFFFFF';"
-                                onmouseout="this.style.background='#FEF2F2'; this.style.color='#DC2626';"
-                                >
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">block</span>
-                                    <span>${isEn ? 'Revoke App Access' : 'Revocar Acceso a mi Aplicación'}</span>
-                                </button>
-                            ` : `
-                                <button type="button" id="btn-admin-toggle-access" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', true)" style="
-                                    width: 100%;
-                                    background: #10B981;
-                                    color: #FFFFFF;
-                                    border: none;
-                                    font-weight: 700;
-                                    cursor: pointer;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    gap: 8px;
-                                    transition: all 0.2s;
-                                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-                                "
-                                onmouseover="this.style.background='#059669';"
-                                onmouseout="this.style.background='#10B981';"
-                                >
-                                    <span class="material-symbols-outlined" style="font-size: 19px;">check_circle</span>
-                                    <span>${isEn ? 'Grant App Access' : 'Conceder Acceso a mi Aplicación'}</span>
-                                </button>
-                            `}
-
                             <!-- Botón para Eliminar Usuario de la BD -->
                             <button type="button" id="btn-admin-delete-user" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleDeleteUser('${user.id}')" style="
                                 width: 100%;
@@ -1670,6 +1673,13 @@
                 await this._executeToggleAccess(userId, grantAccess);
             };
 
+            const rollbackSwitch = () => {
+                const switchEl = document.getElementById(`switch-app-access-${userId}`);
+                if (switchEl) {
+                    switchEl.checked = user.is_active !== false;
+                }
+            };
+
             const triggerAction = window.showActionToast || window.utils?.showActionToast;
 
             if (triggerAction) {
@@ -1679,7 +1689,8 @@
                     cancelText: cancelBtn,
                     actionColor: grantAccess ? '#10B981' : '#EF4444',
                     type: grantAccess ? 'success' : 'error',
-                    onConfirm: doExecution
+                    onConfirm: doExecution,
+                    onCancel: rollbackSwitch
                 });
             } else {
                 await doExecution();
@@ -1698,12 +1709,8 @@
                 ? (isEn ? 'grant' : 'conceder') 
                 : (isEn ? 'revoke' : 'revocar');
 
-            const btn = document.getElementById('btn-admin-toggle-access');
-            const origHTML = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> ${isEn ? 'Saving changes...' : 'Guardando cambios...'}`;
-            }
+            const switchInput = document.getElementById(`switch-app-access-${userId}`);
+            if (switchInput) switchInput.disabled = true;
 
             try {
                 let rpcSucceeded = false;
@@ -1745,16 +1752,16 @@
 
             } catch (err) {
                 console.error('❌ Error al cambiar acceso de usuario:', err);
+                if (switchInput) {
+                    switchInput.checked = user.is_active !== false;
+                }
                 const errMsg = isEn 
                     ? `Error attempting to ${actionVerb} access: ${err.message || 'Server error'}`
                     : `Error al ${actionVerb} acceso: ${err.message || 'Error del servidor'}`;
 
                 this.notify(errMsg, 'error');
             } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = origHTML;
-                }
+                if (switchInput) switchInput.disabled = false;
             }
         }
 
