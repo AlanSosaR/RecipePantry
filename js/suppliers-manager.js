@@ -693,6 +693,7 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
 
                     <!-- Indicador de Carga / Spinner -->
                     <div id="suppliers-loading-spinner" style="text-align: center; padding: 30px; ${this.isLoading ? 'display: block;' : 'display: none;'}">
