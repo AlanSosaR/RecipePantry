@@ -694,14 +694,6 @@
                             </div>
                         </div>
 
-                        <!-- Indicador si hay búsqueda global activa -->
-                        <div id="supplierSearchGlobalTag" style="${this.searchQuery ? 'display: inline-flex;' : 'display: none;'} align-items: center; gap: 6px; background: var(--secondary-light); border: 1px solid var(--border); color: var(--on-secondary); padding: 6px 14px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700;">
-                            <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
-                            <span>${isEn ? 'Searching:' : 'Buscando:'} "${this.searchQuery}"</span>
-                            <button type="button" onclick="window.suppliersManager.clearSearch()" style="background: none; border: none; color: var(--on-secondary); cursor: pointer; font-size: 14px; padding: 0 0 0 4px; display: flex; align-items: center;" title="${isEn ? 'Clear' : 'Limpiar'}">✕</button>
-                        </div>
-                    </div>
-
                     <!-- Indicador de Carga / Spinner -->
                     <div id="suppliers-loading-spinner" style="text-align: center; padding: 30px; ${this.isLoading ? 'display: block;' : 'display: none;'}">
                         <div class="spinner-sm" style="margin: 0 auto 10px auto;"></div>
@@ -761,17 +753,18 @@
             }
 
             if (filtered.length === 0) {
+                const isSearching = Boolean(this.searchQuery && this.searchQuery.trim());
                 mount.innerHTML = `
                     <div style="
                         background: var(--bg);
                         border: 1.5px dashed var(--border);
                         border-radius: var(--radius-xl);
-                        padding: 60px 20px;
+                        padding: 56px 20px;
                         text-align: center;
                     ">
                         <div style="
-                            width: 68px;
-                            height: 68px;
+                            width: 64px;
+                            height: 64px;
                             border-radius: 50%;
                             background: var(--secondary-light);
                             color: var(--primary-dark);
@@ -780,30 +773,22 @@
                             justify-content: center;
                             margin: 0 auto 16px auto;
                         ">
-                            <span class="material-symbols-outlined" style="font-size: 36px;">storefront</span>
+                            <span class="material-symbols-outlined" style="font-size: 34px;">${isSearching ? 'person_search' : 'storefront'}</span>
                         </div>
-                        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: var(--text-main);">
-                            ${isEn ? 'No suppliers found' : 'No se encontraron proveedores'}
+                        <h3 style="margin: 0 0 8px 0; font-size: 17px; font-weight: 700; color: var(--text-main);">
+                            ${isSearching
+                                ? (isEn ? `No suppliers found for "${this.searchQuery}"` : `No se encontró a "${this.searchQuery}" en la lista de proveedores`)
+                                : (isEn ? 'No suppliers found' : 'No hay proveedores registrados')}
                         </h3>
-                        <p style="margin: 0 0 20px 0; color: var(--text-secondary); font-size: 14px; max-width: 440px; margin-left: auto; margin-right: auto;">
-                            ${this.searchQuery 
-                                ? (isEn ? 'Try another search term or clear the filter.' : 'Prueba con otro término de búsqueda o limpia los filtros.')
-                                : (isEn ? 'Register your first restaurant supplier to start organizing delivery days, products and orders.' : 'Registra tu primer proveedor para organizar los días de reparto, catálogo de productos con fotos y pedidos rápidos.')}
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 13.5px; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                            ${isSearching
+                                ? (isEn
+                                    ? 'This supplier is not registered in your directory. You can add it using the floating (+) menu or try another search.'
+                                    : 'Este proveedor no está en la lista. Si lo necesitas, deberías agregarlo desde el menú flotante (+).')
+                                : (isEn
+                                    ? 'You can add suppliers using the floating (+) menu.'
+                                    : 'Puedes registrar nuevos proveedores usando el menú flotante (+).')}
                         </p>
-                        <button type="button" class="btn-supplier-save" onclick="window.suppliersManager.openSupplierForm()" style="
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 8px;
-                            height: 42px;
-                            padding: 0 22px;
-                            border-radius: var(--radius-full);
-                            font-weight: 700;
-                            font-size: 14px;
-                            cursor: pointer;
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">add_business</span>
-                            <span>${isEn ? 'Add First Supplier' : 'Crear Primer Proveedor'}</span>
-                        </button>
                     </div>
                 `;
                 return;
@@ -1876,20 +1861,6 @@
             }
 
             // Si estamos en el listado general de proveedores:
-            const tag = document.getElementById('supplierSearchGlobalTag');
-            if (tag) {
-                if (this.searchQuery) {
-                    const isEn = this.isEnglish();
-                    tag.innerHTML = `
-                        <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
-                        <span>${isEn ? 'Searching:' : 'Buscando:'} "${this.searchQuery}"</span>
-                        <button type="button" onclick="window.suppliersManager.clearSearch()" style="background: none; border: none; color: var(--on-secondary); cursor: pointer; font-size: 14px; padding: 0 0 0 4px; display: flex; align-items: center;" title="${isEn ? 'Clear' : 'Limpiar'}">✕</button>
-                    `;
-                    tag.style.display = 'inline-flex';
-                } else {
-                    tag.style.display = 'none';
-                }
-            }
             this.renderContent();
         }
 
@@ -1913,8 +1884,6 @@
                 return;
             }
 
-            const tag = document.getElementById('supplierSearchGlobalTag');
-            if (tag) tag.style.display = 'none';
             this.renderContent();
         }
 
