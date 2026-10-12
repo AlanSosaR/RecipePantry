@@ -1033,57 +1033,77 @@
                         </div>
                     </div>
 
-                    <!-- Estado Módulo de Proveedores y Pedidos M3 -->
+                    <!-- Control de Acceso a Proveedores M3 Switch -->
                     <div style="
                         background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#F0FDF4' : '#F8FAFC'};
                         border: 1px solid ${(isSuperAdminUser || user.can_access_suppliers) ? '#BBF7D0' : '#E2E8F0'};
-                        border-radius: 16px;
-                        padding: 12px 14px;
+                        border-radius: 18px;
+                        padding: 14px 16px;
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
-                        gap: 12px;
+                        gap: 14px;
+                        transition: background-color 0.25s ease, border-color 0.25s ease;
                     ">
-                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
                             <div style="
-                                width: 36px;
-                                height: 36px;
-                                border-radius: 10px;
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 12px;
                                 background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#F1F5F9'};
                                 color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#64748B'};
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
                                 flex-shrink: 0;
+                                transition: all 0.25s ease;
                             ">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">local_shipping</span>
+                                <span class="material-symbols-outlined" style="font-size: 22px;">local_shipping</span>
                             </div>
                             <div style="min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span style="font-size: 13px; font-weight: 800; color: #1E293B;">
-                                        ${isEn ? 'Suppliers & Orders' : 'Proveedores y Pedidos'}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
+                                        ${isEn ? 'Suppliers & Orders' : 'Módulo de Proveedores'}
                                     </span>
-                                    <span style="
-                                        font-size: 10.5px;
-                                        font-weight: 700;
-                                        padding: 1.5px 7px;
-                                        border-radius: 100px;
-                                        background: ${(isSuperAdminUser || user.can_access_suppliers) ? '#DCFCE7' : '#E2E8F0'};
-                                        color: ${(isSuperAdminUser || user.can_access_suppliers) ? '#047857' : '#475569'};
-                                    ">
-                                        ${isSuperAdminUser 
-                                            ? (isEn ? 'Super Admin (Full)' : 'Super Admin (Total)') 
-                                            : (user.can_access_suppliers ? (isEn ? 'Enabled' : 'Habilitado') : (isEn ? 'Disabled' : 'Deshabilitado'))}
-                                    </span>
+                                    ${isSuperAdminUser ? `
+                                        <span style="
+                                            font-size: 10px;
+                                            font-weight: 800;
+                                            padding: 1.5px 7px;
+                                            border-radius: 100px;
+                                            background: #DCFCE7;
+                                            color: #047857;
+                                        ">
+                                            ${isEn ? 'Super Admin' : 'Super Admin'}
+                                        </span>
+                                    ` : ''}
                                 </div>
-                                <div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">
+                                <div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.4;">
                                     ${isSuperAdminUser
-                                        ? (isEn ? 'Owner account with full suppliers rights.' : 'Cuenta propietaria con acceso permanente a proveedores.')
+                                        ? (isEn ? 'Full permanent access granted.' : 'Acceso total permanente por ser Super Administrador.')
                                         : (user.can_access_suppliers 
-                                            ? (isEn ? 'User can view suppliers, catalog & generate WhatsApp orders.' : 'El usuario puede ver proveedores, catálogo y enviar pedidos.')
-                                            : (isEn ? 'Hidden from user navigation.' : 'Oculto en el menú de este usuario.'))}
+                                            ? (isEn ? 'Access enabled: user can view suppliers, catalog and place orders.' : 'Acceso activado: el usuario puede ver proveedores, catálogo y enviar pedidos.')
+                                            : (isEn ? 'Access disabled: hidden from user navigation.' : 'Acceso desactivado: el módulo está oculto en su menú.'))}
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Switch M3 Expressive -->
+                        <div style="display: flex; align-items: center; flex-shrink: 0;">
+                            ${isSuperAdminUser ? `
+                                <span class="material-symbols-outlined" title="${isEn ? 'Protected' : 'Protegido'}" style="font-size: 20px; color: #10B981; padding: 6px;">lock</span>
+                            ` : `
+                                <label class="m3-switch" title="${user.can_access_suppliers ? (isEn ? 'Click to disable' : 'Clic para desactivar') : (isEn ? 'Click to enable' : 'Clic para activar')}">
+                                    <input type="checkbox" id="switch-suppliers-access-${user.id}" 
+                                        ${user.can_access_suppliers ? 'checked' : ''} 
+                                        onchange="window.adminUsersManager.handleToggleSuppliersAccess('${user.id}', this.checked)" />
+                                    <span class="m3-switch-track">
+                                        <span class="m3-switch-thumb">
+                                            <span class="material-symbols-outlined">${user.can_access_suppliers ? 'check' : 'close'}</span>
+                                        </span>
+                                    </span>
+                                </label>
+                            `}
                         </div>
                     </div>
 
@@ -1171,29 +1191,6 @@
                                 <span>${isEn ? 'Your Super Admin account is protected against revocation or deletion.' : 'Tu propia cuenta de Super Administrador está protegida contra revocación o eliminación.'}</span>
                             </div>
                         ` : `
-                            <!-- Botón Activar / Desactivar Acceso a Proveedores -->
-                            <button type="button" id="btn-admin-toggle-suppliers" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleSuppliersAccess('${user.id}', ${!user.can_access_suppliers})" style="
-                                width: 100%;
-                                background: ${user.can_access_suppliers ? '#FFFBEB' : '#ECFDF5'};
-                                color: ${user.can_access_suppliers ? '#B45309' : '#047857'};
-                                border: 1.5px solid ${user.can_access_suppliers ? 'rgba(217, 119, 6, 0.35)' : 'rgba(16, 185, 129, 0.35)'};
-                                font-weight: 700;
-                                cursor: pointer;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 8px;
-                                transition: all 0.2s;
-                            "
-                            onmouseover="this.style.background='${user.can_access_suppliers ? '#D97706' : '#059669'}'; this.style.color='#FFFFFF';"
-                            onmouseout="this.style.background='${user.can_access_suppliers ? '#FFFBEB' : '#ECFDF5'}'; this.style.color='${user.can_access_suppliers ? '#B45309' : '#047857'}';"
-                            >
-                                <span class="material-symbols-outlined" style="font-size: 19px;">${user.can_access_suppliers ? 'unpublished' : 'verified'}</span>
-                                <span>${user.can_access_suppliers 
-                                    ? (isEn ? 'Disable Suppliers Access' : 'Desactivar Acceso a Proveedores') 
-                                    : (isEn ? 'Enable Suppliers Access' : 'Activar Acceso a Proveedores')}</span>
-                            </button>
-
                             <!-- Botón Conceder / Revocar Acceso -->
                             ${user.is_active ? `
                                 <button type="button" id="btn-admin-toggle-access" class="admin-sheet-action-btn" onclick="window.adminUsersManager.handleToggleAccess('${user.id}', false)" style="
@@ -1552,6 +1549,13 @@
                 await this._executeToggleSuppliersAccess(userId, grantAccess);
             };
 
+            const rollbackSwitch = () => {
+                const switchEl = document.getElementById(`switch-suppliers-access-${userId}`);
+                if (switchEl) {
+                    switchEl.checked = user.can_access_suppliers === true;
+                }
+            };
+
             const triggerAction = window.showActionToast || window.utils?.showActionToast;
 
             if (triggerAction) {
@@ -1561,7 +1565,8 @@
                     cancelText: cancelBtn,
                     actionColor: grantAccess ? '#10B981' : '#D97706',
                     type: grantAccess ? 'success' : 'warning',
-                    onConfirm: doExecution
+                    onConfirm: doExecution,
+                    onCancel: rollbackSwitch
                 });
             } else {
                 await doExecution();
@@ -1580,12 +1585,8 @@
                 ? (isEn ? 'enable' : 'activar') 
                 : (isEn ? 'disable' : 'desactivar');
 
-            const btn = document.getElementById('btn-admin-toggle-suppliers');
-            const origHTML = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> ${isEn ? 'Saving changes...' : 'Guardando cambios...'}`;
-            }
+            const switchInput = document.getElementById(`switch-suppliers-access-${userId}`);
+            if (switchInput) switchInput.disabled = true;
 
             try {
                 // Actualizar campo en tabla users
@@ -1631,16 +1632,16 @@
 
             } catch (err) {
                 console.error('❌ Error al actualizar permisos de proveedores:', err);
+                if (switchInput) {
+                    switchInput.checked = user.can_access_suppliers === true;
+                }
                 const errMsg = isEn
                     ? `Error attempting to ${actionVerb} suppliers access: ${err.message || 'Server error'}`
                     : `Error al ${actionVerb} acceso a proveedores: ${err.message || 'Error del servidor'}`;
 
                 this.notify(errMsg, 'error');
             } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = origHTML;
-                }
+                if (switchInput) switchInput.disabled = false;
             }
         }
 
