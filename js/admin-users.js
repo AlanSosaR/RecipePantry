@@ -814,30 +814,7 @@
                         <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-                                     ${(isSuperAdminUser || user.can_access_suppliers) ? `
-                                        <span title="${isEn 
-                                            ? (isSuperAdminUser ? 'Super Admin' : (user.suppliers_mode === 'empty' ? 'Suppliers: Empty Module (Own catalog)' : 'Suppliers: Shared catalog')) 
-                                            : (isSuperAdminUser ? 'Super Admin' : (user.suppliers_mode === 'empty' ? 'Proveedores: Módulo Vacío (Propio)' : 'Proveedores: Compartidos con Admin'))}" style="
-                                            background: ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? 'rgba(59, 130, 246, 0.12)' : 'rgba(16, 185, 129, 0.12)'};
-                                            color: ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#1D4ED8' : '#047857'};
-                                            border: 1px solid ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? 'rgba(59, 130, 246, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
-                                            font-size: 10.5px;
-                                            font-weight: 700;
-                                            padding: 2px 8px;
-                                            border-radius: 100px;
-                                            display: inline-flex;
-                                            align-items: center;
-                                            gap: 4px;
-                                        ">
-                                            <span class="material-symbols-outlined" style="font-size: 13px; color: ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? '#3B82F6' : '#10B981'};">
-                                                ${user.suppliers_mode === 'empty' && !isSuperAdminUser ? 'inventory_2' : 'local_shipping'}
-                                            </span>
-                                            ${isEn 
-                                                ? (isSuperAdminUser ? 'Suppliers' : (user.suppliers_mode === 'empty' ? 'Own Suppliers' : 'Shared Suppliers')) 
-                                                : (isSuperAdminUser ? 'Proveedores' : (user.suppliers_mode === 'empty' ? 'Prov. Propios' : 'Prov. Compartidos'))}
-                                        </span>
-                                    ` : ''}
-                                    <span style="
+                                     <span style="
                                         background: ${statusBg};
                                         color: ${statusColor};
                                         border: 1px solid ${statusBorder};
