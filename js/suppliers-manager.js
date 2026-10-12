@@ -1031,20 +1031,25 @@
                 <div class="m3-sheet-drag-handle" title="${isEn ? 'Swipe or tap to expand' : 'Toca o desliza para expandir'}"></div>
                 <div class="m3-sheet-header">
                     <h4>${supplier.name}</h4>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span style="display: inline-flex; align-items: center; gap: 4px; background: ${cat.bg}; color: ${cat.color}; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 600;">
-                            <span class="material-symbols-outlined" style="font-size: 13px;">${cat.icon}</span>
-                            <span>${cat.displayLabel}</span>
-                        </span>
-                        <span>·</span>
+                    <div style="margin-top: 6px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
+                        <!-- Fila 1: Categoría / Tipo -->
+                        <div style="display: flex; align-items: center;">
+                            <span style="display: inline-flex; align-items: center; gap: 4px; background: ${cat.bg}; color: ${cat.color}; padding: 3px 10px; border-radius: var(--radius-full); font-weight: 700; font-size: 12px;">
+                                <span class="material-symbols-outlined" style="font-size: 13px;">${cat.icon}</span>
+                                <span>${cat.displayLabel}</span>
+                            </span>
+                        </div>
+
+                        <!-- Fila 2 (Salto de línea): Días de Reparto en su propia fila -->
                         ${activeDaysList.length > 0 ? `
-                            <span>·</span>
-                            <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px;">
-                                ${activeDaysList.map(d => `
-                                    <div class="supplier-day-dot active" style="width: 20px; height: 20px; font-size: 10px;" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
-                                        ${d.short}
-                                    </div>
-                                `).join('')}
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px;">
+                                    ${activeDaysList.map(d => `
+                                        <div class="supplier-day-dot active" style="width: 22px; height: 22px; font-size: 10.5px;" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
+                                            ${d.short}
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
                         ` : ''}
                     </div>
