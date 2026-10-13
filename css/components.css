@@ -16795,25 +16795,32 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     }
 }
 
-/* Header integrado con M3 Expressive para el formulario de producto */
+/* Header integrado con M3 Expressive para el formulario de producto y proveedor (solo móvil) */
 .supplier-item-form-header {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 10px 12px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 60;
-    margin: -16px -16px 20px -16px;
+    margin: -12px -6px 16px -6px;
+}
+
+.supplier-form-desktop-header {
+    display: flex;
 }
 
 @media (max-width: 768px) {
     .supplier-item-form-header {
-        margin: -12px -6px 16px -6px;
-        padding: 10px 12px;
+        display: flex !important;
+    }
+
+    .supplier-form-desktop-header {
+        display: none !important;
     }
 }
 

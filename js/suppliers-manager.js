@@ -2072,7 +2072,26 @@
 
             this.container.innerHTML = `
                 <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Header Integrado de Nuevo / Editar Proveedor (Reemplaza la barra en móvil y aloja botón atrás y título) -->
+                    <!-- Header en PC / Desktop: Botón Atrás + Título + Subtítulo con flujo natural M3 -->
+                    <div class="supplier-form-desktop-header" style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                        <button type="button" 
+                                onclick="window.suppliersManager.backToList()" 
+                                class="btn-icon-m3 btn-back-green" 
+                                title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
+                                style="width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary-dark);">arrow_back</span>
+                        </button>
+                        <div style="min-width: 0; flex: 1;">
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
+                                ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
+                            </h2>
+                            <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.3;">
+                                ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Header Integrado Móvil (Reemplaza la barra superior en móvil) -->
                     <header class="supplier-item-form-header">
                         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
                             <button type="button" 
@@ -2441,7 +2460,26 @@
 
             this.container.innerHTML = `
                 <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Header Integrado de Nuevo / Editar Producto (Reemplaza la barra en móvil y aloja botón atrás y título) -->
+                    <!-- Header en PC / Desktop: Botón Atrás + Título + Subtítulo con flujo natural M3 -->
+                    <div class="supplier-form-desktop-header" style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                        <button type="button" 
+                                onclick="window.suppliersManager.backToList()" 
+                                class="btn-icon-m3 btn-back-green" 
+                                title="${isEn ? 'Back' : 'Volver'}" 
+                                style="width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary-dark);">arrow_back</span>
+                        </button>
+                        <div style="min-width: 0; flex: 1;">
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
+                                ${isEditing ? (isEn ? 'Edit Product' : 'Editar Producto') : (isEn ? 'New Product' : 'Nuevo Producto')}
+                            </h2>
+                            <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.3;">
+                                ${isEn ? 'Assign photo, name, format and supplier' : 'Asigna foto, nombre, formato y proveedor'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Header Integrado Móvil (Reemplaza la barra superior en móvil) -->
                     <header class="supplier-item-form-header">
                         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
                             <button type="button" 
