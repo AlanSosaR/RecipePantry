@@ -2028,10 +2028,10 @@
                         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
                             <button type="button" 
                                     onclick="window.suppliersManager.backToList()" 
-                                    class="btn-icon-m3" 
+                                    class="btn-icon-m3 btn-back-green" 
                                     title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
-                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">arrow_back</span>
                             </button>
                             <div style="min-width: 0; flex: 1;">
                                 <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
@@ -2397,10 +2397,10 @@
                         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
                             <button type="button" 
                                     onclick="window.suppliersManager.backToList()" 
-                                    class="btn-icon-m3" 
+                                    class="btn-icon-m3 btn-back-green" 
                                     title="${isEn ? 'Back' : 'Volver'}" 
-                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">arrow_back</span>
                             </button>
                             <div style="min-width: 0; flex: 1;">
                                 <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">

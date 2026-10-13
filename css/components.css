@@ -16817,6 +16817,29 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     }
 }
 
+.supplier-item-form-header .btn-icon-m3,
+.supplier-item-form-header .btn-back-green {
+    color: var(--primary-dark) !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.supplier-item-form-header .btn-icon-m3 .material-symbols-outlined,
+.supplier-item-form-header .btn-back-green .material-symbols-outlined {
+    color: var(--primary-dark) !important;
+}
+
+.supplier-item-form-header .btn-icon-m3:hover,
+.supplier-item-form-header .btn-back-green:hover {
+    background: var(--primary-light) !important;
+    border-color: var(--primary) !important;
+    transform: scale(1.05);
+}
+
+.supplier-item-form-header .btn-icon-m3:active,
+.supplier-item-form-header .btn-back-green:active {
+    transform: scale(0.95);
+}
+
 /* ========================================================
    Material 3 Expressive Outlined Text Fields & Selects
    ======================================================== */
