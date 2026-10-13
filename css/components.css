@@ -16914,4 +16914,329 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     font-weight: 700;
 }
 
+/* ========================================================
+   Material 3 Expressive Time Picker Component
+   ======================================================== */
+.m3-timepicker-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 16px;
+    animation: m3TpFadeIn 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes m3TpFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.m3-timepicker-dialog {
+    background: var(--bg);
+    border-radius: var(--radius-2xl, 28px);
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--border);
+    width: 100%;
+    max-width: 328px;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-family: var(--font-display);
+    color: var(--text-main);
+    animation: m3TpScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transform-origin: center center;
+}
+
+@keyframes m3TpScaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.m3-timepicker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.m3-timepicker-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+/* Selector digital superior (Horas : Minutos + AM/PM) */
+.m3-timepicker-display-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.m3-timepicker-digits-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.m3-timepicker-digit-btn {
+    width: 80px;
+    height: 72px;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1.5px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    font-family: var(--font-display);
+    padding: 0;
+}
+
+.m3-timepicker-digit-btn:hover {
+    background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+
+.m3-timepicker-digit-btn.active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary-dark);
+}
+
+.m3-timepicker-separator {
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1;
+    user-select: none;
+}
+
+/* Selector AM / PM M3 */
+.m3-timepicker-period-group {
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    height: 72px;
+    box-sizing: border-box;
+}
+
+.m3-timepicker-period-btn {
+    flex: 1;
+    padding: 0 10px;
+    border: none;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-display);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.m3-timepicker-period-btn:first-child {
+    border-bottom: 1px solid var(--border);
+}
+
+.m3-timepicker-period-btn.active {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+/* Dial Circular (Reloj M3) */
+.m3-timepicker-clock-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.m3-timepicker-clock-face {
+    width: 256px;
+    height: 256px;
+    border-radius: 50%;
+    background: var(--surface);
+    position: relative;
+    user-select: none;
+    touch-action: none;
+}
+
+.m3-timepicker-clock-center {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-dark);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+}
+
+.m3-timepicker-clock-hand {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 98px;
+    background: var(--primary-dark);
+    transform-origin: top center;
+    z-index: 2;
+    pointer-events: none;
+    transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), height 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-timepicker-clock-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    position: absolute;
+    bottom: -20px;
+    left: -19px;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+}
+
+.m3-timepicker-clock-num {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    z-index: 3;
+    transform: translate(-50%, -50%);
+    transition: color 0.15s ease;
+    user-select: none;
+}
+
+.m3-timepicker-clock-num.selected {
+    color: var(--on-primary);
+    font-weight: 800;
+}
+
+/* Modo Input Manual (Alternativo con icono de teclado) */
+.m3-timepicker-input-mode-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.m3-timepicker-text-input {
+    width: 80px;
+    height: 72px;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--text-main);
+    font-family: var(--font-display);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.m3-timepicker-text-input:focus {
+    border-color: var(--primary);
+    background: var(--bg);
+}
+
+.m3-timepicker-input-caption {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* Acciones Inferiores M3 */
+.m3-timepicker-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
+.m3-timepicker-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.m3-timepicker-btn-icon:hover {
+    background: var(--surface);
+    color: var(--text-main);
+}
+
+.m3-timepicker-btn-text {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    cursor: pointer;
+    transition: background 0.2s ease;
+    color: var(--primary-dark);
+}
+
+.m3-timepicker-btn-text:hover {
+    background: var(--primary-light);
+}
+
+.m3-timepicker-btn-text.btn-cancel {
+    color: var(--text-secondary);
+}
+
+.m3-timepicker-btn-text.btn-cancel:hover {
+    background: var(--surface);
+}
+
+/* Trigger Field Outlined */
+.m3-timepicker-trigger-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+}
+
+.m3-timepicker-trigger-box:hover {
+    border-color: var(--primary) !important;
+}
+
+
 

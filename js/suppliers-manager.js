@@ -2169,10 +2169,23 @@
                             </div>
                         </div>
 
-                        <!-- 5. Hora Límite de Pedido (M3 Expressive Outlined) -->
+                        <!-- 5. Hora Límite de Pedido (Material 3 Expressive Time Picker) -->
                         <div class="m3-field-container" style="max-width: 260px;">
-                            <input type="time" id="supCutoff" value="${cutoff}" required class="m3-field-input" style="font-weight: 700; font-size: 16px;" />
-                            <label for="supCutoff" class="m3-field-label">${isEn ? 'Order Cut-off Time *' : 'Hora Límite de Pedido *'}</label>
+                            <input type="hidden" id="supCutoff" value="${cutoff}" />
+                            <div class="m3-field-input m3-timepicker-trigger-box" 
+                                 tabindex="0"
+                                 role="button"
+                                 aria-label="${isEn ? 'Order Cut-off Time' : 'Hora Límite de Pedido'}"
+                                 onclick="window.suppliersManager.openM3TimePicker('supCutoff')"
+                                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); window.suppliersManager.openM3TimePicker('supCutoff');}">
+                                <span id="supCutoffDisplay" style="font-size: 16px; font-weight: 700; color: var(--text-main); font-family: var(--font-display);">
+                                    ${cutoff || '18:00'}
+                                </span>
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--text-secondary); pointer-events: none;">schedule</span>
+                            </div>
+                            <label class="m3-field-label" style="top: 0 !important; transform: translateY(-50%) scale(0.85); font-size: 13px; font-weight: 700; color: var(--primary-dark);">
+                                ${isEn ? 'Order Cut-off Time *' : 'Hora Límite de Pedido *'}
+                            </label>
                         </div>
 
                         <!-- 6. Notas / Instrucciones (M3 Expressive Outlined) -->
@@ -3056,6 +3069,373 @@
         closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.add('hidden');
+        }
+
+        /**
+         * Abre el Material 3 Expressive Time Picker Modal Dialog
+         * Implementa la especificación oficial de Google M3 con selector Dial (Reloj circular),
+         * modo Input (teclado), cambio AM/PM y selección de Horas/Minutos.
+         */
+        openM3TimePicker(targetInputId) {
+            const isEn = this.isEnglish();
+            const targetInput = document.getElementById(targetInputId);
+            const currentValue = targetInput?.value || '18:00';
+            
+            let [hStr, mStr] = currentValue.split(':');
+            let h = parseInt(hStr, 10) || 18;
+            let m = parseInt(mStr, 10) || 0;
+
+            // Modo 12h para M3 Time Picker con selector AM/PM
+            let period = h >= 12 ? 'PM' : 'AM';
+            let hour12 = h % 12;
+            if (hour12 === 0) hour12 = 12;
+
+            this._m3TpState = {
+                targetInputId,
+                hour12,
+                minute: m,
+                period,
+                mode: 'dial', // 'dial' | 'input'
+                activeUnit: 'hours' // 'hours' | 'minutes'
+            };
+
+            const existing = document.getElementById('m3TimePickerBackdrop');
+            if (existing) existing.remove();
+
+            const backdrop = document.createElement('div');
+            backdrop.id = 'm3TimePickerBackdrop';
+            backdrop.className = 'm3-timepicker-backdrop';
+            backdrop.onclick = (e) => {
+                if (e.target === backdrop) this.closeM3TimePicker();
+            };
+
+            backdrop.innerHTML = `
+                <div class="m3-timepicker-dialog" role="dialog" aria-modal="true" aria-label="${isEn ? 'Select time' : 'Seleccionar hora'}">
+                    <div class="m3-timepicker-header">
+                        <span class="m3-timepicker-title">${isEn ? 'Select time' : 'Seleccionar hora'}</span>
+                    </div>
+
+                    <!-- Display de Horas : Minutos + AM/PM -->
+                    <div class="m3-timepicker-display-row">
+                        <div class="m3-timepicker-digits-group">
+                            <button type="button" id="m3TpHourBtn" class="m3-timepicker-digit-btn active" onclick="window.suppliersManager._switchM3TpUnit('hours')">
+                                ${String(hour12).padStart(2, '0')}
+                            </button>
+                            <span class="m3-timepicker-separator">:</span>
+                            <button type="button" id="m3TpMinuteBtn" class="m3-timepicker-digit-btn" onclick="window.suppliersManager._switchM3TpUnit('minutes')">
+                                ${String(m).padStart(2, '0')}
+                            </button>
+                        </div>
+
+                        <div class="m3-timepicker-period-group">
+                            <button type="button" id="m3TpAmBtn" class="m3-timepicker-period-btn ${period === 'AM' ? 'active' : ''}" onclick="window.suppliersManager._setM3TpPeriod('AM')">
+                                AM
+                            </button>
+                            <button type="button" id="m3TpPmBtn" class="m3-timepicker-period-btn ${period === 'PM' ? 'active' : ''}" onclick="window.suppliersManager._setM3TpPeriod('PM')">
+                                PM
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modo Dial (Reloj circular interactivo) -->
+                    <div id="m3TpDialContainer" class="m3-timepicker-clock-container">
+                        <div class="m3-timepicker-clock-face" id="m3TpClockFace">
+                            <div class="m3-timepicker-clock-center"></div>
+                            <div class="m3-timepicker-clock-hand" id="m3TpClockHand">
+                                <div class="m3-timepicker-clock-thumb"></div>
+                            </div>
+                            <div id="m3TpClockNumbers" style="position: absolute; inset: 0;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Modo Input (Teclado numérico alternativo) -->
+                    <div id="m3TpInputContainer" class="m3-timepicker-input-mode-container" style="display: none;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <div>
+                                <input type="number" id="m3TpHourInput" min="1" max="12" value="${hour12}" class="m3-timepicker-text-input" oninput="window.suppliersManager._onM3TpHourInput(this)" />
+                                <div class="m3-timepicker-input-caption">${isEn ? 'Hour' : 'Hora'}</div>
+                            </div>
+                            <span class="m3-timepicker-separator" style="margin-bottom: 20px;">:</span>
+                            <div>
+                                <input type="number" id="m3TpMinuteInput" min="0" max="59" value="${String(m).padStart(2, '0')}" class="m3-timepicker-text-input" oninput="window.suppliersManager._onM3TpMinuteInput(this)" />
+                                <div class="m3-timepicker-input-caption">${isEn ? 'Minute' : 'Minuto'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Acciones Inferiores M3 -->
+                    <div class="m3-timepicker-actions">
+                        <button type="button" id="m3TpToggleModeBtn" class="m3-timepicker-btn-icon" title="${isEn ? 'Switch to text input' : 'Cambiar a modo teclado'}" onclick="window.suppliersManager._toggleM3TpMode()">
+                            <span class="material-symbols-outlined" id="m3TpModeIcon" style="font-size: 24px;">keyboard</span>
+                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="m3-timepicker-btn-text btn-cancel" onclick="window.suppliersManager.closeM3TimePicker()">
+                                ${isEn ? 'Cancel' : 'Cancelar'}
+                            </button>
+                            <button type="button" class="m3-timepicker-btn-text" onclick="window.suppliersManager._confirmM3TimePicker()">
+                                ${isEn ? 'OK' : 'Aceptar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(backdrop);
+            this._renderM3TpClockDial();
+            this._setupM3TpClockDragging();
+        }
+
+        closeM3TimePicker() {
+            const backdrop = document.getElementById('m3TimePickerBackdrop');
+            if (backdrop) backdrop.remove();
+            this._m3TpState = null;
+        }
+
+        _switchM3TpUnit(unit) {
+            if (!this._m3TpState) return;
+            this._m3TpState.activeUnit = unit;
+            
+            const hourBtn = document.getElementById('m3TpHourBtn');
+            const minuteBtn = document.getElementById('m3TpMinuteBtn');
+            if (hourBtn) hourBtn.classList.toggle('active', unit === 'hours');
+            if (minuteBtn) minuteBtn.classList.toggle('active', unit === 'minutes');
+
+            this._renderM3TpClockDial();
+        }
+
+        _setM3TpPeriod(period) {
+            if (!this._m3TpState) return;
+            this._m3TpState.period = period;
+            
+            const amBtn = document.getElementById('m3TpAmBtn');
+            const pmBtn = document.getElementById('m3TpPmBtn');
+            if (amBtn) amBtn.classList.toggle('active', period === 'AM');
+            if (pmBtn) pmBtn.classList.toggle('active', period === 'PM');
+        }
+
+        _toggleM3TpMode() {
+            if (!this._m3TpState) return;
+            const newMode = this._m3TpState.mode === 'dial' ? 'input' : 'dial';
+            this._m3TpState.mode = newMode;
+
+            const dialEl = document.getElementById('m3TpDialContainer');
+            const inputEl = document.getElementById('m3TpInputContainer');
+            const iconEl = document.getElementById('m3TpModeIcon');
+
+            if (newMode === 'input') {
+                if (dialEl) dialEl.style.display = 'none';
+                if (inputEl) inputEl.style.display = 'flex';
+                if (iconEl) iconEl.textContent = 'schedule';
+            } else {
+                if (dialEl) dialEl.style.display = 'flex';
+                if (inputEl) inputEl.style.display = 'none';
+                if (iconEl) iconEl.textContent = 'keyboard';
+                this._renderM3TpClockDial();
+            }
+        }
+
+        _onM3TpHourInput(input) {
+            if (!this._m3TpState) return;
+            let val = parseInt(input.value, 10);
+            if (!isNaN(val)) {
+                if (val > 12) val = 12;
+                if (val < 1) val = 1;
+                this._m3TpState.hour12 = val;
+                const hBtn = document.getElementById('m3TpHourBtn');
+                if (hBtn) hBtn.textContent = String(val).padStart(2, '0');
+            }
+        }
+
+        _onM3TpMinuteInput(input) {
+            if (!this._m3TpState) return;
+            let val = parseInt(input.value, 10);
+            if (!isNaN(val)) {
+                if (val > 59) val = 59;
+                if (val < 0) val = 0;
+                this._m3TpState.minute = val;
+                const mBtn = document.getElementById('m3TpMinuteBtn');
+                if (mBtn) mBtn.textContent = String(val).padStart(2, '0');
+            }
+        }
+
+        _renderM3TpClockDial() {
+            if (!this._m3TpState) return;
+            const numbersContainer = document.getElementById('m3TpClockNumbers');
+            const hand = document.getElementById('m3TpClockHand');
+            if (!numbersContainer || !hand) return;
+
+            numbersContainer.innerHTML = '';
+            const isHours = this._m3TpState.activeUnit === 'hours';
+            const radius = 100; // Radio del círculo del dial (256px / 2 = 128px centro)
+            const cx = 128;
+            const cy = 128;
+
+            let angle = 0;
+
+            if (isHours) {
+                const hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                hours.forEach((h, i) => {
+                    const theta = (i * 30 - 90) * (Math.PI / 180);
+                    const x = cx + radius * Math.cos(theta);
+                    const y = cy + radius * Math.sin(theta);
+                    const isSelected = this._m3TpState.hour12 === h;
+
+                    const numEl = document.createElement('div');
+                    numEl.className = `m3-timepicker-clock-num ${isSelected ? 'selected' : ''}`;
+                    numEl.style.left = `${x}px`;
+                    numEl.style.top = `${y}px`;
+                    numEl.textContent = h;
+                    numEl.onclick = (e) => {
+                        e.stopPropagation();
+                        this._setM3TpHour(h);
+                    };
+                    numbersContainer.appendChild(numEl);
+                });
+
+                angle = (this._m3TpState.hour12 % 12) * 30;
+            } else {
+                // Minutos: marcas cada 5 minutos
+                const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+                minutes.forEach((m, i) => {
+                    const theta = (i * 30 - 90) * (Math.PI / 180);
+                    const x = cx + radius * Math.cos(theta);
+                    const y = cy + radius * Math.sin(theta);
+                    const isSelected = Math.round(this._m3TpState.minute / 5) * 5 === m;
+
+                    const numEl = document.createElement('div');
+                    numEl.className = `m3-timepicker-clock-num ${isSelected ? 'selected' : ''}`;
+                    numEl.style.left = `${x}px`;
+                    numEl.style.top = `${y}px`;
+                    numEl.textContent = String(m).padStart(2, '0');
+                    numEl.onclick = (e) => {
+                        e.stopPropagation();
+                        this._setM3TpMinute(m);
+                    };
+                    numbersContainer.appendChild(numEl);
+                });
+
+                angle = this._m3TpState.minute * 6;
+            }
+
+            hand.style.transform = `rotate(${angle}deg)`;
+        }
+
+        _setM3TpHour(h) {
+            if (!this._m3TpState) return;
+            this._m3TpState.hour12 = h;
+            const hourBtn = document.getElementById('m3TpHourBtn');
+            const hInput = document.getElementById('m3TpHourInput');
+            if (hourBtn) hourBtn.textContent = String(h).padStart(2, '0');
+            if (hInput) hInput.value = h;
+
+            this._renderM3TpClockDial();
+
+            // En la especificación oficial de M3, seleccionar la hora pasa automáticamente a minutos
+            setTimeout(() => {
+                if (this._m3TpState && this._m3TpState.activeUnit === 'hours') {
+                    this._switchM3TpUnit('minutes');
+                }
+            }, 250);
+        }
+
+        _setM3TpMinute(m) {
+            if (!this._m3TpState) return;
+            this._m3TpState.minute = m;
+            const minuteBtn = document.getElementById('m3TpMinuteBtn');
+            const mInput = document.getElementById('m3TpMinuteInput');
+            if (minuteBtn) minuteBtn.textContent = String(m).padStart(2, '0');
+            if (mInput) mInput.value = String(m).padStart(2, '0');
+
+            this._renderM3TpClockDial();
+        }
+
+        _setupM3TpClockDragging() {
+            const clockFace = document.getElementById('m3TpClockFace');
+            if (!clockFace) return;
+
+            let isDragging = false;
+
+            const handlePointer = (e) => {
+                if (!this._m3TpState) return;
+                const rect = clockFace.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
+                if (clientX === undefined || clientY === undefined) return;
+
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const dx = clientX - cx;
+                const dy = clientY - cy;
+
+                let theta = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+                if (theta < 0) theta += 360;
+
+                if (this._m3TpState.activeUnit === 'hours') {
+                    let hour = Math.round(theta / 30);
+                    if (hour === 0) hour = 12;
+                    if (hour > 12) hour = 12;
+                    this._m3TpState.hour12 = hour;
+                    const hBtn = document.getElementById('m3TpHourBtn');
+                    if (hBtn) hBtn.textContent = String(hour).padStart(2, '0');
+                } else {
+                    let min = Math.round(theta / 6);
+                    if (min >= 60) min = 0;
+                    this._m3TpState.minute = min;
+                    const mBtn = document.getElementById('m3TpMinuteBtn');
+                    if (mBtn) mBtn.textContent = String(min).padStart(2, '0');
+                }
+
+                this._renderM3TpClockDial();
+            };
+
+            clockFace.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                clockFace.setPointerCapture?.(e.pointerId);
+                handlePointer(e);
+            });
+
+            clockFace.addEventListener('pointermove', (e) => {
+                if (isDragging) handlePointer(e);
+            });
+
+            const stopDrag = () => {
+                if (isDragging) {
+                    isDragging = false;
+                    if (this._m3TpState?.activeUnit === 'hours') {
+                        setTimeout(() => {
+                            if (this._m3TpState && this._m3TpState.activeUnit === 'hours') {
+                                this._switchM3TpUnit('minutes');
+                            }
+                        }, 200);
+                    }
+                }
+            };
+
+            clockFace.addEventListener('pointerup', stopDrag);
+            clockFace.addEventListener('pointercancel', stopDrag);
+        }
+
+        _confirmM3TimePicker() {
+            if (!this._m3TpState) return;
+            const { targetInputId, hour12, minute, period } = this._m3TpState;
+
+            // Convertir a formato 24 horas (HH:MM) para almacenamiento estándar
+            let h24 = hour12 % 12;
+            if (period === 'PM') h24 += 12;
+            const formatted24 = `${String(h24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+            const targetInput = document.getElementById(targetInputId);
+            if (targetInput) {
+                targetInput.value = formatted24;
+                targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            const displayEl = document.getElementById(`${targetInputId}Display`);
+            if (displayEl) {
+                displayEl.textContent = formatted24;
+            }
+
+            this.closeM3TimePicker();
         }
     }
 
