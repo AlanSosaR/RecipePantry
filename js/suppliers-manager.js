@@ -137,7 +137,10 @@
         /** Clave de caché para proveedores según usuario y modo */
         _getCacheKey(baseKey) {
             if (!this.isSuperAdmin() && this.getSuppliersMode() === 'empty') {
-                const uid = window.authManager?.currentUser?.id || 'anon';
+                const uid = window.authManager?.currentUser?.id || 
+                            window.authManager?.session?.user?.id ||
+                            (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id) || 
+                            'anon';
                 return `${baseKey}_user_${uid}`;
             }
             return baseKey;
@@ -295,26 +298,31 @@
             if (this._reactiveAuthInitialized) return;
             this._reactiveAuthInitialized = true;
 
-            const check = () => {
+            const check = (isAuthEvent = false) => {
+                if (isAuthEvent) {
+                    this.loadCache();
+                }
                 this.updateVisibility();
                 const currentView = document.documentElement.getAttribute('data-current-view') || 
                                     window.dashboard?.currentView;
                 if (currentView === 'suppliers' && this.canAccessSuppliers()) {
                     this.render();
+                } else if (isAuthEvent && this.canAccessSuppliers()) {
+                    this.syncData();
                 }
             };
 
-            window.addEventListener('auth-changed', check);
-            window.addEventListener('auth-ready', check);
+            window.addEventListener('auth-changed', () => check(true));
+            window.addEventListener('auth-ready', () => check(true));
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', check);
+                document.addEventListener('DOMContentLoaded', () => check(false));
             } else {
-                check();
+                check(false);
             }
 
             if (window.supabaseClient?.auth?.onAuthStateChange) {
                 try {
-                    window.supabaseClient.auth.onAuthStateChange(() => setTimeout(check, 80));
+                    window.supabaseClient.auth.onAuthStateChange(() => setTimeout(() => check(true), 80));
                 } catch (e) {}
             }
 
@@ -322,7 +330,7 @@
             let attempts = 0;
             const authPoll = setInterval(() => {
                 attempts++;
-                check();
+                check(attempts === 1);
                 if (this.canAccessSuppliers() || attempts > 15) {
                     clearInterval(authPoll);
                 }
@@ -383,10 +391,32 @@
                 const sb = window.supabaseClient;
                 if (!sb) return;
 
-                const currentMode = this.getSuppliersMode();
-                const currentUserId = window.authManager?.currentUser?.id || 
-                                      window.authManager?.session?.user?.id ||
-                                      (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+                let currentMode = this.getSuppliersMode();
+                let currentUserId = window.authManager?.currentUser?.id || 
+                                    window.authManager?.session?.user?.id ||
+                                    (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+
+                // Si no es superadmin y el perfil local tiene modo 'empty', verificar contra Supabase si el superadmin cambió a 'shared'
+                if (!this.isSuperAdmin() && currentMode === 'empty' && currentUserId) {
+                    try {
+                        const { data: latestUser } = await sb
+                            .from('users')
+                            .select('can_access_suppliers, suppliers_mode')
+                            .eq('id', currentUserId)
+                            .maybeSingle();
+                        if (latestUser) {
+                            if (latestUser.suppliers_mode && latestUser.suppliers_mode !== currentMode) {
+                                currentMode = latestUser.suppliers_mode;
+                                if (window.authManager?.currentUser) {
+                                    window.authManager.currentUser.suppliers_mode = currentMode;
+                                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        /* ignore network fallback */
+                    }
+                }
 
                 // 1. Cargar proveedores
                 let supQuery = sb.from('suppliers').select('*');
@@ -430,6 +460,14 @@
                 this.isLoading = false;
                 const spinner = document.getElementById('suppliers-loading-spinner');
                 if (spinner) spinner.style.display = 'none';
+
+                // Actualizar contador del pill 'Todos' si existe en el DOM
+                const allPillText = document.getElementById('supplierAllCountPill');
+                if (allPillText) {
+                    const isEn = this.isEnglish();
+                    allPillText.textContent = `${isEn ? 'All' : 'Todos'} (${this.suppliers.length})`;
+                }
+
                 // Re-renderizar la subvista activa: la lista solo refresca el mount,
                 // mientras que el detalle/formulario requiere re-render completo.
                 if (this.currentSubView === 'list') {
@@ -663,7 +701,7 @@
                             <button type="button" class="supplier-filter-pill ${this.activeFilter === 'all' ? 'active' : ''}" 
                                 onclick="window.suppliersManager.setFilter('all')">
                                 <span class="material-symbols-outlined" style="font-size: 18px;">apps</span>
-                                <span>${isEn ? 'All' : 'Todos'} (${this.suppliers.length})</span>
+                                <span id="supplierAllCountPill">${isEn ? 'All' : 'Todos'} (${this.suppliers.length})</span>
                             </button>
 
                             <button type="button" class="supplier-filter-pill ${this.activeFilter === 'delivery_tomorrow' ? 'active' : ''}" 
@@ -761,6 +799,17 @@
             }
 
             if (filtered.length === 0) {
+                if (this.isLoading && !this._hasSyncedOnce) {
+                    mount.innerHTML = `
+                        <div style="text-align: center; padding: 48px 20px;">
+                            <div class="spinner-sm" style="margin: 0 auto 12px auto;"></div>
+                            <p style="color: var(--text-secondary); font-size: 13.5px; font-family: var(--font-display);">
+                                ${isEn ? 'Loading suppliers and catalog...' : 'Cargando proveedores y catálogo...'}
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
                 const isSearching = Boolean(this.searchQuery && this.searchQuery.trim());
                 mount.innerHTML = `
                     <div style="
