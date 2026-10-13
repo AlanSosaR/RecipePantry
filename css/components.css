@@ -16783,6 +16783,135 @@ body.dark-theme .safe-recipe-card-fluid h4 {
         height: 25px !important;
         font-size: 11px !important;
     }
+
+    /* Ocultar barra superior global en móvil cuando está activa la vista de producto o subvista de proveedores */
+    body.supplier-subview-item-active #mainTopBar,
+    body.supplier-subview-item-active .top-bar-m3 {
+        display: none !important;
+    }
+
+    body.supplier-subview-item-active .main-content {
+        padding-top: 0 !important;
+    }
+}
+
+/* Header integrado con M3 Expressive para el formulario de producto */
+.supplier-item-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    margin: -16px -16px 20px -16px;
+}
+
+@media (max-width: 768px) {
+    .supplier-item-form-header {
+        margin: -12px -6px 16px -6px;
+        padding: 10px 12px;
+    }
+}
+
+/* ========================================================
+   Material 3 Expressive Outlined Text Fields & Selects
+   ======================================================== */
+.m3-field-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.m3-field-container .m3-field-input,
+.m3-field-container .m3-field-select,
+.m3-field-container textarea.m3-field-input {
+    width: 100%;
+    height: 54px;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-xl, 20px);
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: var(--font-display);
+    color: var(--text-main);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.m3-field-container textarea.m3-field-input {
+    height: auto;
+    min-height: 96px;
+    resize: vertical;
+    padding-top: 16px;
+}
+
+.m3-field-container .m3-field-input:focus,
+.m3-field-container .m3-field-select:focus,
+.m3-field-container textarea.m3-field-input:focus {
+    border-color: var(--primary);
+    border-width: 2px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.m3-field-container .m3-field-label {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg);
+    padding: 0 6px;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    z-index: 5;
+    line-height: 1;
+}
+
+.m3-field-container textarea.m3-field-input ~ .m3-field-label {
+    top: 24px;
+}
+
+/* Estado flotante de Material 3 Expressive */
+.m3-field-container .m3-field-input:focus + .m3-field-label,
+.m3-field-container .m3-field-input:not(:placeholder-shown) + .m3-field-label,
+.m3-field-container .m3-field-select:focus + .m3-field-label,
+.m3-field-container .m3-field-select:not([value=""]) + .m3-field-label,
+.m3-field-container .m3-field-select.has-value + .m3-field-label,
+.m3-field-container input[type="time"] + .m3-field-label {
+    top: 0 !important;
+    transform: translateY(-50%) scale(0.85);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.m3-field-container .m3-field-input:not(:focus):not(:placeholder-shown) + .m3-field-label {
+    color: var(--text-secondary);
+}
+
+/* Select flecha M3 Expressive */
+.m3-field-container .m3-field-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 40px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%2364748B'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+.m3-field-container .m3-field-select + .m3-field-label {
+    top: 0;
+    transform: translateY(-50%) scale(0.85);
+    font-size: 13px;
+    font-weight: 700;
 }
 
 

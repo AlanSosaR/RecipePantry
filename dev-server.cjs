@@ -163,7 +163,25 @@ const server = http.createServer(async (req, res) => {
     });
 
     const readStream = fs.createReadStream(filePath);
+    readStream.on('error', (err) => {
+        if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+        }
+        res.end('500 Server Error: ' + err.message);
+    });
     readStream.pipe(res);
+});
+
+server.on('error', (e) => {
+    console.error('Server error:', e);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection:', reason);
 });
 
 server.listen(PORT, HOST, () => {

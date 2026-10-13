@@ -600,6 +600,13 @@
                 return;
             }
 
+            // Sincronizar estado en body para ocultar barra superior en móvil si estamos en formulario de producto o proveedor
+            if (this.currentSubView === 'item-form' || this.currentSubView === 'supplier-form') {
+                document.body.classList.add('supplier-subview-item-active');
+            } else {
+                document.body.classList.remove('supplier-subview-item-active');
+            }
+
             if (this.currentSubView === 'supplier-detail') {
                 this.renderSupplierDetailPage(this.selectedSupplierDetailId);
                 return;
@@ -1500,13 +1507,6 @@
                                 </h2>
                                 <span id="supplierProductsCountBadge" style="font-size: 12px; font-weight: 700; color: var(--primary-dark); background: var(--primary-light); padding: 2px 8px; border-radius: var(--radius-full); border: 1px solid var(--border);">${supItems.length}</span>
                             </div>
-
-                            <!-- Indicador si hay búsqueda de producto activa -->
-                            <div id="supplierProductSearchTag" style="${this.searchQuery ? 'display: inline-flex;' : 'display: none;'} align-items: center; gap: 6px; background: var(--secondary-light); border: 1px solid var(--border); color: var(--on-secondary); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700;">
-                                <span class="material-symbols-outlined" style="font-size: 14px;">search</span>
-                                <span>${isEn ? 'Filtering:' : 'Filtrando:'} "${this.searchQuery}"</span>
-                                <button type="button" onclick="window.suppliersManager.clearSearch()" style="background: none; border: none; color: var(--on-secondary); cursor: pointer; font-size: 13px; padding: 0 0 0 4px; display: flex; align-items: center;" title="${isEn ? 'Clear' : 'Limpiar'}">✕</button>
-                            </div>
                         </div>
                         <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
                             ${isEn ? 'Products available from this supplier with packaging and rapid order quantities.' : 'Insumos disponibles de este proveedor con formato y cantidades para pedido.'}
@@ -1837,21 +1837,6 @@
 
             // Si estamos en la vista de detalle del proveedor:
             if (this.currentSubView === 'supplier-detail' && this.selectedSupplierDetailId) {
-                const tag = document.getElementById('supplierProductSearchTag');
-                if (tag) {
-                    if (this.searchQuery) {
-                        const isEn = this.isEnglish();
-                        tag.innerHTML = `
-                            <span class="material-symbols-outlined" style="font-size: 14px;">search</span>
-                            <span>${isEn ? 'Filtering:' : 'Filtrando:'} "${this.searchQuery}"</span>
-                            <button type="button" onclick="window.suppliersManager.clearSearch()" style="background: none; border: none; color: var(--on-secondary); cursor: pointer; font-size: 13px; padding: 0 0 0 4px; display: flex; align-items: center;" title="${isEn ? 'Clear' : 'Limpiar'}">✕</button>
-                        `;
-                        tag.style.display = 'inline-flex';
-                    } else {
-                        tag.style.display = 'none';
-                    }
-                }
-
                 const mount = document.getElementById('supplier-products-mount');
                 if (mount) {
                     mount.innerHTML = this.renderSupplierProductsListHTML(this.selectedSupplierDetailId);
@@ -1874,8 +1859,6 @@
             if (clearBtn) clearBtn.classList.add('hidden');
 
             if (this.currentSubView === 'supplier-detail' && this.selectedSupplierDetailId) {
-                const tag = document.getElementById('supplierProductSearchTag');
-                if (tag) tag.style.display = 'none';
                 const mount = document.getElementById('supplier-products-mount');
                 if (mount) {
                     mount.innerHTML = this.renderSupplierProductsListHTML(this.selectedSupplierDetailId);
@@ -1982,8 +1965,16 @@
             this.render();
         }
 
-        /** Regresa a la vista de listado de proveedores */
+        /** Regresa a la vista previa de proveedores o detalle */
         backToList() {
+            document.body.classList.remove('supplier-subview-item-active');
+            if (this.currentSubView === 'item-form' && this.selectedSupplierDetailId) {
+                this.editingItemId = null;
+                this.currentSubView = 'supplier-detail';
+                this.render();
+                return;
+            }
+
             this.currentSubView = 'list';
             this.selectedSupplierDetailId = null;
             this.editingSupplierId = null;
@@ -2031,32 +2022,27 @@
             const supCategory = supplier?.category || 'otros';
 
             this.container.innerHTML = `
-                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 16px 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Top Bar: Solo botón circular de volver atrás (Botones repetidos eliminados) -->
-                    <div style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                        <button type="button" 
-                                onclick="window.suppliersManager.backToList()" 
-                                class="btn-icon-m3" 
-                                title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
-                                style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); transition: all 0.2s var(--m3-easing);">
-                            <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
-                        </button>
-                    </div>
-
-                    <!-- Cabecera Plana del Formulario (Sin tarjeta ni caja) -->
-                    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
-                        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <span class="material-symbols-outlined" style="font-size: 28px;">add_business</span>
+                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
+                    <!-- Header Integrado de Nuevo / Editar Proveedor (Reemplaza la barra en móvil y aloja botón atrás y título) -->
+                    <header class="supplier-item-form-header">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                            <button type="button" 
+                                    onclick="window.suppliersManager.backToList()" 
+                                    class="btn-icon-m3" 
+                                    title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
+                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                            </button>
+                            <div style="min-width: 0; flex: 1;">
+                                <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
+                                </h1>
+                                <p style="margin: 1px 0 0 0; font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
-                                ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
-                            </h2>
-                            <p style="margin: 3px 0 0 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
-                                ${isEn ? 'Configure supplier details, photo/logo, category type, delivery schedules, and cut-off deadline.' : 'Configura los datos del proveedor, foto/logo, tipo, días de reparto y horario de corte.'}
-                            </p>
-                        </div>
-                    </div>
+                    </header>
 
                     <!-- Formulario Plano y Adaptable a Móvil (Sin tarjeta ni contenedor restrictivo) -->
                     <form id="supplierFullForm" onsubmit="window.suppliersManager.saveSupplier(event, '${supplierId || ''}')" style="display: flex; flex-direction: column; gap: 20px;">
@@ -2108,48 +2094,43 @@
                                         </button>
                                     </div>
 
-                                    <input type="text" id="supImageUrl" value="${supplier?.image_url || ''}" placeholder="${isEn ? 'Or paste image URL (https://...)' : 'O pega la URL de la imagen (https://...)'}" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 38px; font-size: 12.5px;" oninput="document.getElementById('supPhotoImg').src = this.value; document.getElementById('supPhotoImg').style.display = this.value ? 'block' : 'none'; document.getElementById('supPhotoIcon').style.display = this.value ? 'none' : 'block';" />
+                                    <div class="m3-field-container" style="margin-top: 6px;">
+                                        <input type="text" id="supImageUrl" value="${supplier?.image_url || ''}" placeholder=" " class="m3-field-input" oninput="document.getElementById('supPhotoImg').src = this.value; document.getElementById('supPhotoImg').style.display = this.value ? 'block' : 'none'; document.getElementById('supPhotoIcon').style.display = this.value ? 'none' : 'block';" />
+                                        <label for="supImageUrl" class="m3-field-label">${isEn ? 'Image URL (https://...)' : 'URL de la Imagen (https://...)'}</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 2. Nombre del Proveedor y Categoría (Plano) -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Supplier Name / Company *' : 'Nombre del Proveedor o Empresa *'}
-                                </label>
-                                <input type="text" id="supName" required value="${supplier?.name || ''}" placeholder="Ej. Frutas y Verduras Hermanos López" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14.5px;" />
+                        <!-- 2. Nombre del Proveedor y Categoría (M3 Expressive Outlined) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <input type="text" id="supName" required value="${supplier?.name || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="supName" class="m3-field-label">${isEn ? 'Supplier Name / Company *' : 'Nombre del Proveedor o Empresa *'}</label>
                             </div>
 
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Supplier Type / Category *' : 'Tipo de Proveedor (Categoría) *'}
-                                </label>
-                                <select id="supCategory" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14px; font-weight: 700; cursor: pointer;">
+                            <div class="m3-field-container">
+                                <select id="supCategory" class="m3-field-select">
                                     ${this.CATEGORIES.map(c => `
                                         <option value="${c.id}" ${supCategory.toLowerCase() === c.id ? 'selected' : ''}>
                                             ${c.displayLabel || c.label}
                                         </option>
                                     `).join('')}
                                 </select>
+                                <label for="supCategory" class="m3-field-label">${isEn ? 'Supplier Type / Category *' : 'Tipo de Proveedor (Categoría) *'}</label>
                             </div>
                         </div>
 
-                        <!-- 3. Teléfono y Contacto (Plano) -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'WhatsApp / Phone Number (Optional)' : 'Teléfono o WhatsApp (Opcional)'}
-                                </label>
-                                <input type="tel" id="supPhone" value="${supplier?.phone || ''}" placeholder="Ej. +34 612 345 678" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14.5px;" />
+                        <!-- 3. Teléfono y Contacto (M3 Expressive Outlined) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <input type="tel" id="supPhone" value="${supplier?.phone || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="supPhone" class="m3-field-label">${isEn ? 'WhatsApp / Phone Number (Optional)' : 'Teléfono o WhatsApp (Opcional)'}</label>
                             </div>
 
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Contact Person Name (Optional)' : 'Persona de Contacto (Opcional)'}
-                                </label>
-                                <input type="text" id="supContact" value="${supplier?.contact_name || ''}" placeholder="Ej. Juan López (Comercial)" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14.5px;" />
+                            <div class="m3-field-container">
+                                <input type="text" id="supContact" value="${supplier?.contact_name || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="supContact" class="m3-field-label">${isEn ? 'Contact Person Name (Optional)' : 'Persona de Contacto (Opcional)'}</label>
                             </div>
                         </div>
 
@@ -2188,24 +2169,16 @@
                             </div>
                         </div>
 
-                        <!-- 5. Hora Límite de Pedido (Plano) -->
-                        <div>
-                            <label style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark);">alarm</span>
-                                <span>${isEn ? 'Order Cut-off Time' : 'Hora Límite de Pedido'}</span>
-                            </label>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
-                                <input type="time" id="supCutoff" value="${cutoff}" required class="folder-modal-input" style="width: 140px; height: 42px; font-size: 15px; font-weight: 800; color: var(--text-main); text-align: center;" />
-                                <span style="font-size: 12.5px; color: var(--text-secondary);">${isEn ? '(e.g. 18:00)' : '(ej. 18:00)'}</span>
-                            </div>
+                        <!-- 5. Hora Límite de Pedido (M3 Expressive Outlined) -->
+                        <div class="m3-field-container" style="max-width: 260px;">
+                            <input type="time" id="supCutoff" value="${cutoff}" required class="m3-field-input" style="font-weight: 700; font-size: 16px;" />
+                            <label for="supCutoff" class="m3-field-label">${isEn ? 'Order Cut-off Time *' : 'Hora Límite de Pedido *'}</label>
                         </div>
 
-                        <!-- 6. Notas / Instrucciones (Plano) -->
-                        <div>
-                            <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                ${isEn ? 'Notes / Delivery Instructions (Optional)' : 'Notas / Instrucciones de Pedido (Opcional)'}
-                            </label>
-                            <textarea id="supNotes" rows="3" placeholder="Ej. Pedido mínimo 60€, llamar al llegar, facturación a final de mes..." class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: auto; resize: vertical; font-size: 14px;">${supplier?.notes || ''}</textarea>
+                        <!-- 6. Notas / Instrucciones (M3 Expressive Outlined) -->
+                        <div class="m3-field-container">
+                            <textarea id="supNotes" rows="3" placeholder=" " class="m3-field-input">${supplier?.notes || ''}</textarea>
+                            <label for="supNotes" class="m3-field-label">${isEn ? 'Notes / Delivery Instructions (Optional)' : 'Notas / Instrucciones de Pedido (Opcional)'}</label>
                         </div>
 
                         <!-- Botones inferiores de acción (Únicos botones de Guardar / Cancelar) -->
@@ -2405,56 +2378,47 @@
             const supId = item?.supplier_id || this.preselectedSupplierId || (this.suppliers[0]?.id || '');
 
             this.container.innerHTML = `
-                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 16px 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Top Bar: Solo botón circular de volver atrás (Botones duplicados eliminados) -->
-                    <div style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                        <button type="button" 
-                                onclick="window.suppliersManager.backToList()" 
-                                class="btn-icon-m3" 
-                                title="${isEn ? 'Back' : 'Volver'}" 
-                                style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); transition: all 0.2s var(--m3-easing);">
-                            <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
-                        </button>
-                    </div>
-
-                    <!-- Cabecera Plana del Formulario de Producto (Sin tarjeta ni caja) -->
-                    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
-                        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <span class="material-symbols-outlined" style="font-size: 28px;">add_photo_alternate</span>
+                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
+                    <!-- Header Integrado de Nuevo / Editar Producto (Reemplaza la barra en móvil y aloja botón atrás y título) -->
+                    <header class="supplier-item-form-header">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                            <button type="button" 
+                                    onclick="window.suppliersManager.backToList()" 
+                                    class="btn-icon-m3" 
+                                    title="${isEn ? 'Back' : 'Volver'}" 
+                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                            </button>
+                            <div style="min-width: 0; flex: 1;">
+                                <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    ${isEditing ? (isEn ? 'Edit Product' : 'Editar Producto') : (isEn ? 'New Product' : 'Nuevo Producto')}
+                                </h1>
+                                <p style="margin: 1px 0 0 0; font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    ${isEn ? 'Assign photo, name, format and supplier' : 'Asigna foto, nombre, formato y proveedor'}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
-                                ${isEditing ? (isEn ? 'Edit Product' : 'Editar Producto') : (isEn ? 'New Product' : 'Nuevo Producto')}
-                            </h2>
-                            <p style="margin: 3px 0 0 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
-                                ${isEn ? 'Register product with its photograph, name, format and assign it to a supplier.' : 'Registra el producto con su fotografía, nombre, formato y asígnalo a un proveedor.'}
-                            </p>
-                        </div>
-                    </div>
+                    </header>
 
                     <!-- Formulario Plano y Adaptable a Móvil (Sin tarjeta ni contenedor restrictivo) -->
                     <form id="itemFullForm" onsubmit="window.suppliersManager.saveItem(event, '${itemId || ''}')" style="display: flex; flex-direction: column; gap: 20px;">
                         
-                        <!-- Proveedor Asignado y Nombre -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Assigned Supplier *' : 'Proveedor Asignado *'}
-                                </label>
-                                <select id="itemSupplierId" required class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14.5px;">
+                        <!-- Proveedor Asignado y Nombre (M3 Expressive Outlined) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <select id="itemSupplierId" required class="m3-field-select">
                                     ${this.suppliers.length === 0 ? `
                                         <option value="">${isEn ? 'No suppliers available - create one first' : 'Sin proveedores - crea uno primero'}</option>
                                     ` : this.suppliers.map(s => `
                                         <option value="${s.id}" ${s.id === supId ? 'selected' : ''}>${s.name}</option>
                                     `).join('')}
                                 </select>
+                                <label for="itemSupplierId" class="m3-field-label">${isEn ? 'Assigned Supplier *' : 'Proveedor Asignado *'}</label>
                             </div>
 
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Product Name *' : 'Nombre del Producto *'}
-                                </label>
-                                <input type="text" id="itemName" required value="${item?.name || ''}" placeholder="Ej. Tomate Pera Especial, Salmón Fresco Noruego" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14.5px;" />
+                            <div class="m3-field-container">
+                                <input type="text" id="itemName" required value="${item?.name || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemName" class="m3-field-label">${isEn ? 'Product Name *' : 'Nombre del Producto *'}</label>
                             </div>
                         </div>
 
@@ -2509,33 +2473,27 @@
                             </div>
                         </div>
 
-                        <!-- Categoría y Formato / Unidad -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px;">
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Category' : 'Categoría'}
-                                </label>
-                                <select id="itemCategory" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14px;">
+                        <!-- Categoría y Formato / Unidad (M3 Expressive Outlined) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <select id="itemCategory" class="m3-field-select">
                                     ${this.CATEGORIES.map(c => `
                                         <option value="${c.label}" ${item?.category === c.label ? 'selected' : ''}>${c.displayLabel || c.label}</option>
                                     `).join('')}
                                 </select>
+                                <label for="itemCategory" class="m3-field-label">${isEn ? 'Category' : 'Categoría'}</label>
                             </div>
 
-                            <div>
-                                <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                    ${isEn ? 'Packaging Format / Unit' : 'Formato de Presentación / Unidad'}
-                                </label>
-                                <input type="text" id="itemFormat" value="${item?.package_format || item?.unit || ''}" placeholder="Ej. Caja 10kg, Bolsa 2kg, Manojo, Botella 750ml, Kg" class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14px;" />
+                            <div class="m3-field-container">
+                                <input type="text" id="itemFormat" value="${item?.package_format || item?.unit || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemFormat" class="m3-field-label">${isEn ? 'Packaging Format / Unit' : 'Formato de Presentación / Unidad'}</label>
                             </div>
                         </div>
 
-                        <!-- Notas del Producto -->
-                        <div>
-                            <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                ${isEn ? 'Product Notes (Optional)' : 'Notas u Observaciones del Producto (Opcional)'}
-                            </label>
-                            <input type="text" id="itemNotes" value="${item?.notes || ''}" placeholder="Ej. Calibre grande, pedir fresco del día, marca preferida..." class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 44px; font-size: 14px;" />
+                        <!-- Notas del Producto (M3 Expressive Outlined) -->
+                        <div class="m3-field-container">
+                            <input type="text" id="itemNotes" value="${item?.notes || ''}" placeholder=" " class="m3-field-input" />
+                            <label for="itemNotes" class="m3-field-label">${isEn ? 'Product Notes (Optional)' : 'Notas u Observaciones del Producto (Opcional)'}</label>
                         </div>
 
                         <!-- Botones inferiores de acción (Únicos botones de Guardar / Cancelar) -->
