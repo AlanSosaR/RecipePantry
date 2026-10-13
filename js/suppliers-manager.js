@@ -2072,12 +2072,12 @@
 
             this.container.innerHTML = `
                 <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 (el botón de retroceso se usa desde la navegación y cancelar) -->
-                    <div class="supplier-form-desktop-header" style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                    <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 y salto de línea claro -->
+                    <div class="supplier-form-desktop-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
                         <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
                             ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
                         </h2>
-                        <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.3;">
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.4;">
                             ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
                         </p>
                     </div>
@@ -2451,12 +2451,12 @@
 
             this.container.innerHTML = `
                 <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 (el botón de retroceso se usa desde la navegación y cancelar) -->
-                    <div class="supplier-form-desktop-header" style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                    <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 y salto de línea claro -->
+                    <div class="supplier-form-desktop-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
                         <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
                             ${isEditing ? (isEn ? 'Edit Product' : 'Editar Producto') : (isEn ? 'New Product' : 'Nuevo Producto')}
                         </h2>
-                        <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.3;">
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.4;">
                             ${isEn ? 'Assign photo, name, format and supplier' : 'Asigna foto, nombre, formato y proveedor'}
                         </p>
                     </div>
