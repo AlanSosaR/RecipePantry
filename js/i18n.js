@@ -12,6 +12,7 @@
         es: {
             // ── Sidebar nav ──────────────────────────────────────────────
             navRecipes: 'Recetas',
+            navTasks: 'Prep Diario',
             navMenu: 'Menú',
             navFavorites: 'Favoritos',
             navSuppliers: 'Proveedores',
@@ -66,6 +67,7 @@
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Buscar en mi recetario...',
+            searchTasksPlaceholder: 'Buscar por hacer...',
             searchNotesPlaceholder: 'Buscar en mis notas...',
             newRecipeBtn: 'Nuevo',
             newNoteBtn: 'Nueva Nota',
@@ -382,6 +384,7 @@
         en: {
             // ── Sidebar nav ──────────────────────────────────────────────
             navRecipes: 'Recipes',
+            navTasks: 'Daily Prep',
             navMenu: 'Menu',
             navFavorites: 'Favorites',
             navSuppliers: 'Suppliers',
@@ -436,6 +439,7 @@
 
             // ── Top bar / search ─────────────────────────────────────────
             searchPlaceholder: 'Search my cookbook...',
+            searchTasksPlaceholder: 'Search to-do...',
             searchNotesPlaceholder: 'Search my notes...',
             newRecipeBtn: 'New',
             newNoteBtn: 'New Note',
@@ -768,6 +772,20 @@
         // Placeholder attributes
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.dataset.i18nPlaceholder;
+            if (el.id === 'searchInput' && window.dashboard) {
+                if (window.dashboard.currentView === 'tasks') {
+                    el.placeholder = t['searchTasksPlaceholder'] || (lang === 'en' ? 'Search to-do...' : 'Buscar por hacer...');
+                    return;
+                }
+                if (window.dashboard.currentView === 'suppliers') {
+                    el.placeholder = lang === 'en' ? 'Search supplier or product...' : 'Buscar proveedor o producto...';
+                    return;
+                }
+                if (window.dashboard.currentView === 'menu') {
+                    el.placeholder = lang === 'en' ? 'Search any dish, roast, burger, pizza or ingredient...' : 'Buscar plato, pizza, asado, hamburguesa o ingrediente...';
+                    return;
+                }
+            }
             if (t[key] !== undefined) el.placeholder = t[key];
         });
 

@@ -80,11 +80,11 @@ class DashboardManager {
             const urlParams = new URLSearchParams(window.location.search);
             let viewParam = urlParams.get('view');
             const rawHash = (window.location.hash || '').replace('#', '').toLowerCase();
-            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu', 'suppliers'].includes(rawHash)) {
+            if (!viewParam && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu', 'suppliers', 'tasks'].includes(rawHash)) {
                 viewParam = rawHash;
             }
             if (viewParam === 'settings') viewParam = 'help';
-            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu', 'suppliers'].includes(viewParam)) {
+            if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu', 'suppliers', 'tasks'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
 
@@ -455,6 +455,10 @@ class DashboardManager {
                         if (window.suppliersManager) {
                             window.suppliersManager.handleSearch(query);
                         }
+                    } else if (this.currentView === 'tasks') {
+                        if (window.tasksManager) {
+                            window.tasksManager.handleSearch(query);
+                        }
                     } else {
                         this.loadRecipes({ search: query });
                         if (query.length > 2) {
@@ -463,7 +467,7 @@ class DashboardManager {
                     }
                 }, 200);
 
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
                     // Update suggestions only for recipes
                     this.searchHistory.showSuggestions(query);
                 } else {
@@ -472,7 +476,7 @@ class DashboardManager {
             });
 
             searchInput.addEventListener('focus', () => {
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers') {
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
                     this.searchHistory.showSuggestions(searchInput.value.trim());
                 }
             });
@@ -497,6 +501,10 @@ class DashboardManager {
                     } else if (this.currentView === 'suppliers') {
                         if (window.suppliersManager) {
                             window.suppliersManager.handleSearch('');
+                        }
+                    } else if (this.currentView === 'tasks') {
+                        if (window.tasksManager) {
+                            window.tasksManager.handleSearch('');
                         }
                     } else {
                         this.loadRecipes({ search: '' });
@@ -673,7 +681,7 @@ class DashboardManager {
             }
         }
 
-        if (['allergens', 'menu', 'help', 'settings', 'suppliers'].includes(view)) {
+        if (['allergens', 'menu', 'help', 'settings', 'suppliers', 'tasks'].includes(view)) {
             if (dashHeader) {
                 dashHeader.classList.add('hidden');
                 dashHeader.style.display = 'none';
@@ -694,6 +702,8 @@ class DashboardManager {
             this.showMenuView();
         } else if (view === 'suppliers') {
             this.showSuppliersView();
+        } else if (view === 'tasks') {
+            this.showTasksView();
         }
 
         // Actualizar botón "+ Nuevo" en la barra superior según la vista
@@ -731,7 +741,7 @@ class DashboardManager {
         // Sincronizar items del menú Dropbox para la vista actual de inmediato
         this.updateDropboxMenuItems();
 
-        if (view !== 'allergens' && view !== 'menu' && view !== 'suppliers' && view !== 'help') {
+        if (view !== 'allergens' && view !== 'menu' && view !== 'suppliers' && view !== 'help' && view !== 'tasks') {
             this.allergenSearchQuery = '';
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
@@ -766,6 +776,11 @@ class DashboardManager {
         if (suppliersView) {
             suppliersView.classList.add('hidden');
             suppliersView.style.display = 'none';
+        }
+        const tasksView = document.getElementById('tasksView');
+        if (tasksView) {
+            tasksView.classList.add('hidden');
+            tasksView.style.display = 'none';
         }
         if (dashHeader) {
             dashHeader.classList.add('hidden');
@@ -841,6 +856,11 @@ class DashboardManager {
         if (suppliersView) {
             suppliersView.classList.add('hidden');
             suppliersView.style.display = 'none';
+        }
+        const tasksView = document.getElementById('tasksView');
+        if (tasksView) {
+            tasksView.classList.add('hidden');
+            tasksView.style.display = 'none';
         }
         if (dashHeader) {
             dashHeader.classList.add('hidden');
@@ -931,6 +951,12 @@ class DashboardManager {
 
         if (this.isSelectionMode) this.clearSelection();
 
+        const tasksView = document.getElementById('tasksView');
+        if (tasksView) {
+            tasksView.classList.add('hidden');
+            tasksView.style.display = 'none';
+        }
+
         if (suppliersView) {
             suppliersView.classList.remove('hidden');
             suppliersView.style.display = 'block';
@@ -951,6 +977,78 @@ class DashboardManager {
                 ? 'Search supplier or product...' 
                 : 'Buscar proveedor o producto...';
             searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !searchInput.value);
+            }
+        }
+    }
+
+    showTasksView() {
+        console.log('[Dashboard] Executing showTasksView');
+        this.currentView = 'tasks';
+        document.documentElement.setAttribute('data-current-view', 'tasks');
+        document.body.setAttribute('data-current-view', 'tasks');
+
+        const grid = document.getElementById('recipesGrid');
+        const empty = document.getElementById('emptyState');
+        const help = document.getElementById('helpView');
+        const allergensView = document.getElementById('allergensView');
+        const menuView = document.getElementById('menuView');
+        const suppliersView = document.getElementById('suppliersView');
+        const tasksView = document.getElementById('tasksView');
+        const titleEl = document.getElementById('view-title');
+        const dashHeader = document.querySelector('.dashboard-header');
+        const carousel = document.getElementById('suggestedCarouselSection');
+        const breadcrumb = document.getElementById('folderBreadcrumb');
+
+        if (grid) grid.classList.add('hidden');
+        if (empty) empty.classList.add('hidden');
+        if (help) help.classList.add('hidden');
+        if (allergensView) allergensView.classList.add('hidden');
+        if (menuView) menuView.classList.add('hidden');
+        if (suppliersView) {
+            suppliersView.classList.add('hidden');
+            suppliersView.style.display = 'none';
+        }
+        if (dashHeader) {
+            dashHeader.classList.add('hidden');
+            dashHeader.style.display = 'none';
+        }
+        if (carousel) {
+            carousel.classList.add('hidden');
+            carousel.style.display = 'none';
+        }
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.add('hidden');
+        const fabContainer = document.getElementById('m3FabMenuContainer');
+        if (fabContainer) fabContainer.classList.add('hidden');
+
+        if (this.isSelectionMode) this.clearSelection();
+
+        if (tasksView) {
+            tasksView.classList.remove('hidden');
+            tasksView.style.display = 'block';
+            if (window.tasksManager) {
+                window.tasksManager.render(tasksView);
+            }
+        }
+
+        if (titleEl) {
+            titleEl.textContent = (window.i18n && window.i18n.t) ? (window.i18n.t('navTasks') || 'Prep Diario') : 'Prep Diario';
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            searchInput.placeholder = isEn 
+                ? 'Search to-do...' 
+                : 'Buscar por hacer...';
+            searchInput.value = (window.tasksManager && window.tasksManager.searchQuery) || '';
             if (clearBtn) {
                 clearBtn.classList.toggle('hidden', !searchInput.value);
             }
@@ -1038,6 +1136,11 @@ class DashboardManager {
         if (suppliersView) {
             suppliersView.classList.add('hidden');
             suppliersView.style.display = 'none';
+        }
+        const tasksView = document.getElementById('tasksView');
+        if (tasksView) {
+            tasksView.classList.add('hidden');
+            tasksView.style.display = 'none';
         }
 
         const fab = document.querySelector('.fab-m3');
@@ -5061,6 +5164,11 @@ class DashboardManager {
         if (suppliersView) {
             suppliersView.classList.add('hidden');
             suppliersView.style.display = 'none';
+        }
+        const tasksView = document.getElementById('tasksView');
+        if (tasksView) {
+            tasksView.classList.add('hidden');
+            tasksView.style.display = 'none';
         }
         if (dashHeader) {
             dashHeader.classList.add('hidden');

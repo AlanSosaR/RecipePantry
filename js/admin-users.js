@@ -833,6 +833,24 @@
                                 <span style="font-size: 11px; color: #94A3B8;">
                                     ${isEn ? 'Registered:' : 'Registrado:'} ${createdDate}
                                 </span>
+                                ${user.can_access_tasks ? `
+                                    <span style="
+                                        background: ${user.tasks_mode === 'isolated' ? '#EEF2FF' : '#D1FAE5'};
+                                        color: ${user.tasks_mode === 'isolated' ? '#3730A3' : '#065F46'};
+                                        border: 1px solid ${user.tasks_mode === 'isolated' ? '#C7D2FE' : '#A7F3D0'};
+                                        font-size: 10px;
+                                        font-weight: 800;
+                                        padding: 1.5px 7px;
+                                        border-radius: 100px;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 3px;
+                                        margin-top: 2px;
+                                    ">
+                                        <span class="material-symbols-outlined" style="font-size: 12px;">checklist</span>
+                                        ${user.tasks_mode === 'isolated' ? (isEn ? 'Prep: Private' : 'Prep: Privado') : (isEn ? 'Prep: Shared' : 'Prep: Compartido')}
+                                    </span>
+                                ` : ''}
                             </div>
 
                             <span class="material-symbols-outlined" style="font-size: 20px; color: #CBD5E1;">
@@ -1233,6 +1251,147 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Control de Módulo: Tareas y Prep List -->
+                    <div class="admin-sheet-tasks-config-card" style="
+                        background: #FFFFFF;
+                        border: 1.5px solid ${user.can_access_tasks ? '#10B981' : '#E2E8F0'};
+                        border-radius: 18px;
+                        padding: 14px 16px;
+                        margin-top: 6px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                    ">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="
+                                    width: 36px;
+                                    height: 36px;
+                                    border-radius: 12px;
+                                    background: ${user.can_access_tasks ? '#EAF8F2' : '#F1F5F9'};
+                                    color: ${user.can_access_tasks ? '#12B078' : '#64748B'};
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    flex-shrink: 0;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">checklist</span>
+                                </div>
+                                <div>
+                                    <div style="font-size: 13.5px; font-weight: 800; color: #1E293B;">
+                                        ${isEn ? 'Daily Prep & To-Do Module' : 'Módulo Prep List & Tareas Diarias'}
+                                    </div>
+                                    <div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">
+                                        ${user.can_access_tasks 
+                                            ? (isEn ? 'Enabled for this user' : 'Habilitado para este usuario') 
+                                            : (isEn ? 'Disabled (Hidden in sidebar)' : 'Deshabilitado (Oculto en menú)')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${!isSuperAdminUser ? `
+                                <!-- Switch Habilitar/Deshabilitar M3 -->
+                                <button type="button" onclick="window.adminUsersManager.onTasksAccessToggle('${user.id}', ${!user.can_access_tasks})" style="
+                                    border: none;
+                                    background: ${user.can_access_tasks ? '#10B981' : '#E2E8F0'};
+                                    color: ${user.can_access_tasks ? '#FFFFFF' : '#475569'};
+                                    font-size: 11.5px;
+                                    font-weight: 800;
+                                    padding: 6px 12px;
+                                    border-radius: 9999px;
+                                    cursor: pointer;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 5px;
+                                    transition: all 0.2s;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 15px;">${user.can_access_tasks ? 'check' : 'toggle_off'}</span>
+                                    <span>${user.can_access_tasks ? (isEn ? 'Enabled' : 'Habilitado') : (isEn ? 'Disabled' : 'Deshabilitado')}</span>
+                                </button>
+                            ` : `
+                                <span style="font-size: 11px; font-weight: 800; color: #059669; background: #D1FAE5; padding: 3px 9px; border-radius: 9999px;">
+                                    ${isEn ? 'Master Owner' : 'Propietario Maestro'}
+                                </span>
+                            `}
+                        </div>
+
+                        <!-- Opciones de Modo (Visible si está habilitado para usuario normal) -->
+                        ${user.can_access_tasks && !isSuperAdminUser ? `
+                            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.04em;">
+                                    ${isEn ? 'Sharing Mode' : 'Modo de Asignación y Visibilidad'}
+                                </div>
+
+                                <!-- Opción Compartido -->
+                                <label style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    gap: 10px;
+                                    padding: 10px 12px;
+                                    border-radius: 12px;
+                                    border: 1.5px solid ${user.tasks_mode !== 'isolated' ? '#10B981' : '#E2E8F0'};
+                                    background: ${user.tasks_mode !== 'isolated' ? '#ECFDF5' : '#FFFFFF'};
+                                    cursor: pointer;
+                                    transition: all 0.15s;
+                                ">
+                                    <input 
+                                        type="radio" 
+                                        name="tasks_mode_${user.id}" 
+                                        value="shared" 
+                                        ${user.tasks_mode !== 'isolated' ? 'checked' : ''} 
+                                        onchange="window.adminUsersManager.onTasksModeChange('${user.id}', 'shared')"
+                                        style="margin-top: 3px; accent-color: #10B981; width: 16px; height: 16px;"
+                                    >
+                                    <div>
+                                        <div style="font-size: 12.5px; font-weight: 800; color: #064E3B; display: flex; align-items: center; gap: 5px;">
+                                            <span class="material-symbols-outlined" style="font-size: 16px; color: #10B981;">sync</span>
+                                            ${isEn ? 'Shared with Super Admin (Live Sync)' : 'Compartido con el Super Usuario (Sincronizado)'}
+                                        </div>
+                                        <div style="font-size: 11px; color: #4B5563; margin-top: 3px; line-height: 1.4;">
+                                            ${isEn 
+                                                ? 'Each day, your pending prep tasks appear on their screen and vice versa: any changes or new items sync in real-time.' 
+                                                : 'Cada día las tareas por hacer que tengas se reflejan en este usuario y viceversa: si escribe o marca algo, lo ves reflejado en vivo.'}
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Opción Vacío / Independiente -->
+                                <label style="
+                                    display: flex;
+                                    align-items: flex-start;
+                                    gap: 10px;
+                                    padding: 10px 12px;
+                                    border-radius: 12px;
+                                    border: 1.5px solid ${user.tasks_mode === 'isolated' ? '#10B981' : '#E2E8F0'};
+                                    background: ${user.tasks_mode === 'isolated' ? '#ECFDF5' : '#FFFFFF'};
+                                    cursor: pointer;
+                                    transition: all 0.15s;
+                                ">
+                                    <input 
+                                        type="radio" 
+                                        name="tasks_mode_${user.id}" 
+                                        value="isolated" 
+                                        ${user.tasks_mode === 'isolated' ? 'checked' : ''} 
+                                        onchange="window.adminUsersManager.onTasksModeChange('${user.id}', 'isolated')"
+                                        style="margin-top: 3px; accent-color: #10B981; width: 16px; height: 16px;"
+                                    >
+                                    <div>
+                                        <div style="font-size: 12.5px; font-weight: 800; color: #1E293B; display: flex; align-items: center; gap: 5px;">
+                                            <span class="material-symbols-outlined" style="font-size: 16px; color: #64748B;">lock</span>
+                                            ${isEn ? 'Empty / Private (Independent)' : 'Módulo Vacío / Independiente (Privado)'}
+                                        </div>
+                                        <div style="font-size: 11px; color: #4B5563; margin-top: 3px; line-height: 1.4;">
+                                            ${isEn 
+                                                ? 'The user starts with an empty list. They do not see your tasks and you do not see theirs.' 
+                                                : 'El usuario tiene su lista de tareas vacía y privada. No ve nada de lo tuyo a menos que lo compartas, y tú no ves lo de él.'}
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <!-- Panel de Acción: Restablecer Contraseña, Conceder / Revocar Acceso y Eliminación Definitiva -->
@@ -2086,6 +2245,81 @@
                 this.notify(errMsg, 'error');
             } finally {
                 if (switchInput) switchInput.disabled = false;
+            }
+        }
+
+        /**
+         * Maneja el cambio de switch para habilitar/deshabilitar módulo Prep List
+         */
+        async onTasksAccessToggle(userId, isChecked) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+            const mode = user.tasks_mode || 'shared';
+            await this.handleSetTasksAccess(userId, isChecked, mode);
+        }
+
+        /**
+         * Maneja el cambio de modo de Prep List (compartido vs aislado/vacío)
+         */
+        async onTasksModeChange(userId, mode) {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+            await this.handleSetTasksAccess(userId, true, mode);
+        }
+
+        /**
+         * Actualiza permisos de acceso al módulo Prep List en Supabase
+         */
+        async handleSetTasksAccess(userId, canAccess, mode = 'shared') {
+            const user = this.users.find(u => u.id === userId);
+            if (!user) return;
+            const isEn = this.isEnglish();
+
+            try {
+                const { error: rpcErr } = await window.supabaseClient.rpc('admin_set_user_tasks_access', {
+                    target_user_id: userId,
+                    can_access: canAccess,
+                    mode: mode
+                });
+
+                if (rpcErr) {
+                    const { error: updateErr } = await window.supabaseClient
+                        .from('users')
+                        .update({
+                            can_access_tasks: canAccess,
+                            tasks_mode: mode,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', userId);
+
+                    if (updateErr) throw updateErr;
+                }
+
+                user.can_access_tasks = canAccess;
+                user.tasks_mode = mode;
+                user.updated_at = new Date().toISOString();
+
+                // Si es el usuario actual en sesión, actualizar en memoria y visibilidad
+                const myId = window.authManager?.currentUser?.id;
+                if (myId === userId && window.authManager?.currentUser) {
+                    window.authManager.currentUser.can_access_tasks = canAccess;
+                    window.authManager.currentUser.tasks_mode = mode;
+                    if (window.tasksManager) window.tasksManager.updateVisibility();
+                }
+
+                this.renderList();
+                this.openUserModal(userId);
+
+                const toastMsg = canAccess
+                    ? (mode === 'shared' 
+                        ? (isEn ? `✅ Prep List module enabled (Shared) for ${user.first_name || user.email}` : `✅ Módulo Prep List habilitado (Compartido) para ${user.first_name || user.email}`)
+                        : (isEn ? `🔒 Prep List module enabled (Private) for ${user.first_name || user.email}` : `🔒 Módulo Prep List habilitado (Privado) para ${user.first_name || user.email}`))
+                    : (isEn ? `⛔ Prep List module disabled for ${user.first_name || user.email}` : `⛔ Módulo Prep List deshabilitado para ${user.first_name || user.email}`);
+
+                this.notify(toastMsg, 'success', 2800);
+            } catch (err) {
+                console.error('❌ Error al actualizar permisos de Prep List:', err);
+                this.notify(isEn ? 'Error saving module permissions' : 'Error al guardar permisos del módulo', 'error');
             }
         }
 

@@ -12319,6 +12319,8 @@ body.dark-theme .context-menu-divider {
     .main-content:has(#helpView:not(.hidden)),
     body:has(#menuView:not(.hidden)) .main-content,
     .main-content:has(#menuView:not(.hidden)),
+    body:has(#tasksView:not(.hidden)) .main-content,
+    .main-content:has(#tasksView:not(.hidden)),
     body:has(#suppliersView:not(.hidden)) .main-content,
     .main-content:has(#suppliersView:not(.hidden)) {
         padding-left: 6px !important;
@@ -12328,19 +12330,24 @@ body.dark-theme .context-menu-divider {
     #allergensView,
     #helpView,
     #menuView,
+    #tasksView,
     #suppliersView {
         padding: 0 !important;
         margin: 4px 0 0 0 !important;
         width: 100% !important;
     }
 
-    /* Ocultar botón flotante de crear receta en vista de alergias, configuración y menú en móvil */
+    /* Ocultar botón flotante de crear receta en vista de alergias, configuración, tareas y menú en móvil */
     body:has(#allergensView:not(.hidden)) .fab-m3,
     body[data-view="allergens"] .fab-m3,
     body:has(#helpView:not(.hidden)) .fab-m3,
     body[data-view="help"] .fab-m3,
     body:has(#menuView:not(.hidden)) .fab-m3,
-    body[data-view="menu"] .fab-m3 {
+    body[data-view="menu"] .fab-m3,
+    body:has(#tasksView:not(.hidden)) .fab-m3,
+    body:has(#tasksView:not(.hidden)) .m3-fab-actions,
+    body[data-view="tasks"] .fab-m3,
+    body[data-view="tasks"] .m3-fab-actions {
         display: none !important;
     }
 
@@ -16025,17 +16032,20 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 }
 
 .supplier-day-dot.active {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: #059669;
+    background: var(--primary, #059669);
     color: #FFFFFF;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25);
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+    flex-shrink: 0;
+    font-family: var(--font-body);
+    letter-spacing: 0;
 }
 
 /* Columna Acciones y Barra Flotante en Hover */
@@ -16209,7 +16219,7 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 .supplier-days-pill-group {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     flex-wrap: wrap;
 }
 
@@ -16235,6 +16245,14 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 
 .supplier-integrated-more-btn {
     display: none !important;
+    width: 40px !important;
+    height: 40px !important;
+}
+
+/* Línea 2 de metadatos móvil: círculos de días (siempre debajo de categoría) */
+.sup-mobile-days {
+    display: none;
+    margin-top: 2px;
 }
 
 /* ==========================================================================
@@ -17273,5 +17291,349 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     border-color: var(--primary) !important;
 }
 
+/* ─── Módulo Tareas y Prep List (Material 3 Expressive) ────────── */
+.circle-mint-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 38px;
+    height: 38px;
+    border: 3px solid #A8DFCA;
+    border-radius: 9999px;
+    background-color: #F4F6F5;
+    display: inline-grid;
+    place-content: center;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
+    margin: 0;
+}
+.circle-mint-checkbox::before {
+    content: "check";
+    font-family: 'Material Symbols Outlined';
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    transform: scale(0);
+    transition: 0.18s transform cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.circle-mint-checkbox:checked {
+    background-color: #12B078;
+    border-color: #12B078;
+    transform: scale(1.04);
+}
+.circle-mint-checkbox:checked::before {
+    transform: scale(1);
+}
 
+.task-card {
+    transition: all 0.24s cubic-bezier(0.2, 0, 0, 1);
+}
+.task-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -4px rgba(18, 176, 120, 0.12) !important;
+}
+.task-completed {
+    opacity: 0.62;
+    background-color: #F8FAF9 !important;
+}
 
+.progress-bar-fill {
+    transition: width 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.task-filter-chip {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid #E4E4E7;
+    background: #FFFFFF;
+    color: #3F3F46;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.task-filter-chip:hover {
+    background: #F4F4F5;
+}
+.task-filter-chip.active {
+    background: #12B078;
+    color: #FFFFFF;
+    border-color: #12B078;
+    box-shadow: 0 2px 6px rgba(18, 176, 120, 0.25);
+}
+.task-filter-chip.active .material-symbols-outlined {
+    color: #FFFFFF !important;
+}
+
+.tasks-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 50;
+}
+
+.tasks-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 580px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 51;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUpTasksSheet 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes slideUpTasksSheet {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.recipe-screen-slide {
+    position: fixed;
+    inset: 0;
+    background: #FFFFFF;
+    z-index: 60;
+    overflow-y: auto;
+    animation: slideInRecipeScreen 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideInRecipeScreen {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* ── Tasks Module Responsive & FAB (Material 3 Expressive) ── */
+.tasks-module-root {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 16px 14px 100px 14px;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tasks-progress-card {
+    background: #EAF8F2;
+    border-radius: 24px;
+    padding: 18px 20px;
+    border: 1px solid rgba(18, 176, 120, 0.25);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(18, 176, 120, 0.05);
+    box-sizing: border-box;
+}
+
+.tasks-fab-container {
+    position: fixed;
+    bottom: 28px;
+    right: 24px;
+    z-index: 40;
+}
+
+.tasks-fab-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #12B078;
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(18, 176, 120, 0.42), 0 3px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, box-shadow 0.2s ease;
+}
+
+.tasks-fab-circle:hover {
+    background: #0D9665;
+    transform: scale(1.08);
+    box-shadow: 0 10px 28px rgba(18, 176, 120, 0.52), 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.tasks-fab-circle:active {
+    transform: scale(0.93);
+}
+
+.tasks-fab-circle .material-symbols-outlined {
+    font-size: 28px;
+    line-height: 1;
+}
+
+@media (max-width: 768px) {
+    .tasks-module-root {
+        padding: 8px 2px 100px 2px !important;
+        width: 100% !important;
+    }
+
+    .tasks-module-root .task-card {
+        padding: 12px 12px !important;
+        border-radius: 18px !important;
+        gap: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .tasks-module-root .tasks-progress-card {
+        padding: 14px 14px !important;
+        border-radius: 20px !important;
+        margin-bottom: 14px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .tasks-fab-container {
+        bottom: 20px !important;
+        right: 18px !important;
+    }
+}
+
+/* ── Material 3 Expressive Horizontal Date Carousel ── */
+.tasks-date-carousel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 6px 2px 14px 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+.tasks-date-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.task-day-card {
+    min-width: 56px;
+    width: 56px;
+    height: 74px;
+    border-radius: 22px;
+    background: #FFFFFF;
+    border: 1.5px solid #E4E4E7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    user-select: none;
+    outline: none;
+    padding: 0;
+}
+.task-day-card:hover {
+    background: #F4FBF7;
+    border-color: rgba(18, 176, 120, 0.4);
+    transform: translateY(-2px);
+}
+.task-day-card:active {
+    transform: scale(0.95);
+}
+
+.task-day-card .task-day-name {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #71717A;
+    line-height: 1;
+}
+.task-day-card .task-day-number {
+    font-size: 18px;
+    font-weight: 800;
+    color: #18181B;
+    line-height: 1.1;
+}
+.task-day-card .task-day-count-badge {
+    min-width: 20px;
+    height: 18px;
+    border-radius: 9999px;
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #F4F4F5;
+    color: #52525B;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-sizing: border-box;
+    margin-top: 2px;
+}
+
+.task-day-card .task-day-count-badge.empty {
+    background: transparent !important;
+    color: transparent !important;
+    visibility: hidden;
+    min-width: 20px;
+    height: 18px;
+}
+
+/* Día de hoy (cuando no está seleccionado) */
+.task-day-card.is-today:not(.active) {
+    border: 2px solid #12B078 !important;
+    background: #F0FAF6 !important;
+}
+.task-day-card.is-today:not(.active) .task-day-name {
+    color: #12B078 !important;
+    font-weight: 800 !important;
+}
+.task-day-card.is-today:not(.active) .task-day-count-badge {
+    background: #12B078 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 6px rgba(18, 176, 120, 0.35);
+}
+.task-day-card.is-today:not(.active) .task-day-count-badge.empty {
+    visibility: visible !important;
+    background: #12B078 !important;
+    width: 6px;
+    height: 6px;
+    min-width: 6px;
+    border-radius: 50%;
+    padding: 0;
+}
+
+/* Active Highlighted State (Material 3 Expressive Glowing Mint / Emerald) */
+.task-day-card.active {
+    background: linear-gradient(135deg, #12B078 0%, #0D9665 100%) !important;
+    border-color: transparent !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 8px 20px rgba(18, 176, 120, 0.42), 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    transform: scale(1.06) !important;
+}
+.task-day-card.active .task-day-name {
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+.task-day-card.active .task-day-number {
+    color: #FFFFFF !important;
+}
+.task-day-card.active .task-day-count-badge {
+    background: #FFFFFF !important;
+    color: #0D9665 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+.task-day-card.active .task-day-count-badge.empty {
+    visibility: visible !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+    width: 6px;
+    height: 6px;
+    min-width: 6px;
+    border-radius: 50%;
+    padding: 0;
+}
