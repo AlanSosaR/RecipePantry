@@ -1012,6 +1012,49 @@
 
                 <!-- Cuerpo con Datos Completos del Usuario -->
                 <div class="admin-sheet-body">
+                    <!-- Ficha de Datos Técnicos M3 (Información de la Cuenta) -->
+                    <div class="admin-sheet-tech-card" style="
+                        background: #F8FAFC;
+                        border: 1px solid #E2E8F0;
+                        display: flex;
+                        flex-direction: column;
+                    ">
+                        <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">
+                            ${isEn ? 'Account Information' : 'Información de la Cuenta'}
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div>
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Registration Date:' : 'Fecha de Registro:'}</span>
+                                <div style="font-size: 12px; font-weight: 600; color: #1E293B;">
+                                    ${createdDate}
+                                </div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Last Modified:' : 'Última Modificación:'}</span>
+                                <div style="font-size: 12px; font-weight: 600; color: #1E293B;">
+                                    ${updatedDate}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conteo real de Recetas y Notas -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
+                            <div>
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Created Recipes:' : 'Recetas Creadas:'}</span>
+                                <div id="user-recipes-count-${user.id}" style="font-size: 13.5px; font-weight: 800; color: #059669;">
+                                    ${user.recipes_count !== undefined ? user.recipes_count : (isEn ? 'Loading...' : 'Consultando...')}
+                                </div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Created Notes:' : 'Notas Creadas:'}</span>
+                                <div id="user-notes-count-${user.id}" style="font-size: 13.5px; font-weight: 800; color: #059669;">
+                                    ${user.notes_count !== undefined ? user.notes_count : (isEn ? 'Loading...' : 'Consultando...')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Control de Acceso General a la App M3 Switch -->
                     <div style="
                         background: ${user.is_active ? '#F0FDF4' : '#FEF2F2'};
@@ -1208,49 +1251,6 @@
                                 </button>
                             </div>
                         ` : ''}
-                    </div>
-
-                    <!-- Ficha de Datos Técnicos M3 -->
-                    <div class="admin-sheet-tech-card" style="
-                        background: #F8FAFC;
-                        border: 1px solid #E2E8F0;
-                        display: flex;
-                        flex-direction: column;
-                    ">
-                        <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">
-                            ${isEn ? 'Account Information' : 'Información de la Cuenta'}
-                        </div>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <div>
-                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Registration Date:' : 'Fecha de Registro:'}</span>
-                                <div style="font-size: 12px; font-weight: 600; color: #1E293B;">
-                                    ${createdDate}
-                                </div>
-                            </div>
-                            <div>
-                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Last Modified:' : 'Última Modificación:'}</span>
-                                <div style="font-size: 12px; font-weight: 600; color: #1E293B;">
-                                    ${updatedDate}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Conteo real de Recetas y Notas -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
-                            <div>
-                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Created Recipes:' : 'Recetas Creadas:'}</span>
-                                <div id="user-recipes-count-${user.id}" style="font-size: 13.5px; font-weight: 800; color: #059669;">
-                                    ${user.recipes_count !== undefined ? user.recipes_count : (isEn ? 'Loading...' : 'Consultando...')}
-                                </div>
-                            </div>
-                            <div>
-                                <span style="font-size: 11px; color: #94A3B8;">${isEn ? 'Created Notes:' : 'Notas Creadas:'}</span>
-                                <div id="user-notes-count-${user.id}" style="font-size: 13.5px; font-weight: 800; color: #059669;">
-                                    ${user.notes_count !== undefined ? user.notes_count : (isEn ? 'Loading...' : 'Consultando...')}
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Control de Módulo: Tareas y Prep List -->
