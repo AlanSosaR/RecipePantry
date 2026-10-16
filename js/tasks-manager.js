@@ -1001,8 +1001,8 @@
                         
                         <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
                             <div>
-                                <h3 style="font-size: 18px; font-weight: 800; color: #18181B; margin: 0;">Agregar a Prep List</h3>
-                                <p style="font-size: 12px; color: #71717A; margin: 2px 0 0 0;">Puedes vincular una receta para que se abra al tocar la tarea</p>
+                                <h3 id="prepTaskModalTitle" style="font-size: 18px; font-weight: 800; color: #18181B; margin: 0;">Agregar a Prep List</h3>
+                                <p id="prepTaskModalSubtitle" style="font-size: 12px; color: #71717A; margin: 2px 0 0 0;">Puedes vincular una receta para que se abra al tocar la tarea</p>
                             </div>
                             <button type="button" onclick="window.tasksManager.closeCreateModal()" style="background: rgba(0,0,0,0.04); border: none; width: 36px; height: 36px; border-radius: 50%; color: #71717A; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: -6px; margin-right: -4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.08)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
@@ -1010,6 +1010,8 @@
                         </div>
 
                         <form onsubmit="window.tasksManager.handleCreateTaskSubmit(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Input oculto para identificar modo edición -->
+                            <input type="hidden" id="editingTaskId" value="">
                             <!-- Field 1: Nombre de la tarea (M3 Expressive) -->
                             <div class="m3-expressive-field-group">
                                 <div class="m3-expressive-field">
@@ -1145,7 +1147,7 @@
                                 onmouseout="this.style.background='#12B078'; this.style.transform='translateY(0)';"
                                 onmousedown="this.style.transform='scale(0.98)';"
                                 >
-                                    Guardar Tarea
+                                    <span id="prepTaskSubmitBtnText">Guardar Tarea</span>
                                 </button>
                             </div>
                         </form>
@@ -1399,131 +1401,148 @@
             const actionUrl = isTrail ? 'https://web.trailapp.com/u/sign_in#/' : (isUrl ? task.qty : null);
 
             return `
-                <article id="task-card-${task.id}" class="task-card ${isCompleted ? 'task-completed' : ''} ${isArchived ? 'task-archived-item' : ''}" style="
-                    background: ${isCompleted ? '#F9FAF9' : '#FFFFFF'};
-                    border-radius: 22px;
-                    padding: 14px 16px;
-                    border: 1px solid ${task.recipe_id && !isCompleted ? 'rgba(18, 176, 120, 0.4)' : isTrail && !isCompleted ? 'rgba(2, 132, 199, 0.4)' : '#E4E4E7'};
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-                    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-                ">
-                    <!-- Checkbox Mint Circular -->
-                    <input 
-                        type="checkbox" 
-                        class="circle-mint-checkbox" 
-                        ${isCompleted ? 'checked' : ''} 
-                        onchange="window.tasksManager.toggleTaskStatus('${task.id}')"
-                        title="${isCompleted ? 'Marcar como pendiente' : 'Marcar como lista'}"
-                    >
+                <div class="task-card-swipe-container" style="position: relative; overflow: hidden; border-radius: 22px; width: 100%; box-sizing: border-box;">
+                    <!-- Fondo rojo de eliminación visible al deslizar a la izquierda -->
+                    <div class="task-swipe-delete-bg" style="position: absolute; inset: 0; background: #EF4444; border-radius: 22px; display: flex; align-items: center; justify-content: flex-end; padding-right: 22px; color: #FFFFFF; font-weight: 700; gap: 6px; user-select: none;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">delete</span>
+                        <span style="font-size: 13px; font-family: var(--font-display, 'Poppins', sans-serif);">Eliminar</span>
+                    </div>
 
-                    <!-- Main Info -->
-                    <div onclick="${actionUrl ? `window.open('${actionUrl}', '_blank')` : task.recipe_id ? `window.tasksManager.openRecipeView('${task.id}')` : `window.tasksManager.toggleTaskStatus('${task.id}')`}" style="flex: 1; min-width: 0; cursor: pointer;">
-                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px;">
-                            ${task.is_daily ? `
-                                <button type="button" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" title="Toca para cambiar a tarea puntual" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: #EAF8F2; color: #12B078; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
-                                    <span class="material-symbols-outlined" style="font-size: 12px;">autorenew</span>
-                                    Todos los días
+                    <!-- Tarjeta deslizable -->
+                    <article id="task-card-${task.id}" class="task-card ${isCompleted ? 'task-completed' : ''} ${isArchived ? 'task-archived-item' : ''}" 
+                        onpointerdown="window.tasksManager.handleCardPointerDown(event, '${task.id}')"
+                        onpointermove="window.tasksManager.handleCardPointerMove(event, '${task.id}')"
+                        onpointerup="window.tasksManager.handleCardPointerUp(event, '${task.id}')"
+                        onpointercancel="window.tasksManager.handleCardPointerUp(event, '${task.id}')"
+                        style="
+                            position: relative;
+                            z-index: 1;
+                            touch-action: pan-y;
+                            user-select: none;
+                            background: ${isCompleted ? '#F9FAF9' : '#FFFFFF'};
+                            border-radius: 22px;
+                            padding: 14px 16px;
+                            border: 1px solid ${task.recipe_id && !isCompleted ? 'rgba(18, 176, 120, 0.4)' : isTrail && !isCompleted ? 'rgba(2, 132, 199, 0.4)' : '#E4E4E7'};
+                            display: flex;
+                            align-items: center;
+                            gap: 14px;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+                            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.2s ease;
+                        ">
+                        <!-- Checkbox Mint Circular -->
+                        <input 
+                            type="checkbox" 
+                            class="circle-mint-checkbox" 
+                            ${isCompleted ? 'checked' : ''} 
+                            onchange="window.tasksManager.toggleTaskStatus('${task.id}')"
+                            title="${isCompleted ? 'Marcar como pendiente' : 'Marcar como lista'}"
+                        >
+
+                        <!-- Main Info -->
+                        <div onclick="if(window.tasksManager._swipePreventClick) return; ${actionUrl ? `window.open('${actionUrl}', '_blank')` : task.recipe_id ? `window.tasksManager.openRecipeView('${task.id}')` : `window.tasksManager.toggleTaskStatus('${task.id}')`}" style="flex: 1; min-width: 0; cursor: pointer;">
+                            ${isRolledOver ? `
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;" title="No se realizó el ${this.formatDateShort(taskDate)} y pasó a hoy">
+                                        <span class="material-symbols-outlined" style="font-size: 12px;">history</span>
+                                        Pendiente (${this.formatDateShort(taskDate)})
+                                    </span>
+                                </div>
+                            ` : ''}
+
+                            <div style="font-size: 15.5px; font-weight: 800; color: ${isCompleted ? '#A1A1AA' : '#18181B'}; ${isCompleted ? 'text-decoration: line-through;' : ''} display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                                ${task.is_daily ? `
+                                    <span title="Rutina diaria (Todos los días)" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 7px; background: #EAF8F2; color: #12B078; cursor: pointer; flex-shrink: 0;" onmouseover="this.style.background='#D1FAE5'" onmouseout="this.style.background='#EAF8F2'">
+                                        <span class="material-symbols-outlined" style="font-size: 17px; font-weight: 800;">all_inclusive</span>
+                                    </span>
+                                ` : ''}
+                                <span>${task.title}</span>
+                            </div>
+
+                            ${task.qty ? `
+                                <div style="font-size: 12px; font-weight: 500; color: #71717A; margin-top: 2px;">
+                                    ${isTrail ? `
+                                        <span style="color: #0284C7; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">checklist</span>
+                                            web.trailapp.com
+                                        </span>
+                                    ` : task.qty}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Right Action (Esquina Derecha) -->
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: ${actionUrl || task.recipe_id ? 'space-between' : 'center'}; align-self: stretch; flex-shrink: 0; min-height: 52px; gap: 6px;">
+                            ${actionUrl ? `
+                                <a href="${actionUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="
+                                    background: #E0F2FE;
+                                    color: #0369A1;
+                                    border: none;
+                                    font-weight: 800;
+                                    font-size: 11px;
+                                    padding: 6px 12px;
+                                    border-radius: 9999px;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
+                                    text-decoration: none;
+                                    cursor: pointer;
+                                    transition: all 0.15s;
+                                    white-space: nowrap;
+                                "
+                                onmouseover="this.style.background='#0284C7'; this.style.color='#FFFFFF';"
+                                onmouseout="this.style.background='#E0F2FE'; this.style.color='#0369A1';"
+                                title="Abrir en nueva pestaña"
+                                >
+                                    <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
+                                    <span>Abrir Trail</span>
+                                </a>
+                            ` : task.recipe_id ? `
+                                <button type="button" onclick="event.stopPropagation(); window.tasksManager.openRecipeView('${task.id}')" style="
+                                    background: #EAF8F2;
+                                    color: #12B078;
+                                    border: none;
+                                    font-weight: 800;
+                                    font-size: 11px;
+                                    padding: 6px 12px;
+                                    border-radius: 9999px;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
+                                    cursor: pointer;
+                                    transition: all 0.15s;
+                                    white-space: nowrap;
+                                "
+                                onmouseover="this.style.background='#12B078'; this.style.color='#FFFFFF';"
+                                onmouseout="this.style.background='#EAF8F2'; this.style.color='#12B078';"
+                                title="Abrir receta"
+                                >
+                                    <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
+                                    <span>Abrir receta</span>
                                 </button>
                             ` : ''}
 
-                            ${isRolledOver ? `
-                                <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;" title="No se realizó el ${this.formatDateShort(taskDate)} y pasó a hoy">
-                                    <span class="material-symbols-outlined" style="font-size: 12px;">history</span>
-                                    Pendiente (${this.formatDateShort(taskDate)})
-                                </span>
-                            ` : ''}
-                        </div>
-
-                        <div style="font-size: 15.5px; font-weight: 800; color: ${isCompleted ? '#A1A1AA' : '#18181B'}; ${isCompleted ? 'text-decoration: line-through;' : ''}">
-                            ${task.title}
-                        </div>
-
-                        ${task.qty ? `
-                            <div style="font-size: 12px; font-weight: 500; color: #71717A; margin-top: 2px;">
-                                ${isTrail ? `
-                                    <span style="color: #0284C7; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                                        <span class="material-symbols-outlined" style="font-size: 14px;">checklist</span>
-                                        web.trailapp.com
-                                    </span>
-                                ` : task.qty}
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- Right Action (Esquina Derecha) -->
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: ${actionUrl || task.recipe_id ? 'space-between' : 'center'}; align-self: stretch; flex-shrink: 0; min-height: 52px; gap: 6px;">
-                        ${actionUrl ? `
-                            <a href="${actionUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="
-                                background: #E0F2FE;
-                                color: #0369A1;
+                            <!-- Botón Editar Tarea -->
+                            <button type="button" onclick="event.stopPropagation(); window.tasksManager.openEditTaskModal('${task.id}')" style="
+                                background: none;
                                 border: none;
-                                font-weight: 800;
-                                font-size: 11px;
-                                padding: 6px 12px;
-                                border-radius: 9999px;
+                                color: #9CA3AF;
+                                padding: 5px;
+                                border-radius: 50%;
+                                cursor: pointer;
                                 display: inline-flex;
                                 align-items: center;
-                                gap: 4px;
-                                text-decoration: none;
-                                cursor: pointer;
+                                justify-content: center;
                                 transition: all 0.15s;
-                                white-space: nowrap;
                             "
-                            onmouseover="this.style.background='#0284C7'; this.style.color='#FFFFFF';"
-                            onmouseout="this.style.background='#E0F2FE'; this.style.color='#0369A1';"
-                            title="Abrir en nueva pestaña"
+                            onmouseover="this.style.color='#12B078'; this.style.background='rgba(18, 176, 120, 0.1)';"
+                            onmouseout="this.style.color='#9CA3AF'; this.style.background='none';"
+                            title="Editar tarea"
                             >
-                                <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
-                                <span>Abrir Trail</span>
-                            </a>
-                        ` : task.recipe_id ? `
-                            <button type="button" onclick="event.stopPropagation(); window.tasksManager.openRecipeView('${task.id}')" style="
-                                background: #EAF8F2;
-                                color: #12B078;
-                                border: none;
-                                font-weight: 800;
-                                font-size: 11px;
-                                padding: 6px 12px;
-                                border-radius: 9999px;
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 4px;
-                                cursor: pointer;
-                                transition: all 0.15s;
-                                white-space: nowrap;
-                            "
-                            onmouseover="this.style.background='#12B078'; this.style.color='#FFFFFF';"
-                            onmouseout="this.style.background='#EAF8F2'; this.style.color='#12B078';"
-                            title="Abrir receta"
-                            >
-                                <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
-                                <span>Abrir receta</span>
+                                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
                             </button>
-                        ` : ''}
-
-                        <button type="button" onclick="event.stopPropagation(); window.tasksManager.deleteTask('${task.id}')" style="
-                            background: none;
-                            border: none;
-                            color: #D4D4D8;
-                            padding: 4px;
-                            border-radius: 50%;
-                            cursor: pointer;
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            transition: color 0.15s;
-                        "
-                        onmouseover="this.style.color='#EF4444';"
-                        onmouseout="this.style.color='#D4D4D8';"
-                        title="Eliminar tarea"
-                        >
-                            <span class="material-symbols-outlined" style="font-size: 17px;">delete</span>
-                        </button>
-                    </div>
-                </article>
+                        </div>
+                    </article>
+                </div>
             `;
         }
 
@@ -1729,6 +1748,17 @@
             if (backdrop && sheet) {
                 backdrop.style.display = 'block';
                 sheet.style.display = 'block';
+
+                const editIdInput = document.getElementById('editingTaskId');
+                if (editIdInput) editIdInput.value = '';
+
+                const modalTitle = document.getElementById('prepTaskModalTitle');
+                if (modalTitle) modalTitle.textContent = 'Agregar a Prep List';
+                const modalSubtitle = document.getElementById('prepTaskModalSubtitle');
+                if (modalSubtitle) modalSubtitle.textContent = 'Puedes vincular una receta para que se abra al tocar la tarea';
+                const submitBtnText = document.getElementById('prepTaskSubmitBtnText');
+                if (submitBtnText) submitBtnText.textContent = 'Guardar Tarea';
+
                 const titleInput = document.getElementById('newTaskTitleInput');
                 if (titleInput) titleInput.value = '';
                 const qtyInput = document.getElementById('newTaskQtyInput');
@@ -1742,6 +1772,129 @@
                 setTimeout(() => {
                     if (titleInput) titleInput.focus();
                 }, 100);
+            }
+        }
+
+        /** Abre el modal para editar una tarea existente */
+        openEditTaskModal(taskId) {
+            const task = this.tasks.find(t => String(t.id) === String(taskId));
+            if (!task) return;
+
+            const backdrop = document.getElementById('prepTaskModalBackdrop');
+            const sheet = document.getElementById('prepTaskBottomSheet');
+            if (!backdrop || !sheet) return;
+
+            backdrop.style.display = 'block';
+            sheet.style.display = 'block';
+
+            const editIdInput = document.getElementById('editingTaskId');
+            if (editIdInput) editIdInput.value = task.id;
+
+            const modalTitle = document.getElementById('prepTaskModalTitle');
+            if (modalTitle) modalTitle.textContent = 'Editar Tarea';
+            const modalSubtitle = document.getElementById('prepTaskModalSubtitle');
+            if (modalSubtitle) modalSubtitle.textContent = 'Modifica el nombre, notas o vinculación de receta';
+            const submitBtnText = document.getElementById('prepTaskSubmitBtnText');
+            if (submitBtnText) submitBtnText.textContent = 'Guardar Cambios';
+
+            const titleInput = document.getElementById('newTaskTitleInput');
+            if (titleInput) titleInput.value = task.title || '';
+            const qtyInput = document.getElementById('newTaskQtyInput');
+            if (qtyInput) qtyInput.value = task.qty || '';
+            const dailyToggle = document.getElementById('newTaskDailyToggle');
+            if (dailyToggle) dailyToggle.checked = Boolean(task.is_daily);
+
+            this.clearSelectedRecipe();
+            if (task.recipe_id && task.recipe_id !== 'none') {
+                const recipeTitle = task.recipe_data 
+                    ? `${task.recipe_data.greenTitle || ''} ${task.recipe_data.blackTitle || ''}`.trim()
+                    : 'Receta vinculada';
+                this.selectRecipe(task.recipe_id, recipeTitle || 'Receta vinculada');
+            }
+
+            this.loadPantryRecipes();
+            setTimeout(() => {
+                if (titleInput) titleInput.focus();
+            }, 100);
+        }
+
+        /** Manejadores de Gesto Swipe a la izquierda para Eliminar Tarea */
+        handleCardPointerDown(e, taskId) {
+            if (e.target.closest('button, input, a, select')) return;
+            const card = document.getElementById(`task-card-${taskId}`);
+            if (!card) return;
+
+            this._swipeState = {
+                taskId: taskId,
+                pointerId: e.pointerId,
+                startX: e.clientX,
+                startY: e.clientY,
+                currentX: e.clientX,
+                isSwiping: false,
+                isVerticalScroll: false,
+                card: card
+            };
+        }
+
+        handleCardPointerMove(e, taskId) {
+            if (!this._swipeState || this._swipeState.taskId !== taskId) return;
+            if (this._swipeState.isVerticalScroll) return;
+
+            const deltaX = e.clientX - this._swipeState.startX;
+            const deltaY = e.clientY - this._swipeState.startY;
+
+            if (!this._swipeState.isSwiping) {
+                if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 7) {
+                    this._swipeState.isVerticalScroll = true;
+                    return;
+                }
+                if (deltaX < -8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    this._swipeState.isSwiping = true;
+                    this._swipePreventClick = true;
+                    if (this._swipeState.card.setPointerCapture) {
+                        try { this._swipeState.card.setPointerCapture(e.pointerId); } catch (_) {}
+                    }
+                }
+            }
+
+            if (this._swipeState.isSwiping && deltaX < 0) {
+                this._swipeState.currentX = e.clientX;
+                const card = this._swipeState.card;
+                const translateX = deltaX < -120 ? -120 + (deltaX + 120) * 0.3 : deltaX;
+                card.style.transition = 'none';
+                card.style.transform = `translateX(${translateX}px)`;
+            }
+        }
+
+        handleCardPointerUp(e, taskId) {
+            if (!this._swipeState || this._swipeState.taskId !== taskId) return;
+            const state = this._swipeState;
+            this._swipeState = null;
+
+            const deltaX = e.clientX - state.startX;
+            const card = state.card;
+
+            if (card && card.releasePointerCapture) {
+                try { card.releasePointerCapture(e.pointerId); } catch (_) {}
+            }
+
+            if (state.isSwiping) {
+                setTimeout(() => {
+                    this._swipePreventClick = false;
+                }, 350);
+
+                if (deltaX < -80) {
+                    card.style.transition = 'transform 0.22s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease-out';
+                    card.style.transform = 'translateX(-110%)';
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        this.deleteTask(taskId);
+                    }, 220);
+                    return;
+                }
+
+                card.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                card.style.transform = 'translateX(0)';
             }
         }
 
@@ -1944,6 +2097,15 @@
                 backdrop.style.display = 'none';
                 sheet.style.display = 'none';
             }
+            const editIdInput = document.getElementById('editingTaskId');
+            if (editIdInput) editIdInput.value = '';
+            const modalTitle = document.getElementById('prepTaskModalTitle');
+            if (modalTitle) modalTitle.textContent = 'Agregar a Prep List';
+            const modalSubtitle = document.getElementById('prepTaskModalSubtitle');
+            if (modalSubtitle) modalSubtitle.textContent = 'Puedes vincular una receta para que se abra al tocar la tarea';
+            const submitBtnText = document.getElementById('prepTaskSubmitBtnText');
+            if (submitBtnText) submitBtnText.textContent = 'Guardar Tarea';
+
             const titleInput = document.getElementById('newTaskTitleInput');
             if (titleInput) titleInput.value = '';
             const qtyInput = document.getElementById('newTaskQtyInput');
@@ -2047,6 +2209,50 @@
                         ingredients: ings
                     };
                 }
+            }
+
+            const editIdInput = document.getElementById('editingTaskId');
+            const editingId = editIdInput ? editIdInput.value.trim() : '';
+
+            // Si estamos editando una tarea existente
+            if (editingId) {
+                const task = this.tasks.find(t => String(t.id) === String(editingId));
+                if (task) {
+                    task.title = title;
+                    task.qty = qty;
+                    task.is_daily = isDaily;
+                    task.category = recipeId ? 'con_receta' : 'diario';
+                    task.recipe_id = recipeId;
+                    task.recipe_data = recipeData;
+                    task.portions = portions;
+                    task.updated_at = new Date().toISOString();
+
+                    this.saveCache();
+                    this.renderList();
+                    this.closeCreateModal();
+                    this.notify('Tarea actualizada con éxito', 'success');
+
+                    if (window.supabaseClient && !String(editingId).startsWith('temp_')) {
+                        try {
+                            await window.supabaseClient
+                                .from('prep_tasks')
+                                .update({
+                                    title,
+                                    qty,
+                                    is_daily: isDaily,
+                                    category: recipeId ? 'con_receta' : 'diario',
+                                    recipe_id: recipeId,
+                                    recipe_data: recipeData,
+                                    portions,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', editingId);
+                        } catch (err) {
+                            console.warn('⚠️ Error al actualizar tarea:', err);
+                        }
+                    }
+                }
+                return;
             }
 
             const currentUserId = window.authManager?.currentUser?.id || 
