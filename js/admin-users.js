@@ -53,9 +53,11 @@
             const checkAndRender = () => {
                 if (typeof document === 'undefined' || !document.getElementById) return;
                 const adminSection = document.getElementById('superadmin-users-section');
+                const adminCard = document.getElementById('superadmin-users-card');
                 if (adminSection && this.isSuperAdmin() && adminSection.children.length === 0) {
                     console.log('⚡ [AdminUsersManager] Autenticación reactiva detectada: renderizando panel Super Admin');
                     this.render(adminSection);
+                    if (adminCard) adminCard.style.display = 'flex';
                 }
             };
 
@@ -151,11 +153,16 @@
         async render(container) {
             if (!container) return;
 
+            const adminCard = document.getElementById('superadmin-users-card') || container.closest('#superadmin-users-card');
+
             // Restricción estricta de seguridad en cliente
             if (!this.isSuperAdmin()) {
                 container.innerHTML = '';
+                if (adminCard) adminCard.style.display = 'none';
                 return;
             }
+
+            if (adminCard) adminCard.style.display = 'flex';
 
             const isEn = this.isEnglish();
 
@@ -388,52 +395,36 @@
                         }
                     </style>
 
-                    <!-- Header M3 Expressive en color verde -->
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <div style="
-                                background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-                                color: white;
-                                width: 48px;
-                                height: 48px;
-                                border-radius: 16px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                flex-shrink: 0;
-                                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 26px;">admin_panel_settings</span>
-                            </div>
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #064E3B; letter-spacing: -0.02em;">
-                                        ${isEn ? 'User Management' : 'Gestión de Usuarios'}
-                                    </h3>
-                                </div>
-                                <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748B;">
-                                    ${isEn 
-                                        ? 'Global account control, authorization, and database management.' 
-                                        : 'Control global de cuentas, autorización de accesos y gestión de la base de datos.'}
-                                </p>
-                            </div>
+                    <!-- Header Gestión de Usuarios (Sin icono, botón en esquina superior derecha) -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #064E3B; letter-spacing: -0.02em;">
+                                ${isEn ? 'User Management' : 'Gestión de Usuarios'}
+                            </h3>
+                            <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #64748B; line-height: 1.35;">
+                                ${isEn 
+                                    ? 'Global account control, authorization, and database management.' 
+                                    : 'Control global de cuentas, autorización de accesos y gestión de la base de datos.'}
+                            </p>
                         </div>
 
-                        <!-- Botón Refrescar en verde -->
+                        <!-- Botón Refrescar en la esquina superior derecha -->
                         <button type="button" id="btn-admin-refresh-users" onclick="window.adminUsersManager.loadUsers(true)" style="
-                            padding: 8px 16px;
+                            padding: 7px 13px;
                             background: rgba(255, 255, 255, 0.95);
                             border: 1px solid #E2E8F0;
                             border-radius: 12px;
-                            font-size: 12.5px;
+                            font-size: 12px;
                             font-weight: 600;
                             color: #059669;
                             cursor: pointer;
                             display: flex;
                             align-items: center;
-                            gap: 6px;
+                            gap: 5px;
+                            flex-shrink: 0;
                             box-shadow: 0 2px 6px rgba(0,0,0,0.03);
                             transition: all 0.2s;
+                            white-space: nowrap;
                         " onmouseover="this.style.background='#ECFDF5'" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'">
                             <span class="material-symbols-outlined" style="font-size: 17px;">refresh</span>
                             <span>${isEn ? 'Refresh' : 'Actualizar'}</span>

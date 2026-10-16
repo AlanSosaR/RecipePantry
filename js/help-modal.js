@@ -33,13 +33,13 @@ class SettingsViewManager {
         this.container.innerHTML = `
             <div class="allergens-module" style="padding-top: 4px;">
 
-                <!-- TARJETA ÚNICA DE GESTIÓN Y ALMACENAMIENTO (Al inicio) -->
-                <div class="settings-panel-m3" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;">
-                    
-                    <!-- 1. Sección Super Administrador: Gestión de Usuarios (Al inicio) -->
+                <!-- 1. Tarjeta Independiente de Super Administrador: Gestión de Usuarios -->
+                <div id="superadmin-users-card" class="settings-panel-m3" style="display: none; margin-bottom: 24px;">
                     <div id="superadmin-users-section"></div>
+                </div>
 
-                    <!-- Sección B: Uso Offline y Almacenamiento -->
+                <!-- 2. Tarjeta Independiente: Uso Offline y Almacenamiento -->
+                <div class="settings-panel-m3" style="margin-bottom: 24px;">
                     <div>
                         <div class="safe-filter-header" style="margin-bottom: 14px;">
                             <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
@@ -81,42 +81,65 @@ class SettingsViewManager {
                                 <span>${t('offlineClearBtn', isEn ? 'Free up local space' : 'Liberar espacio local')}</span>
                             </button>
                         </div>
-                    </div>
 
+                        <!-- Restauración de opción: Borrar caché y recargar -->
+                        <div style="border-top: 1px solid #E2E8F0; margin: 18px 0 16px 0;"></div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 180px;">
+                                <div style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
+                                    ${isEn ? 'Reload & reset cache' : 'Recargar y vaciar caché'}
+                                </div>
+                                <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
+                                    ${isEn ? 'Clears temporary cache and forces fresh reload from server' : 'Elimina archivos temporales y fuerza la recarga limpia desde el servidor'}
+                                </div>
+                            </div>
+                            <button type="button" id="btn-settings-reload-cache" onclick="window.helpModal.handleClearCache()" 
+                                style="padding: 10px 16px; background: #F8FAFC; color: #334155; border: 1.5px solid #CBD5E1; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.03);"
+                                onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8';"
+                                onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">refresh</span>
+                                <span>${isEn ? 'Clear Cache & Reload' : 'Borrar caché y recargar'}</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Selector de Idioma en píldora unificada M3 (abarca el nombre y opciones) -->
-                <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 24px;">
+                <!-- Selector de Idioma en píldora unificada M3 que abarca todo el ancho en móvil -->
+                <div style="margin-top: 4px; margin-bottom: 24px; width: 100%;">
                     <div style="
-                        display: inline-flex;
+                        display: flex;
                         align-items: center;
+                        justify-content: space-between;
+                        width: 100%;
+                        box-sizing: border-box;
                         background: #FFFFFF;
                         border: 1.5px solid #E2E8F0;
                         border-radius: 100px;
-                        padding: 4px 5px 4px 14px;
+                        padding: 6px 8px 6px 18px;
                         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-                        gap: 8px;
+                        gap: 12px;
                     ">
                         <span style="
                             font-family: var(--font-display, 'Poppins', sans-serif);
-                            font-size: 13px;
+                            font-size: 13.5px;
                             font-weight: 700;
                             color: #475569;
                             letter-spacing: -0.01em;
                             display: flex;
                             align-items: center;
-                            gap: 4px;
+                            gap: 6px;
                         ">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">language</span>
                             ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
                         </span>
                         
-                        <div style="display: flex; gap: 3px; background: #F8FAFC; border-radius: 100px; padding: 3px;">
+                        <div style="display: flex; gap: 4px; background: #F8FAFC; border-radius: 100px; padding: 3px;">
                             <button type="button" onclick="window.helpModal.setLanguage('es')"
-                                style="border: none; padding: 6px 14px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
                                 Español
                             </button>
                             <button type="button" onclick="window.helpModal.setLanguage('en')"
-                                style="border: none; padding: 6px 14px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
                                 English
                             </button>
                         </div>
@@ -129,8 +152,12 @@ class SettingsViewManager {
 
         // Renderizar sección de Super Administrador si aplica
         const adminSection = document.getElementById('superadmin-users-section');
+        const adminCard = document.getElementById('superadmin-users-card');
         if (adminSection && window.adminUsersManager) {
             window.adminUsersManager.render(adminSection);
+            if (adminCard) {
+                adminCard.style.display = window.adminUsersManager.isSuperAdmin() ? 'flex' : 'none';
+            }
         }
 
         // Cargar estado offline asíncronamente
