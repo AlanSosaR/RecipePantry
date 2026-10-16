@@ -999,13 +999,13 @@
                     <div id="prepTaskBottomSheet" class="tasks-bottom-sheet" style="display: none;">
                         <div style="width: 38px; height: 5px; background: #D1D5DB; border-radius: 9999px; margin: 0 auto 16px auto;"></div>
                         
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
                             <div>
                                 <h3 style="font-size: 18px; font-weight: 800; color: #18181B; margin: 0;">Agregar a Prep List</h3>
                                 <p style="font-size: 12px; color: #71717A; margin: 2px 0 0 0;">Puedes vincular una receta para que se abra al tocar la tarea</p>
                             </div>
-                            <button type="button" onclick="window.tasksManager.closeCreateModal()" style="background: none; border: none; padding: 6px; border-radius: 50%; color: #9CA3AF; cursor: pointer;">
-                                <span class="material-symbols-outlined">close</span>
+                            <button type="button" onclick="window.tasksManager.closeCreateModal()" style="background: rgba(0,0,0,0.04); border: none; width: 36px; height: 36px; border-radius: 50%; color: #71717A; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: -6px; margin-right: -4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.08)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
                             </button>
                         </div>
 
@@ -1026,7 +1026,6 @@
                                         Nombre de la tarea *
                                     </label>
                                 </div>
-                                <div class="m3-expressive-supporting">Ej. Fish batter, Picar cebolla, Pedir cerveza...</div>
                             </div>
 
                             <!-- Field 2: Recipe Search & Link Picker (M3 Expressive) -->
@@ -1093,7 +1092,6 @@
                                         Nota / Información adicional (opcional)
                                     </label>
                                 </div>
-                                <div class="m3-expressive-supporting">Ej. Estación, turno, enlace o detalle...</div>
                             </div>
 
                             <!-- Daily Routine Toggle -->
