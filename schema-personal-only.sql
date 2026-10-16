@@ -182,3 +182,67 @@ CREATE INDEX idx_note_items_note ON public.note_items(note_id);
 -- Enable RLS for Notes
 ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.note_items ENABLE ROW LEVEL SECURITY;
+
+-- 11. Suppliers Table
+CREATE TABLE IF NOT EXISTS public.suppliers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID,
+    name VARCHAR(255) NOT NULL,
+    contact_name VARCHAR(255),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    image_url TEXT,
+    category VARCHAR(100) DEFAULT 'otros',
+    delivery_days TEXT[] DEFAULT '{}'::text[],
+    cutoff_time TIME WITHOUT TIME ZONE DEFAULT '18:00:00'::time,
+    notes TEXT,
+    is_active BOOLEAN DEFAULT true,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 12. Supplier Items Table
+CREATE TABLE IF NOT EXISTS public.supplier_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    supplier_id UUID REFERENCES public.suppliers(id) ON DELETE CASCADE,
+    user_id UUID,
+    name VARCHAR(255) NOT NULL,
+    image_url TEXT,
+    category VARCHAR(100),
+    unit VARCHAR(50) DEFAULT 'unidad',
+    package_format VARCHAR(100),
+    notes TEXT,
+    is_active BOOLEAN DEFAULT true,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS idx_suppliers_user ON public.suppliers(user_id);
+CREATE INDEX IF NOT EXISTS idx_supplier_items_supplier ON public.supplier_items(supplier_id);
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.supplier_items ENABLE ROW LEVEL SECURITY;
+
+-- 13. Prep Tasks Table (To Do / Prep List)
+CREATE TABLE IF NOT EXISTS public.prep_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    title TEXT NOT NULL,
+    qty TEXT DEFAULT '',
+    category VARCHAR(50) DEFAULT 'diario',
+    is_daily BOOLEAN DEFAULT true,
+    completed BOOLEAN DEFAULT false,
+    recipe_id TEXT,
+    recipe_data JSONB,
+    portions INTEGER DEFAULT 1,
+    order_index INTEGER DEFAULT 0,
+    is_shared BOOLEAN DEFAULT true,
+    due_date DATE DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS idx_prep_tasks_due_date ON public.prep_tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_prep_tasks_user_id ON public.prep_tasks(user_id);
+ALTER TABLE public.prep_tasks ENABLE ROW LEVEL SECURITY;
