@@ -180,12 +180,13 @@
             return days.map(d => {
                 const isSelected = d.dateStr === selected;
                 const todayStr = this.getTodayDateString();
-                // Contar actividades para este día (diarias recurrentes + tareas de esta fecha + arrastradas si es hoy o posterior)
+                // Contar actividades para este día (diarias recurrentes + tareas de esta fecha + arrastradas de días previos únicamente a hoy)
                 const dayTasks = this.tasks.filter(t => {
                     if (t.is_daily) return true;
-                    const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : '');
+                    const rawDate = t.due_date || (t.created_at ? t.created_at : '');
+                    const taskDate = String(rawDate).trim().slice(0, 10);
                     if (taskDate === d.dateStr) return true;
-                    if (!t.completed && taskDate < d.dateStr && d.dateStr >= todayStr) return true;
+                    if (!t.completed && taskDate < todayStr && d.dateStr === todayStr) return true;
                     return false;
                 });
                 const count = dayTasks.length;
@@ -229,9 +230,10 @@
                 const todayStr = this.getTodayDateString();
                 const dayTasks = this.tasks.filter(t => {
                     if (t.is_daily) return true;
-                    const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : '');
+                    const rawDate = t.due_date || (t.created_at ? t.created_at : '');
+                    const taskDate = String(rawDate).trim().slice(0, 10);
                     if (taskDate === dateStr) return true;
-                    if (!t.completed && taskDate < dateStr && dateStr >= todayStr) return true;
+                    if (!t.completed && taskDate < todayStr && dateStr === todayStr) return true;
                     return false;
                 });
                 const count = dayTasks.length;
@@ -788,42 +790,13 @@
             }
         }
 
-        /** Pasa automáticamente las tareas incompletas de días pasados a la fecha de hoy en To-Do */
+        /** Sincroniza tareas pendientes no completadas de días pasados para que se visualicen en la fecha de hoy */
         async rolloverPendingTasks() {
-            const todayStr = this.getTodayDateString();
-            const overdueTasks = this.tasks.filter(t => {
-                if (t.is_daily) return false;
-                if (t.completed) return false;
-                const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : todayStr);
-                return taskDate < todayStr;
-            });
-
-            if (overdueTasks.length === 0) return;
-
-            const overdueIds = [];
-            overdueTasks.forEach(t => {
-                t.original_due_date = t.original_due_date || t.due_date;
-                t.due_date = todayStr;
-                overdueIds.push(t.id);
-            });
-
-            this.saveCache();
+            // El traspaso de tareas pendientes no realizadas de días previos hacia la fecha de hoy
+            // se gestiona de forma dinámica en renderList() y los contadores del carrusel,
+            // manteniendo intacta la fecha original de programación de la tarea.
             this.renderList();
             this.updateCarouselBadges();
-
-            if (window.supabaseClient && overdueIds.length > 0) {
-                try {
-                    await window.supabaseClient
-                        .from('prep_tasks')
-                        .update({
-                            due_date: todayStr,
-                            updated_at: new Date().toISOString()
-                        })
-                        .in('id', overdueIds.filter(id => !String(id).startsWith('temp_')));
-                } catch (e) {
-                    console.warn('⚠️ Error al pasar tareas pendientes al siguiente día en Supabase:', e);
-                }
-            }
         }
 
         /** Carga todas las recetas existentes del usuario (Dashboard, DB, Supabase, localDB) para poder vincularlas a tareas */
@@ -1393,9 +1366,13 @@
         /** Renderiza la tarjeta individual de una tarea (activa o archivada) */
         renderTaskCard(task, selDate, isArchived = false) {
             const todayStr = this.getTodayDateString();
-            const taskDate = task.due_date || (task.created_at ? task.created_at.split('T')[0] : todayStr);
-            const isRolledOver = !task.is_daily && taskDate < selDate;
-            const isCompleted = this.isTaskCompletedForDate(task, selDate);
+            const rawDate = task.due_date || (task.created_at ? task.created_at : todayStr);
+            const taskDate = String(rawDate).trim().slice(0, 10);
+            const cleanSelDate = String(selDate || todayStr).trim().slice(0, 10);
+            const isCompleted = this.isTaskCompletedForDate(task, cleanSelDate);
+            // Solo se muestra como pendiente si su fecha ya finalizó a medianoche (estrictamente anterior a hoy),
+            // no fue completada y estamos visualizando el día de hoy
+            const isRolledOver = !task.is_daily && !isCompleted && taskDate < todayStr && cleanSelDate === todayStr;
             const isTrail = (task.title && task.title.toLowerCase().includes('trail')) || (task.qty && task.qty.includes('trailapp.com'));
             const isUrl = task.qty && (task.qty.startsWith('http://') || task.qty.startsWith('https://'));
             const actionUrl = isTrail ? 'https://web.trailapp.com/u/sign_in#/' : (isUrl ? task.qty : null);
@@ -1580,20 +1557,23 @@
 
             const todayStr = this.getTodayDateString();
             const selDate = this.selectedDate || todayStr;
+            const cleanSelDate = String(selDate).trim().slice(0, 10);
             const q = this.searchQuery ? this.searchQuery.toLowerCase().trim() : '';
 
             let filtered = this.tasks.filter(t => {
-                const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : todayStr);
+                const rawDate = t.due_date || (t.created_at ? t.created_at : todayStr);
+                const taskDate = String(rawDate).trim().slice(0, 10);
+
                 // Si el usuario está buscando texto, buscar en todas las tareas sin importar fecha
                 let matchesDate = false;
                 if (q) {
                     matchesDate = true;
                 } else if (t.is_daily) {
                     matchesDate = true;
-                } else if (taskDate === selDate) {
+                } else if (taskDate === cleanSelDate) {
                     matchesDate = true;
-                } else if (!t.completed && taskDate < selDate && selDate >= todayStr) {
-                    // Si una tarea no se completó en un día previo, se arrastra / pasa al siguiente día
+                } else if (!t.completed && taskDate < todayStr && cleanSelDate === todayStr) {
+                    // Si una tarea no se completó en un día previo (ya finalizado a medianoche), pasa únicamente al día de hoy
                     matchesDate = true;
                 }
                 if (!matchesDate) return false;
@@ -1665,8 +1645,8 @@
             }
 
             // Separar tareas activas (pendientes) y tareas realizadas
-            const activeTasks = filtered.filter(t => !this.isTaskCompletedForDate(t, selDate));
-            const completedTasks = filtered.filter(t => this.isTaskCompletedForDate(t, selDate));
+            const activeTasks = filtered.filter(t => !this.isTaskCompletedForDate(t, cleanSelDate));
+            const completedTasks = filtered.filter(t => this.isTaskCompletedForDate(t, cleanSelDate));
 
             // Si hay búsqueda y hay tareas realizadas coincidentes, abrir automáticamente la carpeta
             const hasSearchMatchInCompleted = Boolean(q && completedTasks.length > 0);
@@ -1676,12 +1656,12 @@
 
             // 1. Carpeta colapsable "Realizadas" (ubicada justo debajo del carrusel de los días)
             if (completedTasks.length > 0) {
-                html += this.renderCompletedAccordion(completedTasks, selDate, isFolderOpen);
+                html += this.renderCompletedAccordion(completedTasks, cleanSelDate, isFolderOpen);
             }
 
             // 2. Tareas activas (pendientes)
             if (activeTasks.length > 0) {
-                html += activeTasks.map(task => this.renderTaskCard(task, selDate, false)).join('');
+                html += activeTasks.map(task => this.renderTaskCard(task, cleanSelDate, false)).join('');
             } else if (completedTasks.length > 0 && !q) {
                 // Si no hay tareas activas y todas están realizadas, mostrar banner felicitando
                 html += this.renderAllDoneBanner();
@@ -1695,16 +1675,18 @@
         updateMetrics() {
             const todayStr = this.getTodayDateString();
             const selDate = this.selectedDate || todayStr;
+            const cleanSelDate = String(selDate).trim().slice(0, 10);
             const currentDayTasks = this.tasks.filter(t => {
-                const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : todayStr);
+                const rawDate = t.due_date || (t.created_at ? t.created_at : todayStr);
+                const taskDate = String(rawDate).trim().slice(0, 10);
                 if (t.is_daily) return true;
-                if (taskDate === selDate) return true;
-                if (!t.completed && taskDate < selDate && selDate >= todayStr) return true;
+                if (taskDate === cleanSelDate) return true;
+                if (!t.completed && taskDate < todayStr && cleanSelDate === todayStr) return true;
                 return false;
             });
 
             const total = currentDayTasks.length;
-            const completed = currentDayTasks.filter(t => this.isTaskCompletedForDate(t, selDate)).length;
+            const completed = currentDayTasks.filter(t => this.isTaskCompletedForDate(t, cleanSelDate)).length;
             const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
             const dailyCount = currentDayTasks.filter(t => t.is_daily).length;
 
