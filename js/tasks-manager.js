@@ -51,7 +51,7 @@
             const now = new Date();
             this.currentViewYear = now.getFullYear();
             this.currentViewMonth = now.getMonth();
-            this.isCompletedFolderOpen = true;
+            this.isCompletedFolderOpen = false;
             this._trailReminderInterval = null;
             this.loadCache();
             this.initEvents();
@@ -1645,17 +1645,17 @@
 
             let html = '';
 
-            // 1. Tareas activas
+            // 1. Carpeta colapsable "Realizadas" (ubicada justo debajo del carrusel de los días)
+            if (completedTasks.length > 0) {
+                html += this.renderCompletedAccordion(completedTasks, selDate, isFolderOpen);
+            }
+
+            // 2. Tareas activas (pendientes)
             if (activeTasks.length > 0) {
                 html += activeTasks.map(task => this.renderTaskCard(task, selDate, false)).join('');
             } else if (completedTasks.length > 0 && !q) {
-                // Si no hay activas y todas están realizadas, mostrar banner felicitando
+                // Si no hay tareas activas y todas están realizadas, mostrar banner felicitando
                 html += this.renderAllDoneBanner();
-            }
-
-            // 2. Carpeta colapsable "Realizadas" (solo se renderiza si existen tareas realizadas)
-            if (completedTasks.length > 0) {
-                html += this.renderCompletedAccordion(completedTasks, selDate, isFolderOpen);
             }
 
             container.innerHTML = html;
