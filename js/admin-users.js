@@ -1167,54 +1167,82 @@
                             </div>
                         </div>
 
-                        <!-- Selector M3 de Modo con Switch directo (No Super Admin) -->
+                        <!-- Selector M3 de Modo con Segmented Buttons (No Super Admin) -->
                         ${(!isSuperAdminUser && user.can_access_suppliers) ? `
                             <div style="
-                                border-top: 1px dashed ${user.suppliers_mode === 'empty' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
+                                border-top: 1px dashed rgba(226, 232, 240, 0.9);
                                 padding-top: 10px;
                                 display: flex;
-                                align-items: center;
-                                justify-content: space-between;
-                                gap: 12px;
+                                flex-direction: column;
+                                gap: 8px;
                             ">
-                                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                                    <div style="
-                                        width: 28px;
-                                        height: 28px;
-                                        border-radius: 50%;
-                                        background: ${user.suppliers_mode === 'empty' ? '#DBEAFE' : '#DCFCE7'};
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        flex-shrink: 0;
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#059669'};">
-                                            ${user.suppliers_mode === 'empty' ? 'inventory_2' : 'group'}
-                                        </span>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; min-width: 0;">
-                                        <span style="font-size: 12.5px; font-weight: 700; color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#065F46'}; line-height: 1.2;">
-                                            ${user.suppliers_mode === 'empty'
-                                                ? (isEn ? 'Empty Mode' : 'Modo Vacío')
-                                                : (isEn ? 'Shared Mode' : 'Modo Compartido')}
-                                        </span>
-                                        <span style="font-size: 10.5px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#047857'}; opacity: 0.85; line-height: 1.2; margin-top: 2px;">
-                                            ${user.suppliers_mode === 'empty'
-                                                ? (isEn ? 'Own & independent catalog' : 'Catálogo propio e independiente')
-                                                : (isEn ? 'Shared with Super User' : 'Compartido con el Super Usuario')}
-                                        </span>
-                                    </div>
-                                </div>
-                                <label class="m3-switch" title="${user.suppliers_mode !== 'empty' ? (isEn ? 'Shared Mode (click to switch to Empty Mode)' : 'Modo Compartido (clic para cambiar a Modo Vacío)') : (isEn ? 'Empty Mode (click to switch to Shared Mode)' : 'Modo Vacío (clic para cambiar a Modo Compartido)')}">
-                                    <input type="checkbox" id="switch-suppliers-mode-${user.id}" 
-                                        ${user.suppliers_mode !== 'empty' ? 'checked' : ''} 
-                                        onchange="window.adminUsersManager.handleToggleSuppliersMode('${user.id}', this.checked)" />
-                                    <span class="m3-switch-track">
-                                        <span class="m3-switch-thumb">
-                                            <span class="material-symbols-outlined">${user.suppliers_mode !== 'empty' ? 'check' : 'close'}</span>
-                                        </span>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <span style="font-size: 11.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">
+                                        ${isEn ? 'Operating Mode' : 'Modo de Operación'}
                                     </span>
-                                </label>
+                                    <span style="font-size: 11px; font-weight: 600; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#059669'};">
+                                        ${user.suppliers_mode === 'empty' 
+                                            ? (isEn ? '● Independent Catalog' : '● Catálogo Independiente') 
+                                            : (isEn ? '● Synced with Super User' : '● Sincronizado')}
+                                    </span>
+                                </div>
+                                <div style="
+                                    display: flex;
+                                    background: #F1F5F9;
+                                    border: 1px solid #E2E8F0;
+                                    border-radius: 100px;
+                                    padding: 3px;
+                                    gap: 4px;
+                                    width: 100%;
+                                    box-sizing: border-box;
+                                ">
+                                    <button type="button" 
+                                        onclick="window.adminUsersManager.handleSetSuppliersMode('${user.id}', 'shared')"
+                                        style="
+                                            flex: 1;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            gap: 6px;
+                                            padding: 8px 12px;
+                                            border-radius: 100px;
+                                            border: none;
+                                            font-family: var(--font-display, 'Poppins', sans-serif);
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            cursor: pointer;
+                                            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                            ${user.suppliers_mode !== 'empty' 
+                                                ? 'background: #10B981; color: #FFFFFF; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);' 
+                                                : 'background: transparent; color: #64748B;'}
+                                        ">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; ${user.suppliers_mode !== 'empty' ? 'color: #FFFFFF;' : 'color: #94A3B8;'}">group</span>
+                                        <span>${isEn ? 'Shared Mode' : 'Modo Compartido'}</span>
+                                    </button>
+                                    <button type="button" 
+                                        onclick="window.adminUsersManager.handleSetSuppliersMode('${user.id}', 'empty')"
+                                        style="
+                                            flex: 1;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            gap: 6px;
+                                            padding: 8px 12px;
+                                            border-radius: 100px;
+                                            border: none;
+                                            font-family: var(--font-display, 'Poppins', sans-serif);
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            cursor: pointer;
+                                            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                            ${user.suppliers_mode === 'empty' 
+                                                ? 'background: #2563EB; color: #FFFFFF; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);' 
+                                                : 'background: transparent; color: #64748B;'}
+                                        ">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; ${user.suppliers_mode === 'empty' ? 'color: #FFFFFF;' : 'color: #94A3B8;'}">inventory_2</span>
+                                        <span>${isEn ? 'Empty Mode' : 'Modo Vacío'}</span>
+                                    </button>
+                                </div>
                             </div>
                         ` : ''}
                     </div>
@@ -1305,54 +1333,82 @@
                             </div>
                         </div>
 
-                        <!-- Selector M3 de Modo con Switch directo (No Super Admin) -->
+                        <!-- Selector M3 de Modo con Segmented Buttons (No Super Admin) -->
                         ${(!isSuperAdminUser && user.can_access_tasks) ? `
                             <div style="
-                                border-top: 1px dashed ${user.tasks_mode === 'isolated' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
+                                border-top: 1px dashed rgba(226, 232, 240, 0.9);
                                 padding-top: 10px;
                                 display: flex;
-                                align-items: center;
-                                justify-content: space-between;
-                                gap: 12px;
+                                flex-direction: column;
+                                gap: 8px;
                             ">
-                                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                                    <div style="
-                                        width: 28px;
-                                        height: 28px;
-                                        border-radius: 50%;
-                                        background: ${user.tasks_mode === 'isolated' ? '#DBEAFE' : '#DCFCE7'};
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        flex-shrink: 0;
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#059669'};">
-                                            ${user.tasks_mode === 'isolated' ? 'lock' : 'sync'}
-                                        </span>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; min-width: 0;">
-                                        <span style="font-size: 12.5px; font-weight: 700; color: ${user.tasks_mode === 'isolated' ? '#1D4ED8' : '#065F46'}; line-height: 1.2;">
-                                            ${user.tasks_mode === 'isolated'
-                                                ? (isEn ? 'Empty Mode' : 'Modo Vacío')
-                                                : (isEn ? 'Shared Mode' : 'Modo Compartido')}
-                                        </span>
-                                        <span style="font-size: 10.5px; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#047857'}; opacity: 0.85; line-height: 1.2; margin-top: 2px;">
-                                            ${user.tasks_mode === 'isolated'
-                                                ? (isEn ? 'Private & independent list' : 'Lista privada e independiente')
-                                                : (isEn ? 'Live sync with Super User' : 'Sincronizado con el Super Usuario')}
-                                        </span>
-                                    </div>
-                                </div>
-                                <label class="m3-switch" title="${user.tasks_mode !== 'isolated' ? (isEn ? 'Shared Mode (click to switch to Empty Mode)' : 'Modo Compartido (clic para cambiar a Modo Vacío)') : (isEn ? 'Empty Mode (click to switch to Shared Mode)' : 'Modo Vacío (clic para cambiar a Modo Compartido)')}">
-                                    <input type="checkbox" id="switch-tasks-mode-${user.id}" 
-                                        ${user.tasks_mode !== 'isolated' ? 'checked' : ''} 
-                                        onchange="window.adminUsersManager.handleToggleTasksMode('${user.id}', this.checked)" />
-                                    <span class="m3-switch-track">
-                                        <span class="m3-switch-thumb">
-                                            <span class="material-symbols-outlined">${user.tasks_mode !== 'isolated' ? 'check' : 'close'}</span>
-                                        </span>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <span style="font-size: 11.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">
+                                        ${isEn ? 'Operating Mode' : 'Modo de Operación'}
                                     </span>
-                                </label>
+                                    <span style="font-size: 11px; font-weight: 600; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#059669'};">
+                                        ${user.tasks_mode === 'isolated' 
+                                            ? (isEn ? '● Independent Prep List' : '● Lista Independiente') 
+                                            : (isEn ? '● Synced with Super User' : '● Sincronizado')}
+                                    </span>
+                                </div>
+                                <div style="
+                                    display: flex;
+                                    background: #F1F5F9;
+                                    border: 1px solid #E2E8F0;
+                                    border-radius: 100px;
+                                    padding: 3px;
+                                    gap: 4px;
+                                    width: 100%;
+                                    box-sizing: border-box;
+                                ">
+                                    <button type="button" 
+                                        onclick="window.adminUsersManager.handleSetTasksMode('${user.id}', 'shared')"
+                                        style="
+                                            flex: 1;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            gap: 6px;
+                                            padding: 8px 12px;
+                                            border-radius: 100px;
+                                            border: none;
+                                            font-family: var(--font-display, 'Poppins', sans-serif);
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            cursor: pointer;
+                                            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                            ${user.tasks_mode !== 'isolated' 
+                                                ? 'background: #10B981; color: #FFFFFF; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);' 
+                                                : 'background: transparent; color: #64748B;'}
+                                        ">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; ${user.tasks_mode !== 'isolated' ? 'color: #FFFFFF;' : 'color: #94A3B8;'}">sync</span>
+                                        <span>${isEn ? 'Shared Mode' : 'Modo Compartido'}</span>
+                                    </button>
+                                    <button type="button" 
+                                        onclick="window.adminUsersManager.handleSetTasksMode('${user.id}', 'isolated')"
+                                        style="
+                                            flex: 1;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            gap: 6px;
+                                            padding: 8px 12px;
+                                            border-radius: 100px;
+                                            border: none;
+                                            font-family: var(--font-display, 'Poppins', sans-serif);
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            cursor: pointer;
+                                            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                            ${user.tasks_mode === 'isolated' 
+                                                ? 'background: #2563EB; color: #FFFFFF; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);' 
+                                                : 'background: transparent; color: #64748B;'}
+                                        ">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; ${user.tasks_mode === 'isolated' ? 'color: #FFFFFF;' : 'color: #94A3B8;'}">lock</span>
+                                        <span>${isEn ? 'Empty Mode' : 'Modo Vacío'}</span>
+                                    </button>
+                                </div>
                             </div>
                         ` : ''}
                     </div>
@@ -1688,11 +1744,20 @@
         }
 
         /**
+         * Cambia directamente el modo del módulo Proveedores mediante Segmented Buttons
+         */
+        async handleSetSuppliersMode(userId, mode) {
+            const user = this.users.find(u => u.id === userId);
+            if (user && user.suppliers_mode === mode) return;
+            await this._executeToggleSuppliersAccess(userId, true, mode);
+        }
+
+        /**
          * Alterna directamente entre Modo Compartido y Modo Vacío para el módulo de Proveedores
          */
         async handleToggleSuppliersMode(userId, isShared) {
             const mode = isShared ? 'shared' : 'empty';
-            await this.handleSetSuppliersAccess(userId, true, mode);
+            await this.handleSetSuppliersMode(userId, mode);
         }
 
         /**
@@ -2220,11 +2285,20 @@
         }
 
         /**
+         * Cambia directamente el modo del módulo Prep List mediante Segmented Buttons
+         */
+        async handleSetTasksMode(userId, mode) {
+            const user = this.users.find(u => u.id === userId);
+            if (user && user.tasks_mode === mode) return;
+            await this.handleSetTasksAccess(userId, true, mode);
+        }
+
+        /**
          * Alterna directamente entre Modo Compartido y Modo Vacío para el módulo Prep List
          */
         async handleToggleTasksMode(userId, isShared) {
             const mode = isShared ? 'shared' : 'isolated';
-            await this.handleSetTasksAccess(userId, true, mode);
+            await this.handleSetTasksMode(userId, mode);
         }
 
         /**
