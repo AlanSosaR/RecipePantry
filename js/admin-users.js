@@ -1255,141 +1255,128 @@
 
                     <!-- Control de Módulo: Tareas y Prep List -->
                     <div class="admin-sheet-tasks-config-card" style="
-                        background: #FFFFFF;
-                        border: 1.5px solid ${user.can_access_tasks ? '#10B981' : '#E2E8F0'};
+                        background: ${(isSuperAdminUser || user.can_access_tasks) 
+                            ? (user.tasks_mode === 'isolated' && !isSuperAdminUser ? '#EFF6FF' : '#F0FDF4') 
+                            : '#F8FAFC'};
+                        border: 1px solid ${(isSuperAdminUser || user.can_access_tasks) 
+                            ? (user.tasks_mode === 'isolated' && !isSuperAdminUser ? '#BFDBFE' : '#BBF7D0') 
+                            : '#E2E8F0'};
                         border-radius: 18px;
                         padding: 14px 16px;
-                        margin-top: 6px;
                         display: flex;
                         flex-direction: column;
-                        gap: 12px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+                        gap: 10px;
+                        transition: background-color 0.25s ease, border-color 0.25s ease;
                     ">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
                                 <div style="
-                                    width: 36px;
-                                    height: 36px;
+                                    width: 40px;
+                                    height: 40px;
                                     border-radius: 12px;
-                                    background: ${user.can_access_tasks ? '#EAF8F2' : '#F1F5F9'};
-                                    color: ${user.can_access_tasks ? '#12B078' : '#64748B'};
+                                    background: ${(isSuperAdminUser || user.can_access_tasks) 
+                                        ? (user.tasks_mode === 'isolated' && !isSuperAdminUser ? '#DBEAFE' : '#DCFCE7') 
+                                        : '#F1F5F9'};
+                                    color: ${(isSuperAdminUser || user.can_access_tasks) 
+                                        ? (user.tasks_mode === 'isolated' && !isSuperAdminUser ? '#2563EB' : '#047857') 
+                                        : '#64748B'};
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
                                     flex-shrink: 0;
+                                    transition: all 0.25s ease;
                                 ">
-                                    <span class="material-symbols-outlined" style="font-size: 22px;">checklist</span>
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">
+                                        ${(user.tasks_mode === 'isolated' && !isSuperAdminUser) ? 'lock' : 'checklist'}
+                                    </span>
                                 </div>
-                                <div>
-                                    <div style="font-size: 13.5px; font-weight: 800; color: #1E293B;">
-                                        ${isEn ? 'Daily Prep & To-Do Module' : 'Módulo Prep List & Tareas Diarias'}
+                                <div style="min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
+                                            ${isEn ? 'Daily Prep & To-Do Module' : 'Módulo Prep List & Tareas Diarias'}
+                                        </span>
+                                        ${isSuperAdminUser ? `
+                                            <span style="
+                                                font-size: 10px;
+                                                font-weight: 800;
+                                                padding: 1.5px 7px;
+                                                border-radius: 100px;
+                                                background: #DCFCE7;
+                                                color: #047857;
+                                            ">
+                                                ${isEn ? 'Super Admin' : 'Super Admin'}
+                                            </span>
+                                        ` : ''}
                                     </div>
-                                    <div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">
-                                        ${user.can_access_tasks 
-                                            ? (isEn ? 'Enabled for this user' : 'Habilitado para este usuario') 
-                                            : (isEn ? 'Disabled (Hidden in sidebar)' : 'Deshabilitado (Oculto en menú)')}
+                                    <div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.4;">
+                                        ${isSuperAdminUser
+                                            ? (isEn ? 'Full permanent access granted.' : 'Acceso total permanente por ser Super Administrador.')
+                                            : (user.can_access_tasks 
+                                                ? (user.tasks_mode === 'isolated'
+                                                    ? (isEn ? 'Private module enabled: user has an independent empty prep list.' : 'Acceso activado con lista propia (módulo vacío e independiente).')
+                                                    : (isEn ? 'Shared access enabled: tasks sync live with Super Admin.' : 'Acceso activado con sincronización en vivo con el Super Usuario.'))
+                                                : (isEn ? 'Access disabled: hidden from user navigation.' : 'Acceso desactivado: el módulo está oculto en su menú.'))}
                                     </div>
                                 </div>
                             </div>
 
-                            ${!isSuperAdminUser ? `
-                                <!-- Switch Habilitar/Deshabilitar M3 -->
-                                <button type="button" onclick="window.adminUsersManager.onTasksAccessToggle('${user.id}', ${!user.can_access_tasks})" style="
-                                    border: none;
-                                    background: ${user.can_access_tasks ? '#10B981' : '#E2E8F0'};
-                                    color: ${user.can_access_tasks ? '#FFFFFF' : '#475569'};
-                                    font-size: 11.5px;
-                                    font-weight: 800;
-                                    padding: 6px 12px;
-                                    border-radius: 9999px;
-                                    cursor: pointer;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 5px;
-                                    transition: all 0.2s;
-                                ">
-                                    <span class="material-symbols-outlined" style="font-size: 15px;">${user.can_access_tasks ? 'check' : 'toggle_off'}</span>
-                                    <span>${user.can_access_tasks ? (isEn ? 'Enabled' : 'Habilitado') : (isEn ? 'Disabled' : 'Deshabilitado')}</span>
-                                </button>
-                            ` : `
-                                <span style="font-size: 11px; font-weight: 800; color: #059669; background: #D1FAE5; padding: 3px 9px; border-radius: 9999px;">
-                                    ${isEn ? 'Master Owner' : 'Propietario Maestro'}
-                                </span>
-                            `}
+                            <!-- Switch M3 Expressive -->
+                            <div style="display: flex; align-items: center; flex-shrink: 0;">
+                                ${isSuperAdminUser ? `
+                                    <span class="material-symbols-outlined" title="${isEn ? 'Protected' : 'Protegido'}" style="font-size: 20px; color: #10B981; padding: 6px;">lock</span>
+                                ` : `
+                                    <label class="m3-switch" title="${user.can_access_tasks ? (isEn ? 'Click to disable' : 'Clic para desactivar') : (isEn ? 'Click to enable' : 'Clic para activar')}">
+                                        <input type="checkbox" id="switch-tasks-access-${user.id}" 
+                                            ${user.can_access_tasks ? 'checked' : ''} 
+                                            onchange="window.adminUsersManager.handleToggleTasksAccess('${user.id}', this.checked)" />
+                                        <span class="m3-switch-track">
+                                            <span class="m3-switch-thumb">
+                                                <span class="material-symbols-outlined">${user.can_access_tasks ? 'check' : 'close'}</span>
+                                            </span>
+                                        </span>
+                                    </label>
+                                `}
+                            </div>
                         </div>
 
-                        <!-- Opciones de Modo (Visible si está habilitado para usuario normal) -->
-                        ${user.can_access_tasks && !isSuperAdminUser ? `
-                            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.04em;">
-                                    ${isEn ? 'Sharing Mode' : 'Modo de Asignación y Visibilidad'}
+                        <!-- Selector M3 de Modo cuando el acceso está activado (No Super Admin) -->
+                        ${(!isSuperAdminUser && user.can_access_tasks) ? `
+                            <div style="
+                                border-top: 1px dashed ${user.tasks_mode === 'isolated' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
+                                padding-top: 8px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                gap: 10px;
+                            ">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#059669'};">
+                                        ${user.tasks_mode === 'isolated' ? 'lock' : 'sync'}
+                                    </span>
+                                    <span style="font-size: 11.5px; font-weight: 700; color: ${user.tasks_mode === 'isolated' ? '#1D4ED8' : '#065F46'};">
+                                        ${user.tasks_mode === 'isolated'
+                                            ? (isEn ? 'Mode: Private (Independent)' : 'Modo: Lista Propia (Privada / Vacía)')
+                                            : (isEn ? 'Mode: Live Sync (Super Admin)' : 'Modo: Sincronizado (Super Usuario)')}
+                                    </span>
                                 </div>
-
-                                <!-- Opción Compartido -->
-                                <label style="
-                                    display: flex;
-                                    align-items: flex-start;
-                                    gap: 10px;
-                                    padding: 10px 12px;
-                                    border-radius: 12px;
-                                    border: 1.5px solid ${user.tasks_mode !== 'isolated' ? '#10B981' : '#E2E8F0'};
-                                    background: ${user.tasks_mode !== 'isolated' ? '#ECFDF5' : '#FFFFFF'};
+                                <button type="button" onclick="window.adminUsersManager.openTasksModeSelectorModal('${user.id}')" style="
+                                    background: ${user.tasks_mode === 'isolated' ? '#EFF6FF' : '#ECFDF5'};
+                                    border: 1px solid ${user.tasks_mode === 'isolated' ? '#BFDBFE' : '#A7F3D0'};
+                                    border-radius: 100px;
+                                    color: ${user.tasks_mode === 'isolated' ? '#1D4ED8' : '#047857'};
+                                    font-size: 11.5px;
+                                    font-weight: 700;
+                                    font-family: inherit;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
                                     cursor: pointer;
-                                    transition: all 0.15s;
+                                    padding: 4px 10px;
+                                    transition: all 0.2s;
                                 ">
-                                    <input 
-                                        type="radio" 
-                                        name="tasks_mode_${user.id}" 
-                                        value="shared" 
-                                        ${user.tasks_mode !== 'isolated' ? 'checked' : ''} 
-                                        onchange="window.adminUsersManager.onTasksModeChange('${user.id}', 'shared')"
-                                        style="margin-top: 3px; accent-color: #10B981; width: 16px; height: 16px;"
-                                    >
-                                    <div>
-                                        <div style="font-size: 12.5px; font-weight: 800; color: #064E3B; display: flex; align-items: center; gap: 5px;">
-                                            <span class="material-symbols-outlined" style="font-size: 16px; color: #10B981;">sync</span>
-                                            ${isEn ? 'Shared with Super Admin (Live Sync)' : 'Compartido con el Super Usuario (Sincronizado)'}
-                                        </div>
-                                        <div style="font-size: 11px; color: #4B5563; margin-top: 3px; line-height: 1.4;">
-                                            ${isEn 
-                                                ? 'Each day, your pending prep tasks appear on their screen and vice versa: any changes or new items sync in real-time.' 
-                                                : 'Cada día las tareas por hacer que tengas se reflejan en este usuario y viceversa: si escribe o marca algo, lo ves reflejado en vivo.'}
-                                        </div>
-                                    </div>
-                                </label>
-
-                                <!-- Opción Vacío / Independiente -->
-                                <label style="
-                                    display: flex;
-                                    align-items: flex-start;
-                                    gap: 10px;
-                                    padding: 10px 12px;
-                                    border-radius: 12px;
-                                    border: 1.5px solid ${user.tasks_mode === 'isolated' ? '#10B981' : '#E2E8F0'};
-                                    background: ${user.tasks_mode === 'isolated' ? '#ECFDF5' : '#FFFFFF'};
-                                    cursor: pointer;
-                                    transition: all 0.15s;
-                                ">
-                                    <input 
-                                        type="radio" 
-                                        name="tasks_mode_${user.id}" 
-                                        value="isolated" 
-                                        ${user.tasks_mode === 'isolated' ? 'checked' : ''} 
-                                        onchange="window.adminUsersManager.onTasksModeChange('${user.id}', 'isolated')"
-                                        style="margin-top: 3px; accent-color: #10B981; width: 16px; height: 16px;"
-                                    >
-                                    <div>
-                                        <div style="font-size: 12.5px; font-weight: 800; color: #1E293B; display: flex; align-items: center; gap: 5px;">
-                                            <span class="material-symbols-outlined" style="font-size: 16px; color: #64748B;">lock</span>
-                                            ${isEn ? 'Empty / Private (Independent)' : 'Módulo Vacío / Independiente (Privado)'}
-                                        </div>
-                                        <div style="font-size: 11px; color: #4B5563; margin-top: 3px; line-height: 1.4;">
-                                            ${isEn 
-                                                ? 'The user starts with an empty list. They do not see your tasks and you do not see theirs.' 
-                                                : 'El usuario tiene su lista de tareas vacía y privada. No ve nada de lo tuyo a menos que lo compartas, y tú no ves lo de él.'}
-                                        </div>
-                                    </div>
-                                </label>
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">swap_horiz</span>
+                                    ${isEn ? 'Change Mode' : 'Cambiar Modo'}
+                                </button>
                             </div>
                         ` : ''}
                     </div>
@@ -2249,21 +2236,323 @@
         }
 
         /**
-         * Maneja el cambio de switch para habilitar/deshabilitar módulo Prep List
+         * Manejador de confirmación para activar o desactivar acceso al módulo Prep List
          */
-        async onTasksAccessToggle(userId, isChecked) {
+        async handleToggleTasksAccess(userId, grantAccess) {
             const user = this.users.find(u => u.id === userId);
             if (!user) return;
-            const mode = user.tasks_mode || 'shared';
-            await this.handleSetTasksAccess(userId, isChecked, mode);
+
+            const isEn = this.isEnglish();
+
+            // Si se desea activar, abrir el diálogo selector M3 para elegir modo (Sincronizado vs Lista Propia)
+            if (grantAccess) {
+                this.openTasksModeSelectorModal(userId, true);
+                return;
+            }
+
+            // Si se desea desactivar, pedir confirmación estándar
+            const confirmMsg = isEn
+                ? `Remove Prep List & Tasks access for ${user.email}? The module will be hidden from their navigation.`
+                : `¿Deseas desactivar el acceso a Prep List & Tareas para ${user.email}? El módulo se ocultará de su menú.`;
+
+            const actionBtn = isEn ? 'Disable Prep List' : 'Desactivar Módulo';
+            const cancelBtn = isEn ? 'Cancel' : 'Cancelar';
+
+            const doExecution = async () => {
+                await this.handleSetTasksAccess(userId, false, user.tasks_mode || 'shared');
+            };
+
+            const rollbackSwitch = () => {
+                const switchEl = document.getElementById(`switch-tasks-access-${userId}`);
+                if (switchEl) {
+                    switchEl.checked = user.can_access_tasks === true;
+                }
+            };
+
+            const triggerAction = window.showActionToast || window.utils?.showActionToast;
+
+            if (triggerAction) {
+                triggerAction({
+                    message: confirmMsg,
+                    actionText: actionBtn,
+                    cancelText: cancelBtn,
+                    actionColor: '#D97706',
+                    type: 'warning',
+                    onConfirm: doExecution,
+                    onCancel: rollbackSwitch
+                });
+            } else {
+                await doExecution();
+            }
         }
 
         /**
-         * Maneja el cambio de modo de Prep List (compartido vs aislado/vacío)
+         * Abre un modal/diálogo interactivo M3 Expressive para elegir el modo de acceso a Prep List & Tareas:
+         * 1. Compartido con el Super Usuario (Sincronizado en vivo)
+         * 2. Módulo Vacío e Independiente (Privado)
          */
-        async onTasksModeChange(userId, mode) {
+        openTasksModeSelectorModal(userId, isEnabling = false) {
             const user = this.users.find(u => u.id === userId);
             if (!user) return;
+
+            const isEn = this.isEnglish();
+            const currentMode = user.tasks_mode || 'shared';
+
+            // Eliminar cualquier modal previo
+            const oldOverlay = document.getElementById('tasks-mode-modal-overlay');
+            if (oldOverlay) oldOverlay.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'tasks-mode-modal-overlay';
+            overlay.className = 'modal-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.55);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                z-index: 100005;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+                opacity: 0;
+                transition: opacity 0.25s ease;
+            `;
+
+            overlay.innerHTML = `
+                <div id="tasks-mode-modal-dialog" style="
+                    background: #FFFFFF;
+                    border: 1px solid #E2E8F0;
+                    border-radius: 28px;
+                    box-shadow: 0 20px 48px rgba(0,0,0,0.22);
+                    padding: 24px;
+                    width: 100%;
+                    max-width: 480px;
+                    font-family: var(--font-display, 'Poppins', sans-serif);
+                    transform: scale(0.92) translateY(10px);
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                ">
+                    <!-- Encabezado con Icono M3 -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="
+                                width: 44px;
+                                height: 44px;
+                                border-radius: 14px;
+                                background: linear-gradient(135deg, #10B981, #059669);
+                                color: white;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 24px;">checklist</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #064E3B; letter-spacing: -0.01em;">
+                                    ${isEn ? 'Daily Prep & To-Do Access' : 'Acceso a Prep List & Tareas'}
+                                </h3>
+                                <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
+                                    ${user.first_name || user.email}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-close-tasks-mode-modal" style="
+                            background: #F1F5F9;
+                            border: none;
+                            border-radius: 50%;
+                            width: 30px;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #64748B;
+                            cursor: pointer;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                        </button>
+                    </div>
+
+                    <!-- Mensaje explicativo -->
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: #334155; line-height: 1.45;">
+                        ${isEn 
+                            ? 'Choose how this user will access the daily prep and tasks module:'
+                            : 'Selecciona cómo deseas habilitar el módulo de tareas y prep list para este usuario:'}
+                    </p>
+
+                    <!-- Opciones Expresivas M3 en Tarjetas Seleccionables -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;">
+                        
+                        <!-- Opción 1: Sincronizado con Super Usuario -->
+                        <label id="opt-tasks-shared" style="
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 12px;
+                            padding: 14px;
+                            border: 2px solid ${currentMode !== 'isolated' ? '#10B981' : '#E2E8F0'};
+                            background: ${currentMode !== 'isolated' ? '#F0FDF4' : '#FFFFFF'};
+                            border-radius: 18px;
+                            cursor: pointer;
+                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        ">
+                            <input type="radio" name="tasks_mode_choice" value="shared" ${currentMode !== 'isolated' ? 'checked' : ''} style="margin-top: 3px; accent-color: #10B981; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">sync</span>
+                                    <span style="font-size: 13.5px; font-weight: 700; color: #064E3B;">
+                                        ${isEn ? 'Shared with Super Admin (Live Sync)' : 'Compartido con el Super Usuario (Sincronizado)'}
+                                    </span>
+                                </div>
+                                <div style="font-size: 12px; color: #475569; margin-top: 3px; line-height: 1.4;">
+                                    ${isEn 
+                                        ? 'Each day, your pending prep tasks appear on their screen and vice versa: any changes or new items sync in real-time.' 
+                                        : 'Cada día las tareas por hacer que tengas se reflejan en este usuario y viceversa: si escribe o marca algo, lo ves reflejado en vivo.'}
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Opción 2: Módulo Vacío / Independiente (Privado) -->
+                        <label id="opt-tasks-isolated" style="
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 12px;
+                            padding: 14px;
+                            border: 2px solid ${currentMode === 'isolated' ? '#2563EB' : '#E2E8F0'};
+                            background: ${currentMode === 'isolated' ? '#EFF6FF' : '#FFFFFF'};
+                            border-radius: 18px;
+                            cursor: pointer;
+                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        ">
+                            <input type="radio" name="tasks_mode_choice" value="isolated" ${currentMode === 'isolated' ? 'checked' : ''} style="margin-top: 3px; accent-color: #2563EB; cursor: pointer;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #2563EB;">lock</span>
+                                    <span style="font-size: 13.5px; font-weight: 700; color: #1E3A8A;">
+                                        ${isEn ? 'Empty / Private (Independent)' : 'Módulo Vacío / Independiente (Privado)'}
+                                    </span>
+                                </div>
+                                <div style="font-size: 12px; color: #475569; margin-top: 3px; line-height: 1.4;">
+                                    ${isEn 
+                                        ? 'The user starts with an empty list. They do not see your tasks and you do not see theirs.' 
+                                        : 'El usuario tiene su lista de tareas vacía y privada. No ve nada de lo tuyo a menos que lo compartas, y tú no ves lo de él.'}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Botones de Acción M3 -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                        <button type="button" id="btn-cancel-tasks-mode-modal" style="
+                            background: #F1F5F9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 100px;
+                            padding: 10px 18px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            font-family: inherit;
+                            cursor: pointer;
+                            transition: background-color 0.2s;
+                        ">
+                            ${isEn ? 'Cancel' : 'Cancelar'}
+                        </button>
+                        <button type="button" id="btn-confirm-tasks-mode-modal" style="
+                            background: linear-gradient(135deg, #10B981, #059669);
+                            color: #FFFFFF;
+                            border: none;
+                            border-radius: 100px;
+                            padding: 10px 22px;
+                            font-size: 13px;
+                            font-weight: 700;
+                            font-family: inherit;
+                            cursor: pointer;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 6px;
+                            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+                            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                            <span>${isEn ? 'Save Preference' : (isEnabling ? 'Conceder Acceso' : 'Guardar Modo')}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            // Escuchadores de interactividad en radios
+            const optShared = overlay.querySelector('#opt-tasks-shared');
+            const optIsolated = overlay.querySelector('#opt-tasks-isolated');
+            const radios = overlay.querySelectorAll('input[name="tasks_mode_choice"]');
+
+            const updateCardStyles = (val) => {
+                if (val !== 'isolated') {
+                    optShared.style.border = '2px solid #10B981';
+                    optShared.style.background = '#F0FDF4';
+                    optIsolated.style.border = '2px solid #E2E8F0';
+                    optIsolated.style.background = '#FFFFFF';
+                } else {
+                    optIsolated.style.border = '2px solid #2563EB';
+                    optIsolated.style.background = '#EFF6FF';
+                    optShared.style.border = '2px solid #E2E8F0';
+                    optShared.style.background = '#FFFFFF';
+                }
+            };
+
+            radios.forEach(r => {
+                r.addEventListener('change', () => updateCardStyles(r.value));
+            });
+
+            const closeModal = () => {
+                const dialog = overlay.querySelector('#tasks-mode-modal-dialog');
+                if (dialog) dialog.style.transform = 'scale(0.92) translateY(10px)';
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 240);
+
+                // Si se estaba activando y canceló, restablecer el switch visual
+                if (isEnabling) {
+                    const switchEl = document.getElementById(`switch-tasks-access-${userId}`);
+                    if (switchEl) switchEl.checked = user.can_access_tasks === true;
+                }
+            };
+
+            overlay.querySelector('#btn-close-tasks-mode-modal').addEventListener('click', closeModal);
+            overlay.querySelector('#btn-cancel-tasks-mode-modal').addEventListener('click', closeModal);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeModal();
+            });
+
+            // Confirmar y guardar
+            overlay.querySelector('#btn-confirm-tasks-mode-modal').addEventListener('click', async () => {
+                const selectedRadio = overlay.querySelector('input[name="tasks_mode_choice"]:checked');
+                const chosenMode = selectedRadio ? selectedRadio.value : 'shared';
+                closeModal();
+                await this.handleSetTasksAccess(userId, true, chosenMode);
+            });
+
+            // Animación de entrada
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                const dialog = overlay.querySelector('#tasks-mode-modal-dialog');
+                if (dialog) dialog.style.transform = 'scale(1) translateY(0)';
+            });
+        }
+
+        /**
+         * Maneja el cambio de switch para habilitar/deshabilitar módulo Prep List (legacy fallback)
+         */
+        async onTasksAccessToggle(userId, isChecked) {
+            await this.handleToggleTasksAccess(userId, isChecked);
+        }
+
+        /**
+         * Maneja el cambio de modo de Prep List (legacy fallback)
+         */
+        async onTasksModeChange(userId, mode) {
             await this.handleSetTasksAccess(userId, true, mode);
         }
 
