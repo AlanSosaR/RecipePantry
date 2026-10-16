@@ -9755,6 +9755,9 @@ body.dark-theme .context-menu-divider {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-width: 80px;
+    box-sizing: border-box;
+    text-align: center;
     padding: 2px 10px;
     border-radius: 9999px;
     font-weight: 800;

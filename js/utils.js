@@ -374,6 +374,26 @@ window.utils.formatQuantity = (value) => {
 };
 
 /**
+ * Formatea cantidades según la unidad:
+ * - Para g, kg, ml, l (y variantes métricas): muestra decimal exacto, SIN redondear y SIN fracciones (ej: 18.75 g, 68.75 g).
+ * - Para cup, tbsp, tsp, piezas o sin unidad: usa fracciones (1/2, 1/4, etc.).
+ */
+window.utils.formatAmount = (value, unit = '') => {
+    if (value === null || value === undefined || value === '') return '';
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    if (isNaN(num)) return value.toString();
+
+    const cleanUnit = (unit || '').toLowerCase().trim();
+    const isMetricWeightOrVol = /^(g|gr|grs|gramos?|kg|kilos?|kilogramos?|ml|mls|mililitros?|l|lt|lts|litros?)$/i.test(cleanUnit);
+
+    if (isMetricWeightOrVol) {
+        return parseFloat(num.toFixed(3)).toString();
+    }
+
+    return window.utils.formatQuantity(num);
+};
+
+/**
  * Convierte cualquier formato de número (fracción, mixto, decimal) a un float puro.
  */
 window.utils.parseToDecimal = (str) => {

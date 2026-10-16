@@ -381,10 +381,10 @@ class RecipeDetailManager {
                     const val = window.utils ? window.utils.parseToDecimal(originalQty) : parseFloat(originalQty);
                     if (val !== null && !isNaN(val) && val > 0) {
                         const scaled = val * scale;
-                        const scaledDisplay = (val >= 10 && scaled % 1 === 0)
-                            ? Math.round(scaled).toString()
+                        const formattedQty = window.utils && window.utils.formatAmount
+                            ? window.utils.formatAmount(scaled, unit)
                             : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
-                        const pillText = `${scaledDisplay} ${unit}`.trim();
+                        const pillText = `${formattedQty} ${unit}`.trim();
                         renderedContent = `
                             <span class="ingredient-qty-pill ${pillClass}">${pillText}</span>
                             <span class="ingredient-name-text">${name}</span>
@@ -396,7 +396,7 @@ class RecipeDetailManager {
                 } else {
                     // Si no viene cantidad separada, buscar si el texto contiene algún número para escalar
                     const rawText = `${unit} ${name}`.trim();
-                    const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)(\s*(?:g|kg|ml|l|lt|oz|lb|tbsp|tsp|cda|cdita|taza|cup|ud|pz|pza|piezas?|clove|cloves|dientes?)\b)?/i;
+                    const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)(\s*(?:g|gr|grs|gramos?|kg|kilos?|kilogramos?|ml|mls|mililitros?|l|lt|lts|litros?|oz|lb|tbsp|tsp|cda|cdita|taza|cup|ud|pz|pza|piezas?|clove|cloves|dientes?)\b)?/i;
                     let hasMatched = false;
 
                     const scaledText = rawText.replace(regex, (match, numStr, unitStr, offset, fullStr) => {
@@ -409,10 +409,11 @@ class RecipeDetailManager {
                         hasMatched = true;
 
                         const scaled = val * scale;
-                        const formattedQty = (val >= 10 && scaled % 1 === 0)
-                            ? Math.round(scaled).toString()
+                        const matchedUnit = (unitStr || '').trim();
+                        const formattedQty = window.utils && window.utils.formatAmount
+                            ? window.utils.formatAmount(scaled, matchedUnit)
                             : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
-                        const pillText = `${formattedQty}${unitStr || ''}`.trim();
+                        const pillText = `${formattedQty}${matchedUnit ? ' ' + matchedUnit : ''}`.trim();
                         return `<span class="ingredient-qty-pill ${pillClass}">${pillText}</span>`;
                     });
 
