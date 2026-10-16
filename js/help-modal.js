@@ -53,30 +53,20 @@ class SettingsViewManager {
                         </div>
                     </div>
 
-                    <!-- Idioma en plano -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-top: 4px;">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <div class="safe-title-icon" style="background: rgba(245, 158, 11, 0.12); color: #F59E0B; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 22px;">language</span>
-                            </div>
-                            <div>
-                                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0F172A;">
-                                    ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
-                                </h3>
-                                <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
-                                    ${isEn ? 'Choose application interface language' : 'Selecciona el idioma de la interfaz'}
-                                </p>
-                            </div>
-                        </div>
+                    <!-- Idioma en plano (una sola línea, sin icono) -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 0;">
+                        <h3 style="margin: 0; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 15.5px; font-weight: 700; color: #0F172A;">
+                            ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
+                        </h3>
 
                         <!-- Selector pills -->
-                        <div style="display: flex; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 100px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+                        <div style="display: flex; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 100px; padding: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
                             <button type="button" onclick="window.helpModal.setLanguage('es')"
-                                style="border: none; padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
                                 Español
                             </button>
                             <button type="button" onclick="window.helpModal.setLanguage('en')"
-                                style="border: none; padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
                                 English
                             </button>
                         </div>
@@ -91,7 +81,7 @@ class SettingsViewManager {
 
                     <!-- Sección B: Uso Offline y Almacenamiento -->
                     <div>
-                        <div class="safe-filter-header" style="margin-bottom: 12px;">
+                        <div class="safe-filter-header" style="margin-bottom: 14px;">
                             <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
                                 <div class="safe-title-icon" style="background: rgba(16, 185, 129, 0.12); color: #10B981; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <span class="material-symbols-outlined" style="font-size: 24px;">cloud_download</span>
@@ -101,17 +91,11 @@ class SettingsViewManager {
                                         ${t('offlineStorageTitle', isEn ? 'Offline Usage & Storage' : 'Uso Offline y Almacenamiento')}
                                     </h3>
                                     <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
-                                        ${isEn ? 'IndexedDB local recipe database' : 'Base de datos local en IndexedDB'}
+                                        ${isEn ? 'For use without internet' : 'Para usar sin internet'}
                                     </p>
                                 </div>
                             </div>
                         </div>
-
-                        <p style="font-size: 13.5px; color: #475569; margin: 0 0 14px 0; line-height: 1.5;">
-                            ${t('offlineStorageDesc', isEn 
-                                ? 'You can access your recipes with internet without downloading anything. If you plan to cook or travel offline, you can download all your recipes to this device.' 
-                                : 'Puedes acceder a tus recetas directamente con internet sin necesidad de descargar nada. Si planeas cocinar o viajar sin conexión, puedes descargar todas tus recetas completas a este dispositivo.')}
-                        </p>
 
                         <!-- Estado de almacenamiento -->
                         <div id="settings-offline-status" style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #1F2937; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px;">
@@ -137,49 +121,6 @@ class SettingsViewManager {
                                 <span>${t('offlineClearBtn', isEn ? 'Free up local space' : 'Liberar espacio local')}</span>
                             </button>
                         </div>
-                    </div>
-
-                    <div style="border-top: 1px solid #E2E8F0; margin: 0 -2px;"></div>
-
-                    <!-- Sección C: Mantenimiento del Sistema / Caché -->
-                    <div>
-                        <div class="safe-filter-header" style="margin-bottom: 12px;">
-                            <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
-                                <div class="safe-title-icon" style="background: rgba(59, 130, 246, 0.12); color: #3B82F6; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <span class="material-symbols-outlined" style="font-size: 24px;">cached</span>
-                                </div>
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 700; color: #0F172A;">
-                                        ${t('cacheToolsTitle', isEn ? 'System Maintenance' : 'Mantenimiento del Sistema')}
-                                    </h3>
-                                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
-                                        Service Worker & Caches API
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p style="font-size: 13.5px; color: #475569; margin: 0 0 14px 0; line-height: 1.5;">
-                            ${t('cacheClearDesc', isEn 
-                                ? 'Clears local cached files, offline databases and resets client cache, reloading the freshest data from the server.' 
-                                : 'Borra los archivos locales en caché, bases de datos sin conexión y fuerza un reset limpio desde el servidor (mantiene tu sesión iniciada).')}
-                        </p>
-
-                        <button type="button" onclick="window.helpModal.handleClearCache()"
-                            style="display: flex; align-items: center; gap: 12px; padding: 13px 18px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 14px; cursor: pointer; text-align: left; width: 100%; transition: all 0.2s;"
-                            onmouseover="this.style.background='#F1F5F9'"
-                            onmouseout="this.style.background='#F8FAFC'">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: #3B82F6; flex-shrink: 0;">refresh</span>
-                            <div style="flex: 1;">
-                                <div style="font-size: 13.5px; font-weight: 700; color: #1E293B; margin-bottom: 2px;">
-                                    ${t('cacheClearBtn', isEn ? 'Clear cache & reload' : 'Borrar caché y recargar')}
-                                </div>
-                                <div style="font-size: 12px; color: #64748B;">
-                                    ${isEn ? 'Recommended if recipes, folders or updates are not showing up properly' : 'Recomendado si hay problemas de sincronización o no se ven actualizaciones'}
-                                </div>
-                            </div>
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #94A3B8;">chevron_right</span>
-                        </button>
                     </div>
 
                 </div>
