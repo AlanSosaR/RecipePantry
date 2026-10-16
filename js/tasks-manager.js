@@ -1805,19 +1805,7 @@
                         <div style="text-align: center; padding: 48px 20px; background: #FFFFFF; border-radius: 24px; border: 1.5px dashed #E4E4E7;">
                             <span class="material-symbols-outlined" style="font-size: 40px; color: #12B078; opacity: 0.6;">checklist</span>
                             <h4 style="font-size: 16px; font-weight: 700; color: #18181B; margin: 10px 0 4px 0;">No hay tareas para este día</h4>
-                            <p style="font-size: 12.5px; color: #71717A; margin: 0 0 16px 0;">Agrega una tarea a tu lista para comenzar el servicio de hoy</p>
-                            <button type="button" onclick="window.tasksManager.openCreateModal()" style="
-                                background: #12B078;
-                                color: white;
-                                border: none;
-                                border-radius: 9999px;
-                                padding: 10px 18px;
-                                font-size: 13px;
-                                font-weight: 700;
-                                cursor: pointer;
-                            ">
-                                + Agregar Tarea
-                            </button>
+                            <p style="font-size: 12.5px; color: #71717A; margin: 0;">Agrega una tarea a tu lista para comenzar el servicio de hoy</p>
                         </div>
                     `;
                 }

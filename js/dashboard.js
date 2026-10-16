@@ -7,6 +7,8 @@ class DashboardManager {
         this.displayMode = 'list'; // Forzado a lista por solicitud de diseño
         this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
         this.currentRecipes = [];
+        this.isLoadingRecipes = true;
+        this.hasLoadedInitialRecipes = false;
         this.selectedRecipeId = null;
         this.selectedRecipes = new Set();
         this.isSelectionMode = false;
@@ -109,6 +111,7 @@ class DashboardManager {
                 window.localDB.getAll('recipes_index').then(cachedRecipes => {
                     if (Array.isArray(cachedRecipes) && cachedRecipes.length > 0) {
                         this.currentRecipes = cachedRecipes;
+                        this.hasLoadedInitialRecipes = true;
                         this.renderFolders();
                         this.renderRecipesGrid(this.currentRecipes);
                         this.updateTitleHeader();
@@ -182,7 +185,9 @@ class DashboardManager {
                         }
                     } catch (err) {}
                 }
-                this.renderRecipesGrid(this.currentRecipes);
+                if (this.hasLoadedInitialRecipes || (this.currentRecipes && this.currentRecipes.length > 0)) {
+                    this.renderRecipesGrid(this.currentRecipes);
+                }
                 this.updateTitleHeader();
             });
 
@@ -558,7 +563,9 @@ class DashboardManager {
             }
             if (['recipes', 'favorites', 'shared'].includes(this.currentView)) {
                 this.renderFolders();
-                this.renderRecipesGrid(this.currentRecipes);
+                if (this.hasLoadedInitialRecipes || (this.currentRecipes && this.currentRecipes.length > 0)) {
+                    this.renderRecipesGrid(this.currentRecipes);
+                }
             }
         });
 
@@ -1108,11 +1115,33 @@ class DashboardManager {
 
     async loadRecipes(filters = {}) {
         this.lastFilters = filters;
+        this.isLoadingRecipes = true;
+
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) emptyState.classList.add('hidden');
+
+        const recipesGrid = document.getElementById('recipesGrid');
+        if (recipesGrid && (!this.currentRecipes || this.currentRecipes.length === 0)) {
+            recipesGrid.classList.remove('hidden');
+            recipesGrid.innerHTML = `
+                <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
+                    <div class="spinner-sm" style="margin: 0 auto 12px auto;"></div>
+                    <p style="color: var(--text-muted); font-size: 14px; font-weight: 500;">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</p>
+                </div>
+            `;
+        }
+
         // Si se solicita forceRefresh, asegurar que se pase a db.js
         const result = await window.db.getMyRecipes(filters);
 
+        this.isLoadingRecipes = false;
+        this.hasLoadedInitialRecipes = true;
+
         if (!result.success) {
             console.error('Error cargando recetas:', result.error);
+            if (!this.currentRecipes || this.currentRecipes.length === 0) {
+                this.renderRecipesGrid([]);
+            }
             return;
         }
 
@@ -1146,8 +1175,8 @@ class DashboardManager {
         const fab = document.querySelector('.fab-m3');
         if (fab) fab.classList.remove('hidden');
 
-        const recipesGrid = document.getElementById('recipesGrid');
-        if (recipesGrid) recipesGrid.classList.remove('hidden');
+        const gridEl = recipesGrid || document.getElementById('recipesGrid');
+        if (gridEl) gridEl.classList.remove('hidden');
 
         this.renderRecipesGrid(this.currentRecipes);
     }
@@ -3840,6 +3869,18 @@ class DashboardManager {
         }
 
         const emptyState = document.getElementById('emptyState');
+
+        // Si todavía está en proceso de carga inicial o fetch y no hay recetas en memoria, no mostrar empty state prematuro
+        if (this.isLoadingRecipes && (!recipes || recipes.length === 0)) {
+            if (emptyState) emptyState.classList.add('hidden');
+            container.innerHTML = `
+                <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
+                    <div class="spinner-sm" style="margin: 0 auto 12px auto;"></div>
+                    <p style="color: var(--text-muted); font-size: 14px; font-weight: 500;">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</p>
+                </div>
+            `;
+            return;
+        }
 
         if (displayRecipes.length === 0) {
             container.innerHTML = '';

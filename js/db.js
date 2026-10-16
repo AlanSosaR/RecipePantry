@@ -178,6 +178,15 @@ class DatabaseManager {
         try {
             let userId = window.authManager?.currentUser?.id;
 
+            if (!userId && window.authManager && typeof window.authManager.checkAuth === 'function') {
+                try {
+                    await window.authManager.checkAuth();
+                    userId = window.authManager?.currentUser?.id;
+                } catch (e) {
+                    console.warn('⚠️ [DB] Error revalidando checkAuth en fetchRecipesFromServer:', e);
+                }
+            }
+
             // v229: QUITADO fallback a auth_user_id porque causa fallos en la API de recetas (espera PK int/uuid de tabla users)
             if (!userId) {
                 console.error('❌ ERROR: userId no disponible en _fetchRecipesFromServer. Perfil:', window.authManager?.currentUser);
