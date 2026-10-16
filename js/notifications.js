@@ -394,14 +394,6 @@ class NotificationManager {
         if (this.menu && !this.menu.classList.contains('hidden')) {
             this.renderMenu();
         }
-
-        // Mostrar el aviso directamente debajo de la campana una sola vez al ingresar
-        if (!sessionStorage.getItem('pantry_offline_toast_shown')) {
-            sessionStorage.setItem('pantry_offline_toast_shown', 'true');
-            const title = isEn ? 'Access recipes offline' : '¡Accede a tus recetas sin conexión!';
-            const desc = isEn ? 'Tap the bell to download or manage them.' : 'Toca la campana para descargarlas u omitir.';
-            setTimeout(() => this.showBellTooltip(title, desc), 1000);
-        }
     }
 
     showBellTooltip(title, subtitle) {
