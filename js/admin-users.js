@@ -410,23 +410,6 @@
                                     <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #064E3B; letter-spacing: -0.02em;">
                                         ${isEn ? 'User Management' : 'Gestión de Usuarios'}
                                     </h3>
-                                    <span style="
-                                        background: rgba(16, 185, 129, 0.12);
-                                        color: #047857;
-                                        font-size: 11px;
-                                        font-weight: 800;
-                                        padding: 3px 10px;
-                                        border-radius: 100px;
-                                        text-transform: uppercase;
-                                        letter-spacing: 0.05em;
-                                        border: 1px solid rgba(16, 185, 129, 0.25);
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 4px;
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 13px;">shield_person</span>
-                                        Super Admin
-                                    </span>
                                 </div>
                                 <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748B;">
                                     ${isEn 
