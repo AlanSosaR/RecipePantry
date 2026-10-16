@@ -84,6 +84,37 @@
             return `${dayNames[date.getDay()]}, ${date.getDate()} de ${monthNames[date.getMonth()]}`;
         }
 
+        /** Normaliza valores de completed_dates desde Supabase/caché en un Array seguro de cadenas */
+        normalizeDates(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val.map(String);
+            if (typeof val === 'string') {
+                const trimmed = val.trim();
+                if (!trimmed || trimmed === '{}' || trimmed === '[]') return [];
+                if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                    try {
+                        const parsed = JSON.parse(trimmed);
+                        if (Array.isArray(parsed)) return parsed.map(String);
+                    } catch (e) {}
+                }
+                const cleaned = trimmed.replace(/^\{|\}$/g, '').trim();
+                if (!cleaned) return [];
+                return cleaned.split(',').map(s => s.replace(/^"|"$/g, '').trim()).filter(Boolean);
+            }
+            return [];
+        }
+
+        /** Formato corto de fecha (ej. "15 oct") para etiquetas de tareas pendientes */
+        formatDateShort(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length < 3) return dateStr;
+            const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            return `${d} ${months[m] || ''}`;
+        }
+
         /** Comprueba si una tarea está completada para una fecha específica (YYYY-MM-DD) */
         isTaskCompletedForDate(task, dateStr) {
             if (!task) return false;
@@ -94,19 +125,18 @@
             }
 
             // Para tareas de rutina diaria, verificar si esta fecha está en completed_dates
-            let dates = task.completed_dates;
-            if (!Array.isArray(dates) && task.recipe_data && Array.isArray(task.recipe_data.completed_dates)) {
-                dates = task.recipe_data.completed_dates;
-                task.completed_dates = dates;
+            let dates = this.normalizeDates(task.completed_dates);
+            if (dates.length === 0 && task.recipe_data?.completed_dates) {
+                dates = this.normalizeDates(task.recipe_data.completed_dates);
             }
+            task.completed_dates = dates;
 
-            if (!Array.isArray(dates)) {
+            if (dates.length === 0) {
                 // Compatibilidad con tareas legadas: si completed era true, asignarlo solo a la fecha de hoy
                 if (task.completed) {
                     task.completed_dates = [this.getTodayDateString()];
                     return targetDate === this.getTodayDateString();
                 }
-                task.completed_dates = [];
                 return false;
             }
 
@@ -148,11 +178,14 @@
 
             return days.map(d => {
                 const isSelected = d.dateStr === selected;
-                // Contar actividades para este día (diarias recurrentes + tareas de esta fecha)
+                const todayStr = this.getTodayDateString();
+                // Contar actividades para este día (diarias recurrentes + tareas de esta fecha + arrastradas si es hoy o posterior)
                 const dayTasks = this.tasks.filter(t => {
                     if (t.is_daily) return true;
                     const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : '');
-                    return taskDate === d.dateStr;
+                    if (taskDate === d.dateStr) return true;
+                    if (!t.completed && taskDate < d.dateStr && d.dateStr >= todayStr) return true;
+                    return false;
                 });
                 const count = dayTasks.length;
 
@@ -192,10 +225,13 @@
                 if (!dateStr) return;
                 const isToday = card.classList.contains('is-today');
 
+                const todayStr = this.getTodayDateString();
                 const dayTasks = this.tasks.filter(t => {
                     if (t.is_daily) return true;
                     const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : '');
-                    return taskDate === dateStr;
+                    if (taskDate === dateStr) return true;
+                    if (!t.completed && taskDate < dateStr && dateStr >= todayStr) return true;
+                    return false;
                 });
                 const count = dayTasks.length;
 
@@ -404,7 +440,12 @@
                 if (cached) {
                     const parsed = JSON.parse(cached);
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        this.tasks = parsed.filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'));
+                        this.tasks = parsed
+                            .filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'))
+                            .map(t => {
+                                t.completed_dates = this.normalizeDates(t.completed_dates || t.recipe_data?.completed_dates);
+                                return t;
+                            });
                     }
                 }
             } catch (e) {
@@ -572,13 +613,25 @@
             window.addEventListener('auth-changed', updateAndSync);
             window.addEventListener('auth-ready', updateAndSync);
 
+            // Re-sincronizar y asegurar Realtime en eventos de foco y visibilidad
+            window.addEventListener('focus', () => updateAndSync());
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    updateAndSync();
+                }
+            });
+
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
-                    this.updateVisibility();
+                    updateAndSync();
                 });
             } else {
-                this.updateVisibility();
+                updateAndSync();
             }
+
+            // Fallback timeout para cuando authManager termine de hidratar la sesión
+            setTimeout(() => updateAndSync(), 400);
+            setTimeout(() => updateAndSync(), 1200);
 
             // Cerrar menú de sugerencias de receta al hacer clic fuera
             document.addEventListener('click', (e) => {
@@ -612,11 +665,12 @@
 
         /** Configuración de suscripción Supabase Realtime para sincronización bidireccional */
         initRealtimeSubscription() {
-            if (this.realtimeSubscription || !window.supabaseClient) return;
+            if (!window.supabaseClient) return;
+            if (this.realtimeSubscription) return;
 
             try {
                 this.realtimeSubscription = window.supabaseClient
-                    .channel('prep_tasks_realtime')
+                    .channel('prep_tasks_realtime_shared')
                     .on(
                         'postgres_changes',
                         { event: '*', schema: 'public', table: 'prep_tasks' },
@@ -624,7 +678,11 @@
                             this.handleRealtimeEvent(payload);
                         }
                     )
-                    .subscribe();
+                    .subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            console.log('📡 [Tasks Realtime] Sincronización en vivo activa');
+                        }
+                    });
             } catch (e) {
                 console.warn('⚠️ No se pudo inicializar Realtime en prep_tasks:', e);
             }
@@ -636,31 +694,40 @@
             const mode = this.getTasksMode();
 
             if (eventType === 'INSERT') {
-                // Si estamos en modo compartido y la tarea es compartida, o si es de nuestro usuario en modo aislado
                 if ((mode === 'shared' && newRec.is_shared) || (mode === 'isolated' && !newRec.is_shared)) {
+                    newRec.completed_dates = this.normalizeDates(newRec.completed_dates || newRec.recipe_data?.completed_dates);
                     const exists = this.tasks.some(t => t.id === newRec.id);
                     if (!exists) {
                         this.tasks.unshift(newRec);
                         this.saveCache();
                         this.renderList();
+                        this.updateCarouselBadges();
                     }
                 }
             } else if (eventType === 'UPDATE') {
+                newRec.completed_dates = this.normalizeDates(newRec.completed_dates || newRec.recipe_data?.completed_dates);
                 const idx = this.tasks.findIndex(t => t.id === newRec.id);
                 if (idx !== -1) {
-                    this.tasks[idx] = newRec;
+                    this.tasks[idx] = { ...this.tasks[idx], ...newRec };
                     // Si la receta abierta coincide, actualizar también
                     if (this.activeTaskForRecipe && this.activeTaskForRecipe.id === newRec.id) {
-                        this.activeTaskForRecipe = newRec;
+                        this.activeTaskForRecipe = this.tasks[idx];
                         this.renderRecipeIngredients();
                     }
                     this.saveCache();
                     this.renderList();
+                    this.updateCarouselBadges();
+                } else if ((mode === 'shared' && newRec.is_shared) || (mode === 'isolated' && !newRec.is_shared)) {
+                    this.tasks.unshift(newRec);
+                    this.saveCache();
+                    this.renderList();
+                    this.updateCarouselBadges();
                 }
             } else if (eventType === 'DELETE') {
                 this.tasks = this.tasks.filter(t => t.id !== oldRec.id);
                 this.saveCache();
                 this.renderList();
+                this.updateCarouselBadges();
             }
         }
 
@@ -696,12 +763,19 @@
                 if (error) throw error;
 
                 if (Array.isArray(data)) {
-                    this.tasks = data.filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'));
+                    this.tasks = data
+                        .filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'))
+                        .map(t => {
+                            t.completed_dates = this.normalizeDates(t.completed_dates || t.recipe_data?.completed_dates);
+                            return t;
+                        });
                     this.saveCache();
                     this.renderList();
                     const carousel = document.getElementById('tasksDateCarousel');
                     if (carousel) carousel.innerHTML = this.renderDateCarouselPills();
+                    this.updateCarouselBadges();
                     this.hydrateMissingRecipes();
+                    await this.rolloverPendingTasks();
                 }
 
                 // Cargar recetas de la despensa para el selector de recetas
@@ -710,6 +784,44 @@
                 console.warn('⚠️ Error al sincronizar tareas:', err.message);
             } finally {
                 this.isLoading = false;
+            }
+        }
+
+        /** Pasa automáticamente las tareas incompletas de días pasados a la fecha de hoy en To-Do */
+        async rolloverPendingTasks() {
+            const todayStr = this.getTodayDateString();
+            const overdueTasks = this.tasks.filter(t => {
+                if (t.is_daily) return false;
+                if (t.completed) return false;
+                const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : todayStr);
+                return taskDate < todayStr;
+            });
+
+            if (overdueTasks.length === 0) return;
+
+            const overdueIds = [];
+            overdueTasks.forEach(t => {
+                t.original_due_date = t.original_due_date || t.due_date;
+                t.due_date = todayStr;
+                overdueIds.push(t.id);
+            });
+
+            this.saveCache();
+            this.renderList();
+            this.updateCarouselBadges();
+
+            if (window.supabaseClient && overdueIds.length > 0) {
+                try {
+                    await window.supabaseClient
+                        .from('prep_tasks')
+                        .update({
+                            due_date: todayStr,
+                            updated_at: new Date().toISOString()
+                        })
+                        .in('id', overdueIds.filter(id => !String(id).startsWith('temp_')));
+                } catch (e) {
+                    console.warn('⚠️ Error al pasar tareas pendientes al siguiente día en Supabase:', e);
+                }
             }
         }
 
@@ -1244,7 +1356,17 @@
             let filtered = this.tasks.filter(t => {
                 const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : todayStr);
                 // Si el usuario está buscando texto, buscar en todas las tareas sin importar fecha
-                const matchesDate = q ? true : (t.is_daily || taskDate === selDate);
+                let matchesDate = false;
+                if (q) {
+                    matchesDate = true;
+                } else if (t.is_daily) {
+                    matchesDate = true;
+                } else if (taskDate === selDate) {
+                    matchesDate = true;
+                } else if (!t.completed && taskDate < selDate && selDate >= todayStr) {
+                    // Si una tarea no se completó en un día previo, se arrastra / pasa al siguiente día
+                    matchesDate = true;
+                }
                 if (!matchesDate) return false;
 
                 if (this.currentFilter === 'todas') return true;
@@ -1321,6 +1443,8 @@
             }
 
             container.innerHTML = filtered.map(task => {
+                const taskDate = task.due_date || (task.created_at ? task.created_at.split('T')[0] : todayStr);
+                const isRolledOver = !task.is_daily && taskDate < selDate;
                 const isCompleted = this.isTaskCompletedForDate(task, selDate);
                 const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
                 const isTrail = (task.title && task.title.toLowerCase().includes('trail')) || (task.qty && task.qty.includes('trailapp.com'));
@@ -1350,14 +1474,21 @@
 
                         <!-- Main Info -->
                         <div onclick="${actionUrl ? `window.open('${actionUrl}', '_blank')` : task.recipe_id ? `window.tasksManager.openRecipeView('${task.id}')` : `window.tasksManager.toggleTaskStatus('${task.id}')`}" style="flex: 1; min-width: 0; cursor: pointer;">
-                            ${task.is_daily ? `
-                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                ${task.is_daily ? `
                                     <button type="button" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" title="Toca para cambiar a tarea puntual" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: #EAF8F2; color: #12B078; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
                                         <span class="material-symbols-outlined" style="font-size: 12px;">autorenew</span>
                                         Todos los días
                                     </button>
-                                </div>
-                            ` : ''}
+                                ` : ''}
+
+                                ${isRolledOver ? `
+                                    <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;" title="No se realizó el ${this.formatDateShort(taskDate)} y pasó a hoy">
+                                        <span class="material-symbols-outlined" style="font-size: 12px;">history</span>
+                                        Pendiente (${this.formatDateShort(taskDate)})
+                                    </span>
+                                ` : ''}
+                            </div>
 
                             <div style="font-size: 15.5px; font-weight: 800; color: ${isCompleted ? '#A1A1AA' : '#18181B'}; ${isCompleted ? 'text-decoration: line-through;' : ''}">
                                 ${task.title}
@@ -1458,7 +1589,10 @@
             const selDate = this.selectedDate || todayStr;
             const currentDayTasks = this.tasks.filter(t => {
                 const taskDate = t.due_date || (t.created_at ? t.created_at.split('T')[0] : todayStr);
-                return t.is_daily || taskDate === selDate;
+                if (t.is_daily) return true;
+                if (taskDate === selDate) return true;
+                if (!t.completed && taskDate < selDate && selDate >= todayStr) return true;
+                return false;
             });
 
             const total = currentDayTasks.length;
@@ -1890,24 +2024,24 @@
             let isNowCompleted = false;
 
             if (task.is_daily) {
-                if (!Array.isArray(task.completed_dates)) {
-                    task.completed_dates = Array.isArray(task.recipe_data?.completed_dates)
-                        ? [...task.recipe_data.completed_dates]
-                        : (task.completed ? [todayStr] : []);
+                let dates = this.normalizeDates(task.completed_dates);
+                if (dates.length === 0 && task.recipe_data?.completed_dates) {
+                    dates = this.normalizeDates(task.recipe_data.completed_dates);
                 }
-                const idx = task.completed_dates.indexOf(targetDate);
+                const idx = dates.indexOf(targetDate);
                 if (idx >= 0) {
-                    task.completed_dates.splice(idx, 1);
+                    dates.splice(idx, 1);
                     isNowCompleted = false;
                 } else {
-                    task.completed_dates.push(targetDate);
+                    dates.push(targetDate);
                     isNowCompleted = true;
                 }
+                task.completed_dates = dates;
 
                 if (!task.recipe_data || typeof task.recipe_data !== 'object') {
                     task.recipe_data = {};
                 }
-                task.recipe_data.completed_dates = [...task.completed_dates];
+                task.recipe_data.completed_dates = [...dates];
 
                 // Sincronizar compatibilidad con task.completed solo si estamos en el día de hoy
                 if (targetDate === todayStr) {
@@ -1916,10 +2050,16 @@
             } else {
                 task.completed = !task.completed;
                 isNowCompleted = task.completed;
+                // Si la tarea venía de una fecha anterior y ahora se completa, asociar su fecha a hoy
+                if (isNowCompleted && task.due_date && task.due_date < targetDate) {
+                    task.original_due_date = task.original_due_date || task.due_date;
+                    task.due_date = targetDate;
+                }
             }
 
             this.saveCache();
             this.renderList();
+            this.updateCarouselBadges();
 
             const isTrail = (task.title && task.title.toLowerCase().includes('trail')) ||
                             (task.qty && task.qty.includes('trailapp.com'));
@@ -1939,6 +2079,7 @@
                 try {
                     const updatePayload = {
                         completed: task.completed,
+                        due_date: task.due_date,
                         updated_at: new Date().toISOString()
                     };
                     if (task.is_daily) {
