@@ -17387,12 +17387,26 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     background: #FFFFFF;
     border-top-left-radius: 28px;
     border-top-right-radius: 28px;
-    padding: 24px;
+    padding: 12px 22px 32px 22px;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
     z-index: 51;
-    max-height: 90vh;
+    max-height: 85vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     animation: slideUpTasksSheet 0.3s cubic-bezier(0.2, 0, 0, 1);
+    transition: height 0.28s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.28s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.2s ease;
+}
+
+.tasks-bottom-sheet.is-expanded {
+    height: 94vh;
+    max-height: 96vh;
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+}
+
+.tasks-bottom-sheet.is-expanded #prepBottomSheetHandle {
+    background: #9CA3AF;
+    width: 52px;
 }
 
 @keyframes slideUpTasksSheet {

@@ -980,9 +980,12 @@
                     <div id="prepTaskModalBackdrop" onclick="window.tasksManager.closeCreateModal()" class="tasks-backdrop" style="display: none;"></div>
                     
                     <div id="prepTaskBottomSheet" class="tasks-bottom-sheet" style="display: none;">
-                        <div style="width: 38px; height: 5px; background: #D1D5DB; border-radius: 9999px; margin: 0 auto 16px auto;"></div>
+                        <!-- Drag Handle (Material 3 Expressive) -->
+                        <div id="prepBottomSheetDragArea" title="Arrastra hacia arriba para expandir" style="padding: 10px 0 16px 0; margin-top: -8px; cursor: grab; touch-action: none; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none;">
+                            <div id="prepBottomSheetHandle" style="width: 44px; height: 5px; background: #D1D5DB; border-radius: 9999px; transition: background 0.2s, width 0.2s;"></div>
+                        </div>
                         
-                        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
+                        <div class="tasks-bottom-sheet-header" style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; user-select: none;">
                             <div>
                                 <h3 id="prepTaskModalTitle" style="font-size: 18px; font-weight: 800; color: #18181B; margin: 0;">Agregar a Prep List</h3>
                                 <p id="prepTaskModalSubtitle" style="font-size: 12px; color: #71717A; margin: 2px 0 0 0;">Puedes vincular una receta para que se abra al tocar la tarea</p>
@@ -1751,6 +1754,131 @@
             this.renderList();
         }
 
+        /** Expande el bottom sheet a pantalla completa */
+        expandBottomSheet() {
+            const sheet = document.getElementById('prepTaskBottomSheet');
+            if (sheet) sheet.classList.add('is-expanded');
+        }
+
+        /** Contrae el bottom sheet al tamaño compacto */
+        collapseBottomSheet() {
+            const sheet = document.getElementById('prepTaskBottomSheet');
+            if (sheet) sheet.classList.remove('is-expanded');
+        }
+
+        /** Alterna la expansión del bottom sheet */
+        toggleBottomSheetExpanded() {
+            const sheet = document.getElementById('prepTaskBottomSheet');
+            if (sheet) sheet.classList.toggle('is-expanded');
+        }
+
+        /** Configura los gestos de deslizamiento táctil y apertura completa del Bottom Sheet (Material 3 Expressive) */
+        initBottomSheetGestures() {
+            const sheet = document.getElementById('prepTaskBottomSheet');
+            if (!sheet || sheet._gesturesInit) return;
+            sheet._gesturesInit = true;
+
+            let startY = 0;
+            let currentY = 0;
+            let isTracking = false;
+            let isHandleDrag = false;
+
+            const onTouchStart = (e) => {
+                const touch = e.touches ? e.touches[0] : e;
+                startY = touch.clientY;
+                currentY = startY;
+                isTracking = true;
+
+                // Detectar si el toque fue en el asa superior o el encabezado
+                const dragArea = e.target.closest('#prepBottomSheetDragArea') || e.target.closest('.tasks-bottom-sheet-header');
+                isHandleDrag = Boolean(dragArea);
+            };
+
+            const onTouchMove = (e) => {
+                if (!isTracking) return;
+                const touch = e.touches ? e.touches[0] : e;
+                currentY = touch.clientY;
+                const deltaY = currentY - startY;
+
+                // Si se arrastra hacia arriba desde el asa o cuando el scroll interno está al tope
+                if (deltaY < -20 && (isHandleDrag || sheet.scrollTop <= 0)) {
+                    sheet.classList.add('is-expanded');
+                } else if (deltaY > 50 && isHandleDrag) {
+                    if (sheet.classList.contains('is-expanded')) {
+                        sheet.classList.remove('is-expanded');
+                    }
+                }
+            };
+
+            const onTouchEnd = (e) => {
+                if (!isTracking) return;
+                const deltaY = currentY - startY;
+                isTracking = false;
+
+                // Deslizar hacia arriba: abrir todo el bottom sheet
+                if (deltaY < -30 && (isHandleDrag || sheet.scrollTop <= 0)) {
+                    sheet.classList.add('is-expanded');
+                } else if (deltaY > 60 && isHandleDrag) {
+                    if (sheet.classList.contains('is-expanded')) {
+                        sheet.classList.remove('is-expanded');
+                    } else {
+                        this.closeCreateModal();
+                    }
+                }
+            };
+
+            sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+            sheet.addEventListener('touchmove', onTouchMove, { passive: true });
+            sheet.addEventListener('touchend', onTouchEnd, { passive: true });
+
+            // También soporte con puntero (ratón o trackpad) en el asa
+            const dragArea = document.getElementById('prepBottomSheetDragArea');
+            if (dragArea) {
+                dragArea.addEventListener('pointerdown', (e) => {
+                    startY = e.clientY;
+                    currentY = startY;
+                    isTracking = true;
+                    isHandleDrag = true;
+
+                    const onPointerMove = (moveEvt) => {
+                        if (!isTracking) return;
+                        currentY = moveEvt.clientY;
+                        const delta = currentY - startY;
+                        if (delta < -20) {
+                            sheet.classList.add('is-expanded');
+                        } else if (delta > 40 && sheet.classList.contains('is-expanded')) {
+                            sheet.classList.remove('is-expanded');
+                        }
+                    };
+
+                    const onPointerUp = (upEvt) => {
+                        isTracking = false;
+                        const delta = currentY - startY;
+                        if (delta < -25) {
+                            sheet.classList.add('is-expanded');
+                        } else if (delta > 60) {
+                            if (sheet.classList.contains('is-expanded')) {
+                                sheet.classList.remove('is-expanded');
+                            } else {
+                                this.closeCreateModal();
+                            }
+                        }
+                        window.removeEventListener('pointermove', onPointerMove);
+                        window.removeEventListener('pointerup', onPointerUp);
+                    };
+
+                    window.addEventListener('pointermove', onPointerMove);
+                    window.addEventListener('pointerup', onPointerUp);
+                });
+
+                // Clic directo en el asa alterna entre expandido y normal
+                dragArea.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleBottomSheetExpanded();
+                });
+            }
+        }
+
         /** Abre el modal para crear nueva tarea */
         openCreateModal() {
             const backdrop = document.getElementById('prepTaskModalBackdrop');
@@ -1758,6 +1886,8 @@
             if (backdrop && sheet) {
                 backdrop.style.display = 'block';
                 sheet.style.display = 'block';
+                sheet.classList.remove('is-expanded');
+                this.initBottomSheetGestures();
 
                 const editIdInput = document.getElementById('editingTaskId');
                 if (editIdInput) editIdInput.value = '';
@@ -1796,6 +1926,8 @@
 
             backdrop.style.display = 'block';
             sheet.style.display = 'block';
+            sheet.classList.remove('is-expanded');
+            this.initBottomSheetGestures();
 
             const editIdInput = document.getElementById('editingTaskId');
             if (editIdInput) editIdInput.value = task.id;
@@ -2155,6 +2287,7 @@
             if (backdrop && sheet) {
                 backdrop.style.display = 'none';
                 sheet.style.display = 'none';
+                sheet.classList.remove('is-expanded');
             }
             const editIdInput = document.getElementById('editingTaskId');
             if (editIdInput) editIdInput.value = '';
