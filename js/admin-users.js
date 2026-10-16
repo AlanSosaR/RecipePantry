@@ -816,24 +816,6 @@
                                 <span style="font-size: 11px; color: #94A3B8;">
                                     ${isEn ? 'Registered:' : 'Registrado:'} ${createdDate}
                                 </span>
-                                ${user.can_access_tasks ? `
-                                    <span style="
-                                        background: ${user.tasks_mode === 'isolated' ? '#EEF2FF' : '#D1FAE5'};
-                                        color: ${user.tasks_mode === 'isolated' ? '#3730A3' : '#065F46'};
-                                        border: 1px solid ${user.tasks_mode === 'isolated' ? '#C7D2FE' : '#A7F3D0'};
-                                        font-size: 10px;
-                                        font-weight: 800;
-                                        padding: 1.5px 7px;
-                                        border-radius: 100px;
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 3px;
-                                        margin-top: 2px;
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 12px;">checklist</span>
-                                        ${user.tasks_mode === 'isolated' ? (isEn ? 'Prep: Private' : 'Prep: Privado') : (isEn ? 'Prep: Shared' : 'Prep: Compartido')}
-                                    </span>
-                                ` : ''}
                             </div>
 
                             <span class="material-symbols-outlined" style="font-size: 20px; color: #CBD5E1;">
