@@ -18,7 +18,7 @@
             this.searchQuery = '';
             this.pantryRecipes = [];
 
-            // Catálogo predeterminado de recetas con ingredientes
+            // Catálogo predeterminado de recetas con ingredientes y pasos
             this.recipesCatalog = {
                 beer_batter: {
                     id: 'beer_batter',
@@ -31,6 +31,11 @@
                         { id: 'ing3', baseAmount: null, unit: '', name: 'pinch of salt', checked: false },
                         { id: 'ing4', baseAmount: 4, unit: 'tsp', name: 'baking powder', checked: false },
                         { id: 'ing5', baseAmount: 550, unit: 'ml', name: 'cold lager beer', checked: false }
+                    ],
+                    steps: [
+                        { id: 's1', step_number: 1, instruction: 'Mezclar las harinas, la sal y el polvo para hornear en un tazón amplio.', checked: false },
+                        { id: 's2', step_number: 2, instruction: 'Verter la cerveza bien fría gradualmente batiendo con suavidad hasta integrar sin sobrebatir.', checked: false },
+                        { id: 's3', step_number: 3, instruction: 'Mantener en frío hasta el momento de rebozar y freír.', checked: false }
                     ]
                 },
                 tartar_sauce: {
@@ -43,6 +48,11 @@
                         { id: 't2', baseAmount: 60, unit: 'g', name: 'chopped capers & gherkins', checked: false },
                         { id: 't3', baseAmount: 15, unit: 'g', name: 'fresh dill & parsley', checked: false },
                         { id: 't4', baseAmount: 1, unit: 'ud', name: 'lemon juice & zest', checked: false }
+                    ],
+                    steps: [
+                        { id: 't_s1', step_number: 1, instruction: 'Picar finamente las alcaparras, pepinillos y hierbas aromáticas.', checked: false },
+                        { id: 't_s2', step_number: 2, instruction: 'Incorporar a la mayonesa con el zumo de limón y la ralladura.', checked: false },
+                        { id: 't_s3', step_number: 3, instruction: 'Refrigerar tapado antes del servicio.', checked: false }
                     ]
                 }
             };
@@ -1260,6 +1270,36 @@
 
                                 <div id="prepRecipeIngredientsList" style="display: flex; flex-direction: column; gap: 14px; padding-left: 4px;">
                                     <!-- Renderizado dinámico -->
+                                </div>
+                            </div>
+
+                            <!-- Preparation Steps Section -->
+                            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="material-symbols-outlined" style="color: #374151; font-size: 24px;">format_list_numbered</span>
+                                        <div>
+                                            <h3 style="font-size: 17px; font-weight: 800; color: #18181B; margin: 0;">Preparación</h3>
+                                            <span id="prepRecipeStepsCount" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #6B7280;">0 PASOS</span>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" onclick="window.tasksManager.checkAllRecipeSteps()" style="
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #12B078;
+                                        background: #EAF8F2;
+                                        border: none;
+                                        border-radius: 9999px;
+                                        padding: 6px 14px;
+                                        cursor: pointer;
+                                    ">
+                                        Marcar todos
+                                    </button>
+                                </div>
+
+                                <div id="prepRecipeStepsList" style="display: flex; flex-direction: column; gap: 14px; padding-left: 4px;">
+                                    <!-- Renderizado dinámico de pasos -->
                                 </div>
                             </div>
                         </div>
@@ -2581,17 +2621,65 @@
             return ings;
         }
 
-        /** Hidrata automáticamente cualquier receta vinculada que no tenga sus ingredientes cargados */
+        /** Parsea pasos de preparación desde el texto OCR cuando no existen en tabla de BD */
+        parseStepsFromOcr(text) {
+            if (!text || typeof text !== 'string') return [];
+            const steps = [];
+            let inSection = false;
+            const lines = text.split('\n');
+
+            for (const line of lines) {
+                const clean = line.trim().toLowerCase();
+                if (clean.includes('preparación') || clean.includes('preparacion') || clean.includes('paso') || clean.includes('instrucción') || clean.includes('instruccion') || clean.includes('procedimiento') || clean.includes('elaboración') || clean.includes('direction') || clean.includes('method') || clean.includes('procedure') || clean.includes('instructions')) {
+                    inSection = true;
+                    continue;
+                }
+                if (clean.startsWith('nota') || clean.startsWith('note') || clean.startsWith('tip') || clean.startsWith('consejo')) {
+                    inSection = false;
+                    continue;
+                }
+                if (inSection && line.trim().length > 3) {
+                    const textOnly = line.replace(/^\d+[\.\)\-\s]+/, '').trim();
+                    if (textOnly) {
+                        steps.push({
+                            id: `ocr_step_${steps.length + 1}`,
+                            step_number: steps.length + 1,
+                            instruction: textOnly,
+                            checked: false
+                        });
+                    }
+                }
+            }
+
+            // Fallback si no hubo encabezado explícito pero hay líneas numeradas
+            if (steps.length === 0) {
+                for (const line of lines) {
+                    const m = line.trim().match(/^(\d+)[\.\)\-]\s+(.+)/);
+                    if (m && m[2] && m[2].trim().length > 10) {
+                        steps.push({
+                            id: `ocr_step_${steps.length + 1}`,
+                            step_number: parseInt(m[1]) || (steps.length + 1),
+                            instruction: m[2].trim(),
+                            checked: false
+                        });
+                    }
+                }
+            }
+
+            return steps;
+        }
+
+        /** Hidrata automáticamente cualquier receta vinculada que no tenga sus ingredientes o pasos cargados */
         async hydrateMissingRecipes() {
             if (!this.tasks || !Array.isArray(this.tasks)) return;
             for (const t of this.tasks) {
-                if (t.recipe_id && (!t.recipe_data || !Array.isArray(t.recipe_data.ingredients) || t.recipe_data.ingredients.length === 0)) {
+                if (t.recipe_id && (!t.recipe_data || !Array.isArray(t.recipe_data.ingredients) || t.recipe_data.ingredients.length === 0 || !Array.isArray(t.recipe_data.steps))) {
                     await this.hydrateTaskRecipe(t);
                 }
             }
         }
 
-        /** Carga y vincula los ingredientes completos de una receta a una tarea */
+        /** Carga y vincula los ingredientes y pasos completos de una receta a una tarea */
         async hydrateTaskRecipe(task) {
             if (!task || !task.recipe_id) return;
             const lookupId = String(task.recipe_id).replace(/^db_/, '');
@@ -2603,7 +2691,7 @@
             }
 
             let fullRecipe = null;
-            // 1. Consulta directa y confiable a Supabase (recipes + ingredients)
+            // 1. Consulta directa y confiable a Supabase (recipes + ingredients + preparation_steps)
             if (window.supabaseClient) {
                 try {
                     const { data: rec } = await window.supabaseClient
@@ -2618,8 +2706,18 @@
                         .eq('recipe_id', lookupId)
                         .order('order_index', { ascending: true });
 
+                    const { data: stepsData } = await window.supabaseClient
+                        .from('preparation_steps')
+                        .select('*')
+                        .eq('recipe_id', lookupId)
+                        .order('step_number', { ascending: true });
+
                     if (rec) {
-                        fullRecipe = { ...rec, ingredients: ings || [] };
+                        fullRecipe = { 
+                            ...rec, 
+                            ingredients: ings || [],
+                            steps: stepsData || []
+                        };
                     }
                 } catch (e) {}
             }
@@ -2629,6 +2727,14 @@
                 try {
                     const res = await window.db.getRecipeById(lookupId);
                     if (res?.success && res.recipe) fullRecipe = res.recipe;
+                } catch (e) {}
+            }
+
+            // 3. Fallback con window.localDB
+            if (!fullRecipe && window.localDB) {
+                try {
+                    const localFull = await window.localDB.get('recipes_full', lookupId);
+                    if (localFull) fullRecipe = localFull;
                 } catch (e) {}
             }
 
@@ -2657,12 +2763,51 @@
                     ings = this.parseIngredientsFromOcr(fullRecipe.ocr_raw_text);
                 }
 
+                // Normalización de pasos de preparación
+                let steps = [];
+                const rawSteps = fullRecipe.steps || fullRecipe.preparation_steps || [];
+                if (Array.isArray(rawSteps) && rawSteps.length > 0) {
+                    steps = rawSteps.map((step, idx) => {
+                        let text = '';
+                        if (typeof step === 'string') {
+                            text = step.trim();
+                        } else if (step && typeof step === 'object') {
+                            text = (step.instruction_es || step.instruction_en || step.instruction || step.description || '').trim();
+                        }
+                        return {
+                            id: step.id || `db_step_${idx + 1}`,
+                            step_number: step.step_number || (idx + 1),
+                            instruction: text,
+                            checked: Boolean(step.checked || step.is_checked)
+                        };
+                    }).filter(s => s.instruction.length > 0);
+                } else if (fullRecipe.ocr_raw_text) {
+                    steps = this.parseStepsFromOcr(fullRecipe.ocr_raw_text);
+                }
+
+                // Preservar estado de checks si ya existía recipe_data previo
+                if (task.recipe_data) {
+                    if (Array.isArray(task.recipe_data.ingredients)) {
+                        const prevIngMap = new Map(task.recipe_data.ingredients.map(i => [i.name, i.checked]));
+                        ings.forEach(i => {
+                            if (prevIngMap.has(i.name)) i.checked = prevIngMap.get(i.name);
+                        });
+                    }
+                    if (Array.isArray(task.recipe_data.steps)) {
+                        const prevStepMap = new Map(task.recipe_data.steps.map(s => [s.step_number, s.checked]));
+                        steps.forEach(s => {
+                            if (prevStepMap.has(s.step_number)) s.checked = prevStepMap.get(s.step_number);
+                        });
+                    }
+                }
+
                 task.recipe_data = {
                     id: fullRecipe.id,
                     greenTitle,
                     blackTitle,
                     description: fullRecipe.description_es || fullRecipe.description_en || fullRecipe.description || 'Recetario personal',
-                    ingredients: ings
+                    ingredients: ings,
+                    steps: steps
                 };
 
                 this.saveCache();
@@ -2703,33 +2848,42 @@
 
             const recipe = task.recipe_data || (task.recipe_id && this.recipesCatalog[task.recipe_id] ? this.recipesCatalog[task.recipe_id] : null);
             const isCompletedForDate = this.isTaskCompletedForDate(task, this.selectedDate || this.getTodayDateString());
-            if (task.is_daily && !isCompletedForDate && recipe && Array.isArray(recipe.ingredients)) {
-                const allChecked = recipe.ingredients.length > 0 && recipe.ingredients.every(i => i.checked);
-                if (allChecked) {
+            if (task.is_daily && !isCompletedForDate && recipe) {
+                if (Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 && recipe.ingredients.every(i => i.checked)) {
                     recipe.ingredients.forEach(i => i.checked = false);
+                }
+                if (Array.isArray(recipe.steps) && recipe.steps.length > 0 && recipe.steps.every(s => s.checked)) {
+                    recipe.steps.forEach(s => s.checked = false);
                 }
             }
             const hasIngredients = recipe && Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0;
+            const hasSteps = recipe && Array.isArray(recipe.steps);
 
-            if (hasIngredients) {
+            if (hasIngredients && hasSteps) {
                 this.renderRecipeViewContent(task, recipe);
             } else {
-                this.renderRecipeViewLoading(task, recipe);
+                if (hasIngredients) {
+                    this.renderRecipeViewContent(task, recipe);
+                } else {
+                    this.renderRecipeViewLoading(task, recipe);
+                }
                 await this.hydrateTaskRecipe(task);
                 const updatedRecipe = task.recipe_data || (task.recipe_id && this.recipesCatalog[task.recipe_id] ? this.recipesCatalog[task.recipe_id] : this.recipesCatalog.beer_batter);
                 this.renderRecipeViewContent(task, updatedRecipe);
             }
         }
 
-        /** Renderiza el estado de carga mientras se obtienen los ingredientes */
+        /** Renderiza el estado de carga mientras se obtienen los ingredientes y pasos */
         renderRecipeViewLoading(task, recipe) {
             const initialGreen = recipe?.greenTitle || task.title.split(' ')[0] || 'Receta';
             const initialBlack = recipe?.blackTitle || task.title.split(' ').slice(1).join(' ') || '';
 
             document.getElementById('prepRecipeTitleGreen').textContent = initialGreen;
             document.getElementById('prepRecipeTitleBlack').textContent = ' ' + initialBlack;
-            document.getElementById('prepRecipeDescription').textContent = recipe?.description || 'Buscando ingredientes en la despensa...';
+            document.getElementById('prepRecipeDescription').textContent = recipe?.description || 'Buscando ingredientes y pasos en la despensa...';
             document.getElementById('prepRecipeItemsCount').textContent = '...';
+            const stepsCountEl = document.getElementById('prepRecipeStepsCount');
+            if (stepsCountEl) stepsCountEl.textContent = '...';
 
             const listEl = document.getElementById('prepRecipeIngredientsList');
             if (listEl) {
@@ -2740,11 +2894,20 @@
                     </div>
                 `;
             }
+            const stepsListEl = document.getElementById('prepRecipeStepsList');
+            if (stepsListEl) {
+                stepsListEl.innerHTML = `
+                    <div style="text-align: center; padding: 24px 16px; color: #71717A;">
+                        <span class="material-symbols-outlined" style="font-size: 28px; color: #12B078; animation: spin 1s linear infinite; display: inline-block;">sync</span>
+                        <div style="font-size: 13px; font-weight: 700; color: #18181B; margin-top: 8px;">Cargando pasos de preparación...</div>
+                    </div>
+                `;
+            }
             const prog = document.getElementById('prepRecipeChecklistProgress');
-            if (prog) prog.textContent = 'Cargando ingredientes...';
+            if (prog) prog.textContent = 'Cargando receta...';
         }
 
-        /** Renderiza el contenido final de la receta vinculada */
+        /** Renderiza el contenido final de la receta vinculada (ingredientes y pasos) */
         renderRecipeViewContent(task, recipe) {
             if (!recipe) recipe = task.recipe_data || this.recipesCatalog.beer_batter;
             document.getElementById('prepRecipeTitleGreen').textContent = recipe.greenTitle || 'Receta';
@@ -2753,6 +2916,7 @@
             document.getElementById('prepRecipeItemsCount').textContent = `${recipe.ingredients?.length || 0} ITEMS`;
 
             this.renderRecipeIngredients();
+            this.renderRecipeSteps();
         }
 
         /** Cierra la vista de receta */
@@ -2878,8 +3042,114 @@
 
             const checkedCount = recipe.ingredients.filter(i => i.checked).length;
             const totalCount = recipe.ingredients.length;
-            document.getElementById('prepRecipeChecklistProgress').textContent = 
-                `${checkedCount} de ${totalCount} ingredientes listos`;
+            this.updateRecipeProgressText();
+        }
+
+        /** Renderiza la lista de pasos de preparación */
+        renderRecipeSteps() {
+            if (!this.activeTaskForRecipe) return;
+            const task = this.activeTaskForRecipe;
+            const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
+            const stepsListEl = document.getElementById('prepRecipeStepsList');
+            const stepsCountEl = document.getElementById('prepRecipeStepsCount');
+            if (!stepsListEl) return;
+
+            const steps = (recipe && Array.isArray(recipe.steps)) ? recipe.steps : [];
+            if (stepsCountEl) {
+                stepsCountEl.textContent = `${steps.length} ${steps.length === 1 ? 'PASO' : 'PASOS'}`;
+            }
+
+            if (steps.length === 0) {
+                stepsListEl.innerHTML = `
+                    <div style="text-align: center; padding: 24px 16px; background: #F9FAFB; border-radius: 16px; border: 1px dashed #E5E7EB;">
+                        <span class="material-symbols-outlined" style="font-size: 28px; color: #9CA3AF;">notes</span>
+                        <div style="font-size: 13px; font-weight: 700; color: #4B5563; margin-top: 4px;">Esta receta no tiene pasos de preparación detallados</div>
+                    </div>
+                `;
+                return;
+            }
+
+            stepsListEl.innerHTML = steps.map((step, idx) => {
+                const isChecked = Boolean(step.checked);
+                const instruction = (step.instruction || step.instruction_es || step.instruction_en || (typeof step === 'string' ? step : '')).trim();
+                const num = step.step_number || (idx + 1);
+
+                return `
+                    <div 
+                        class="m3-step-item m3-step-checkable ${isChecked ? 'step-done' : ''}" 
+                        onclick="window.tasksManager.toggleStepCheck(${idx})"
+                        style="
+                            display: flex; 
+                            gap: 16px; 
+                            align-items: flex-start; 
+                            cursor: pointer; 
+                            padding: 10px 12px; 
+                            border-radius: 16px; 
+                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); 
+                            user-select: none;
+                            background: ${isChecked ? '#F9FAFB' : '#FFFFFF'};
+                            border: 1px solid ${isChecked ? '#E5E7EB' : 'transparent'};
+                        "
+                        onmouseover="if (!${isChecked}) this.style.background='#F3F4F6';"
+                        onmouseout="this.style.background='${isChecked ? '#F9FAFB' : '#FFFFFF'}';"
+                    >
+                        <div class="m3-step-badge" style="
+                            width: 36px;
+                            height: 36px;
+                            min-width: 36px;
+                            border-radius: 50%;
+                            background: ${isChecked ? '#10B981' : '#12B078'};
+                            color: #FFFFFF;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-shrink: 0;
+                            font-weight: 800;
+                            font-size: 16px;
+                            box-shadow: ${isChecked ? 'none' : '0 3px 10px rgba(18, 176, 120, 0.25)'};
+                            transition: all 0.2s ease;
+                        ">
+                            ${isChecked ? `
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #FFFFFF;">check</span>
+                            ` : `
+                                <span>${num}</span>
+                            `}
+                        </div>
+                        <div style="
+                            font-size: 15px;
+                            line-height: 1.6;
+                            font-weight: ${isChecked ? '500' : '600'};
+                            color: ${isChecked ? '#9CA3AF' : '#1F2937'};
+                            ${isChecked ? 'text-decoration: line-through;' : ''}
+                            padding-top: 6px;
+                            flex: 1;
+                        ">
+                            ${instruction}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /** Actualiza el contador de progreso en la barra inferior (ingredientes y pasos) */
+        updateRecipeProgressText() {
+            if (!this.activeTaskForRecipe) return;
+            const task = this.activeTaskForRecipe;
+            const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
+            const progressEl = document.getElementById('prepRecipeChecklistProgress');
+            if (!progressEl || !recipe) return;
+
+            const ings = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+            const steps = Array.isArray(recipe.steps) ? recipe.steps : [];
+
+            const checkedIngs = ings.filter(i => i.checked).length;
+            const checkedSteps = steps.filter(s => s.checked).length;
+
+            if (steps.length > 0) {
+                progressEl.textContent = `${checkedIngs}/${ings.length} ing. • ${checkedSteps}/${steps.length} pasos listos`;
+            } else {
+                progressEl.textContent = `${checkedIngs} de ${ings.length} ingredientes listos`;
+            }
         }
 
         /** Alterna el check de un ingrediente en la vista de receta */
@@ -2926,6 +3196,38 @@
 
             this.saveCache();
             this.renderRecipeIngredients();
+            this.updateRecipeProgressText();
+
+            if (window.supabaseClient && !String(task.id).startsWith('temp_')) {
+                const updatePayload = {
+                    recipe_data: recipe,
+                    completed: task.completed,
+                    updated_at: new Date().toISOString()
+                };
+                if (task.is_daily) {
+                    updatePayload.completed_dates = task.completed_dates || [];
+                }
+                window.supabaseClient
+                    .from('prep_tasks')
+                    .update(updatePayload)
+                    .eq('id', task.id)
+                    .then(() => {});
+            }
+        }
+
+        /** Alterna el check de un paso en la vista de receta */
+        toggleStepCheck(index) {
+            if (!this.activeTaskForRecipe) return;
+            const task = this.activeTaskForRecipe;
+            const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
+            if (!recipe || !recipe.steps || !recipe.steps[index]) return;
+
+            recipe.steps[index].checked = !recipe.steps[index].checked;
+            task.recipe_data = recipe;
+
+            this.saveCache();
+            this.renderRecipeSteps();
+            this.updateRecipeProgressText();
 
             if (window.supabaseClient && !String(task.id).startsWith('temp_')) {
                 const updatePayload = {
@@ -2949,9 +3251,10 @@
             if (!this.activeTaskForRecipe) return;
             const task = this.activeTaskForRecipe;
             const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
-            if (!recipe || !recipe.ingredients) return;
+            if (!recipe || !recipe.ingredients || recipe.ingredients.length === 0) return;
 
-            recipe.ingredients.forEach(i => i.checked = true);
+            const allChecked = recipe.ingredients.every(i => i.checked);
+            recipe.ingredients.forEach(i => i.checked = !allChecked);
             task.recipe_data = recipe;
 
             const targetDate = this.selectedDate || this.getTodayDateString();
@@ -2963,18 +3266,54 @@
                         ? [...task.recipe_data.completed_dates]
                         : (task.completed ? [todayStr] : []);
                 }
-                if (!task.completed_dates.includes(targetDate)) {
-                    task.completed_dates.push(targetDate);
+                if (!allChecked) {
+                    if (!task.completed_dates.includes(targetDate)) {
+                        task.completed_dates.push(targetDate);
+                    }
+                    if (targetDate === todayStr) task.completed = true;
                 }
-                if (targetDate === todayStr) task.completed = true;
                 task.recipe_data.completed_dates = [...task.completed_dates];
             } else {
-                task.completed = true;
+                task.completed = !allChecked;
             }
 
             this.saveCache();
             this.renderRecipeIngredients();
-            this.notify('Todos los ingredientes marcados como listos');
+            this.updateRecipeProgressText();
+            this.notify(allChecked ? 'Ingredientes desmarcados' : 'Todos los ingredientes listos');
+
+            if (window.supabaseClient && !String(task.id).startsWith('temp_')) {
+                const updatePayload = {
+                    recipe_data: recipe,
+                    completed: task.completed,
+                    updated_at: new Date().toISOString()
+                };
+                if (task.is_daily) {
+                    updatePayload.completed_dates = task.completed_dates || [];
+                }
+                window.supabaseClient
+                    .from('prep_tasks')
+                    .update(updatePayload)
+                    .eq('id', task.id)
+                    .then(() => {});
+            }
+        }
+
+        /** Marca o desmarca todos los pasos de la receta activa */
+        checkAllRecipeSteps() {
+            if (!this.activeTaskForRecipe) return;
+            const task = this.activeTaskForRecipe;
+            const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
+            if (!recipe || !recipe.steps || recipe.steps.length === 0) return;
+
+            const allChecked = recipe.steps.every(s => s.checked);
+            recipe.steps.forEach(s => s.checked = !allChecked);
+            task.recipe_data = recipe;
+
+            this.saveCache();
+            this.renderRecipeSteps();
+            this.updateRecipeProgressText();
+            this.notify(allChecked ? 'Pasos desmarcados' : 'Todos los pasos completados');
 
             if (window.supabaseClient && !String(task.id).startsWith('temp_')) {
                 const updatePayload = {
@@ -3016,6 +3355,9 @@
 
                 if (task.recipe_data?.ingredients) {
                     task.recipe_data.ingredients.forEach(i => i.checked = true);
+                }
+                if (task.recipe_data?.steps) {
+                    task.recipe_data.steps.forEach(s => s.checked = true);
                 }
                 if (task.recipe_data) {
                     task.recipe_data.completed_dates = task.completed_dates || [];
