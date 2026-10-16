@@ -375,20 +375,19 @@ class RecipeDetailManager {
 
                 if (originalQty) {
                     const val = window.utils ? window.utils.parseToDecimal(originalQty) : parseFloat(originalQty);
-                    let scaledDisplay = '';
                     if (val !== null && !isNaN(val)) {
                         const scaled = val * scale;
-                        scaledDisplay = (val >= 10 && scaled % 1 === 0)
+                        const scaledDisplay = (val >= 10 && scaled % 1 === 0)
                             ? Math.round(scaled).toString()
                             : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
+                        const pillText = `${scaledDisplay} ${unit}`.trim();
+                        renderedContent = `
+                            <span class="ingredient-qty-pill ${pillClass}">${pillText}</span>
+                            <span class="ingredient-name-text">${name}</span>
+                        `.trim();
                     } else {
-                        scaledDisplay = originalQty;
+                        renderedContent = `${originalQty} ${unit} ${name}`.replace(/\s+/g, ' ').trim();
                     }
-                    const pillText = `${scaledDisplay} ${unit}`.trim();
-                    renderedContent = `
-                        <span class="ingredient-qty-pill ${pillClass}">${pillText}</span>
-                        <span class="ingredient-name-text">${name}</span>
-                    `.trim();
                 } else {
                     // Si no viene cantidad separada, escalar sobre el texto del ingrediente
                     const rawText = `${unit} ${name}`.trim();
@@ -399,10 +398,11 @@ class RecipeDetailManager {
                         const prevChar = offset > 0 ? fullStr[offset - 1] : '';
                         if (/[a-zA-Z]/.test(prevChar)) return match;
                         if (hasMatched) return match;
-                        hasMatched = true;
 
                         const val = window.utils ? window.utils.parseToDecimal(numStr) : parseFloat(numStr);
                         if (val === null || isNaN(val)) return match;
+                        hasMatched = true;
+
                         const scaled = val * scale;
                         const formattedQty = (val >= 10 && scaled % 1 === 0)
                             ? Math.round(scaled).toString()
@@ -414,10 +414,8 @@ class RecipeDetailManager {
                     if (hasMatched) {
                         renderedContent = scaledText;
                     } else {
-                        const fallbackText = (window.utils && window.utils.scaleText)
-                            ? window.utils.scaleText(rawText, scale)
-                            : rawText;
-                        renderedContent = `<span class="ingredient-qty-pill ${pillClass}">${scale < 1 ? 'Reducido' : '×' + scale}</span> ${fallbackText}`;
+                        // Si no tiene número, no le agregues nada
+                        renderedContent = rawText;
                     }
                 }
             }

@@ -3334,7 +3334,7 @@
                         const qtyText = `${formattedQty} ${ing.unit || ''}`.trim();
                         displayHtml = `<span class="ingredient-qty-pill ${pillClass}">${qtyText}</span> <span class="ingredient-name-text">${ing.name}</span>`;
                     } else {
-                        displayHtml = `<span class="ingredient-qty-pill ${pillClass}">${mainDisplay}x</span> <span class="ingredient-name-text">${ing.name}</span>`;
+                        displayHtml = ing.name;
                     }
                 }
 
