@@ -1194,44 +1194,54 @@
                             </div>
                         </div>
 
-                        <!-- Selector M3 de Modo cuando el acceso está activado (No Super Admin) -->
+                        <!-- Selector M3 de Modo con Switch directo (No Super Admin) -->
                         ${(!isSuperAdminUser && user.can_access_suppliers) ? `
                             <div style="
                                 border-top: 1px dashed ${user.suppliers_mode === 'empty' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
-                                padding-top: 8px;
+                                padding-top: 10px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: space-between;
-                                gap: 10px;
+                                gap: 12px;
                             ">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#059669'};">
-                                        ${user.suppliers_mode === 'empty' ? 'inventory_2' : 'group'}
-                                    </span>
-                                    <span style="font-size: 11.5px; font-weight: 700; color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#065F46'};">
-                                        ${user.suppliers_mode === 'empty'
-                                            ? (isEn ? 'Mode: Own Suppliers (Empty)' : 'Modo: Catálogo Propio (Vacío)')
-                                            : (isEn ? 'Mode: Shared Suppliers (Admin)' : 'Modo: Proveedores Compartidos (Admin)')}
-                                    </span>
+                                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                                    <div style="
+                                        width: 28px;
+                                        height: 28px;
+                                        border-radius: 50%;
+                                        background: ${user.suppliers_mode === 'empty' ? '#DBEAFE' : '#DCFCE7'};
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        flex-shrink: 0;
+                                    ">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#059669'};">
+                                            ${user.suppliers_mode === 'empty' ? 'inventory_2' : 'group'}
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 12.5px; font-weight: 700; color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#065F46'}; line-height: 1.2;">
+                                            ${user.suppliers_mode === 'empty'
+                                                ? (isEn ? 'Empty Mode' : 'Modo Vacío')
+                                                : (isEn ? 'Shared Mode' : 'Modo Compartido')}
+                                        </span>
+                                        <span style="font-size: 10.5px; color: ${user.suppliers_mode === 'empty' ? '#2563EB' : '#047857'}; opacity: 0.85; line-height: 1.2; margin-top: 2px;">
+                                            ${user.suppliers_mode === 'empty'
+                                                ? (isEn ? 'Own & independent catalog' : 'Catálogo propio e independiente')
+                                                : (isEn ? 'Shared with Super User' : 'Compartido con el Super Usuario')}
+                                        </span>
+                                    </div>
                                 </div>
-                                <button type="button" onclick="window.adminUsersManager.openSuppliersModeSelectorModal('${user.id}')" style="
-                                    background: ${user.suppliers_mode === 'empty' ? '#EFF6FF' : '#ECFDF5'};
-                                    border: 1px solid ${user.suppliers_mode === 'empty' ? '#BFDBFE' : '#A7F3D0'};
-                                    border-radius: 100px;
-                                    color: ${user.suppliers_mode === 'empty' ? '#1D4ED8' : '#047857'};
-                                    font-size: 11.5px;
-                                    font-weight: 700;
-                                    font-family: inherit;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                    cursor: pointer;
-                                    padding: 4px 10px;
-                                    transition: all 0.2s;
-                                ">
-                                    <span class="material-symbols-outlined" style="font-size: 14px;">swap_horiz</span>
-                                    ${isEn ? 'Change Mode' : 'Cambiar Modo'}
-                                </button>
+                                <label class="m3-switch" title="${user.suppliers_mode !== 'empty' ? (isEn ? 'Shared Mode (click to switch to Empty Mode)' : 'Modo Compartido (clic para cambiar a Modo Vacío)') : (isEn ? 'Empty Mode (click to switch to Shared Mode)' : 'Modo Vacío (clic para cambiar a Modo Compartido)')}">
+                                    <input type="checkbox" id="switch-suppliers-mode-${user.id}" 
+                                        ${user.suppliers_mode !== 'empty' ? 'checked' : ''} 
+                                        onchange="window.adminUsersManager.handleToggleSuppliersMode('${user.id}', this.checked)" />
+                                    <span class="m3-switch-track">
+                                        <span class="m3-switch-thumb">
+                                            <span class="material-symbols-outlined">${user.suppliers_mode !== 'empty' ? 'check' : 'close'}</span>
+                                        </span>
+                                    </span>
+                                </label>
                             </div>
                         ` : ''}
                     </div>
@@ -1322,44 +1332,54 @@
                             </div>
                         </div>
 
-                        <!-- Selector M3 de Modo cuando el acceso está activado (No Super Admin) -->
+                        <!-- Selector M3 de Modo con Switch directo (No Super Admin) -->
                         ${(!isSuperAdminUser && user.can_access_tasks) ? `
                             <div style="
                                 border-top: 1px dashed ${user.tasks_mode === 'isolated' ? 'rgba(37, 99, 235, 0.25)' : 'rgba(16, 185, 129, 0.25)'};
-                                padding-top: 8px;
+                                padding-top: 10px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: space-between;
-                                gap: 10px;
+                                gap: 12px;
                             ">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#059669'};">
-                                        ${user.tasks_mode === 'isolated' ? 'lock' : 'sync'}
-                                    </span>
-                                    <span style="font-size: 11.5px; font-weight: 700; color: ${user.tasks_mode === 'isolated' ? '#1D4ED8' : '#065F46'};">
-                                        ${user.tasks_mode === 'isolated'
-                                            ? (isEn ? 'Mode: Private (Independent)' : 'Modo: Lista Propia (Privada / Vacía)')
-                                            : (isEn ? 'Mode: Live Sync (Super Admin)' : 'Modo: Sincronizado (Super Usuario)')}
-                                    </span>
+                                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                                    <div style="
+                                        width: 28px;
+                                        height: 28px;
+                                        border-radius: 50%;
+                                        background: ${user.tasks_mode === 'isolated' ? '#DBEAFE' : '#DCFCE7'};
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        flex-shrink: 0;
+                                    ">
+                                        <span class="material-symbols-outlined" style="font-size: 16px; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#059669'};">
+                                            ${user.tasks_mode === 'isolated' ? 'lock' : 'sync'}
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 12.5px; font-weight: 700; color: ${user.tasks_mode === 'isolated' ? '#1D4ED8' : '#065F46'}; line-height: 1.2;">
+                                            ${user.tasks_mode === 'isolated'
+                                                ? (isEn ? 'Empty Mode' : 'Modo Vacío')
+                                                : (isEn ? 'Shared Mode' : 'Modo Compartido')}
+                                        </span>
+                                        <span style="font-size: 10.5px; color: ${user.tasks_mode === 'isolated' ? '#2563EB' : '#047857'}; opacity: 0.85; line-height: 1.2; margin-top: 2px;">
+                                            ${user.tasks_mode === 'isolated'
+                                                ? (isEn ? 'Private & independent list' : 'Lista privada e independiente')
+                                                : (isEn ? 'Live sync with Super User' : 'Sincronizado con el Super Usuario')}
+                                        </span>
+                                    </div>
                                 </div>
-                                <button type="button" onclick="window.adminUsersManager.openTasksModeSelectorModal('${user.id}')" style="
-                                    background: ${user.tasks_mode === 'isolated' ? '#EFF6FF' : '#ECFDF5'};
-                                    border: 1px solid ${user.tasks_mode === 'isolated' ? '#BFDBFE' : '#A7F3D0'};
-                                    border-radius: 100px;
-                                    color: ${user.tasks_mode === 'isolated' ? '#1D4ED8' : '#047857'};
-                                    font-size: 11.5px;
-                                    font-weight: 700;
-                                    font-family: inherit;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                    cursor: pointer;
-                                    padding: 4px 10px;
-                                    transition: all 0.2s;
-                                ">
-                                    <span class="material-symbols-outlined" style="font-size: 14px;">swap_horiz</span>
-                                    ${isEn ? 'Change Mode' : 'Cambiar Modo'}
-                                </button>
+                                <label class="m3-switch" title="${user.tasks_mode !== 'isolated' ? (isEn ? 'Shared Mode (click to switch to Empty Mode)' : 'Modo Compartido (clic para cambiar a Modo Vacío)') : (isEn ? 'Empty Mode (click to switch to Shared Mode)' : 'Modo Vacío (clic para cambiar a Modo Compartido)')}">
+                                    <input type="checkbox" id="switch-tasks-mode-${user.id}" 
+                                        ${user.tasks_mode !== 'isolated' ? 'checked' : ''} 
+                                        onchange="window.adminUsersManager.handleToggleTasksMode('${user.id}', this.checked)" />
+                                    <span class="m3-switch-track">
+                                        <span class="m3-switch-thumb">
+                                            <span class="material-symbols-outlined">${user.tasks_mode !== 'isolated' ? 'check' : 'close'}</span>
+                                        </span>
+                                    </span>
+                                </label>
                             </div>
                         ` : ''}
                     </div>
@@ -1695,6 +1715,14 @@
         }
 
         /**
+         * Alterna directamente entre Modo Compartido y Modo Vacío para el módulo de Proveedores
+         */
+        async handleToggleSuppliersMode(userId, isShared) {
+            const mode = isShared ? 'shared' : 'empty';
+            await this.handleSetSuppliersAccess(userId, true, mode);
+        }
+
+        /**
          * Manejador de confirmación para activar o desactivar acceso al módulo de proveedores
          */
         async handleToggleSuppliersAccess(userId, grantAccess) {
@@ -1703,9 +1731,9 @@
 
             const isEn = this.isEnglish();
 
-            // Si se desea activar, abrir el diálogo selector M3 para elegir: Compartir Proveedores vs Módulo Vacío
+            // Si se desea activar, activar directamente con el modo configurado (o 'shared' por defecto)
             if (grantAccess) {
-                this.openSuppliersModeSelectorModal(userId, true);
+                await this.handleSetSuppliersAccess(userId, true, user.suppliers_mode || 'shared');
                 return;
             }
 
@@ -2219,6 +2247,14 @@
         }
 
         /**
+         * Alterna directamente entre Modo Compartido y Modo Vacío para el módulo Prep List
+         */
+        async handleToggleTasksMode(userId, isShared) {
+            const mode = isShared ? 'shared' : 'isolated';
+            await this.handleSetTasksAccess(userId, true, mode);
+        }
+
+        /**
          * Manejador de confirmación para activar o desactivar acceso al módulo Prep List
          */
         async handleToggleTasksAccess(userId, grantAccess) {
@@ -2227,9 +2263,9 @@
 
             const isEn = this.isEnglish();
 
-            // Si se desea activar, abrir el diálogo selector M3 para elegir modo (Sincronizado vs Lista Propia)
+            // Si se desea activar, activar directamente con el modo configurado (o 'shared' por defecto)
             if (grantAccess) {
-                this.openTasksModeSelectorModal(userId, true);
+                await this.handleSetTasksAccess(userId, true, user.tasks_mode || 'shared');
                 return;
             }
 
