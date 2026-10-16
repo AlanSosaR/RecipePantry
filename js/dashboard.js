@@ -3929,14 +3929,7 @@ class DashboardManager {
                         desc.style.color = '#000000';
                         desc.style.opacity = '1';
                     }
-                    if (btn) {
-                        btn.classList.remove('hidden');
-                        // M3 Expressive Green Button styling
-                        btn.style.setProperty('--md-filled-button-container-color', '#10B981');
-                        btn.style.setProperty('--md-filled-button-label-text-color', 'white');
-                        btn.style.setProperty('--md-filled-button-icon-color', 'white');
-                        btn.style.marginTop = '24px';
-                    }
+                    if (btn) btn.classList.add('hidden');
                 }
 
                 emptyState.classList.remove('hidden');
