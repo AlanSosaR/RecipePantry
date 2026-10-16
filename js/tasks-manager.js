@@ -51,6 +51,7 @@
             const now = new Date();
             this.currentViewYear = now.getFullYear();
             this.currentViewMonth = now.getMonth();
+            this.isCompletedFolderOpen = true;
             this._trailReminderInterval = null;
             this.loadCache();
             this.initEvents();
@@ -1344,7 +1345,206 @@
             }, 80);
         }
 
-        /** Renderiza la lista filtrada de tareas */
+        /** Alterna la visibilidad de la carpeta de tareas realizadas */
+        toggleCompletedFolder() {
+            this.isCompletedFolderOpen = !this.isCompletedFolderOpen;
+            const accordion = document.getElementById('prepCompletedAccordion');
+            const content = document.getElementById('prepCompletedContent');
+            const chevron = accordion?.querySelector('.prep-completed-chevron');
+            if (accordion && content && chevron) {
+                accordion.classList.toggle('open', this.isCompletedFolderOpen);
+                content.style.display = this.isCompletedFolderOpen ? 'flex' : 'none';
+                chevron.textContent = this.isCompletedFolderOpen ? 'expand_less' : 'expand_more';
+            } else {
+                this.renderList();
+            }
+        }
+
+        /** Banner motivacional cuando todas las tareas de la fecha están realizadas */
+        renderAllDoneBanner() {
+            return `
+                <div class="tasks-all-done-banner" style="
+                    text-align: center;
+                    padding: 24px 16px;
+                    background: #EAF8F2;
+                    border-radius: 22px;
+                    border: 1.5px dashed #A8DFCA;
+                    margin-bottom: 14px;
+                ">
+                    <span class="material-symbols-outlined" style="font-size: 32px; color: #12B078; display: block; margin-bottom: 4px;">task_alt</span>
+                    <h4 style="font-size: 15px; font-weight: 700; color: #065F46; margin: 0 0 4px 0;">¡Todo listo para este día!</h4>
+                    <p style="font-size: 12px; color: #047857; margin: 0;">Has completado todas las actividades del servicio.</p>
+                </div>
+            `;
+        }
+
+        /** Renderiza la tarjeta individual de una tarea (activa o archivada) */
+        renderTaskCard(task, selDate, isArchived = false) {
+            const todayStr = this.getTodayDateString();
+            const taskDate = task.due_date || (task.created_at ? task.created_at.split('T')[0] : todayStr);
+            const isRolledOver = !task.is_daily && taskDate < selDate;
+            const isCompleted = this.isTaskCompletedForDate(task, selDate);
+            const isTrail = (task.title && task.title.toLowerCase().includes('trail')) || (task.qty && task.qty.includes('trailapp.com'));
+            const isUrl = task.qty && (task.qty.startsWith('http://') || task.qty.startsWith('https://'));
+            const actionUrl = isTrail ? 'https://web.trailapp.com/u/sign_in#/' : (isUrl ? task.qty : null);
+
+            return `
+                <article id="task-card-${task.id}" class="task-card ${isCompleted ? 'task-completed' : ''} ${isArchived ? 'task-archived-item' : ''}" style="
+                    background: ${isCompleted ? '#F9FAF9' : '#FFFFFF'};
+                    border-radius: 22px;
+                    padding: 14px 16px;
+                    border: 1px solid ${task.recipe_id && !isCompleted ? 'rgba(18, 176, 120, 0.4)' : isTrail && !isCompleted ? 'rgba(2, 132, 199, 0.4)' : '#E4E4E7'};
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+                    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+                ">
+                    <!-- Checkbox Mint Circular -->
+                    <input 
+                        type="checkbox" 
+                        class="circle-mint-checkbox" 
+                        ${isCompleted ? 'checked' : ''} 
+                        onchange="window.tasksManager.toggleTaskStatus('${task.id}')"
+                        title="${isCompleted ? 'Marcar como pendiente' : 'Marcar como lista'}"
+                    >
+
+                    <!-- Main Info -->
+                    <div onclick="${actionUrl ? `window.open('${actionUrl}', '_blank')` : task.recipe_id ? `window.tasksManager.openRecipeView('${task.id}')` : `window.tasksManager.toggleTaskStatus('${task.id}')`}" style="flex: 1; min-width: 0; cursor: pointer;">
+                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            ${task.is_daily ? `
+                                <button type="button" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" title="Toca para cambiar a tarea puntual" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: #EAF8F2; color: #12B078; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
+                                    <span class="material-symbols-outlined" style="font-size: 12px;">autorenew</span>
+                                    Todos los días
+                                </button>
+                            ` : ''}
+
+                            ${isRolledOver ? `
+                                <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;" title="No se realizó el ${this.formatDateShort(taskDate)} y pasó a hoy">
+                                    <span class="material-symbols-outlined" style="font-size: 12px;">history</span>
+                                    Pendiente (${this.formatDateShort(taskDate)})
+                                </span>
+                            ` : ''}
+                        </div>
+
+                        <div style="font-size: 15.5px; font-weight: 800; color: ${isCompleted ? '#A1A1AA' : '#18181B'}; ${isCompleted ? 'text-decoration: line-through;' : ''}">
+                            ${task.title}
+                        </div>
+
+                        ${task.qty ? `
+                            <div style="font-size: 12px; font-weight: 500; color: #71717A; margin-top: 2px;">
+                                ${isTrail ? `
+                                    <span style="color: #0284C7; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">checklist</span>
+                                        web.trailapp.com
+                                    </span>
+                                ` : task.qty}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Right Action (Esquina Derecha) -->
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: ${actionUrl || task.recipe_id ? 'space-between' : 'center'}; align-self: stretch; flex-shrink: 0; min-height: 52px; gap: 6px;">
+                        ${actionUrl ? `
+                            <a href="${actionUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="
+                                background: #E0F2FE;
+                                color: #0369A1;
+                                border: none;
+                                font-weight: 800;
+                                font-size: 11px;
+                                padding: 6px 12px;
+                                border-radius: 9999px;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 4px;
+                                text-decoration: none;
+                                cursor: pointer;
+                                transition: all 0.15s;
+                                white-space: nowrap;
+                            "
+                            onmouseover="this.style.background='#0284C7'; this.style.color='#FFFFFF';"
+                            onmouseout="this.style.background='#E0F2FE'; this.style.color='#0369A1';"
+                            title="Abrir en nueva pestaña"
+                            >
+                                <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
+                                <span>Abrir Trail</span>
+                            </a>
+                        ` : task.recipe_id ? `
+                            <button type="button" onclick="event.stopPropagation(); window.tasksManager.openRecipeView('${task.id}')" style="
+                                background: #EAF8F2;
+                                color: #12B078;
+                                border: none;
+                                font-weight: 800;
+                                font-size: 11px;
+                                padding: 6px 12px;
+                                border-radius: 9999px;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 4px;
+                                cursor: pointer;
+                                transition: all 0.15s;
+                                white-space: nowrap;
+                            "
+                            onmouseover="this.style.background='#12B078'; this.style.color='#FFFFFF';"
+                            onmouseout="this.style.background='#EAF8F2'; this.style.color='#12B078';"
+                            title="Abrir receta"
+                            >
+                                <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
+                                <span>Abrir receta</span>
+                            </button>
+                        ` : ''}
+
+                        <button type="button" onclick="event.stopPropagation(); window.tasksManager.deleteTask('${task.id}')" style="
+                            background: none;
+                            border: none;
+                            color: #D4D4D8;
+                            padding: 4px;
+                            border-radius: 50%;
+                            cursor: pointer;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: color 0.15s;
+                        "
+                        onmouseover="this.style.color='#EF4444';"
+                        onmouseout="this.style.color='#D4D4D8';"
+                        title="Eliminar tarea"
+                        >
+                            <span class="material-symbols-outlined" style="font-size: 17px;">delete</span>
+                        </button>
+                    </div>
+                </article>
+            `;
+        }
+
+        /** Renderiza el contenedor acordeón colapsable para las tareas Realizadas */
+        renderCompletedAccordion(completedTasks, selDate, isOpen) {
+            return `
+                <div id="prepCompletedAccordion" class="prep-completed-accordion ${isOpen ? 'open' : ''}">
+                    <button 
+                        type="button" 
+                        class="prep-completed-header" 
+                        onclick="window.tasksManager.toggleCompletedFolder()"
+                        aria-expanded="${isOpen}"
+                        title="Toca para colapsar o expandir las tareas realizadas"
+                    >
+                        <div class="prep-completed-header-left">
+                            <span class="material-symbols-outlined prep-completed-icon">inventory_2</span>
+                            <span class="prep-completed-title">Realizadas</span>
+                            <span class="prep-completed-badge">${completedTasks.length}</span>
+                        </div>
+                        <span class="material-symbols-outlined prep-completed-chevron">
+                            ${isOpen ? 'expand_less' : 'expand_more'}
+                        </span>
+                    </button>
+                    <div id="prepCompletedContent" class="prep-completed-content" style="display: ${isOpen ? 'flex' : 'none'};">
+                        ${completedTasks.map(task => this.renderTaskCard(task, selDate, true)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        /** Renderiza la lista filtrada de tareas con archivado directo en Realizadas */
         renderList() {
             const container = document.getElementById('prepTasksContainer');
             if (!container) return;
@@ -1388,13 +1588,6 @@
                     return titleMatch || qtyMatch || recipeMatch;
                 });
             }
-
-            // Incompletas primero para la fecha seleccionada
-            filtered.sort((a, b) => {
-                const aDone = this.isTaskCompletedForDate(a, selDate);
-                const bDone = this.isTaskCompletedForDate(b, selDate);
-                return (aDone === bDone ? 0 : aDone ? 1 : -1);
-            });
 
             if (filtered.length === 0) {
                 if (q) {
@@ -1442,144 +1635,30 @@
                 return;
             }
 
-            container.innerHTML = filtered.map(task => {
-                const taskDate = task.due_date || (task.created_at ? task.created_at.split('T')[0] : todayStr);
-                const isRolledOver = !task.is_daily && taskDate < selDate;
-                const isCompleted = this.isTaskCompletedForDate(task, selDate);
-                const recipe = task.recipe_data || (task.recipe_id ? this.recipesCatalog[task.recipe_id] : null);
-                const isTrail = (task.title && task.title.toLowerCase().includes('trail')) || (task.qty && task.qty.includes('trailapp.com'));
-                const isUrl = task.qty && (task.qty.startsWith('http://') || task.qty.startsWith('https://'));
-                const actionUrl = isTrail ? 'https://web.trailapp.com/u/sign_in#/' : (isUrl ? task.qty : null);
+            // Separar tareas activas (pendientes) y tareas realizadas
+            const activeTasks = filtered.filter(t => !this.isTaskCompletedForDate(t, selDate));
+            const completedTasks = filtered.filter(t => this.isTaskCompletedForDate(t, selDate));
 
-                return `
-                    <article class="task-card ${isCompleted ? 'task-completed' : ''}" style="
-                        background: ${isCompleted ? '#F9FAF9' : '#FFFFFF'};
-                        border-radius: 22px;
-                        padding: 14px 16px;
-                        border: 1px solid ${task.recipe_id && !isCompleted ? 'rgba(18, 176, 120, 0.4)' : isTrail && !isCompleted ? 'rgba(2, 132, 199, 0.4)' : '#E4E4E7'};
-                        display: flex;
-                        align-items: center;
-                        gap: 14px;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-                        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-                    ">
-                        <!-- Checkbox Mint Circular -->
-                        <input 
-                            type="checkbox" 
-                            class="circle-mint-checkbox" 
-                            ${isCompleted ? 'checked' : ''} 
-                            onchange="window.tasksManager.toggleTaskStatus('${task.id}')"
-                            title="Marcar como lista"
-                        >
+            // Si hay búsqueda y hay tareas realizadas coincidentes, abrir automáticamente la carpeta
+            const hasSearchMatchInCompleted = Boolean(q && completedTasks.length > 0);
+            const isFolderOpen = hasSearchMatchInCompleted || Boolean(this.isCompletedFolderOpen);
 
-                        <!-- Main Info -->
-                        <div onclick="${actionUrl ? `window.open('${actionUrl}', '_blank')` : task.recipe_id ? `window.tasksManager.openRecipeView('${task.id}')` : `window.tasksManager.toggleTaskStatus('${task.id}')`}" style="flex: 1; min-width: 0; cursor: pointer;">
-                            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px;">
-                                ${task.is_daily ? `
-                                    <button type="button" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" title="Toca para cambiar a tarea puntual" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: #EAF8F2; color: #12B078; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
-                                        <span class="material-symbols-outlined" style="font-size: 12px;">autorenew</span>
-                                        Todos los días
-                                    </button>
-                                ` : ''}
+            let html = '';
 
-                                ${isRolledOver ? `
-                                    <span style="display: inline-flex; align-items: center; gap: 3px; background: #FEF3C7; color: #B45309; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;" title="No se realizó el ${this.formatDateShort(taskDate)} y pasó a hoy">
-                                        <span class="material-symbols-outlined" style="font-size: 12px;">history</span>
-                                        Pendiente (${this.formatDateShort(taskDate)})
-                                    </span>
-                                ` : ''}
-                            </div>
+            // 1. Tareas activas
+            if (activeTasks.length > 0) {
+                html += activeTasks.map(task => this.renderTaskCard(task, selDate, false)).join('');
+            } else if (completedTasks.length > 0 && !q) {
+                // Si no hay activas y todas están realizadas, mostrar banner felicitando
+                html += this.renderAllDoneBanner();
+            }
 
-                            <div style="font-size: 15.5px; font-weight: 800; color: ${isCompleted ? '#A1A1AA' : '#18181B'}; ${isCompleted ? 'text-decoration: line-through;' : ''}">
-                                ${task.title}
-                            </div>
+            // 2. Carpeta colapsable "Realizadas" (solo se renderiza si existen tareas realizadas)
+            if (completedTasks.length > 0) {
+                html += this.renderCompletedAccordion(completedTasks, selDate, isFolderOpen);
+            }
 
-                            ${task.qty ? `
-                                <div style="font-size: 12px; font-weight: 500; color: #71717A; margin-top: 2px;">
-                                    ${isTrail ? `
-                                        <span style="color: #0284C7; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                                            <span class="material-symbols-outlined" style="font-size: 14px;">checklist</span>
-                                            web.trailapp.com
-                                        </span>
-                                    ` : task.qty}
-                                </div>
-                            ` : ''}
-                        </div>
-
-                        <!-- Right Action (Esquina Derecha) -->
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: ${actionUrl || task.recipe_id ? 'space-between' : 'center'}; align-self: stretch; flex-shrink: 0; min-height: 52px; gap: 6px;">
-                            ${actionUrl ? `
-                                <a href="${actionUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="
-                                    background: #E0F2FE;
-                                    color: #0369A1;
-                                    border: none;
-                                    font-weight: 800;
-                                    font-size: 11px;
-                                    padding: 6px 12px;
-                                    border-radius: 9999px;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                    text-decoration: none;
-                                    cursor: pointer;
-                                    transition: all 0.15s;
-                                    white-space: nowrap;
-                                "
-                                onmouseover="this.style.background='#0284C7'; this.style.color='#FFFFFF';"
-                                onmouseout="this.style.background='#E0F2FE'; this.style.color='#0369A1';"
-                                title="Abrir en nueva pestaña"
-                                >
-                                    <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
-                                    <span>Abrir Trail</span>
-                                </a>
-                            ` : task.recipe_id ? `
-                                <button type="button" onclick="event.stopPropagation(); window.tasksManager.openRecipeView('${task.id}')" style="
-                                    background: #EAF8F2;
-                                    color: #12B078;
-                                    border: none;
-                                    font-weight: 800;
-                                    font-size: 11px;
-                                    padding: 6px 12px;
-                                    border-radius: 9999px;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                    cursor: pointer;
-                                    transition: all 0.15s;
-                                    white-space: nowrap;
-                                "
-                                onmouseover="this.style.background='#12B078'; this.style.color='#FFFFFF';"
-                                onmouseout="this.style.background='#EAF8F2'; this.style.color='#12B078';"
-                                title="Abrir receta"
-                                >
-                                    <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
-                                    <span>Abrir receta</span>
-                                </button>
-                            ` : ''}
-
-                            <button type="button" onclick="event.stopPropagation(); window.tasksManager.deleteTask('${task.id}')" style="
-                                background: none;
-                                border: none;
-                                color: #D4D4D8;
-                                padding: 4px;
-                                border-radius: 50%;
-                                cursor: pointer;
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                transition: color 0.15s;
-                            "
-                            onmouseover="this.style.color='#EF4444';"
-                            onmouseout="this.style.color='#D4D4D8';"
-                            title="Eliminar tarea"
-                            >
-                                <span class="material-symbols-outlined" style="font-size: 17px;">delete</span>
-                            </button>
-                        </div>
-                    </article>
-                `;
-            }).join('');
-
+            container.innerHTML = html;
             this.updateMetrics();
         }
 
@@ -2021,6 +2100,19 @@
 
             const targetDate = dateStr || this.selectedDate || this.getTodayDateString();
             const todayStr = this.getTodayDateString();
+            const wasCompleted = this.isTaskCompletedForDate(task, targetDate);
+
+            // Si pasa de activa a completada, animar salida fluida hacia Realizadas
+            if (!wasCompleted) {
+                const cardEl = document.getElementById(`task-card-${taskId}`);
+                if (cardEl) {
+                    cardEl.classList.add('task-card-archiving-out');
+                    await new Promise(resolve => setTimeout(resolve, 180));
+                }
+                // Si la carpeta estaba cerrada o vacía, abrirla automáticamente para mostrar la tarea
+                this.isCompletedFolderOpen = true;
+            }
+
             let isNowCompleted = false;
 
             if (task.is_daily) {
