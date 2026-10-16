@@ -1009,54 +1009,61 @@
                             </button>
                         </div>
 
-                        <form onsubmit="window.tasksManager.handleCreateTaskSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
-                            <div>
-                                <label style="display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #4B5563; margin-bottom: 6px;">Nombre de la tarea *</label>
-                                <input 
-                                    id="newTaskTitleInput" 
-                                    type="text" 
-                                    required 
-                                    placeholder="Ej. Fish batter, Picar cebolla, Pedir cerveza..." 
-                                    style="width: 100%; padding: 12px 16px; border-radius: 16px; background: #F4F7F5; border: 1.5px solid #E5E7EB; font-size: 14px; font-weight: 600; outline: none; box-sizing: border-box;"
-                                    onfocus="this.style.borderColor='#12B078'; this.style.background='#FFFFFF';"
-                                    onblur="this.style.borderColor='#E5E7EB'; this.style.background='#F4F7F5';"
-                                >
+                        <form onsubmit="window.tasksManager.handleCreateTaskSubmit(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Field 1: Nombre de la tarea (M3 Expressive) -->
+                            <div class="m3-expressive-field-group">
+                                <div class="m3-expressive-field">
+                                    <span class="material-symbols-outlined m3-field-leading-icon">edit_note</span>
+                                    <input 
+                                        id="newTaskTitleInput" 
+                                        class="m3-expressive-input" 
+                                        type="text" 
+                                        required 
+                                        placeholder=" " 
+                                        autocomplete="off"
+                                    >
+                                    <label for="newTaskTitleInput" class="m3-expressive-label">
+                                        Nombre de la tarea *
+                                    </label>
+                                </div>
+                                <div class="m3-expressive-supporting">Ej. Fish batter, Picar cebolla, Pedir cerveza...</div>
                             </div>
 
-                            <!-- Recipe Search & Link Picker -->
-                            <div id="newTaskRecipeSearchWrapper" style="position: relative;">
-                                <label style="display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #4B5563; margin-bottom: 6px;">
-                                    ¿Abrir una receta al tocar esta tarea?
-                                </label>
-                                
-                                <div style="position: relative; display: flex; align-items: center;">
-                                    <span class="material-symbols-outlined" style="position: absolute; left: 14px; color: #12B078; font-size: 20px; pointer-events: none;">search</span>
+                            <!-- Field 2: Recipe Search & Link Picker (M3 Expressive) -->
+                            <div id="newTaskRecipeSearchWrapper" class="m3-expressive-field-group" style="position: relative;">
+                                <div class="m3-expressive-field">
+                                    <span class="material-symbols-outlined m3-field-leading-icon">menu_book</span>
                                     <input 
                                         id="newTaskRecipeSearchInput" 
+                                        class="m3-expressive-input" 
                                         type="text" 
                                         autocomplete="off"
-                                        placeholder="Buscar en las recetas para vincular..." 
-                                        style="width: 100%; padding: 12px 38px 12px 42px; border-radius: 16px; background: #F4F7F5; border: 1.5px solid #E5E7EB; font-size: 13.5px; font-weight: 600; outline: none; box-sizing: border-box; transition: all 0.2s;"
+                                        placeholder=" "
                                         onfocus="window.tasksManager.handleRecipeSearchFocus()"
                                         oninput="window.tasksManager.handleRecipeSearchInput(this.value)"
                                     >
+                                    <label for="newTaskRecipeSearchInput" class="m3-expressive-label">
+                                        ¿Vincular receta al tocar tarea? (opcional)
+                                    </label>
                                     <button 
                                         type="button" 
                                         id="newTaskRecipeClearBtn"
                                         onclick="window.tasksManager.clearSelectedRecipe()"
-                                        style="display: none; position: absolute; right: 10px; background: none; border: none; color: #9CA3AF; cursor: pointer; padding: 4px;"
+                                        class="m3-field-trailing-btn"
+                                        style="display: none;"
                                         title="Quitar receta vinculada"
                                     >
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
                                     </button>
                                 </div>
+                                <div class="m3-expressive-supporting">Busca en las recetas para abrirla automáticamente</div>
 
                                 <!-- Hidden input with the selected recipe id -->
                                 <input type="hidden" id="newTaskRecipeSelect" value="none">
 
                                 <!-- Selected Recipe Pill Preview -->
-                                <div id="newTaskRecipeSelectedBadge" style="display: none; margin-top: 8px;">
-                                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #EAF8F2; color: #064E3B; border: 1px solid #A7F3D0; padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700;">
+                                <div id="newTaskRecipeSelectedBadge" style="display: none; margin-top: 6px;">
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #EAF8F2; color: #064E3B; border: 1.5px solid #A7F3D0; padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700;">
                                         <span class="material-symbols-outlined" style="font-size: 16px; color: #12B078;">menu_book</span>
                                         <span id="newTaskRecipeSelectedTitle">Receta vinculada</span>
                                         <button type="button" onclick="window.tasksManager.clearSelectedRecipe()" style="background: none; border: none; color: #064E3B; cursor: pointer; padding: 0; display: flex; align-items: center; margin-left: 4px;">
@@ -1066,75 +1073,80 @@
                                 </div>
 
                                 <!-- Dropdown Results Container -->
-                                <div id="newTaskRecipeDropdownList" style="
-                                    display: none;
-                                    position: absolute;
-                                    top: calc(100% + 4px);
-                                    left: 0;
-                                    right: 0;
-                                    background: #FFFFFF;
-                                    border: 1.5px solid #E5E7EB;
-                                    border-radius: 16px;
-                                    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.08);
-                                    max-height: 220px;
-                                    overflow-y: auto;
-                                    z-index: 100;
-                                    padding: 6px;
-                                ">
+                                <div id="newTaskRecipeDropdownList" class="m3-expressive-dropdown" style="display: none;">
                                     <!-- Dinámico -->
                                 </div>
                             </div>
 
-                            <div>
-                                <label style="display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #4B5563; margin-bottom: 6px;">Nota / Información adicional (opcional)</label>
-                                <input 
-                                    id="newTaskQtyInput" 
-                                    type="text" 
-                                    placeholder="Ej. Estación, turno, enlace o detalle..." 
-                                    style="width: 100%; padding: 12px 16px; border-radius: 16px; background: #F4F7F5; border: 1.5px solid #E5E7EB; font-size: 13.5px; font-weight: 500; outline: none; box-sizing: border-box; transition: all 0.2s;"
-                                    onfocus="this.style.borderColor='#12B078'; this.style.background='#FFFFFF';"
-                                    onblur="this.style.borderColor='#E5E7EB'; this.style.background='#F4F7F5';"
-                                >
+                            <!-- Field 3: Nota / Información adicional (M3 Expressive) -->
+                            <div class="m3-expressive-field-group">
+                                <div class="m3-expressive-field">
+                                    <span class="material-symbols-outlined m3-field-leading-icon">description</span>
+                                    <input 
+                                        id="newTaskQtyInput" 
+                                        class="m3-expressive-input" 
+                                        type="text" 
+                                        placeholder=" "
+                                        autocomplete="off"
+                                    >
+                                    <label for="newTaskQtyInput" class="m3-expressive-label">
+                                        Nota / Información adicional (opcional)
+                                    </label>
+                                </div>
+                                <div class="m3-expressive-supporting">Ej. Estación, turno, enlace o detalle...</div>
                             </div>
 
                             <!-- Daily Routine Toggle -->
-                            <div style="display: flex; align-items: center; justify-content: space-between; background: #F4F7F5; padding: 12px 16px; border-radius: 18px; border: 1px solid #E5E7EB;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="material-symbols-outlined" style="color: #12B078; font-size: 22px;">autorenew</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFA; padding: 14px 18px; border-radius: 20px; border: 1.5px solid #E2E8F0; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 38px; height: 38px; border-radius: 12px; background: #EAF8F2; color: #12B078; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <span class="material-symbols-outlined" style="font-size: 22px;">autorenew</span>
+                                    </div>
                                     <div>
-                                        <div style="font-size: 12.5px; font-weight: 800; color: #18181B;">Se hace todos los días (Rutina Diaria)</div>
-                                        <div style="font-size: 11px; color: #71717A;">Aparece cada día en tu lista de actividades</div>
+                                        <div style="font-size: 13px; font-weight: 700; color: #18181B;">Se hace todos los días (Rutina Diaria)</div>
+                                        <div style="font-size: 11px; color: #71717A; margin-top: 1px;">Aparece cada día en tu lista de actividades</div>
                                     </div>
                                 </div>
-                                <input id="newTaskDailyToggle" type="checkbox" class="circle-mint-checkbox" style="width: 28px; height: 28px; cursor: pointer;">
+                                <input id="newTaskDailyToggle" type="checkbox" class="circle-mint-checkbox" style="width: 32px; height: 32px; cursor: pointer;">
                             </div>
 
-                            <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
                                 <button type="button" onclick="window.tasksManager.closeCreateModal()" style="
                                     flex: 1;
-                                    padding: 13px;
+                                    height: 50px;
                                     border-radius: 9999px;
-                                    font-size: 13px;
+                                    font-family: var(--font-display, 'Poppins', sans-serif);
+                                    font-size: 13.5px;
                                     font-weight: 700;
                                     color: #4B5563;
-                                    background: #F3F4F6;
+                                    background: #F1F5F9;
                                     border: none;
                                     cursor: pointer;
-                                ">
+                                    transition: all 0.15s ease;
+                                "
+                                onmouseover="this.style.background='#E2E8F0';"
+                                onmouseout="this.style.background='#F1F5F9';"
+                                >
                                     Cancelar
                                 </button>
                                 <button type="submit" style="
                                     flex: 2;
-                                    padding: 13px;
+                                    height: 50px;
                                     border-radius: 9999px;
-                                    font-size: 13px;
+                                    font-family: var(--font-display, 'Poppins', sans-serif);
+                                    font-size: 13.5px;
                                     font-weight: 800;
                                     color: #FFFFFF;
                                     background: #12B078;
                                     border: none;
-                                    box-shadow: 0 4px 12px rgba(18, 176, 120, 0.3);
+                                    box-shadow: 0 4px 14px rgba(18, 176, 120, 0.35);
                                     cursor: pointer;
-                                ">
+                                    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                "
+                                onmouseover="this.style.background='#0D9665'; this.style.transform='translateY(-1px)';"
+                                onmouseout="this.style.background='#12B078'; this.style.transform='translateY(0)';"
+                                onmousedown="this.style.transform='scale(0.98)';"
+                                >
                                     Guardar Tarea
                                 </button>
                             </div>
