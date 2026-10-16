@@ -2659,7 +2659,16 @@
                 if (myId === userId && window.authManager?.currentUser) {
                     window.authManager.currentUser.can_access_tasks = canAccess;
                     window.authManager.currentUser.tasks_mode = mode;
-                    if (window.tasksManager) window.tasksManager.updateVisibility();
+                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                    if (window.tasksManager) {
+                        window.tasksManager.updateVisibility();
+                        if (mode === 'isolated') {
+                            window.tasksManager.tasks = [];
+                            window.tasksManager.saveCache();
+                            window.tasksManager.renderList();
+                        }
+                        window.tasksManager.syncData();
+                    }
                 }
 
                 this.renderList();

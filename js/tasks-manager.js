@@ -428,6 +428,18 @@
             }
         }
 
+        /** Clave de caché para tareas según usuario y modo */
+        _getCacheKey(baseKey = 'recipe_pantry_tasks_cache_v5') {
+            if (!this.isSuperAdmin() && this.getTasksMode() === 'isolated') {
+                const uid = window.authManager?.currentUser?.id || 
+                            window.authManager?.session?.user?.id ||
+                            (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id) || 
+                            'anon';
+                return `${baseKey}_isolated_${uid}`;
+            }
+            return baseKey;
+        }
+
         /** Obtiene el modo de tareas del usuario ('shared' o 'isolated') */
         getTasksMode() {
             if (this.isSuperAdmin()) return 'shared';
@@ -440,6 +452,48 @@
             }
         }
 
+        /** Consulta de forma transparente y fresca el tasks_mode del usuario desde Supabase */
+        async checkFreshUserTasksMode() {
+            if (this.isSuperAdmin()) return 'shared';
+            const sb = window.supabaseClient;
+            const currentUserId = window.authManager?.currentUser?.id || 
+                                  window.authManager?.session?.user?.id ||
+                                  (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+            if (!sb || !currentUserId) return this.getTasksMode();
+
+            try {
+                const { data: latestUser } = await sb
+                    .from('users')
+                    .select('id, can_access_tasks, tasks_mode')
+                    .eq('id', currentUserId)
+                    .maybeSingle();
+
+                if (latestUser) {
+                    const oldMode = this.getTasksMode();
+                    const newMode = latestUser.tasks_mode === 'isolated' ? 'isolated' : 'shared';
+
+                    if (window.authManager?.currentUser) {
+                        window.authManager.currentUser.tasks_mode = latestUser.tasks_mode;
+                        window.authManager.currentUser.can_access_tasks = latestUser.can_access_tasks;
+                        localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                    }
+
+                    if (oldMode !== newMode) {
+                        console.log(`🔄 [TasksManager] tasks_mode actualizado de ${oldMode} a ${newMode}`);
+                        if (newMode === 'isolated') {
+                            this.tasks = [];
+                            this.saveCache();
+                            this.renderList();
+                        }
+                    }
+                    return newMode;
+                }
+            } catch (e) {
+                console.warn('⚠️ Error al consultar fresh tasks_mode:', e);
+            }
+            return this.getTasksMode();
+        }
+
         /** Carga instantánea de caché local */
         loadCache() {
             try {
@@ -448,6 +502,30 @@
                 localStorage.removeItem('recipe_pantry_tasks_cache_v2');
                 localStorage.removeItem('recipe_pantry_tasks_cache_v3');
                 localStorage.removeItem('recipe_pantry_tasks_cache_v4');
+
+                const mode = this.getTasksMode();
+                const isSuper = this.isSuperAdmin();
+
+                // Si es un usuario normal en Modo Vacío / Independiente:
+                if (!isSuper && mode === 'isolated') {
+                    const cacheKey = this._getCacheKey();
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (Array.isArray(parsed)) {
+                            this.tasks = parsed
+                                .filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'))
+                                .map(t => {
+                                    t.completed_dates = this.normalizeDates(t.completed_dates || t.recipe_data?.completed_dates);
+                                    return t;
+                                });
+                            return;
+                        }
+                    }
+                    // Si no tiene tareas privadas guardadas, la lista debe empezar estrictamente vacía
+                    this.tasks = [];
+                    return;
+                }
 
                 const cached = localStorage.getItem('recipe_pantry_tasks_cache_v5');
                 if (cached) {
@@ -471,7 +549,8 @@
             try {
                 const cleanTasks = (this.tasks || []).filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'));
                 this.tasks = cleanTasks;
-                localStorage.setItem('recipe_pantry_tasks_cache_v5', JSON.stringify(cleanTasks));
+                const cacheKey = this._getCacheKey();
+                localStorage.setItem(cacheKey, JSON.stringify(cleanTasks));
             } catch (e) {}
         }
 
@@ -691,6 +770,13 @@
                             this.handleRealtimeEvent(payload);
                         }
                     )
+                    .on(
+                        'postgres_changes',
+                        { event: 'UPDATE', schema: 'public', table: 'users' },
+                        (payload) => {
+                            this.handleUserRealtimeEvent(payload);
+                        }
+                    )
                     .subscribe((status) => {
                         if (status === 'SUBSCRIBED') {
                             console.log('📡 [Tasks Realtime] Sincronización en vivo activa');
@@ -701,13 +787,57 @@
             }
         }
 
+        /** Maneja cambios en tiempo real del perfil de usuario (ej. cambio a Modo Vacío por el Admin) */
+        handleUserRealtimeEvent(payload) {
+            const updatedUser = payload.new;
+            if (!updatedUser) return;
+            const currentUserId = window.authManager?.currentUser?.id || 
+                                  window.authManager?.session?.user?.id ||
+                                  (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+
+            if (currentUserId && updatedUser.id === currentUserId) {
+                console.log('📡 [Tasks Realtime] Perfil de usuario actualizado en tiempo real:', updatedUser.email, 'tasks_mode:', updatedUser.tasks_mode);
+                const oldMode = this.getTasksMode();
+                const newMode = updatedUser.tasks_mode === 'isolated' ? 'isolated' : 'shared';
+
+                if (window.authManager?.currentUser) {
+                    window.authManager.currentUser.tasks_mode = updatedUser.tasks_mode;
+                    window.authManager.currentUser.can_access_tasks = updatedUser.can_access_tasks;
+                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                }
+
+                this.updateVisibility();
+
+                if (oldMode !== newMode) {
+                    if (newMode === 'isolated') {
+                        this.tasks = [];
+                        this.saveCache();
+                        this.renderList();
+                        this.updateCarouselBadges();
+                    }
+                    this.syncData();
+                }
+            }
+        }
+
         /** Manejo de eventos en tiempo real recibidos desde Supabase */
         handleRealtimeEvent(payload) {
             const { eventType, new: newRec, old: oldRec } = payload;
             const mode = this.getTasksMode();
+            const myUserId = window.authManager?.currentUser?.id || 
+                             (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+            const isSuper = this.isSuperAdmin();
+
+            const isAllowedForMode = (rec) => {
+                if (!rec) return false;
+                if (isSuper) return true;
+                if (mode === 'shared') return rec.is_shared === true;
+                if (mode === 'isolated') return rec.is_shared === false && rec.user_id === myUserId;
+                return false;
+            };
 
             if (eventType === 'INSERT') {
-                if ((mode === 'shared' && newRec.is_shared) || (mode === 'isolated' && !newRec.is_shared)) {
+                if (isAllowedForMode(newRec)) {
                     newRec.completed_dates = this.normalizeDates(newRec.completed_dates || newRec.recipe_data?.completed_dates);
                     const exists = this.tasks.some(t => t.id === newRec.id);
                     if (!exists) {
@@ -721,16 +851,19 @@
                 newRec.completed_dates = this.normalizeDates(newRec.completed_dates || newRec.recipe_data?.completed_dates);
                 const idx = this.tasks.findIndex(t => t.id === newRec.id);
                 if (idx !== -1) {
-                    this.tasks[idx] = { ...this.tasks[idx], ...newRec };
-                    // Si la receta abierta coincide, actualizar también
-                    if (this.activeTaskForRecipe && this.activeTaskForRecipe.id === newRec.id) {
-                        this.activeTaskForRecipe = this.tasks[idx];
-                        this.renderRecipeIngredients();
+                    if (!isAllowedForMode(newRec)) {
+                        this.tasks.splice(idx, 1);
+                    } else {
+                        this.tasks[idx] = { ...this.tasks[idx], ...newRec };
+                        if (this.activeTaskForRecipe && this.activeTaskForRecipe.id === newRec.id) {
+                            this.activeTaskForRecipe = this.tasks[idx];
+                            this.renderRecipeIngredients();
+                        }
                     }
                     this.saveCache();
                     this.renderList();
                     this.updateCarouselBadges();
-                } else if ((mode === 'shared' && newRec.is_shared) || (mode === 'isolated' && !newRec.is_shared)) {
+                } else if (isAllowedForMode(newRec)) {
                     this.tasks.unshift(newRec);
                     this.saveCache();
                     this.renderList();
@@ -750,7 +883,8 @@
             this.isLoading = true;
 
             try {
-                const mode = this.getTasksMode();
+                // Verificar siempre el modo fresco desde Supabase
+                const mode = await this.checkFreshUserTasksMode();
                 const isSuper = this.isSuperAdmin();
 
                 let query = window.supabaseClient
@@ -763,11 +897,13 @@
                     if (mode === 'shared') {
                         query = query.eq('is_shared', true);
                     } else {
-                        const myUserId = window.authManager?.currentUser?.id;
+                        // Modo Vacío / Independiente (Privado)
+                        const myUserId = window.authManager?.currentUser?.id || 
+                                         (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
                         if (myUserId) {
                             query = query.eq('user_id', myUserId).eq('is_shared', false);
                         } else {
-                            query = query.eq('is_shared', false);
+                            query = query.eq('user_id', '00000000-0000-0000-0000-000000000000');
                         }
                     }
                 }
@@ -873,7 +1009,14 @@
         /** Renderiza la vista principal del módulo en el contenedor asignado */
         render(container) {
             if (!container) return;
+            const mode = this.getTasksMode();
+            const isSuper = this.isSuperAdmin();
+            const myUserId = window.authManager?.currentUser?.id || 
+                             (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
             this.tasks = (this.tasks || []).filter(t => !t.title?.toLowerCase().includes('tartar') && !t.title?.toLowerCase().includes('pescado'));
+            if (!isSuper && mode === 'isolated') {
+                this.tasks = this.tasks.filter(t => !t.is_shared && t.user_id === myUserId);
+            }
             container.innerHTML = `
                 <div class="tasks-module-root">
                     

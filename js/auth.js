@@ -65,7 +65,8 @@ class AuthManager {
             // 2. Intentar obtener el perfil (opcional para considerar "autenticado")
             // v231: Solo saltar si tenemos usuario completo (CON ID real)
             if (this.currentUser && this.currentUser.id && this.currentUser.auth_user_id === session.user.id) {
-                console.log('✅ AuthManager.checkAuth: Perfil en memoria es válido y completo');
+                console.log('✅ AuthManager.checkAuth: Perfil en memoria es válido y completo (revalidando en segundo plano...)');
+                this.revalidateProfileSilently(session.user.id);
                 return true;
             }
 
@@ -152,6 +153,47 @@ class AuthManager {
             console.error('❌ Error crítico en checkAuth:', error);
             // Fallback total a memoria/cache
             return !!this.session || !!this.currentUser;
+        }
+    }
+
+    async revalidateProfileSilently(authUserId) {
+        if (!navigator.onLine || !window.supabaseClient || !authUserId) return;
+        try {
+            const { data: userData, error } = await window.supabaseClient
+                .from('users')
+                .select('*')
+                .eq('auth_user_id', authUserId)
+                .maybeSingle();
+
+            if (!error && userData && userData.id) {
+                if (userData.is_active === false) {
+                    await this.clearLocalCache();
+                    localStorage.removeItem('recipe_pantry_user_profile');
+                    this.currentUser = null;
+                    this.session = null;
+                    document.documentElement.removeAttribute('data-auth-likely');
+                    try { await window.supabaseClient.auth.signOut(); } catch(e){}
+                    window.location.replace('/login.html?blocked=true');
+                    return;
+                }
+
+                const changed = !this.currentUser ||
+                    this.currentUser.tasks_mode !== userData.tasks_mode ||
+                    this.currentUser.can_access_tasks !== userData.can_access_tasks ||
+                    this.currentUser.can_access_suppliers !== userData.can_access_suppliers ||
+                    this.currentUser.suppliers_mode !== userData.suppliers_mode ||
+                    this.currentUser.first_name !== userData.first_name;
+
+                if (changed) {
+                    console.log('🔄 [AuthManager] Perfil actualizado desde Supabase:', userData.email, 'tasks_mode:', userData.tasks_mode);
+                    this.currentUser = { ...this.currentUser, ...userData };
+                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(this.currentUser));
+                    if (window.updateGlobalUserUI) window.updateGlobalUserUI();
+                    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: this.currentUser } }));
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ Error en revalidateProfileSilently:', e);
         }
     }
 
