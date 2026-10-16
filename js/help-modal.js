@@ -38,8 +38,52 @@ class SettingsViewManager {
                     <div id="superadmin-users-section"></div>
                 </div>
 
-                <!-- 2. Tarjeta Independiente: Uso Offline y Almacenamiento -->
+                <!-- 2. Tarjeta: Preferencias de Idioma, Uso Offline y Almacenamiento -->
                 <div class="settings-panel-m3" style="margin-bottom: 24px;">
+                    <!-- Selector de Idioma en píldora unificada M3 al inicio del segmento -->
+                    <div style="width: 100%;">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            width: 100%;
+                            box-sizing: border-box;
+                            background: #F8FAFC;
+                            border: 1.5px solid #E2E8F0;
+                            border-radius: 100px;
+                            padding: 6px 8px 6px 18px;
+                            gap: 12px;
+                        ">
+                            <span style="
+                                font-family: var(--font-display, 'Poppins', sans-serif);
+                                font-size: 13.5px;
+                                font-weight: 700;
+                                color: #475569;
+                                letter-spacing: -0.01em;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">language</span>
+                                ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
+                            </span>
+                            
+                            <div style="display: flex; gap: 4px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 100px; padding: 3px;">
+                                <button type="button" onclick="window.helpModal.setLanguage('es')"
+                                    style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                    Español
+                                </button>
+                                <button type="button" onclick="window.helpModal.setLanguage('en')"
+                                    style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                    English
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divisor visual elegante M3 -->
+                    <div style="border-top: 1px solid #E2E8F0; margin: 4px 0 6px 0;"></div>
+
                     <div>
                         <div class="safe-filter-header" style="margin-bottom: 14px;">
                             <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
@@ -99,48 +143,6 @@ class SettingsViewManager {
                                 onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';">
                                 <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">refresh</span>
                                 <span>${isEn ? 'Clear Cache & Reload' : 'Borrar caché y recargar'}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Selector de Idioma en píldora unificada M3 que abarca todo el ancho en móvil -->
-                <div style="margin-top: 4px; margin-bottom: 24px; width: 100%;">
-                    <div style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        width: 100%;
-                        box-sizing: border-box;
-                        background: #FFFFFF;
-                        border: 1.5px solid #E2E8F0;
-                        border-radius: 100px;
-                        padding: 6px 8px 6px 18px;
-                        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-                        gap: 12px;
-                    ">
-                        <span style="
-                            font-family: var(--font-display, 'Poppins', sans-serif);
-                            font-size: 13.5px;
-                            font-weight: 700;
-                            color: #475569;
-                            letter-spacing: -0.01em;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">language</span>
-                            ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
-                        </span>
-                        
-                        <div style="display: flex; gap: 4px; background: #F8FAFC; border-radius: 100px; padding: 3px;">
-                            <button type="button" onclick="window.helpModal.setLanguage('es')"
-                                style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
-                                Español
-                            </button>
-                            <button type="button" onclick="window.helpModal.setLanguage('en')"
-                                style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
-                                English
                             </button>
                         </div>
                     </div>
