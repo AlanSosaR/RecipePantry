@@ -1202,23 +1202,28 @@
                                     <button type="button" onclick="window.tasksManager.changeRecipePortions(-1)" style="
                                         width: 38px;
                                         height: 38px;
+                                    <button type="button" id="btnDecreaseTaskRecipe" class="stepper-btn stepper-btn-decrease" onclick="window.tasksManager.changeRecipePortions(-1)" style="
+                                        width: 38px;
+                                        height: 38px;
                                         border-radius: 50%;
-                                        background: #12B078;
+                                        background: #e55b43;
                                         color: #FFFFFF;
                                         border: none;
                                         display: flex;
                                         align-items: center;
                                         justify-content: center;
                                         cursor: pointer;
+                                        box-shadow: 0 4px 10px rgba(229, 91, 67, 0.28);
+                                        transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
                                     ">
                                         <span class="material-symbols-outlined" style="font-size: 20px;">remove</span>
                                     </button>
 
-                                    <span id="prepRecipePortionValue" style="font-size: 20px; font-weight: 800; color: #18181B; min-width: 24px; text-align: center;">
+                                    <span id="prepRecipePortionValue" style="font-size: 20px; font-weight: 800; color: #18181B; min-width: 24px; text-align: center; transition: color 0.25s ease;">
                                         1
                                     </span>
 
-                                    <button type="button" onclick="window.tasksManager.changeRecipePortions(1)" style="
+                                    <button type="button" id="btnIncreaseTaskRecipe" class="stepper-btn stepper-btn-increase" onclick="window.tasksManager.changeRecipePortions(1)" style="
                                         width: 38px;
                                         height: 38px;
                                         border-radius: 50%;
@@ -1229,6 +1234,8 @@
                                         align-items: center;
                                         justify-content: center;
                                         cursor: pointer;
+                                        box-shadow: 0 4px 10px rgba(18, 176, 120, 0.28);
+                                        transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
                                     ">
                                         <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
                                     </button>
@@ -3116,12 +3123,34 @@
 
             const portionValEl = document.getElementById('prepRecipePortionValue');
             const portionHintEl = document.getElementById('prepPortionScaleHint');
-            if (portionValEl) portionValEl.textContent = mainDisplay;
+            const btnDec = document.getElementById('btnDecreaseTaskRecipe');
+            const btnInc = document.getElementById('btnIncreaseTaskRecipe');
+
+            if (portionValEl) {
+                portionValEl.textContent = mainDisplay;
+                if (multiplier < 1) {
+                    portionValEl.style.color = '#e55b43';
+                } else if (multiplier > 1) {
+                    portionValEl.style.color = '#10B981';
+                } else {
+                    portionValEl.style.color = '#1B1B1F';
+                }
+            }
+
+            if (btnDec) {
+                btnDec.classList.toggle('active-halo', multiplier < 1);
+            }
+            if (btnInc) {
+                btnInc.classList.toggle('active-halo', multiplier > 1);
+            }
+
             if (portionHintEl) {
                 if (multiplier === 1) {
                     portionHintEl.textContent = 'Receta original';
+                    portionHintEl.style.color = '#6B7280';
                 } else if (multiplier > 1) {
                     portionHintEl.textContent = `Receta multiplicada × ${mainDisplay}`;
+                    portionHintEl.style.color = '#10B981';
                 } else {
                     const divisor = 1 / multiplier;
                     if (Math.abs(divisor - Math.round(divisor)) < 0.01) {
@@ -3129,6 +3158,7 @@
                     } else {
                         portionHintEl.textContent = `Receta reducida a ${mainDisplay}`;
                     }
+                    portionHintEl.style.color = '#e55b43';
                 }
             }
 
@@ -3148,14 +3178,28 @@
                 return;
             }
 
+            const isReduced = multiplier < 1;
+            const isIncreased = multiplier > 1;
+            const pillClass = isReduced ? 'qty-reduced' : (isIncreased ? 'qty-increased' : '');
+
             listEl.innerHTML = recipe.ingredients.map((ing, idx) => {
-                let displayText = ing.name;
-                if (ing.baseAmount !== null && ing.baseAmount !== undefined) {
-                    const scaled = ing.baseAmount * multiplier;
-                    const formattedQty = (scaled % 1 === 0) ? scaled : parseFloat(scaled.toFixed(2));
-                    displayText = `${formattedQty} ${ing.unit || ''} ${ing.name}`.replace(/\s+/g, ' ').trim();
-                } else if (multiplier !== 1) {
-                    displayText = `${mainDisplay}x ${ing.name}`;
+                let displayHtml = '';
+                if (multiplier === 1) {
+                    if (ing.baseAmount !== null && ing.baseAmount !== undefined) {
+                        const formattedQty = (ing.baseAmount % 1 === 0) ? ing.baseAmount : parseFloat(ing.baseAmount.toFixed(2));
+                        displayHtml = `${formattedQty} ${ing.unit || ''} ${ing.name}`.replace(/\s+/g, ' ').trim();
+                    } else {
+                        displayHtml = ing.name;
+                    }
+                } else {
+                    if (ing.baseAmount !== null && ing.baseAmount !== undefined) {
+                        const scaled = ing.baseAmount * multiplier;
+                        const formattedQty = (scaled % 1 === 0) ? scaled : parseFloat(scaled.toFixed(2));
+                        const qtyText = `${formattedQty} ${ing.unit || ''}`.trim();
+                        displayHtml = `<span class="ingredient-qty-pill ${pillClass}">${qtyText}</span> <span class="ingredient-name-text">${ing.name}</span>`;
+                    } else {
+                        displayHtml = `<span class="ingredient-qty-pill ${pillClass}">${mainDisplay}x</span> <span class="ingredient-name-text">${ing.name}</span>`;
+                    }
                 }
 
                 return `
@@ -3167,7 +3211,7 @@
                             onchange="window.tasksManager.toggleIngredientCheck(${idx})"
                         >
                         <span style="font-size: 17px; font-weight: 600; color: ${ing.checked ? '#9CA3AF' : '#1F2937'}; ${ing.checked ? 'text-decoration: line-through;' : ''}">
-                            ${displayText}
+                            ${displayHtml}
                         </span>
                     </label>
                 `;

@@ -9643,7 +9643,6 @@ body.dark-theme .context-menu-divider {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #10B981;
     color: #FFFFFF;
     border: none;
     padding: 0;
@@ -9651,17 +9650,77 @@ body.dark-theme .context-menu-divider {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-    box-shadow: 0 4px 10px rgba(0, 166, 118, 0.2);
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.stepper-btn:hover {
-    background: #008f65;
+/* Botón Restar: Acento cálido terracota / coral (#e55b43) */
+#btnDecrease.stepper-btn,
+.stepper-btn-decrease {
+    background: #e55b43;
+    box-shadow: 0 4px 10px rgba(229, 91, 67, 0.28);
+}
+
+#btnDecrease.stepper-btn:hover,
+.stepper-btn-decrease:hover {
+    background: #cf4933;
     transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(229, 91, 67, 0.2), 0 6px 14px rgba(229, 91, 67, 0.4);
 }
 
-.stepper-btn:active {
-    transform: scale(0.9);
+#btnDecrease.stepper-btn:active,
+.stepper-btn-decrease:active {
+    transform: scale(0.92);
+}
+
+/* Halo encendido cuando la receta está reducida */
+#btnDecrease.stepper-btn.active-halo,
+.stepper-btn-decrease.active-halo {
+    box-shadow: 0 0 0 4px rgba(229, 91, 67, 0.25), 0 4px 14px rgba(229, 91, 67, 0.45);
+    animation: pulseHaloTerracotta 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseHaloTerracotta {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(229, 91, 67, 0.2), 0 4px 12px rgba(229, 91, 67, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 7px rgba(229, 91, 67, 0.35), 0 6px 18px rgba(229, 91, 67, 0.55);
+    }
+}
+
+/* Botón Sumar: Verde (#10B981) */
+#btnIncrease.stepper-btn,
+.stepper-btn-increase {
+    background: #10B981;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.28);
+}
+
+#btnIncrease.stepper-btn:hover,
+.stepper-btn-increase:hover {
+    background: #059669;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 6px 14px rgba(16, 185, 129, 0.4);
+}
+
+#btnIncrease.stepper-btn:active,
+.stepper-btn-increase:active {
+    transform: scale(0.92);
+}
+
+/* Halo encendido cuando la receta está aumentada */
+#btnIncrease.stepper-btn.active-halo,
+.stepper-btn-increase.active-halo {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25), 0 4px 14px rgba(16, 185, 129, 0.45);
+    animation: pulseHaloGreen 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseHaloGreen {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 7px rgba(16, 185, 129, 0.35), 0 6px 18px rgba(16, 185, 129, 0.55);
+    }
 }
 
 .stepper-btn .material-symbols-outlined {
@@ -9676,6 +9735,7 @@ body.dark-theme .context-menu-divider {
     min-width: 28px;
     text-align: center;
     font-family: 'Outfit', 'Inter', sans-serif;
+    transition: color 0.25s ease;
 }
 
 .recipe-portion-text {
@@ -9685,11 +9745,83 @@ body.dark-theme .context-menu-divider {
     margin-top: 10px;
     letter-spacing: 0.2px;
     background: none;
-    /* Removed pildora verde background */
     padding: 0;
-    /* Removed padding */
     display: block;
-    /* Ensure it starts on a new line and remains left-aligned */
+    transition: color 0.25s ease;
+}
+
+/* ── Píldoras de Cantidad de Ingredientes Escalados ── */
+.ingredient-qty-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-weight: 800;
+    font-size: 14.5px;
+    line-height: 1.4;
+    letter-spacing: 0.2px;
+    margin-right: 6px;
+    vertical-align: middle;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Píldora Terracota / Coral (#e55b43) cuando la receta se reduce */
+.ingredient-qty-pill.qty-reduced {
+    background: rgba(229, 91, 67, 0.12);
+    color: #e55b43;
+    border: 1px solid rgba(229, 91, 67, 0.32);
+    box-shadow: 0 2px 8px rgba(229, 91, 67, 0.15);
+    animation: qtyFlashTerracotta 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes qtyFlashTerracotta {
+    0% {
+        transform: scale(0.85);
+        background: #e55b43;
+        color: #ffffff;
+        box-shadow: 0 0 14px rgba(229, 91, 67, 0.6);
+    }
+    50% {
+        transform: scale(1.15);
+        background: rgba(229, 91, 67, 0.28);
+        color: #e55b43;
+        box-shadow: 0 0 16px rgba(229, 91, 67, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        background: rgba(229, 91, 67, 0.12);
+        color: #e55b43;
+    }
+}
+
+/* Píldora Verde (#10B981) cuando la receta se aumenta */
+.ingredient-qty-pill.qty-increased {
+    background: rgba(18, 176, 120, 0.12);
+    color: #059669;
+    border: 1px solid rgba(18, 176, 120, 0.32);
+    box-shadow: 0 2px 8px rgba(18, 176, 120, 0.15);
+    animation: qtyFlashGreen 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes qtyFlashGreen {
+    0% {
+        transform: scale(0.85);
+        background: #10B981;
+        color: #ffffff;
+        box-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
+    }
+    50% {
+        transform: scale(1.15);
+        background: rgba(18, 176, 120, 0.28);
+        color: #059669;
+        box-shadow: 0 0 16px rgba(18, 176, 120, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        background: rgba(18, 176, 120, 0.12);
+        color: #059669;
+    }
 }
 
 /* Fix forced single line for date header on PC */

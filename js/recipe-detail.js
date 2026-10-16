@@ -276,11 +276,13 @@ class RecipeDetailManager {
         const selector = document.getElementById('servingSelector');
         const portionDisplay = document.getElementById('currentPortionDisplay');
         const portionText = document.getElementById('recipePortionText');
+        const btnDec = document.getElementById('btnDecrease');
+        const btnInc = document.getElementById('btnIncrease');
 
         if (!selector) return;
         selector.classList.remove('hidden');
 
-        // El número grande en el centro ahora es el MULTIPLICADOR (Scale Factor)
+        // El número grande en el centro es el MULTIPLICADOR (Scale Factor)
         let mainDisplay = '';
         if (this.currentScale === 0.125) mainDisplay = '1/8';
         else if (this.currentScale === 0.25) mainDisplay = '1/4';
@@ -290,13 +292,39 @@ class RecipeDetailManager {
 
         if (portionDisplay) {
             portionDisplay.textContent = mainDisplay;
+            if (this.currentScale < 1) {
+                portionDisplay.style.color = '#e55b43';
+            } else if (this.currentScale > 1) {
+                portionDisplay.style.color = '#10B981';
+            } else {
+                portionDisplay.style.color = '#1B1B1F';
+            }
+        }
+
+        // Acentos de halo en botones según estado de escala
+        if (btnDec) {
+            if (this.currentScale < 1) {
+                btnDec.classList.add('active-halo');
+            } else {
+                btnDec.classList.remove('active-halo');
+            }
+        }
+
+        if (btnInc) {
+            if (this.currentScale > 1) {
+                btnInc.classList.add('active-halo');
+            } else {
+                btnInc.classList.remove('active-halo');
+            }
         }
 
         if (portionText) {
             if (this.currentScale === 1) {
                 portionText.textContent = 'Receta original';
+                portionText.style.color = '#6B7280';
             } else if (this.currentScale > 1) {
                 portionText.textContent = `Receta multiplicada × ${mainDisplay}`;
+                portionText.style.color = '#10B981';
             } else {
                 const divisor = 1 / this.currentScale;
                 if (Math.abs(divisor - Math.round(divisor)) < 0.01) {
@@ -304,6 +332,7 @@ class RecipeDetailManager {
                 } else {
                     portionText.textContent = `Receta reducida a ${mainDisplay}`;
                 }
+                portionText.style.color = '#e55b43';
             }
         }
     }
@@ -332,17 +361,73 @@ class RecipeDetailManager {
             return;
         }
 
+        const scale = this.currentScale;
+        const isReduced = scale < 1;
+        const isIncreased = scale > 1;
+        const pillClass = isReduced ? 'qty-reduced' : (isIncreased ? 'qty-increased' : '');
+
         listEl.innerHTML = ingredients.map(ing => {
-            const unit = isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es;
-            const name = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
+            const unit = (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) || '';
+            const name = (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || '';
 
-            // Advanced Scaling Logic (v43): Scale EVERY number in the ingredient string
-            const originalQty = ing.quantity || '';
-            const originalText = `${originalQty} ${unit || ''} ${name}`.trim();
+            let renderedContent = '';
 
-            const text = (window.utils && window.utils.scaleText)
-                ? window.utils.scaleText(originalText, this.currentScale)
-                : originalText;
+            if (scale === 1) {
+                // Modo Normal: números y cantidades presentadas de forma limpia y estándar
+                const originalQty = ing.quantity || '';
+                renderedContent = `${originalQty} ${unit} ${name}`.replace(/\s+/g, ' ').trim();
+            } else {
+                // Modo Escalado: Píldora Terracota al reducir (#e55b43), Píldora Verde al aumentar (#10B981)
+                const originalQty = ing.quantity !== undefined && ing.quantity !== null ? String(ing.quantity).trim() : '';
+
+                if (originalQty) {
+                    const val = window.utils ? window.utils.parseToDecimal(originalQty) : parseFloat(originalQty);
+                    let scaledDisplay = '';
+                    if (val !== null && !isNaN(val)) {
+                        const scaled = val * scale;
+                        scaledDisplay = (val >= 10 && scaled % 1 === 0)
+                            ? Math.round(scaled).toString()
+                            : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
+                    } else {
+                        scaledDisplay = originalQty;
+                    }
+                    const pillText = `${scaledDisplay} ${unit}`.trim();
+                    renderedContent = `
+                        <span class="ingredient-qty-pill ${pillClass}">${pillText}</span>
+                        <span class="ingredient-name-text">${name}</span>
+                    `.trim();
+                } else {
+                    // Si no viene cantidad separada, escalar sobre el texto del ingrediente
+                    const rawText = `${unit} ${name}`.trim();
+                    const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)(\s*(?:g|kg|ml|l|lt|oz|lb|tbsp|tsp|cda|cdita|taza|cup|ud|pz|pza|piezas?|clove|cloves|dientes?)\b)?/i;
+                    let hasMatched = false;
+
+                    const scaledText = rawText.replace(regex, (match, numStr, unitStr, offset, fullStr) => {
+                        const prevChar = offset > 0 ? fullStr[offset - 1] : '';
+                        if (/[a-zA-Z]/.test(prevChar)) return match;
+                        if (hasMatched) return match;
+                        hasMatched = true;
+
+                        const val = window.utils ? window.utils.parseToDecimal(numStr) : parseFloat(numStr);
+                        if (val === null || isNaN(val)) return match;
+                        const scaled = val * scale;
+                        const formattedQty = (val >= 10 && scaled % 1 === 0)
+                            ? Math.round(scaled).toString()
+                            : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
+                        const pillText = `${formattedQty}${unitStr || ''}`.trim();
+                        return `<span class="ingredient-qty-pill ${pillClass}">${pillText}</span>`;
+                    });
+
+                    if (hasMatched) {
+                        renderedContent = scaledText;
+                    } else {
+                        const fallbackText = (window.utils && window.utils.scaleText)
+                            ? window.utils.scaleText(rawText, scale)
+                            : rawText;
+                        renderedContent = `<span class="ingredient-qty-pill ${pillClass}">${scale < 1 ? 'Reducido' : '×' + scale}</span> ${fallbackText}`;
+                    }
+                }
+            }
 
             return `
                 <label class="m3-ingredient-item">
@@ -351,12 +436,10 @@ class RecipeDetailManager {
                         <span class="material-symbols-outlined">check</span>
                     </div>
                     <span class="m3-ingredient-text">
-                        ${text}
+                        ${renderedContent}
                     </span>
                 </label>
             `;
-
-
         }).join('');
     }
 
