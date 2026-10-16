@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.prep_tasks (
     category VARCHAR(50) DEFAULT 'diario',
     is_daily BOOLEAN DEFAULT true,
     completed BOOLEAN DEFAULT false,
+    completed_dates TEXT[] DEFAULT '{}'::text[],
     recipe_id TEXT,
     recipe_data JSONB,
     portions INTEGER DEFAULT 1,
