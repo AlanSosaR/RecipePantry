@@ -1453,77 +1453,59 @@
                             ` : ''}
                         </div>
 
-                        <!-- Right Action (Esquina Derecha) -->
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: ${actionUrl || task.recipe_id ? 'space-between' : 'center'}; align-self: stretch; flex-shrink: 0; min-height: 52px; gap: 6px;">
-                            ${actionUrl ? `
-                                <a href="${actionUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="
-                                    background: #E0F2FE;
-                                    color: #0369A1;
-                                    border: none;
-                                    font-weight: 800;
-                                    font-size: 11px;
-                                    padding: 6px 12px;
-                                    border-radius: 9999px;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                    text-decoration: none;
-                                    cursor: pointer;
-                                    transition: all 0.15s;
-                                    white-space: nowrap;
-                                "
-                                onmouseover="this.style.background='#0284C7'; this.style.color='#FFFFFF';"
-                                onmouseout="this.style.background='#E0F2FE'; this.style.color='#0369A1';"
-                                title="Abrir en nueva pestaña"
-                                >
-                                    <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
-                                    <span>Abrir Trail</span>
-                                </a>
-                            ` : task.recipe_id ? `
-                                <button type="button" onclick="event.stopPropagation(); window.tasksManager.openRecipeView('${task.id}')" style="
-                                    background: #EAF8F2;
-                                    color: #12B078;
-                                    border: none;
-                                    font-weight: 800;
-                                    font-size: 11px;
-                                    padding: 6px 12px;
-                                    border-radius: 9999px;
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 4px;
-                                    cursor: pointer;
-                                    transition: all 0.15s;
-                                    white-space: nowrap;
-                                "
-                                onmouseover="this.style.background='#12B078'; this.style.color='#FFFFFF';"
-                                onmouseout="this.style.background='#EAF8F2'; this.style.color='#12B078';"
-                                title="Abrir receta"
-                                >
-                                    <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
-                                    <span>Abrir receta</span>
-                                </button>
-                            ` : ''}
-
-                            <!-- Botón Editar Tarea -->
-                            <button type="button" onclick="event.stopPropagation(); window.tasksManager.openEditTaskModal('${task.id}')" style="
-                                background: none;
-                                border: none;
-                                color: #9CA3AF;
-                                padding: 5px;
-                                border-radius: 50%;
-                                cursor: pointer;
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                transition: all 0.15s;
-                            "
-                            onmouseover="this.style.color='#12B078'; this.style.background='rgba(18, 176, 120, 0.1)';"
-                            onmouseout="this.style.color='#9CA3AF'; this.style.background='none';"
-                            title="Editar tarea"
-                            >
-                                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
-                            </button>
-                        </div>
+                        ${(actionUrl || task.recipe_id) ? `
+                            <!-- Right Action (Esquina Derecha) -->
+                            <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                ${actionUrl ? `
+                                    <a href="${actionUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="
+                                        background: #E0F2FE;
+                                        color: #0369A1;
+                                        border: none;
+                                        font-weight: 800;
+                                        font-size: 11px;
+                                        padding: 6px 12px;
+                                        border-radius: 9999px;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 4px;
+                                        text-decoration: none;
+                                        cursor: pointer;
+                                        transition: all 0.15s;
+                                        white-space: nowrap;
+                                    "
+                                    onmouseover="this.style.background='#0284C7'; this.style.color='#FFFFFF';"
+                                    onmouseout="this.style.background='#E0F2FE'; this.style.color='#0369A1';"
+                                    title="Abrir en nueva pestaña"
+                                    >
+                                        <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
+                                        <span>Abrir Trail</span>
+                                    </a>
+                                ` : `
+                                    <button type="button" onclick="event.stopPropagation(); window.tasksManager.openRecipeView('${task.id}')" style="
+                                        background: #EAF8F2;
+                                        color: #12B078;
+                                        border: none;
+                                        font-weight: 800;
+                                        font-size: 11px;
+                                        padding: 6px 12px;
+                                        border-radius: 9999px;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 4px;
+                                        cursor: pointer;
+                                        transition: all 0.15s;
+                                        white-space: nowrap;
+                                    "
+                                    onmouseover="this.style.background='#12B078'; this.style.color='#FFFFFF';"
+                                    onmouseout="this.style.background='#EAF8F2'; this.style.color='#12B078';"
+                                    title="Abrir receta"
+                                    >
+                                        <span class="material-symbols-outlined" style="font-size: 15px;">open_in_new</span>
+                                        <span>Abrir receta</span>
+                                    </button>
+                                `}
+                            </div>
+                        ` : ''}
                     </article>
                 </div>
             `;
