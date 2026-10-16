@@ -322,17 +322,10 @@ class RecipeDetailManager {
             if (this.currentScale === 1) {
                 portionText.textContent = 'Receta original';
                 portionText.style.color = '#6B7280';
-            } else if (this.currentScale > 1) {
-                portionText.textContent = `Receta multiplicada × ${mainDisplay}`;
-                portionText.style.color = '#10B981';
+                portionText.style.display = 'block';
             } else {
-                const divisor = 1 / this.currentScale;
-                if (Math.abs(divisor - Math.round(divisor)) < 0.01) {
-                    portionText.textContent = `Receta reducida ÷ ${Math.round(divisor)}`;
-                } else {
-                    portionText.textContent = `Receta reducida a ${mainDisplay}`;
-                }
-                portionText.style.color = '#e55b43';
+                portionText.textContent = '';
+                portionText.style.display = 'none';
             }
         }
     }

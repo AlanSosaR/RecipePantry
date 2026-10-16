@@ -3291,17 +3291,10 @@
                 if (multiplier === 1) {
                     portionHintEl.textContent = 'Receta original';
                     portionHintEl.style.color = '#6B7280';
-                } else if (multiplier > 1) {
-                    portionHintEl.textContent = `Receta multiplicada × ${mainDisplay}`;
-                    portionHintEl.style.color = '#10B981';
+                    portionHintEl.style.display = 'block';
                 } else {
-                    const divisor = 1 / multiplier;
-                    if (Math.abs(divisor - Math.round(divisor)) < 0.01) {
-                        portionHintEl.textContent = `Receta reducida ÷ ${Math.round(divisor)}`;
-                    } else {
-                        portionHintEl.textContent = `Receta reducida a ${mainDisplay}`;
-                    }
-                    portionHintEl.style.color = '#e55b43';
+                    portionHintEl.textContent = '';
+                    portionHintEl.style.display = 'none';
                 }
             }
 
