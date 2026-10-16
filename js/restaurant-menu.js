@@ -2660,17 +2660,11 @@
                             <h2 style="font-size: 24px; font-weight: 900; color: #0F172A; margin: 0 0 10px 0; letter-spacing: -0.02em;">
                                 ${isEn ? 'No Restaurant Menu Active' : 'No tienes una carta de restaurante activa'}
                             </h2>
-                            <p style="color: #64748B; font-size: 15px; max-width: 540px; margin: 0 auto 28px auto; line-height: 1.6;">
+                            <p style="color: #64748B; font-size: 15px; max-width: 540px; margin: 0 auto; line-height: 1.6;">
                                 ${isEn 
                                     ? 'Start by creating your restaurant menu or ask your team owner to share their menu with you. Your recipes and private space remain 100% independent.' 
                                     : 'Empieza creando la carta de tu restaurante o solicita al propietario de tu cocina que comparta su menú contigo. Tus recetas y tu espacio personal se mantienen 100% independientes.'}
                             </p>
-                            <div style="display: flex; align-items: center; justify-content: center;">
-                                <button type="button" class="btn-primary" onclick="window.restaurantMenu.openCreateMenuModal()" style="border-radius: 999px; height: 46px; padding: 0 28px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
-                                    <span class="material-symbols-outlined" style="font-size: 20px;">add_circle</span>
-                                    <span>${isEn ? 'Create Restaurant Menu' : 'Crear Carta de Restaurante'}</span>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 `;

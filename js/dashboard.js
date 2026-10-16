@@ -882,7 +882,9 @@ class DashboardManager {
             breadcrumb.style.display = 'none';
         }
         const fab = document.querySelector('.fab-m3');
-        if (fab) fab.classList.add('hidden');
+        if (fab) fab.classList.remove('hidden');
+        const fabContainer = document.getElementById('m3FabMenuContainer');
+        if (fabContainer) fabContainer.classList.remove('hidden');
 
         if (this.isSelectionMode) this.clearSelection();
 
@@ -2150,6 +2152,10 @@ class DashboardManager {
             e.stopPropagation();
             e.preventDefault();
         }
+        if (this.currentView === 'menu' && window.restaurantMenu && !window.restaurantMenu.hasMenu) {
+            window.restaurantMenu.openCreateMenuModal();
+            return;
+        }
         const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
         if (fab && fab.classList.contains('fab-menu-open')) {
             this.closeFabMenu();
@@ -2177,6 +2183,15 @@ class DashboardManager {
                         <span class="m3-fab-action-label">${isEn ? 'Add Product' : 'Agregar Producto'}</span>
                         <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'Add Product' : 'Agregar Producto'}">
                             <span class="material-symbols-outlined">add_photo_alternate</span>
+                        </button>
+                    </div>
+                `;
+            } else if (this.currentView === 'menu') {
+                actions.innerHTML = `
+                    <div class="m3-fab-action-item" data-action="menu-dish" onclick="window.dashboard.handleDropboxOption('menu-dish')">
+                        <span class="m3-fab-action-label">${isEn ? 'Add Dish' : 'Agregar Plato'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'Add Dish' : 'Agregar Plato'}">
+                            <span class="material-symbols-outlined">restaurant_menu</span>
                         </button>
                     </div>
                 `;
@@ -2259,6 +2274,14 @@ class DashboardManager {
         } else if (option === 'supplier-item') {
             if (window.suppliersManager) {
                 window.suppliersManager.openItemForm();
+            }
+        } else if (option === 'menu-dish') {
+            if (window.restaurantMenu) {
+                window.restaurantMenu.showAddDishForm();
+            }
+        } else if (option === 'menu-create') {
+            if (window.restaurantMenu) {
+                window.restaurantMenu.openCreateMenuModal();
             }
         } else if (option === 'folder') {
             this.promptNewFolder();

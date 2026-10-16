@@ -453,7 +453,7 @@
                 return;
             }
 
-            if (!emptyState.querySelector('.notas-empty-actions') && this.notes.length > 0) {
+            if (this.notes.length > 0) {
                 emptyState.innerHTML = `
                     <div class="notas-empty-icon-circle">
                         <span class="material-symbols-outlined">menu_book</span>
@@ -462,15 +462,6 @@
                     <p class="notas-empty-desc" data-i18n="notesEmptyDesc">
                         Captura tus recetas e ideas para construir tu recetario digital personal.
                     </p>
-                    <div class="notas-empty-actions">
-                        <button class="notas-btn-primary" onclick="window.notasManager.createNewNote('checklist')">
-                            <span class="material-symbols-outlined">checklist</span>
-                            <span>Capturar ingredientes</span>
-                        </button>
-                        <button class="notas-btn-tonal" onclick="window.notasManager.createNewNote('text')">
-                            <span>Nota rápida</span>
-                        </button>
-                    </div>
                 `;
             }
 

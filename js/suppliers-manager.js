@@ -122,6 +122,45 @@
             }
         }
 
+        /** Obtiene el ID del usuario actual de manera segura */
+        getCurrentUserId() {
+            return window.authManager?.currentUser?.id || 
+                   window.authManager?.session?.user?.id ||
+                   (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id) || 
+                   'anon';
+        }
+
+        /** Lista de IDs de proveedores ocultados individualmente por el usuario */
+        _getHiddenSuppliers() {
+            try {
+                const uid = this.getCurrentUserId();
+                const raw = localStorage.getItem(`recipe_pantry_hidden_suppliers_${uid}`);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        /** Oculta un proveedor asignado para el usuario actual */
+        _hideSupplierForUser(supplierId) {
+            try {
+                const uid = this.getCurrentUserId();
+                const hidden = this._getHiddenSuppliers();
+                if (!hidden.includes(supplierId)) {
+                    hidden.push(supplierId);
+                    localStorage.setItem(`recipe_pantry_hidden_suppliers_${uid}`, JSON.stringify(hidden));
+                }
+            } catch (e) {}
+        }
+
+        /** Desoculta todos los proveedores para el usuario */
+        _unhideAllSuppliersForUser() {
+            try {
+                const uid = this.getCurrentUserId();
+                localStorage.removeItem(`recipe_pantry_hidden_suppliers_${uid}`);
+            } catch (e) {}
+        }
+
         /** Obtiene el modo de proveedores configurado para el usuario actual ('shared' o 'empty') */
         getSuppliersMode() {
             if (this.isSuperAdmin()) return 'shared';
@@ -134,13 +173,80 @@
             }
         }
 
+        /** Cambia el modo de proveedores (directorio propio 'empty' o asignado 'shared') */
+        async setSuppliersMode(mode) {
+            const isEn = this.isEnglish();
+            const uid = this.getCurrentUserId();
+            try {
+                if (window.authManager?.currentUser) {
+                    window.authManager.currentUser.suppliers_mode = mode;
+                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                }
+                const sb = window.supabaseClient;
+                if (sb && uid && uid !== 'anon') {
+                    await sb.from('users').update({ suppliers_mode: mode }).eq('id', uid);
+                }
+                if (mode === 'shared') {
+                    this._unhideAllSuppliersForUser();
+                }
+                this.loadCache();
+                this.renderContent();
+                await this.syncData();
+                this.renderListPage();
+                this.notify(
+                    mode === 'empty' 
+                        ? (isEn ? 'Custom directory activated. You can now create your own suppliers.' : 'Directorio propio activado. Ya puedes crear tus propios proveedores.') 
+                        : (isEn ? 'Assigned suppliers restored' : 'Proveedores asignados restablecidos'),
+                    'success'
+                );
+            } catch (err) {
+                console.error('Error al cambiar modo de proveedores:', err);
+                this.notify(err.message || 'Error al cambiar modo', 'error');
+            }
+        }
+
+        /** Diálogo de confirmación para pasar a modo propio / quitar proveedores asignados */
+        promptCustomSuppliersMode() {
+            const isEn = this.isEnglish();
+            const title = isEn ? 'Use custom suppliers?' : '¿Quitar proveedores asignados?';
+            const body = isEn
+                ? 'Assigned restaurant suppliers will be hidden so you can create and manage your own custom directory. You can restore them anytime.'
+                : 'Se ocultarán los proveedores asignados para que tengas tu directorio limpio y puedas crear tus propios proveedores. Puedes volver a ver los asignados cuando quieras.';
+            this._showConfirmDialog(
+                title, 
+                body, 
+                () => this.setSuppliersMode('empty'),
+                {
+                    actionText: isEn ? 'Use Custom' : 'Quitar asignados',
+                    actionColor: 'var(--primary-dark)',
+                    actionIcon: 'inventory_2'
+                }
+            );
+        }
+
+        /** Diálogo de confirmación para restaurar proveedores asignados */
+        promptRestoreSharedSuppliers() {
+            const isEn = this.isEnglish();
+            const title = isEn ? 'Restore assigned suppliers?' : '¿Ver proveedores asignados?';
+            const body = isEn
+                ? 'You will see the default restaurant suppliers again.'
+                : 'Volverás a ver la lista de proveedores asignados por el restaurante.';
+            this._showConfirmDialog(
+                title, 
+                body, 
+                () => this.setSuppliersMode('shared'),
+                {
+                    actionText: isEn ? 'Restore' : 'Restablecer',
+                    actionColor: 'var(--primary-dark)',
+                    actionIcon: 'visibility'
+                }
+            );
+        }
+
         /** Clave de caché para proveedores según usuario y modo */
         _getCacheKey(baseKey) {
             if (!this.isSuperAdmin() && this.getSuppliersMode() === 'empty') {
-                const uid = window.authManager?.currentUser?.id || 
-                            window.authManager?.session?.user?.id ||
-                            (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id) || 
-                            'anon';
+                const uid = this.getCurrentUserId();
                 return `${baseKey}_user_${uid}`;
             }
             return baseKey;
@@ -150,7 +256,11 @@
         loadCache() {
             try {
                 const s = localStorage.getItem(this._getCacheKey('recipe_pantry_suppliers_cache'));
-                if (s) this.suppliers = JSON.parse(s);
+                if (s) {
+                    const parsed = JSON.parse(s);
+                    const hidden = this._getHiddenSuppliers();
+                    this.suppliers = Array.isArray(parsed) ? parsed.filter(item => !hidden.includes(item.id)) : [];
+                }
                 const it = localStorage.getItem(this._getCacheKey('recipe_pantry_supplier_items_cache'));
                 if (it) this.items = JSON.parse(it);
                 const cart = localStorage.getItem(this._getCacheKey('recipe_pantry_supplier_cart'));
@@ -181,25 +291,27 @@
         }
 
         /**
-         * Confirmación de acciones destructivas.
+         * Confirmación de acciones destructivas o modales informativos.
          * Usa el Snackbar con acciones (showActionToast) del proyecto para mantener la
          * identidad M3 Expressive y evitar alert()/confirm() nativos. Si no está
          * disponible, cae a un diálogo modal M3 interno.
          * @param {string} title - Título del diálogo
          * @param {string} body - Mensaje descriptivo
          * @param {Function} onConfirm - Callback a ejecutar si el usuario confirma
+         * @param {Object} options - Configuración de textos, colores e iconos
          */
-        _showConfirmDialog(title, body, onConfirm) {
+        _showConfirmDialog(title, body, onConfirm, { actionText = null, actionColor = 'var(--error)', actionIcon = 'delete' } = {}) {
             const isEn = this.isEnglish();
+            const defaultActionText = actionText || (actionColor === 'var(--error)' ? (isEn ? 'Delete' : 'Eliminar') : (isEn ? 'Confirm' : 'Confirmar'));
             const triggerAction = window.showActionToast || window.utils?.showActionToast;
 
             if (typeof triggerAction === 'function') {
                 triggerAction({
                     message: `${title} ${body}`,
-                    actionText: isEn ? 'Delete' : 'Eliminar',
+                    actionText: defaultActionText,
                     cancelText: isEn ? 'Cancel' : 'Cancelar',
-                    actionColor: 'var(--error)',
-                    type: 'error',
+                    actionColor: actionColor,
+                    type: actionColor === 'var(--error)' ? 'error' : 'info',
                     onConfirm: async () => {
                         try {
                             await onConfirm();
@@ -234,12 +346,12 @@
                     <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
                         <div style="
                             width: 46px; height: 46px; border-radius: 50%;
-                            background: color-mix(in srgb, var(--error) 14%, transparent);
-                            color: var(--error);
+                            background: color-mix(in srgb, ${actionColor} 14%, transparent);
+                            color: ${actionColor};
                             display: flex; align-items: center; justify-content: center;
                             flex-shrink: 0;
                         ">
-                            <span class="material-symbols-outlined" style="font-size: 26px;">warning</span>
+                            <span class="material-symbols-outlined" style="font-size: 26px;">${actionIcon === 'delete' ? 'warning' : actionIcon}</span>
                         </div>
                         <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">${title}</h3>
                     </div>
@@ -253,15 +365,15 @@
                             display: inline-flex; align-items: center; gap: 8px;
                             border-radius: var(--radius-full);
                             border: none;
-                            background: var(--error);
+                            background: ${actionColor};
                             color: var(--on-primary, #fff);
                             font-weight: 700; font-size: 14px;
                             font-family: var(--font-display);
                             cursor: pointer;
                             transition: transform 0.15s var(--m3-easing, cubic-bezier(0.34, 1.56, 0.64, 1)), filter 0.15s ease;
                         ">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                            <span>${isEn ? 'Delete' : 'Eliminar'}</span>
+                            <span class="material-symbols-outlined" style="font-size: 18px;">${actionIcon}</span>
+                            <span>${defaultActionText}</span>
                         </button>
                     </div>
                 </div>
@@ -433,7 +545,10 @@
                     .order('name', { ascending: true });
 
                 if (supErr) throw supErr;
-                if (supData) this.suppliers = supData;
+                if (supData) {
+                    const hidden = this._getHiddenSuppliers();
+                    this.suppliers = supData.filter(item => !hidden.includes(item.id));
+                }
 
                 // 2. Cargar productos
                 let itemQuery = sb.from('supplier_items').select('*');
@@ -675,16 +790,61 @@
             this.container.innerHTML = `
                 <div class="suppliers-view-container" style="max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px 16px; font-family: var(--font-display);">
                     <!-- Header Principal Plano (Sin caja, igual a Recetas) -->
-                    <div class="suppliers-header-flat" style="margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="material-symbols-outlined" style="font-size: 26px; color: var(--primary-dark);">local_shipping</span>
-                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
-                                ${isEn ? 'Suppliers & Orders' : 'Proveedores y Órdenes'}
-                            </h2>
+                    <div class="suppliers-header-flat" style="margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="material-symbols-outlined" style="font-size: 26px; color: var(--primary-dark);">local_shipping</span>
+                                <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
+                                    ${isEn ? 'Suppliers & Orders' : 'Proveedores y Órdenes'}
+                                </h2>
+                            </div>
+                            <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary);">
+                                ${isEn ? 'Restaurant wholesale suppliers directory, delivery days, cutoff hours and catalog.' : 'Directorio de proveedores mayoristas, días de reparto, horario de corte y catálogo de productos.'}
+                            </p>
                         </div>
-                        <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary);">
-                            ${isEn ? 'Restaurant wholesale suppliers directory, delivery days, cutoff hours and catalog.' : 'Directorio de proveedores mayoristas, días de reparto, horario de corte y catálogo de productos.'}
-                        </p>
+                        ${!this.isSuperAdmin() ? `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                ${this.getSuppliersMode() === 'empty' ? `
+                                    <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptRestoreSharedSuppliers()" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 6px;
+                                        padding: 8px 14px;
+                                        border-radius: var(--radius-full);
+                                        border: 1px solid var(--border);
+                                        background: var(--surface);
+                                        color: var(--text-main);
+                                        font-size: 12.5px;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        font-family: var(--font-display);
+                                        transition: background var(--transition-fast);
+                                    ">
+                                        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">visibility</span>
+                                        <span>${isEn ? 'View assigned suppliers' : 'Ver proveedores asignados'}</span>
+                                    </button>
+                                ` : `
+                                    <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptCustomSuppliersMode()" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 6px;
+                                        padding: 8px 14px;
+                                        border-radius: var(--radius-full);
+                                        border: 1px solid var(--border);
+                                        background: var(--surface);
+                                        color: var(--text-secondary);
+                                        font-size: 12.5px;
+                                        font-weight: 600;
+                                        cursor: pointer;
+                                        font-family: var(--font-display);
+                                        transition: background var(--transition-fast);
+                                    ">
+                                        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark);">inventory_2</span>
+                                        <span>${isEn ? 'Use custom directory' : 'Quitar proveedores asignados'}</span>
+                                    </button>
+                                `}
+                            </div>
+                        ` : ''}
                     </div>
 
                     <!-- Barra de Filtros Rápidos M3 y Estado de Búsqueda Global -->
@@ -835,17 +995,54 @@
                         <h3 style="margin: 0 0 8px 0; font-size: 17px; font-weight: 700; color: var(--text-main);">
                             ${isSearching
                                 ? (isEn ? `No suppliers found for "${this.searchQuery}"` : `No se encontró a "${this.searchQuery}" en la lista de proveedores`)
-                                : (isEn ? 'No suppliers found' : 'No hay proveedores registrados')}
+                                : (this.getSuppliersMode() === 'empty'
+                                    ? (isEn ? 'Your custom directory is ready' : 'Tu directorio propio está listo')
+                                    : (isEn ? 'No suppliers found' : 'No hay proveedores registrados'))}
                         </h3>
-                        <p style="margin: 0; color: var(--text-secondary); font-size: 13.5px; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                        <p style="margin: 0 0 16px 0; color: var(--text-secondary); font-size: 13.5px; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.5;">
                             ${isSearching
                                 ? (isEn
                                     ? 'This supplier is not registered in your directory. You can add it using the floating (+) menu or try another search.'
                                     : 'Este proveedor no está en la lista. Si lo necesitas, deberías agregarlo desde el menú flotante (+).')
-                                : (isEn
-                                    ? 'You can add suppliers using the floating (+) menu.'
-                                    : 'Puedes registrar nuevos proveedores usando el menú flotante (+).')}
+                                : (this.getSuppliersMode() === 'empty'
+                                    ? (isEn
+                                        ? 'Start creating your own suppliers using the button below or restore assigned ones anytime.'
+                                        : 'Comienza creando tus propios proveedores con el botón de abajo, o restaura los asignados cuando desees.')
+                                    : (isEn
+                                        ? 'You can add suppliers using the floating (+) menu.'
+                                        : 'Puedes registrar nuevos proveedores usando el menú flotante (+).'))}
                         </p>
+                        ${!isSearching && this.getSuppliersMode() === 'empty' ? `
+                            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;">
+                                <button type="button" class="btn-primary" onclick="window.suppliersManager.openSupplierForm()" style="
+                                    padding: 9px 20px;
+                                    border-radius: var(--radius-full);
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                                    <span>${isEn ? 'Create First Supplier' : 'Crear mi primer proveedor'}</span>
+                                </button>
+                                <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptRestoreSharedSuppliers()" style="
+                                    padding: 9px 18px;
+                                    border-radius: var(--radius-full);
+                                    border: 1px solid var(--border);
+                                    background: var(--surface);
+                                    color: var(--text-main);
+                                    font-size: 13px;
+                                    font-weight: 600;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">visibility</span>
+                                    <span>${isEn ? 'Restore Assigned' : 'Ver proveedores asignados'}</span>
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
                 return;
@@ -1170,7 +1367,7 @@
                         <span class="material-symbols-outlined">shopping_cart_checkout</span>
                         <span>${isEn ? 'Order' : 'Pedido'}</span>
                     </button>
-                    ${this.isSuperAdmin() ? `
+                    ${(this.isSuperAdmin() || supplier.user_id === this.getCurrentUserId() || !supplier.user_id) ? `
                         <button type="button" class="m3-quick-pill" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openSupplierForm('${supplier.id}');">
                             <span class="material-symbols-outlined">edit</span>
                             <span>${isEn ? 'Edit' : 'Editar'}</span>
@@ -1185,14 +1382,12 @@
                     </button>
                 ` : ''}
 
-                ${this.isSuperAdmin() ? `
-                    <div class="context-menu-divider"></div>
+                <div class="context-menu-divider"></div>
 
-                    <button type="button" class="context-menu-item danger" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.deleteSupplier('${supplier.id}');">
-                        <span class="material-symbols-outlined">delete</span>
-                        <span>${isEn ? 'Delete Supplier' : 'Eliminar Proveedor'}</span>
-                    </button>
-                ` : ''}
+                <button type="button" class="context-menu-item danger" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.deleteSupplier('${supplier.id}');">
+                    <span class="material-symbols-outlined">${(this.isSuperAdmin() || supplier.user_id === this.getCurrentUserId()) ? 'delete' : 'visibility_off'}</span>
+                    <span>${(this.isSuperAdmin() || supplier.user_id === this.getCurrentUserId()) ? (isEn ? 'Delete Supplier' : 'Eliminar Proveedor') : (isEn ? 'Remove from list' : 'Quitar de mi lista')}</span>
+                </button>
             `;
 
             menu.innerHTML = sheetHTML;
@@ -2402,40 +2597,72 @@
             return this.functionSaveSupplier(e, id);
         }
 
-        /** Elimina proveedor con diálogo de confirmación M3 (sin alert nativo) */
+        /** Elimina proveedor o lo quita de la lista del usuario con diálogo de confirmación M3 */
         deleteSupplier(supplierId) {
             const isEn = this.isEnglish();
             const sup = this.suppliers.find(s => s.id === supplierId);
             if (!sup) return;
 
-            const title = isEn ? 'Delete Supplier?' : '¿Eliminar proveedor?';
-            const body = isEn
-                ? `"${sup.name}" and all its products will be permanently deleted.`
-                : `"${sup.name}" y todos sus productos asociados serán eliminados permanentemente.`;
+            const isOwnOrAdmin = this.isSuperAdmin() || (sup.user_id && sup.user_id === this.getCurrentUserId());
 
-            this._showConfirmDialog(title, body, async () => {
-                try {
-                    const sb = window.supabaseClient;
-                    if (sb) {
-                        const { error } = await sb.from('suppliers').delete().eq('id', supplierId);
-                        if (error) throw error;
+            if (isOwnOrAdmin) {
+                const title = isEn ? 'Delete Supplier?' : '¿Eliminar proveedor?';
+                const body = isEn
+                    ? `"${sup.name}" and all its products will be permanently deleted.`
+                    : `"${sup.name}" y todos sus productos asociados serán eliminados permanentemente.`;
+
+                this._showConfirmDialog(title, body, async () => {
+                    try {
+                        const sb = window.supabaseClient;
+                        if (sb) {
+                            const { error } = await sb.from('suppliers').delete().eq('id', supplierId);
+                            if (error) throw error;
+                        }
+                        this.suppliers = this.suppliers.filter(s => s.id !== supplierId);
+                        this.items = this.items.filter(it => it.supplier_id !== supplierId);
+                        delete this.orderCart[supplierId];
+                        this.saveCache();
+                        // Volver a la lista si estábamos en el detalle del proveedor eliminado
+                        if (this.selectedSupplierDetailId === supplierId) {
+                            this.backToList();
+                        } else {
+                            this.renderContent();
+                        }
+                        this.notify(isEn ? 'Supplier deleted' : 'Proveedor eliminado', 'info');
+                    } catch (err) {
+                        console.error('Error eliminando proveedor:', err);
+                        this.notify(err.message || 'Error eliminando proveedor', 'error');
                     }
+                }, {
+                    actionText: isEn ? 'Delete' : 'Eliminar',
+                    actionColor: 'var(--error)',
+                    actionIcon: 'delete'
+                });
+            } else {
+                // Proveedor asignado: el usuario no admin desea quitarlo de su vista
+                const title = isEn ? 'Remove from list?' : '¿Quitar de mi lista?';
+                const body = isEn
+                    ? `"${sup.name}" will be hidden from your suppliers directory.`
+                    : `"${sup.name}" dejará de aparecer en tu lista de proveedores.`;
+
+                this._showConfirmDialog(title, body, () => {
+                    this._hideSupplierForUser(supplierId);
                     this.suppliers = this.suppliers.filter(s => s.id !== supplierId);
                     this.items = this.items.filter(it => it.supplier_id !== supplierId);
                     delete this.orderCart[supplierId];
                     this.saveCache();
-                    // Volver a la lista si estábamos en el detalle del proveedor eliminado
                     if (this.selectedSupplierDetailId === supplierId) {
                         this.backToList();
                     } else {
                         this.renderContent();
                     }
-                    this.notify(isEn ? 'Supplier deleted' : 'Proveedor eliminado', 'info');
-                } catch (err) {
-                    console.error('Error eliminando proveedor:', err);
-                    this.notify(err.message || 'Error eliminando proveedor', 'error');
-                }
-            });
+                    this.notify(isEn ? 'Supplier removed from your list' : 'Proveedor quitado de tu lista', 'info');
+                }, {
+                    actionText: isEn ? 'Remove' : 'Quitar',
+                    actionColor: 'var(--error)',
+                    actionIcon: 'visibility_off'
+                });
+            }
         }
 
         /**
