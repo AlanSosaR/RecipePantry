@@ -1379,6 +1379,12 @@
 
             return `
                 <div class="task-card-swipe-container" style="position: relative; overflow: visible; border-radius: 20px; width: 100%; box-sizing: border-box;">
+                    <!-- Fondo azul de edición visible al deslizar a la derecha -->
+                    <div class="task-swipe-edit-bg" style="position: absolute; inset: 0; background: #0284C7; border-radius: inherit; display: flex; align-items: center; justify-content: flex-start; padding-left: 22px; color: #FFFFFF; font-weight: 700; gap: 6px; user-select: none; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">edit</span>
+                        <span style="font-size: 13px; font-family: var(--font-display, 'Poppins', sans-serif);">Editar</span>
+                    </div>
+
                     <!-- Fondo rojo de eliminación visible al deslizar a la izquierda -->
                     <div class="task-swipe-delete-bg" style="position: absolute; inset: 0; background: #EF4444; border-radius: inherit; display: flex; align-items: center; justify-content: flex-end; padding-right: 22px; color: #FFFFFF; font-weight: 700; gap: 6px; user-select: none; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;">
                         <span class="material-symbols-outlined" style="font-size: 24px;">delete</span>
@@ -1830,14 +1836,12 @@
                     this._swipeState.isVerticalScroll = true;
                     return;
                 }
-                if (deltaX < -8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
                     this._swipeState.isSwiping = true;
                     this._swipePreventClick = true;
                     const container = this._swipeState.card.closest('.task-card-swipe-container');
                     if (container) {
                         container.style.overflow = 'hidden';
-                        const bg = container.querySelector('.task-swipe-delete-bg');
-                        if (bg) bg.style.opacity = '1';
                     }
                     if (this._swipeState.card.setPointerCapture) {
                         try { this._swipeState.card.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1845,12 +1849,28 @@
                 }
             }
 
-            if (this._swipeState.isSwiping && deltaX < 0) {
+            if (this._swipeState.isSwiping) {
                 this._swipeState.currentX = e.clientX;
                 const card = this._swipeState.card;
-                const translateX = deltaX < -120 ? -120 + (deltaX + 120) * 0.3 : deltaX;
-                card.style.transition = 'none';
-                card.style.transform = `translateX(${translateX}px)`;
+                const container = card.closest('.task-card-swipe-container');
+                const delBg = container ? container.querySelector('.task-swipe-delete-bg') : null;
+                const editBg = container ? container.querySelector('.task-swipe-edit-bg') : null;
+
+                if (deltaX < 0) {
+                    // Deslizando a la izquierda -> Mostrar acción Eliminar (rojo)
+                    if (delBg) delBg.style.opacity = '1';
+                    if (editBg) editBg.style.opacity = '0';
+                    const translateX = deltaX < -120 ? -120 + (deltaX + 120) * 0.3 : deltaX;
+                    card.style.transition = 'none';
+                    card.style.transform = `translateX(${translateX}px)`;
+                } else {
+                    // Deslizando a la derecha -> Mostrar acción Editar (azul)
+                    if (editBg) editBg.style.opacity = '1';
+                    if (delBg) delBg.style.opacity = '0';
+                    const translateX = deltaX > 120 ? 120 + (deltaX - 120) * 0.3 : deltaX;
+                    card.style.transition = 'none';
+                    card.style.transform = `translateX(${translateX}px)`;
+                }
             }
         }
 
@@ -1871,8 +1891,10 @@
                     this._swipePreventClick = false;
                 }, 350);
 
+                const container = card.closest('.task-card-swipe-container');
+
                 if (deltaX < -80) {
-                    const container = card.closest('.task-card-swipe-container');
+                    // Acción: Eliminar tarea (deslizada hacia la izquierda)
                     if (container) container.style.overflow = 'hidden';
                     card.style.transition = 'transform 0.22s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease-out';
                     card.style.transform = 'translateX(-110%)';
@@ -1883,14 +1905,31 @@
                     return;
                 }
 
+                if (deltaX > 80) {
+                    // Acción: Abrir modal de Editar tarea (deslizada hacia la derecha)
+                    card.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    card.style.transform = 'translateX(0)';
+                    setTimeout(() => {
+                        if (container) {
+                            container.style.overflow = 'visible';
+                            const editBg = container.querySelector('.task-swipe-edit-bg');
+                            if (editBg) editBg.style.opacity = '0';
+                        }
+                        this.openEditTaskModal(taskId);
+                    }, 180);
+                    return;
+                }
+
+                // Gesto cancelado / no superó umbral -> Regresar con resorte a posición original
                 card.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)';
                 card.style.transform = 'translateX(0)';
                 setTimeout(() => {
-                    const container = card.closest('.task-card-swipe-container');
                     if (container) {
                         container.style.overflow = 'visible';
-                        const bg = container.querySelector('.task-swipe-delete-bg');
-                        if (bg) bg.style.opacity = '0';
+                        const delBg = container.querySelector('.task-swipe-delete-bg');
+                        const editBg = container.querySelector('.task-swipe-edit-bg');
+                        if (delBg) delBg.style.opacity = '0';
+                        if (editBg) editBg.style.opacity = '0';
                     }
                 }, 260);
             }

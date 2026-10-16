@@ -126,24 +126,44 @@ class SettingsViewManager {
                             </button>
                         </div>
 
-                        <!-- Restauración de opción: Borrar caché y recargar -->
+                        <!-- Opción de Recargar y vaciar caché en píldora unificada M3 en una sola línea -->
                         <div style="border-top: 1px solid #E2E8F0; margin: 18px 0 16px 0;"></div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 180px;">
-                                <div style="font-size: 13.5px; font-weight: 700; color: #1E293B;">
-                                    ${isEn ? 'Reload & reset cache' : 'Recargar y vaciar caché'}
-                                </div>
-                                <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
-                                    ${isEn ? 'Clears temporary cache and forces fresh reload from server' : 'Elimina archivos temporales y fuerza la recarga limpia desde el servidor'}
-                                </div>
+                        <div style="width: 100%;">
+                            <div style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                width: 100%;
+                                box-sizing: border-box;
+                                background: #F8FAFC;
+                                border: 1.5px solid #E2E8F0;
+                                border-radius: 100px;
+                                padding: 6px 8px 6px 18px;
+                                gap: 10px;
+                            ">
+                                <span style="
+                                    font-family: var(--font-display, 'Poppins', sans-serif);
+                                    font-size: 13.5px;
+                                    font-weight: 700;
+                                    color: #475569;
+                                    letter-spacing: -0.01em;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                    white-space: nowrap;
+                                ">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: #10B981;">cached</span>
+                                    ${isEn ? 'Reload cache' : 'Recargar y vaciar'}
+                                </span>
+                                
+                                <button type="button" id="btn-settings-reload-cache" onclick="window.helpModal.handleClearCache()"
+                                    style="border: 1px solid #E2E8F0; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; background: #FFFFFF; color: #334155; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap;"
+                                    onmouseover="this.style.background='#F1F5F9';"
+                                    onmouseout="this.style.background='#FFFFFF';">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; color: #10B981;">refresh</span>
+                                    <span>${isEn ? 'Reload' : 'Borrar caché'}</span>
+                                </button>
                             </div>
-                            <button type="button" id="btn-settings-reload-cache" onclick="window.helpModal.handleClearCache()" 
-                                style="padding: 10px 16px; background: #F8FAFC; color: #334155; border: 1.5px solid #CBD5E1; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.03);"
-                                onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8';"
-                                onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: #059669;">refresh</span>
-                                <span>${isEn ? 'Clear Cache & Reload' : 'Borrar caché y recargar'}</span>
-                            </button>
                         </div>
                     </div>
                 </div>
