@@ -17471,10 +17471,22 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     line-height: 1;
 }
 
+.task-card-swipe-container {
+    position: relative;
+    border-radius: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
 @media (max-width: 768px) {
     .tasks-module-root {
         padding: 8px 2px 100px 2px !important;
         width: 100% !important;
+    }
+
+    .tasks-module-root .task-card-swipe-container {
+        border-radius: 18px !important;
     }
 
     .tasks-module-root .task-card {

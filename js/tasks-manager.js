@@ -1401,9 +1401,9 @@
             const actionUrl = isTrail ? 'https://web.trailapp.com/u/sign_in#/' : (isUrl ? task.qty : null);
 
             return `
-                <div class="task-card-swipe-container" style="position: relative; overflow: hidden; border-radius: 22px; width: 100%; box-sizing: border-box;">
+                <div class="task-card-swipe-container" style="position: relative; overflow: visible; border-radius: 20px; width: 100%; box-sizing: border-box;">
                     <!-- Fondo rojo de eliminación visible al deslizar a la izquierda -->
-                    <div class="task-swipe-delete-bg" style="position: absolute; inset: 0; background: #EF4444; border-radius: 22px; display: flex; align-items: center; justify-content: flex-end; padding-right: 22px; color: #FFFFFF; font-weight: 700; gap: 6px; user-select: none;">
+                    <div class="task-swipe-delete-bg" style="position: absolute; inset: 0; background: #EF4444; border-radius: inherit; display: flex; align-items: center; justify-content: flex-end; padding-right: 22px; color: #FFFFFF; font-weight: 700; gap: 6px; user-select: none; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;">
                         <span class="material-symbols-outlined" style="font-size: 24px;">delete</span>
                         <span style="font-size: 13px; font-family: var(--font-display, 'Poppins', sans-serif);">Eliminar</span>
                     </div>
@@ -1420,7 +1420,7 @@
                             touch-action: pan-y;
                             user-select: none;
                             background: ${isCompleted ? '#F9FAF9' : '#FFFFFF'};
-                            border-radius: 22px;
+                            border-radius: inherit;
                             padding: 14px 16px;
                             border: 1px solid ${task.recipe_id && !isCompleted ? 'rgba(18, 176, 120, 0.4)' : isTrail && !isCompleted ? 'rgba(2, 132, 199, 0.4)' : '#E4E4E7'};
                             display: flex;
@@ -1851,6 +1851,12 @@
                 if (deltaX < -8 && Math.abs(deltaX) > Math.abs(deltaY)) {
                     this._swipeState.isSwiping = true;
                     this._swipePreventClick = true;
+                    const container = this._swipeState.card.closest('.task-card-swipe-container');
+                    if (container) {
+                        container.style.overflow = 'hidden';
+                        const bg = container.querySelector('.task-swipe-delete-bg');
+                        if (bg) bg.style.opacity = '1';
+                    }
                     if (this._swipeState.card.setPointerCapture) {
                         try { this._swipeState.card.setPointerCapture(e.pointerId); } catch (_) {}
                     }
@@ -1884,6 +1890,8 @@
                 }, 350);
 
                 if (deltaX < -80) {
+                    const container = card.closest('.task-card-swipe-container');
+                    if (container) container.style.overflow = 'hidden';
                     card.style.transition = 'transform 0.22s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease-out';
                     card.style.transform = 'translateX(-110%)';
                     card.style.opacity = '0';
@@ -1895,6 +1903,14 @@
 
                 card.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)';
                 card.style.transform = 'translateX(0)';
+                setTimeout(() => {
+                    const container = card.closest('.task-card-swipe-container');
+                    if (container) {
+                        container.style.overflow = 'visible';
+                        const bg = container.querySelector('.task-swipe-delete-bg');
+                        if (bg) bg.style.opacity = '0';
+                    }
+                }, 260);
             }
         }
 
