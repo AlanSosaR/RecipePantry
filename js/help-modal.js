@@ -33,26 +33,7 @@ class SettingsViewManager {
         this.container.innerHTML = `
             <div class="allergens-module" style="padding-top: 4px;">
 
-                <!-- 1. Encabezado de Configuración EN PLANO -->
-                <div style="margin-bottom: 20px; padding: 4px 6px;">
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <div style="background: linear-gradient(135deg, #10B981, #059669); color: white; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);">
-                                <span class="material-symbols-outlined" style="font-size: 26px;">settings</span>
-                            </div>
-                            <div>
-                                <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: -0.02em;">
-                                    ${t('settingsTitle', isEn ? 'Settings' : 'Configuración')}
-                                </h2>
-                                <p style="margin: 4px 0 0 0; font-size: 13.5px; color: #64748B; line-height: 1.4;">
-                                    ${t('settingsSubtitle', isEn ? 'Manage offline storage, cache and app preferences.' : 'Administra el almacenamiento offline, caché y preferencias de la aplicación.')}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TARJETA ÚNICA DE GESTIÓN Y ALMACENAMIENTO -->
+                <!-- TARJETA ÚNICA DE GESTIÓN Y ALMACENAMIENTO (Al inicio) -->
                 <div class="settings-panel-m3" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;">
                     
                     <!-- 1. Sección Super Administrador: Gestión de Usuarios (Al inicio) -->
@@ -104,22 +85,41 @@ class SettingsViewManager {
 
                 </div>
 
-                <!-- Idioma en plano (una sola línea, sin icono) -->
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 6px; margin-bottom: 24px;">
-                    <h3 style="margin: 0; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 15.5px; font-weight: 700; color: #0F172A;">
-                        ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
-                    </h3>
-
-                    <!-- Selector pills -->
-                    <div style="display: flex; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 100px; padding: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
-                        <button type="button" onclick="window.helpModal.setLanguage('es')"
-                            style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
-                            Español
-                        </button>
-                        <button type="button" onclick="window.helpModal.setLanguage('en')"
-                            style="border: none; padding: 7px 16px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
-                            English
-                        </button>
+                <!-- Selector de Idioma en píldora unificada M3 (abarca el nombre y opciones) -->
+                <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 24px;">
+                    <div style="
+                        display: inline-flex;
+                        align-items: center;
+                        background: #FFFFFF;
+                        border: 1.5px solid #E2E8F0;
+                        border-radius: 100px;
+                        padding: 4px 5px 4px 14px;
+                        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+                        gap: 8px;
+                    ">
+                        <span style="
+                            font-family: var(--font-display, 'Poppins', sans-serif);
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #475569;
+                            letter-spacing: -0.01em;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            ${t('prefLangTitle', isEn ? 'Language' : 'Idioma')}
+                        </span>
+                        
+                        <div style="display: flex; gap: 3px; background: #F8FAFC; border-radius: 100px; padding: 3px;">
+                            <button type="button" onclick="window.helpModal.setLanguage('es')"
+                                style="border: none; padding: 6px 14px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${!isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                Español
+                            </button>
+                            <button type="button" onclick="window.helpModal.setLanguage('en')"
+                                style="border: none; padding: 6px 14px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); ${isEn ? 'background: #10B981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);' : 'background: transparent; color: #64748B;'}">
+                                English
+                            </button>
+                        </div>
                     </div>
                 </div>
 
