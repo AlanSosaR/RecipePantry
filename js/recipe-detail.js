@@ -367,15 +367,19 @@ class RecipeDetailManager {
 
             if (scale === 1) {
                 // Modo Normal: números y cantidades presentadas de forma limpia y estándar
-                const originalQty = ing.quantity || '';
+                const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
+                    ? String(ing.quantity).trim()
+                    : '';
                 renderedContent = `${originalQty} ${unit} ${name}`.replace(/\s+/g, ' ').trim();
             } else {
                 // Modo Escalado: Píldora Terracota al reducir (#e55b43), Píldora Verde al aumentar (#10B981)
-                const originalQty = ing.quantity !== undefined && ing.quantity !== null ? String(ing.quantity).trim() : '';
+                const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
+                    ? String(ing.quantity).trim()
+                    : '';
 
                 if (originalQty) {
                     const val = window.utils ? window.utils.parseToDecimal(originalQty) : parseFloat(originalQty);
-                    if (val !== null && !isNaN(val)) {
+                    if (val !== null && !isNaN(val) && val > 0) {
                         const scaled = val * scale;
                         const scaledDisplay = (val >= 10 && scaled % 1 === 0)
                             ? Math.round(scaled).toString()
@@ -386,10 +390,11 @@ class RecipeDetailManager {
                             <span class="ingredient-name-text">${name}</span>
                         `.trim();
                     } else {
+                        // Si no tiene número válido, no agregar píldora
                         renderedContent = `${originalQty} ${unit} ${name}`.replace(/\s+/g, ' ').trim();
                     }
                 } else {
-                    // Si no viene cantidad separada, escalar sobre el texto del ingrediente
+                    // Si no viene cantidad separada, buscar si el texto contiene algún número para escalar
                     const rawText = `${unit} ${name}`.trim();
                     const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)(\s*(?:g|kg|ml|l|lt|oz|lb|tbsp|tsp|cda|cdita|taza|cup|ud|pz|pza|piezas?|clove|cloves|dientes?)\b)?/i;
                     let hasMatched = false;
@@ -400,7 +405,7 @@ class RecipeDetailManager {
                         if (hasMatched) return match;
 
                         const val = window.utils ? window.utils.parseToDecimal(numStr) : parseFloat(numStr);
-                        if (val === null || isNaN(val)) return match;
+                        if (val === null || isNaN(val) || val <= 0) return match;
                         hasMatched = true;
 
                         const scaled = val * scale;
@@ -414,7 +419,7 @@ class RecipeDetailManager {
                     if (hasMatched) {
                         renderedContent = scaledText;
                     } else {
-                        // Si no tiene número, no le agregues nada
+                        // Si no tiene número, no le agregues nada (ni al reducir ni al aumentar)
                         renderedContent = rawText;
                     }
                 }
