@@ -311,24 +311,25 @@ class DashboardManager {
         const oldPtr = document.getElementById('ptr-indicator');
         if (oldPtr) oldPtr.remove();
 
-        // Create new visual indicator (Circular Spinner v208/209)
+        // Create new Material 3 Expressive visual indicator
         const ptrIndicator = document.createElement('div');
         ptrIndicator.id = 'ptr-indicator';
         ptrIndicator.innerHTML = `
-            <div class="ptr-circle" style="transform: scale(0); opacity: 0;">
-                <div class="ptr-spinner"></div>
+            <div class="ptr-m3-wrapper" style="transform: scale(0); opacity: 0; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                <m3-loading-indicator contained size="44"></m3-loading-indicator>
             </div>
         `;
         ptrIndicator.style.cssText = `
             position: absolute;
-            top: -40px;
+            top: 16px;
             left: 0;
             width: 100%;
-            height: 48px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
+            transform: translateY(-80px);
+            transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
             z-index: 1000;
             opacity: 0;
             pointer-events: none;
@@ -336,7 +337,6 @@ class DashboardManager {
         container.prepend(ptrIndicator);
 
         container.addEventListener('touchstart', (e) => {
-            // STRICT START AT TOP v209
             if (container.scrollTop === 0) {
                 startY = e.touches[0].pageY;
                 pulling = true;
@@ -350,23 +350,18 @@ class DashboardManager {
             const y = e.touches[0].pageY;
             const diff = y - startY;
 
-            // Only pull if moving down and STRICTLY at top
             if (diff > 0 && container.scrollTop === 0) {
-                // Resistance logic
-                const translateY = Math.min(diff * 0.4, threshold + 30);
-                const scale = Math.min(diff / threshold, 1);
-                const rotation = diff * 2;
+                const translateY = Math.min(-80 + (diff * 1.2), 24);
+                const scale = Math.min(Math.max(diff / threshold, 0.1), 1);
 
                 ptrIndicator.style.transform = `translateY(${translateY}px)`;
-                ptrIndicator.style.opacity = Math.min(diff / 30, 1);
+                ptrIndicator.style.opacity = Math.min(diff / 24, 1);
                 
-                const circle = ptrIndicator.querySelector('.ptr-circle');
-                const spinner = ptrIndicator.querySelector('.ptr-spinner');
-                if (circle) {
-                    circle.style.transform = `scale(${scale})`;
-                    circle.style.opacity = Math.min(diff / 20, 1);
+                const wrapper = ptrIndicator.querySelector('.ptr-m3-wrapper');
+                if (wrapper) {
+                    wrapper.style.transform = `scale(${scale})`;
+                    wrapper.style.opacity = Math.min(diff / 20, 1);
                 }
-                if (spinner) spinner.style.transform = `rotate(${rotation}deg)`;
             } else {
                 pulling = false;
                 this.resetPTR(ptrIndicator);
@@ -379,20 +374,22 @@ class DashboardManager {
             const diff = y - startY;
 
             if (diff > threshold) {
-                // Trigger Silent Sync & Update Check v209
-                console.log('🔄 Pull to Refresh: Sync & Update Check');
+                console.log('🔄 Pull to Refresh: M3 Expressive Sync & Update Check');
                 ptrIndicator.classList.add('ptr-loading');
-                ptrIndicator.style.transform = `translateY(${threshold}px)`;
-                ptrIndicator.style.opacity = 1;
+                ptrIndicator.style.transform = 'translateY(24px)';
+                ptrIndicator.style.opacity = '1';
+                const wrapper = ptrIndicator.querySelector('.ptr-m3-wrapper');
+                if (wrapper) {
+                    wrapper.style.transform = 'scale(1)';
+                    wrapper.style.opacity = '1';
+                }
 
                 try {
-                    // 1. Silent Recipe Sync
                     if (window.syncManager) {
                         await window.syncManager.syncQueue({ silent: true });
                     }
-                    await window.db.getMyRecipes({ forceRefresh: true });
+                    await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
 
-                    // 2. Manual App Update Check (v209)
                     if (window.checkAppUpdate) {
                         await window.checkAppUpdate();
                     }
@@ -411,12 +408,12 @@ class DashboardManager {
     resetPTR(indicator) {
         if (!indicator) return;
         indicator.classList.remove('ptr-loading');
-        indicator.style.transform = `translateY(0)`;
-        indicator.style.opacity = 0;
-        const circle = indicator.querySelector('.ptr-circle');
-        if (circle) {
-            circle.style.transform = `scale(0)`;
-            circle.style.opacity = 0;
+        indicator.style.transform = 'translateY(-80px)';
+        indicator.style.opacity = '0';
+        const wrapper = indicator.querySelector('.ptr-m3-wrapper');
+        if (wrapper) {
+            wrapper.style.transform = 'scale(0)';
+            wrapper.style.opacity = '0';
         }
     }
 
