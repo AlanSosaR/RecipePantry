@@ -4780,10 +4780,10 @@ select.input-field {
     display: block;
     width: 84%;
     height: 1px;
-    background: var(--outline-variant, #E5E7EB);
+    background: var(--primary, #10B981);
     margin-top: 14px;
     border-radius: 1px;
-    opacity: 0.9;
+    opacity: 0.75;
 }
 
 .sidebar-user-profile:hover {
@@ -5000,9 +5000,9 @@ select.input-field {
     left: 12px;
     right: 12px;
     height: 1px;
-    background: var(--outline-variant, #E5E7EB);
+    background: var(--primary, #10B981);
     border-radius: 1px;
-    opacity: 0.9;
+    opacity: 0.75;
 }
 
 /* Ocultar el botón flotante (FAB) cuando el menú lateral está abierto para evitar que compita por protagonismo */

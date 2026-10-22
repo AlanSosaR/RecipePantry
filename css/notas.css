@@ -47,10 +47,10 @@
     display: block;
     width: 84%;
     height: 1px;
-    background: var(--border, #E5E7EB);
+    background: var(--primary, #10B981);
     margin-top: 14px;
     border-radius: 1px;
-    opacity: 0.9;
+    opacity: 0.75;
 }
 
 .notas-avatar-ring {
