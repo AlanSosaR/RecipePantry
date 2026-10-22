@@ -1127,8 +1127,12 @@ class DashboardManager {
             recipesGrid.classList.remove('hidden');
             recipesGrid.innerHTML = `
                 <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
-                    <div class="spinner-sm" style="margin: 0 auto 12px auto;"></div>
-                    <p style="color: var(--text-muted); font-size: 14px; font-weight: 500;">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</p>
+                    ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml() : `
+                        <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
+                            <m3-loading-indicator contained size="48"></m3-loading-indicator>
+                            <span class="m3-loading-text" data-i18n="loadingRecipes">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</span>
+                        </div>
+                    `}
                 </div>
             `;
         }
@@ -3898,8 +3902,12 @@ class DashboardManager {
             if (emptyState) emptyState.classList.add('hidden');
             container.innerHTML = `
                 <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
-                    <div class="spinner-sm" style="margin: 0 auto 12px auto;"></div>
-                    <p style="color: var(--text-muted); font-size: 14px; font-weight: 500;">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</p>
+                    ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml() : `
+                        <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
+                            <m3-loading-indicator contained size="48"></m3-loading-indicator>
+                            <span class="m3-loading-text" data-i18n="loadingRecipes">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</span>
+                        </div>
+                    `}
                 </div>
             `;
             return;
@@ -4262,7 +4270,9 @@ class DashboardManager {
                     </div>
                 </div>
                 <div class="pc-detail-body" id="panelDetailBody">
-                    <div class="loading-inline"><div class="spinner-sm"></div><p>Cargando receta...</p></div>
+                    <div class="loading-inline" style="padding: 40px 20px; text-align: center;">
+                        ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml('Cargando receta...', null) : '<div class="spinner-sm" style="margin: 0 auto 12px auto;"></div><p style="color: var(--text-muted); font-size: 14px;">Cargando receta...</p>'}
+                    </div>
                 </div>
             </div>
         `;
