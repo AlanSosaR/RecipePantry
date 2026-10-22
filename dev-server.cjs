@@ -4,7 +4,7 @@ const path = require('path');
 const url = require('url');
 
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 const ROOT = __dirname;
 
 // Cargar variables de entorno desde .env si existe
@@ -50,7 +50,7 @@ const MIME_TYPES = {
     '.txt': 'text/plain; charset=utf-8'
 };
 
-const server = http.createServer(async (req, res) => {
+const requestHandler = async (req, res) => {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
@@ -170,7 +170,9 @@ const server = http.createServer(async (req, res) => {
         res.end('500 Server Error: ' + err.message);
     });
     readStream.pipe(res);
-});
+};
+
+const server = http.createServer(requestHandler);
 
 server.on('error', (e) => {
     console.error('Server error:', e);
@@ -184,10 +186,35 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
 });
 
+server.on('error', (e) => {
+    console.error('Server error:', e);
+});
+
 server.listen(PORT, HOST, () => {
     console.log(`\n========================================`);
     console.log(`  🚀 Servidor RecipePantry listo`);
-    console.log(`  👉 Local:   http://localhost:${PORT}`);
-    console.log(`  👉 Red:     http://192.168.1.141:${PORT}`);
-    console.log(`========================================\n`);
+    console.log(`  👉 Local HTTP:   http://localhost:${PORT}`);
+    console.log(`  👉 Red HTTP:     http://192.168.1.141:${PORT}`);
 });
+
+// HTTPS Server for WebRTC Camera on local network
+const https = require('https');
+const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+try {
+    const certPath = path.join(ROOT, '.cert', 'cert.pem');
+    const keyPath = path.join(ROOT, '.cert', 'key.pem');
+    if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+        const httpsServer = https.createServer({
+            cert: fs.readFileSync(certPath),
+            key: fs.readFileSync(keyPath)
+        }, requestHandler);
+        httpsServer.on('error', (e) => console.error('HTTPS Server error:', e));
+        httpsServer.listen(HTTPS_PORT, HOST, () => {
+            console.log(`  🔒 Local HTTPS:  https://localhost:${HTTPS_PORT}`);
+            console.log(`  🔒 Red HTTPS:    https://192.168.1.141:${HTTPS_PORT}`);
+            console.log(`========================================\n`);
+        });
+    }
+} catch (httpsErr) {
+    console.warn('⚠️ No se pudo iniciar HTTPS:', httpsErr.message);
+}

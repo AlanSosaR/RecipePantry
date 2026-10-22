@@ -753,12 +753,13 @@
                 return;
             }
 
-            // Sincronizar estado en body para ocultar barra superior en móvil si estamos en formulario de producto o proveedor
-            if (this.currentSubView === 'item-form' || this.currentSubView === 'supplier-form') {
+            // Sincronizar estado en body para ocultar barra superior y FAB si estamos en formulario de producto o proveedor
+            if (this.currentSubView === 'item-form' || this.currentSubView === 'supplier-form' || this.currentSubView === 'order-form') {
                 document.body.classList.add('supplier-subview-item-active');
             } else {
                 document.body.classList.remove('supplier-subview-item-active');
             }
+            this.updateFabVisibility();
 
             if (this.currentSubView === 'supplier-detail') {
                 this.renderSupplierDetailPage(this.selectedSupplierDetailId);
@@ -2181,6 +2182,40 @@
         // (Adaptado al sistema como recipe-form, sin modales flotantes)
         // ==========================================
 
+        /**
+         * Controla la visibilidad del botón flotante (+ FAB) en la vista de proveedores.
+         * Si estamos editando o creando un proveedor, producto u orden, se oculta completamente.
+         */
+        updateFabVisibility() {
+            const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+            const fabContainer = document.getElementById('m3FabMenuContainer');
+            const isEditingOrForm = (this.currentSubView === 'supplier-form' || this.currentSubView === 'item-form' || this.currentSubView === 'order-form');
+
+            if (isEditingOrForm) {
+                if (window.dashboard?.closeFabMenu) window.dashboard.closeFabMenu();
+                if (fab) {
+                    fab.classList.add('hidden');
+                    fab.style.setProperty('display', 'none', 'important');
+                }
+                if (fabContainer) {
+                    fabContainer.classList.add('hidden');
+                    fabContainer.style.setProperty('display', 'none', 'important');
+                }
+            } else {
+                const currentView = document.documentElement.getAttribute('data-current-view') || window.dashboard?.currentView;
+                if (currentView === 'suppliers') {
+                    if (fab) {
+                        fab.classList.remove('hidden');
+                        fab.style.removeProperty('display');
+                    }
+                    if (fabContainer) {
+                        fabContainer.classList.remove('hidden');
+                        fabContainer.style.removeProperty('display');
+                    }
+                }
+            }
+        }
+
         /** Navega a la vista de formulario de proveedor (Crear o Editar) */
         openSupplierForm(supplierId = null) {
             if (window.dashboard && window.dashboard.currentView !== 'suppliers') {
@@ -2215,6 +2250,7 @@
             if (this.currentSubView === 'item-form' && this.selectedSupplierDetailId) {
                 this.editingItemId = null;
                 this.currentSubView = 'supplier-detail';
+                this.updateFabVisibility();
                 this.render();
                 return;
             }
@@ -2224,6 +2260,7 @@
             this.editingSupplierId = null;
             this.editingItemId = null;
             this.activeOrderSupplierId = null;
+            this.updateFabVisibility();
             // Limpiar el parámetro de detalle de la URL para que F5 no reabra el proveedor
             try {
                 const url = new URL(window.location.href);

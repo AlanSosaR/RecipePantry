@@ -347,30 +347,8 @@ window.utils.formatQuantity = (value) => {
     // Si es entero, devolver tal cual
     if (Number.isInteger(num)) return num.toString();
 
-    const epsilon = 0.01;
-    const commonFractions = [
-        { dec: 0.25, frac: '1/4' },
-        { dec: 0.5, frac: '1/2' },
-        { dec: 0.75, frac: '3/4' },
-        { dec: 0.33, frac: '1/3' },
-        { dec: 0.66, frac: '2/3' },
-        { dec: 0.2, frac: '1/5' },
-        { dec: 0.125, frac: '1/8' },
-        { dec: 0.0625, frac: '1/16' }
-    ];
-
-    const integerPart = Math.floor(num);
-    const decimalPart = num - integerPart;
-
-    // Buscar coincidencia cercana en fracciones comunes
-    const match = commonFractions.find(f => Math.abs(f.dec - decimalPart) < epsilon);
-
-    if (match) {
-        return integerPart > 0 ? `${integerPart} ${match.frac}` : match.frac;
-    }
-
-    // Si no es fracción común, redondear a 2 decimales y mostrar
-    return parseFloat(num.toFixed(2)).toString();
+    // Mostrar números decimales limpios sin fracciones (ej: 37.5 en vez de 37 1/2)
+    return parseFloat(num.toFixed(3)).toString();
 };
 
 /**
@@ -383,14 +361,10 @@ window.utils.formatAmount = (value, unit = '') => {
     const num = typeof value === 'number' ? value : parseFloat(value);
     if (isNaN(num)) return value.toString();
 
-    const cleanUnit = (unit || '').toLowerCase().trim();
-    const isMetricWeightOrVol = /^(g|gr|grs|gramos?|kg|kilos?|kilogramos?|ml|mls|mililitros?|l|lt|lts|litros?)$/i.test(cleanUnit);
+    if (Number.isInteger(num)) return num.toString();
 
-    if (isMetricWeightOrVol) {
-        return parseFloat(num.toFixed(3)).toString();
-    }
-
-    return window.utils.formatQuantity(num);
+    // Siempre retornar decimal limpio sin fracciones (ej: 37.5, 0.125)
+    return parseFloat(num.toFixed(3)).toString();
 };
 
 /**
@@ -456,5 +430,21 @@ window.utils.scaleText = (text, scale) => {
         return window.utils.formatQuantity(scaled);
     });
 };
+
+
+/**
+ * Genera el markup oficial de Material 3 Expressive: Contained Loading Indicator
+ */
+window.utils.getContainedLoaderHtml = (text, i18nKey = 'loadingRecipes') => {
+    const label = text || (window.i18n ? window.i18n.t(i18nKey) : 'Cargando recetas...');
+    const i18nAttr = i18nKey ? ` data-i18n="${i18nKey}"` : '';
+    return `
+        <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
+            <m3-loading-indicator contained size="48"></m3-loading-indicator>
+            <span class="m3-loading-text"${i18nAttr}>${label}</span>
+        </div>
+    `;
+};
+window.getContainedLoaderHtml = window.utils.getContainedLoaderHtml;
 
 console.log('✅ Utilidades inicializadas (v140)');

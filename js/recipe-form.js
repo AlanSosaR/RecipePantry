@@ -29,6 +29,12 @@ class RecipeFormManager {
 
         // 3. Si es edición, cargar datos de la receta
         if (this.isEditing) {
+            const btnSaveText = document.getElementById('btnSaveText');
+            if (btnSaveText) {
+                const updateTxt = window.i18n ? (window.i18n.t('formUpdate') || 'Actualizar') : 'Actualizar';
+                btnSaveText.textContent = updateTxt;
+                btnSaveText.setAttribute('data-i18n', 'formUpdate');
+            }
             await this.loadRecipeData();
         } else {
             // Inicializar con un campo vacío de cada uno
@@ -98,7 +104,16 @@ class RecipeFormManager {
     // Categorías ya no se cargan dinámicamente en el select
 
     async loadRecipeData() {
+        document.body.classList.add('is-editing');
+        const cardTitle = document.getElementById('cardRecipeTitle');
+        if (cardTitle) cardTitle.style.display = 'none';
         document.getElementById('formTitle').textContent = window.i18n ? window.i18n.t('formEditRecipe') : 'Editar Receta';
+        const btnSaveText = document.getElementById('btnSaveText');
+        if (btnSaveText) {
+            const updateTxt = window.i18n ? (window.i18n.t('formUpdate') || 'Actualizar') : 'Actualizar';
+            btnSaveText.textContent = updateTxt;
+            btnSaveText.setAttribute('data-i18n', 'formUpdate');
+        }
         const result = await window.db.getRecipeById(this.recipeId, true);
 
         if (result.success) {
@@ -179,8 +194,9 @@ class RecipeFormManager {
     // --- Listas Dinámicas ---
     addIngredient(data = null) {
         const container = document.getElementById('ingredientsList');
+        const ingNum = container.children.length + 1;
         const item = document.createElement('div');
-        item.className = 'flex gap-4 group animate-fade-in mb-4';
+        item.className = 'm3-dynamic-row m3-ingredient-row group animate-fade-in';
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
@@ -198,7 +214,7 @@ class RecipeFormManager {
         const msgError = isEn ? 'Required' : 'Obligatorio';
 
         item.innerHTML = `
-            <span class="material-symbols-outlined text-gray-300 cursor-move mt-3">drag_indicator</span>
+            <div class="m3-ingredient-number ingredient-number">${ingNum}</div>
             <div class="m3-field m3-field-container flex-1 mb-0 has-action">
                 <input type="text" class="ingredient-input m3-field-input" placeholder=" " value="${displayValue}">
                 <label class="m3-field-label">${labelTxt}</label>
@@ -223,9 +239,18 @@ class RecipeFormManager {
 
         item.querySelector('.del-btn').addEventListener('click', () => {
             item.remove();
+            this.updateIngredientNumbers();
             if (container.children.length === 0) this.addIngredient();
         });
         container.appendChild(item);
+        this.updateIngredientNumbers();
+    }
+
+    updateIngredientNumbers() {
+        const ings = document.getElementById('ingredientsList').querySelectorAll('.ingredient-number');
+        ings.forEach((badge, index) => {
+            badge.textContent = index + 1;
+        });
     }
 
     /**
@@ -317,13 +342,13 @@ class RecipeFormManager {
         const stepNum = container.children.length + 1;
 
         const item = document.createElement('div');
-        item.className = 'flex gap-4 group animate-fade-in mb-4';
+        item.className = 'm3-dynamic-row m3-step-row group animate-fade-in';
         const labelTxt = window.i18n ? window.i18n.t('formStepsLabel') : 'Descripción del paso';
         const delBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'Eliminar';
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         item.innerHTML = `
-            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-sm flex items-center justify-center mt-3 step-number">${stepNum}</div>
+            <div class="m3-step-number step-number">${stepNum}</div>
             <div class="m3-field textarea flex-1 mb-0 has-action" style="margin-bottom:0">
                 <textarea class="step-textarea block w-full resize-none" placeholder=" " rows="2">${data ? (isEn ? (data.instruction_en || data.instruction_es) : data.instruction_es) : ''}</textarea>
                 <label>${labelTxt}</label>
@@ -427,7 +452,10 @@ class RecipeFormManager {
 
 
             btnSave.disabled = true;
-            const savingTxt = window.i18n ? window.i18n.t('saving') : 'Guardando...';
+            const savingTxt = this.isEditing 
+                ? (window.i18n ? (window.i18n.t('updating') || 'Actualizando...') : 'Actualizando...')
+                : (window.i18n ? window.i18n.t('saving') : 'Guardando...');
+            btnSave.innerHTML = `<span class="spinner" style="width:20px; height:20px; border-width:2px; margin-right:8px; display:inline-block; vertical-align:middle; border-radius:50%; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; animation:spin 0.8s linear infinite;"></span>${savingTxt}`;
             // Detectar carpeta seleccionada
             let selectedFolder = '';
             const folderSelect = document.getElementById('pantryFolderSelect');
@@ -602,7 +630,11 @@ class RecipeFormManager {
             console.error(err);
             window.showToast(window.i18n ? window.i18n.t('saveError') : 'Error al guardar la receta', 'error');
             btnSave.disabled = false;
-            btnSave.textContent = window.i18n ? window.i18n.t('ocrSave') : 'Guardar Receta';
+            const saveBtnTxt = this.isEditing 
+                ? (window.i18n ? (window.i18n.t('formUpdate') || 'Actualizar') : 'Actualizar')
+                : (window.i18n ? window.i18n.t('formSave') : 'Guardar Receta');
+            const saveI18nKey = this.isEditing ? 'formUpdate' : 'formSave';
+            btnSave.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">check_circle</span> <span id="btnSaveText" style="font-size: 16px; font-weight: 800;" data-i18n="${saveI18nKey}">${saveBtnTxt}</span>`;
         }
     }
 

@@ -291,20 +291,38 @@ class NotificationManager {
     }
 
     updateBadge() {
-        if (!this.badge) return;
+        if (!this.badge) {
+            this.badge = document.getElementById('notifications-badge');
+        }
         const unreadCount = this.notifications.filter(n => !n.leido).length;
         console.log(`🔔 [Notifications] Actualizando badge: ${unreadCount} pendientes`);
         const btn = document.getElementById('btn-notifications');
+        const wrapper = document.querySelector('.notifications-wrapper');
+        const actionsContainer = document.querySelector('.top-bar-actions-m3');
+        const topBar = document.getElementById('mainTopBar');
 
         if (unreadCount > 0) {
-            this.badge.classList.remove('hidden');
-            this.badge.textContent = unreadCount;
+            if (this.badge) {
+                this.badge.classList.remove('hidden');
+                this.badge.textContent = unreadCount;
+            }
+            if (actionsContainer) actionsContainer.classList.remove('hidden');
+            if (wrapper) wrapper.classList.remove('hidden');
+            if (btn) btn.classList.remove('hidden');
+            if (topBar) topBar.classList.remove('no-notifications');
             if (this.lastCount < unreadCount && btn) {
                 btn.classList.add('bell-shake');
                 setTimeout(() => btn.classList.remove('bell-shake'), 1000);
             }
         } else {
-            this.badge.classList.add('hidden');
+            if (this.badge) this.badge.classList.add('hidden');
+            if (actionsContainer) actionsContainer.classList.add('hidden');
+            if (wrapper) wrapper.classList.add('hidden');
+            if (btn) btn.classList.add('hidden');
+            if (topBar) topBar.classList.add('no-notifications');
+            if (this.menu && !this.menu.classList.contains('hidden')) {
+                this.menu.classList.add('hidden');
+            }
         }
         this.lastCount = unreadCount;
     }

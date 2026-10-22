@@ -4610,7 +4610,7 @@ select.input-field {
 
 .search-wrapper-m3 {
     width: 100%;
-    max-width: 720px;
+    max-width: 860px;
     height: 48px;
     background: var(--surface-container-high);
     border-radius: 24px;
@@ -7536,43 +7536,48 @@ body.dark-theme .folder-more-btn:hover {
 
 /* ─── Mobile Header Spacing & Styles (max-width: 768px) ─── */
 @media (max-width: 768px) {
-    .top-bar-m3 {
-        padding: 12px 16px !important;
-        /* 16px horizontal padding */
-        gap: 8px !important;
-        background: #fff;
-        margin-bottom: 8px;
-        height: 64px !important;
-        display: flex !important;
-        align-items: center !important;
+    .main-content {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-bottom: 24px !important;
     }
 
-    .hamburger-btn {
+    .top-bar-m3 {
+        padding: 10px 4px !important;
+        gap: 10px !important;
+        background: #fff;
+        margin-bottom: 8px;
+        height: 60px !important;
         display: flex !important;
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        margin: 0;
+        align-items: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #hamburger-menu,
+    .btn-menu-m3-premium {
+        margin: 0 !important;
+        flex-shrink: 0 !important;
     }
 
     .search-container-m3 {
-        flex: 1;
-        margin: 0;
+        flex: 1 !important;
+        margin: 0 !important;
+        display: flex !important;
+        width: 100% !important;
     }
 
     .search-wrapper-m3 {
-        height: 40px !important;
-        border-radius: 20px !important;
-        padding: 0 12px !important;
-        gap: 8px !important;
-        max-width: none !important;
+        height: 44px !important;
+        border-radius: 22px !important;
+        padding: 0 14px !important;
+        gap: 10px !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 
     .search-wrapper-m3 input {
-        font-size: 14px;
+        font-size: 14.5px;
         width: 100%;
     }
 
@@ -9750,23 +9755,25 @@ body.dark-theme .context-menu-divider {
     transition: color 0.25s ease;
 }
 
-/* ── Píldoras de Cantidad de Ingredientes Escalados ── */
+/* ── Píldoras de Cantidad de Ingredientes Escalados (Compactas M3) ── */
 .ingredient-qty-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 80px;
+    min-width: 0 !important;
+    width: auto !important;
     box-sizing: border-box;
     text-align: center;
-    padding: 2px 10px;
+    padding: 1px 7px;
     border-radius: 9999px;
-    font-weight: 800;
-    font-size: 14.5px;
-    line-height: 1.4;
-    letter-spacing: 0.2px;
+    font-weight: 700;
+    font-size: 13.5px;
+    line-height: 1.3;
+    letter-spacing: -0.1px;
     margin-right: 6px;
-    vertical-align: middle;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    vertical-align: 1px;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Píldora Terracota / Coral (#e55b43) cuando la receta se reduce */
@@ -18071,4 +18078,315 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 @keyframes m3DropdownFadeIn {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ── Selector M3 Expressive de Días de la Semana para Tareas Recurrentes ── */
+.m3-days-selector-wrapper {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    background: #F8FAFA;
+    padding: 12px 16px;
+    border-radius: 18px;
+    border: 1.5px solid #E2E8F0;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.m3-days-selector-wrapper.visible {
+    display: flex;
+    animation: m3DaysFadeIn 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes m3DaysFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.m3-day-preset-btn {
+    padding: 4px 10px;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 9999px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #4B5563;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.m3-day-preset-btn:hover {
+    background: #EAF8F2;
+    color: #12B078;
+    border-color: #A7F3D0;
+}
+
+.m3-day-preset-btn:active {
+    transform: scale(0.95);
+}
+
+.m3-day-chip-btn {
+    flex: 1;
+    height: 38px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1.5px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #64748B;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m3-day-chip-btn:hover {
+    border-color: #12B078;
+    color: #12B078;
+    background: #F0FDF4;
+}
+
+.m3-day-chip-btn:active {
+    transform: scale(0.93);
+}
+
+.m3-day-chip-btn.active {
+    background: #12B078 !important;
+    color: #FFFFFF !important;
+    border-color: #12B078 !important;
+    box-shadow: 0 3px 10px rgba(18, 176, 120, 0.25);
+}
+
+.m3-day-chip-btn.is-sunday.active {
+    background: #10B981 !important;
+}
+
+.task-recurrence-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    background: #EAF8F2;
+    color: #0D9665;
+    padding: 2px 7px;
+    border-radius: 6px;
+    letter-spacing: -0.2px;
+}
+
+
+/* Ocultar botón flotante de agregar (+ FAB) al editar o crear proveedores, productos u órdenes */
+body.supplier-subview-item-active #mainFabBtn,
+body.supplier-subview-item-active #m3FabMenuContainer,
+body.supplier-subview-item-active .fab-m3 {
+    display: none !important;
+}
+
+/* Números de ingredientes resaltados en el verde oficial de la app en receta normal */
+.ingredient-num-normal {
+    color: var(--primary, #10B981);
+    font-weight: 700;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    letter-spacing: -0.2px;
+}
+
+/* ── Sub-receta / Sección en lista de ingredientes (Píldora verde suave M3 Expressive) ── */
+.m3-subrecipe-header-container {
+    width: 100%;
+    margin: 18px 0 8px 0;
+    display: flex;
+    align-items: center;
+}
+
+.m3-subrecipe-header-container:first-child {
+    margin-top: 4px;
+}
+
+.m3-subrecipe-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    color: #065F46;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.06);
+    user-select: none;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.m3-subrecipe-pill .subrecipe-pill-icon {
+    font-size: 16px;
+    color: var(--primary, #10B981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark .m3-subrecipe-pill {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #6EE7B7;
+}
+
+.dark .m3-subrecipe-pill .subrecipe-pill-icon {
+    color: #34D399;
+}
+
+
+/* ── Material 3 Expressive: Contained Loading Indicator ── */
+.loading-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    width: 100%;
+    min-height: 120px;
+    box-sizing: border-box;
+}
+
+.m3-contained-loader {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface, #FFFFFF);
+    border: 1px solid rgba(16, 185, 129, 0.24);
+    border-radius: 9999px;
+    padding: 10px 22px 10px 16px;
+    box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.1), 0 2px 8px -1px rgba(0, 0, 0, 0.05);
+    color: var(--on-surface, #111827);
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+    user-select: none;
+    animation: m3ContainedEnter 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes m3ContainedEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.m3-circular-progress {
+    width: 24px;
+    height: 24px;
+    animation: m3Rotate 1.4s linear infinite;
+    flex-shrink: 0;
+}
+
+.m3-circular-track {
+    stroke: rgba(16, 185, 129, 0.15);
+}
+
+.m3-circular-arc {
+    stroke: var(--primary, #10B981);
+    stroke-linecap: round;
+    stroke-dasharray: 80px, 200px;
+    stroke-dashoffset: 0;
+    animation: m3Dash 1.4s ease-in-out infinite;
+}
+
+@keyframes m3Rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes m3Dash {
+    0% {
+        stroke-dasharray: 1px, 200px;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 60px, 200px;
+        stroke-dashoffset: -20px;
+    }
+    100% {
+        stroke-dasharray: 60px, 200px;
+        stroke-dashoffset: -75px;
+    }
+}
+
+.m3-loading-text {
+    display: inline-block;
+    color: var(--on-surface);
+    white-space: nowrap;
+}
+
+.dark .m3-contained-loader {
+    background: var(--surface-container, #1E293B);
+    border-color: rgba(16, 185, 129, 0.35);
+    box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.45);
+    color: #F3F4F6;
+}
+
+.dark .m3-circular-track {
+    stroke: rgba(16, 185, 129, 0.22);
+}
+
+.dark .m3-circular-arc {
+    stroke: #34D399;
+}
+
+
+/* ── Material 3 Expressive: Contained Loading Indicator (Official m3.material.io) ── */
+.m3-contained-loader-wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    user-select: none;
+    animation: m3ContainedEnter 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+m3-loading-indicator {
+    display: inline-block;
+    line-height: 0;
+}
+
+m3-loading-indicator canvas {
+    display: block;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px -2px rgba(16, 185, 129, 0.22), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+}
+
+.m3-contained-loader-wrapper .m3-loading-text {
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--on-surface-variant, #4B5563);
+    letter-spacing: -0.1px;
+}
+
+.dark .m3-contained-loader-wrapper .m3-loading-text {
+    color: #9CA3AF;
+}
+
+/* Top bar notifications conditional display & search expansion */
+.top-bar-actions-m3.hidden,
+.notifications-wrapper.hidden {
+    display: none !important;
+}
+
+.top-bar-m3.no-notifications .search-wrapper-m3 {
+    max-width: 960px;
 }

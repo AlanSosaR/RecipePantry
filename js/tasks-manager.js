@@ -63,6 +63,7 @@
             this.currentViewMonth = now.getMonth();
             this.isCompletedFolderOpen = false;
             this._trailReminderInterval = null;
+            this.selectedDaysOfWeek = [1, 2, 3, 4, 5, 6, 0];
             this.loadCache();
             this.initEvents();
             this.initTrailReminder();
@@ -115,6 +116,96 @@
             return [];
         }
 
+        /** Normaliza valores de days_of_week desde Supabase/caché en un Array seguro de enteros (0..6) */
+        normalizeDaysOfWeek(val) {
+            if (!val && val !== 0) return null;
+            if (Array.isArray(val)) {
+                const nums = val.map(Number).filter(n => !isNaN(n) && n >= 0 && n <= 6);
+                return nums.length > 0 ? nums : null;
+            }
+            if (typeof val === 'string') {
+                const trimmed = val.trim();
+                if (!trimmed || trimmed === '{}' || trimmed === '[]') return null;
+                if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                    try {
+                        const parsed = JSON.parse(trimmed);
+                        if (Array.isArray(parsed)) {
+                            const nums = parsed.map(Number).filter(n => !isNaN(n) && n >= 0 && n <= 6);
+                            return nums.length > 0 ? nums : null;
+                        }
+                    } catch (e) {}
+                }
+                const cleaned = trimmed.replace(/^\{|\}$/g, '').trim();
+                if (!cleaned) return null;
+                const nums = cleaned.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 0 && n <= 6);
+                return nums.length > 0 ? nums : null;
+            }
+            return null;
+        }
+
+        /** Comprueba si una tarea es de rutina/recurrente (is_daily true o days_of_week configurado) */
+        isRecurringTask(task) {
+            if (!task) return false;
+            const days = this.normalizeDaysOfWeek(task.days_of_week || task.recipe_data?.days_of_week);
+            return Boolean(task.is_daily) || (Array.isArray(days) && days.length > 0);
+        }
+
+        /** Comprueba si una tarea aplica/se realiza en la fecha dateStr (YYYY-MM-DD) */
+        isTaskActiveOnDate(task, dateStr) {
+            if (!task) return false;
+            const todayStr = this.getTodayDateString();
+            const targetDateStr = String(dateStr || this.selectedDate || todayStr).trim().slice(0, 10);
+
+            // Obtener el día de la semana (0: Domingo, 1: Lunes, ..., 6: Sábado)
+            const parts = targetDateStr.split('-');
+            if (parts.length < 3) return false;
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            const dayOfWeek = new Date(y, m, d).getDay();
+
+            if (this.isRecurringTask(task)) {
+                const days = this.normalizeDaysOfWeek(task.days_of_week || task.recipe_data?.days_of_week);
+                if (days && days.length > 0) {
+                    return days.includes(dayOfWeek);
+                }
+                return true;
+            }
+
+            const rawDate = task.due_date || (task.created_at ? task.created_at : '');
+            const taskDate = String(rawDate).trim().slice(0, 10);
+            if (taskDate === targetDateStr) return true;
+            if (!task.completed && taskDate < todayStr && targetDateStr === todayStr) return true;
+
+            return false;
+        }
+
+        /** Retorna etiqueta descriptiva de la recurrencia */
+        getTaskRecurrenceLabel(task) {
+            if (!this.isRecurringTask(task)) return 'Tarea puntual';
+            const days = this.normalizeDaysOfWeek(task.days_of_week || task.recipe_data?.days_of_week);
+            if (!days || days.length === 7) return 'Rutina diaria (Todos los días)';
+            if (days.length === 6 && !days.includes(0)) return 'Rutina: Lunes a Sábado (Sin Domingo)';
+            if (days.length === 5 && !days.includes(0) && !days.includes(6)) return 'Rutina: Lunes a Viernes';
+            const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            return `Rutina: ${days.map(d => dayNames[d]).join(', ')}`;
+        }
+
+        /** Retorna chip pill visible si la tarea no se hace todos los días */
+        getTaskRecurrenceBadge(task) {
+            if (!this.isRecurringTask(task)) return '';
+            const days = this.normalizeDaysOfWeek(task.days_of_week || task.recipe_data?.days_of_week);
+            if (!days || days.length === 7) return '';
+            if (days.length === 6 && !days.includes(0)) {
+                return `<span class="task-recurrence-pill" title="No se realiza los domingos">Lun-Sáb</span>`;
+            }
+            if (days.length === 5 && !days.includes(0) && !days.includes(6)) {
+                return `<span class="task-recurrence-pill" title="Solo días laborables">Lun-Vie</span>`;
+            }
+            const dayLetters = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+            return `<span class="task-recurrence-pill" title="${this.getTaskRecurrenceLabel(task)}">${days.map(d => dayLetters[d]).join('')}</span>`;
+        }
+
         /** Formato corto de fecha (ej. "15 oct") para etiquetas de tareas pendientes */
         formatDateShort(dateStr) {
             if (!dateStr) return '';
@@ -131,7 +222,7 @@
             if (!task) return false;
             const targetDate = dateStr || this.selectedDate || this.getTodayDateString();
 
-            if (!task.is_daily) {
+            if (!this.isRecurringTask(task)) {
                 return Boolean(task.completed);
             }
 
@@ -190,15 +281,8 @@
             return days.map(d => {
                 const isSelected = d.dateStr === selected;
                 const todayStr = this.getTodayDateString();
-                // Contar actividades para este día (diarias recurrentes + tareas de esta fecha + arrastradas de días previos únicamente a hoy)
-                const dayTasks = this.tasks.filter(t => {
-                    if (t.is_daily) return true;
-                    const rawDate = t.due_date || (t.created_at ? t.created_at : '');
-                    const taskDate = String(rawDate).trim().slice(0, 10);
-                    if (taskDate === d.dateStr) return true;
-                    if (!t.completed && taskDate < todayStr && d.dateStr === todayStr) return true;
-                    return false;
-                });
+                // Contar actividades para este día (respetando recurrencia y días activos)
+                const dayTasks = this.tasks.filter(t => this.isTaskActiveOnDate(t, d.dateStr));
                 const count = dayTasks.length;
 
                 let badgeHtml = '';
@@ -238,14 +322,7 @@
                 const isToday = card.classList.contains('is-today');
 
                 const todayStr = this.getTodayDateString();
-                const dayTasks = this.tasks.filter(t => {
-                    if (t.is_daily) return true;
-                    const rawDate = t.due_date || (t.created_at ? t.created_at : '');
-                    const taskDate = String(rawDate).trim().slice(0, 10);
-                    if (taskDate === dateStr) return true;
-                    if (!t.completed && taskDate < todayStr && dateStr === todayStr) return true;
-                    return false;
-                });
+                const dayTasks = this.tasks.filter(t => this.isTaskActiveOnDate(t, dateStr));
                 const count = dayTasks.length;
 
                 let badge = card.querySelector('.task-day-count-badge');
@@ -429,7 +506,7 @@
         }
 
         /** Clave de caché para tareas según usuario y modo */
-        _getCacheKey(baseKey = 'recipe_pantry_tasks_cache_v5') {
+        _getCacheKey(baseKey = 'recipe_pantry_tasks_cache_v6') {
             if (!this.isSuperAdmin() && this.getTasksMode() === 'isolated') {
                 const uid = window.authManager?.currentUser?.id || 
                             window.authManager?.session?.user?.id ||
@@ -502,6 +579,7 @@
                 localStorage.removeItem('recipe_pantry_tasks_cache_v2');
                 localStorage.removeItem('recipe_pantry_tasks_cache_v3');
                 localStorage.removeItem('recipe_pantry_tasks_cache_v4');
+                localStorage.removeItem('recipe_pantry_tasks_cache_v5');
 
                 const mode = this.getTasksMode();
                 const isSuper = this.isSuperAdmin();
@@ -527,7 +605,7 @@
                     return;
                 }
 
-                const cached = localStorage.getItem('recipe_pantry_tasks_cache_v5');
+                const cached = localStorage.getItem('recipe_pantry_tasks_cache_v6');
                 if (cached) {
                     const parsed = JSON.parse(cached);
                     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -974,7 +1052,7 @@
                     try {
                         const { data, error } = await window.supabaseClient
                             .from('recipes')
-                            .select('id, name_es, name_en, name, title, description_es, description_en, description, ocr_raw_text, ingredients:ingredients(*)')
+                            .select('id, name_es, name_en, description_es, description_en, ocr_raw_text, ingredients:ingredients(*)')
                             .order('name_es', { ascending: true })
                             .limit(500);
 
@@ -1233,10 +1311,24 @@
                                     </div>
                                     <div>
                                         <div style="font-size: 13px; font-weight: 700; color: #18181B;">Se hace todos los días (Rutina Diaria)</div>
-                                        <div style="font-size: 11px; color: #71717A; margin-top: 1px;">Aparece cada día en tu lista de actividades</div>
+                                        <div style="font-size: 11px; color: #71717A; margin-top: 1px;">Aparece recurrente en tu lista de actividades</div>
                                     </div>
                                 </div>
-                                <input id="newTaskDailyToggle" type="checkbox" class="circle-mint-checkbox" style="width: 32px; height: 32px; cursor: pointer;">
+                                <input id="newTaskDailyToggle" type="checkbox" class="circle-mint-checkbox" onchange="window.tasksManager.handleDailyToggleChange(this.checked)" style="width: 32px; height: 32px; cursor: pointer;">
+                            </div>
+
+                            <!-- Selector M3 Expressive de Días de la Semana -->
+                            <div id="prepTaskDaysWrapper" class="m3-days-selector-wrapper">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-size: 12px; font-weight: 700; color: #374151;">Días activos:</span>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button type="button" onclick="window.tasksManager.setDaysPreset('all')" class="m3-day-preset-btn">Todos</button>
+                                        <button type="button" onclick="window.tasksManager.setDaysPreset('no_sunday')" class="m3-day-preset-btn" title="No se hace el domingo">Lun-Sáb</button>
+                                        <button type="button" onclick="window.tasksManager.setDaysPreset('weekdays')" class="m3-day-preset-btn">Lun-Vie</button>
+                                    </div>
+                                </div>
+                                <div id="prepTaskDaysList" style="display: flex; gap: 6px; justify-content: space-between;">
+                                </div>
                             </div>
 
                             <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
@@ -1627,11 +1719,12 @@
 
                             <div style="font-size: 15.5px; font-weight: 800; color: ${isCompleted ? '#A1A1AA' : '#18181B'}; ${isCompleted ? 'text-decoration: line-through;' : ''} display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                                 ${task.is_daily ? `
-                                    <span title="Rutina diaria (Todos los días)" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 7px; background: #EAF8F2; color: #12B078; cursor: pointer; flex-shrink: 0;" onmouseover="this.style.background='#D1FAE5'" onmouseout="this.style.background='#EAF8F2'">
+                                    <span title="${this.getTaskRecurrenceLabel(task)}" onclick="event.stopPropagation(); window.tasksManager.toggleTaskDaily('${task.id}')" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 7px; background: #EAF8F2; color: #12B078; cursor: pointer; flex-shrink: 0;" onmouseover="this.style.background='#D1FAE5'" onmouseout="this.style.background='#EAF8F2'">
                                         <span class="material-symbols-outlined" style="font-size: 17px; font-weight: 800;">all_inclusive</span>
                                     </span>
                                 ` : ''}
                                 <span>${task.title}</span>
+                                ${this.getTaskRecurrenceBadge(task)}
                             </div>
 
                             ${task.qty ? `
@@ -1749,12 +1842,7 @@
                 let matchesDate = false;
                 if (q) {
                     matchesDate = true;
-                } else if (t.is_daily) {
-                    matchesDate = true;
-                } else if (taskDate === cleanSelDate) {
-                    matchesDate = true;
-                } else if (!t.completed && taskDate < todayStr && cleanSelDate === todayStr) {
-                    // Si una tarea no se completó en un día previo (ya finalizado a medianoche), pasa únicamente al día de hoy
+                } else if (this.isTaskActiveOnDate(t, cleanSelDate)) {
                     matchesDate = true;
                 }
                 if (!matchesDate) return false;
@@ -1845,14 +1933,7 @@
             const todayStr = this.getTodayDateString();
             const selDate = this.selectedDate || todayStr;
             const cleanSelDate = String(selDate).trim().slice(0, 10);
-            const currentDayTasks = this.tasks.filter(t => {
-                const rawDate = t.due_date || (t.created_at ? t.created_at : todayStr);
-                const taskDate = String(rawDate).trim().slice(0, 10);
-                if (t.is_daily) return true;
-                if (taskDate === cleanSelDate) return true;
-                if (!t.completed && taskDate < todayStr && cleanSelDate === todayStr) return true;
-                return false;
-            });
+            const currentDayTasks = this.tasks.filter(t => this.isTaskActiveOnDate(t, cleanSelDate));
 
             const total = currentDayTasks.length;
             const completed = currentDayTasks.filter(t => this.isTaskCompletedForDate(t, cleanSelDate)).length;
@@ -2045,6 +2126,8 @@
                 if (portionsInput) portionsInput.value = '1';
                 const dailyToggle = document.getElementById('newTaskDailyToggle');
                 if (dailyToggle) dailyToggle.checked = false;
+                this.selectedDaysOfWeek = [1, 2, 3, 4, 5, 6, 0];
+                this.handleDailyToggleChange(false);
                 this.clearSelectedRecipe();
                 this.loadPantryRecipes();
                 setTimeout(() => {
@@ -2082,7 +2165,11 @@
             const qtyInput = document.getElementById('newTaskQtyInput');
             if (qtyInput) qtyInput.value = task.qty || '';
             const dailyToggle = document.getElementById('newTaskDailyToggle');
-            if (dailyToggle) dailyToggle.checked = Boolean(task.is_daily);
+            const isDaily = this.isRecurringTask(task);
+            if (dailyToggle) dailyToggle.checked = isDaily;
+            const days = this.normalizeDaysOfWeek(task.days_of_week || task.recipe_data?.days_of_week);
+            this.selectedDaysOfWeek = (days && days.length > 0) ? [...days] : [1, 2, 3, 4, 5, 6, 0];
+            this.handleDailyToggleChange(isDaily);
 
             this.clearSelectedRecipe();
             if (task.recipe_id && task.recipe_id !== 'none') {
@@ -2096,6 +2183,84 @@
             setTimeout(() => {
                 if (titleInput) titleInput.focus();
             }, 100);
+        }
+
+        /** Maneja el cambio del toggle de rutina diaria */
+        handleDailyToggleChange(isDaily) {
+            const wrapper = document.getElementById('prepTaskDaysWrapper');
+            if (!wrapper) return;
+            if (isDaily) {
+                wrapper.classList.add('visible');
+                this.renderDaysOfWeekSelector();
+            } else {
+                wrapper.classList.remove('visible');
+            }
+        }
+
+        /** Renderiza los chips de selección de días de la semana */
+        renderDaysOfWeekSelector() {
+            const listEl = document.getElementById('prepTaskDaysList');
+            if (!listEl) return;
+
+            const daysConfig = [
+                { num: 1, label: 'L', name: 'Lunes' },
+                { num: 2, label: 'M', name: 'Martes' },
+                { num: 3, label: 'X', name: 'Miércoles' },
+                { num: 4, label: 'J', name: 'Jueves' },
+                { num: 5, label: 'V', name: 'Viernes' },
+                { num: 6, label: 'S', name: 'Sábado' },
+                { num: 0, label: 'D', name: 'Domingo', isSunday: true }
+            ];
+
+            const currentDays = (Array.isArray(this.selectedDaysOfWeek) && this.selectedDaysOfWeek.length > 0)
+                ? this.selectedDaysOfWeek
+                : [1, 2, 3, 4, 5, 6, 0];
+
+            listEl.innerHTML = daysConfig.map(d => {
+                const isActive = currentDays.includes(d.num);
+                return `
+                    <button 
+                        type="button" 
+                        class="m3-day-chip-btn ${isActive ? 'active' : ''} ${d.isSunday ? 'is-sunday' : ''}" 
+                        onclick="window.tasksManager.toggleDayOfWeek(${d.num})"
+                        title="${d.name} (${isActive ? 'Activo' : 'Inactivo'})"
+                    >
+                        <span>${d.label}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        /** Alterna un día de la semana */
+        toggleDayOfWeek(dayNum) {
+            if (!Array.isArray(this.selectedDaysOfWeek)) {
+                this.selectedDaysOfWeek = [1, 2, 3, 4, 5, 6, 0];
+            }
+            if (this.selectedDaysOfWeek.includes(dayNum)) {
+                if (this.selectedDaysOfWeek.length <= 1) {
+                    this.notify('Debes seleccionar al menos 1 día', 'warning');
+                    return;
+                }
+                this.selectedDaysOfWeek = this.selectedDaysOfWeek.filter(d => d !== dayNum);
+            } else {
+                this.selectedDaysOfWeek.push(dayNum);
+            }
+            this.renderDaysOfWeekSelector();
+        }
+
+        /** Aplica un preset rápido de días */
+        setDaysPreset(preset) {
+            if (preset === 'no_sunday') {
+                this.selectedDaysOfWeek = [1, 2, 3, 4, 5, 6];
+                this.notify('Configurado: Lunes a Sábado (Sin Domingo)');
+            } else if (preset === 'weekdays') {
+                this.selectedDaysOfWeek = [1, 2, 3, 4, 5];
+                this.notify('Configurado: Lunes a Viernes');
+            } else {
+                this.selectedDaysOfWeek = [1, 2, 3, 4, 5, 6, 0];
+                this.notify('Configurado: Todos los días');
+            }
+            this.renderDaysOfWeekSelector();
         }
 
         /** Manejadores de Gesto Swipe a la izquierda para Eliminar Tarea */
@@ -2543,6 +2708,7 @@
 
             const editIdInput = document.getElementById('editingTaskId');
             const editingId = editIdInput ? editIdInput.value.trim() : '';
+            const daysOfWeek = isDaily ? ((this.selectedDaysOfWeek && this.selectedDaysOfWeek.length < 7) ? this.selectedDaysOfWeek : null) : null;
 
             // Si estamos editando una tarea existente
             if (editingId) {
@@ -2551,6 +2717,12 @@
                     task.title = title;
                     task.qty = qty;
                     task.is_daily = isDaily;
+                    task.days_of_week = daysOfWeek;
+                    if (recipeData) {
+                        recipeData.days_of_week = daysOfWeek;
+                    } else if (task.recipe_data) {
+                        task.recipe_data.days_of_week = daysOfWeek;
+                    }
                     task.category = recipeId ? 'con_receta' : 'diario';
                     task.recipe_id = recipeId;
                     task.recipe_data = recipeData;
@@ -2570,6 +2742,7 @@
                                     title,
                                     qty,
                                     is_daily: isDaily,
+                                    days_of_week: daysOfWeek,
                                     category: recipeId ? 'con_receta' : 'diario',
                                     recipe_id: recipeId,
                                     recipe_data: recipeData,
@@ -2593,6 +2766,7 @@
                 qty,
                 category: recipeId ? 'con_receta' : 'diario',
                 is_daily: isDaily,
+                days_of_week: daysOfWeek,
                 due_date: this.selectedDate || this.getTodayDateString(),
                 completed: false,
                 completed_dates: [],
@@ -2661,7 +2835,7 @@
 
             let isNowCompleted = false;
 
-            if (task.is_daily) {
+            if (this.isRecurringTask(task)) {
                 let dates = this.normalizeDates(task.completed_dates);
                 if (dates.length === 0 && task.recipe_data?.completed_dates) {
                     dates = this.normalizeDates(task.recipe_data.completed_dates);
@@ -2720,7 +2894,7 @@
                         due_date: task.due_date,
                         updated_at: new Date().toISOString()
                     };
-                    if (task.is_daily) {
+                    if (this.isRecurringTask(task)) {
                         updatePayload.completed_dates = task.completed_dates || [];
                         updatePayload.recipe_data = task.recipe_data;
                     }
@@ -2742,6 +2916,7 @@
             task.is_daily = !task.is_daily;
             this.saveCache();
             this.renderList();
+            this.updateCarouselBadges();
             this.notify(task.is_daily ? `"${task.title}" configurada como rutina diaria` : `"${task.title}" cambiada a tarea puntual`);
 
             if (window.supabaseClient && !String(task.id).startsWith('temp_')) {

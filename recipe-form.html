@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="730">
+<html lang="es" data-app-version="893">
 
 <head>
     <meta charset="UTF-8">
@@ -23,6 +23,11 @@
         }
     </script>
     <title>Nueva Receta - Recipe Pantry</title>
+    <script>
+        if (new URLSearchParams(window.location.search).has('id')) {
+            document.documentElement.classList.add('is-editing-recipe');
+        }
+    </script>
     <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
 
     <!-- PWA -->
@@ -42,8 +47,8 @@
         rel="stylesheet" />
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=730">
-    <link rel="stylesheet" href="css/components.css?v=730">
+    <link rel="stylesheet" href="css/styles.css?v=893">
+    <link rel="stylesheet" href="css/components.css?v=893">
 
     <style>
         :root {
@@ -85,23 +90,47 @@
             background: var(--md-surface);
         }
 
-        /* ─── Top App Bar ─────────────────────────────── */
+        /* ─── Top App Bar (M3 Center-Aligned) ─────────────────────────────── */
         .m3-top-bar {
             height: 56px;
-            /* Reduced from 72px */
             min-height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 0 16px;
             border-bottom: 1px solid var(--md-outline-var);
             background: var(--md-surface);
+            position: relative;
         }
 
         .m3-top-bar .left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            width: 44px;
+            min-width: 44px;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        .m3-top-bar .center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            z-index: 1;
+            padding: 0 8px;
+        }
+
+        .m3-top-bar .right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 44px;
+            min-width: 44px;
+            flex-shrink: 0;
+            z-index: 2;
         }
 
         .m3-icon-btn {
@@ -127,21 +156,14 @@
 
         .m3-top-bar h1 {
             font-family: var(--font-brand);
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--md-on-surface);
-        }
-
-        .m3-top-bar .left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .m3-top-bar .right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
+            margin: 0;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-avatar-m3 {
@@ -295,19 +317,13 @@
         }
 
         /* ─── M3 Section Card ─────────────────────────── */
-        .m3-card {
-            background: var(--md-surface);
-            border: 1px solid var(--md-outline-var);
-            border-radius: var(--md-shape-xl);
-            padding: 32px;
-            /* Aumentado ligeramente */
-            box-shadow: var(--md-elev-1);
-            transition: box-shadow .2s;
+        /* Flat Form - no card container */
+        html.is-editing-recipe #cardRecipeTitle,
+        body.is-editing #cardRecipeTitle {
+            display: none !important;
         }
 
-        .m3-card:hover {
-            box-shadow: var(--md-elev-2);
-        }
+        
 
         .m3-card-title {
             font-family: var(--font-brand);
@@ -341,9 +357,10 @@
         .m3-field label {
             position: absolute;
             top: 50%;
-            left: 12px;
+            left: 14px;
             transform: translateY(-50%);
-            font-size: 16px;
+            transform-origin: left center;
+            font-size: 15px;
             color: var(--md-on-surface-var);
             background: var(--md-surface);
             padding: 0 6px;
@@ -610,6 +627,44 @@
             gap: 12px;
             margin-bottom: 14px;
             animation: slideDown .2s ease;
+        } 
+
+        .m3-dynamic-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .m3-dynamic-row .m3-field {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .m3-ingredient-number,
+        .m3-step-number {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--md-shape-full);
+            background: rgba(16, 185, 129, 0.12);
+            color: #065F46;
+            font-family: var(--font-brand, 'Poppins', sans-serif);
+            font-weight: 700;
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dark .m3-ingredient-number,
+        .dark .m3-step-number {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6EE7B7;
         }
 
         .m3-step-number {
@@ -676,35 +731,53 @@
         }
 
         /* ─── FAB Save Button ─────────────────────────── */
+        /* ─── Save Button (Estilo OCR / M3 Expressive) ─── */
+        .btn-save-recipe-m3,
         .m3-fab-save {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 32px;
-            border-radius: var(--md-shape-xl);
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            min-height: 60px;
+            background: var(--primary, #10B981);
+            color: #FFFFFF;
             border: none;
-            background: var(--md-primary);
-            color: var(--md-on-primary);
-            font-family: var(--font-brand);
-            font-size: 16px;
-            font-weight: 700;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             cursor: pointer;
-            box-shadow: var(--md-elev-3);
-            transition: background .15s, box-shadow .15s, transform .1s;
-            margin-top: 8px;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+            font-family: var(--font-brand, 'Poppins', sans-serif);
+            font-size: 16px;
+            font-weight: 800;
+            user-select: none;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
+        .btn-save-recipe-m3:hover,
         .m3-fab-save:hover {
-            background: var(--md-primary-dim);
-            box-shadow: 0 6px 16px rgba(234, 88, 12, .35);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+            filter: brightness(0.96);
         }
 
+        .btn-save-recipe-m3:active,
         .m3-fab-save:active {
-            transform: scale(.97);
+            transform: scale(0.98);
         }
 
+        .btn-save-recipe-m3:disabled,
+        .m3-fab-save:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn-save-recipe-m3 .material-symbols-outlined,
         .m3-fab-save .material-symbols-outlined {
-            font-size: 22px;
+            font-size: 20px;
         }
 
         /* ─── OCR Modal ───────────────────────────────── */
@@ -819,7 +892,12 @@
             }
 
             .m3-scroll {
-                padding: 16px;
+                padding: 24px 16px;
+            }
+
+            .form-wrapper {
+                padding-top: 18px;
+                padding-bottom: 40px;
             }
 
             .m3-grid-2 {
@@ -888,10 +966,6 @@
                 <span class="material-symbols-outlined">star</span>
                 <span data-i18n="navFavorites">Favoritos</span>
             </a>
-            <a href="/ocr" class="nav-item">
-                <span class="material-symbols-outlined">document_scanner</span>
-                <span data-i18n="navScan">Escanear Receta</span>
-            </a>
             <a href="/?view=help" class="nav-item">
                 <span class="material-symbols-outlined">settings</span>
                 <span data-i18n="navHelp">Configuración</span>
@@ -917,21 +991,14 @@
         <!-- Top App Bar -->
         <header class="m3-top-bar">
             <div class="left">
-                <button type="button" id="btnFormBack" class="m3-icon-btn" title="Volver" style="margin-right: 4px;">
+                <button type="button" id="btnFormBack" class="m3-icon-btn" title="Volver">
                     <span class="material-symbols-outlined">arrow_back</span>
                 </button>
-                <button id="btnOpenMenu" class="btn-menu-m3-premium mobile-only" 
-                        onclick="event.stopPropagation(); window.toggleSidebar(true)">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
-                <button type="button" id="btnOCROpen" class="m3-icon-btn" style="color: var(--md-primary);">
-                    <span class="material-symbols-outlined">document_scanner</span>
-                </button>
             </div>
-            <div class="right">
-                <h1 id="formTitle" data-i18n="formNewRecipe" style="margin:0; font-size: 18px; margin-right: 16px;">
-                    Nueva Receta</h1>
+            <div class="center">
+                <h1 id="formTitle" data-i18n="formNewRecipe">Nueva Receta</h1>
             </div>
+            <div class="right"></div>
         </header>
 
         <!-- Scroll area -->
@@ -939,12 +1006,7 @@
             <div class="form-wrapper">
                 <form id="recipeForm" novalidate>
 
-                    <!-- ── Unified Recipe Card ── -->
-                    <div class="m3-card">
-                        <p class="m3-card-title" style="display: flex; align-items: center; gap: 8px;">
-                            <img src="assets/icons/icon.svg" width="24" height="24" alt="Logo" />
-                            <span data-i18n="formNewRecipe">Nueva Receta</span>
-                        </p>
+                    <!-- ── Flat Recipe Form ── -->
 
 
 
@@ -959,12 +1021,44 @@
                         </div>
 
                         <!-- Description -->
-                        <div class="m3-field textarea m3-field-container" style="margin-bottom: 24px;">
+                        <div class="m3-field textarea m3-field-container" style="margin-bottom: 12px;">
                             <textarea id="description" class="m3-field-input" name="description_es" placeholder=" "
                                 rows="3" data-i18n-placeholder="placeholderDescription"></textarea>
                             <label class="m3-field-label" for="description"
                                 data-i18n="formDescriptionLabel">Descripción</label>
                         </div>
+
+                        <div class="divider" style="height:1px; background:var(--md-outline-var); margin:16px 0 20px 0;"></div>
+
+                        <!-- Ingredients -->
+                        <div class="m3-list-header">
+                            <h3>
+                                <span class="material-symbols-outlined">grocery</span>
+                                <span data-i18n="formIngredientsLabel">Ingredientes</span>
+                            </h3>
+                            <button type="button" class="m3-add-btn" id="btnAddIngredient">
+                                <span class="material-symbols-outlined">add</span>
+                                <span data-i18n="formAddIngredient">Añadir</span>
+                            </button>
+                        </div>
+                        <div id="ingredientsList" style="margin-bottom: 32px;"></div>
+
+                        <div class="divider" style="height:1px; background:var(--md-outline-var); margin:32px 0;"></div>
+
+                        <!-- Steps -->
+                        <div class="m3-list-header">
+                            <h3>
+                                <span class="material-symbols-outlined">format_list_numbered</span>
+                                <span data-i18n="formStepsLabel">Pasos de preparación</span>
+                            </h3>
+                            <button type="button" class="m3-add-btn" id="btnAddStep">
+                                <span class="material-symbols-outlined">add</span>
+                                <span data-i18n="formAddStep">Añadir</span>
+                            </button>
+                        </div>
+                        <div id="stepsList"></div>
+
+                        <div class="divider" style="height:1px; background:var(--md-outline-var); margin:32px 0;"></div>
 
                         <!-- Selector de Carpeta (Material 3 Expressive Google Style) -->
                         <div class="m3-folder-select-wrapper" id="pantryFolderWrapper">
@@ -996,44 +1090,12 @@
                             </div>
                         </div>
 
-
-
-                        <div class="divider" style="height:1px; background:var(--md-outline-var); margin:32px 0;"></div>
-
-                        <!-- Ingredients -->
-                        <div class="m3-list-header">
-                            <h3>
-                                <span class="material-symbols-outlined">grocery</span>
-                                <span data-i18n="formIngredientsLabel">Ingredientes</span>
-                            </h3>
-                            <button type="button" class="m3-add-btn" id="btnAddIngredient">
-                                <span class="material-symbols-outlined">add</span>
-                                <span data-i18n="formAddIngredient">Añadir</span>
-                            </button>
-                        </div>
-                        <div id="ingredientsList" style="margin-bottom: 32px;"></div>
-
-                        <div class="divider" style="height:1px; background:var(--md-outline-var); margin:32px 0;"></div>
-
-                        <!-- Steps -->
-                        <div class="m3-list-header">
-                            <h3>
-                                <span class="material-symbols-outlined">format_list_numbered</span>
-                                <span data-i18n="formStepsLabel">Pasos de preparación</span>
-                            </h3>
-                            <button type="button" class="m3-add-btn" id="btnAddStep">
-                                <span class="material-symbols-outlined">add</span>
-                                <span data-i18n="formAddStep">Añadir</span>
-                            </button>
-                        </div>
-                        <div id="stepsList"></div>
-                    </div>
-
                     <!-- ── Save ── -->
-                    <div style="display:flex;justify-content:flex-end;margin-top:24px;">
-                        <button type="submit" id="btnSave" class="m3-fab-save">
-                            <span class="material-symbols-outlined">save</span>
-                            <span data-i18n="formSave">Guardar Receta</span>
+                    <!-- ── Botón de Acción Principal (Guardar Receta - Estilo OCR M3 Expressive) ── -->
+                    <div style="display: flex; margin-top: 32px; margin-bottom: 40px;">
+                        <button type="submit" id="btnSave" class="btn-save-recipe-m3">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+                            <span id="btnSaveText" style="font-size: 16px; font-weight: 800;" data-i18n="formSave">Guardar Receta</span>
                         </button>
                     </div>
 
@@ -1045,19 +1107,19 @@
 
     <!-- Scripts (classic, NO type=module) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=730"></script>
-    <script src="js/supabase-client.js?v=730"></script>
-    <script src="js/auth.js?v=730"></script>
-    <script src="js/localdb.js?v=730"></script>
-    <script src="js/sync-manager.js?v=730"></script>
-    <script src="js/db.js?v=730"></script>
-    <script src="js/utils.js?v=730"></script>
-    <script src="js/ui.js?v=730"></script>
-    <script src="js/i18n.js?v=730"></script>
-    <script src="js/m3-folder-dropdown.js?v=730"></script>
-    <script src="js/recipe-form.js?v=750"></script>
-    <script src="js/sw-register.js?v=730"></script>
-    <script src="js/pwa-install.js?v=730"></script>
+    <script src="js/config.js?v=893"></script>
+    <script src="js/supabase-client.js?v=893"></script>
+    <script src="js/auth.js?v=893"></script>
+    <script src="js/localdb.js?v=893"></script>
+    <script src="js/sync-manager.js?v=893"></script>
+    <script src="js/db.js?v=893"></script>
+    <script src="js/utils.js?v=893"></script>
+    <script src="js/ui.js?v=893"></script>
+    <script src="js/i18n.js?v=893"></script>
+    <script src="js/m3-folder-dropdown.js?v=893"></script>
+    <script src="js/recipe-form.js?v=893"></script>
+    <script src="js/sw-register.js?v=893"></script>
+    <script src="js/pwa-install.js?v=893"></script>
 
     <script>
         (async () => {

@@ -127,6 +127,8 @@ class RecipeDetailManager {
                 if (!this.currentRecipe) {
                     console.error('Error cargando receta:', result.error);
                     if (titleEl) titleEl.textContent = window.i18n ? window.i18n.t('recipeNotFound') : 'Receta no encontrada';
+                    const navTitleEl = document.getElementById('navRecipeTitle');
+                    if (navTitleEl) navTitleEl.textContent = window.i18n ? window.i18n.t('recipeNotFound') : 'Receta no encontrada';
                     if (descEl) descEl.textContent = window.i18n ? window.i18n.t('noRecipesTitle') : 'No pudimos cargar esta receta. Verifica tu conexión.';
                     window.showToast?.(window.i18n ? window.i18n.t('noRecipesTitle') : 'Receta no encontrada', 'error');
                 }
@@ -232,6 +234,11 @@ class RecipeDetailManager {
         if (titleEl) {
             titleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restOfTitle}`;
         }
+        const navTitleEl = document.getElementById('navRecipeTitle');
+        if (navTitleEl) {
+            navTitleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restOfTitle}`;
+            this.adaptTitleFontSize(navTitleEl, fullTitle);
+        }
 
         // La insignia "Compartida por" fue removida por diseño.
 
@@ -249,22 +256,20 @@ class RecipeDetailManager {
 
 
 
-        // Favorite State
-        const favBtn = document.getElementById('btnFavorite');
-        if (recipe.is_favorite && favBtn) {
-            favBtn.classList.add('active');
-            favBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
-        }
+        // Favorite State (M3 Expressive Menu & Button)
+        this.updateFavoriteButtonUI(!!recipe.is_favorite);
 
         // --- Permission Logic ---
         const btnEdit = document.getElementById('btnEdit');
         const btnDelete = document.getElementById('btnDelete');
+        const menuDivider = document.querySelector('.recipe-menu-divider');
         const currentUserId = window.authManager.currentUser?.id;
         const isOwner = recipe.user_id === currentUserId;
 
         if (!isOwner && this.permission) {
             if (btnEdit) btnEdit.style.display = 'none';
             if (btnDelete) btnDelete.style.display = 'none';
+            if (menuDivider) menuDivider.style.display = 'none';
         }
 
         this.renderIngredients();
@@ -282,13 +287,16 @@ class RecipeDetailManager {
         if (!selector) return;
         selector.classList.remove('hidden');
 
-        // El número grande en el centro es el MULTIPLICADOR (Scale Factor)
+        // El número grande en el centro: al reducir muestra signo entre (÷2, ÷3, ÷4), al aumentar muestra multiplicador entero (2, 3, 4...)
         let mainDisplay = '';
-        if (this.currentScale === 0.125) mainDisplay = '1/8';
-        else if (this.currentScale === 0.25) mainDisplay = '1/4';
-        else if (this.currentScale === 0.5) mainDisplay = '1/2';
-        else if (this.currentScale === 0.75) mainDisplay = '3/4';
-        else mainDisplay = this.currentScale % 1 === 0 ? this.currentScale : this.currentScale.toFixed(2).replace(/\.?0+$/, '');
+        if (this.currentScale < 1) {
+            const divFactor = Math.round(1 / this.currentScale);
+            mainDisplay = `÷${divFactor}`;
+        } else if (this.currentScale % 1 === 0) {
+            mainDisplay = String(this.currentScale);
+        } else {
+            mainDisplay = parseFloat(this.currentScale.toFixed(2)).toString();
+        }
 
         if (portionDisplay) {
             portionDisplay.textContent = mainDisplay;
@@ -331,7 +339,7 @@ class RecipeDetailManager {
     }
 
     updateScale(newScale) {
-        if (newScale < 0.125) return;
+        if (newScale < 0.24) return;
         this.currentScale = newScale;
 
         // Forzar actualización de la UI y re-renderizado de ingredientes
@@ -339,13 +347,66 @@ class RecipeDetailManager {
         this.renderIngredients();
     }
 
+    adaptTitleFontSize(navTitleEl, titleText) {
+        if (!navTitleEl) return;
+        const len = (titleText || '').trim().length;
+
+        // Base adaptativa generosa para aprovechar al máximo el espacio horizontal sin desbordar
+        let baseSize;
+        if (len <= 12) baseSize = 27;
+        else if (len <= 18) baseSize = 23;
+        else if (len <= 24) baseSize = 20.5;
+        else if (len <= 31) baseSize = 18.5; // p.ej. "Stanleys hot fried chicken kfc" (29 chars)
+        else if (len <= 40) baseSize = 16;
+        else if (len <= 50) baseSize = 14;
+        else baseSize = 12.5;
+
+        navTitleEl.style.fontSize = `${baseSize}px`;
+        navTitleEl.style.fontWeight = '800';
+        navTitleEl.style.whiteSpace = 'nowrap';
+        navTitleEl.style.textOverflow = 'ellipsis';
+        navTitleEl.style.overflow = 'hidden';
+
+        // Ajuste fino dinámico si el texto supera el ancho real disponible del contenedor
+        requestAnimationFrame(() => {
+            let currentSize = baseSize;
+            while (navTitleEl.scrollWidth > navTitleEl.clientWidth && currentSize > 12) {
+                currentSize -= 0.5;
+                navTitleEl.style.fontSize = `${currentSize}px`;
+            }
+        });
+    }
+
     renderIngredients() {
         const listEl = document.getElementById('ingredientsList');
-        const countEl = document.getElementById('ingredientsCount');
         const ingredients = this.currentRecipe.ingredients || [];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-        if (countEl) countEl.textContent = `${ingredients.length} items`;
+        const isSubrecipeItem = (ing) => {
+            const unit = (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) || '';
+            const name = (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || '';
+            const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
+                ? String(ing.quantity).trim()
+                : '';
+            if (originalQty && parseFloat(originalQty) > 0) return false;
+            const text = `${unit || ''} ${name || ''}`.replace(/\s+/g, ' ').trim();
+            if (!text) return false;
+
+            // 1. Empieza con For, Para, To serve, Para servir, etc.
+            if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
+
+            // 2. Termina o contiene dos puntos con nombre de sección (ej. 'Flour Dredge:', 'Buttermilk Dip:', 'Sauce:', etc.)
+            if (/^[-*#(\[\s]*[^:]{2,35}:\s*(\([^)]+\))?$/i.test(text)) return true;
+
+            // 3. Contiene palabras clave de sub-recetas con dos puntos
+            if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b\s*:/i.test(text)) return true;
+
+            // 4. Indicador de lote o multiplicador para sub-receta (ej. '(6 x for 10kg chicken)')
+            if (/\(\s*\d+\s*x\s+(?:for|para)\b/i.test(text)) return true;
+
+            return false;
+        };
+
 
         if (!listEl) return;
 
@@ -362,15 +423,45 @@ class RecipeDetailManager {
         listEl.innerHTML = ingredients.map(ing => {
             const unit = (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) || '';
             const name = (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || '';
+            const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
+                ? String(ing.quantity).trim()
+                : '';
+
+            // Si es un indicador de sub-receta (ej. "For the potato topping", "Para la salsa")
+            if (isSubrecipeItem(ing)) {
+                let cleanTitle = `${unit} ${name}`.replace(/^[:\s\-*#]+|[:\s\-*#]+$/g, '').trim();
+                cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+                return `
+                    <div class="m3-subrecipe-header-container">
+                        <div class="m3-subrecipe-pill">
+                            <span>${cleanTitle}</span>
+                        </div>
+                    </div>
+                `;
+            }
 
             let renderedContent = '';
 
             if (scale === 1) {
-                // Modo Normal: números y cantidades presentadas de forma limpia y estándar
+                // Modo Normal: números e indicadores/unidades (g, lb, etc.) resaltados en el verde oficial de la app
                 const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
                     ? String(ing.quantity).trim()
                     : '';
-                renderedContent = `${originalQty} ${unit} ${name}`.replace(/\s+/g, ' ').trim();
+                const unitList = 'g|gr|grs|gramos?|kg|kilos?|kilogramos?|ml|mls|mililitros?|l|lt|lts|litros?|oz|lb|lbs|libras?|tbsp|cda|cdas|cucharadas?|tsp|cdita|cditas|cucharaditas?|taza|tazas|cup|cups|ud|uds|pz|pza|pzas|piezas?|clove|cloves|dientes?|pinch|pizca|pizcas';
+                const qtyUnitRegex = new RegExp(`(^|[\\s(\\[])((\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+[.,]\\d+|\\d+)(\\s*(?:${unitList})\\b)?)`, 'i');
+
+                if (originalQty) {
+                    const qtyUnit = `${originalQty} ${unit}`.trim();
+                    renderedContent = `<span class="ingredient-num-normal">${qtyUnit}</span> <span class="ingredient-name-text">${name}</span>`;
+                } else {
+                    const rawText = `${unit} ${name}`.replace(/\s+/g, ' ').trim();
+                    let hasMatched = false;
+                    renderedContent = rawText.replace(qtyUnitRegex, (match, prefix, fullQty) => {
+                        if (hasMatched) return match;
+                        hasMatched = true;
+                        return `${prefix}<span class="ingredient-num-normal">${fullQty.trim()}</span> `;
+                    }).replace(/\s+/g, ' ').trim();
+                }
             } else {
                 // Modo Escalado: Píldora Terracota al reducir (#e55b43), Píldora Verde al aumentar (#10B981)
                 const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
@@ -442,15 +533,19 @@ class RecipeDetailManager {
 
     renderSteps() {
         const stepsEl = document.getElementById('stepsList');
+        const sectionSteps = document.getElementById('sectionSteps') || (stepsEl ? stepsEl.closest('.section-group') : null);
         const steps = this.currentRecipe.steps || [];
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         if (!stepsEl) return;
 
         if (steps.length === 0) {
-            stepsEl.innerHTML = `<p class="text-on-surface-variant dark:text-zinc-500 text-sm italic pl-2">${window.i18n ? window.i18n.t('ocrNoSteps') : 'No hay pasos'}</p>`;
+            if (sectionSteps) sectionSteps.style.display = 'none';
+            stepsEl.innerHTML = '';
             return;
         }
+
+        if (sectionSteps) sectionSteps.style.display = '';
 
         stepsEl.innerHTML = steps.map((step, idx) => {
             const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
@@ -469,7 +564,16 @@ class RecipeDetailManager {
     }
 
     setupEventListeners() {
-        // Favorite Button
+        // Redimensionamiento de ventana para mantener título en 1 sola línea
+        window.addEventListener('resize', () => {
+            const navTitleEl = document.getElementById('navRecipeTitle');
+            if (navTitleEl && this.currentRecipe) {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const name = isEn ? (this.currentRecipe.name_en || this.currentRecipe.name_es) : (this.currentRecipe.name_es || this.currentRecipe.name_en);
+                if (name) this.adaptTitleFontSize(navTitleEl, name);
+            }
+        });
+
         // Back Button
         const btnBack = document.getElementById('btn-back');
         if (btnBack) {
@@ -481,8 +585,34 @@ class RecipeDetailManager {
             });
         }
 
+        // Overflow Menu (3-dots button)
+        const btnMenu = document.getElementById('btnRecipeMenu');
+        const menuDropdown = document.getElementById('recipeDetailMenu');
+        if (btnMenu && menuDropdown) {
+            btnMenu.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleOverflowMenu();
+            });
+
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (!menuDropdown.contains(e.target) && !btnMenu.contains(e.target)) {
+                    this.closeOverflowMenu();
+                }
+            });
+
+            // Close on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.closeOverflowMenu();
+                }
+            });
+        }
+
+        // Favorite Button
         document.getElementById('btnFavorite')?.addEventListener('click', (e) => {
             e.stopPropagation();
+            this.closeOverflowMenu();
             this.toggleFavorite();
         });
 
@@ -490,6 +620,7 @@ class RecipeDetailManager {
         const btnEdit = document.getElementById('btnEdit');
         if (btnEdit) {
             btnEdit.addEventListener('click', () => {
+                this.closeOverflowMenu();
                 const params = new URLSearchParams(window.location.search);
                 const folder = params.get('folder') || this.currentRecipe?.pantry_es || this.currentRecipe?.pantry_en || sessionStorage.getItem('rp_current_folder') || '';
                 const folderParam = folder && !this.isRootFolder(folder) ? `&folder=${encodeURIComponent(folder.trim())}` : '';
@@ -501,6 +632,7 @@ class RecipeDetailManager {
         const btnDelete = document.getElementById('btnDelete');
         if (btnDelete) {
             btnDelete.addEventListener('click', () => {
+                this.closeOverflowMenu();
                 this.confirmDelete();
             });
         }
@@ -538,16 +670,15 @@ class RecipeDetailManager {
         const btnInc = document.getElementById('btnIncrease');
         const btnDec = document.getElementById('btnDecrease');
 
-        const fractionalSteps = [0.125, 0.25, 0.5, 0.75, 1];
+        // 4 pasos de reducción: ÷4 (0.25), ÷3 (1/3), ÷2 (0.5), 1 (original)
+        const fractionalSteps = [0.25, 1 / 3, 0.5, 1];
 
         if (btnInc) {
             btnInc.onclick = () => {
                 let nextScale;
                 if (this.currentScale < 1) {
-                    // Buscar siguiente paso fraccional
                     nextScale = fractionalSteps.find(s => s > this.currentScale + 0.001) || 2;
                 } else {
-                    // Incrementar de 1 en 1
                     nextScale = Math.floor(this.currentScale) + 1;
                 }
                 this.updateScale(nextScale);
@@ -558,10 +689,8 @@ class RecipeDetailManager {
             btnDec.onclick = () => {
                 let prevScale;
                 if (this.currentScale <= 1) {
-                    // Buscar paso fraccional anterior
-                    prevScale = [...fractionalSteps].reverse().find(s => s < this.currentScale - 0.001) || 0.125;
+                    prevScale = [...fractionalSteps].reverse().find(s => s < this.currentScale - 0.001) || 0.25;
                 } else {
-                    // Decrementar de 1 en 1
                     prevScale = Math.ceil(this.currentScale) - 1;
                 }
                 this.updateScale(prevScale);
@@ -629,16 +758,50 @@ class RecipeDetailManager {
         }
     }
 
+    openOverflowMenu() {
+        const btnMenu = document.getElementById('btnRecipeMenu');
+        const menuDropdown = document.getElementById('recipeDetailMenu');
+        if (!menuDropdown || !btnMenu) return;
+        menuDropdown.classList.remove('hidden');
+        btnMenu.setAttribute('aria-expanded', 'true');
+    }
+
+    closeOverflowMenu() {
+        const btnMenu = document.getElementById('btnRecipeMenu');
+        const menuDropdown = document.getElementById('recipeDetailMenu');
+        if (!menuDropdown || !btnMenu) return;
+        menuDropdown.classList.add('hidden');
+        btnMenu.setAttribute('aria-expanded', 'false');
+    }
+
+    toggleOverflowMenu() {
+        const btnMenu = document.getElementById('btnRecipeMenu');
+        if (!btnMenu) return;
+        const isExpanded = btnMenu.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+            this.closeOverflowMenu();
+        } else {
+            this.openOverflowMenu();
+        }
+    }
+
     updateFavoriteButtonUI(isFavorite) {
         const favBtn = document.getElementById('btnFavorite');
         if (!favBtn) return;
-        const span = favBtn.querySelector('span');
+        const span = favBtn.querySelector('.menu-item-icon') || favBtn.querySelector('span');
+        const textSpan = document.getElementById('favMenuText');
         if (isFavorite) {
             favBtn.classList.add('active');
             if (span) span.style.fontVariationSettings = "'FILL' 1";
+            if (textSpan) {
+                textSpan.textContent = window.i18n ? (window.i18n.t('removeFav') || 'Quitar de favoritos') : 'Quitar de favoritos';
+            }
         } else {
             favBtn.classList.remove('active');
             if (span) span.style.fontVariationSettings = "'FILL' 0";
+            if (textSpan) {
+                textSpan.textContent = window.i18n ? (window.i18n.t('addFav') || 'Agregar a favoritos') : 'Agregar a favoritos';
+            }
         }
     }
 }

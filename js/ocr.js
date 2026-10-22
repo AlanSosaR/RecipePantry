@@ -34,11 +34,22 @@ class OCRScanner {
         const overlay = document.getElementById('ocrOverlay');
         if (overlay) overlay.classList.add('active');
 
-        // Intentar arrancar la cámara en vivo (WebRTC)
+        // Si se accede por HTTP en IP local, redirigir a HTTPS puerto 3443 para desbloquear la cámara WebRTC
+        if ((!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) && 
+            location.protocol === 'http:' && 
+            location.hostname !== 'localhost' && 
+            location.hostname !== '127.0.0.1') {
+            const targetHttpsUrl = 'https://' + window.location.hostname + ':3443' + window.location.pathname + window.location.search;
+            console.log('🔒 Redirigiendo a HTTPS para activar la cámara en vivo:', targetHttpsUrl);
+            window.location.href = targetHttpsUrl;
+            return;
+        }
+
+        // Iniciar cámara en vivo WebRTC
         try {
             await this.startCamera();
         } catch (camErr) {
-            console.warn("Cámara en vivo no pudo arrancar automáticamente:", camErr);
+            console.warn("Error al iniciar cámara:", camErr);
         }
     }
 
@@ -47,6 +58,7 @@ class OCRScanner {
         if (modal) modal.classList.remove('open');
         this.stopCamera();
         this.resetModal();
+        if (window.updateOcrHeaderState) window.updateOcrHeaderState();
     }
 
     resetModal() {
@@ -131,9 +143,7 @@ class OCRScanner {
                 },
                 {
                     video: { 
-                        facingMode: { ideal: this.currentFacingMode },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        facingMode: { ideal: this.currentFacingMode }
                     },
                     audio: false
                 },
@@ -172,6 +182,15 @@ class OCRScanner {
                 this.videoElement.setAttribute('autoplay', 'true');
                 this.videoElement.muted = true;
 
+                await new Promise((resolve) => {
+                    if (this.videoElement.readyState >= 2) {
+                        resolve();
+                    } else {
+                        this.videoElement.onloadedmetadata = () => resolve();
+                        setTimeout(resolve, 800);
+                    }
+                });
+
                 try {
                     await this.videoElement.play();
                     if (window.cameraController) {
@@ -185,17 +204,13 @@ class OCRScanner {
                     }
                 }
             }
+            if (typeof this.showCameraFallback === 'function') {
+                this.showCameraFallback(false);
+            }
             return true;
         } catch (err) {
             console.error('Error camera:', err);
             this.stream = null;
-
-            if (window.showToast) {
-                window.showToast('No se pudo abrir la cámara en vivo. Puedes tomar foto directamente.', 'warning');
-            } else if (window.showSnackbar) {
-                window.showSnackbar('No se pudo abrir la cámara en vivo. Puedes tomar foto directamente.');
-            }
-
             return false;
         }
     }
@@ -333,7 +348,7 @@ class OCRScanner {
             return;
         }
 
-        const selectedLang = window.selectedOcrLang || 'spa';
+        const selectedLang = window.selectedOcrLang || 'eng';
 
         try {
             const results = await window.ocrProcessor.processImage(file, m => this.updateProgress(m), { lang: selectedLang });
@@ -428,6 +443,13 @@ class OCRScanner {
             document.querySelectorAll('[id="ocrRecipeName"]').forEach(nameInput => {
                 nameInput.value = results.nombre || '';
             });
+            const descInput = document.getElementById('ocrRecipeDescription');
+            if (descInput) {
+                descInput.value = results.descripcion || results.description || '';
+            }
+            if (window.updateOcrHeaderState) {
+                window.updateOcrHeaderState();
+            }
 
             const pageFullText = document.getElementById('ocrFullText');
             if (pageFullText) pageFullText.value = results.texto;
@@ -515,14 +537,27 @@ class OCRScanner {
                 const badge = document.getElementById(id);
                 if (badge) {
                     badge.textContent = `${conf}%`;
-                    badge.style.background = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
-
-                    badge.style.display = 'inline-flex';
-                    badge.style.color = 'white';
-                    badge.style.padding = '4px 12px';
-                    badge.style.borderRadius = '16px';
-                    badge.style.fontSize = '14px';
-                    badge.style.fontWeight = '700';
+                    if (id === 'confidenceBadgeStep1') {
+                        badge.style.display = 'inline-flex';
+                        badge.style.color = 'white';
+                        badge.style.background = 'transparent';
+                        badge.style.padding = '0';
+                        badge.style.fontSize = '13.5px';
+                        badge.style.fontWeight = '800';
+                        const parentGroup = document.getElementById('ocrHeaderResultGroup');
+                        if (parentGroup) {
+                            parentGroup.style.background = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
+                            parentGroup.style.display = 'inline-flex';
+                        }
+                    } else {
+                        badge.style.background = conf >= 85 ? '#10B981' : conf >= 60 ? '#F59E0B' : '#EF4444';
+                        badge.style.display = 'inline-flex';
+                        badge.style.color = 'white';
+                        badge.style.padding = '4px 12px';
+                        badge.style.borderRadius = '16px';
+                        badge.style.fontSize = '14px';
+                        badge.style.fontWeight = '700';
+                    }
                 }
             };
             
@@ -582,6 +617,8 @@ class OCRScanner {
             const nameInput = document.getElementById('ocrRecipeNameModal');
  // Corregido ID
             if (nameInput) nameInput.value = results.nombre || 'Nueva Receta OCR';
+            const descModal = document.getElementById('ocrRecipeDescModal');
+            if (descModal) descModal.value = results.descripcion || results.description || '';
             const extractedText = document.getElementById('extractedTextModal'); // Corregido ID
             if (extractedText) extractedText.value = results.texto || '';
         }
@@ -603,7 +640,7 @@ class OCRScanner {
             reader.readAsDataURL(file);
         });
         this.stopCamera();
-        const selectedLang = window.selectedOcrLang || 'spa';
+        const selectedLang = window.selectedOcrLang || 'eng';
         
         // v360: Update all possible preview IDs
         const previews = [

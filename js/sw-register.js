@@ -1,4 +1,4 @@
-const APP_VERSION_ID = 'v751';
+const APP_VERSION_ID = 'v893';
 const SW_PATH = '/sw.js';
 let currentWorker = null;
 let updateBannerDismissed = false;
@@ -7,6 +7,20 @@ let _updateNotified = false; // guard: evita notificaciones duplicadas en la mis
 // 1. Registro del Service Worker
 async function registerSW() {
     if (!('serviceWorker' in navigator)) return;
+
+    // En entorno de pruebas en red local con HTTPS autofirmado (ej. https://192.168.1.x:3443),
+    // Chromium bloquea la descarga de scripts de Service Worker lanzando "An SSL certificate error occurred when fetching the script".
+    // Omitimos el registro en ese caso particular para evitar errores de consola mientras la cámara WebRTC sigue funcionando al 100%.
+    const isLocalIpHttps = location.protocol === 'https:' && 
+                          location.hostname !== 'localhost' && 
+                          location.hostname !== '127.0.0.1' && 
+                          !location.hostname.endsWith('.app') && 
+                          !location.hostname.endsWith('.dev') && 
+                          !location.hostname.endsWith('.com');
+    if (isLocalIpHttps) {
+        console.log('[SW] Entorno HTTPS con IP local detectado: ServiceWorker en reposo (cámara y app activas sin advertencias SSL).');
+        return;
+    }
 
     try {
         const registration = await navigator.serviceWorker.register(SW_PATH);
@@ -56,7 +70,11 @@ async function registerSW() {
         }, 60000);
 
     } catch (error) {
-        console.error('[SW] Error en registro:', error);
+        if (error.name === 'SecurityError' || String(error.message).includes('certificate') || String(error.message).includes('SSL')) {
+            console.warn('[SW] ServiceWorker no registrado (entorno local con certificado autofirmado en IP local). La app y la cámara WebRTC funcionan con normalidad.');
+        } else {
+            console.error('[SW] Error en registro:', error);
+        }
     }
 
     // 2. Recarga controlada cuando cambie el Service Worker

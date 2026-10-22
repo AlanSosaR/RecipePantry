@@ -70,6 +70,7 @@
             searchTasksPlaceholder: 'Buscar por hacer...',
             searchNotesPlaceholder: 'Buscar en mis notas...',
             newRecipeBtn: 'Nuevo',
+            newRecipeDoc: 'Receta',
             newNoteBtn: 'Nueva Nota',
             recentSearches: 'Búsquedas recientes',
             suggestions: 'Sugerencias',
@@ -169,6 +170,8 @@
 
             // ── OCR page ──────────────────────────────────────────────────
             ocrTitle: 'Escanear Receta',
+            ocrResultTitle: 'Resultado del Escaneo',
+            ocrCropTitle: 'Ajustar Documento',
             ocrStep1Title: 'Prepara tu escáner',
             ocrStep1Desc: 'Sube una foto clara de tu receta para digitalizarla al instante.',
             ocrStep2Title: 'Analizando...',
@@ -182,7 +185,7 @@
             ocrRetry: 'Reintentar',
             ocrSave: 'Guardar Receta',
             ocrSelectImage: 'Tomar foto o subir',
-            ocrFormats: 'Formatos JPG, PNG compatibles',
+            ocrFormats: 'Toca para abrir la cámara o seleccionar de tu galería.',
             ocrTipsTitle: 'Consejos Pro:',
             ocrTip1: 'Asegúrate que el texto sea legible.',
             ocrTip2: 'Usa buena iluminación (evita sombras).',
@@ -193,6 +196,10 @@
             ocrNoSteps: 'No se detectaron pasos',
             ocrCreatingRecipe: 'Crear Receta Ahora',
             ocrCameraHint: 'Apunta la cámara a la receta y presiona el botón',
+            ocrFallbackTitle: 'Capturar Receta',
+            ocrFallbackDesc: 'Toma una foto de tu receta con la cámara o elígela de tu galería.',
+            ocrTakePhotoBtn: 'Tomar Foto con Cámara',
+            ocrGalleryBtn: 'Elegir de la Galería',
             ocrTextPlaceholder: 'El texto aparecerá aquí...',
             ocrCorrectionHint: 'Puedes corregir cualquier error de detección directamente arriba.',
             ocrAgAnalysisTitle: 'ANÁLISIS EXHAUSTIVO TOTAL',
@@ -209,6 +216,8 @@
             // ── Recipe form ───────────────────────────────────────────────
             formNewRecipe: 'Nueva Receta',
             formEditRecipe: 'Editar Receta',
+            formUpdate: 'Actualizar',
+            formUpdateRecipe: 'Actualizar Receta',
             formSave: 'Guardar',
 
             // ── Recipe detail ─────────────────────────────────────────────
@@ -257,6 +266,7 @@
             formNameLabel: 'Nombre de la Receta',
             formCategoryLabel: 'Categoría',
             formDescriptionLabel: 'Descripción',
+            formDescOptional: 'Descripción (Opcional)',
             formIngredientsLabel: 'Ingredientes',
             formStepsLabel: 'Pasos de preparación',
             formAddIngredient: 'Añadir Ingrediente',
@@ -267,6 +277,8 @@
             placeholderStep: 'Escribe el paso de preparación...',
             formNewRecipe: 'Nueva Receta',
             formEditRecipe: 'Editar Receta',
+            formUpdate: 'Actualizar',
+            formUpdateRecipe: 'Actualizar Receta',
             formSave: 'Guardar Receta',
             toggleTheme: 'Cambiar tema',
             cookNow: 'Cocinar ahora',
@@ -293,6 +305,7 @@
             canView: 'Solo ver',
             deleteConfirm: '¿Seguro que desea eliminar la receta?',
             deleteBtn: 'ELIMINAR',
+            deleteRecipeAction: 'Eliminar receta',
             updateProfileSuccess: 'Perfil actualizado correctamente',
             profileNoChanges: 'No se detectaron cambios en el perfil',
             uploadingAvatar: 'Subiendo foto...',
@@ -313,6 +326,7 @@
             recipeType: 'Tipo',
             detailLastModified: 'Última modificación',
             saving: 'Guardando...',
+            updating: 'Actualizando...',
             saveSuccess: '¡Receta guardada con éxito!',
             saveError: 'Error al guardar la receta',
             ocrScanning: 'Receta escaneada con OCR',
@@ -442,6 +456,7 @@
             searchTasksPlaceholder: 'Search to-do...',
             searchNotesPlaceholder: 'Search my notes...',
             newRecipeBtn: 'New',
+            newRecipeDoc: 'Recipe',
             newNoteBtn: 'New Note',
             recentSearches: 'Recent searches',
             suggestions: 'Suggestions',
@@ -541,6 +556,8 @@
 
             // ── OCR page ──────────────────────────────────────────────────
             ocrTitle: 'Scan Recipe',
+            ocrResultTitle: 'Scan Result',
+            ocrCropTitle: 'Adjust Document',
             ocrStep1Title: 'Prepare your scanner',
             ocrStep1Desc: 'Upload a clear photo of your recipe to digitize it instantly.',
             ocrStep2Title: 'Analyzing...',
@@ -554,7 +571,7 @@
             ocrRetry: 'Retry',
             ocrSave: 'Save Recipe',
             ocrSelectImage: 'Select or drag an image',
-            ocrFormats: 'Compatible JPG, PNG formats',
+            ocrFormats: 'Tap to open the camera or select from your gallery.',
             ocrTipsTitle: 'Pro Tips:',
             ocrTip1: 'Make sure the text is legible.',
             ocrTip2: 'Use good lighting (avoid shadows).',
@@ -565,6 +582,10 @@
             ocrNoSteps: 'No steps detected',
             ocrCreatingRecipe: 'Create Recipe Now',
             ocrCameraHint: 'Point the camera at the recipe and press the button',
+            ocrFallbackTitle: 'Capture Recipe',
+            ocrFallbackDesc: 'Take a photo of your recipe with the camera or choose it from your gallery.',
+            ocrTakePhotoBtn: 'Take Photo with Camera',
+            ocrGalleryBtn: 'Choose from Gallery',
             ocrTextPlaceholder: 'Text will appear here...',
             ocrCorrectionHint: 'You can correct any detection errors directly above.',
             ocrAgAnalysisTitle: 'TOTAL EXHAUSTIVE ANALYSIS',
@@ -581,6 +602,8 @@
             // ── Recipe form ───────────────────────────────────────────────
             formNewRecipe: 'New Recipe',
             formEditRecipe: 'Edit Recipe',
+            formUpdate: 'Update',
+            formUpdateRecipe: 'Update Recipe',
             formSave: 'Save',
 
             // ── Recipe detail ─────────────────────────────────────────────
@@ -629,6 +652,7 @@
             formNameLabel: 'Recipe Name',
             formCategoryLabel: 'Category',
             formDescriptionLabel: 'Description',
+            formDescOptional: 'Description (Optional)',
             formIngredientsLabel: 'Ingredients',
             formStepsLabel: 'Preparation Steps',
             formAddIngredient: 'Add Ingredient',
@@ -639,6 +663,8 @@
             placeholderStep: 'Write the preparation step...',
             formNewRecipe: 'New Recipe',
             formEditRecipe: 'Edit Recipe',
+            formUpdate: 'Update',
+            formUpdateRecipe: 'Update Recipe',
             formSave: 'Save Recipe',
             toggleTheme: 'Toggle Theme',
             cookNow: 'Cook Now',
@@ -664,6 +690,7 @@
             canView: 'View only',
             deleteConfirm: 'Are you sure you want to delete this recipe?',
             deleteBtn: 'DELETE',
+            deleteRecipeAction: 'Delete recipe',
             deleteSuccess: 'Recipe deleted successfully',
             deleteError: 'Error deleting recipe',
             favAdded: 'Added to favorites',
@@ -681,6 +708,7 @@
             recipeType: 'Type',
             detailLastModified: 'Last modification',
             saving: 'Saving...',
+            updating: 'Updating...',
             updateProfileSuccess: 'Profile updated successfully',
             profileNoChanges: 'No changes detected in profile',
             uploadingAvatar: 'Uploading photo...',
@@ -820,14 +848,26 @@
     }
 
     /** Get translation string by key (for dynamic JS content) */
-    function t(key, data = {}) {
+    function t(key, fallbackOrData = {}, data = {}) {
+        let fallback = null;
+        let params = data;
+        if (typeof fallbackOrData === 'string') {
+            fallback = fallbackOrData;
+        } else if (typeof fallbackOrData === 'object' && fallbackOrData !== null) {
+            params = fallbackOrData;
+        }
         const lang = getLang();
-        let str = (translations[lang] && translations[lang][key]) || key;
+        let str = (translations[lang] && translations[lang][key]) || 
+                  (translations['es'] && translations['es'][key]) || 
+                  fallback || 
+                  key;
 
-        // Substitution: {var} -> data.var
-        Object.keys(data).forEach(k => {
-            str = str.replace(`{${k}}`, data[k]);
-        });
+        // Substitution: {var} -> params.var
+        if (params && typeof params === 'object') {
+            Object.keys(params).forEach(k => {
+                str = str.replace(`{${k}}`, params[k]);
+            });
+        }
         return str;
     }
 

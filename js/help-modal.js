@@ -82,7 +82,87 @@ class SettingsViewManager {
                     </div>
 
                     <!-- Divisor visual elegante M3 -->
-                    <div style="border-top: 1px solid #E2E8F0; margin: 4px 0 6px 0;"></div>
+                    <div style="border-top: 1px solid #E2E8F0; margin: 16px 0;"></div>
+
+                    <!-- SECCIÓN: Compartir Aplicación (Píldora Unificada M3 en una sola línea) -->
+                    <div style="width: 100%;">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            flex-wrap: nowrap;
+                            width: 100%;
+                            box-sizing: border-box;
+                            background: #F8FAFC;
+                            border: 1.5px solid #E2E8F0;
+                            border-radius: 100px;
+                            padding: 6px 6px 6px 16px;
+                            gap: 8px;
+                        ">
+                            <span style="
+                                font-family: var(--font-display, 'Poppins', sans-serif);
+                                font-size: 13.5px;
+                                font-weight: 700;
+                                color: #475569;
+                                letter-spacing: -0.01em;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                white-space: nowrap;
+                                flex-shrink: 0;
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #25D366;">share</span>
+                                ${isEn ? 'Share' : 'Compartir'}
+                            </span>
+                            
+                            <div style="display: flex; gap: 3px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 100px; padding: 3px; flex-shrink: 0;">
+                                <button type="button" id="btn-settings-share-whatsapp" onclick="window.helpModal.handleShareWhatsApp()"
+                                    style="border: none; padding: 6px 12px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12px; font-weight: 700; cursor: pointer; background: #25D366; color: white; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25); transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap;"
+                                    onmouseover="this.style.background='#1EBE5D'"
+                                    onmouseout="this.style.background='#25D366'">
+                                    <svg style="width: 15px; height: 15px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24">
+                                        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.34C9.36 7.34 9.09 7.4 8.87 7.65C8.65 7.89 8.02 8.49 8.02 9.71C8.02 10.93 8.91 12.11 9.03 12.27C9.16 12.44 10.74 14.86 13.17 15.91C13.75 16.16 14.2 16.31 14.55 16.42C15.13 16.61 15.67 16.58 16.09 16.52C16.56 16.45 17.53 15.93 17.73 15.36C17.93 14.79 17.93 14.31 17.87 14.2C17.81 14.1 17.65 14.04 17.41 13.92C17.16 13.8 15.97 13.21 15.75 13.13C15.53 13.05 15.37 13.01 15.21 13.25C15.05 13.5 14.58 14.04 14.44 14.2C14.3 14.37 14.16 14.39 13.92 14.27C13.67 14.15 12.87 13.88 11.92 13.04C11.19 12.38 10.69 11.57 10.55 11.33C10.41 11.08 10.54 10.95 10.66 10.83C10.77 10.72 10.91 10.54 11.03 10.4C11.16 10.25 11.2 10.15 11.28 9.99C11.36 9.82 11.2 10.15 11.28 9.99C11.36 9.82 11.32 9.68 11.26 9.56C11.2 9.44 10.74 8.3 10.55 7.84C10.36 7.39 10.17 7.45 10.03 7.44C9.9 7.44 9.74 7.34 9.53 7.34Z"/>
+                                    </svg>
+                                    <span>WhatsApp</span>
+                                </button>
+                                <button type="button" id="btn-settings-copy-link" onclick="window.helpModal.handleCopyShareLink()"
+                                    style="border: none; padding: 6px 12px; border-radius: 100px; font-family: var(--font-display, 'Poppins', sans-serif); font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: #475569; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap;"
+                                    onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A';"
+                                    onmouseout="this.style.background='transparent'; this.style.color='#475569';">
+                                    <span class="material-symbols-outlined" style="font-size: 16px; color: #10B981;">link</span>
+                                    <span>${isEn ? 'Copy' : 'Copiar'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divisor visual elegante M3 -->
+                    <div style="border-top: 1px solid #E2E8F0; margin: 18px 0;"></div>
+
+                    <!-- SECCIÓN: Notificaciones Push -->
+                    <div>
+                        <div class="safe-filter-header" style="margin-bottom: 14px;">
+                            <div class="safe-filter-title" style="display: flex; align-items: center; gap: 14px;">
+                                <div class="safe-title-icon" style="background: rgba(16, 185, 129, 0.12); color: #10B981; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 24px;">notifications_active</span>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 700; color: #0F172A;">
+                                        ${isEn ? 'Push Notifications' : 'Notificaciones Push'}
+                                    </h3>
+                                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748B;">
+                                        ${isEn ? 'Task reminders, prep alerts and recipe updates' : 'Alertas de tareas, recordatorios y recetas'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado reactivo y acción de Notificaciones Push -->
+                        <div id="settings-push-status-container"></div>
+                    </div>
+
+                    <!-- Divisor visual elegante M3 -->
+                    <div style="border-top: 1px solid #E2E8F0; margin: 18px 0;"></div>
 
                     <div>
                         <div class="safe-filter-header" style="margin-bottom: 14px;">
@@ -182,8 +262,9 @@ class SettingsViewManager {
             }
         }
 
-        // Cargar estado offline asíncronamente
+        // Cargar estado offline y estado de notificaciones asíncronamente
         this.loadOfflineStatus();
+        this.updatePushNotificationUI();
     }
 
     async loadOfflineStatus() {
@@ -434,6 +515,282 @@ class SettingsViewManager {
             });
         } else {
             if (confirm(confirmMsg)) await doClean();
+        }
+    }
+
+    handleShareWhatsApp() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const shareUrl = 'https://recipe-pantry.vercel.app/';
+        const text = isEn 
+            ? `Hey! I invite you to try Recipe Pantry, an amazing app to organize and digitize recipes: ${shareUrl}`
+            : `¡Hola! Te invito a probar Recipe Pantry, una app genial para guardar, organizar y digitalizar recetas de cocina. Entra aquí: ${shareUrl}`;
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        window.open(whatsappUrl, '_blank');
+    }
+
+    async handleCopyShareLink() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const shareUrl = 'https://recipe-pantry.vercel.app/';
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(shareUrl);
+            } else {
+                const tempInput = document.createElement('input');
+                tempInput.value = shareUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+            }
+            const msg = isEn ? 'Link copied to clipboard!' : '¡Enlace copiado al portapapeles!';
+            if (window.utils?.showToast) window.utils.showToast(msg, 'success');
+            else if (window.showToast) window.showToast(msg, 'success');
+            else alert(msg);
+        } catch (e) {
+            console.error('Error copying share link:', e);
+        }
+    }
+
+    async handleRequestPushNotification() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        if (!('Notification' in window)) {
+            const msg = isEn ? 'Notifications are not supported in this browser' : 'Tu navegador no soporta notificaciones';
+            if (window.utils?.showToast) window.utils.showToast(msg, 'warning');
+            return;
+        }
+
+        try {
+            const perm = await Notification.requestPermission();
+            this.updatePushNotificationUI();
+
+            if (perm === 'granted') {
+                if (window.registerPushToken && window.auth?.user?.id) {
+                    try {
+                        await window.registerPushToken(window.auth.user.id);
+                    } catch (pushErr) {
+                        console.warn('[Push] Error registrando token FCM:', pushErr);
+                    }
+                }
+
+                // Disparar notificación local de bienvenida
+                try {
+                    const title = '🔔 Recipe Pantry';
+                    const body = isEn 
+                        ? 'Notifications active! You will now receive reminders and alerts.' 
+                        : '¡Notificaciones activadas! Ahora recibirás avisos y recordatorios.';
+                    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                        const reg = await navigator.serviceWorker.ready;
+                        reg.showNotification(title, {
+                            body,
+                            icon: '/assets/icons/icon.svg',
+                            badge: '/assets/icons/icon.svg',
+                            tag: 'rp-welcome-notif'
+                        });
+                    } else {
+                        new Notification(title, { body, icon: '/assets/icons/icon.svg' });
+                    }
+                } catch (e) {}
+
+                const successMsg = isEn ? 'Notifications enabled successfully!' : '¡Notificaciones activadas con éxito!';
+                if (window.utils?.showToast) window.utils.showToast(successMsg, 'success');
+                else if (window.showToast) window.showToast(successMsg, 'success');
+            } else if (perm === 'denied') {
+                const deniedMsg = isEn 
+                    ? 'Permission blocked. Please allow notifications in site settings.' 
+                    : 'Permiso denegado. Puedes activarlo en los ajustes del navegador.';
+                if (window.utils?.showToast) window.utils.showToast(deniedMsg, 'warning');
+                else if (window.showToast) window.showToast(deniedMsg, 'warning');
+            }
+        } catch (err) {
+            console.error('[Push] Error pidiendo permiso:', err);
+        }
+    }
+
+    async handleTestPushNotification() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        if (!('Notification' in window) || Notification.permission !== 'granted') {
+            return this.handleRequestPushNotification();
+        }
+
+        try {
+            const title = '🔔 Recipe Pantry';
+            const body = isEn 
+                ? 'Test successful! Notifications are functioning properly.' 
+                : '¡Prueba exitosa! Las notificaciones están funcionando correctamente.';
+
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                const reg = await navigator.serviceWorker.ready;
+                await reg.showNotification(title, {
+                    body,
+                    icon: '/assets/icons/icon.svg',
+                    badge: '/assets/icons/icon.svg',
+                    tag: 'rp-test-notif'
+                });
+            } else {
+                new Notification(title, { body, icon: '/assets/icons/icon.svg' });
+            }
+
+            const msg = isEn ? 'Test notification sent!' : '¡Notificación de prueba enviada!';
+            if (window.utils?.showToast) window.utils.showToast(msg, 'success');
+            else if (window.showToast) window.showToast(msg, 'success');
+        } catch (e) {
+            console.error('Error enviando notificación de prueba:', e);
+        }
+    }
+
+    
+    playNotificationChime() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = ctx.currentTime;
+            
+            // Tone 1: 587.33 Hz (D5)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, now);
+            gain1.gain.setValueAtTime(0.12, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.22);
+
+            // Tone 2: 880 Hz (A5)
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, now + 0.12);
+            gain2.gain.setValueAtTime(0.15, now + 0.12);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(now + 0.12);
+            osc2.stop(now + 0.45);
+        } catch (e) {}
+    }
+
+    handleTestInAppNotification() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        this.playNotificationChime();
+        if (navigator.vibrate) {
+            try { navigator.vibrate([70, 40, 70]); } catch (e) {}
+        }
+        const msg = isEn 
+            ? '🔔 Recipe Pantry: Prep reminder! You have active kitchen tasks for today.' 
+            : '🔔 Recipe Pantry: ¡Aviso de prep! Tienes tareas de cocina activas para hoy.';
+        
+        if (window.utils?.showToast) {
+            window.utils.showToast(msg, 'success', 4500);
+        } else if (window.showToast) {
+            window.showToast(msg, 'success');
+        } else {
+            alert(msg);
+        }
+    }
+
+    async handleRecheckPushPermission() {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        
+        if (!('Notification' in window)) {
+            const msg = isEn ? 'Notifications not supported in this browser' : 'Tu navegador no soporta notificaciones';
+            if (window.utils?.showToast) window.utils.showToast(msg, 'warning');
+            return;
+        }
+
+        // Invocar la solicitud nativa para que el navegador lance el cuadro de diálogo de Permitir/Aceptar
+        await this.handleRequestPushNotification();
+
+        // Actualizar la interfaz de inmediato
+        this.updatePushNotificationUI();
+
+        if (Notification.permission === 'denied') {
+            const msg = isEn
+                ? 'ℹ️ Permission blocked by browser. Tap the lock/tune icon 🔒 in the address bar to Allow.'
+                : 'ℹ️ Tu navegador mantiene bloqueada la ventana. Toca el candado o ajustes 🔒 en la barra de direcciones y cambia Notificaciones a "Permitir".';
+            if (window.utils?.showToast) window.utils.showToast(msg, 'info', 5000);
+            else if (window.showToast) window.showToast(msg, 'info');
+        }
+    }
+
+    updatePushNotificationUI() {
+        const container = document.getElementById('settings-push-status-container');
+        if (!container) return;
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        if (!('Notification' in window)) {
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #64748B; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 12px 16px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #94A3B8;">notifications_off</span>
+                    <span>${isEn ? 'Notifications not supported in this browser' : 'Las notificaciones no son compatibles con este navegador'}</span>
+                </div>
+            `;
+            return;
+        }
+
+        const permission = Notification.permission;
+
+        if (permission === 'granted') {
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: 600; color: #065F46; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 14px; padding: 12px 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 20px; color: #10B981;">check_circle</span>
+                        <div>
+                            <div style="font-weight: 700; color: #047857;">${isEn ? 'Notifications Active' : 'Notificaciones activadas'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: #065F46; margin-top: 2px;">${isEn ? 'Receiving task alerts and reminders' : 'Recibiendo alertas de tareas y avisos'}</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.helpModal.handleTestPushNotification()"
+                        style="border: 1px solid #10B981; background: #FFFFFF; color: #059669; padding: 6px 14px; border-radius: 100px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15); transition: all 0.2s;"
+                        onmouseover="this.style.background='#F0FDF4'"
+                        onmouseout="this.style.background='#FFFFFF'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">send</span>
+                        <span>${isEn ? 'Test Notification' : 'Probar Notificación'}</span>
+                    </button>
+                </div>
+            `;
+        } else if (permission === 'denied') {
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #991B1B; background: #FEF2F2; border: 1.5px solid #FECACA; border-radius: 16px; padding: 14px 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #991B1B;">
+                            <span class="material-symbols-outlined" style="font-size: 22px; color: #EF4444;">notifications_off</span>
+                            <span style="font-size: 14px;">${isEn ? 'Permission Blocked in Browser' : 'Permiso bloqueado en el navegador'}</span>
+                        </div>
+                        <button type="button" onclick="window.helpModal.handleRecheckPushPermission()"
+                            style="border: 1px solid #FCA5A5; background: #FFFFFF; color: #B91C1C; padding: 5px 14px; border-radius: 100px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;"
+                            onmouseover="this.style.background='#FEE2E2'"
+                            onmouseout="this.style.background='#FFFFFF'">
+                            <span class="material-symbols-outlined" style="font-size: 15px;">refresh</span>
+                            <span>${isEn ? 'Recheck' : 'Recomprobar'}</span>
+                        </button>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; font-weight: 400; color: #7F1D1D; line-height: 1.45;">
+                        ${isEn ? 'To receive notifications, tap the lock/settings icon in your browser URL bar and change Notifications to "Allow".' : 'Para recibir avisos, toca el candado o icono de ajustes en la barra de tu navegador y cambia Notificaciones a "Permitir".'}
+                    </p>
+                </div>
+            `;
+        } else {
+            // default
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: 600; color: #92400E; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 14px; padding: 12px 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 20px; color: #F59E0B;">notification_important</span>
+                        <div>
+                            <div style="font-weight: 700; color: #B45309;">${isEn ? 'Notifications Not Enabled' : 'Notificaciones no activadas'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: #92400E; margin-top: 2px;">${isEn ? 'Enable permissions to receive alerts' : 'Actívalas para recibir alertas y recordatorios'}</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.helpModal.handleRequestPushNotification()"
+                        style="border: none; background: #10B981; color: white; padding: 8px 18px; border-radius: 100px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28); transition: all 0.2s;"
+                        onmouseover="this.style.background='#059669'"
+                        onmouseout="this.style.background='#10B981'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">notifications_active</span>
+                        <span>${isEn ? 'Enable Notifications' : 'Activar Notificaciones'}</span>
+                    </button>
+                </div>
+            `;
         }
     }
 

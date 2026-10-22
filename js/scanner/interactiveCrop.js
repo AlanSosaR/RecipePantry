@@ -12,6 +12,9 @@ class InteractiveCrop {
         this.image = null;
         this.corners = []; // [{x, y}, ...] in image coordinate space
         this.activeCornerIndex = -1;
+        this.activeEdgeIndex = -1;
+        this.dragStartImgPt = null;
+        this.edgeStartCorners = null;
         this.displayScale = 1;
         this.offsetX = 0;
         this.offsetY = 0;
@@ -50,12 +53,14 @@ class InteractiveCrop {
         const w = this.image.width;
         const h = this.image.height;
 
-        // Selección completa de toda la imagen por defecto
+        // Inset elegante de 4% para que los controles no queden aplastados en los bordes
+        const padX = Math.round(w * 0.04);
+        const padY = Math.round(h * 0.04);
         this.corners = [
-            { x: 0, y: 0 },         // Top-Left
-            { x: w, y: 0 },         // Top-Right
-            { x: w, y: h },         // Bottom-Right
-            { x: 0, y: h }          // Bottom-Left
+            { x: padX, y: padY },         // Top-Left
+            { x: w - padX, y: padY },     // Top-Right
+            { x: w - padX, y: h - padY }, // Bottom-Right
+            { x: padX, y: h - padY }      // Bottom-Left
         ];
     }
 
@@ -185,7 +190,7 @@ class InteractiveCrop {
         const screenCorners = this.corners.map(p => this.imageToScreen(p));
         
         ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
         ctx.beginPath();
         ctx.rect(0, 0, totalW, totalH);
         ctx.moveTo(screenCorners[0].x, screenCorners[0].y);
@@ -196,9 +201,46 @@ class InteractiveCrop {
         ctx.fill('evenodd');
         ctx.restore();
 
-        // 3. Draw Polygon Outline (CamScanner Emerald Style)
+        // 3. Subtle Rule of Thirds Grid inside crop area
         ctx.save();
-        ctx.strokeStyle = '#10B981';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        for (let t = 1; t <= 2; t++) {
+            const frac = t / 3;
+            // Horizontal line
+            const hL = {
+                x: screenCorners[0].x + (screenCorners[3].x - screenCorners[0].x) * frac,
+                y: screenCorners[0].y + (screenCorners[3].y - screenCorners[0].y) * frac
+            };
+            const hR = {
+                x: screenCorners[1].x + (screenCorners[2].x - screenCorners[1].x) * frac,
+                y: screenCorners[1].y + (screenCorners[2].y - screenCorners[1].y) * frac
+            };
+            ctx.beginPath();
+            ctx.moveTo(hL.x, hL.y);
+            ctx.lineTo(hR.x, hR.y);
+            ctx.stroke();
+
+            // Vertical line
+            const vT = {
+                x: screenCorners[0].x + (screenCorners[1].x - screenCorners[0].x) * frac,
+                y: screenCorners[0].y + (screenCorners[1].y - screenCorners[0].y) * frac
+            };
+            const vB = {
+                x: screenCorners[3].x + (screenCorners[2].x - screenCorners[3].x) * frac,
+                y: screenCorners[3].y + (screenCorners[2].y - screenCorners[3].y) * frac
+            };
+            ctx.beginPath();
+            ctx.moveTo(vT.x, vT.y);
+            ctx.lineTo(vB.x, vB.y);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // 4. Perimeter Line (Emerald Green)
+        ctx.save();
+        ctx.strokeStyle = '#00C853';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(screenCorners[0].x, screenCorners[0].y);
@@ -207,38 +249,77 @@ class InteractiveCrop {
         }
         ctx.closePath();
         ctx.stroke();
-
-        // Grid lines (rule of thirds inside the crop area)
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
         ctx.restore();
 
-        // 4. Draw Corner Handles (100% visible, fully rounded without edge clipping)
+        // 5. Corner Handles - Modern Professional Document Scanner Style (L-brackets + Touch Rings)
+        const bracketLen = 22;
         screenCorners.forEach((pt, idx) => {
             const isHovered = (this.activeCornerIndex === idx);
-            
-            // Outer shadow ring
+
+            // Calculate directional vectors towards adjacent corners
+            const prevPt = screenCorners[(idx + 3) % 4];
+            const nextPt = screenCorners[(idx + 1) % 4];
+            const dPrev = Math.hypot(prevPt.x - pt.x, prevPt.y - pt.y) || 1;
+            const dNext = Math.hypot(nextPt.x - pt.x, nextPt.y - pt.y) || 1;
+            const uxPrev = (prevPt.x - pt.x) / dPrev;
+            const uyPrev = (prevPt.y - pt.y) / dPrev;
+            const uxNext = (nextPt.x - pt.x) / dNext;
+            const uyNext = (nextPt.y - pt.y) / dNext;
+
+            // Draw clean L-bracket
+            ctx.save();
+            ctx.strokeStyle = '#00C853';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.beginPath();
-            ctx.arc(pt.x, pt.y, isHovered ? 16 : 14, 0, Math.PI * 2);
-            ctx.fillStyle = '#FFFFFF';
+            ctx.moveTo(pt.x + uxPrev * bracketLen, pt.y + uyPrev * bracketLen);
+            ctx.lineTo(pt.x, pt.y);
+            ctx.lineTo(pt.x + uxNext * bracketLen, pt.y + uyNext * bracketLen);
+            ctx.stroke();
+            ctx.restore();
+
+            // Circular Touch Handle inside bracket
+            ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-            ctx.shadowBlur = 8;
-            ctx.fill();
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 2;
 
-            // Inner emerald ring
             ctx.beginPath();
-            ctx.arc(pt.x, pt.y, isHovered ? 13 : 11, 0, Math.PI * 2);
-            ctx.fillStyle = '#10B981';
-            ctx.shadowBlur = 0;
-            ctx.fill();
-
-            // Center white dot
-            ctx.beginPath();
-            ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+            ctx.arc(pt.x, pt.y, isHovered ? 14 : 11, 0, Math.PI * 2);
             ctx.fillStyle = '#FFFFFF';
             ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, isHovered ? 8 : 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#00C853';
+            ctx.fill();
+            ctx.restore();
         });
+
+        // 6. Midpoint Edge Handles (Allows dragging an entire side smoothly)
+        for (let i = 0; i < 4; i++) {
+            const p1 = screenCorners[i];
+            const p2 = screenCorners[(i + 1) % 4];
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
+            const isHovered = (this.activeEdgeIndex === i);
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            ctx.arc(midX, midY, isHovered ? 8 : 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(midX, midY, isHovered ? 5 : 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#00C853';
+            ctx.fill();
+            ctx.restore();
+        }
 
         ctx.restore();
     }
@@ -303,8 +384,8 @@ class InteractiveCrop {
         mctx.lineTo(82, 60);
         mctx.stroke();
 
-        // Center dot
-        mctx.fillStyle = '#EF4444';
+        // Center dot (Clean emerald)
+        mctx.fillStyle = '#00C853';
         mctx.beginPath();
         mctx.arc(60, 60, 3.5, 0, Math.PI * 2);
         mctx.fill();
@@ -335,7 +416,7 @@ class InteractiveCrop {
         const onStart = (e) => {
             if (!this.image) return;
             const coords = getCoords(e);
-            const hitRadius = 34; // Generous hit target for mobile fingers
+            const hitRadius = 36; // Generous hit target for corners
 
             let closestDist = Infinity;
             let closestIdx = -1;
@@ -352,25 +433,87 @@ class InteractiveCrop {
             if (closestIdx !== -1) {
                 e.preventDefault();
                 this.activeCornerIndex = closestIdx;
+                this.activeEdgeIndex = -1;
                 const imgPt = this.corners[closestIdx];
                 this.updateMagnifier(coords.containerX, coords.containerY, imgPt);
+                this.render();
+                return;
+            }
+
+            // Check edge midpoints hit target (allows dragging an entire side)
+            const edgeHitRadius = 30;
+            let closestEdgeDist = Infinity;
+            let closestEdgeIdx = -1;
+
+            for (let i = 0; i < 4; i++) {
+                const p1 = this.imageToScreen(this.corners[i]);
+                const p2 = this.imageToScreen(this.corners[(i + 1) % 4]);
+                const midX = (p1.x + p2.x) / 2;
+                const midY = (p1.y + p2.y) / 2;
+                const dist = Math.hypot(midX - coords.canvasX, midY - coords.canvasY);
+                if (dist < edgeHitRadius && dist < closestEdgeDist) {
+                    closestEdgeDist = dist;
+                    closestEdgeIdx = i;
+                }
+            }
+
+            if (closestEdgeIdx !== -1) {
+                e.preventDefault();
+                this.activeEdgeIndex = closestEdgeIdx;
+                this.activeCornerIndex = -1;
+                this.dragStartImgPt = this.screenToImage({ x: coords.canvasX, y: coords.canvasY });
+                this.edgeStartCorners = this.corners.map(p => ({ x: p.x, y: p.y }));
+                this.hideMagnifier();
                 this.render();
             }
         };
 
         const onMove = (e) => {
-            if (this.activeCornerIndex === -1 || !this.image) return;
-            e.preventDefault();
-            const coords = getCoords(e);
-            const imgPt = this.screenToImage({ x: coords.canvasX, y: coords.canvasY });
-            this.corners[this.activeCornerIndex] = imgPt;
-            this.updateMagnifier(coords.containerX, coords.containerY, imgPt);
-            this.render();
+            if (!this.image) return;
+
+            if (this.activeCornerIndex !== -1) {
+                e.preventDefault();
+                const coords = getCoords(e);
+                const imgPt = this.screenToImage({ x: coords.canvasX, y: coords.canvasY });
+                this.corners[this.activeCornerIndex] = imgPt;
+                this.updateMagnifier(coords.containerX, coords.containerY, imgPt);
+                this.render();
+                return;
+            }
+
+            if (this.activeEdgeIndex !== -1 && this.dragStartImgPt && this.edgeStartCorners) {
+                e.preventDefault();
+                const coords = getCoords(e);
+                const currentImgPt = this.screenToImage({ x: coords.canvasX, y: coords.canvasY });
+                const deltaX = currentImgPt.x - this.dragStartImgPt.x;
+                const deltaY = currentImgPt.y - this.dragStartImgPt.y;
+
+                const idx1 = this.activeEdgeIndex;
+                const idx2 = (this.activeEdgeIndex + 1) % 4;
+
+                const w = this.image.width;
+                const h = this.image.height;
+                const clamp = (val, max) => Math.max(0, Math.min(max, val));
+
+                this.corners[idx1] = {
+                    x: clamp(this.edgeStartCorners[idx1].x + deltaX, w),
+                    y: clamp(this.edgeStartCorners[idx1].y + deltaY, h)
+                };
+                this.corners[idx2] = {
+                    x: clamp(this.edgeStartCorners[idx2].x + deltaX, w),
+                    y: clamp(this.edgeStartCorners[idx2].y + deltaY, h)
+                };
+
+                this.render();
+            }
         };
 
         const onEnd = (e) => {
-            if (this.activeCornerIndex !== -1) {
+            if (this.activeCornerIndex !== -1 || this.activeEdgeIndex !== -1) {
                 this.activeCornerIndex = -1;
+                this.activeEdgeIndex = -1;
+                this.dragStartImgPt = null;
+                this.edgeStartCorners = null;
                 this.hideMagnifier();
                 this.render();
             }

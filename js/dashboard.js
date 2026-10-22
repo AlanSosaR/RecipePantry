@@ -2109,9 +2109,9 @@ class DashboardManager {
                     </div>
                     <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('document')">
                         <div class="row-icon-box">
-                            <span class="material-symbols-outlined">description</span>
+                            <span class="material-symbols-outlined">menu_book</span>
                         </div>
-                        <span class="row-title">${isEn ? 'Document' : 'Documento'}</span>
+                        <span class="row-title" data-i18n="newRecipeDoc">${isEn ? 'Recipe' : 'Receta'}</span>
                     </div>
                     <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('scan')">
                         <div class="row-icon-box">
@@ -2204,9 +2204,9 @@ class DashboardManager {
                         </button>
                     </div>
                     <div class="m3-fab-action-item" data-action="document" onclick="window.dashboard.handleDropboxOption('document')">
-                        <span class="m3-fab-action-label" data-i18n="newRecipeDoc">${isEn ? 'Document' : 'Documento'}</span>
-                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'New Document' : 'Nuevo Documento'}">
-                            <span class="material-symbols-outlined">description</span>
+                        <span class="m3-fab-action-label" data-i18n="newRecipeDoc">${isEn ? 'Recipe' : 'Receta'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'New Recipe' : 'Nueva Receta'}">
+                            <span class="material-symbols-outlined">menu_book</span>
                         </button>
                     </div>
                     <div class="m3-fab-action-item" data-action="scan" onclick="window.dashboard.handleDropboxOption('scan')">

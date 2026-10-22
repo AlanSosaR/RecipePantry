@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.prep_tasks (
     order_index INTEGER DEFAULT 0,
     is_shared BOOLEAN DEFAULT true,
     due_date DATE DEFAULT CURRENT_DATE,
+    days_of_week INTEGER[] DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );

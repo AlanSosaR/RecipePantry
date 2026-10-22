@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v824';
-const BUILD_ID = 'v824';
-const CACHE_NAME = `recipe-pantry-v824`;
-const STATIC_CACHE = 'static-v824';
-const DATA_CACHE = 'data-v824';
+const VERSION = 'v893';
+const BUILD_ID = 'v893';
+const CACHE_NAME = `recipe-pantry-v893`;
+const STATIC_CACHE = 'static-v893';
+const DATA_CACHE = 'data-v893';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -33,6 +33,7 @@ const STATIC_RESOURCES = [
     '/js/supabase-client.js',
     '/js/i18n.js',
     '/js/utils.js',
+    '/js/m3-loading-indicator.js',
     '/js/ui.js',
     '/js/recipe-detail.js',
     '/js/recipe-form.js',
