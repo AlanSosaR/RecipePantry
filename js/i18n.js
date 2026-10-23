@@ -95,8 +95,22 @@
             switchTextRegisterPrefix: "¿Ya tienes cuenta? ",
             switchTextRegisterAction: "Ingresa",
             msgNameReq: "El nombre es obligatorio",
+            msgEmailReq: "Ingresa tu correo electrónico",
+            msgEmailInvalid: "Ingresa un correo electrónico válido",
+            msgPassReq: "Debes ingresar la contraseña",
+            msgConfirmPass: "Debes confirmar tu contraseña",
             msgPassLen: "Mínimo 6 caracteres",
             msgPassMismatch: "Las contraseñas no coinciden",
+            msgPassWeak: "La contraseña es demasiado débil",
+            msgLoginInvalid: "Contraseña incorrecta. Verifícala o restablécela",
+            msgEmailNotFound: "No existe una cuenta con este correo electrónico",
+            msgEmailExists: "Ya existe una cuenta con este correo. Inicia sesión",
+            msgEmailNotConfirmed: "Debes verificar tu correo. Revisa tu bandeja de entrada",
+            msgTooManyAttempts: "Demasiados intentos. Espera unos minutos e inténtalo de nuevo",
+            msgNetworkError: "No pudimos conectar con el servidor. Revisa tu conexión",
+            msgSignupDisabled: "El registro está deshabilitado temporalmente",
+            msgAccountSuspended: "Tu acceso a Recipe Pantry ha sido suspendido por el administrador",
+            msgGenericError: "Ocurrió un error. Inténtalo de nuevo",
             msgEntering: "Ingresando...",
             msgCreating: "Creando...",
             msgCreatedSuccess: "¡Cuenta creada! Revisa tu email.",
@@ -481,8 +495,22 @@
             switchTextRegisterPrefix: "Already have an account? ",
             switchTextRegisterAction: "Log in",
             msgNameReq: "Name is required",
+            msgEmailReq: "Enter your email address",
+            msgEmailInvalid: "Enter a valid email address",
+            msgPassReq: "You must enter your password",
+            msgConfirmPass: "You must confirm your password",
             msgPassLen: "Min 6 characters",
             msgPassMismatch: "Passwords do not match",
+            msgPassWeak: "The password is too weak",
+            msgLoginInvalid: "Incorrect password. Check it or reset it",
+            msgEmailNotFound: "No account found with this email address",
+            msgEmailExists: "An account with this email already exists. Log in",
+            msgEmailNotConfirmed: "You must verify your email. Check your inbox",
+            msgTooManyAttempts: "Too many attempts. Wait a few minutes and try again",
+            msgNetworkError: "We could not reach the server. Check your connection",
+            msgSignupDisabled: "Sign-up is temporarily disabled",
+            msgAccountSuspended: "Your access to Recipe Pantry has been suspended by the administrator",
+            msgGenericError: "Something went wrong. Please try again",
             msgEntering: "Logging in...",
             msgCreating: "Creating...",
             msgCreatedSuccess: "Account created! Please check your email.",
@@ -827,6 +855,14 @@
         document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
             const key = el.dataset.i18nAriaLabel;
             if (t[key] !== undefined) el.setAttribute('aria-label', t[key]);
+        });
+
+        // Visible field-validation errors: re-render only while their field is flagged
+        document.querySelectorAll('[data-i18n-error]').forEach(el => {
+            const key = el.dataset.i18nError;
+            if (t[key] === undefined) return;
+            if (!el.closest('.has-error')) return;
+            if (el.textContent !== t[key]) el.textContent = t[key];
         });
 
         // Update any visible lang label buttons

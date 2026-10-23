@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="897">
+<html lang="es" data-app-version="899">
 
 <head>
     <meta charset="utf-8" />
@@ -48,8 +48,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=897">
-    <link rel="stylesheet" href="css/components.css?v=897">
+    <link rel="stylesheet" href="css/styles.css?v=899">
+    <link rel="stylesheet" href="css/components.css?v=899">
 
     <style>
         :root {
@@ -232,6 +232,33 @@
             animation: fadeIn 0.3s ease;
         }
 
+        /* Error general del formulario: inline bajo el bloque de campos, nunca snackbar */
+        .auth-error {
+            display: none;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--error) 8%, var(--surface));
+            border: 1px solid color-mix(in srgb, var(--error) 32%, transparent);
+            color: color-mix(in srgb, var(--error) 72%, var(--on-surface));
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.35;
+            text-align: left;
+            animation: fadeIn 0.3s var(--m3-easing, ease);
+        }
+
+        .auth-error.visible {
+            display: flex;
+        }
+
+        .auth-error .material-symbols-outlined {
+            font-size: 18px;
+            line-height: 1.1;
+            flex-shrink: 0;
+        }
+
         .btn-m3-full {
             width: 100%;
             height: auto;
@@ -358,6 +385,8 @@
                     <span class="m3-field-error" id="confirm-password-error">Las contraseñas no coinciden</span>
                 </div>
 
+                <div id="auth-error" class="auth-error" role="alert" aria-live="assertive"></div>
+
                 <button type="submit" id="btn-submit" class="btn-m3-full">
                     <span id="btn-submit-text" data-i18n="btnSubmitLogin">Iniciar Sesión</span>
                     <span class="material-symbols-outlined">arrow_forward</span>
@@ -384,11 +413,11 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=897"></script>
-    <script src="js/supabase-client.js?v=897"></script>
-    <script src="js/i18n.js?v=897"></script>
-    <script src="js/auth.js?v=897"></script>
-    <script src="js/utils.js?v=897"></script>
+    <script src="js/config.js?v=899"></script>
+    <script src="js/supabase-client.js?v=899"></script>
+    <script src="js/i18n.js?v=899"></script>
+    <script src="js/auth.js?v=899"></script>
+    <script src="js/utils.js?v=899"></script>
 
     <script>
         let isLogin = true;
@@ -410,6 +439,12 @@
         function updateTranslations() {
             if (window.i18n) {
                 window.i18n.applyLanguage(window.i18n.getLang());
+            }
+
+            // Re-traducir el aviso general si está visible
+            const authErrEl = document.getElementById('auth-error');
+            if (authErrEl && authErrEl.classList.contains('visible') && authErrEl.dataset.i18nError && window.i18n) {
+                showError(window.i18n.t(authErrEl.dataset.i18nError), authErrEl.dataset.i18nError);
             }
 
             // Handle toggleable texts
@@ -468,36 +503,125 @@
             }, 300);
         });
 
-        // Helper para mostrar/ocultar el error inline
-        function showError(msg) {
+        // Error general del formulario: se muestra inline (nunca snackbar).
+        // Guarda la clave i18n para re-traducirlo al cambiar de idioma.
+        function showError(msg, key) {
             const errEl = document.getElementById('auth-error');
+            if (!errEl) return;
             if (msg) {
-                errEl.textContent = msg;
-                errEl.style.display = 'block';
+                errEl.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">error</span><span class="auth-error-text"></span>';
+                errEl.querySelector('.auth-error-text').textContent = msg;
+                if (key) errEl.dataset.i18nError = key; else delete errEl.dataset.i18nError;
+                errEl.classList.add('visible');
             } else {
-                errEl.style.display = 'none';
+                errEl.classList.remove('visible');
+                errEl.textContent = '';
+                delete errEl.dataset.i18nError;
             }
         }
         // Helper para mostrar/ocultar el error inline
-        function setError(groupId, msgId, message, show) {
+        function setError(groupId, msgId, message, show, key) {
             const group = document.getElementById(groupId);
             const errorSpan = document.getElementById(msgId);
             if (show) {
                 group.classList.add('has-error');
+                if (key) errorSpan.dataset.i18nError = key;
                 if (message) errorSpan.textContent = message;
             } else {
                 group.classList.remove('has-error');
+                delete errorSpan.dataset.i18nError;
             }
         }
 
-        // Limpiar errores cuando se escribe
-        document.querySelectorAll('.m3-field-input').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const group = e.target.closest('.m3-field-container');
-                if (group && group.classList.contains('has-error')) {
-                    group.classList.remove('has-error');
+        // Helper: mensaje de validación en el idioma activo (queda rastreado por clave
+        // para que updateTranslations() lo vuelva a traducir al cambiar de idioma)
+        function fieldError(groupId, msgId, key, fallback) {
+            const message = window.i18n ? window.i18n.t(key, fallback) : fallback;
+            setError(groupId, msgId, message, true, key);
+        }
+
+        // Formato de correo: se valida en local antes de llamar al servidor
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        // Consulta real a la BD (RPC email_exists) para saber si el correo tiene cuenta.
+        // Devuelve true/false si la RPC está disponible, o null si falla/no está instalada.
+        async function checkEmailExists(email) {
+            if (!email || !EMAIL_RE.test(email)) return null;
+            try {
+                const { data, error } = await window.supabaseClient.rpc('email_exists', { p_email: email });
+                if (error) return null;
+                return !!data;
+            } catch (e) {
+                console.warn('email_exists RPC no disponible:', e && e.message);
+                return null;
+            }
+        }
+
+        // Traduce los fallos de autenticación a un error del campo correspondiente
+        // (email, contraseña) o a un aviso inline bajo el formulario. Nunca snackbar.
+        async function handleAuthError(result, context) {
+            const ctx = context || {};
+            const email = (ctx.email || '').trim();
+            const res = result || {};
+            const code = String(res.code || '').toLowerCase();
+            const raw = String(res.error || res.message || '').toLowerCase();
+            const has = (...terms) => terms.some(term => code.includes(term) || raw.includes(term));
+            const tr = (key, fallback) => (window.i18n ? window.i18n.t(key, fallback) : fallback);
+            const general = (key, fallback) => showError(tr(key, fallback), key);
+
+            if (has('user_already_exists', 'email_exists', 'already registered', 'already been registered')) {
+                fieldError('email-group', 'email-error', 'msgEmailExists', "Ya existe una cuenta con este correo. Inicia sesión");
+            } else if (has('email_not_confirmed', 'not confirmed')) {
+                fieldError('email-group', 'email-error', 'msgEmailNotConfirmed', "Debes verificar tu correo. Revisa tu bandeja de entrada");
+            } else if (has('user_not_found', 'no account')) {
+                fieldError('email-group', 'email-error', 'msgEmailNotFound', "No existe una cuenta con este correo electrónico");
+            } else if (has('email_address_invalid', 'invalid format', 'invalid email', 'unable to validate email')) {
+                fieldError('email-group', 'email-error', 'msgEmailInvalid', "Ingresa un correo electrónico válido");
+            } else if (has('weak_password', 'password should be at least', 'password is too short', 'password length')) {
+                fieldError('password-group', 'password-error', 'msgPassWeak', "La contraseña es demasiado débil");
+            } else if (has('invalid_credentials', 'invalid login credentials')) {
+                // Verificación real contra la BD: ¿existe el correo?
+                const exists = await checkEmailExists(email);
+                if (exists === true) {
+                    fieldError('password-group', 'password-error', 'msgLoginInvalid', "Contraseña incorrecta. Verifícala o restablécela");
+                } else if (exists === false) {
+                    fieldError('email-group', 'email-error', 'msgEmailNotFound', "No existe una cuenta con este correo electrónico");
+                } else {
+                    // RPC no disponible: fallback al campo de contraseña
+                    fieldError('password-group', 'password-error', 'msgLoginInvalid', "Contraseña incorrecta. Verifícala o restablécela");
                 }
-            });
+            } else if (has('over_email_send_rate_limit', 'over_request_rate_limit', 'rate limit', 'only request this after', 'too many requests', 'too many attempts')) {
+                general('msgTooManyAttempts', "Demasiados intentos. Espera unos minutos e inténtalo de nuevo");
+            } else if (has('signup_disabled')) {
+                general('msgSignupDisabled', "El registro está deshabilitado temporalmente");
+            } else if (has('account_suspended', 'suspendido')) {
+                general('msgAccountSuspended', "Tu acceso a Recipe Pantry ha sido suspendido por el administrador");
+            } else if (has('timeout', 'tiempo de espera', 'network', 'failed to fetch', 'fetch failed')) {
+                general('msgNetworkError', "No pudimos conectar con el servidor. Revisa tu conexión");
+            } else {
+                console.warn('Auth error sin mapear:', res);
+                general('msgGenericError', "Ocurrió un error. Inténtalo de nuevo");
+            }
+        }
+
+        // Verificación en tiempo real del correo (solo en login): consulta la BD al salir del campo
+        let emailCheckTimer = null;
+        document.getElementById('email').addEventListener('blur', () => {
+            if (!isLogin) return;
+            const email = document.getElementById('email').value.trim();
+            if (!email || !EMAIL_RE.test(email)) return;
+            clearTimeout(emailCheckTimer);
+            emailCheckTimer = setTimeout(async () => {
+                const exists = await checkEmailExists(email);
+                if (exists === false) {
+                    fieldError('email-group', 'email-error', 'msgEmailNotFound', "No existe una cuenta con este correo electrónico");
+                } else if (exists === true) {
+                    const span = document.getElementById('email-error');
+                    if (span.dataset.i18nError === 'msgEmailNotFound') {
+                        setError('email-group', 'email-error', null, false);
+                    }
+                }
+            }, 150);
         });
 
         document.getElementById('unified-form').addEventListener('submit', async (e) => {
@@ -508,6 +632,7 @@
             setError('email-group', 'email-error', null, false);
             setError('password-group', 'password-error', null, false);
             setError('confirm-password-group', 'confirm-password-error', null, false);
+            showError(null);
 
             const btn = document.getElementById('btn-submit');
             const span = document.getElementById('btn-submit-text');
@@ -520,36 +645,42 @@
 
             if (isLogin) {
                 if (!email) {
-                    setError('email-group', 'email-error', window.i18n ? window.i18n.t('msgEmailReq') : "Ingresa tu correo electrónico", true);
+                    fieldError('email-group', 'email-error', 'msgEmailReq', "Ingresa tu correo electrónico");
                     hasError = true;
                 }
                 if (!password) {
-                    setError('password-group', 'password-error', window.i18n ? window.i18n.t('msgPassReq') : "Debes ingresar la contraseña", true);
+                    fieldError('password-group', 'password-error', 'msgPassReq', "Debes ingresar la contraseña");
                     hasError = true;
                 }
             } else {
                 if (!name) {
-                    setError('name-group', 'name-error', window.i18n ? window.i18n.t('msgNameReq') : "Debes ingresar el nombre", true);
+                    fieldError('name-group', 'name-error', 'msgNameReq', "Debes ingresar el nombre");
                     hasError = true;
                 }
                 if (!email) {
-                    setError('email-group', 'email-error', window.i18n ? window.i18n.t('msgEmailReq') : "Ingresa tu correo electrónico", true);
+                    fieldError('email-group', 'email-error', 'msgEmailReq', "Ingresa tu correo electrónico");
                     hasError = true;
                 }
                 if (!password) {
-                    setError('password-group', 'password-error', window.i18n ? window.i18n.t('msgPassReq') : "Debes ingresar la contraseña", true);
+                    fieldError('password-group', 'password-error', 'msgPassReq', "Debes ingresar la contraseña");
                     hasError = true;
                 } else if (password.length < 6) {
-                    setError('password-group', 'password-error', window.i18n ? window.i18n.t('msgPassLen') : "Mínimo 6 caracteres", true);
+                    fieldError('password-group', 'password-error', 'msgPassLen', "Mínimo 6 caracteres");
                     hasError = true;
                 }
                 if (password && confirmPass && password !== confirmPass) {
-                    setError('confirm-password-group', 'confirm-password-error', window.i18n ? window.i18n.t('msgPassMismatch') : "Contraseñas no coinciden", true);
+                    fieldError('confirm-password-group', 'confirm-password-error', 'msgPassMismatch', "Contraseñas no coinciden");
                     hasError = true;
                 } else if (!isLogin && !confirmPass && password) {
-                    setError('confirm-password-group', 'confirm-password-error', window.i18n ? window.i18n.t('msgConfirmPass') : "Debes confirmar tu contraseña", true);
+                    fieldError('confirm-password-group', 'confirm-password-error', 'msgConfirmPass', "Debes confirmar tu contraseña");
                     hasError = true;
                 }
+            }
+
+            // Formato de correo (local, sin llegar al servidor)
+            if (email && !EMAIL_RE.test(email)) {
+                fieldError('email-group', 'email-error', 'msgEmailInvalid', "Ingresa un correo electrónico válido");
+                hasError = true;
             }
 
             if (hasError) return;
@@ -576,7 +707,8 @@
                             }
                         }, 1500);
                     } else {
-                        throw new Error(res.error);
+                        await handleAuthError(res, { email });
+                        return;
                     }
                 } else {
                     const parts = name.split(' ');
@@ -634,11 +766,13 @@
                             }, 2000);
                         }
                     } else {
-                        throw new Error(res.error);
+                        await handleAuthError(res, { email });
+                        return;
                     }
                 }
             } catch (err) {
-                showMsg(err.message || 'Error', 'error');
+                // Fallo de red / excepción inesperada: también inline, sin snackbar
+                await handleAuthError(err, { email });
             } finally {
                 btn.disabled = false;
                 span.textContent = originalTxt;
@@ -656,7 +790,10 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('blocked') === 'true') {
-                showError('⛔ Tu acceso a Recipe Pantry ha sido suspendido por el administrador.');
+                showError(
+                    window.i18n ? window.i18n.t('msgAccountSuspended') : "Tu acceso a Recipe Pantry ha sido suspendido por el administrador",
+                    'msgAccountSuspended'
+                );
             }
             if (urlParams.get('mode') === 'register') {
                 isLogin = false;

@@ -281,7 +281,7 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Error en registro:', error);
-            return { success: false, error: error.message };
+            return { success: false, error: error.message, code: error.code || null, status: error.status || null };
         }
     }
 
@@ -349,7 +349,8 @@ class AuthManager {
                 try { await window.supabaseClient.auth.signOut(); } catch(e){}
                 return {
                     success: false,
-                    error: 'Tu acceso a Recipe Pantry ha sido suspendido por el administrador.'
+                    error: 'Tu acceso a Recipe Pantry ha sido suspendido por el administrador.',
+                    code: 'account_suspended'
                 };
             }
 
@@ -364,7 +365,7 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Error en login:', error);
-            return { success: false, error: error.message };
+            return { success: false, error: error.message, code: error.code || null, status: error.status || null };
         }
     }
 
