@@ -754,7 +754,7 @@
             }
 
             // Sincronizar estado en body para ocultar barra superior y FAB si estamos en formulario de producto o proveedor
-            if (this.currentSubView === 'item-form' || this.currentSubView === 'supplier-form' || this.currentSubView === 'order-form') {
+            if (this.currentSubView === 'item-form' || this.currentSubView === 'supplier-form' || this.currentSubView === 'order-form' || this.currentSubView === 'order-consolidated') {
                 document.body.classList.add('supplier-subview-item-active');
             } else {
                 document.body.classList.remove('supplier-subview-item-active');
@@ -775,6 +775,10 @@
             }
             if (this.currentSubView === 'order-form') {
                 this.renderOrderPage();
+                return;
+            }
+            if (this.currentSubView === 'order-consolidated') {
+                this.renderConsolidatedOrdersPage();
                 return;
             }
 
@@ -1758,10 +1762,15 @@
                         </p>
                     </div>
 
-                    <!-- Contenedor dinámico de lista de productos para actualización instantánea por búsqueda -->
-                    <div id="supplier-products-mount">
-                        ${this.renderSupplierProductsListHTML(supplier.id)}
+                    <!-- Layout dinámico con Catálogo y Side Sheet M3 Expressive -->
+                    <div class="supplier-catalog-layout" id="supplierCatalogLayout">
+                        <div id="supplier-products-mount" class="supplier-products-main-col">
+                            ${this.renderSupplierProductsListHTML(supplier.id)}
+                        </div>
+                        <aside class="m3-product-side-sheet" id="productSideSheet" aria-hidden="true" role="dialog" aria-labelledby="sideSheetProductName">
+                        </aside>
                     </div>
+                    <div class="m3-side-sheet-backdrop" id="productSideSheetBackdrop" onclick="window.suppliersManager.closeProductSideSheet()"></div>
                 </div>
             `;
         }
@@ -1840,68 +1849,85 @@
         }
 
         /**
-         * Renderiza una fila individual de producto limpia con menú de 3 puntos (sin stepper de más y menos)
+         * Renderiza una fila individual de producto limpia con avatar de 48x48px,
+         * título en negrita, subtítulo [Unidad] · [Categoría], y click para abrir Side Sheet M3
          */
         renderProductRow(item, supplierId) {
             const isEn = this.isEnglish();
+            const isActive = this.activeSideSheetProductId === String(item.id);
+            const initials = (item.name || "??").trim().substring(0, 2).toUpperCase();
+            const unit = item.package_format || item.unit || "";
+            const category = item.category || "";
 
             return `
-                <div class="product-row-dropbox" id="product-row-${item.id}">
-                    <!-- 1. Foto / Avatar Circular Protagónico del Producto (Sin caja ni marco cuadrado) -->
-                    <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent;">
+                <div class="product-row-dropbox ${isActive ? "active-product-row" : ""}" 
+                     id="product-row-${item.id}"
+                     onclick="window.suppliersManager.openProductSideSheet('${item.id}')"
+                     role="button"
+                     tabindex="0"
+                     style="cursor: pointer; ${isActive ? "background: #e8f7f0;" : ""}">
+                    <!-- 1. Foto / Avatar Circular Protagónico del Producto -->
+                    <div class="product-avatar-wrap" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
                         ${item.image_url ? `
                             <img src="${item.image_url}" 
                                  alt="${item.name}" 
+                                 class="product-avatar-img"
                                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 1px 4px rgba(0,0,0,0.12);" 
                                  loading="lazy" 
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                            <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); align-items: center; justify-content: center; font-weight: 800; font-size: 16px;">
-                                ${item.name.substring(0, 2).toUpperCase()}
+                            <div class="product-avatar-initials" style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
+                                ${initials}
+                            </div>
+                            <!-- Indicador sutil de que contiene imagen -->
+                            <div class="product-has-photo-badge" title="${isEn ? "Has photo" : "Contiene foto"}" style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: 50%; background: #14b87a; border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center;">
+                                <span class="material-symbols-outlined" style="font-size: 9px; color: #ffffff; line-height: 1;">image</span>
                             </div>
                         ` : `
-                            <div style="width: 100%; height: 100%; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px;">
-                                ${item.name.substring(0, 2).toUpperCase()}
+                            <div class="product-avatar-initials" style="width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
+                                ${initials}
                             </div>
                         `}
                     </div>
 
                     <!-- 2. Nombre del Producto y Formato / Categoría -->
-                    <div class="col-sup-info" style="flex: 1; min-width: 0; padding-left: 4px;">
-                        <span class="sup-primary-name" style="font-size: 15.5px; font-weight: 700; color: var(--text-main); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</span>
-                        <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            ${item.package_format || item.unit ? `<span style="font-weight: 600; color: var(--text-main);">${item.package_format || item.unit}</span>` : ''}
-                            ${(item.package_format || item.unit) && item.category ? `<span>·</span>` : ''}
-                            ${item.category ? `<span>${item.category}</span>` : ''}
+                    <div class="col-sup-info" style="flex: 1; min-width: 0; padding-left: 6px;">
+                        <span class="sup-primary-name" style="font-size: 1rem; font-weight: 700; color: #1a1c19; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display);">${item.name}</span>
+                        <div style="font-size: 12.5px; color: #5f6368; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-family: var(--font-display);">
+                            ${unit ? `<strong style="font-weight: 700; color: #1a1c19;">${unit}</strong>` : ""}
+                            ${unit && category ? `<span>·</span>` : ""}
+                            ${category ? `<span>${category}</span>` : ""}
                         </div>
                     </div>
 
-                    <!-- 3. Acciones: En PC barra flotante en HOVER (como en Recetas), en Móvil botón de 3 puntos -->
-                    <div class="product-row-actions-container" style="position: relative; display: flex; align-items: center; justify-content: flex-end;">
+                    <!-- 3. Acciones: En PC barra flotante en HOVER, en Móvil botón de 3 puntos -->
+                    <div class="product-row-actions-container" style="position: relative; display: flex; align-items: center; justify-content: flex-end;" onclick="event.stopPropagation();">
                         <!-- Barra de acciones en PC (aparece al pasar el ratón) -->
                         <div class="product-hover-actions">
                             <button type="button" 
                                     class="btn-icon-m3" 
-                                    title="${isEn ? 'Edit Product' : 'Editar Producto'}" 
+                                    title="${isEn ? "Edit Product" : "Editar Producto"}" 
                                     onclick="event.stopPropagation(); window.suppliersManager.openItemModal('${item.id}', '${item.supplier_id}')"
                                     style="width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); color: var(--text-main); cursor: pointer; transition: all 0.15s ease;">
                                 <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
                             </button>
                             <button type="button" 
                                     class="btn-icon-m3" 
-                                    title="${isEn ? 'Delete Product' : 'Eliminar Producto'}" 
+                                    title="${isEn ? "Delete Product" : "Eliminar Producto"}" 
                                     onclick="event.stopPropagation(); window.suppliersManager.deleteItem('${item.id}')"
                                     style="width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); color: var(--error); cursor: pointer; transition: all 0.15s ease;">
                                 <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                             </button>
                         </div>
 
-                        <!-- Botón de 3 puntos (solo en móvil) -->
+                        <!-- Botón de 3 puntos M3 Expressive -->
                         <button type="button" 
-                                class="btn-icon-m3 product-mobile-more-btn" 
+                                class="product-more-btn" 
+                                id="product-more-btn-${item.id}"
                                 onclick="event.stopPropagation(); window.suppliersManager.showProductMoreOptions('${item.id}', event);"
-                                title="${isEn ? 'Options' : 'Opciones'}"
-                                style="width: 36px; height: 36px; border-radius: 50%; color: var(--text-secondary); align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; flex-shrink: 0;">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">more_vert</span>
+                                title="${isEn ? "Options" : "Opciones"}"
+                                aria-label="${isEn ? "Options" : "Opciones"}"
+                                aria-haspopup="true">
+                            <span class="material-symbols-outlined" style="font-size: 22px;">more_vert</span>
                         </button>
                     </div>
                 </div>
@@ -1909,8 +1935,9 @@
         }
 
         /**
-         * Menú de 3 puntos para productos: abre Toolbar M3 Expressive
-         * Contiene opciones rápidas y compactas de "Editar" y "Eliminar"
+         * M3 Modal Bottom Sheet para Productos/Insumos (.m3-modal-bottom-sheet)
+         * Formato oficial nativo idéntico al Bottom Sheet de Proveedores y Recetas,
+         * con arrastre táctil (swipe down to dismiss), cabecera, píldoras y acciones completas.
          */
         showProductMoreOptions(itemId, event) {
             if (event) {
@@ -1918,21 +1945,21 @@
                 event.preventDefault();
             }
 
-            const trigger = (event && event.currentTarget) ? event.currentTarget : ((event?.target?.closest('button')) || event?.target);
+            const trigger = (event && event.currentTarget) ? event.currentTarget : ((event?.target?.closest("button")) || event?.target);
 
-            // Debounce / Toggle off si se vuelve a pulsar el mismo trigger
-            if (this._lastMenuClosedItemId === String(itemId) && (Date.now() - (this._lastMenuClosedTime || 0)) < 350) {
-                this._lastMenuClosedItemId = null;
+            // Toggle off si se vuelve a presionar el mismo botón
+            if (this._activeProductSheetItemId === String(itemId) && (Date.now() - (this._lastProductSheetClosedTime || 0)) < 350) {
+                this._activeProductSheetItemId = null;
                 return;
             }
 
-            const existingToolbar = document.querySelector('.product-action-toolbar, .m3-modal-bottom-sheet, .dropbox-menu-m3');
-            const existingBackdrop = document.getElementById('productToolbarBackdrop') || document.getElementById('m3SheetBackdrop');
-            if (existingToolbar) {
-                const isSameItem = existingToolbar.dataset.itemId === String(itemId);
-                existingToolbar.remove();
+            const existingMenu = document.querySelector(".m3-modal-bottom-sheet.product-bottom-sheet, .m3-modal-bottom-sheet[data-product-id]");
+            const existingBackdrop = document.getElementById("m3SheetBackdrop");
+            if (existingMenu) {
+                const isSame = existingMenu.dataset.productId === String(itemId);
+                existingMenu.remove();
                 if (existingBackdrop) existingBackdrop.remove();
-                if (isSameItem) return;
+                if (isSame) return;
             }
             if (existingBackdrop) existingBackdrop.remove();
 
@@ -1940,140 +1967,597 @@
             if (!item) return;
 
             const isEn = this.isEnglish();
+            this._activeProductSheetItemId = String(itemId);
+            this._activeContextMenuTrigger = trigger;
 
-            // Toolbar Flotante M3 Expressive
-            const toolbar = document.createElement('div');
-            toolbar.className = 'product-action-toolbar';
-            toolbar.dataset.itemId = String(itemId);
+            if (trigger) {
+                trigger.classList.add("active-menu-trigger");
+            }
 
-            toolbar.innerHTML = `
-                <button type="button" class="product-action-toolbar-btn edit" title="${isEn ? 'Edit Product' : 'Editar Producto'}">
-                    <span class="material-symbols-outlined">edit</span>
-                    <span>${isEn ? 'Editar' : 'Editar'}</span>
-                </button>
-                <div class="product-action-toolbar-divider"></div>
-                <button type="button" class="product-action-toolbar-btn danger" title="${isEn ? 'Delete Product' : 'Eliminar Producto'}">
-                    <span class="material-symbols-outlined">delete</span>
-                    <span>${isEn ? 'Eliminar' : 'Eliminar'}</span>
+            const isDesktop = window.innerWidth >= 768;
+            const initials = (item.name || "??").trim().substring(0, 2).toUpperCase();
+            const unit = item.package_format || item.unit || "";
+            const category = item.category || "";
+            const hasPhoto = !!item.image_url;
+
+            const menu = document.createElement("div");
+            menu.className = "m3-modal-bottom-sheet product-bottom-sheet";
+            menu.dataset.productId = String(itemId);
+            if (isDesktop) {
+                menu.style.maxWidth = "460px";
+                menu.style.left = "50%";
+                menu.style.transform = "translateX(-50%)";
+            }
+
+            const sheetHTML = `
+                <div class="m3-sheet-drag-handle" title="${isEn ? "Swipe down to close" : "Desliza para cerrar"}"></div>
+                <div class="m3-sheet-header" style="margin-bottom: 12px; display: flex; align-items: center; gap: 14px;">
+                    <!-- Avatar o Miniatura -->
+                    <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #e8f7f0; position: relative;">
+                        ${hasPhoto ? `
+                            <img src="${item.image_url}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                            <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 700; color: #0d7a50; font-size: 16px;">${initials}</div>
+                        ` : `
+                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #0d7a50; font-size: 16px;">${initials}</div>
+                        `}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</h4>
+                        <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            ${unit ? `
+                                <span style="display: inline-flex; align-items: center; gap: 4px; background: #f3f5f4; color: #1a1c19; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 700; font-size: 12px; border: 1px solid var(--border);">
+                                    <span>📦</span>
+                                    <span>${unit}</span>
+                                </span>
+                            ` : ""}
+                            ${category ? `
+                                <span style="display: inline-flex; align-items: center; gap: 4px; background: #e8f7f0; color: #0d7a50; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 700; font-size: 12px;">
+                                    <span class="material-symbols-outlined" style="font-size: 13px;">category</span>
+                                    <span>${category}</span>
+                                </span>
+                            ` : ""}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila Horizontal de Acciones Rápidas M3 -->
+                <div class="m3-sheet-quick-row" style="margin-bottom: 8px;">
+                    <button type="button" class="m3-quick-pill" id="btnSheetActionPhoto">
+                        <span class="material-symbols-outlined">add_a_photo</span>
+                        <span>${hasPhoto ? (isEn ? "Change Photo" : "Cambiar Foto") : (isEn ? "Add Photo" : "Subir Foto")}</span>
+                    </button>
+                    <button type="button" class="m3-quick-pill" id="btnSheetActionPreview">
+                        <span class="material-symbols-outlined">visibility</span>
+                        <span>${isEn ? "Detail" : "Detalle"}</span>
+                    </button>
+                    <button type="button" class="m3-quick-pill" id="btnSheetActionEdit">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>${isEn ? "Edit" : "Editar"}</span>
+                    </button>
+                </div>
+
+                <div class="context-menu-divider" style="margin: 10px 0;"></div>
+
+                <button type="button" class="context-menu-item danger" id="btnSheetActionDeleteRow">
+                    <span class="material-symbols-outlined" style="color: #dc2626;">delete</span>
+                    <span>${isEn ? "Delete product" : "Eliminar insumo del catálogo"}</span>
                 </button>
             `;
 
-            // Backdrop transparente para cerrar al hacer clic afuera
-            const backdrop = document.createElement('div');
-            backdrop.id = 'productToolbarBackdrop';
-            backdrop.style.position = 'fixed';
-            backdrop.style.inset = '0';
-            backdrop.style.zIndex = '9998';
-            backdrop.style.background = 'transparent';
+            menu.innerHTML = sheetHTML;
 
-            let isDismissed = false;
+            const backdrop = document.createElement("div");
+            backdrop.className = "m3-sheet-backdrop";
+            backdrop.id = "m3SheetBackdrop";
+            backdrop.onclick = (e) => dismiss(e);
+            backdrop.addEventListener("touchstart", (e) => dismiss(e), { passive: true });
+            document.body.appendChild(backdrop);
+            document.body.appendChild(menu);
+
             const dismiss = (e) => {
-                if (isDismissed) return;
-                isDismissed = true;
-
                 if (trigger && e && trigger.contains(e.target)) {
-                    this._lastMenuClosedTime = Date.now();
-                    this._lastMenuClosedItemId = String(itemId);
+                    this._lastProductSheetClosedTime = Date.now();
+                    this._activeProductSheetItemId = String(itemId);
+                } else {
+                    this._activeProductSheetItemId = null;
                 }
-                toolbar.remove();
-                backdrop.remove();
-                document.removeEventListener('keydown', onKeydown);
-                window.removeEventListener('scroll', onScroll, true);
-                window.removeEventListener('resize', dismiss);
-            };
-
-            const onScroll = (e) => {
-                // Si el evento de scroll proviene del interior de la toolbar no descartar
-                if (e.target && toolbar.contains(e.target)) return;
-                dismiss(e);
+                if (trigger) trigger.classList.remove("active-menu-trigger");
+                menu.remove();
+                if (backdrop) backdrop.remove();
+                document.removeEventListener("keydown", onKeydown);
             };
 
             const onKeydown = (e) => {
-                if (e.key === 'Escape') dismiss(e);
+                if (e.key === "Escape") dismiss(e);
+            };
+            document.addEventListener("keydown", onKeydown);
+
+            // Acciones asignadas
+            const triggerPhoto = () => {
+                dismiss();
+                let input = document.getElementById("sideSheetPhotoInput");
+                if (!input) {
+                    input = document.createElement("input");
+                    input.id = "sideSheetPhotoInput";
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.capture = "environment";
+                    input.style.display = "none";
+                    document.body.appendChild(input);
+                }
+                input.onchange = (ev) => this.handleSideSheetPhotoSelected(ev, itemId);
+                input.click();
             };
 
-            backdrop.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dismiss(e);
-            });
-            backdrop.addEventListener('touchstart', (e) => {
-                e.stopPropagation();
-                dismiss(e);
+            const triggerPreview = () => {
+                dismiss();
+                this.openProductSideSheet(itemId);
+            };
+
+            const triggerEdit = () => {
+                dismiss();
+                this.openItemModal(item.id, item.supplier_id);
+            };
+
+            const triggerDelete = () => {
+                dismiss();
+                this.deleteItem(item.id);
+            };
+
+            menu.querySelector("#btnSheetActionPhoto")?.addEventListener("click", triggerPhoto);
+            menu.querySelector("#btnSheetActionPreview")?.addEventListener("click", triggerPreview);
+            menu.querySelector("#btnSheetActionEdit")?.addEventListener("click", triggerEdit);
+            menu.querySelector("#btnSheetActionDeleteRow")?.addEventListener("click", triggerDelete);
+
+            // Gesto táctil suave para deslizar y cerrar (drag to dismiss)
+            let touchStartY = 0;
+            let touchDiffY = 0;
+            menu.addEventListener("touchstart", (e) => {
+                touchStartY = e.touches[0].clientY;
+                touchDiffY = 0;
             }, { passive: true });
 
-            const editBtn = toolbar.querySelector('.edit');
-            if (editBtn) {
-                const handleEdit = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dismiss(e);
-                    window.suppliersManager.openItemModal(item.id, item.supplier_id);
-                };
-                editBtn.addEventListener('click', handleEdit);
-                editBtn.addEventListener('touchend', handleEdit);
-            }
-
-            const deleteBtn = toolbar.querySelector('.danger');
-            if (deleteBtn) {
-                const handleDelete = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dismiss(e);
-                    window.suppliersManager.deleteItem(item.id);
-                };
-                deleteBtn.addEventListener('click', handleDelete);
-                deleteBtn.addEventListener('touchend', handleDelete);
-            }
-
-            document.body.appendChild(backdrop);
-            document.body.appendChild(toolbar);
-
-            // Posicionamiento inteligente anclado al trigger
-            if (trigger) {
-                const rect = trigger.getBoundingClientRect();
-                const toolbarWidth = toolbar.offsetWidth || 185;
-                const toolbarHeight = toolbar.offsetHeight || 44;
-
-                let left = rect.left - toolbarWidth - 8;
-                if (left < 12) {
-                    left = rect.right + 8;
-                    if (left + toolbarWidth > window.innerWidth - 12) {
-                        left = Math.max(12, window.innerWidth - toolbarWidth - 12);
-                    }
+            menu.addEventListener("touchmove", (e) => {
+                touchDiffY = e.touches[0].clientY - touchStartY;
+                if (touchDiffY > 0) {
+                    menu.style.transition = "none";
+                    menu.style.transform = isDesktop ? `translate(-50%, ${touchDiffY}px)` : `translateY(${touchDiffY}px)`;
                 }
+            }, { passive: true });
 
-                let top = rect.top + (rect.height / 2) - (toolbarHeight / 2);
-                if (top < 12) top = 12;
-                if (top + toolbarHeight > window.innerHeight - 12) {
-                    top = window.innerHeight - toolbarHeight - 12;
+            menu.addEventListener("touchend", () => {
+                menu.style.transition = "transform 0.3s cubic-bezier(0.2, 0, 0, 1)";
+                if (touchDiffY > 80) {
+                    dismiss();
+                } else {
+                    menu.style.transform = isDesktop ? "translateX(-50%)" : "translateY(0)";
                 }
-
-                toolbar.style.top = `${Math.round(top)}px`;
-                toolbar.style.left = `${Math.round(left)}px`;
-            }
-
-            document.addEventListener('keydown', onKeydown);
-            // Pequeño retardo antes de escuchar scroll para evitar que el tap inicial dispare dismiss
-            setTimeout(() => {
-                if (!isDismissed) {
-                    window.addEventListener('scroll', onScroll, { capture: true, passive: true, once: true });
-                    window.addEventListener('resize', dismiss, { passive: true, once: true });
-                }
-            }, 100);
+                touchDiffY = 0;
+            });
         }
 
+        /** Cierra el Bottom Sheet del producto */
         closeProductBottomSheet() {
-            const sheet = document.querySelector('.product-action-toolbar, .m3-modal-bottom-sheet, .dropbox-menu-m3');
-            const backdrop = document.getElementById('productToolbarBackdrop') || document.getElementById('m3SheetBackdrop');
+            const sheet = document.querySelector(".m3-modal-bottom-sheet.product-bottom-sheet, .m3-modal-bottom-sheet[data-product-id]");
+            const backdrop = document.getElementById("m3SheetBackdrop");
             if (sheet) sheet.remove();
             if (backdrop) backdrop.remove();
+            if (this._activeContextMenuTrigger) {
+                this._activeContextMenuTrigger.classList.remove("active-menu-trigger");
+                this._activeContextMenuTrigger = null;
+            }
+            this._activeProductSheetItemId = null;
+        }
+
+        closeM3ContextMenu() {
+            return this.closeProductBottomSheet();
         }
 
         /**
-         * Alias para retrocompatibilidad
-         */
-        renderItemCard(item, supplierId) {
+renderItemCard(item, supplierId) {
             return this.renderProductRow(item, supplierId);
+        }
+
+        /** Retorna los productos visibles del proveedor actual (considerando filtros y búsqueda) */
+        getVisibleSupplierItems() {
+            let supItems = this.items.filter(it => it.supplier_id === this.selectedSupplierDetailId);
+            if (this.searchQuery && this.searchQuery.trim()) {
+                const q = this.searchQuery.toLowerCase().trim();
+                supItems = supItems.filter(it => {
+                    const matchName = it.name && it.name.toLowerCase().includes(q);
+                    const matchCat = it.category && it.category.toLowerCase().includes(q);
+                    const matchUnit = (it.package_format || it.unit) && (it.package_format || it.unit).toLowerCase().includes(q);
+                    const matchNotes = it.notes && it.notes.toLowerCase().includes(q);
+                    return matchName || matchCat || matchUnit || matchNotes;
+                });
+            }
+            return supItems;
+        }
+
+        /** Abre el Side Sheet (Panel Lateral) de detalle y gestión de fotos del producto */
+        openProductSideSheet(productId) {
+            const item = this.items.find(it => String(it.id) === String(productId));
+            if (!item) return;
+
+            this.activeSideSheetProductId = String(productId);
+            this._isPhotoZoomed = false;
+
+            let sheet = document.getElementById("productSideSheet");
+            let backdrop = document.getElementById("productSideSheetBackdrop");
+            const layout = document.getElementById("supplierCatalogLayout");
+
+            if (!sheet) {
+                sheet = document.createElement("aside");
+                sheet.id = "productSideSheet";
+                sheet.className = "m3-product-side-sheet";
+                sheet.setAttribute("role", "dialog");
+                sheet.setAttribute("aria-labelledby", "sideSheetProductName");
+                if (layout) {
+                    layout.appendChild(sheet);
+                } else if (this.container) {
+                    this.container.appendChild(sheet);
+                }
+            }
+
+            if (!backdrop) {
+                backdrop = document.createElement("div");
+                backdrop.id = "productSideSheetBackdrop";
+                backdrop.className = "m3-side-sheet-backdrop";
+                backdrop.onclick = () => this.closeProductSideSheet();
+                document.body.appendChild(backdrop);
+            }
+
+            this.renderSideSheetContent(productId);
+            this.highlightActiveProductRow(productId);
+            document.body.classList.add("product-side-sheet-open");
+            this.updateFabVisibility();
+
+            sheet.classList.add("active");
+            sheet.setAttribute("aria-hidden", "false");
+            if (layout) layout.classList.add("side-sheet-open");
+            if (backdrop) backdrop.classList.add("active");
+
+            const row = document.getElementById(`product-row-${productId}`);
+            if (row && typeof row.scrollIntoView === "function") {
+                row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+
+            if (!this._sideSheetKeyboardBound) {
+                this._sideSheetKeyboardBound = true;
+                document.addEventListener("keydown", (e) => {
+                    if (!this.activeSideSheetProductId) return;
+                    if (e.key === "Escape") {
+                        this.closeProductSideSheet();
+                    } else if (e.key === "ArrowLeft") {
+                        this.navigateProductSideSheet(-1);
+                    } else if (e.key === "ArrowRight") {
+                        this.navigateProductSideSheet(1);
+                    }
+                });
+            }
+        }
+
+        /** Cierra el Side Sheet y limpia la fila activa */
+        closeProductSideSheet() {
+            this.activeSideSheetProductId = null;
+            this._isPhotoZoomed = false;
+            document.body.classList.remove("product-side-sheet-open");
+            this.updateFabVisibility();
+
+            const sheet = document.getElementById("productSideSheet");
+            const backdrop = document.getElementById("productSideSheetBackdrop");
+            const layout = document.getElementById("supplierCatalogLayout");
+
+            if (sheet) {
+                sheet.classList.remove("active");
+                sheet.setAttribute("aria-hidden", "true");
+            }
+            if (backdrop) {
+                backdrop.classList.remove("active");
+            }
+            if (layout) {
+                layout.classList.remove("side-sheet-open");
+            }
+
+            document.querySelectorAll(".product-row-dropbox.active-product-row").forEach(r => {
+                r.classList.remove("active-product-row");
+                r.style.background = "";
+            });
+        }
+
+        /** Navega al producto anterior (-1) o siguiente (1) */
+        navigateProductSideSheet(direction) {
+            const list = this.getVisibleSupplierItems();
+            if (!list || list.length === 0) return;
+            const currentIndex = list.findIndex(it => String(it.id) === String(this.activeSideSheetProductId));
+            if (currentIndex === -1) {
+                this.openProductSideSheet(list[0].id);
+                return;
+            }
+            const nextIndex = (currentIndex + direction + list.length) % list.length;
+            this.openProductSideSheet(list[nextIndex].id);
+        }
+
+        /** Alterna zoom interactivo 1.6x en la fotografía */
+        togglePhotoZoom() {
+            const img = document.getElementById("sideSheetHeroImg");
+            const badgeText = document.getElementById("zoomBadgeText");
+            if (!img) return;
+
+            this._isPhotoZoomed = !this._isPhotoZoomed;
+            if (this._isPhotoZoomed) {
+                img.classList.add("zoomed");
+                img.style.cursor = "zoom-out";
+                if (badgeText) badgeText.textContent = this.isEnglish() ? "Tap to reset" : "Toca para alejar";
+            } else {
+                img.classList.remove("zoomed");
+                img.style.cursor = "zoom-in";
+                if (badgeText) badgeText.textContent = this.isEnglish() ? "Tap to zoom" : "Toca para zoom";
+            }
+        }
+
+        /** Renderiza el contenido interno del Side Sheet M3 */
+        renderSideSheetContent(productId) {
+            const isEn = this.isEnglish();
+            const item = this.items.find(it => String(it.id) === String(productId));
+            if (!item) return;
+
+            const visibleItems = this.getVisibleSupplierItems();
+            const currentIndex = visibleItems.findIndex(it => String(it.id) === String(productId));
+            const totalItems = visibleItems.length || 1;
+            const positionText = currentIndex !== -1 ? `${currentIndex + 1} / ${totalItems}` : `1 / ${totalItems}`;
+
+            const initials = (item.name || "??").trim().substring(0, 2).toUpperCase();
+            const unit = item.package_format || item.unit || "";
+            const category = item.category || "";
+
+            const sheet = document.getElementById("productSideSheet");
+            if (!sheet) return;
+
+            sheet.innerHTML = `
+                <!-- 1. Header del Side Sheet -->
+                <div class="side-sheet-header" style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #ffffff; z-index: 10;">
+                    <div>
+                        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #0d7a50; text-transform: uppercase;">
+                            ${isEn ? "ITEM DETAIL" : "DETALLE DEL INSUMO"}
+                        </div>
+                        <div style="font-size: 12.5px; font-weight: 600; color: #5f6368; margin-top: 2px;">
+                            ${positionText}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" 
+                                class="btn-icon-m3 tonal" 
+                                title="${isEn ? "Previous item" : "Insumo anterior"}"
+                                onclick="window.suppliersManager.navigateProductSideSheet(-1)"
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+                        </button>
+                        <button type="button" 
+                                class="btn-icon-m3 tonal" 
+                                title="${isEn ? "Next item" : "Insumo siguiente"}"
+                                onclick="window.suppliersManager.navigateProductSideSheet(1)"
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+                        </button>
+                        <button type="button" 
+                                class="btn-icon-m3 close" 
+                                title="${isEn ? "Close panel" : "Cerrar panel"}"
+                                onclick="window.suppliersManager.closeProductSideSheet()"
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Cuerpo del Side Sheet: Hero Image y Metadatos -->
+                <div class="side-sheet-body" style="padding: 20px; display: flex; flex-direction: column; flex: 1;">
+                    <!-- Contenedor Hero 1:1 -->
+                    <div class="side-sheet-hero-wrap" id="sideSheetHeroContainer">
+                        ${item.image_url ? `
+                            <img src="${item.image_url}" 
+                                 id="sideSheetHeroImg" 
+                                 class="side-sheet-hero-img"
+                                 alt="${item.name}" 
+                                 onclick="window.suppliersManager.togglePhotoZoom()"
+                                 style="cursor: zoom-in;" />
+                            <div class="photo-zoom-badge" 
+                                 onclick="window.suppliersManager.togglePhotoZoom()"
+                                 style="position: absolute; bottom: 12px; right: 12px; background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); user-select: none;">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">zoom_in</span>
+                                <span id="zoomBadgeText">${isEn ? "Tap to zoom" : "Toca para zoom"}</span>
+                            </div>
+                        ` : `
+                            <div class="side-sheet-empty-photo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; width: 100%;">
+                                <div style="width: 80px; height: 80px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(20, 184, 122, 0.15);">
+                                    ${initials}
+                                </div>
+                                <div style="font-size: 14px; font-weight: 600; color: #5f6368; margin-bottom: 12px;">
+                                    ${isEn ? "No photo assigned" : "Sin fotografía asignada"}
+                                </div>
+                                <button type="button" 
+                                        onclick="document.getElementById('sideSheetPhotoInput').click()" 
+                                        style="background: #e8f7f0; color: #0d7a50; border: 1px solid rgba(20, 184, 122, 0.3); border-radius: 999px; padding: 8px 18px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.15s ease;">
+                                    <span class="material-symbols-outlined" style="font-size: 17px;">add_a_photo</span>
+                                    ${isEn ? "Add photo" : "Agregar foto"}
+                                </button>
+                            </div>
+                        `}
+                        <!-- Spinner durante subida -->
+                        <div id="sideSheetUploadOverlay" style="display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.88); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; flex-direction: column; gap: 10px; z-index: 5;">
+                            <div class="spinner-sm" style="width: 28px; height: 28px; border: 3px solid #e8f7f0; border-top-color: #14b87a; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                            <span style="font-size: 12.5px; font-weight: 700; color: #0d7a50;">${isEn ? "Uploading photo..." : "Subiendo foto..."}</span>
+                        </div>
+                    </div>
+
+                    <!-- Metadatos y Chips M3 -->
+                    <div style="margin-top: 18px;">
+                        <h3 id="sideSheetProductName" style="margin: 0 0 12px 0; font-size: 1.35rem; font-weight: 800; color: #1a1c19; line-height: 1.25; letter-spacing: -0.01em; font-family: var(--font-display);">
+                            ${item.name}
+                        </h3>
+
+                        <!-- Chips M3 Expressive -->
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                            ${unit ? `
+                                <div class="m3-meta-chip" style="display: inline-flex; align-items: center; gap: 6px; background: #f3f5f4; color: #1a1c19; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--border);">
+                                    <span>📦</span>
+                                    <span>${isEn ? "Unit:" : "Unidad:"} <strong style="font-weight: 700;">${unit}</strong></span>
+                                </div>
+                            ` : ""}
+                            ${category ? `
+                                <div class="m3-meta-chip" style="display: inline-flex; align-items: center; gap: 6px; background: #f3f5f4; color: #1a1c19; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--border);">
+                                    <span>🏷️</span>
+                                    <span>${category}</span>
+                                </div>
+                            ` : ""}
+                        </div>
+
+                        ${item.notes ? `
+                            <div style="background: #f8faf9; border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; font-size: 13px; color: #5f6368; line-height: 1.45;">
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #0d7a50; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">description</span>
+                                    ${isEn ? "Notes" : "Notas"}
+                                </div>
+                                ${item.notes}
+                            </div>
+                        ` : ""}
+                    </div>
+                </div>
+
+                <!-- 3. Footer de Acciones (Sticky Bottom) -->
+                <div class="side-sheet-footer" style="position: sticky; bottom: 0; background: #ffffff; padding: 14px 20px; border-top: 1px solid var(--border); margin-top: auto; z-index: 10;">
+                    <input type="file" 
+                           id="sideSheetPhotoInput" 
+                           accept="image/*" 
+                           capture="environment" 
+                           style="display: none;" 
+                           onchange="window.suppliersManager.handleSideSheetPhotoSelected(event, '${item.id}')" />
+
+                    <button type="button" 
+                            class="btn-side-sheet-upload" 
+                            onclick="document.getElementById('sideSheetPhotoInput').click()"
+                            style="width: 100%; background: #14b87a; color: #ffffff; border: none; border-radius: 999px; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(20, 184, 122, 0.28); transition: transform 0.15s ease, background 0.15s ease;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">photo_camera</span>
+                        <span>${item.image_url ? (isEn ? "Change / Upload Photo" : "📸 Cambiar / Subir foto") : (isEn ? "Upload Photo" : "📸 Subir foto")}</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        /** Resalta la fila activa del producto en el catálogo */
+        highlightActiveProductRow(itemId) {
+            document.querySelectorAll(".product-row-dropbox").forEach(r => {
+                r.classList.remove("active-product-row");
+                r.style.background = "";
+            });
+            const activeRow = document.getElementById(`product-row-${itemId}`);
+            if (activeRow) {
+                activeRow.classList.add("active-product-row");
+                activeRow.style.background = "#e8f7f0";
+            }
+        }
+
+        /** Actualiza inmediatamente la miniatura y avatar de una fila en el DOM */
+        updateProductRowInDOM(itemId) {
+            const row = document.getElementById(`product-row-${itemId}`);
+            if (!row) return;
+            const item = this.items.find(it => String(it.id) === String(itemId));
+            if (!item) return;
+
+            const avatarWrap = row.querySelector(".product-avatar-wrap");
+            if (!avatarWrap) return;
+
+            const isEn = this.isEnglish();
+            const initials = (item.name || "??").trim().substring(0, 2).toUpperCase();
+
+            if (item.image_url) {
+                avatarWrap.innerHTML = `
+                    <img src="${item.image_url}" 
+                         alt="${item.name}" 
+                         class="product-avatar-img"
+                         style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 1px 4px rgba(0,0,0,0.12);" 
+                         loading="lazy" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <div class="product-avatar-initials" style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
+                        ${initials}
+                    </div>
+                    <div class="product-has-photo-badge" title="${isEn ? "Has photo" : "Contiene foto"}" style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: 50%; background: #14b87a; border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 9px; color: #ffffff; line-height: 1;">image</span>
+                    </div>
+                `;
+            } else {
+                avatarWrap.innerHTML = `
+                    <div class="product-avatar-initials" style="width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
+                        ${initials}
+                    </div>
+                `;
+            }
+        }
+
+        /** Manejador de selección y carga de foto para el producto */
+        async handleSideSheetPhotoSelected(event, itemId) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const overlay = document.getElementById("sideSheetUploadOverlay");
+            if (overlay) overlay.style.display = "flex";
+
+            const isEn = this.isEnglish();
+            let publicUrl = null;
+
+            try {
+                const ext = file.name ? file.name.split(".").pop() : "jpg";
+                const cleanExt = (ext.length > 5 || !/^[a-zA-Z0-9]+$/.test(ext)) ? "jpg" : ext;
+                const fileName = `item-${itemId}-${Date.now()}.${cleanExt}`;
+                const filePath = `supplier-items/${fileName}`;
+
+                if (window.supabaseClient) {
+                    const sb = window.supabaseClient;
+                    const { error: upErr } = await sb.storage.from("menu-files").upload(filePath, file, { upsert: true });
+                    if (!upErr) {
+                        const { data } = sb.storage.from("menu-files").getPublicUrl(filePath);
+                        if (data?.publicUrl) publicUrl = data.publicUrl;
+                    } else {
+                        console.warn("Storage upload notice, falling back to local reader:", upErr);
+                    }
+                }
+
+                if (!publicUrl) {
+                    publicUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                if (window.supabaseClient && !publicUrl.startsWith("data:")) {
+                    try {
+                        await window.supabaseClient
+                            .from("supplier_items")
+                            .update({ image_url: publicUrl, updated_at: new Date().toISOString() })
+                            .eq("id", itemId);
+                    } catch (dbErr) {
+                        console.warn("DB update notice:", dbErr);
+                    }
+                }
+
+                const item = this.items.find(it => String(it.id) === String(itemId));
+                if (item) {
+                    item.image_url = publicUrl;
+                }
+                this.saveCache();
+
+                this.renderSideSheetContent(itemId);
+                this.updateProductRowInDOM(itemId);
+
+                this.notify(isEn ? "Photo updated successfully" : "Fotografía actualizada con éxito", "success");
+            } catch (err) {
+                console.error("Error procesando foto:", err);
+                this.notify(err.message || "Error procesando foto", "error");
+            } finally {
+                if (overlay) overlay.style.display = "none";
+                event.target.value = "";
+            }
         }
 
         /** Manejador de búsqueda sincronizado con el buscador global */
@@ -2189,7 +2673,8 @@
         updateFabVisibility() {
             const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
             const fabContainer = document.getElementById('m3FabMenuContainer');
-            const isEditingOrForm = (this.currentSubView === 'supplier-form' || this.currentSubView === 'item-form' || this.currentSubView === 'order-form');
+            const isSideSheetOpen = !!this.activeSideSheetProductId || document.body.classList.contains("product-side-sheet-open");
+            const isEditingOrForm = (this.currentSubView === 'supplier-form' || this.currentSubView === 'item-form' || this.currentSubView === 'order-form' || isSideSheetOpen);
 
             if (isEditingOrForm) {
                 if (window.dashboard?.closeFabMenu) window.dashboard.closeFabMenu();
@@ -2242,6 +2727,13 @@
             this.activeOrderSupplierId = supplierId;
             this.currentSubView = 'order-form';
             this.render();
+        }
+
+        /** Cambia de proveedor activo dentro del flujo de pedido sin perder las cantidades seleccionadas */
+        switchOrderSupplier(supplierId) {
+            this.activeOrderSupplierId = supplierId;
+            this.currentSubView = 'order-form';
+            this.renderOrderPage();
         }
 
         /** Regresa a la vista previa de proveedores o detalle */
@@ -3053,8 +3545,8 @@
         // MÓDULO DE ARMAR PEDIDOS / ÓRDENES RÁPIDAS
         // ==========================================
 
-        /**
-         * Renderiza la página completa para Armar Pedido Rápido a Proveedor
+                /**
+         * Renderiza la página completa para Armar Pedido Rápido a Proveedor (Formato Plano M3)
          */
         renderOrderPage() {
             if (!this.container) return;
@@ -3067,117 +3559,232 @@
             }
 
             const status = this.getDeliveryStatus(sup);
+            const allSuppliers = this.suppliers || [];
+
+            // Calcular proveedores con pedidos activos en el carrito
+            const activeSuppliersWithItems = allSuppliers.filter(s => {
+                const c = this.orderCart[s.id] || {};
+                return Object.values(c).some(q => q > 0);
+            });
+            const totalSuppliersWithOrders = activeSuppliersWithItems.length;
 
             this.container.innerHTML = `
-                <div class="suppliers-subview-page" style="max-width: 900px; margin: 0 auto; padding: 20px 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Top Bar de la Página (Volver y Acciones) -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;">
-                        <button type="button" onclick="window.suppliersManager.backToList()" class="btn-supplier-back">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
-                            <span>${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}</span>
-                        </button>
-
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <button type="button" onclick="window.suppliersManager.copyOrderText('${supplierId}')" style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 6px;
-                                height: 40px;
-                                padding: 0 16px;
-                                border-radius: var(--radius-full);
-                                font-weight: 700;
-                                font-size: 13.5px;
-                                background: var(--surface);
-                                color: var(--text-main);
-                                border: 1px solid var(--border);
-                                cursor: pointer;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
-                                <span>${isEn ? 'Copy' : 'Copiar'}</span>
-                            </button>
-
-                            <button type="button" onclick="window.suppliersManager.sendOrderByWhatsApp('${supplierId}')" class="btn-supplier-save" style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 8px;
-                                height: 40px;
-                                padding: 0 20px;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
-                                <span>${isEn ? 'Send WhatsApp' : 'Enviar WhatsApp'}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Tarjeta Principal del Pedido -->
-                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px 28px; box-shadow: var(--shadow-subtle);">
-                        <!-- Cabecera Proveedor y Estado -->
-                        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border);">
-                            <div>
-                                <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main);">
-                                    ${isEn ? 'Order for' : 'Pedido para'} ${sup.name}
-                                </h2>
-                                <div style="font-size: 13.5px; color: var(--text-secondary); margin-top: 4px;">
-                                    ${status.statusTitle} · ${status.statusSub}
+                <div class="suppliers-subview-page suppliers-order-flat-page" style="max-width: 860px; margin: 0 auto; padding: 12px 16px 90px; font-family: var(--font-display);">
+                    <!-- Cabecera con Jerarquía M3 Expressive Optimizada -->
+                    <header class="order-page-header" style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                        <!-- Fila Superior: Navegación, Título de Proveedor y Acción Limpiar -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                                <button type="button" 
+                                        onclick="window.suppliersManager.backToList()" 
+                                        class="btn-icon-m3" 
+                                        title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
+                                        style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                                </button>
+                                <div style="min-width: 0; flex: 1;">
+                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-dark); line-height: 1.2;">
+                                        ${isEn ? 'Fast Order' : 'Armar Pedido'}
+                                    </div>
+                                    <h1 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${sup.name}
+                                    </h1>
                                 </div>
                             </div>
-                            <button type="button" onclick="window.suppliersManager.clearSupplierOrder('${supplierId}')" style="
-                                font-size: 13px;
-                                color: var(--error);
-                                background: none;
-                                border: none;
-                                cursor: pointer;
-                                font-weight: 700;
-                            ">
-                                ${isEn ? 'Clear all quantities' : 'Limpiar cantidades'}
+
+                            <!-- Botón Limpiar Expresivo M3 con Icono y Contenedor Tonal -->
+                            <button type="button" 
+                                    onclick="window.suppliersManager.clearSupplierOrder('${supplierId}')" 
+                                    class="btn-order-clear-m3"
+                                    title="${isEn ? 'Clear quantities for this supplier' : 'Limpiar cantidades de este proveedor'}"
+                                    style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 5px;
+                                        padding: 0 12px;
+                                        height: 36px;
+                                        border-radius: var(--radius-full);
+                                        background: #fef2f2;
+                                        border: 1px solid rgba(239, 68, 68, 0.25);
+                                        color: #dc2626;
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        cursor: pointer;
+                                        white-space: nowrap;
+                                        flex-shrink: 0;
+                                        transition: background 0.15s ease, transform 0.1s ease;
+                                    "
+                                    onmouseenter="this.style.background='#fee2e2'"
+                                    onmouseleave="this.style.background='#fef2f2'"
+                                    onmousedown="this.style.transform='scale(0.96)'"
+                                    onmouseup="this.style.transform='scale(1)'">
+                                <span class="material-symbols-outlined" style="font-size: 17px; color: #dc2626;">restart_alt</span>
+                                <span>${isEn ? 'Clear' : 'Limpiar'}</span>
                             </button>
                         </div>
 
-                        <!-- Lista de Productos y Steppers -->
-                        <div id="order-modal-items-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                        <!-- Fila Inferior: Banner Tonal con Info de Entrega -->
+                        <div class="order-delivery-info-banner" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin-top: 10px;
+                            padding: 8px 12px;
+                            background: var(--surface);
+                            border: 1px solid var(--border);
+                            border-radius: var(--radius-md);
+                            font-size: 12.5px;
+                            color: var(--text-secondary);
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark); flex-shrink: 0;">event</span>
+                            <div style="min-width: 0; flex: 1; line-height: 1.3;">
+                                <strong style="color: var(--text-main); font-weight: 700;">${status.statusTitle}</strong> · <span>${status.statusSub}</span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Selector / Carrusel de Proveedores (Cambiar de Proveedor M3 Expressive) -->
+                    <section class="order-supplier-switcher-container" style="margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px;">
+                            <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
+                                ${isEn ? 'Switch Supplier:' : 'Cambiar de Proveedor:'}
+                            </span>
+                            ${totalSuppliersWithOrders > 0 ? `
+                                <button type="button" 
+                                        onclick="window.suppliersManager.renderConsolidatedOrdersPage()"
+                                        style="background: none; border: none; color: var(--primary-dark); font-weight: 800; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
+                                    <span class="material-symbols-outlined" style="font-size: 17px;">receipt_long</span>
+                                    <span>${isEn ? 'Consolidated Order' : 'Ver Pedido Consolidado'} (${totalSuppliersWithOrders})</span>
+                                </button>
+                            ` : ''}
                         </div>
 
-                        <!-- Observaciones del Pedido -->
-                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 24px;">
-                            <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                                ${isEn ? 'Order Notes (Optional)' : 'Observaciones del Pedido (Opcional)'}
-                            </label>
-                            <input type="text" id="orderNotesInput" value="${this.orderNotes[supplierId] || ''}" placeholder="Ej. Entregar antes de las 11:00 AM, factura a nombre de..." class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 42px; font-size: 14px;" oninput="window.suppliersManager.orderNotes['${supplierId}'] = this.value" />
+                        <!-- Lista deslizante de Chips de Proveedor -->
+                        <div class="order-supplier-chips-scroll" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            overflow-x: auto;
+                            padding-bottom: 6px;
+                            -webkit-overflow-scrolling: touch;
+                            scrollbar-width: none;
+                        ">
+                            ${allSuppliers.map(s => {
+                                const isCurrent = s.id === supplierId;
+                                const sCart = this.orderCart[s.id] || {};
+                                const sCount = Object.values(sCart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
+                                return `
+                                    <button type="button" 
+                                            onclick="window.suppliersManager.switchOrderSupplier('${s.id}')"
+                                            class="order-supplier-chip ${isCurrent ? 'active' : ''}"
+                                            style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                                height: 38px;
+                                                padding: 0 14px;
+                                                border-radius: var(--radius-full);
+                                                font-family: var(--font-display);
+                                                font-size: 13px;
+                                                font-weight: 700;
+                                                white-space: nowrap;
+                                                flex-shrink: 0;
+                                                cursor: pointer;
+                                                border: 1.5px solid ${isCurrent ? 'var(--primary-dark)' : 'var(--border)'};
+                                                background: ${isCurrent ? 'var(--primary-light)' : 'var(--surface)'};
+                                                color: ${isCurrent ? 'var(--primary-dark)' : 'var(--text-main)'};
+                                                transition: all 0.15s ease;
+                                            ">
+                                        <span>${s.name}</span>
+                                        ${sCount > 0 ? `
+                                            <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                min-width: 20px;
+                                                height: 20px;
+                                                padding: 0 5px;
+                                                border-radius: 10px;
+                                                font-size: 11px;
+                                                font-weight: 800;
+                                                background: ${isCurrent ? 'var(--primary-dark)' : 'var(--primary)'};
+                                                color: #ffffff;
+                                            ">${sCount}</span>
+                                        ` : ''}
+                                    </button>
+                                `;
+                            }).join('')}
                         </div>
+                    </section>
 
-                        <!-- Acciones Finales -->
-                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border);">
-                            <button type="button" onclick="window.suppliersManager.backToList()" class="btn-supplier-cancel">
-                                ${isEn ? 'Back' : 'Volver'}
-                            </button>
-                            <button type="button" onclick="window.suppliersManager.copyOrderText('${supplierId}')" style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 6px;
-                                height: 44px;
-                                padding: 0 18px;
-                                border-radius: var(--radius-full);
-                                font-weight: 700;
-                                font-size: 14px;
-                                background: var(--surface);
-                                color: var(--text-main);
-                                border: 1px solid var(--border);
-                                cursor: pointer;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
-                                <span>${isEn ? 'Copy Order' : 'Copiar Pedido'}</span>
-                            </button>
-                            <button type="button" onclick="window.suppliersManager.sendOrderByWhatsApp('${supplierId}')" class="btn-supplier-save" style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 8px;
-                                height: 44px;
-                                padding: 0 24px;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
-                                <span>${isEn ? 'Send via WhatsApp' : 'Enviar por WhatsApp'}</span>
-                            </button>
-                        </div>
+                    <!-- Lista de Productos y Steppers (Formato Plano) -->
+                    <div id="order-modal-items-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+                    </div>
+
+                    <!-- Observaciones del Pedido para este Proveedor -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 24px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+                            ${isEn ? 'Order Notes (Optional)' : 'Observaciones del Pedido (Opcional)'}
+                        </label>
+                        <input type="text" id="orderNotesInput" value="${this.orderNotes[supplierId] || ''}" placeholder="Ej. Entregar antes de las 11:00 AM, factura a nombre de..." class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 42px; font-size: 14px;" oninput="window.suppliersManager.orderNotes['${supplierId}'] = this.value" />
+                    </div>
+
+                    <!-- Acciones Finales (Flat & Responsive) -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap;">
+                        <button type="button" onclick="window.suppliersManager.backToList()" class="btn-supplier-cancel" style="flex: 1 1 auto; max-width: 120px;">
+                            ${isEn ? 'Back' : 'Volver'}
+                        </button>
+                        <button type="button" onclick="window.suppliersManager.copyOrderText('${supplierId}')" style="
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 6px;
+                            height: 44px;
+                            padding: 0 16px;
+                            border-radius: var(--radius-full);
+                            font-weight: 700;
+                            font-size: 13.5px;
+                            background: var(--surface);
+                            color: var(--text-main);
+                            border: 1px solid var(--border);
+                            cursor: pointer;
+                            flex: 1 1 auto;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
+                            <span>${isEn ? 'Copy' : 'Copiar'}</span>
+                        </button>
+                        <button type="button" onclick="window.suppliersManager.sendOrderByWhatsApp('${supplierId}')" class="btn-supplier-save" style="
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 6px;
+                            height: 44px;
+                            padding: 0 18px;
+                            flex: 1 1 auto;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
+                            <span>${isEn ? 'WhatsApp' : 'WhatsApp'}</span>
+                        </button>
+                        <button type="button" onclick="window.suppliersManager.renderConsolidatedOrdersPage()" style="
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            height: 44px;
+                            padding: 0 20px;
+                            border-radius: var(--radius-full);
+                            font-weight: 800;
+                            font-size: 13.5px;
+                            background: var(--text-main);
+                            color: var(--bg);
+                            border: none;
+                            cursor: pointer;
+                            flex: 2 1 auto;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">receipt_long</span>
+                            <span>${isEn ? 'Consolidated Order' : 'Ver Pedido Consolidado'} ${totalSuppliersWithOrders > 0 ? `(${totalSuppliersWithOrders})` : ''}</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -3185,7 +3792,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /** Renderiza la lista de ítems dentro del modal de orden */
         renderOrderModalItems(supplierId) {
             const listEl = document.getElementById('order-modal-items-list');
             if (!listEl) return;
@@ -3396,6 +4002,559 @@
                 : `https://wa.me/?text=${encoded}`;
 
             window.open(waUrl, '_blank');
+        }
+
+
+        /**
+         * Renderiza la página consolidada / resumen general con todos los proveedores que tienen productos pedidos
+         */
+        renderConsolidatedOrdersPage() {
+            if (!this.container) return;
+            this.currentSubView = 'order-consolidated';
+            const isEn = this.isEnglish();
+            const allSuppliers = this.suppliers || [];
+
+            // Obtener proveedores que tienen al menos un producto pedido
+            const orderedSuppliers = allSuppliers.filter(s => {
+                const cart = this.orderCart[s.id] || {};
+                return Object.values(cart).some(q => q > 0);
+            });
+
+            const totalSuppliersCount = orderedSuppliers.length;
+            let totalProductsCount = 0;
+            orderedSuppliers.forEach(s => {
+                const cart = this.orderCart[s.id] || {};
+                totalProductsCount += Object.values(cart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
+            });
+
+            const nowStr = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            this.container.innerHTML = `
+                <div class="suppliers-subview-page suppliers-consolidated-flat-page" style="max-width: 900px; margin: 0 auto; padding: 12px 16px 100px; font-family: var(--font-display);">
+                    <!-- Header Consolidado con Jerarquía M3 Ajustada -->
+                    <header class="consolidated-header-m3" style="margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                        <!-- Fila Superior: Back, Título y Menú 3 Puntos Móvil M3 -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                                <button type="button" 
+                                        onclick="window.suppliersManager.backToOrderForm()" 
+                                        class="btn-icon-m3" 
+                                        title="${isEn ? 'Back to Order Form' : 'Volver a Armar Pedido'}" 
+                                        style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                                </button>
+                                <div style="min-width: 0; flex: 1;">
+                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-dark); line-height: 1.2;">
+                                        ${isEn ? 'Summary' : 'Resumen Consolidado'}
+                                    </div>
+                                    <h1 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.2; word-break: break-word;">
+                                        ${isEn ? 'Orders by Supplier' : 'Pedidos por Proveedor'}
+                                    </h1>
+                                </div>
+                            </div>
+
+                            <!-- Botón 3 puntos M3 para Copiar Todo o Vaciar sin saturar el ancho de pantalla -->
+                            ${totalSuppliersCount > 0 ? `
+                                <button type="button" 
+                                        id="btnConsolidatedMore"
+                                        onclick="window.suppliersManager.showConsolidatedMoreMenu(event)" 
+                                        class="btn-icon-m3" 
+                                        title="${isEn ? 'More options' : 'Más opciones'}"
+                                        aria-label="${isEn ? 'More options' : 'Más opciones'}"
+                                        style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: background 0.15s ease;">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">more_vert</span>
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <!-- Barra de Resumen / Métricas Tonal M3 -->
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin-top: 10px;
+                            padding: 8px 12px;
+                            background: var(--surface);
+                            border: 1px solid var(--border);
+                            border-radius: var(--radius-md);
+                            font-size: 12px;
+                            color: var(--text-secondary);
+                            flex-wrap: wrap;
+                        ">
+                            <span>📅 <strong style="color: var(--text-main);">${nowStr}</strong></span>
+                            <span>·</span>
+                            <span>🏢 <strong style="color: var(--text-main);">${totalSuppliersCount}</strong> ${isEn ? 'suppliers' : 'proveedores con pedido'}</span>
+                            <span>·</span>
+                            <span>📦 <strong style="color: var(--text-main);">${totalProductsCount}</strong> ${isEn ? 'products' : 'productos solicitados'}</span>
+                        </div>
+                    </header>
+
+                    <!-- Estado Vacío Si no hay ningún producto pedido -->
+                    ${totalSuppliersCount === 0 ? `
+                        <div style="text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-xl); margin-top: 20px;">
+                            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); opacity: 0.6; margin-bottom: 12px;">shopping_basket</span>
+                            <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: var(--text-main);">
+                                ${isEn ? 'No products ordered yet' : 'No has agregado productos a ningún pedido'}
+                            </h3>
+                            <p style="margin: 0 0 20px 0; font-size: 13.5px; color: var(--text-secondary); max-width: 440px; margin-left: auto; margin-right: auto;">
+                                ${isEn ? 'Select quantities in any supplier and they will automatically appear here consolidated.' : 'Selecciona cantidades en cualquier proveedor y aparecerán organizadas aquí automáticamente.'}
+                            </p>
+                            <button type="button" onclick="window.suppliersManager.backToOrderForm()" class="btn-supplier-save" style="display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 24px; font-weight: 700;">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">add_shopping_cart</span>
+                                <span>${isEn ? 'Add products now' : 'Ir a seleccionar productos'}</span>
+                            </button>
+                        </div>
+                    ` : `
+                        <!-- Listado de Proveedores con Pedidos (Tarjetas Planas M3) -->
+                        <div style="display: flex; flex-direction: column; gap: 18px;">
+                            ${orderedSuppliers.map(sup => {
+                                const status = this.getDeliveryStatus(sup);
+                                const cart = this.orderCart[sup.id] || {};
+                                const supItems = this.items.filter(it => it.supplier_id === sup.id && (cart[it.id] || 0) > 0);
+                                const notes = this.orderNotes[sup.id] || '';
+                                const cat = this.getCategoryObj(sup.category);
+
+                                return `
+                                    <div class="consolidated-supplier-card" style="
+                                        background: var(--surface);
+                                        border: 1px solid var(--border);
+                                        border-radius: var(--radius-lg);
+                                        padding: 18px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 14px;
+                                    ">
+                                        <!-- Encabezado de la Tarjeta del Proveedor -->
+                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                                                <div style="
+                                                    width: 44px;
+                                                    height: 44px;
+                                                    border-radius: 50%;
+                                                    background: var(--surface);
+                                                    border: 1px solid var(--border);
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    overflow: hidden;
+                                                    flex-shrink: 0;
+                                                ">
+                                                    ${sup.image_url ? `
+                                                        <img src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                                    ` : `
+                                                        <div style="font-weight: 800; font-size: 15px; color: ${cat.color};">
+                                                            ${sup.name.substring(0, 2).toUpperCase()}
+                                                        </div>
+                                                    `}
+                                                </div>
+                                                <div style="min-width: 0;">
+                                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                        <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+                                                            ${sup.name}
+                                                        </h3>
+                                                        <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-full); background: ${cat.bg}; color: ${cat.color}; font-weight: 700; border: 1px solid var(--border);">
+                                                            ${cat.displayLabel}
+                                                        </span>
+                                                    </div>
+                                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
+                                                        🚚 <strong>${status.statusTitle}</strong> (${status.statusSub})
+                                                        ${sup.phone ? ` · 📞 ${sup.phone}` : ''}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <button type="button" 
+                                                        onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
+                                                        title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                                        style="
+                                                            display: inline-flex;
+                                                            align-items: center;
+                                                            gap: 4px;
+                                                            height: 32px;
+                                                            padding: 0 10px;
+                                                            border-radius: var(--radius-full);
+                                                            background: var(--bg);
+                                                            border: 1px solid var(--border);
+                                                            color: var(--text-main);
+                                                            font-size: 12px;
+                                                            font-weight: 700;
+                                                            cursor: pointer;
+                                                        ">
+                                                    <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                                                    <span>${isEn ? 'Edit' : 'Editar'}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tabla / Lista de Productos del Proveedor -->
+                                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                                            ${supItems.map(item => {
+                                                const qty = cart[item.id] || 0;
+                                                const unitStr = item.package_format || item.unit || 'Unidad';
+                                                return `
+                                                    <div style="
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: space-between;
+                                                        padding: 8px 12px;
+                                                        background: var(--bg);
+                                                        border: 1px solid var(--border);
+                                                        border-radius: var(--radius-md);
+                                                        gap: 10px;
+                                                    ">
+                                                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                                            <div style="
+                                                                width: 32px;
+                                                                height: 32px;
+                                                                border-radius: 8px;
+                                                                background: var(--surface);
+                                                                border: 1px solid var(--border);
+                                                                display: flex;
+                                                                align-items: center;
+                                                                justify-content: center;
+                                                                overflow: hidden;
+                                                                flex-shrink: 0;
+                                                            ">
+                                                                ${item.image_url ? `
+                                                                    <img src="${item.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                                                ` : `
+                                                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary);">photo_camera</span>
+                                                                `}
+                                                            </div>
+                                                            <div style="min-width: 0;">
+                                                                <span style="font-size: 13.5px; font-weight: 700; color: var(--text-main);">${item.name}</span>
+                                                                <span style="font-size: 11.5px; color: var(--text-secondary); margin-left: 6px;">(${unitStr})</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); white-space: nowrap;">
+                                                            ${qty} <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">solicitados</span>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+
+                                        <!-- Notas del Proveedor si existen -->
+                                        ${notes ? `
+                                            <div style="font-size: 12.5px; color: var(--text-secondary); background: var(--bg); padding: 8px 12px; border-radius: var(--radius-md); border-left: 3px solid var(--primary);">
+                                                <strong>${isEn ? 'Note:' : 'Nota:'}</strong> ${notes}
+                                            </div>
+                                        ` : ''}
+
+                                        <!-- Botones de Acción para este Proveedor -->
+                                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 6px; flex-wrap: wrap;">
+                                            <button type="button" 
+                                                    onclick="window.suppliersManager.copyOrderText('${sup.id}')" 
+                                                    style="
+                                                        display: inline-flex;
+                                                        align-items: center;
+                                                        gap: 6px;
+                                                        height: 36px;
+                                                        padding: 0 14px;
+                                                        border-radius: var(--radius-full);
+                                                        font-weight: 700;
+                                                        font-size: 12.5px;
+                                                        background: var(--bg);
+                                                        color: var(--text-main);
+                                                        border: 1px solid var(--border);
+                                                        cursor: pointer;
+                                                    ">
+                                                <span class="material-symbols-outlined" style="font-size: 17px;">content_copy</span>
+                                                <span>${isEn ? 'Copy' : 'Copiar'}</span>
+                                            </button>
+                                            <button type="button" 
+                                                    onclick="window.suppliersManager.sendOrderByWhatsApp('${sup.id}')" 
+                                                    class="btn-supplier-save" 
+                                                    style="
+                                                        display: inline-flex;
+                                                        align-items: center;
+                                                        gap: 6px;
+                                                        height: 36px;
+                                                        padding: 0 16px;
+                                                        font-size: 12.5px;
+                                                    ">
+                                                <span class="material-symbols-outlined" style="font-size: 18px;">chat</span>
+                                                <span>${isEn ? 'Send WhatsApp' : 'Enviar WhatsApp'}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+
+                    `}
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /** Regresa desde el consolidado a la pantalla de armar pedido del proveedor activo o del primero disponible */
+        backToOrderForm() {
+            if (!this.activeOrderSupplierId && this.suppliers.length > 0) {
+                this.activeOrderSupplierId = this.suppliers[0].id;
+            }
+            this.currentSubView = 'order-form';
+            this.renderOrderPage();
+        }
+
+        /** Construye un texto general formateado con los pedidos de TODOS los proveedores */
+        buildAllOrdersSummary() {
+            const isEn = this.isEnglish();
+            const activeSuppliers = this.suppliers.filter(s => {
+                const cart = this.orderCart[s.id] || {};
+                return Object.values(cart).some(q => q > 0);
+            });
+
+            if (activeSuppliers.length === 0) return null;
+
+            const nowStr = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            let text = `🛒 *${isEn ? 'GENERAL ORDER SUMMARY - RECIPE PANTRY' : 'RESUMEN GENERAL DE PEDIDOS - RECIPE PANTRY'}*\n` +
+                       `📅 ${isEn ? 'Date' : 'Fecha'}: ${nowStr}\n` +
+                       `🏢 ${isEn ? 'Suppliers' : 'Proveedores con pedido'}: ${activeSuppliers.length}\n` +
+                       `====================================\n\n`;
+
+            activeSuppliers.forEach((sup, idx) => {
+                const status = this.getDeliveryStatus(sup);
+                const cart = this.orderCart[sup.id] || {};
+                const supItems = this.items.filter(it => it.supplier_id === sup.id && (cart[it.id] || 0) > 0);
+                const notes = this.orderNotes[sup.id] || '';
+
+                text += `📦 *${idx + 1}. ${sup.name.toUpperCase()}*\n`;
+                text += `🚚 ${status.statusTitle} (${status.statusSub})\n`;
+                if (sup.phone) text += `📞 Tel: ${sup.phone}\n`;
+                text += `------------------------------------\n`;
+                supItems.forEach(it => {
+                    const qty = cart[it.id];
+                    const unitStr = it.package_format || it.unit ? ` (${it.package_format || it.unit})` : '';
+                    text += `▫️ *${qty}x* ${it.name}${unitStr}\n`;
+                });
+                if (notes) {
+                    text += `📝 *${isEn ? 'Notes' : 'Nota'}*: ${notes}\n`;
+                }
+                text += `\n`;
+            });
+
+            text += `====================================\n*Recipe Pantry Management*`;
+            return text;
+        }
+
+        /** Copia el consolidado de todos los pedidos al portapapeles */
+        async copyAllOrdersText() {
+            const isEn = this.isEnglish();
+            const text = this.buildAllOrdersSummary();
+            if (!text) {
+                this.notify(isEn ? 'No products selected in any order' : 'No hay productos seleccionados en ningún pedido', 'warning');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                this.notify(isEn ? '📋 Consolidated orders copied to clipboard!' : '📋 ¡Pedido consolidado de todos los proveedores copiado!', 'success');
+            } catch (e) {
+                this.notify('No se pudo copiar automáticamente', 'error');
+            }
+        }
+
+        /** Vacía todos los pedidos del carrito tras confirmación */
+        clearAllOrders() {
+            const isEn = this.isEnglish();
+            if (!confirm(isEn ? 'Clear all orders for all suppliers?' : '¿Deseas vaciar los pedidos de todos los proveedores?')) {
+                return;
+            }
+            this.orderCart = {};
+            this.orderNotes = {};
+            this.saveCache();
+            this.renderConsolidatedOrdersPage();
+            this.notify(isEn ? 'All orders cleared' : 'Todos los pedidos fueron vaciados', 'info');
+        }
+
+
+        /**
+         * Menú de 3 puntos M3 Expressive para el Pedido Consolidado
+         * Muestra opciones para Copiar Todo y Vaciar en Bottom Sheet táctil en móvil
+         * o Menú emergente M3 en escritorio.
+         */
+        showConsolidatedMoreMenu(event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const existingMenu = document.getElementById('consolidatedMoreMenu');
+            const existingBackdrop = document.getElementById('consolidatedMenuBackdrop');
+            if (existingMenu) {
+                existingMenu.remove();
+                if (existingBackdrop) existingBackdrop.remove();
+                return;
+            }
+            if (existingBackdrop) existingBackdrop.remove();
+
+            const isEn = this.isEnglish();
+            const isMobile = window.innerWidth <= 600;
+
+            const backdrop = document.createElement('div');
+            backdrop.id = 'consolidatedMenuBackdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                inset: 0;
+                z-index: 9998;
+                background: ${isMobile ? 'rgba(0, 0, 0, 0.45)' : 'transparent'};
+                transition: opacity 0.2s ease;
+            `;
+
+            const menu = document.createElement('div');
+            menu.id = 'consolidatedMoreMenu';
+            
+            if (isMobile) {
+                menu.className = 'm3-modal-bottom-sheet';
+                menu.style.cssText = `
+                    position: fixed;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 9999;
+                    background: var(--surface);
+                    border-radius: 28px 28px 0 0;
+                    padding: 12px 16px 28px 16px;
+                    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
+                    animation: slideUpSheet 0.25s cubic-bezier(0.2, 0, 0, 1);
+                `;
+                menu.innerHTML = `
+                    <div style="width: 38px; height: 4px; background: var(--border); border-radius: 2px; margin: 4px auto 16px auto;"></div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding: 0 4px;">
+                        ${isEn ? 'Consolidated Order Options' : 'Opciones del Pedido Consolidado'}
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button type="button" id="btnMenuCopyAll" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            width: 100%;
+                            height: 48px;
+                            padding: 0 16px;
+                            border-radius: var(--radius-lg);
+                            border: none;
+                            background: var(--bg);
+                            color: var(--text-main);
+                            font-family: var(--font-display);
+                            font-size: 14.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            text-align: left;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">content_copy</span>
+                            <span>${isEn ? 'Copy All Orders in 1 Message' : 'Copiar Todo el Pedido Consolidado'}</span>
+                        </button>
+
+                        <button type="button" id="btnMenuClearAll" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            width: 100%;
+                            height: 48px;
+                            padding: 0 16px;
+                            border-radius: var(--radius-lg);
+                            border: none;
+                            background: #fef2f2;
+                            color: #dc2626;
+                            font-family: var(--font-display);
+                            font-size: 14.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            text-align: left;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 22px; color: #dc2626;">delete_sweep</span>
+                            <span>${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                const trigger = event?.currentTarget || document.getElementById('btnConsolidatedMore');
+                const rect = trigger?.getBoundingClientRect() || { bottom: 80, right: 300 };
+
+                menu.style.cssText = `
+                    position: fixed;
+                    top: ${rect.bottom + 6}px;
+                    right: ${window.innerWidth - rect.right}px;
+                    z-index: 9999;
+                    background: var(--surface);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-lg);
+                    padding: 8px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+                    min-width: 250px;
+                    animation: fadeInSubView 0.15s ease;
+                `;
+                menu.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <button type="button" id="btnMenuCopyAll" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            width: 100%;
+                            height: 40px;
+                            padding: 0 12px;
+                            border-radius: var(--radius-md);
+                            border: none;
+                            background: transparent;
+                            color: var(--text-main);
+                            font-family: var(--font-display);
+                            font-size: 13.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: background 0.15s ease;
+                        " onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary-dark);">content_copy</span>
+                            <span>${isEn ? 'Copy All Orders' : 'Copiar Todo el Pedido'}</span>
+                        </button>
+
+                        <button type="button" id="btnMenuClearAll" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            width: 100%;
+                            height: 40px;
+                            padding: 0 12px;
+                            border-radius: var(--radius-md);
+                            border: none;
+                            background: transparent;
+                            color: #dc2626;
+                            font-family: var(--font-display);
+                            font-size: 13.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: background 0.15s ease;
+                        " onmouseenter="this.style.background='#fef2f2'" onmouseleave="this.style.background='transparent'">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">delete_sweep</span>
+                            <span>${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}</span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            const closeMenu = () => {
+                menu.remove();
+                backdrop.remove();
+            };
+
+            backdrop.onclick = closeMenu;
+
+            document.body.appendChild(backdrop);
+            document.body.appendChild(menu);
+
+            menu.querySelector('#btnMenuCopyAll')?.addEventListener('click', () => {
+                closeMenu();
+                this.copyAllOrdersText();
+            });
+
+            menu.querySelector('#btnMenuClearAll')?.addEventListener('click', () => {
+                closeMenu();
+                this.clearAllOrders();
+            });
         }
 
         /** Cierra modal */
@@ -3773,4 +4932,5 @@
     }
 
     window.suppliersManager = new SuppliersManager();
+    window.openProductSideSheet = (productId) => window.suppliersManager?.openProductSideSheet(productId);
 })();

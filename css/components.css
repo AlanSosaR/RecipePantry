@@ -18390,3 +18390,389 @@ m3-loading-indicator canvas {
 .top-bar-m3.no-notifications .search-wrapper-m3 {
     max-width: 960px;
 }
+
+
+/* ==========================================================================
+   Material 3 Expressive Product Side Sheet & Photo Manager
+   ========================================================================== */
+
+:root {
+    --m3-brand-green: #14b87a;
+    --m3-tonal-container: #e8f7f0;
+    --m3-on-tonal: #0d7a50;
+    --m3-surface-sheet: #ffffff;
+    --m3-surface-container: #f3f5f4;
+    --m3-on-surface-sheet: #1a1c19;
+    --m3-subtitle-sheet: #5f6368;
+    --m3-sheet-radius: 28px;
+    --m3-hero-radius: 24px;
+    --m3-pill-radius: 999px;
+    --m3-expressive-easing: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Layout del catálogo con Side Sheet Coplanar (Desktop) y Modal (Móvil) */
+.supplier-catalog-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    position: relative;
+    width: 100%;
+}
+
+.supplier-products-main-col {
+    flex: 1;
+    min-width: 0;
+    transition: width 0.35s var(--m3-expressive-easing);
+}
+
+/* Resaltado de fila de producto activa */
+.product-row-dropbox.active-product-row {
+    background: var(--m3-tonal-container) !important;
+    border-color: rgba(20, 184, 122, 0.3) !important;
+}
+
+.product-row-dropbox {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+}
+
+.product-row-dropbox:hover {
+    background: var(--surface, #f8faf9);
+}
+
+.product-row-dropbox:active {
+    transform: scale(0.99);
+}
+
+/* Side Sheet Base (Adaptive M3) */
+.m3-product-side-sheet {
+    display: none;
+    background: var(--m3-surface-sheet);
+    color: var(--m3-on-surface-sheet);
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    box-sizing: border-box;
+}
+
+/* Desktop & Tablet (>= 769px) - Coplanar / Docked Side Sheet */
+@media (min-width: 769px) {
+    .m3-product-side-sheet {
+        width: 380px;
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--m3-sheet-radius);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        z-index: 90;
+    }
+
+    .m3-product-side-sheet.active {
+        display: flex;
+        flex-direction: column;
+        animation: m3SideSheetDockIn 0.35s var(--m3-expressive-easing) forwards;
+    }
+
+    .m3-side-sheet-backdrop {
+        display: none !important;
+    }
+}
+
+@keyframes m3SideSheetDockIn {
+    from {
+        opacity: 0;
+        transform: translateX(24px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Móvil (< 769px) - Modal Side Sheet */
+@media (max-width: 768px) {
+    .m3-product-side-sheet {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        height: 100dvh;
+        width: 86vw;
+        max-width: 380px;
+        border-radius: var(--m3-sheet-radius) 0 0 var(--m3-sheet-radius);
+        box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+        z-index: 1250;
+        transform: translateX(105%);
+        transition: transform 0.38s var(--m3-expressive-easing);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        flex-direction: column;
+        display: flex;
+    }
+
+    .m3-product-side-sheet.active {
+        transform: translateX(0);
+    }
+
+    .m3-side-sheet-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1240;
+        opacity: 0;
+        transition: opacity 0.35s ease;
+    }
+
+    .m3-side-sheet-backdrop.active {
+        display: block;
+        opacity: 1;
+    }
+}
+
+/* Hero Image Container & Zoom */
+.side-sheet-hero-wrap {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--m3-hero-radius);
+    overflow: hidden;
+    position: relative;
+    background: var(--m3-surface-container);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: pan-y;
+}
+
+.side-sheet-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.32s var(--m3-expressive-easing);
+    user-select: none;
+}
+
+.side-sheet-hero-img.zoomed {
+    transform: scale(1.6);
+}
+
+.m3-product-side-sheet .btn-icon-m3:active {
+    transform: scale(0.92);
+}
+
+.m3-product-side-sheet .btn-side-sheet-upload:active {
+    transform: scale(0.97);
+}
+
+/* Ocultar el FAB principal cuando el Side Sheet esté abierto */
+body.product-side-sheet-open #mainFabBtn,
+body.product-side-sheet-open .fab-m3,
+body.product-side-sheet-open #m3FabMenuContainer,
+body.product-side-sheet-open #m3FabBackdrop {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.8) !important;
+}
+
+/* ==========================================================================
+   Material 3 Expressive Context Menu (#m3ContextMenu)
+   ========================================================================== */
+
+.product-more-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, #5f6368);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.product-more-btn:hover,
+.product-more-btn:active,
+.product-more-btn.active-menu-trigger {
+    background: #e8f7f0 !important;
+    color: #0d7a50 !important;
+}
+
+.product-more-btn:active {
+    transform: scale(0.92);
+}
+
+#m3ContextMenu {
+    position: fixed;
+    z-index: 10000;
+    background: var(--surface, #ffffff);
+    border-radius: 18px;
+    padding: 6px;
+    min-width: 215px;
+    max-width: 280px;
+    border: 1px solid rgba(20, 184, 122, 0.14);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    display: none;
+    flex-direction: column;
+    box-sizing: border-box;
+    pointer-events: auto;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: transform 180ms cubic-bezier(0.2, 0, 0, 1), opacity 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+#m3ContextMenu.active {
+    display: flex;
+    opacity: 1;
+    transform: scale(1);
+}
+
+#m3ContextMenu.opening-up {
+    transform-origin: bottom right;
+}
+
+#m3ContextMenu.opening-down {
+    transform-origin: top right;
+}
+
+#m3ContextMenu .m3-menu-item {
+    width: 100%;
+    border-radius: 12px;
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #1a1c19;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+#m3ContextMenu .m3-menu-item .material-symbols-outlined {
+    font-size: 20px;
+    color: #5f6368;
+    transition: color 0.15s ease;
+}
+
+#m3ContextMenu .m3-menu-item:hover,
+#m3ContextMenu .m3-menu-item:active {
+    background: #e8f7f0;
+    color: #0d7a50;
+}
+
+#m3ContextMenu .m3-menu-item:hover .material-symbols-outlined,
+#m3ContextMenu .m3-menu-item:active .material-symbols-outlined {
+    color: #0d7a50;
+}
+
+#m3ContextMenu .m3-menu-item:active {
+    transform: scale(0.98);
+}
+
+#m3ContextMenu .m3-menu-divider {
+    height: 1px;
+    background: #e6eae8;
+    margin: 4px 6px;
+    border: none;
+}
+
+#m3ContextMenu .m3-menu-item.destructive {
+    color: #ba1a1a;
+}
+
+#m3ContextMenu .m3-menu-item.destructive .material-symbols-outlined {
+    color: #ba1a1a;
+}
+
+#m3ContextMenu .m3-menu-item.destructive:hover,
+#m3ContextMenu .m3-menu-item.destructive:active {
+    background: #ffdad6;
+    color: #ba1a1a;
+}
+
+#m3ContextMenu .m3-menu-item.destructive:hover .material-symbols-outlined,
+#m3ContextMenu .m3-menu-item.destructive:active .material-symbols-outlined {
+    color: #ba1a1a;
+}
+
+#m3ContextMenuBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: transparent;
+    display: none;
+}
+
+#m3ContextMenuBackdrop.active {
+    display: block;
+}
+
+/* ==========================================================================
+   Multi-Supplier Order Switcher & Consolidated Orders M3 Expressive Styles
+   ========================================================================== */
+
+.order-supplier-chips-scroll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.order-supplier-chips-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.order-supplier-chip {
+    transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), background 0.15s ease, border-color 0.15s ease;
+}
+
+.order-supplier-chip:hover {
+    transform: translateY(-1px);
+}
+
+.order-supplier-chip:active {
+    transform: scale(0.96);
+}
+
+.order-supplier-chip.active {
+    box-shadow: 0 1px 4px rgba(20, 184, 122, 0.18);
+}
+
+.consolidated-supplier-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.consolidated-supplier-card:hover {
+    border-color: rgba(20, 184, 122, 0.3) !important;
+}
+
+@media (max-width: 600px) {
+    .suppliers-consolidated-flat-page {
+        padding: 10px 10px 90px 10px !important;
+    }
+
+    .consolidated-supplier-card {
+        padding: 14px 12px !important;
+    }
+}
