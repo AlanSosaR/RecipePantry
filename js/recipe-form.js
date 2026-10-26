@@ -186,6 +186,10 @@ class RecipeFormManager {
             e.preventDefault();
             this.saveRecipe();
         });
+
+        // Activar reordenamiento drag & drop para ingredientes y pasos
+        this.setupListReordering('ingredientsList', '.m3-ingredient-row', () => this.updateIngredientNumbers());
+        this.setupListReordering('stepsList', '.m3-step-row', () => this.updateStepNumbers());
     }
 
     // --- Gestión de UI de Imagen ---
@@ -214,7 +218,10 @@ class RecipeFormManager {
         const msgError = isEn ? 'Required' : 'Obligatorio';
 
         item.innerHTML = `
-            <div class="m3-ingredient-number ingredient-number">${ingNum}</div>
+            <div class="m3-ingredient-number ingredient-number" title="${isEn ? 'Drag to reorder' : 'Arrastrar para mover'}">
+                <span class="number-text">${ingNum}</span>
+                <span class="material-symbols-outlined drag-icon">drag_indicator</span>
+            </div>
             <div class="m3-field m3-field-container flex-1 mb-0 has-action">
                 <input type="text" class="ingredient-input m3-field-input" placeholder=" " value="${displayValue}">
                 <label class="m3-field-label">${labelTxt}</label>
@@ -237,7 +244,8 @@ class RecipeFormManager {
         });
         if (input.value) input.classList.add('has-value');
 
-        item.querySelector('.del-btn').addEventListener('click', () => {
+        item.querySelector('.del-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
             item.remove();
             this.updateIngredientNumbers();
             if (container.children.length === 0) this.addIngredient();
@@ -249,7 +257,9 @@ class RecipeFormManager {
     updateIngredientNumbers() {
         const ings = document.getElementById('ingredientsList').querySelectorAll('.ingredient-number');
         ings.forEach((badge, index) => {
-            badge.textContent = index + 1;
+            const numText = badge.querySelector('.number-text');
+            if (numText) numText.textContent = index + 1;
+            else badge.textContent = index + 1;
         });
     }
 
@@ -348,7 +358,10 @@ class RecipeFormManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         item.innerHTML = `
-            <div class="m3-step-number step-number">${stepNum}</div>
+            <div class="m3-step-number step-number" title="${isEn ? 'Drag to reorder' : 'Arrastrar para mover'}">
+                <span class="number-text">${stepNum}</span>
+                <span class="material-symbols-outlined drag-icon">drag_indicator</span>
+            </div>
             <div class="m3-field textarea flex-1 mb-0 has-action" style="margin-bottom:0">
                 <textarea class="step-textarea block w-full resize-none" placeholder=" " rows="2">${data ? (isEn ? (data.instruction_en || data.instruction_es) : data.instruction_es) : ''}</textarea>
                 <label>${labelTxt}</label>
@@ -365,7 +378,8 @@ class RecipeFormManager {
         });
         if (data) textarea.classList.add('has-value');
 
-        item.querySelector('.del-btn').addEventListener('click', () => {
+        item.querySelector('.del-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
             item.remove();
             this.updateStepNumbers();
         });
@@ -375,8 +389,170 @@ class RecipeFormManager {
     updateStepNumbers() {
         const steps = document.getElementById('stepsList').querySelectorAll('.step-number');
         steps.forEach((badge, index) => {
-            badge.textContent = index + 1;
+            const numText = badge.querySelector('.number-text');
+            if (numText) numText.textContent = index + 1;
+            else badge.textContent = index + 1;
         });
+    }
+
+    setupListReordering(containerId, rowSelector, updateNumbersFn) {
+        const container = document.getElementById(containerId);
+        if (!container || container.dataset.reorderInit) return;
+        container.dataset.reorderInit = 'true';
+
+        let activeRow = null;
+        let placeholder = null;
+        let startY = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let initialRect = null;
+        let activePointerId = null;
+        let capturedElement = null;
+
+        const cleanupDrag = () => {
+            if (capturedElement && activePointerId !== null) {
+                try {
+                    capturedElement.releasePointerCapture(activePointerId);
+                } catch (err) {}
+            }
+            if (activeRow) {
+                activeRow.classList.remove('m3-row-dragging');
+                activeRow.style.width = '';
+                activeRow.style.position = '';
+                activeRow.style.left = '';
+                activeRow.style.top = '';
+                activeRow.style.zIndex = '';
+            }
+            if (placeholder && placeholder.parentNode) {
+                placeholder.remove();
+            }
+            document.body.classList.remove('m3-is-reordering-list');
+            activeRow = null;
+            placeholder = null;
+            isDragging = false;
+            activePointerId = null;
+            capturedElement = null;
+        };
+
+        const onPointerDown = (e) => {
+            if (e.button !== 0) return;
+            if (e.target.closest('input, textarea, button, .del-btn, .m3-field-action')) return;
+
+            const row = e.target.closest(rowSelector);
+            if (!row || !container.contains(row)) return;
+
+            const items = Array.from(container.querySelectorAll(rowSelector));
+            if (items.length <= 1) return;
+
+            activeRow = row;
+            startY = e.clientY;
+            initialRect = row.getBoundingClientRect();
+            offsetY = e.clientY - initialRect.top;
+            isDragging = false;
+            activePointerId = e.pointerId;
+
+            const isHandle = e.target.closest('.m3-ingredient-number, .m3-step-number');
+            capturedElement = isHandle || row;
+            try {
+                capturedElement.setPointerCapture(activePointerId);
+            } catch (err) {}
+
+            const onPointerMove = (moveEv) => {
+                if (!activeRow) return;
+
+                const distY = Math.abs(moveEv.clientY - startY);
+                if (!isDragging && distY > 4) {
+                    isDragging = true;
+
+                    if (document.activeElement && document.activeElement.blur) {
+                        document.activeElement.blur();
+                    }
+
+                    placeholder = document.createElement('div');
+                    placeholder.className = 'm3-row-reorder-placeholder';
+                    placeholder.style.height = `${initialRect.height}px`;
+                    placeholder.style.marginBottom = window.getComputedStyle(activeRow).marginBottom;
+
+                    container.insertBefore(placeholder, activeRow);
+
+                    activeRow.classList.add('m3-row-dragging');
+                    activeRow.style.width = `${initialRect.width}px`;
+                    activeRow.style.position = 'fixed';
+                    activeRow.style.left = `${initialRect.left}px`;
+                    activeRow.style.top = `${moveEv.clientY - offsetY}px`;
+                    activeRow.style.zIndex = '9999';
+                    document.body.classList.add('m3-is-reordering-list');
+                }
+
+                if (!isDragging) return;
+
+                moveEv.preventDefault();
+                activeRow.style.top = `${moveEv.clientY - offsetY}px`;
+
+                const vh = window.innerHeight;
+                if (moveEv.clientY < 75) {
+                    window.scrollBy({ top: -12, behavior: 'auto' });
+                } else if (moveEv.clientY > vh - 75) {
+                    window.scrollBy({ top: 12, behavior: 'auto' });
+                }
+
+                const siblings = Array.from(container.children).filter(el => el !== activeRow && el !== placeholder && el.matches(rowSelector));
+                let targetSibling = null;
+                for (const sib of siblings) {
+                    const sibRect = sib.getBoundingClientRect();
+                    const sibMid = sibRect.top + sibRect.height / 2;
+                    if (moveEv.clientY < sibMid) {
+                        targetSibling = sib;
+                        break;
+                    }
+                }
+
+                if (targetSibling) {
+                    if (placeholder.nextSibling !== targetSibling) {
+                        container.insertBefore(placeholder, targetSibling);
+                    }
+                } else if (siblings.length > 0) {
+                    if (placeholder.nextSibling !== null) {
+                        container.appendChild(placeholder);
+                    }
+                }
+            };
+
+            const onPointerUp = (upEv) => {
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('pointercancel', onPointerUp);
+
+                if (isDragging && activeRow && placeholder) {
+                    container.insertBefore(activeRow, placeholder);
+                    placeholder.remove();
+
+                    activeRow.classList.remove('m3-row-dragging');
+                    activeRow.style.width = '';
+                    activeRow.style.position = '';
+                    activeRow.style.left = '';
+                    activeRow.style.top = '';
+                    activeRow.style.zIndex = '';
+                    document.body.classList.remove('m3-is-reordering-list');
+
+                    const settledRow = activeRow;
+                    settledRow.classList.add('m3-row-settle');
+                    setTimeout(() => {
+                        settledRow.classList.remove('m3-row-settle');
+                    }, 280);
+
+                    updateNumbersFn();
+                }
+
+                cleanupDrag();
+            };
+
+            window.addEventListener('pointermove', onPointerMove, { passive: false });
+            window.addEventListener('pointerup', onPointerUp);
+            window.addEventListener('pointercancel', onPointerUp);
+        };
+
+        container.addEventListener('pointerdown', onPointerDown);
     }
 
     // --- Persistencia ---

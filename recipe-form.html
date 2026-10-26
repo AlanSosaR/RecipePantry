@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="901">
+<html lang="es" data-app-version="902">
 
 <head>
     <meta charset="UTF-8">
@@ -47,8 +47,8 @@
         rel="stylesheet" />
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=901">
-    <link rel="stylesheet" href="css/components.css?v=901">
+    <link rel="stylesheet" href="css/styles.css?v=902">
+    <link rel="stylesheet" href="css/components.css?v=902">
 
     <style>
         :root {
@@ -658,7 +658,121 @@
             justify-content: center;
             margin-top: 10px;
             user-select: none;
+            -webkit-user-select: none;
+            cursor: grab;
+            touch-action: none;
+            position: relative;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .m3-ingredient-number::after,
+        .m3-step-number::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: var(--md-shape-full);
+        }
+
+        .m3-ingredient-number:hover,
+        .m3-step-number:hover {
+            background: rgba(16, 185, 129, 0.25);
+            color: #065F46;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+
+        .m3-ingredient-number:active,
+        .m3-step-number:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .m3-ingredient-number .drag-icon,
+        .m3-step-number .drag-icon {
+            display: none;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .m3-ingredient-number:hover .number-text,
+        .m3-step-number:hover .number-text {
+            display: none;
+        }
+
+        .m3-ingredient-number:hover .drag-icon,
+        .m3-step-number:hover .drag-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Floating dragged row */
+        .m3-dynamic-row.m3-row-dragging {
+            pointer-events: none;
+            opacity: 0.96;
+            background: var(--surface, #ffffff);
+            border-radius: 18px;
+            padding: 8px 12px;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.14), 0 6px 12px rgba(0, 0, 0, 0.08);
+            transform: scale(1.02);
+            border: 1.5px solid var(--primary, #10B981);
+            z-index: 9999;
+            box-sizing: border-box;
+            transition: box-shadow 0.15s ease;
+        }
+
+        .m3-dynamic-row.m3-row-dragging .m3-ingredient-number,
+        .m3-dynamic-row.m3-row-dragging .m3-step-number {
+            background: var(--primary, #10B981);
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .m3-dynamic-row.m3-row-dragging .m3-ingredient-number .number-text,
+        .m3-dynamic-row.m3-row-dragging .m3-step-number .number-text {
+            display: none;
+        }
+
+        .m3-dynamic-row.m3-row-dragging .m3-ingredient-number .drag-icon,
+        .m3-dynamic-row.m3-row-dragging .m3-step-number .drag-icon {
+            display: flex;
+        }
+
+        /* Reorder placeholder slot */
+        .m3-row-reorder-placeholder {
+            border: 2px dashed var(--primary, #10B981);
+            background: rgba(16, 185, 129, 0.06);
+            border-radius: 18px;
+            box-sizing: border-box;
+            width: 100%;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            animation: m3PlaceholderFade 0.15s ease;
+        }
+
+        @keyframes m3PlaceholderFade {
+            from { opacity: 0; transform: scaleY(0.8); }
+            to { opacity: 1; transform: scaleY(1); }
+        }
+
+        /* Snap/Settle spring animation */
+        .m3-dynamic-row.m3-row-settle {
+            animation: m3RowSettle 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes m3RowSettle {
+            0% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        body.m3-is-reordering-list {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            cursor: grabbing !important;
+        }
+
+        .dark .m3-dynamic-row.m3-row-dragging {
+            background: #1e1e24;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
         }
 
         .dark .m3-ingredient-number,
@@ -668,18 +782,9 @@
         }
 
         .m3-step-number {
-            flex-shrink: 0;
-            width: 32px;
-            height: 32px;
-            border-radius: var(--md-shape-full);
             background: var(--md-primary-container);
             color: var(--md-on-primary-container);
-            font-weight: 700;
             font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
         }
 
         .m3-step-row .step-content {
@@ -1107,20 +1212,20 @@
 
     <!-- Scripts (classic, NO type=module) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=901"></script>
-    <script src="js/supabase-client.js?v=901"></script>
-    <script src="js/auth.js?v=901"></script>
-    <script src="js/localdb.js?v=901"></script>
-    <script src="js/sync-manager.js?v=901"></script>
-    <script src="js/db.js?v=901"></script>
-    <script src="js/m3-loading-indicator.js?v=901"></script>
-  <script src="js/utils.js?v=901"></script>
-    <script src="js/ui.js?v=901"></script>
-    <script src="js/i18n.js?v=901"></script>
-    <script src="js/m3-folder-dropdown.js?v=901"></script>
-    <script src="js/recipe-form.js?v=901"></script>
-    <script src="js/sw-register.js?v=901"></script>
-    <script src="js/pwa-install.js?v=901"></script>
+    <script src="js/config.js?v=902"></script>
+    <script src="js/supabase-client.js?v=902"></script>
+    <script src="js/auth.js?v=902"></script>
+    <script src="js/localdb.js?v=902"></script>
+    <script src="js/sync-manager.js?v=902"></script>
+    <script src="js/db.js?v=902"></script>
+    <script src="js/m3-loading-indicator.js?v=902"></script>
+  <script src="js/utils.js?v=902"></script>
+    <script src="js/ui.js?v=902"></script>
+    <script src="js/i18n.js?v=902"></script>
+    <script src="js/m3-folder-dropdown.js?v=902"></script>
+    <script src="js/recipe-form.js?v=902"></script>
+    <script src="js/sw-register.js?v=902"></script>
+    <script src="js/pwa-install.js?v=902"></script>
 
     <script>
         (async () => {
