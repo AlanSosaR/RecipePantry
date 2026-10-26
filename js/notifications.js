@@ -298,7 +298,7 @@ class NotificationManager {
         console.log(`🔔 [Notifications] Actualizando badge: ${unreadCount} pendientes`);
         const btn = document.getElementById('btn-notifications');
         const wrapper = document.querySelector('.notifications-wrapper');
-        const actionsContainer = document.querySelector('.top-bar-actions-m3');
+        const actionsContainer = document.querySelector('#mainTopBar .top-bar-actions-m3');
         const topBar = document.getElementById('mainTopBar');
 
         if (unreadCount > 0) {

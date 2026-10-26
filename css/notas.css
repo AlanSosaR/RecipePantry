@@ -200,34 +200,55 @@
 .notas-main .top-bar-m3 {
     padding: 32px 40px 16px;
     background: var(--bg);
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 @media (max-width: 768px) {
     .notas-main .top-bar-m3 {
-        padding: 12px 16px !important;
-        height: 64px !important;
+        padding: 10px 12px !important;
+        height: 60px !important;
+        gap: 8px !important;
+        display: flex !important;
+        align-items: center !important;
     }
+
+    .notas-main .top-bar-m3 .search-container-m3 {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+}
+
+.notas-top-bar-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
 }
 
 /* Botón de alternar Vista Lista / Cuadrícula (Header) */
 #btnViewMode {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full, 9999px);
     background: transparent;
     border: none;
-    color: #475467;
-    display: flex;
+    color: var(--on-surface-variant, #475467);
+    display: flex !important;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-    flex-shrink: 0;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0 !important;
 }
 
 #btnViewMode:hover {
-    background: rgba(60, 64, 67, 0.08);
-    color: #111827;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary, #10B981);
+    transform: scale(1.08);
 }
 
 #btnViewMode:active {
