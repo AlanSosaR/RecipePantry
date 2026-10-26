@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="899">
+<html lang="es" data-app-version="901">
 
 <head>
     <meta charset="utf-8" />
@@ -57,8 +57,8 @@
         rel="stylesheet">
 
     <!-- Estilos Base -->
-    <link rel="stylesheet" href="css/styles.css?v=899">
-    <link rel="stylesheet" href="css/components.css?v=899">
+    <link rel="stylesheet" href="css/styles.css?v=901">
+    <link rel="stylesheet" href="css/components.css?v=901">
     <!-- ocr.css removed because it was a 404 and styles are inline -->
 
     <!-- Supabase & OpenCV (Mantener OpenCV si se usa pesadamente, o mover a carga dinámica si es posible) -->
@@ -66,30 +66,30 @@
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" type="text/javascript"></script>
 
     <!-- Recipe Pantry v485 - OCR Module -->
-    <script defer src="js/scanner/documentDetection.js?v=899"></script>
-    <script defer src="js/scanner/perspectiveCorrection.js?v=899"></script>
-    <script defer src="js/scanner/imageEnhancer.js?v=899"></script>
-    <script defer src="js/scanner/interactiveCrop.js?v=899"></script>
-    <script defer src="js/scanner/cameraController.js?v=899"></script>
+    <script defer src="js/scanner/documentDetection.js?v=901"></script>
+    <script defer src="js/scanner/perspectiveCorrection.js?v=901"></script>
+    <script defer src="js/scanner/imageEnhancer.js?v=901"></script>
+    <script defer src="js/scanner/interactiveCrop.js?v=901"></script>
+    <script defer src="js/scanner/cameraController.js?v=901"></script>
 
     <!-- CORE SCRIPTS v500-STABLE (Purga de Caché Nuclear Re-Activa) -->
     <meta name="version-id" content="v751">
-    <script src="js/config.js?v=899"></script>
-    <script src="js/supabase-client.js?v=899"></script>
-    <script src="js/m3-loading-indicator.js?v=899"></script>
-  <script src="js/utils.js?v=899"></script>
-    <script src="js/i18n.js?v=899"></script>
-    <script src="js/auth.js?v=899"></script>
-    <script src="js/localdb.js?v=899"></script>
-    <script src="js/db.js?v=899"></script>
-    <script src="js/ui.js?v=899"></script>
-    <script src="js/m3-folder-dropdown.js?v=899"></script>
-    <script src="js/gemini-client.js?v=899"></script>
-    <script src="js/ocr-processor.js?v=899"></script>
-    <script src="js/ocr.js?v=899"></script>
-    <script type="module" src="js/url-importer.js?v=899"></script>
-    <script src="js/sw-register.js?v=899"></script>
-    <script src="js/pwa-install.js?v=899"></script>
+    <script src="js/config.js?v=901"></script>
+    <script src="js/supabase-client.js?v=901"></script>
+    <script src="js/m3-loading-indicator.js?v=901"></script>
+    <script src="js/utils.js?v=901"></script>
+    <script src="js/i18n.js?v=901"></script>
+    <script src="js/auth.js?v=901"></script>
+    <script src="js/localdb.js?v=901"></script>
+    <script src="js/db.js?v=901"></script>
+    <script src="js/ui.js?v=901"></script>
+    <script src="js/m3-folder-dropdown.js?v=901"></script>
+    <script src="js/gemini-client.js?v=901"></script>
+    <script src="js/ocr-processor.js?v=901"></script>
+    <script src="js/ocr.js?v=901"></script>
+    <script type="module" src="js/url-importer.js?v=901"></script>
+    <script src="js/sw-register.js?v=901"></script>
+    <script src="js/pwa-install.js?v=901"></script>
 
     <meta name="google" content="notranslate">
     <meta name="google" content="nositelinkssearchbox">
@@ -200,6 +200,78 @@
             transform: scale(1.05);
         }
 
+        #btnConfirmCrop:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.4);
+            transform: scale(1.02);
+        }
+        #btnConfirmCrop:active {
+            transform: scale(0.96);
+        }
+        #btnHeaderRetry:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+        #btnHeaderRetry:active {
+            transform: scale(0.96);
+        }
+
+        /* M3 Expressive Wavy Circular Spinner in Header */
+        .m3-wavy-circle-box {
+            position: relative;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .m3-wavy-circle-svg {
+            width: 28px;
+            height: 28px;
+            transform-origin: center;
+            animation: m3ScallopSpin 3s linear infinite;
+        }
+        @keyframes m3ScallopSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .m3-wavy-circle-box.success .m3-wavy-circle-svg {
+            animation: none;
+            transform: rotate(0deg);
+        }
+        .m3-wavy-circle-box.success .m3-wavy-active-ring {
+            stroke-dasharray: 200 0 !important;
+            stroke: #10B981 !important;
+        }
+        .m3-wavy-circle-box.success .m3-wavy-checkmark {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+        }
+
+        /* M3 Expressive Wavy Linear Progress Bar */
+        .m3-wavy-linear-track {
+            width: 100%;
+            height: 3.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .m3-wavy-linear-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .m3-wavy-line-active {
+            animation: m3WaveMotion 1.4s linear infinite;
+        }
+        @keyframes m3WaveMotion {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(24px); }
+        }
+        #m3WaveClipRect {
+            transition: width 0.35s cubic-bezier(0.2, 0, 0, 1);
+        }
+
         .m3-top-bar h1 {
             font-family: var(--font-brand);
             font-size: 20px;
@@ -247,7 +319,7 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 0 24px 140px 24px;
+            padding: 14px 24px 140px 24px;
             scroll-behavior: smooth;
             background: var(--bg);
             -webkit-overflow-scrolling: touch;
@@ -256,7 +328,7 @@
         .ocr-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 0 120px 0;
+            padding: 4px 0 100px 0;
             min-height: auto;
         }
 
@@ -324,7 +396,8 @@
         }
 
         @media (min-width: 1024px) {
-            .mobile-only {
+            .mobile-only,
+            #btnOpenMenu {
                 display: none !important;
             }
 
@@ -367,7 +440,7 @@
             }
 
             .m3-scroll {
-                padding: 16px 16px 160px 16px !important;
+                padding: 12px 16px 140px 16px !important;
                 -webkit-overflow-scrolling: touch;
             }
 
@@ -397,33 +470,315 @@
             }
         }
 
+        
+        /* ── Ajuste de Posición M3 Expressive para el Recorte (Crop) ── */
+        body.is-ocr-crop-active .m3-scroll {
+            padding-top: 4px !important;
+        }
+
+        body.is-ocr-crop-active .ocr-container {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        #stepCrop {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        #stepCrop .crop-instructions-box {
+            margin-top: 2px !important;
+            margin-bottom: 8px !important;
+            padding: 0 2px;
+        }
+
+        
+        /* ── M3 Expressive Result Pill Button ── */
+        #btnHeaderRetry:hover {
+            background: rgba(255, 255, 255, 0.38) !important;
+            transform: rotate(-45deg) scale(1.08);
+        }
+        #btnHeaderRetry:active {
+            transform: scale(0.92);
+        }
+
+        /* ── M3 Expressive Dropzone & Scanner Hero Art ── */
         .dropzone {
             width: 100%;
-            min-height: 290px;
-            border: 2px dashed var(--outline-variant);
-            border-radius: 28px;
+            min-height: 295px;
+            border: 2px dashed rgba(16, 185, 129, 0.35);
+            border-radius: 32px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: var(--surface-container-low);
-            padding: 32px 20px;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(180deg, #FAFCFA 0%, #F0FDF4 100%);
+            padding: 34px 20px;
             box-sizing: border-box;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.05);
         }
 
         .dropzone:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-            transform: scale(0.99);
+            border-color: #10B981;
+            background: linear-gradient(180deg, #F0FDF4 0%, #E6FBF0 100%);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 14px 32px rgba(16, 185, 129, 0.14);
+        }
+
+        .dropzone:active {
+            transform: scale(0.98);
         }
 
         .dropzone.dragover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-            box-shadow: 0 0 0 4px var(--primary-light);
+            border-color: #10B981;
+            background: #E6FBF0;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);
+        }
+
+        /* Hero Art Container */
+        .m3-scanner-hero-art {
+            position: relative;
+            width: 140px;
+            height: 112px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dropzone:hover .m3-scanner-hero-art {
+            transform: scale(1.06) translateY(-2px);
+        }
+
+        .dropzone:active .m3-scanner-hero-art {
+            transform: scale(0.96);
+        }
+
+        /* Aura Glow Blob */
+        .m3-art-blob {
+            position: absolute;
+            width: 110px;
+            height: 90px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.04) 75%);
+            border-radius: 40px 18px 36px 18px;
+            filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dropzone:hover .m3-art-blob {
+            transform: scale(1.15) rotate(6deg);
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(16, 185, 129, 0.08) 75%);
+        }
+
+        /* Recipe Card (Layer Behind) */
+        .m3-art-recipe-card {
+            position: absolute;
+            width: 82px;
+            height: 94px;
+            background: #FFFFFF;
+            border-radius: 14px;
+            border: 1.5px solid #E2E8F0;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            padding: 9px 10px;
+            box-sizing: border-box;
+            transform: rotate(-9deg) translate(-10px, -2px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1;
+        }
+
+        .dropzone:hover .m3-art-recipe-card {
+            transform: rotate(-13deg) translate(-15px, -5px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+            border-color: #CBD5E1;
+        }
+
+        .m3-art-recipe-header {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 7px;
+        }
+
+        .m3-art-recipe-icon {
+            font-size: 11px;
+            color: #10B981;
+        }
+
+        .m3-art-recipe-title-bar {
+            height: 5px;
+            width: 38px;
+            background: rgba(16, 185, 129, 0.4);
+            border-radius: 99px;
+        }
+
+        .m3-art-recipe-line {
+            height: 4px;
+            background: #E2E8F0;
+            border-radius: 99px;
+            margin-bottom: 5px;
+        }
+
+        .m3-art-recipe-line.line-1 { width: 100%; }
+        .m3-art-recipe-line.line-2 { width: 85%; }
+        .m3-art-recipe-line.line-3 { width: 62%; }
+
+        /* Scanner Viewfinder Frame (Layer Front) */
+        .m3-art-viewfinder {
+            position: relative;
+            width: 86px;
+            height: 86px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.18), 0 2px 6px rgba(0, 0, 0, 0.04);
+            border: 1.5px solid rgba(16, 185, 129, 0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transform: rotate(3deg) translate(8px, 2px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+
+        .dropzone:hover .m3-art-viewfinder {
+            transform: rotate(0deg) translate(8px, 0px) scale(1.04);
+            border-color: #10B981;
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.28);
+        }
+
+        /* 4 Viewfinder Corners */
+        .m3-corner {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border: 2.5px solid #10B981;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .m3-corner.top-left {
+            top: 6px; left: 6px;
+            border-right: none; border-bottom: none;
+            border-top-left-radius: 4px;
+        }
+
+        .m3-corner.top-right {
+            top: 6px; right: 6px;
+            border-left: none; border-bottom: none;
+            border-top-right-radius: 4px;
+        }
+
+        .m3-corner.bottom-left {
+            bottom: 6px; left: 6px;
+            border-right: none; border-top: none;
+            border-bottom-left-radius: 4px;
+        }
+
+        .m3-corner.bottom-right {
+            bottom: 6px; right: 6px;
+            border-left: none; border-top: none;
+            border-bottom-right-radius: 4px;
+        }
+
+        .dropzone:hover .m3-corner {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Laser Sweep Beam */
+        .m3-art-laser {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #10B981 50%, transparent 100%);
+            box-shadow: 0 0 8px #10B981;
+            opacity: 0.65;
+            animation: m3LaserIdle 3s ease-in-out infinite;
+        }
+
+        @keyframes m3LaserIdle {
+            0%, 100% { top: 12%; opacity: 0.25; }
+            50% { top: 82%; opacity: 0.9; }
+        }
+
+        /* Central Camera Lens */
+        .m3-art-lens {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dropzone:hover .m3-art-lens {
+            transform: scale(1.08);
+        }
+
+        .m3-art-camera-icon {
+            font-size: 24px;
+            color: #FFFFFF;
+        }
+
+        /* Floating AI Badge */
+        .m3-art-badge-ai {
+            position: absolute;
+            top: -4px;
+            right: -2px;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #047857;
+            color: #FFFFFF;
+            font-family: var(--font-display, 'Poppins', sans-serif);
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 99px;
+            box-shadow: 0 3px 10px rgba(4, 120, 87, 0.35);
+            border: 1.5px solid #FFFFFF;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dropzone:hover .m3-art-badge-ai {
+            transform: translate(2px, -3px) scale(1.06);
+            background: #059669;
+        }
+
+        /* Floating Gallery Mini-badge */
+        .m3-art-badge-gallery {
+            position: absolute;
+            bottom: -2px;
+            left: 2px;
+            z-index: 3;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            color: #10B981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 1.5px solid #E2E8F0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dropzone:hover .m3-art-badge-gallery {
+            transform: translate(-2px, 2px) scale(1.1);
+            border-color: #10B981;
         }
 
         .preview-image {
@@ -918,14 +1273,14 @@
         #ocrModal {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             display: none;
             /* Controlled by window.ocr.openModal() */
-            align-items: center;
-            justify-content: center;
+            align-items: stretch;
+            justify-content: stretch;
             z-index: 2000;
             backdrop-filter: blur(8px);
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            padding: 0;
         }
 
         #ocrModal.open {
@@ -935,32 +1290,43 @@
 
         .ocr-sheet {
             width: 100%;
-            max-width: 500px;
+            max-width: 100%;
             height: 100%;
-            max-height: 85vh;
-            background: white;
-            border-radius: 32px 32px 0 0;
+            height: 100dvh;
+            max-height: 100dvh;
+            background: #000;
+            border-radius: 0;
             display: flex !important;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
             position: relative;
         }
 
-        @media (min-width: 600px) {
+        @media (min-width: 768px) {
+            #ocrModal {
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+            }
             .ocr-sheet {
-                border-radius: 32px;
-                height: auto;
-                min-height: 600px;
+                border-radius: 28px;
+                max-width: 580px;
+                height: 92vh;
+                max-height: 850px;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
             }
         }
 
         .ocr-sheet-header {
             padding: 16px 24px;
+            padding-top: max(16px, env(safe-area-inset-top));
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--md-outline-var);
+            background: white;
+            z-index: 20;
         }
 
         .ocr-sheet-header h2 {
@@ -999,7 +1365,7 @@
     <!-- Sidebar Desktop & Mobile Drawer -->
     <aside id="main-sidebar" class="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo" onclick="window.location.href='/'; window.closeSidebar();"
+            <div class="sidebar-logo" onclick="try { localStorage.setItem('recipe_pantry_current_view', 'recipes'); } catch(e){}; window.location.href='/?view=recipes'; window.closeSidebar();"
                 style="cursor: pointer;">
                 <img src="assets/icons/icon.svg" class="logo-icon" width="28" height="28" alt="Logo" />
                 <span class="logo-text" style="color: var(--logo-color);">Recipe Pantry</span>
@@ -1018,7 +1384,7 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="/" class="nav-item">
+            <a href="/?view=recipes" class="nav-item" onclick="try { localStorage.setItem('recipe_pantry_current_view', 'recipes'); } catch(e){}">
                 <span class="material-symbols-outlined">menu_book</span>
                 <span data-i18n="navRecipes">Recetas</span>
             </a>
@@ -1037,6 +1403,10 @@
             <a href="/#favorites" class="nav-item">
                 <span class="material-symbols-outlined">star</span>
                 <span data-i18n="navFavorites">Favoritos</span>
+            </a>
+            <a href="/ocr" class="nav-item active">
+                <span class="material-symbols-outlined">document_scanner</span>
+                <span data-i18n="navScan">Escanear Receta</span>
             </a>
             <a href="/?view=help" class="nav-item">
                 <span class="material-symbols-outlined">settings</span>
@@ -1062,16 +1432,98 @@
     <main class="m3-main">
 
         <!-- Top App Bar (Unified design) -->
-        <header class="m3-top-bar">
+        <header class="m3-top-bar" style="position: relative;">
             <div class="left">
-                <button id="btnOpenMenu" class="btn-menu-m3-premium mobile-only" onclick="window.toggleSidebar(true)">
+                <!-- Botón Menú Lateral (Visible en la pantalla principal de escaneo en móvil) -->
+                <button id="btnOpenMenu" class="btn-menu-m3-premium" onclick="window.toggleSidebar(true)" title="Menú">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
+
+                <!-- Botón Volver Atrás (Visible en recorte, analizando y resultados) -->
+                <button id="btnBackOCR" class="m3-icon-btn" onclick="handleOcrBack()" title="Volver"
+                    style="display: none; width: 40px; height: 40px; border-radius: var(--md-shape-full); border: 1.5px solid var(--border); background: var(--bg); align-items: center; justify-content: center; cursor: pointer; color: var(--primary); transition: all .2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                    <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                </button>
             </div>
-            <div class="center" style="flex: 1; text-align: center;">
-                <h1 id="ocrTitleHeader" data-i18n="ocrTitle" style="margin:0; font-size: 18px; font-weight: 800; color: var(--on-surface);">Escanear Receta</h1>
+            <div class="center" style="flex: 1; text-align: center; min-width: 0; padding: 0 4px;">
+                <h1 id="ocrTitleHeader" style="margin:0; font-size: 17px; font-weight: 800; color: var(--on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease;">Escanear Receta</h1>
             </div>
-            <div class="right" style="width: 40px;"></div>
+            <div class="right" style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                <!-- LANGUAGE SELECTOR (Solo en pantalla principal de captura) -->
+                <div id="ocrSettings" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="ocr-lang-label" style="font-size: 11.5px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="ocrProcessingLang">Idioma:</span>
+                    <div class="language-toggle" style="display: flex; background: #F3F4F6; border-radius: 99px; padding: 2.5px; border: 1px solid var(--border);">
+                        <button type="button" onclick="setOcrLang('en')" id="langEn" class="active" 
+                            style="padding: 4px 12px; border-radius: 99px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s;">EN</button>
+                        <button type="button" onclick="setOcrLang('es')" id="langEs" 
+                            style="padding: 4px 12px; border-radius: 99px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; background: transparent; color: #6B7280; transition: all 0.2s;">ES</button>
+                    </div>
+                </div>
+
+                <!-- BOTON ESCANEAR EN HEADER (Solo en modo Ajustar Documento / Crop) -->
+                <button type="button" id="btnConfirmCrop" onclick="confirmCropAndProcess()"
+                    style="display: none; padding: 7px 16px; border-radius: var(--md-shape-full); border: none; background: var(--primary); color: white; align-items: center; justify-content: center; cursor: pointer; font-size: 13.5px; font-weight: 800; gap: 6px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">document_scanner</span>
+                    <span>Escanear</span>
+                </button>
+
+                <!-- PROGRESO DE ESCANEO EN HEADER (Solo en modo Analizando / Step 2) -->
+                <div id="ocrHeaderProgress" style="display: none; align-items: center; gap: 8px; background: #F0FDF4; border: 1.5px solid rgba(16, 185, 129, 0.25); border-radius: 99px; padding: 4px 12px 4px 6px; box-shadow: 0 1px 3px rgba(16, 185, 129, 0.1);">
+                    <div id="m3WavyCircleBox" class="m3-wavy-circle-box">
+                        <svg class="m3-wavy-circle-svg" viewBox="0 0 72 72">
+                            <path d="M 56 36 Q 62.63 44.65 52.18 47.76 Q 52.46 58.65 42.18 55.02 Q 36 64 29.82 55.02 Q 19.54 58.65 19.82 47.76 Q 9.37 44.65 16 36 Q 9.37 27.35 19.82 24.24 Q 19.54 13.35 29.82 16.98 Q 36 8 42.18 16.98 Q 52.46 13.35 52.18 24.24 Q 62.63 27.35 56 36 Z" 
+                                  fill="none" 
+                                  stroke="rgba(16, 185, 129, 0.18)" 
+                                  stroke-width="5.5" />
+                            <path id="m3WavyActiveRing" class="m3-wavy-active-ring"
+                                  d="M 56 36 Q 62.63 44.65 52.18 47.76 Q 52.46 58.65 42.18 55.02 Q 36 64 29.82 55.02 Q 19.54 58.65 19.82 47.76 Q 9.37 44.65 16 36 Q 9.37 27.35 19.82 24.24 Q 19.54 13.35 29.82 16.98 Q 36 8 42.18 16.98 Q 52.46 13.35 52.18 24.24 Q 62.63 27.35 56 36 Z" 
+                                  fill="none" 
+                                  stroke="#10B981" 
+                                  stroke-width="6" 
+                                  stroke-linecap="round"
+                                  stroke-dasharray="115 50"
+                                  stroke-dashoffset="0" />
+                        </svg>
+                        <span id="m3Checkmark" class="material-symbols-outlined m3-wavy-checkmark" 
+                              style="position: absolute; color: #10B981; font-size: 16px; font-weight: 800; opacity: 0; transform: scale(0.6); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">check</span>
+                    </div>
+                    <span id="ocrPercent" style="font-size: 13.5px; font-weight: 800; color: #10B981; font-family: 'Poppins', sans-serif;">0%</span>
+                </div>
+
+                <!-- GRUPO RESULTADO EN HEADER: Porcentaje y Botón Reintentar en la MISMA PÍLDORA -->
+                <div id="ocrHeaderResultGroup" class="m3-result-pill" 
+                    style="display: none; align-items: center; background: #10B981; color: white; border-radius: 99px; padding: 3px 4px 3px 10px; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <span id="confidenceBadgeStep1" 
+                        style="font-size: 13.5px; font-weight: 800; color: white; font-family: var(--font-display, 'Poppins', sans-serif); line-height: 1;">98%</span>
+                    <button type="button" id="btnHeaderRetry" onclick="goToStep(1, true)"
+                        style="width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.24); color: white; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 0;"
+                        data-i18n-title="ocrRetry" title="Reintentar" aria-label="Reintentar">
+                        <span class="material-symbols-outlined" style="font-size: 17px; line-height: 1;">refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Google Material 3 Expressive Wavy Linear Progress Bar adherida a la base del header -->
+            <div id="ocrHeaderLinearTrack" class="m3-wavy-linear-track" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 3.5px; overflow: hidden; display: none; margin: 0; max-width: 100%;">
+                <svg class="m3-wavy-linear-svg" viewBox="0 0 340 24" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+                    <defs>
+                        <clipPath id="m3WaveClip">
+                            <rect id="m3WaveClipRect" x="0" y="0" width="0%" height="24" rx="2" />
+                        </clipPath>
+                    </defs>
+                    <line x1="0" y1="12" x2="340" y2="12" stroke="rgba(16, 185, 129, 0.15)" stroke-width="6" />
+                    <g clip-path="url(#m3WaveClip)">
+                        <path class="m3-wavy-line-active"
+                              d="M -48 12 Q -42 6 -36 12 T -24 12 T -12 12 T 0 12 Q 6 6 12 12 T 24 12 T 36 12 T 48 12 T 60 12 T 72 12 T 84 12 T 96 12 T 108 12 T 120 12 T 132 12 T 144 12 T 156 12 T 168 12 T 180 12 T 192 12 T 204 12 T 216 12 T 228 12 T 240 12 T 252 12 T 264 12 T 276 12 T 288 12 T 300 12 T 312 12 T 324 12 T 336 12 T 348 12 T 360 12 T 372 12 T 384 12"
+                              fill="none"
+                              stroke="#10B981"
+                              stroke-width="5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                    </g>
+                </svg>
+                <div id="progressBar" style="display: none; width: 0%;"></div>
+            </div>
         </header>
 
         <div class="m3-scroll">
@@ -1084,7 +1536,7 @@
                     <div id="ocrCaptureSection">
                         
                         <!-- TAB TOGGLE: Cámara / Pegar Link -->
-                        <div id="ocrModeToggle" style="display: flex; background: #E5E7EB; border-radius: 16px; padding: 4px; margin-bottom: 24px; gap: 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                        <div id="ocrModeToggle" style="display: flex; background: #E5E7EB; border-radius: 16px; padding: 4px; margin-top: 8px; margin-bottom: 24px; gap: 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
                             <button id="tabCamera" class="ocr-tab active" onclick="switchOcrTab('camera')"
                                 style="flex: 1; padding: 12px 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 200ms ease; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">photo_camera</span>
@@ -1097,22 +1549,16 @@
                             </button>
                         </div>
 
-                        <!-- LANGUAGE SELECTOR (Restored) -->
-                        <div id="ocrSettings" style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 32px; animation: m3-fade-up 0.5s var(--m3-easing);">
-                            <span style="font-size: 13px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="ocrProcessingLang">Idioma:</span>
-                            <div class="language-toggle" style="display: flex; background: #F3F4F6; border-radius: 99px; padding: 3px; border: 1px solid var(--border);">
-                                <button onclick="setOcrLang('es')" id="langEs" class="active" 
-                                    style="padding: 6px 16px; border-radius: 99px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s;">ES</button>
-                                <button onclick="setOcrLang('en')" id="langEn" 
-                                    style="padding: 6px 16px; border-radius: 99px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; background: transparent; color: #6B7280; transition: all 0.2s;">EN</button>
-                            </div>
-                        </div>
-
                         <style>
                             .language-toggle button.active {
-                                background: var(--primary);
-                                color: white;
-                                box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+                                background: var(--primary, #10B981) !important;
+                                color: white !important;
+                                box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3) !important;
+                            }
+                            @media (max-width: 480px) {
+                                .ocr-lang-label {
+                                    display: none !important;
+                                }
                             }
         #ocrPreviewContainer.is-url-preview,
         #ocrPreviewContainerModal.is-url-preview {
@@ -1212,45 +1658,60 @@
                             </div>
 
                             <div class="dropzone" id="dropzone" onclick="if(window.ocr) window.ocr.openModal(); else document.getElementById('ocrGalleryInput').click();">
-                                <div style="background: var(--primary-light); color: var(--primary); width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                                    <span class="material-symbols-outlined" style="font-size: 34px;">photo_camera</span>
+                                <!-- Ilustración Material 3 Expressive de Escáner y Cámara -->
+                                <div class="m3-scanner-hero-art">
+                                    <div class="m3-art-blob"></div>
+                                    <div class="m3-art-recipe-card">
+                                        <div class="m3-art-recipe-header">
+                                            <span class="material-symbols-outlined m3-art-recipe-icon">restaurant</span>
+                                            <div class="m3-art-recipe-title-bar"></div>
+                                        </div>
+                                        <div class="m3-art-recipe-line line-1"></div>
+                                        <div class="m3-art-recipe-line line-2"></div>
+                                        <div class="m3-art-recipe-line line-3"></div>
+                                    </div>
+                                    <div class="m3-art-viewfinder">
+                                        <span class="m3-corner top-left"></span>
+                                        <span class="m3-corner top-right"></span>
+                                        <span class="m3-corner bottom-left"></span>
+                                        <span class="m3-corner bottom-right"></span>
+                                        <div class="m3-art-laser"></div>
+                                        <div class="m3-art-lens">
+                                            <span class="material-symbols-outlined m3-art-camera-icon">photo_camera</span>
+                                        </div>
+                                    </div>
+                                    <div class="m3-art-badge-gallery">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">collections</span>
+                                    </div>
                                 </div>
-                                <h3 style="margin: 0; font-weight: 800; color: var(--md-on-surface); font-size: 20px;" data-i18n="ocrSelectImage">
-                                    Abrir Cámara de Recetas
+
+                                <h3 style="margin: 0; font-weight: 800; color: var(--md-on-surface); font-size: 20px; font-family: var(--font-display, 'Poppins', sans-serif);" data-i18n="ocrSelectImage">
+                                    Tomar foto o subir
                                 </h3>
-                                <p style="font-size: 14px; color: var(--on-surface-variant); margin: 8px 0 0 0; max-width: 320px; line-height: 1.5;" data-i18n="ocrFormats">
-                                    Toca para abrir la cámara. En la cámara también podrás elegir fotos de tu galería.
+                                <p style="font-size: 13.5px; color: var(--on-surface-variant); margin: 8px 0 0 0; max-width: 320px; line-height: 1.5;" data-i18n="ocrFormats">
+                                    Toca para abrir la cámara o seleccionar de tu galería.
                                 </p>
                             </div>
 
-                            <!-- SECCIÓN DE CONSEJOS (Ahora dentro de cameraInterfacePanel) -->
-                            <div id="ocrTipsSection"
-                                style="margin-top: 32px; padding: 20px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border);">
-                                <p style="font-size: 14px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">lightbulb</span>
-                                    <span data-i18n="ocrTipsTitle">Consejos Pro:</span>
-                                </p>
-                                <ul style="margin-top: 12px; font-size: 14px; color: #6B7280; padding-left: 20px; line-height: 1.6;">
-                                    <li data-i18n="ocrTip1">Asegúrate que el texto sea legible.</li>
-                                    <li data-i18n="ocrTip2">Usa buena iluminación (evita sombras).</li>
-                                    <li data-i18n="ocrTip3">Mantén la cámara paralela al papel.</li>
-                                </ul>
-                            </div>
+
                         </div>
 
                     </div>
 
                     <!-- RESULTADOS EN EL MISMO PASO 1 (Unificado v134) -->
-                    <div id="ocrResultHeaderStep1" class="hidden" style="margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                            <h3 style="font-weight:800; font-size:20px; margin:0; color: var(--primary);">Resultado del Escaneo</h3>
-                            <span id="confidenceBadgeStep1" class="confidence-badge"></span>
-                        </div>
+                    <div id="ocrResultHeaderStep1" class="hidden" style="margin-top: 14px; animation: m3-fade-up 0.4s var(--m3-easing);">
 
                         <div class="m3-field-container" style="margin-bottom: 20px;">
                             <input type="text" id="ocrRecipeName" class="m3-field-input" placeholder=" "
                                 data-i18n-placeholder="placeholderRecipeName">
                             <label class="m3-field-label" data-i18n="formNameLabel">Nombre de la Receta</label>
+                        </div>
+
+                        <div class="m3-field-container" style="margin-bottom: 20px;">
+                            <textarea id="ocrRecipeDescription" class="m3-field-input" rows="3" placeholder=" "
+                                style="min-height: 80px;"
+                                data-i18n-placeholder="placeholderDescription"></textarea>
+                            <label class="m3-field-label" data-i18n="formDescOptional">Descripción (Opcional)</label>
                         </div>
                     </div>
 
@@ -1263,20 +1724,20 @@
                         
                         <!-- Vista Estructurada de Gemini -->
                         <div id="ocrStructuredViewStep1" class="hidden" style="margin-top: 32px; animation: m3-fade-up 0.4s var(--m3-easing);">
-                            <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                                <span class="material-symbols-outlined" style="font-size:20px;">shopping_basket</span> INGREDIENTES
+                            <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--text-main, #1a1a1a); display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="font-size:20px; color: var(--primary, #10B981);">shopping_basket</span> INGREDIENTES
                             </h3>
                             <div id="ocrIngredientsListStep1" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;"></div>
 
-                            <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-top: 32px;">
-                                <span class="material-symbols-outlined" style="font-size:20px;">description</span> PASOS DE PREPARACIÓN
+                            <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--text-main, #1a1a1a); display: flex; align-items: center; gap: 8px; margin-top: 32px;">
+                                <span class="material-symbols-outlined" style="font-size:20px; color: var(--primary, #10B981);">description</span> PASOS DE PREPARACIÓN
                             </h3>
                             <div id="ocrStepsListStep1" style="display: flex; flex-direction: column; gap: 14px;"></div>
 
                             <!-- Sección Notas / Tips -->
                             <div id="ocrNotesContainerStep1" class="hidden" style="margin-top: 32px;">
-                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                                    <span class="material-symbols-outlined" style="font-size:20px;">sticky_note_2</span> NOTAS
+                                <h3 style="font-weight:800; margin-bottom:16px; font-size:16px; color: var(--text-main, #1a1a1a); display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size:20px; color: var(--primary, #10B981);">sticky_note_2</span> NOTAS
                                 </h3>
                                 <div class="ocr-edit-card" style="gap: 12px; padding: 14px 16px; border-radius: 16px;">
                                     <div id="ocrNotesTextStep1" contenteditable="true" data-type="nota" style="width: 100%; font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6; outline: none; min-height: 24px; white-space: pre-wrap;"></div>
@@ -1326,16 +1787,10 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div style="display: flex; gap: 12px; margin-top: 24px; margin-bottom: 32px;">
-                            <button class="m3-expressive-card secondary" 
-                                style="flex: 1; padding: 16px; border-radius: 16px; min-height: 60px; flex-direction: row; gap: 8px;"
-                                onclick="goToStep(1, true)">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">refresh</span>
-                                <span style="font-size: 14px; font-weight: 700;" data-i18n="ocrRetry">Reintentar</span>
-                            </button>
+                        <!-- Botón de Acción Principal (Guardar Receta) -->
+                        <div style="display: flex; margin-top: 24px; margin-bottom: 32px;">
                             <button id="btnSaveRecipe" class="m3-expressive-card" 
-                                style="flex: 2; padding: 16px; border-radius: 16px; min-height: 60px; background: var(--primary); color: white; flex-direction: row; gap: 8px; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);"
+                                style="width: 100%; padding: 16px; border-radius: 16px; min-height: 60px; background: var(--primary); color: white; flex-direction: row; gap: 8px; justify-content: center; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);"
                                 onclick="saveRecipe();">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
                                 <span style="font-size: 16px; font-weight: 800;" data-i18n="ocrSave">Guardar Receta</span>
@@ -1346,179 +1801,24 @@
 
                 <!-- PASO RECORTE CAMSCANNER: Ajustar esquinas -->
                 <div id="stepCrop" class="ocr-step">
-                    <div style="margin-bottom: 16px;">
-                        <h2 class="brand-font" style="font-size: 26px; color: var(--primary); margin-bottom: 6px;">
-                            Ajustar Documento
-                        </h2>
-                        <p style="color: var(--on-surface-variant); font-size: 13.5px; margin: 0;">
+                    <div class="crop-instructions-box" style="margin-bottom: 8px; margin-top: 2px;">
+                        <p style="color: var(--on-surface-variant); font-size: 13px; margin: 0; line-height: 1.35;">
                             Arrastra las 4 esquinas para alinear tu receta. La lupa te muestra cada borde con precisión milimétrica.
                         </p>
                     </div>
 
-                    <!-- Crop Editor Toolbar -->
-                    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 12px; flex-wrap: wrap;">
-                        <button type="button" class="crop-tool-btn" onclick="if(window.interactiveCrop) window.interactiveCrop.rotate90()" title="Girar 90 grados">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">rotate_right</span>
-                            <span>Girar</span>
-                        </button>
-                    </div>
-
                     <!-- Interactive Canvas Container with Magnifier -->
-                    <div id="cropContainer" style="position: relative; width: 100%; min-height: 380px; max-height: 65vh; background: #0F172A; border-radius: 0; overflow: visible; box-shadow: 0 12px 30px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; touch-action: none;">
+                    <div id="cropContainer" style="position: relative; width: 100%; min-height: 380px; max-height: 65vh; background: #0F172A; border-radius: 0; overflow: visible; box-shadow: 0 12px 30px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; touch-action: none; margin-bottom: 24px;">
                         <canvas id="cropCanvas" style="display: block; touch-action: none; border-radius: 0;"></canvas>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div style="display: flex; gap: 12px; margin-top: 20px; margin-bottom: 24px;">
-                        <button type="button" class="m3-expressive-card secondary" 
-                            style="flex: 1; padding: 14px; border-radius: 16px; min-height: 54px; flex-direction: row; gap: 8px; justify-content: center;"
-                            onclick="goToStep(1, true)">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
-                            <span style="font-size: 14px; font-weight: 700;">Volver</span>
-                        </button>
-                        <button type="button" id="btnConfirmCrop" class="m3-expressive-card" 
-                            style="flex: 2; padding: 14px 20px; border-radius: 16px; min-height: 54px; background: var(--primary); color: white; flex-direction: row; gap: 10px; justify-content: center; box-shadow: 0 8px 18px rgba(16, 185, 129, 0.28);"
-                            onclick="confirmCropAndProcess()">
-                            <span class="material-symbols-outlined" style="font-size: 22px;">document_scanner</span>
-                            <span style="font-size: 15px; font-weight: 800;">Escanear Receta</span>
-                        </button>
                     </div>
                 </div>
 
                 <!-- PASO 2: Procesando -->
-                <div id="step2" class="ocr-step">
-                    <div style="margin-bottom: 32px;">
-                        <h2 class="brand-font"
-                            style="font-size: 32px; color: var(--md-on-surface); margin-bottom: 12px;"
-                            data-i18n="ocrStep2Title">
-                            Analizando...</h2>
-                        <p style="color: var(--on-surface-variant); font-size: 16px;" data-i18n="ocrStep2Desc">Estamos
-                            extrayendo los secretos de
-                            tu
-                            receta.</p>
-                    </div>
-
+                <div id="step2" class="ocr-step" style="margin-top: 0; padding-top: 4px;">
                     <div style="text-align: center; position: relative;">
                         <!-- Image preview with frosted glass overlay -->
                         <div id="ocrPreviewContainer">
                             <img id="ocrPreview" class="preview-image" alt="Preview">
-                        </div>
-
-                        <!-- Google Material 3 Expressive Wavy Progress Indicators (Match Screenshot 2) -->
-                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom: 16px;">
-                            <style>
-                                /* M3 Expressive Wavy Circular Spinner (Per Screenshot 2) */
-                                .m3-wavy-circle-box {
-                                    position: relative;
-                                    width: 76px;
-                                    height: 76px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                }
-                                .m3-wavy-circle-svg {
-                                    width: 76px;
-                                    height: 76px;
-                                    transform-origin: center;
-                                    animation: m3ScallopSpin 3s linear infinite;
-                                }
-                                @keyframes m3ScallopSpin {
-                                    0% { transform: rotate(0deg); }
-                                    100% { transform: rotate(360deg); }
-                                }
-                                .m3-wavy-circle-box.success .m3-wavy-circle-svg {
-                                    animation: none;
-                                    transform: rotate(0deg);
-                                }
-                                .m3-wavy-circle-box.success .m3-wavy-active-ring {
-                                    stroke-dasharray: 200 0 !important;
-                                    stroke: #10B981 !important;
-                                }
-                                .m3-wavy-circle-box.success .m3-wavy-checkmark {
-                                    opacity: 1 !important;
-                                    transform: scale(1) !important;
-                                }
-
-                                /* M3 Expressive Wavy Linear Progress Indicator (Per Screenshot 2) */
-                                .m3-wavy-linear-track {
-                                    width: 100%;
-                                    max-width: 320px;
-                                    height: 24px;
-                                    position: relative;
-                                    overflow: hidden;
-                                    margin-top: 10px;
-                                }
-                                .m3-wavy-linear-svg {
-                                    width: 100%;
-                                    height: 100%;
-                                    display: block;
-                                }
-                                .m3-wavy-line-active {
-                                    animation: m3WaveMotion 1.4s linear infinite;
-                                }
-                                @keyframes m3WaveMotion {
-                                    0% { transform: translateX(0); }
-                                    100% { transform: translateX(24px); }
-                                }
-                                #m3WaveClipRect {
-                                    transition: width 0.35s cubic-bezier(0.2, 0, 0, 1);
-                                }
-                            </style>
-
-                            <div id="m3WavyCircleBox" class="m3-wavy-circle-box">
-                                <svg class="m3-wavy-circle-svg" viewBox="0 0 72 72">
-                                    <!-- Track circular suave -->
-                                    <path d="M 56 36 Q 62.63 44.65 52.18 47.76 Q 52.46 58.65 42.18 55.02 Q 36 64 29.82 55.02 Q 19.54 58.65 19.82 47.76 Q 9.37 44.65 16 36 Q 9.37 27.35 19.82 24.24 Q 19.54 13.35 29.82 16.98 Q 36 8 42.18 16.98 Q 52.46 13.35 52.18 24.24 Q 62.63 27.35 56 36 Z" 
-                                          fill="none" 
-                                          stroke="rgba(16, 185, 129, 0.18)" 
-                                          stroke-width="5" />
-                                    <!-- Anillo activo festoneado / ondulado -->
-                                    <path id="m3WavyActiveRing" class="m3-wavy-active-ring"
-                                          d="M 56 36 Q 62.63 44.65 52.18 47.76 Q 52.46 58.65 42.18 55.02 Q 36 64 29.82 55.02 Q 19.54 58.65 19.82 47.76 Q 9.37 44.65 16 36 Q 9.37 27.35 19.82 24.24 Q 19.54 13.35 29.82 16.98 Q 36 8 42.18 16.98 Q 52.46 13.35 52.18 24.24 Q 62.63 27.35 56 36 Z" 
-                                          fill="none" 
-                                          stroke="#10B981" 
-                                          stroke-width="5.5" 
-                                          stroke-linecap="round"
-                                          stroke-dasharray="115 50"
-                                          stroke-dashoffset="0" />
-                                </svg>
-                                <span id="m3Checkmark" class="material-symbols-outlined m3-wavy-checkmark" 
-                                      style="position: absolute; color: #10B981; font-size: 32px; font-weight: 800; opacity: 0; transform: scale(0.6); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">check</span>
-                            </div>
-                        </div>
-
-                        <!-- Material 3 Expressive Percentage & Status -->
-                        <div id="ocrPercent" style="font-size: 32px; font-weight: 800; color: #10B981; margin-bottom: 6px; font-family: 'Poppins', sans-serif;">0%</div>
-
-                        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                            <p id="processingStatus"
-                                style="margin-bottom: 16px; font-weight: 600; color: #4B5563; font-size: 14.5px; text-align: center; max-width: 320px;"
-                                data-i18n="ocrProcessing">
-                                Iniciando OCR...</p>
-                            
-                            <!-- Google Material 3 Expressive Wavy Linear Progress Bar -->
-                            <div class="m3-wavy-linear-track">
-                                <svg class="m3-wavy-linear-svg" viewBox="0 0 340 24" preserveAspectRatio="none">
-                                    <defs>
-                                        <clipPath id="m3WaveClip">
-                                            <rect id="m3WaveClipRect" x="0" y="0" width="0%" height="24" rx="4" />
-                                        </clipPath>
-                                    </defs>
-                                    <!-- Straight Track de Fondo -->
-                                    <line x1="4" y1="12" x2="336" y2="12" stroke="rgba(16, 185, 129, 0.18)" stroke-width="6" stroke-linecap="round" />
-                                    <!-- Barra Ondulada Activa M3 Expressive -->
-                                    <g clip-path="url(#m3WaveClip)">
-                                        <path class="m3-wavy-line-active"
-                                              d="M -48 12 Q -42 6 -36 12 T -24 12 T -12 12 T 0 12 Q 6 6 12 12 T 24 12 T 36 12 T 48 12 T 60 12 T 72 12 T 84 12 T 96 12 T 108 12 T 120 12 T 132 12 T 144 12 T 156 12 T 168 12 T 180 12 T 192 12 T 204 12 T 216 12 T 228 12 T 240 12 T 252 12 T 264 12 T 276 12 T 288 12 T 300 12 T 312 12 T 324 12 T 336 12 T 348 12 T 360 12 T 372 12 T 384 12"
-                                              fill="none"
-                                              stroke="#10B981"
-                                              stroke-width="5"
-                                              stroke-linecap="round"
-                                              stroke-linejoin="round" />
-                                    </g>
-                                </svg>
-                                <div id="progressBar" style="display: none; width: 0%;"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1563,6 +1863,7 @@
             }
         };
 
+        window.selectedOcrLang = 'eng';
         window.setOcrLang = function(lang) {
             window.selectedOcrLang = (lang === 'en') ? 'eng' : 'spa';
             document.getElementById('langEs').classList.toggle('active', lang === 'es');
@@ -1641,12 +1942,12 @@
                 
                 const previewImg = document.getElementById('ocrPreview');
                 if (previewImg) {
-                    previewImg.src = 'assets/link.svg?v=899';
+                    previewImg.src = 'assets/link.svg?v=901';
                     previewImg.style.display = 'block';
                 }
                 if (typeof goToStep === 'function') goToStep(2);
 
-                const imported = await URLImporter.import(url, window.selectedOcrLang || 'spa');
+                const imported = await URLImporter.import(url, window.selectedOcrLang || 'eng');
                 
                 if (previewImg && imported.platform === 'youtube') {
                     const vid = url.match(/(?:v=|v\/|vi\/|u\/\w\/|embed\/|shorts\/|youtu.be\/|be\/)([a-zA-Z0-9_-]{11})/);
@@ -1810,50 +2111,42 @@
         function setupOCRModal() {
             const btnCloseOCR = document.getElementById('btnCloseOCR');
             const btnCapture = document.getElementById('btnCapture');
-            const btnSwitchCamera = document.getElementById('btnSwitchCamera');
-            const btnGallery = document.getElementById('btnGallery');
-            const ocrGalleryInput = document.getElementById('ocrGalleryInput');
             const btnRetryOCR = document.getElementById('btnRetryOCR');
+            const ocrGalleryInput = document.getElementById('ocrGalleryInput');
 
-            if (btnCloseOCR) btnCloseOCR.onclick = () => window.ocr.close();
-            if (btnCapture) btnCapture.onclick = () => window.ocr.capture();
-            if (btnSwitchCamera) btnSwitchCamera.onclick = () => window.ocr.switchCamera();
-            if (btnGallery) {
-                btnGallery.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const input = document.getElementById('ocrGalleryInput');
-                    if (input) input.click();
+            if (btnCloseOCR) btnCloseOCR.onclick = () => { if (window.ocr) window.ocr.close(); };
+            if (btnCapture) {
+                btnCapture.onclick = () => {
+                    if (window.ocr) window.ocr.capture();
                 };
             }
+
             if (ocrGalleryInput) {
+                ocrGalleryInput.onclick = () => { ocrGalleryInput.value = ''; };
                 ocrGalleryInput.onchange = (e) => {
-                    if (window.ocr && e.target.files && e.target.files[0]) {
+                    if (e.target.files && e.target.files[0]) {
                         const file = e.target.files[0];
-                        e.target.value = '';
-                        window.ocr.handleGallery(file);
+                        if (window.ocr) {
+                            window.ocr.handleGallery(file);
+                        } else if (typeof handleImageFile === 'function') {
+                            handleImageFile(file);
+                        }
                     }
                 };
             }
-            if (ocrCameraModalInput) {
-                ocrCameraModalInput.onchange = (e) => {
-                    if (window.ocr && e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        e.target.value = '';
-                        window.ocr.handleGallery(file);
-                    }
-                };
-            }
+
             if (btnRetryOCR) btnRetryOCR.onclick = () => window.ocr.reset();
         }
 
         async function saveRecipeFromModal() {
             const nameEl = document.getElementById('ocrRecipeNameModal');
+            const descEl = document.getElementById('ocrRecipeDescModal');
             const rawTextEl = document.getElementById('extractedTextModal');
 
             if (!nameEl || !rawTextEl) return;
 
             const name = nameEl.value.trim();
+            const desc = descEl ? descEl.value.trim() : '';
             const rawText = rawTextEl.value;
 
             if (!name) {
@@ -1865,18 +2158,135 @@
             // Sync with main page data
             if (!window.currentOCRResults) window.currentOCRResults = {};
             window.currentOCRResults.nombre = name;
+            window.currentOCRResults.descripcion = desc;
             window.currentOCRResults.texto = rawText;
 
-            // Update main page fields (Step 3)
+            // Update main page fields (Step 1 Results)
             const mainName = document.getElementById('ocrRecipeName');
+            const mainDesc = document.getElementById('ocrRecipeDescription');
             const mainFullText = document.getElementById('ocrFullText');
 
             if (mainName) mainName.value = name;
+            if (mainDesc) mainDesc.value = desc;
             if (mainFullText) mainFullText.value = rawText;
 
             if (window.ocr) window.ocr.close();
-            goToStep(3);
+            goToStep(1);
         }
+
+        function updateOcrHeaderState() {
+            const btnOpenMenu = document.getElementById('btnOpenMenu');
+            const btnBackOCR = document.getElementById('btnBackOCR');
+            const ocrSettings = document.getElementById('ocrSettings');
+            const btnCropHeader = document.getElementById('btnConfirmCrop');
+            const btnRetryHeader = document.getElementById('btnHeaderRetry');
+            const headerProgress = document.getElementById('ocrHeaderProgress');
+            const headerLinearTrack = document.getElementById('ocrHeaderLinearTrack');
+
+            const step1 = document.getElementById('step1');
+            const stepCrop = document.getElementById('stepCrop');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            const captureSection = document.getElementById('ocrCaptureSection');
+            const resHeader = document.getElementById('ocrResultHeaderStep1');
+
+            const isCrop = Boolean(stepCrop && stepCrop.classList.contains('active'));
+            document.body.classList.toggle('is-ocr-crop-active', isCrop);
+            if (isCrop) {
+                const scrollEl = document.querySelector('.m3-scroll');
+                if (scrollEl) scrollEl.scrollTop = 0;
+            }
+            const isStep2 = Boolean(step2 && step2.classList.contains('active'));
+            const isStep3 = Boolean(step3 && step3.classList.contains('active'));
+            const isShowingResults = Boolean((resHeader && !resHeader.classList.contains('hidden')) || isStep3);
+            const isMainScanHome = Boolean(step1 && step1.classList.contains('active') && 
+                                  captureSection && !captureSection.classList.contains('hidden') &&
+                                  !isShowingResults && !isCrop && !isStep2);
+
+            // 0. Título dinámico del header (Mueve "Analizando..." y estados al header)
+            const titleHeader = document.getElementById('ocrTitleHeader');
+            if (titleHeader) {
+                if (isStep2) {
+                    titleHeader.textContent = window.i18n ? window.i18n.t('ocrStep2Title', 'Analizando...') : 'Analizando...';
+                    titleHeader.style.color = 'var(--primary, #00C853)';
+                } else if (isCrop) {
+                    titleHeader.textContent = window.i18n ? window.i18n.t('ocrCropTitle', 'Ajustar Documento') : 'Ajustar Documento';
+                    titleHeader.style.color = 'var(--on-surface)';
+                } else if (isShowingResults) {
+                    titleHeader.textContent = window.i18n ? window.i18n.t('ocrResultTitle', 'Resultado del Escaneo') : 'Resultado del Escaneo';
+                    titleHeader.style.color = 'var(--primary, #00C853)';
+                } else {
+                    titleHeader.textContent = window.i18n ? window.i18n.t('ocrTitle', 'Escanear Receta') : 'Escanear Receta';
+                    titleHeader.style.color = 'var(--on-surface)';
+                }
+            }
+
+            // 1. Menú lateral vs Flecha Atrás:
+            // El menú lateral SÓLO va en la pantalla principal inicial (antes de tomar/subir foto).
+            // En recorte (crop), analizando y con la receta ya escaneada: NUNCA va el menú; va la flecha atrás.
+            const showMenu = isMainScanHome;
+            if (btnOpenMenu) {
+                if (showMenu) {
+                    btnOpenMenu.style.setProperty('display', 'flex', 'important');
+                } else {
+                    btnOpenMenu.style.setProperty('display', 'none', 'important');
+                }
+            }
+            if (btnBackOCR) {
+                if (showMenu) {
+                    btnBackOCR.style.setProperty('display', 'none', 'important');
+                } else {
+                    btnBackOCR.style.setProperty('display', 'flex', 'important');
+                }
+            }
+
+            // 2. Selector de idioma: solo en la pantalla principal de escaneo
+            if (ocrSettings) {
+                ocrSettings.style.display = isMainScanHome ? 'flex' : 'none';
+            }
+
+            // 3. Botón Escanear: solo en la pantalla de recorte/ajuste de documento
+            if (btnCropHeader) {
+                btnCropHeader.style.display = isCrop ? 'inline-flex' : 'none';
+            }
+
+            // 4. Progreso de análisis: solo en el paso 2 (Analizando...)
+            if (headerProgress) {
+                headerProgress.style.display = isStep2 ? 'flex' : 'none';
+            }
+            if (headerLinearTrack) {
+                headerLinearTrack.style.display = isStep2 ? 'block' : 'none';
+            }
+
+            // 5. Grupo Reintentar + Porcentaje: solo en la pantalla de resultados del escaneo
+            const headerResultGroup = document.getElementById('ocrHeaderResultGroup');
+            if (headerResultGroup) {
+                headerResultGroup.style.display = isShowingResults ? 'inline-flex' : 'none';
+            }
+            if (btnRetryHeader) {
+                btnRetryHeader.style.display = isShowingResults ? 'inline-flex' : 'none';
+            }
+        }
+        window.updateOcrHeaderState = updateOcrHeaderState;
+
+        window.handleOcrBack = function() {
+            const stepCrop = document.getElementById('stepCrop');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            const resHeader = document.getElementById('ocrResultHeaderStep1');
+            const isShowingResults = resHeader && !resHeader.classList.contains('hidden');
+
+            if ((stepCrop && stepCrop.classList.contains('active')) || 
+                (step2 && step2.classList.contains('active')) ||
+                (step3 && step3.classList.contains('active')) ||
+                isShowingResults) {
+                goToStep(1, true);
+            } else if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        };
 
         function goToStep(step, forceReset = false) {
             if (!step || !document.getElementById('step' + step)) return;
@@ -1900,6 +2310,8 @@
 
             document.querySelectorAll('.ocr-step').forEach(s => s.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
+            const scrollContainer = document.querySelector('.m3-scroll');
+            if (scrollContainer) scrollContainer.scrollTop = 0;
 
             // Si volvemos al paso 1, restaurar visibilidad de la sección de captura 
             // solo si NO hay resultados activos siendo mostrados (v255)
@@ -1909,11 +2321,9 @@
 
                 if (!isShowingResults || forceReset) {
                     const captureSection = document.getElementById('ocrCaptureSection');
-                    const tipsSection = document.getElementById('ocrTipsSection');
                     const resBody = document.getElementById('ocrResultBodyStep1');
 
                     if (captureSection) captureSection.classList.remove('hidden');
-                    if (tipsSection) tipsSection.classList.remove('hidden');
                     if (resHeader) resHeader.classList.add('hidden');
                     if (resBody) resBody.classList.add('hidden');
 
@@ -1924,6 +2334,11 @@
                         notesContainer.style.display = 'none';
                     }
                     if (notesText) notesText.innerText = '';
+
+                    const nameInp = document.getElementById('ocrRecipeName');
+                    const descInp = document.getElementById('ocrRecipeDescription');
+                    if (nameInp && forceReset) nameInp.value = '';
+                    if (descInp && forceReset) descInp.value = '';
 
                     const fileInput = document.getElementById('fileInput');
                     const urlInput = document.getElementById('urlImportInput');
@@ -1946,6 +2361,17 @@
             document.querySelectorAll('.step-dot').forEach((dot, i) => {
                 dot.classList.toggle('active', i === (step - 1));
             });
+
+            if (step === 2) {
+                const titleHeader = document.getElementById('ocrTitleHeader');
+                if (titleHeader) {
+                    titleHeader.textContent = window.i18n ? window.i18n.t('ocrStep2Title', 'Analizando...') : 'Analizando...';
+                    titleHeader.style.color = 'var(--primary, #00C853)';
+                }
+            }
+
+            // Actualizar visibilidad de idioma en el header
+            updateOcrHeaderState();
         }
 
         function setupDragAndDrop() {
@@ -2033,6 +2459,15 @@
             reader.readAsDataURL(file);
         }
 
+        window.skipCropAndProcess = function() {
+            if (currentImageFile) {
+                goToStep(2);
+                startOCR(currentImageFile);
+            } else if (window.interactiveCrop) {
+                confirmCropAndProcess();
+            }
+        };
+
         async function confirmCropAndProcess() {
             if (!window.interactiveCrop) {
                 if (currentImageFile) {
@@ -2078,19 +2513,28 @@
         }
 
         async function startOCR(file) {
+            const titleHeader = document.getElementById('ocrTitleHeader');
             const status = document.getElementById('processingStatus');
             const percentEl = document.getElementById('ocrPercent');
             const wavyClipRect = document.getElementById('m3WaveClipRect');
             const wavyCircleBox = document.getElementById('m3WavyCircleBox');
             const checkEl = document.getElementById('m3Checkmark');
 
+            function setDynamicStatus(msg) {
+                if (status) status.textContent = msg;
+                if (titleHeader) {
+                    titleHeader.textContent = msg;
+                    titleHeader.style.color = 'var(--primary, #00C853)';
+                }
+            }
+
             function updateM3ProgressUI(p) {
                 if (wavyClipRect) wavyClipRect.setAttribute('width', `${p}%`);
                 if (percentEl) percentEl.textContent = `${p}%`;
             }
 
+            setDynamicStatus('Analizando...');
             updateM3ProgressUI(10);
-            if (status) status.textContent = 'Iniciando análisis...';
             if (wavyCircleBox) wavyCircleBox.classList.remove('success');
             if (checkEl) checkEl.style.opacity = '0';
 
@@ -2099,33 +2543,33 @@
                 if (currentProgress < 90) {
                     if (currentProgress < 30) {
                         currentProgress += 5;
-                        if (status) status.textContent = 'Analizando imagen de la receta...';
+                        setDynamicStatus('Analizando receta...');
                     } else if (currentProgress < 60) {
                         currentProgress += 4;
-                        if (status) status.textContent = 'Extrayendo ingredientes y cantidades...';
+                        setDynamicStatus('Extrayendo ingredientes...');
                     } else if (currentProgress < 85) {
                         currentProgress += 3;
-                        if (status) status.textContent = 'Procesando pasos de preparación...';
+                        setDynamicStatus('Procesando pasos...');
                     } else {
                         currentProgress += 1;
-                        if (status) status.textContent = 'Estructurando receta...';
+                        setDynamicStatus('Estructurando receta...');
                     }
                     updateM3ProgressUI(currentProgress);
                 }
             }, 250);
 
             try {
-                const lang = window.selectedOcrLang || 'spa';
+                const lang = window.selectedOcrLang || 'eng';
                 const psm = 3;
 
                 const results = await window.ocrProcessor.processImage(file, m => {
                     if (m.status === 'recognizing text' || m.status === 'reconociendo') {
                         const p = Math.max(currentProgress, Math.round((m.progress || 0) * 100));
                         if (p > currentProgress) currentProgress = p;
-                        if (status) status.textContent = `Extrayendo texto... ${currentProgress}%`;
+                        setDynamicStatus(`Extrayendo texto... ${currentProgress}%`);
                         updateM3ProgressUI(currentProgress);
-                    } else if (m.message && status) {
-                        status.textContent = m.message;
+                    } else if (m.message) {
+                        setDynamicStatus(m.message);
                     }
                 }, { lang, psm });
 
@@ -2135,7 +2579,7 @@
 
                 // Completado al 100% estilo Material 3 Expressive
                 updateM3ProgressUI(100);
-                if (status) status.textContent = '¡Receta lista!';
+                if (status) status.textContent = '¡Receta lista!'; if (titleHeader) titleHeader.textContent = '¡Receta lista!';
                 if (wavyCircleBox) wavyCircleBox.classList.add('success');
                 if (checkEl) checkEl.style.opacity = '1';
 
@@ -2148,6 +2592,8 @@
                     window.ocr.showResults(results);
                 } else {
                     document.getElementById('ocrRecipeName').value = results.nombre || '';
+                    const descEl = document.getElementById('ocrRecipeDescription');
+                    if (descEl) descEl.value = results.descripcion || results.description || '';
                     document.getElementById('ocrFullText').value = results.texto;
                     goToStep(1);
                 }
@@ -2186,6 +2632,8 @@
 
             try {
                 const name = document.getElementById('ocrRecipeName').value.trim();
+                const descEl = document.getElementById('ocrRecipeDescription');
+                const userDescription = descEl ? descEl.value.trim() : '';
                 const fullText = document.getElementById('ocrFullText').value;
                 const ocrData = window.currentOCRResults || {};
 
@@ -2220,12 +2668,12 @@
                     }
                 }
 
-                // 1. Crear Receta
+                // 1. Crear Receta (descripción es opcional y puede enviarse vacía)
                 const recipeRes = await window.db.createRecipe({
                     name_es: name,
                     name_en: name,
-                    description_es: currentNotes,
-                    description_en: currentNotes,
+                    description_es: userDescription || currentNotes || '',
+                    description_en: userDescription || currentNotes || '',
                     personal_notes: currentNotes,
                     ocr_raw_text: fullText,
                     ocr_confidence: Math.round(ocrData.confidence || 0),
@@ -2372,19 +2820,9 @@
     <!-- ── OCR Modal ── -->
     <div id="ocrModal">
         <div class="ocr-sheet">
-            <div class="ocr-sheet-header">
-                <button type="button" id="btnCloseOCR" class="m3-icon-btn" style="color:#00C853"
-                    data-i18n-title="ocrClose" title="Cerrar">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-                <h2 data-i18n="ocrTitle" style="color:#00C853">Escanear Receta</h2>
-                <div style="width:40px"></div>
-
-            </div>
-
-            <!-- Camera state -->
+            <!-- Camera state (ocupa 100% de la pantalla sin cabecera) -->
             <div id="ocrCameraState"
-                style="flex:1;position:relative;background:#000;display:flex;flex-direction:column;">
+                style="flex:1;position:relative;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;">
                 <video id="videoFeed" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"
                     autoplay playsinline muted></video>
                 <!-- Dynamic Overlay for OpenCV Corners -->
@@ -2394,7 +2832,7 @@
                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none;">
                 <!-- Corner guides overlay -->
                 <div id="ocrOverlay"
-                    style="position:absolute;inset:48px 32px;border:2px solid rgba(266,266,266,.4);border-radius:12px;pointer-events:none;">
+                    style="position:absolute;inset:48px 32px;border:2px solid rgba(255,255,255,.4);border-radius:12px;pointer-events:none;">
                     <div class="corner"
                         style="position:absolute;top:0;left:0;width:16px;height:16px;border-top:3px solid white;border-left:3px solid white;border-radius:2px 0 0 0;">
                     </div>
@@ -2409,38 +2847,41 @@
                     </div>
                 </div>
                 <!-- Hint -->
-                <p style="position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-size:13px;font-weight:500;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.5);"
+                <p id="ocrCameraHint" style="position:absolute;top:16px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-size:13px;font-weight:500;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.5);"
                     data-i18n="ocrCameraHint">
                     Apunta la cámara a la receta y presiona el botón
                 </p>
+
+
                 <!-- Controls bar -->
                 <div
-                    style="margin-top:auto;padding:24px 24px 28px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:space-around;z-index:10;">
-                    <!-- Hidden inputs for gallery & native camera fallback (outside button to prevent event loops) -->
-                    <input type="file" id="ocrGalleryInput" accept="image/*" style="display:none">
-                    <input type="file" id="ocrCameraModalInput" accept="image/*" capture="environment" style="display:none">
+                    style="margin-top:auto;width:100%;padding:24px 24px 28px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:space-around;z-index:10;">
 
                     <!-- Gallery button inside camera screen -->
-                    <button type="button" id="btnGallery"
-                        style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
+                    <label id="btnGallery"
+                        style="position:relative;overflow:hidden;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);margin:0;"
                         data-i18n-title="ocrGalleryTooltip" title="Subir imagen desde galería">
-                        <span class="material-symbols-outlined">photo_library</span>
-                    </button>
+                        <input type="file" id="ocrGalleryInput" accept="image/*"
+                            style="position:absolute;inset:0;opacity:0.001;width:100%;height:100%;cursor:pointer;z-index:5;">
+                        <span class="material-symbols-outlined" style="pointer-events:none;">photo_library</span>
+                    </label>
                     <!-- Main capture button: takes photo and auto-processes -->
-                    <button id="btnCapture"
-                        style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);"
+                    <button id="btnCapture" type="button"
+                        onclick="if(window.ocr) window.ocr.capture();"
+                        style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:transform 0.15s ease;"
                         data-i18n-title="ocrCaptureTooltip" title="Capturar y analizar receta">
                         <div
-                            style="width:58px;height:58px;border-radius:50%;background:white;border:2px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;">
+                            style="width:58px;height:58px;border-radius:50%;background:white;border:2px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;pointer-events:none;">
                             <span class="material-symbols-outlined"
                                 style="color:#10B981;font-size:28px;">document_scanner</span>
                         </div>
                     </button>
-                    <!-- Switch camera -->
-                    <button id="btnSwitchCamera"
-                        style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);"
-                        data-i18n-title="ocrSwitchCameraTooltip" title="Cambiar cámara">
-                        <span class="material-symbols-outlined">cameraswitch</span>
+                    <!-- Botón 'X' para cerrar en la barra inferior -->
+                    <button type="button" id="btnCloseOCR"
+                        onclick="if(window.ocr) window.ocr.close();"
+                        style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);transition:transform 0.15s ease;"
+                        data-i18n-title="ocrClose" title="Cerrar">
+                        <span class="material-symbols-outlined" style="font-size:24px;">close</span>
                     </button>
                 </div>
             </div>
@@ -2454,6 +2895,14 @@
                     <input id="ocrRecipeNameModal" class="m3-field-input" type="text" placeholder=" "
                         data-i18n-placeholder="placeholderRecipeName">
                     <label class="m3-field-label" data-i18n="formNameLabel">Nombre de la receta</label>
+                </div>
+
+                <!-- Recipe Description Input -->
+                <div class="m3-field m3-field-container" style="margin-bottom:16px;">
+                    <textarea id="ocrRecipeDescModal" class="m3-field-input" rows="2" placeholder=" "
+                        style="min-height: 64px;"
+                        data-i18n-placeholder="placeholderDescription"></textarea>
+                    <label class="m3-field-label" data-i18n="formDescOptional">Descripción (Opcional)</label>
                 </div>
 
                 <h3 style="font-weight:700;margin-bottom:12px;font-size:15px;" data-i18n="ocrTabRaw">Texto Detectado
@@ -2484,7 +2933,7 @@
             <div id="ocrLoading"
                 style="flex:1;flex-direction:column;padding:20px;background:#F9F9F9;overflow-y:auto;display:none;align-items:center;">
                 
-                <h3 style="font-weight:800;font-size:22px;margin-bottom:6px;align-self:flex-start;color:#111827;"
+                <h3 style="font-weight:800;font-size:22px;margin-bottom:6px;align-self:flex-start;color:var(--primary, #00C853);"
                     data-i18n="ocrStep2Title">Analizando...</h3>
 
                 <p style="color:#00C853;font-size:14px;margin-bottom:24px;align-self:flex-start;"
@@ -2557,10 +3006,13 @@
 
 
     <script>
-        // Initialize sidebar
+        // Initialize sidebar and OCR header state
         document.addEventListener('DOMContentLoaded', () => {
             if (window.updateGlobalUserUI) {
                 window.updateGlobalUserUI();
+            }
+            if (window.updateOcrHeaderState) {
+                window.updateOcrHeaderState();
             }
         });
     </script>
