@@ -424,6 +424,19 @@ class DashboardManager {
     }
 
     setupEventListeners() {
+        // En desktop, si se hace scroll sobre cabeceras fijas (top-bar, carrusel, cabecera de tabla), reenviar a la lista de recetas
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.addEventListener('wheel', (e) => {
+                if (window.innerWidth >= 1024) {
+                    const listBody = document.querySelector('.recipe-list-body');
+                    if (listBody && !listBody.contains(e.target)) {
+                        listBody.scrollTop += e.deltaY;
+                    }
+                }
+            }, { passive: true });
+        }
+
         // Buscador
         const searchInput = document.getElementById('searchInput');
         const clearBtn = document.getElementById('clearSearch');
