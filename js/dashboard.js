@@ -4303,6 +4303,19 @@ class DashboardManager {
             const renderIngredients = (scale) => ingredients.map(ing => {
                 const unit = isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es;
                 const ingName = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
+
+                if (window.isSubrecipeItem && window.isSubrecipeItem(ing)) {
+                    let cleanTitle = `${unit || ''} ${ingName || ''}`.replace(/^[:\s\-*#]+|[:\s\-*#]+$/g, '').trim();
+                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+                    return `
+                        <div class="m3-subrecipe-header-container" style="margin-top: 14px; margin-bottom: 6px;">
+                            <div class="m3-subrecipe-pill">
+                                <span class="material-symbols-outlined subrecipe-pill-icon" style="font-size: 16px;">bookmark</span>
+                                <span>${cleanTitle}</span>
+                            </div>
+                        </div>`;
+                }
+
                 const originalText = `${ing.quantity || ''} ${unit || ''} ${ingName}`.trim();
                 const text = (window.utils?.scaleText) ? window.utils.scaleText(originalText, scale) : originalText;
                 return `

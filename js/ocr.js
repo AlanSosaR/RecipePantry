@@ -442,10 +442,13 @@ class OCRScanner {
             // Corregido: Actualizar todos los inputs de nombre (resolver ID duplicado)
             document.querySelectorAll('[id="ocrRecipeName"]').forEach(nameInput => {
                 nameInput.value = results.nombre || '';
+                nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                nameInput.dispatchEvent(new Event('change', { bubbles: true }));
             });
             const descInput = document.getElementById('ocrRecipeDescription');
             if (descInput) {
                 descInput.value = results.descripcion || results.description || '';
+                descInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
             if (window.updateOcrHeaderState) {
                 window.updateOcrHeaderState();
@@ -473,6 +476,20 @@ class OCRScanner {
                         const nombre = typeof ing === 'string' ? ing : (ing.nombre || ing.name || '');
                         const cantidad = typeof ing === 'object' && ing ? (ing.cantidad || ing.quantity || '') : '';
                         const unidad = typeof ing === 'object' && ing ? (ing.unidad || ing.unit || '') : '';
+                        const isExplicitHeader = typeof ing === 'object' && ing && (ing.es_subtitulo || ing.is_header || ing.is_subtitle || ing.is_section);
+                        const isHeader = isExplicitHeader || (!cantidad && (window.isSubrecipeItem ? window.isSubrecipeItem(ing) : /:$/.test(nombre.trim())));
+
+                        if (isHeader) {
+                            return `
+                            <div class="ocr-section-header-card" style="margin-top: 18px; margin-bottom: 6px;">
+                                <div class="m3-subrecipe-pill" style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined subrecipe-pill-icon" style="font-size: 16px;">bookmark</span>
+                                    <span contenteditable="true" data-idx="${idx}" data-type="ing" data-is-header="true" style="outline: none;">${nombre}</span>
+                                </div>
+                            </div>
+                            `;
+                        }
+
                         return `
                         <div class="ocr-edit-card">
                             <span style="color: var(--primary); font-size: 18px; line-height: 1; flex-shrink: 0; margin-top: 1px;">•</span>

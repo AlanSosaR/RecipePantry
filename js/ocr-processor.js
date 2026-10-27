@@ -82,26 +82,40 @@ class OCRProcessor {
 You will receive OCR text extracted from a recipe. This text may contain punctuation or OCR errors.
 Your job is to structure the recipe accurately strictly into the required JSON format.
 
-CRITICAL LANGUAGE REQUIREMENT:
-- Target language is ${langName}.
-- Keep all text in ${langName}. Do NOT translate between languages!
-- If the original recipe is in ${langName}, keep the original wording, ingredients, units, and directions in ${langName} verbatim.
+CRITICAL RULES FOR RECIPE TITLE AND SUBTITLES / SECTIONS:
+1. PRIMARY RECIPE TITLE ("nombre"):
+- Accurately identify and extract the primary title of the recipe (e.g. "SWEET BUNS WITH CRUST TOPPING (CONCHAS)").
+- Preserve the exact title as written. Do NOT leave it empty or replace it with a generic placeholder.
 
-Rules:
+2. SUBTITLES & SECTIONS ("es_subtitulo"):
+- Many recipes have multiple sections or sub-recipes (for example: "1. DOUGH (MASA):", "2. TOPPING / CRUST (COBERTURA - 12 BALLS):", "For the Glaze:", "Para la salsa:").
+- YOU MUST PRESERVE THESE SUBTITLES IN THE "ingredientes" LIST as header items!
+- When an item is a section header or subtitle, return it as:
+  { "cantidad": "", "unidad": "", "nombre": "1. DOUGH (MASA):", "es_subtitulo": true }
+- DO NOT delete or discard section headers!
+- DO NOT flatten subtitles by appending them in parentheses to ingredients (e.g. do NOT change "130g flour" into "130g flour (topping)"). Keep the subtitle item above its ingredients!
+
+3. INGREDIENTS:
+- For regular ingredients, extract: { "cantidad": "string", "unidad": "string", "nombre": "string", "es_subtitulo": false }
 - Fix common OCR misreads (1/2, 1/4, 3/4, g, ml, tbsp, tsp, etc.)
-- Ingredients must be an array of objects: { "cantidad": "string", "unidad": "string", "nombre": "string" }
-- Steps must be an array of strings in chronological order.
-- If the recipe includes notes, chef tips, warnings, or footnotes (e.g. 'Notes:', 'Tips:', 'Consejos:'), extract them into the "notas" string field. If none, set "notas": "".
-- Default to 4 servings if unspecified.
-- If any information is missing, do NOT omit the key. Use null (for properties), empty string "" (for notas), or an empty array [] (for lists).
+
+4. PREPARATION STEPS:
+- Extract all steps in chronological order as an array of strings.
+
+5. LANGUAGE & NOTES:
+- Keep all original recipe wording, ingredients, units, and directions faithfully.
+- If the recipe includes notes or tips, extract them into "notas". Default to 4 servings if unspecified.
 - Return ONLY valid JSON and nothing else.
 
 REQUIRED JSON STRUCTURE:
 {
-  "nombre": "${isEnglish ? 'Recipe Name' : 'Nombre de la receta'}",
+  "nombre": "${isEnglish ? 'Sweet Buns with Crust Topping (Conchas)' : 'Nombre de la receta'}",
   "porciones": 4,
   "ingredientes": [
-    { "cantidad": "1", "unidad": "${isEnglish ? 'cup' : 'kilo'}", "nombre": "${isEnglish ? 'flour' : 'lomo de cerdo'}" }
+    { "cantidad": "", "unidad": "", "nombre": "${isEnglish ? '1. DOUGH (MASA):' : '1. MASA:'}", "es_subtitulo": true },
+    { "cantidad": "540", "unidad": "g", "nombre": "${isEnglish ? 'flour' : 'harina'}", "es_subtitulo": false },
+    { "cantidad": "", "unidad": "", "nombre": "${isEnglish ? '2. TOPPING / CRUST (COBERTURA):' : '2. COBERTURA:'}", "es_subtitulo": true },
+    { "cantidad": "130", "unidad": "g", "nombre": "${isEnglish ? 'flour' : 'harina'}", "es_subtitulo": false }
   ],
   "pasos": [
     "${isEnglish ? 'Step 1...' : 'Paso 1...'}"
@@ -159,11 +173,26 @@ ${cleanedText}`;
 
         const rawIngs = obj.ingredientes || obj.ingredients || [];
         const ingredientes = rawIngs.map(i => {
-            if (typeof i === 'string') return { cantidad: '', unidad: '', nombre: i };
+            if (typeof i === 'string') {
+                const isSub = window.isSubrecipeItem ? window.isSubrecipeItem(i) : /:$/.test(i.trim());
+                return { cantidad: '', unidad: '', nombre: i.trim(), es_subtitulo: isSub };
+            }
+            const cantidad = String(i.cantidad || i.quantity || i.amount || '').trim();
+            const unidad = String(i.unidad || i.unit || '').trim();
+            const nombreItem = String(i.nombre || i.name || i.item || i.ingredient || '').trim();
+            let esSub = Boolean(i.es_subtitulo || i.is_header || i.is_subtitle || i.is_section);
+            if (!esSub && !cantidad && nombreItem) {
+                if (window.isSubrecipeItem) {
+                    esSub = window.isSubrecipeItem({ name_es: nombreItem, unit_es: unidad });
+                } else if (/^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(nombreItem) || /:$/.test(nombreItem)) {
+                    esSub = true;
+                }
+            }
             return {
-                cantidad: String(i.cantidad || i.quantity || i.amount || '').trim(),
-                unidad: String(i.unidad || i.unit || '').trim(),
-                nombre: String(i.nombre || i.name || i.item || i.ingredient || '').trim()
+                cantidad,
+                unidad,
+                nombre: nombreItem,
+                es_subtitulo: esSub
             };
         }).filter(i => i.nombre.length > 0);
 
@@ -246,34 +275,47 @@ ${cleanedText}`;
         const prompt = `You are an expert culinary assistant and advanced OCR scanner.
 Analyze this recipe image carefully and extract all text, ingredients, preparation steps, and any notes or tips with 100% precision.
 
-CRITICAL LANGUAGE REQUIREMENT:
-- Target language: ${langName}.
-- All output fields (nombre, ingredientes, pasos, notas) MUST be in ${langName}.
-- DO NOT translate between languages! If the recipe is in ${langName}, keep the exact original text, ingredient names, units, and directions in ${langName} verbatim.
+CRITICAL RULES FOR RECIPE TITLE AND SUBTITLES / SECTIONS:
+1. PRIMARY RECIPE TITLE ("nombre"):
+- Accurately identify and extract the primary recipe name/title at the top of the image (e.g. "SWEET BUNS WITH CRUST TOPPING (CONCHAS)").
+- Preserve the exact title as written on the image. Do NOT leave it empty or replace it with a generic placeholder.
 
-Rules:
-- Read ALL visible text on the image, including any footnotes, yields, warnings, or notes.
-- Identify the exact recipe title/name as written on the image.
-- Extract all ingredients with quantity (cantidad), unit (unidad), and ingredient name (nombre).
+2. SUBTITLES & SECTIONS ("es_subtitulo"):
+- Many recipes have multiple sections or sub-recipes (for example: "1. DOUGH (MASA):", "2. TOPPING / CRUST (COBERTURA - 12 BALLS):", "For the Glaze:", "Para la salsa:").
+- YOU MUST PRESERVE THESE SUBTITLES IN THE "ingredientes" LIST as header items!
+- When an item is a section header or subtitle, return it as:
+  { "cantidad": "", "unidad": "", "nombre": "1. DOUGH (MASA):", "es_subtitulo": true }
+- DO NOT delete or discard section headers!
+- DO NOT flatten subtitles by appending them in parentheses to ingredients (e.g. do NOT change "130g flour" into "130g flour (topping)"). Keep the subtitle item above its ingredients!
+
+3. INGREDIENTS:
+- For regular ingredients, extract: { "cantidad": "string", "unidad": "string", "nombre": "string", "es_subtitulo": false }
+- Read ALL visible text, preserving exact quantities, units, and names.
+
+4. PREPARATION STEPS:
 - Extract all preparation steps in chronological order as clear sentences.
-- If there is a section for "Notes", "Notas", "Tips", "Consejos", or extra recommendations (e.g. "Notes: you can sprinkle chocolate chips on the brownie before baking it"), extract it into the "notas" string field. If no notes exist on the image, set "notas": "".
+
+5. LANGUAGE & NOTES:
+- Maintain the original language of the recipe text faithfully. If bilingual, keep the full names and section headers.
+- If there is a section for "Notes", "Notas", "Tips", "Consejos", extract it into the "notas" string field. If none, set "notas": "".
 - Default to 4 servings (porciones) if unspecified.
 - Output STRICT JSON only. Do not include markdown or explanations.
 
 REQUIRED JSON FORMAT:
 {
-  "nombre": "${isEnglish ? 'Chocolate Chip Cookies' : 'Nombre de la receta'}",
+  "nombre": "${isEnglish ? 'Sweet Buns with Crust Topping (Conchas)' : 'Nombre de la receta'}",
   "porciones": 4,
   "ingredientes": [
-    { "cantidad": "1", "unidad": "${isEnglish ? 'cup' : 'kilo'}", "nombre": "${isEnglish ? 'all-purpose flour' : 'harina'}" }
+    { "cantidad": "", "unidad": "", "nombre": "${isEnglish ? '1. DOUGH (MASA):' : '1. MASA:'}", "es_subtitulo": true },
+    { "cantidad": "540", "unidad": "g", "nombre": "${isEnglish ? 'flour' : 'harina'}", "es_subtitulo": false },
+    { "cantidad": "", "unidad": "", "nombre": "${isEnglish ? '2. TOPPING / CRUST (COBERTURA):' : '2. COBERTURA:'}", "es_subtitulo": true },
+    { "cantidad": "130", "unidad": "g", "nombre": "${isEnglish ? 'flour' : 'harina'}", "es_subtitulo": false }
   ],
   "pasos": [
     "${isEnglish ? 'Preheat oven to 350°F (175°C)...' : 'Precalentar el horno a 180°C...'}"
   ],
   "notas": "${isEnglish ? 'Notes or tips if present on the image, otherwise empty string' : 'Notas o consejos si están en la imagen, o cadena vacía'}"
-}
-
-If no clear title is visible, infer a concise descriptive name in ${langName}.`;
+}`;
 
         const apiKey = window.getGeminiKey ? window.getGeminiKey() : null;
         if (!apiKey) throw new Error("Se requiere una clave de Gemini para continuar.");
@@ -299,6 +341,9 @@ If no clear title is visible, infer a concise descriptive name in ${langName}.`;
 
         // Construir representación textual legible para el campo de texto completo
         const ingsText = (parsed.ingredientes || []).map(i => {
+            if (i.es_subtitulo) {
+                return `\n${i.nombre}`;
+            }
             const parts = [i.cantidad, i.unidad, i.nombre].filter(Boolean);
             return `• ${parts.join(' ')}`;
         }).join('\n');
@@ -1202,6 +1247,16 @@ If no clear title is visible, infer a concise descriptive name in ${langName}.`;
 
             if (inNotesSection) {
                 if (line.trim().length > 0) notasList.push(line.trim());
+                continue;
+            }
+
+            // Detect subtitle / subrecipe header (ej. "1. DOUGH (MASA):", "2. TOPPING / CRUST:")
+            const isSubHeader = (window.isSubrecipeItem && window.isSubrecipeItem(line)) ||
+                /^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(line) ||
+                (/\b(dough|masa|topping|crust|cobertura|filling|relleno|sauce|salsa|glaze|dip)\b/i.test(lower) && /[:\)]\s*$/.test(line));
+
+            if (isSubHeader) {
+                ingredientes.push({ cantidad: '', unidad: '', nombre: line, es_subtitulo: true });
                 continue;
             }
 

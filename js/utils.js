@@ -447,4 +447,43 @@ window.utils.getContainedLoaderHtml = (text, i18nKey = 'loadingRecipes') => {
 };
 window.getContainedLoaderHtml = window.utils.getContainedLoaderHtml;
 
-console.log('✅ Utilidades inicializadas (v140)');
+/**
+ * Detector universal de subtítulos / secciones de recetas (ej. "1. DOUGH (MASA):", "2. TOPPING / CRUST:")
+ */
+window.utils.isSubrecipeItem = function(ing) {
+    if (!ing) return false;
+    const isEn = window.i18n && window.i18n.getLang() === 'en';
+    const unit = (typeof ing === 'object' ? (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) : '') || '';
+    const name = (typeof ing === 'string' ? ing : (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || ing.nombre || ing.name) || '';
+    const qty = typeof ing === 'object' && ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined'
+        ? String(ing.quantity).trim()
+        : (typeof ing === 'object' && ing.cantidad !== undefined && ing.cantidad !== null ? String(ing.cantidad).trim() : '');
+
+    // Si tiene cantidad numérica mayor a 0, es un ingrediente regular
+    if (qty && parseFloat(qty) > 0) return false;
+
+    // Flag explícito si viene marcado por OCR o parser IA
+    if (typeof ing === 'object' && (ing.es_subtitulo || ing.is_header || ing.is_subtitle || ing.is_section)) {
+        return true;
+    }
+
+    const text = `${unit} ${name}`.replace(/\s+/g, ' ').trim();
+    if (!text || text.length < 2) return false;
+
+    // 1. Empieza con For, Para, To serve, Para servir, etc.
+    if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
+
+    // 2. Termina con dos puntos o empieza con número/sección y termina con dos puntos (ej. "1. DOUGH (MASA):", "2. TOPPING / CRUST (COBERTURA - 12 BALLS):")
+    if (/^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
+
+    // 3. Contiene palabras clave de sub-recetas con dos puntos o paréntesis
+    if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /[:\)]\s*$/.test(text)) return true;
+
+    // 4. Indicador de lote o multiplicador para sub-receta (ej. '(6 x for 10kg chicken)')
+    if (/\(\s*\d+\s*x\s+(?:for|para)\b/i.test(text)) return true;
+
+    return false;
+};
+window.isSubrecipeItem = window.utils.isSubrecipeItem;
+
+console.log('✅ Utilidades inicializadas (v141 - Subrecetas y Secciones)');

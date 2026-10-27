@@ -383,6 +383,7 @@ class RecipeDetailManager {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         const isSubrecipeItem = (ing) => {
+            if (window.isSubrecipeItem) return window.isSubrecipeItem(ing);
             const unit = (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) || '';
             const name = (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || '';
             const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
@@ -391,19 +392,9 @@ class RecipeDetailManager {
             if (originalQty && parseFloat(originalQty) > 0) return false;
             const text = `${unit || ''} ${name || ''}`.replace(/\s+/g, ' ').trim();
             if (!text) return false;
-
-            // 1. Empieza con For, Para, To serve, Para servir, etc.
             if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
-
-            // 2. Termina o contiene dos puntos con nombre de sección (ej. 'Flour Dredge:', 'Buttermilk Dip:', 'Sauce:', etc.)
-            if (/^[-*#(\[\s]*[^:]{2,35}:\s*(\([^)]+\))?$/i.test(text)) return true;
-
-            // 3. Contiene palabras clave de sub-recetas con dos puntos
-            if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b\s*:/i.test(text)) return true;
-
-            // 4. Indicador de lote o multiplicador para sub-receta (ej. '(6 x for 10kg chicken)')
-            if (/\(\s*\d+\s*x\s+(?:for|para)\b/i.test(text)) return true;
-
+            if (/^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
+            if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /[:\)]\s*$/.test(text)) return true;
             return false;
         };
 
@@ -434,6 +425,7 @@ class RecipeDetailManager {
                 return `
                     <div class="m3-subrecipe-header-container">
                         <div class="m3-subrecipe-pill">
+                            <span class="material-symbols-outlined subrecipe-pill-icon" style="font-size: 16px;">bookmark</span>
                             <span>${cleanTitle}</span>
                         </div>
                     </div>
