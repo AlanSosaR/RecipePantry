@@ -3728,28 +3728,6 @@ openOrderForm(supplierId) {
 
                     <!-- Acciones Finales (Flat & Responsive) -->
                     <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap;">
-                        <button type="button" onclick="window.suppliersManager.backToList()" class="btn-supplier-cancel" style="flex: 1 1 auto; max-width: 120px;">
-                            ${isEn ? 'Back' : 'Volver'}
-                        </button>
-                        <button type="button" onclick="window.suppliersManager.copyOrderText('${supplierId}')" style="
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 6px;
-                            height: 44px;
-                            padding: 0 16px;
-                            border-radius: var(--radius-full);
-                            font-weight: 700;
-                            font-size: 13.5px;
-                            background: var(--surface);
-                            color: var(--text-main);
-                            border: 1px solid var(--border);
-                            cursor: pointer;
-                            flex: 1 1 auto;
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
-                            <span>${isEn ? 'Copy' : 'Copiar'}</span>
-                        </button>
                         <button type="button" onclick="window.suppliersManager.shareConsolidatedOrdersPDF('${supplierId}')" class="btn-supplier-save" style="
                             display: inline-flex;
                             align-items: center;
