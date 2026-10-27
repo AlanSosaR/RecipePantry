@@ -1167,25 +1167,33 @@ REQUIRED JSON FORMAT:
 
         const isEnglish = (options && options.lang === 'eng');
 
-        // STEP 1 — Find recipe name (first meaningful line that isn't a section header or ingredient)
+        // STEP 1 — Find recipe name (capturar todas las líneas del título antes de la primera sección o ingrediente)
         let nombre = isEnglish ? 'Scanned Recipe' : 'Receta Escaneada';
-        let titleIndex = -1;
-        for (let i = 0; i < lines.length; i++) {
+        const titleIndices = new Set();
+        const titleParts = [];
+
+        for (let i = 0; i < Math.min(lines.length, 6); i++) {
             const l = lines[i];
             const lower = l.toLowerCase();
-            if (!lower.startsWith('ingrediente') && 
-                !lower.startsWith('ingredient') && 
-                !lower.startsWith('procedimiento') && 
-                !lower.startsWith('preparaci') && 
-                !lower.startsWith('instrucc') && 
-                !lower.startsWith('direction') && 
-                !lower.startsWith('method') && 
-                !/^\d+[\s\.\,\-]/.test(l) &&
-                l.length > 3) {
-                nombre = l.replace(/^[\#\*\-•\:\s]+|[\:\s]+$/g, '').trim();
-                titleIndex = i;
+
+            // Si llegamos a una sección o sub-receta numerada (ej. "1. DOUGH", "1.") o ingrediente con cantidad
+            const isStopLine = /^(ingrediente|ingredient|preparaci|procedimiento|instrucc|direction|method|paso|step)/i.test(lower) ||
+                /^[-*#(\[\s]*(?:1[\.\)\-\s]+)/.test(l) ||
+                /^\d+\s*(?:g|kg|ml|l|taza|cup|cucharada|tbsp|cucharadita|tsp|oz|lb|diente|egg|huevo|piez)/i.test(l);
+
+            if (isStopLine) {
                 break;
             }
+
+            if (l.length >= 2) {
+                const clean = l.replace(/^[\#\*\-•\:\s]+|[\:\s]+$/g, '').trim();
+                titleParts.push(clean);
+                titleIndices.add(i);
+            }
+        }
+
+        if (titleParts.length > 0) {
+            nombre = titleParts.join(' ');
         }
 
         // STEP 2 — Detect ingredient lines by pattern:
@@ -1219,7 +1227,7 @@ REQUIRED JSON FORMAT:
         let inNotesSection = false;
 
         for (let i = 0; i < lines.length; i++) {
-            if (i === titleIndex) continue;
+            if (titleIndices.has(i)) continue;
             const line = lines[i];
             const lower = line.toLowerCase();
 

@@ -473,13 +473,20 @@ window.utils.isSubrecipeItem = function(ing) {
     // 1. Empieza con For, Para, To serve, Para servir, etc.
     if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
 
-    // 2. Termina con dos puntos o empieza con número/sección y termina con dos puntos (ej. "1. DOUGH (MASA):", "2. TOPPING / CRUST (COBERTURA - 12 BALLS):")
-    if (/^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
+    // 2. Empieza con número de sección o subreceta (ej. "1. DOUGH (MASA)", "2. TOPPING / CRUST")
+    if (/^[-*#(\[\s]*\d+[\.\)\-\s]+[^:]{2,80}(?::|$)/i.test(text)) {
+        // Asegurar que no sea un ingrediente con número inicial (ej. "1 tsp salt", "2 eggs")
+        const isIngQty = /^\d+\s*(?:g|kg|ml|l|taza|cup|cucharada|tbsp|cucharadita|tsp|oz|lb|diente|egg|huevo|piez|gram)/i.test(text);
+        if (!isIngQty) return true;
+    }
 
-    // 3. Contiene palabras clave de sub-recetas con dos puntos o paréntesis
-    if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /[:\)]\s*$/.test(text)) return true;
+    // 3. Termina con dos puntos (ej. "Dough (Masa):", "Topping / Crust:")
+    if (/^[-*#(\[\s]*[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
 
-    // 4. Indicador de lote o multiplicador para sub-receta (ej. '(6 x for 10kg chicken)')
+    // 4. Contiene palabras clave de sub-recetas Y termina con dos puntos (nunca solo con paréntesis para no confundir con títulos)
+    if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /:\s*$/.test(text)) return true;
+
+    // 5. Indicador de lote o multiplicador para sub-receta (ej. '(6 x for 10kg chicken)')
     if (/\(\s*\d+\s*x\s+(?:for|para)\b/i.test(text)) return true;
 
     return false;
