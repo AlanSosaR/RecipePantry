@@ -286,19 +286,19 @@ window.showActionSnackbar = (message, actionText, onAction, options = {}) => {
         /^(eliminar|delete|borrar|remove)/i.test(cleanAction) ||
         (document.body && document.body.classList.contains('selection-mode-active'));
 
-    // Crear snackbar fresco en el DOM
+    // Crear snackbar fresco en el DOM con layout de mensaje independiente debajo de la cabecera
     const snackbar = document.createElement('div');
     snackbar.id = 'global-snackbar';
     snackbar.className = 'snackbar-m3 snackbar-action-mode' + (isDestructive ? ' snackbar-destructive' : '');
     snackbar.innerHTML = `
         <div class="snackbar-header-row">
-            <div class="snackbar-content">
-                <span class="material-symbols-outlined icon" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">${isDestructive ? 'warning' : 'info'}</span>
-                <span class="message" style="${isDestructive ? 'color: #1F2937;' : ''}"></span>
-            </div>
+            <span class="material-symbols-outlined icon" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">${isDestructive ? 'warning' : 'info'}</span>
             <button class="btn-icon-m3 snackbar-close-btn" aria-label="Cerrar" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">
                 <span class="material-symbols-outlined" style="font-size:20px;">close</span>
             </button>
+        </div>
+        <div class="snackbar-content">
+            <span class="message" style="${isDestructive ? 'color: #1F2937;' : ''}"></span>
         </div>
         <div class="snackbar-actions"></div>
     `;
