@@ -18956,19 +18956,23 @@ body.product-side-sheet-open #m3FabBackdrop {
     }
 
     .sidebar-nav {
-        padding: 0 10px !important;
-        gap: 2px !important;
+        padding: 10px 12px !important;
+        gap: 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .sidebar-nav .nav-item {
-        padding: 8px 14px !important;
-        font-size: 13.5px !important;
-        border-radius: 12px !important;
-        transition: all 0.2s ease !important;
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        border-radius: 16px !important;
+        gap: 14px !important;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
     }
 
     .sidebar-nav .nav-item .material-symbols-outlined {
-        font-size: 20px !important;
+        font-size: 22px !important;
     }
 
     /* ─── Estado Contraído (Slim Sidebar) ─── */
