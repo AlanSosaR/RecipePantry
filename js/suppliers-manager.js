@@ -2352,6 +2352,14 @@ renderItemCard(item, supplierId) {
 
                 <!-- 2. Cuerpo del Side Sheet: Hero Image y Metadatos -->
                 <div class="side-sheet-body" style="padding: 20px; display: flex; flex-direction: column; flex: 1;">
+                    <!-- Input oculto para subida de fotos del producto -->
+                    <input type="file" 
+                           id="sideSheetPhotoInput" 
+                           accept="image/*" 
+                           capture="environment" 
+                           style="display: none;" 
+                           onchange="window.suppliersManager.handleSideSheetPhotoSelected(event, '${item.id}')" />
+
                     <!-- Contenedor Hero 1:1 -->
                     <div class="side-sheet-hero-wrap" id="sideSheetHeroContainer">
                         ${item.image_url ? `
@@ -2361,12 +2369,21 @@ renderItemCard(item, supplierId) {
                                  alt="${item.name}" 
                                  onclick="window.suppliersManager.togglePhotoZoom()"
                                  style="cursor: zoom-in;" />
+                            <!-- Badge Zoom (izquierda) -->
                             <div class="photo-zoom-badge" 
                                  onclick="window.suppliersManager.togglePhotoZoom()"
-                                 style="position: absolute; bottom: 12px; right: 12px; background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); user-select: none;">
+                                 style="position: absolute; bottom: 12px; left: 12px; background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); user-select: none; z-index: 4;">
                                 <span class="material-symbols-outlined" style="font-size: 14px;">zoom_in</span>
                                 <span id="zoomBadgeText">${isEn ? "Tap to zoom" : "Toca para zoom"}</span>
                             </div>
+                            <!-- Botón Cambiar / Subir foto sobre la imagen (derecha) -->
+                            <button type="button" 
+                                    class="photo-upload-badge-btn" 
+                                    onclick="event.stopPropagation(); document.getElementById('sideSheetPhotoInput').click()" 
+                                    style="position: absolute; bottom: 12px; right: 12px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); user-select: none; z-index: 4; transition: transform 0.15s ease, background 0.15s ease;">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">photo_camera</span>
+                                <span>${isEn ? "Change photo" : "Cambiar foto"}</span>
+                            </button>
                         ` : `
                             <div class="side-sheet-empty-photo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; width: 100%;">
                                 <div style="width: 80px; height: 80px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(20, 184, 122, 0.15);">
@@ -2424,23 +2441,7 @@ renderItemCard(item, supplierId) {
                     </div>
                 </div>
 
-                <!-- 3. Footer de Acciones (Sticky Bottom) -->
-                <div class="side-sheet-footer" style="position: sticky; bottom: 0; background: #ffffff; padding: 14px 20px; border-top: 1px solid var(--border); margin-top: auto; z-index: 10;">
-                    <input type="file" 
-                           id="sideSheetPhotoInput" 
-                           accept="image/*" 
-                           capture="environment" 
-                           style="display: none;" 
-                           onchange="window.suppliersManager.handleSideSheetPhotoSelected(event, '${item.id}')" />
 
-                    <button type="button" 
-                            class="btn-side-sheet-upload" 
-                            onclick="document.getElementById('sideSheetPhotoInput').click()"
-                            style="width: 100%; background: #14b87a; color: #ffffff; border: none; border-radius: 999px; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(20, 184, 122, 0.28); transition: transform 0.15s ease, background 0.15s ease;">
-                        <span class="material-symbols-outlined" style="font-size: 20px;">photo_camera</span>
-                        <span>${item.image_url ? (isEn ? "Change / Upload Photo" : "📸 Cambiar / Subir foto") : (isEn ? "Upload Photo" : "📸 Subir foto")}</span>
-                    </button>
-                </div>
             `;
         }
 
