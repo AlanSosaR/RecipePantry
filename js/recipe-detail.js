@@ -691,7 +691,11 @@ class RecipeDetailManager {
     }
 
     async confirmDelete() {
-        const confirmMsg = window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?';
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const recipeName = this.currentRecipe ? (isEn ? (this.currentRecipe.name_en || this.currentRecipe.name_es) : this.currentRecipe.name_es) : '';
+        const confirmMsg = recipeName
+            ? (isEn ? `Are you sure you want to delete "${recipeName}"?` : `¿Seguro que desea eliminar "${recipeName}"?`)
+            : (window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?');
         const deleteBtnTxt = window.i18n ? window.i18n.t('deleteBtn') : 'ELIMINAR';
 
         window.showActionSnackbar(confirmMsg, deleteBtnTxt, async () => {

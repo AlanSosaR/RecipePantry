@@ -1765,9 +1765,20 @@ class DashboardManager {
         console.log(`[Dashboard] Initializing deleteSelected for ${count} recipes. IDs:`, selectedIdsArr);
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
-        const confirmMsg = isEn
-            ? (count === 1 ? 'Are you sure you want to delete 1 recipe?' : `Are you sure you want to delete ${count} recipes?`)
-            : (count === 1 ? '¿Seguro que desea eliminar 1 receta?' : `¿Seguro que desea eliminar ${count} recetas?`);
+        let confirmMsg = '';
+        if (count === 1) {
+            const singleRecipe = recipesToDelete[0];
+            const rName = singleRecipe
+                ? (isEn ? (singleRecipe.name_en || singleRecipe.name_es || singleRecipe.name) : (singleRecipe.name_es || singleRecipe.name_en || singleRecipe.name))
+                : '';
+            confirmMsg = rName
+                ? (isEn ? `Are you sure you want to delete "${rName}"?` : `¿Seguro que desea eliminar "${rName}"?`)
+                : (isEn ? 'Are you sure you want to delete 1 recipe?' : '¿Seguro que desea eliminar 1 receta?');
+        } else {
+            confirmMsg = isEn
+                ? `Are you sure you want to delete ${count} recipes?`
+                : `¿Seguro que desea eliminar ${count} recetas?`;
+        }
 
         window.showActionSnackbar(confirmMsg, 'ELIMINAR', async () => {
             try {
@@ -1807,9 +1818,22 @@ class DashboardManager {
                 // Refresco forzado tras la operación para estar en sincronía total
                 await this.loadRecipes({ ...this.lastFilters, forceRefresh: true });
                 
-                const msg = (successCount === targets.length)
-                    ? (window.i18n ? window.i18n.t('deleteSuccess') : 'Eliminadas correctamente')
-                    : `${successCount} recetas eliminadas`;
+                const singleRecipe = recipesToDelete[0];
+                const rName = (count === 1 && singleRecipe)
+                    ? (isEn ? (singleRecipe.name_en || singleRecipe.name_es || singleRecipe.name) : (singleRecipe.name_es || singleRecipe.name_en || singleRecipe.name))
+                    : '';
+                let msg = '';
+                if (successCount === targets.length) {
+                    if (count === 1 && rName) {
+                        msg = isEn ? `"${rName}" deleted` : `"${rName}" eliminada`;
+                    } else {
+                        msg = count === 1
+                            ? (window.i18n ? window.i18n.t('deleteSuccess') : 'Receta eliminada correctamente')
+                            : `${count} recetas eliminadas`;
+                    }
+                } else {
+                    msg = `${successCount} recetas eliminadas`;
+                }
                 window.showToast(msg, 'success');
 
             } catch (err) {
@@ -4438,7 +4462,11 @@ class DashboardManager {
                     this.editRecipe(recipeId);
                 });
                 if (deleteBtn) deleteBtn.addEventListener('click', async () => {
-                    const confirmMsg = window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?';
+                    const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    const rName = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+                    const confirmMsg = rName
+                        ? (isEn ? `Are you sure you want to delete "${rName}"?` : `¿Seguro que desea eliminar "${rName}"?`)
+                        : (window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?');
                     window.showActionSnackbar?.(confirmMsg, 'ELIMINAR', async () => {
                         const res = await window.db.deleteRecipe(recipeId);
                         if (res.success) {
