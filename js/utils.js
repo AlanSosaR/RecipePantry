@@ -292,7 +292,6 @@ window.showActionSnackbar = (message, actionText, onAction, options = {}) => {
     snackbar.className = 'snackbar-m3 snackbar-action-mode' + (isDestructive ? ' snackbar-destructive' : '');
     snackbar.innerHTML = `
         <div class="snackbar-header-row">
-            <span class="material-symbols-outlined icon" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">${isDestructive ? 'warning' : 'info'}</span>
             <button class="btn-icon-m3 snackbar-close-btn" aria-label="Cerrar" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">
                 <span class="material-symbols-outlined" style="font-size:20px;">close</span>
             </button>

@@ -5637,8 +5637,12 @@ html[data-auth-likely="true"] #dashboard-app {
 .snackbar-m3.snackbar-action-mode .snackbar-header-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     width: 100%;
+}
+
+.snackbar-m3.snackbar-action-mode .icon {
+    display: none !important;
 }
 
 .snackbar-m3.snackbar-action-mode .snackbar-content {
