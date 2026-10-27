@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v927';
-const BUILD_ID = 'v927';
-const CACHE_NAME = `recipe-pantry-v927`;
-const STATIC_CACHE = 'static-v927';
-const DATA_CACHE = 'data-v927';
+const VERSION = 'v928';
+const BUILD_ID = 'v928';
+const CACHE_NAME = `recipe-pantry-v928`;
+const STATIC_CACHE = 'static-v928';
+const DATA_CACHE = 'data-v928';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',
@@ -53,6 +53,7 @@ const STATIC_RESOURCES = [
     '/css/styles.css',
     '/css/components.css',
     '/js/lib/pdf.min.js',
+    '/js/lib/jspdf.umd.min.js',
     '/js/lib/pdf.worker.min.js',
     '/assets/icons/icon.svg',
     '/assets/images/stanleys-logo.png',

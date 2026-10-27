@@ -2401,9 +2401,6 @@ renderItemCard(item, supplierId) {
 
                     <!-- Metadatos y Chips M3 -->
                     <div style="margin-top: 18px;">
-                        <div class="side-sheet-body-name" style="margin: 0 0 12px 0; font-size: 1.35rem; font-weight: 800; color: #1a1c19; line-height: 1.25; letter-spacing: -0.01em; font-family: var(--font-display);">
-                            ${item.name}
-                        </div>
 
                         <!-- Chips M3 Expressive -->
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
@@ -4087,6 +4084,58 @@ openOrderForm(supplierId) {
                             <span>·</span>
                             <span>📦 <strong style="color: var(--text-main);">${totalProductsCount}</strong> ${isEn ? 'products' : 'productos solicitados'}</span>
                         </div>
+                        <!-- Barra de Acción Principal M3: Enviar por WhatsApp en formato Recibo PDF -->
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                            <button type="button" 
+                                    id="btnSendWhatsAppPdf"
+                                    onclick="window.suppliersManager.shareConsolidatedOrdersPDF()" 
+                                    class="btn-supplier-save" 
+                                    style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        gap: 8px;
+                                        height: 44px;
+                                        padding: 0 20px;
+                                        font-size: 13.5px;
+                                        font-weight: 800;
+                                        border-radius: var(--radius-full);
+                                        background: #14b87a;
+                                        color: #ffffff;
+                                        border: none;
+                                        box-shadow: 0 4px 14px rgba(20, 184, 122, 0.28);
+                                        cursor: pointer;
+                                        flex: 1 1 240px;
+                                        transition: transform 0.15s ease, background 0.15s ease;
+                                    ">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
+                                <span>${isEn ? 'Send via WhatsApp (PDF Receipt)' : 'Enviar por WhatsApp (Recibo PDF)'}</span>
+                            </button>
+
+                            <button type="button" 
+                                    onclick="window.suppliersManager.downloadConsolidatedOrdersPDF()" 
+                                    class="btn-icon-m3" 
+                                    title="${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}"
+                                    style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        gap: 6px;
+                                        height: 44px;
+                                        padding: 0 16px;
+                                        font-size: 13px;
+                                        font-weight: 700;
+                                        border-radius: var(--radius-full);
+                                        background: var(--surface);
+                                        border: 1px solid var(--border);
+                                        color: var(--text-main);
+                                        cursor: pointer;
+                                        transition: background 0.15s ease;
+                                    ">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">picture_as_pdf</span>
+                                <span>${isEn ? 'Download PDF' : 'Descargar PDF'}</span>
+                            </button>
+                        </div>
                     </header>
 
                     <!-- Estado Vacío Si no hay ningún producto pedido -->
@@ -4242,43 +4291,6 @@ openOrderForm(supplierId) {
                                                 <strong>${isEn ? 'Note:' : 'Nota:'}</strong> ${notes}
                                             </div>
                                         ` : ''}
-
-                                        <!-- Botones de Acción para este Proveedor -->
-                                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 6px; flex-wrap: wrap;">
-                                            <button type="button" 
-                                                    onclick="window.suppliersManager.copyOrderText('${sup.id}')" 
-                                                    style="
-                                                        display: inline-flex;
-                                                        align-items: center;
-                                                        gap: 6px;
-                                                        height: 36px;
-                                                        padding: 0 14px;
-                                                        border-radius: var(--radius-full);
-                                                        font-weight: 700;
-                                                        font-size: 12.5px;
-                                                        background: var(--bg);
-                                                        color: var(--text-main);
-                                                        border: 1px solid var(--border);
-                                                        cursor: pointer;
-                                                    ">
-                                                <span class="material-symbols-outlined" style="font-size: 17px;">content_copy</span>
-                                                <span>${isEn ? 'Copy' : 'Copiar'}</span>
-                                            </button>
-                                            <button type="button" 
-                                                    onclick="window.suppliersManager.sendOrderByWhatsApp('${sup.id}')" 
-                                                    class="btn-supplier-save" 
-                                                    style="
-                                                        display: inline-flex;
-                                                        align-items: center;
-                                                        gap: 6px;
-                                                        height: 36px;
-                                                        padding: 0 16px;
-                                                        font-size: 12.5px;
-                                                    ">
-                                                <span class="material-symbols-outlined" style="font-size: 18px;">chat</span>
-                                                <span>${isEn ? 'Send WhatsApp' : 'Enviar WhatsApp'}</span>
-                                            </button>
-                                        </div>
                                     </div>
                                 `;
                             }).join('')}
@@ -4929,7 +4941,266 @@ openOrderForm(supplierId) {
 
             this.closeM3TimePicker();
         }
+
+/**
+         * Genera un documento PDF formateado como recibo / ticket oficial con todos los productos pedidos
+         * @returns {Object} { blob, filename, doc }
+         */
+        buildOrdersReceiptPDF() {
+            const jsPDFClass = window.jspdf ? window.jspdf.jsPDF : null;
+            if (!jsPDFClass) {
+                console.error('[SuppliersManager] jsPDF library is not loaded');
+                return null;
+            }
+
+            const isEn = this.isEnglish();
+            const allSuppliers = this.suppliers || [];
+            const orderedSuppliers = allSuppliers.filter(s => {
+                const cart = this.orderCart[s.id] || {};
+                return Object.values(cart).some(q => q > 0);
+            });
+
+            const doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const marginX = 14;
+            const pageWidth = 210;
+            const contentWidth = pageWidth - (marginX * 2);
+            let y = 18;
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString(isEn ? 'en-US' : 'es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const timeStr = now.toLocaleTimeString(isEn ? 'en-US' : 'es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            let totalProductsCount = 0;
+            orderedSuppliers.forEach(s => {
+                const cart = this.orderCart[s.id] || {};
+                totalProductsCount += Object.values(cart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
+            });
+
+            // 1. Encabezado Oficial Estilo Recibo / Ticket
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(13, 122, 80); // #0d7a50 Brand Green
+            doc.text('RECIPE PANTRY', marginX, y);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(100, 100, 100);
+            doc.text(isEn ? 'WHOLESALE SUPPLIERS ORDER RECEIPT' : 'RECIBO DE PEDIDO A PROVEEDORES', pageWidth - marginX, y, { align: 'right' });
+
+            y += 7;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13);
+            doc.setTextColor(26, 28, 25);
+            doc.text(isEn ? 'CONSOLIDATED ORDERS SUMMARY' : 'RESUMEN CONSOLIDADO DE PEDIDOS', marginX, y);
+
+            y += 6;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(80, 80, 80);
+            doc.text(`${isEn ? 'Date' : 'Fecha'}: ${dateStr} - ${timeStr}`, marginX, y);
+            doc.text(`${orderedSuppliers.length} ${isEn ? 'Suppliers' : 'Proveedores'}  |  ${totalProductsCount} ${isEn ? 'Products Ordered' : 'Productos Solicitados'}`, pageWidth - marginX, y, { align: 'right' });
+
+            y += 4;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineDash([2, 1.5], 0);
+            doc.line(marginX, y, pageWidth - marginX, y);
+            doc.setLineDash([], 0);
+
+            y += 8;
+
+            // 2. Secciones por Proveedor
+            orderedSuppliers.forEach((sup, idx) => {
+                const status = this.getDeliveryStatus(sup);
+                const cart = this.orderCart[sup.id] || {};
+                const supItems = this.items.filter(it => it.supplier_id === sup.id && (cart[it.id] || 0) > 0);
+                const notes = this.orderNotes[sup.id] || '';
+                const cat = this.getCategoryObj(sup.category);
+
+                if (y > 235) {
+                    doc.addPage();
+                    y = 18;
+                }
+
+                // Tarjeta / Barra del Proveedor
+                doc.setFillColor(242, 247, 244);
+                doc.roundedRect(marginX, y, contentWidth, 12, 2, 2, 'F');
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10.5);
+                doc.setTextColor(13, 122, 80);
+                const supTitle = `${idx + 1}. ${sup.name.toUpperCase()} (${cat.displayLabel || cat.label})`;
+                doc.text(supTitle, marginX + 4, y + 7.5);
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(80, 80, 80);
+                const supInfo = `${sup.phone ? 'Tel: ' + sup.phone + ' | ' : ''}${status.statusTitle} (${status.statusSub})`;
+                doc.text(supInfo, pageWidth - marginX - 4, y + 7.5, { align: 'right' });
+
+                y += 15;
+
+                // Encabezados de Tabla de Productos
+                doc.setFillColor(232, 237, 234);
+                doc.rect(marginX, y, contentWidth, 6, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8);
+                doc.setTextColor(60, 60, 60);
+                doc.text(isEn ? 'QTY' : 'CANT.', marginX + 4, y + 4.2);
+                doc.text(isEn ? 'PRODUCT' : 'PRODUCTO', marginX + 26, y + 4.2);
+                doc.text(isEn ? 'UNIT / FORMAT' : 'UNIDAD / FORMATO', pageWidth - marginX - 4, y + 4.2, { align: 'right' });
+
+                y += 7;
+
+                // Lista de Productos
+                supItems.forEach((item, itemIdx) => {
+                    if (y > 265) {
+                        doc.addPage();
+                        y = 18;
+                    }
+
+                    const qty = cart[item.id] || 0;
+                    const unitStr = item.package_format || item.unit || (isEn ? 'Unit' : 'Unidad');
+
+                    if (itemIdx % 2 === 1) {
+                        doc.setFillColor(249, 251, 250);
+                        doc.rect(marginX, y - 1, contentWidth, 7, 'F');
+                    }
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(13, 122, 80);
+                    doc.text(`${qty}x`, marginX + 4, y + 3.8);
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(30, 30, 30);
+                    doc.text(item.name, marginX + 26, y + 3.8);
+
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(unitStr, pageWidth - marginX - 4, y + 3.8, { align: 'right' });
+
+                    y += 7.5;
+                });
+
+                // Nota al Proveedor si existe
+                if (notes) {
+                    if (y > 265) {
+                        doc.addPage();
+                        y = 18;
+                    }
+                    doc.setFont('helvetica', 'italic');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(`${isEn ? 'Order Note' : 'Nota al proveedor'}: ${notes}`, marginX + 4, y + 4);
+                    y += 7;
+                }
+
+                y += 5;
+            });
+
+            // Pie de Página del Documento
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(8);
+            doc.setTextColor(130, 130, 130);
+            doc.text(isEn ? 'Generated automatically by Recipe Pantry · Official Order Receipt' : 'Documento generado automáticamente por Recipe Pantry · Recibo de pedido oficial', pageWidth / 2, 287, { align: 'center' });
+
+            const blob = doc.output('blob');
+            const dateISO = now.toISOString().split('T')[0];
+            const filename = `Recibo_Pedidos_${dateISO}.pdf`;
+
+            return { blob, filename, doc };
+        }
+
+        /**
+         * Envía el pedido consolidado en formato Recibo PDF a través de WhatsApp (con Web Share API o descarga)
+         */
+        async shareConsolidatedOrdersPDF() {
+            const isEn = this.isEnglish();
+            const res = this.buildOrdersReceiptPDF();
+            if (!res) {
+                this.notify(isEn ? 'Error creating PDF receipt' : 'Error al generar el recibo PDF', 'error');
+                return;
+            }
+
+            const { blob, filename } = res;
+            const file = new File([blob], filename, { type: 'application/pdf' });
+
+            // 1. Si el dispositivo soporta compartir archivos nativamente (móviles Android e iOS)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: isEn ? 'Order Receipt' : 'Recibo de Pedido',
+                        text: isEn ? 'Attached is the consolidated wholesale order receipt (PDF).' : 'Adjunto el recibo de pedido consolidado a proveedores en formato PDF.',
+                        files: [file]
+                    });
+                    this.notify(isEn ? 'Order receipt shared!' : '¡Recibo de pedido compartido!', 'success');
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // Cancelado por el usuario
+                    console.warn('[SuppliersManager] navigator.share error:', err);
+                }
+            }
+
+            // 2. Si no soporta compartir archivos directamente (PC / Escritorio):
+            // Descarga automáticamente el PDF del recibo
+            this.downloadBlob(blob, filename);
+
+            // Abre WhatsApp con mensaje descriptivo y enlace
+            const textMsg = encodeURIComponent(
+                isEn 
+                    ? `📄 *ORDER RECEIPT - RECIPE PANTRY*
+
+The consolidated order receipt has been generated in PDF format (${filename}). Please find it attached.` 
+                    : `📄 *RECIBO DE PEDIDO - RECIPE PANTRY*
+
+He generado el recibo oficial de pedidos en formato PDF (${filename}) con el desglose de todos los productos y cantidades solicitadas.`
+            );
+            const waUrl = `https://wa.me/?text=${textMsg}`;
+            window.open(waUrl, '_blank');
+
+            this.notify(
+                isEn ? 'PDF Receipt downloaded! Attach it to your WhatsApp chat.' : '¡Recibo PDF descargado! Adjúntalo en tu chat de WhatsApp.', 
+                'success'
+            );
+        }
+
+        /** Descarga directa del archivo PDF del recibo */
+        downloadConsolidatedOrdersPDF() {
+            const isEn = this.isEnglish();
+            const res = this.buildOrdersReceiptPDF();
+            if (!res) {
+                this.notify(isEn ? 'Error creating PDF receipt' : 'Error al generar el recibo PDF', 'error');
+                return;
+            }
+            this.downloadBlob(res.blob, res.filename);
+            this.notify(isEn ? 'PDF Receipt downloaded!' : '¡Recibo PDF descargado correctamente!', 'success');
+        }
+
+        /** Helper para descargar cualquier Blob en el navegador */
+        downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1000);
+        }
     }
+
 
     window.suppliersManager = new SuppliersManager();
     window.openProductSideSheet = (productId) => window.suppliersManager?.openProductSideSheet(productId);
