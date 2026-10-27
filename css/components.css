@@ -18964,10 +18964,98 @@ body.product-side-sheet-open #m3FabBackdrop {
         padding: 8px 14px !important;
         font-size: 13.5px !important;
         border-radius: 12px !important;
+        transition: all 0.2s ease !important;
     }
 
     .sidebar-nav .nav-item .material-symbols-outlined {
         font-size: 20px !important;
+    }
+
+    /* ─── Estado Contraído (Slim Sidebar) ─── */
+    /* Al contraer: muestra SOLO los iconos y la foto de perfil centrada sin textos */
+    .sidebar.sidebar--slim {
+        width: 72px !important;
+        min-width: 72px !important;
+        padding: 16px 0 20px 0 !important;
+        transition: width 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-logo {
+        padding: 0 !important;
+        justify-content: center !important;
+        margin-bottom: 12px !important;
+    }
+
+    .sidebar.sidebar--slim .logo-text {
+        display: none !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-user-profile,
+    .sidebar.sidebar--slim .notas-sidebar-profile {
+        padding: 6px 0 10px 0 !important;
+        margin: 0 8px 8px 8px !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .sidebar.sidebar--slim .user-info-m3,
+    .sidebar.sidebar--slim .user-greeting,
+    .sidebar.sidebar--slim .notas-sidebar-username {
+        display: none !important;
+    }
+
+    .sidebar.sidebar--slim .user-avatar-wrapper,
+    .sidebar.sidebar--slim .user-avatar-ring,
+    .sidebar.sidebar--slim .notas-avatar-ring {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        margin: 0 auto !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-user-profile::after,
+    .sidebar.sidebar--slim .notas-sidebar-profile::after {
+        left: 10px !important;
+        right: 10px !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-nav {
+        padding: 0 8px !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-nav .nav-item {
+        justify-content: center !important;
+        padding: 10px 0 !important;
+        margin: 3px 0 !important;
+        border-radius: 12px !important;
+        gap: 0 !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-nav .nav-item span:not(.material-symbols-outlined) {
+        display: none !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-nav .nav-item .material-symbols-outlined {
+        font-size: 22px !important;
+        margin: 0 auto !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-footer {
+        padding: 12px 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-toggle-btn {
+        width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        margin: 0 auto !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-toggle-btn .material-symbols-outlined {
+        transform: rotate(180deg) !important;
     }
 
     /* 3. Top Bar fija (permanente en la parte superior) */

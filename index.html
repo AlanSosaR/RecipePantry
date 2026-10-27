@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="919">
+<html lang="es" data-app-version="920">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=919">
-  <link rel="stylesheet" href="css/components.css?v=919">
-  <script src="js/m3-loading-indicator.js?v=919"></script>
+  <link rel="stylesheet" href="css/styles.css?v=920">
+  <link rel="stylesheet" href="css/components.css?v=920">
+  <script src="js/m3-loading-indicator.js?v=920"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -375,7 +375,7 @@
         </div>
       </div>
       <nav class="sidebar-nav">
-        <a href="#" class="nav-item active" data-view="recipes">
+        <a href="#" class="nav-item active" data-view="recipes" title="Recetas">
           <span class="material-symbols-outlined">menu_book</span>
           <span data-i18n="navRecipes">Recetas</span>
         </a>
@@ -383,19 +383,19 @@
           <span class="material-symbols-outlined">checklist</span>
           <span data-i18n="navTasks">Prep Diario</span>
         </a>
-        <a href="#" class="nav-item" onclick="window.location.href='/notas'">
+        <a href="#" class="nav-item" onclick="window.location.href='/notas'" title="Notas">
           <span class="material-symbols-outlined">edit_note</span>
           <span data-i18n="navNotes">Notas</span>
         </a>
-        <a href="#" class="nav-item" data-view="menu">
+        <a href="#" class="nav-item" data-view="menu" title="Menú">
           <span class="material-symbols-outlined">restaurant_menu</span>
           <span data-i18n="navMenu">Menú</span>
         </a>
-        <a href="#" class="nav-item" data-view="allergens">
+        <a href="#" class="nav-item" data-view="allergens" title="Alergias">
           <span class="material-symbols-outlined">health_and_safety</span>
           <span data-i18n="navAllergies">Alergias</span>
         </a>
-        <a href="#" class="nav-item" data-view="favorites">
+        <a href="#" class="nav-item" data-view="favorites" title="Favoritos">
           <span class="material-symbols-outlined">star</span>
           <span data-i18n="navFavorites">Favoritos</span>
         </a>
@@ -407,7 +407,7 @@
           <span class="material-symbols-outlined">settings</span>
           <span data-i18n="navHelp">Configuración</span>
         </a>
-        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()" title="Cerrar Sesión">
           <span class="material-symbols-outlined">logout</span>
           <span data-i18n="navLogout">Cerrar Sesión</span>
         </a>
@@ -850,34 +850,34 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=919"></script>
-  <script src="js/supabase-client.js?v=919"></script>
-  <script src="js/localdb.js?v=919"></script>
-  <script src="js/sync-manager.js?v=919"></script>
-  <script src="js/m3-loading-indicator.js?v=919"></script>
-  <script src="js/utils.js?v=919"></script>
-  <script src="js/i18n.js?v=919"></script>
-  <script src="js/allergen-data.js?v=919"></script>
-  <script src="js/menu-data.js?v=919"></script>
-  <script src="js/lib/pdf.min.js?v=919"></script>
-  <script src="js/restaurant-menu.js?v=919"></script>
-  <script src="js/db.js?v=919"></script>
-  <script src="js/auth.js?v=919"></script>
-  <script src="js/dashboard.js?v=919"></script>
-  <script src="js/share-modal.js?v=919"></script>
-  <script src="js/help-modal.js?v=919"></script>
-  <script src="js/admin-users.js?v=919"></script>
-  <script src="js/suppliers-manager.js?v=919"></script>
-  <script src="js/tasks-manager.js?v=919"></script>
+  <script src="js/config.js?v=920"></script>
+  <script src="js/supabase-client.js?v=920"></script>
+  <script src="js/localdb.js?v=920"></script>
+  <script src="js/sync-manager.js?v=920"></script>
+  <script src="js/m3-loading-indicator.js?v=920"></script>
+  <script src="js/utils.js?v=920"></script>
+  <script src="js/i18n.js?v=920"></script>
+  <script src="js/allergen-data.js?v=920"></script>
+  <script src="js/menu-data.js?v=920"></script>
+  <script src="js/lib/pdf.min.js?v=920"></script>
+  <script src="js/restaurant-menu.js?v=920"></script>
+  <script src="js/db.js?v=920"></script>
+  <script src="js/auth.js?v=920"></script>
+  <script src="js/dashboard.js?v=920"></script>
+  <script src="js/share-modal.js?v=920"></script>
+  <script src="js/help-modal.js?v=920"></script>
+  <script src="js/admin-users.js?v=920"></script>
+  <script src="js/suppliers-manager.js?v=920"></script>
+  <script src="js/tasks-manager.js?v=920"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=919"></script>
-  <script src="js/core/push.js?v=919"></script>
-  <script src="js/notifications.js?v=919"></script>
-  <script src="js/ui.js?v=919"></script>
-  <script src="js/sw-register.js?v=919"></script>
-<script src="js/pwa-install.js?v=919"></script>
-  <script src="js/gemini-client.js?v=919"></script>
-  <script type="module" src="js/url-importer.js?v=919"></script>
+  <script type="module" src="js/core/firebase.js?v=920"></script>
+  <script src="js/core/push.js?v=920"></script>
+  <script src="js/notifications.js?v=920"></script>
+  <script src="js/ui.js?v=920"></script>
+  <script src="js/sw-register.js?v=920"></script>
+<script src="js/pwa-install.js?v=920"></script>
+  <script src="js/gemini-client.js?v=920"></script>
+  <script type="module" src="js/url-importer.js?v=920"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'
