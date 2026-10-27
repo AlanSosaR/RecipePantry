@@ -4087,58 +4087,6 @@ openOrderForm(supplierId) {
                             <span>·</span>
                             <span>📦 <strong style="color: var(--text-main);">${totalProductsCount}</strong> ${isEn ? 'products' : 'productos solicitados'}</span>
                         </div>
-                        <!-- Barra de Acción Principal M3: Enviar por WhatsApp en formato Recibo PDF -->
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
-                            <button type="button" 
-                                    id="btnSendWhatsAppPdf"
-                                    onclick="window.suppliersManager.shareConsolidatedOrdersPDF()" 
-                                    class="btn-supplier-save" 
-                                    style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 8px;
-                                        height: 44px;
-                                        padding: 0 20px;
-                                        font-size: 13.5px;
-                                        font-weight: 800;
-                                        border-radius: var(--radius-full);
-                                        background: #14b87a;
-                                        color: #ffffff;
-                                        border: none;
-                                        box-shadow: 0 4px 14px rgba(20, 184, 122, 0.28);
-                                        cursor: pointer;
-                                        flex: 1 1 240px;
-                                        transition: transform 0.15s ease, background 0.15s ease;
-                                    ">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
-                                <span>${isEn ? 'Send via WhatsApp (PDF Receipt)' : 'Enviar por WhatsApp (Recibo PDF)'}</span>
-                            </button>
-
-                            <button type="button" 
-                                    onclick="window.suppliersManager.downloadConsolidatedOrdersPDF()" 
-                                    class="btn-icon-m3" 
-                                    title="${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}"
-                                    style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 6px;
-                                        height: 44px;
-                                        padding: 0 16px;
-                                        font-size: 13px;
-                                        font-weight: 700;
-                                        border-radius: var(--radius-full);
-                                        background: var(--surface);
-                                        border: 1px solid var(--border);
-                                        color: var(--text-main);
-                                        cursor: pointer;
-                                        transition: background 0.15s ease;
-                                    ">
-                                <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">picture_as_pdf</span>
-                                <span>${isEn ? 'Download PDF' : 'Descargar PDF'}</span>
-                            </button>
-                        </div>
                     </header>
 
                     <!-- Estado Vacío Si no hay ningún producto pedido -->
@@ -4444,7 +4392,7 @@ openOrderForm(supplierId) {
                         ${isEn ? 'Consolidated Order Options' : 'Opciones del Pedido Consolidado'}
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <button type="button" id="btnMenuCopyAll" style="
+                        <button type="button" id="btnMenuSendWhatsAppPdf" style="
                             display: flex;
                             align-items: center;
                             gap: 12px;
@@ -4453,6 +4401,48 @@ openOrderForm(supplierId) {
                             padding: 0 16px;
                             border-radius: var(--radius-lg);
                             border: none;
+                            background: #e8f7f0;
+                            color: #0d7a50;
+                            font-family: var(--font-display);
+                            font-size: 14.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            text-align: left;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 22px; color: #14b87a;">chat</span>
+                            <span>${isEn ? 'Send via WhatsApp (PDF Receipt)' : 'Enviar por WhatsApp (Recibo PDF)'}</span>
+                        </button>
+
+                        <button type="button" id="btnMenuDownloadPdf" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            width: 100%;
+                            height: 48px;
+                            padding: 0 16px;
+                            border-radius: var(--radius-lg);
+                            border: 1px solid var(--border);
+                            background: var(--bg);
+                            color: var(--text-main);
+                            font-family: var(--font-display);
+                            font-size: 14.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            text-align: left;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 22px; color: #dc2626;">picture_as_pdf</span>
+                            <span>${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}</span>
+                        </button>
+
+                        <button type="button" id="btnMenuCopyAll" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            width: 100%;
+                            height: 48px;
+                            padding: 0 16px;
+                            border-radius: var(--radius-lg);
+                            border: 1px solid var(--border);
                             background: var(--bg);
                             color: var(--text-main);
                             font-family: var(--font-display);
@@ -4462,7 +4452,7 @@ openOrderForm(supplierId) {
                             text-align: left;
                         ">
                             <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">content_copy</span>
-                            <span>${isEn ? 'Copy All Orders in 1 Message' : 'Copiar Todo el Pedido Consolidado'}</span>
+                            <span>${isEn ? 'Copy All Orders (Text)' : 'Copiar Todo el Pedido (Texto)'}</span>
                         </button>
 
                         <button type="button" id="btnMenuClearAll" style="
@@ -4501,11 +4491,53 @@ openOrderForm(supplierId) {
                     border-radius: var(--radius-lg);
                     padding: 8px;
                     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-                    min-width: 250px;
+                    min-width: 270px;
                     animation: fadeInSubView 0.15s ease;
                 `;
                 menu.innerHTML = `
                     <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <button type="button" id="btnMenuSendWhatsAppPdf" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            width: 100%;
+                            height: 40px;
+                            padding: 0 12px;
+                            border-radius: var(--radius-md);
+                            border: none;
+                            background: #e8f7f0;
+                            color: #0d7a50;
+                            font-family: var(--font-display);
+                            font-size: 13.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: background 0.15s ease;
+                        " onmouseenter="this.style.background='#d8f3e5'" onmouseleave="this.style.background='#e8f7f0'">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #14b87a;">chat</span>
+                            <span>${isEn ? 'Send via WhatsApp (PDF)' : 'Enviar por WhatsApp (Recibo PDF)'}</span>
+                        </button>
+
+                        <button type="button" id="btnMenuDownloadPdf" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            width: 100%;
+                            height: 40px;
+                            padding: 0 12px;
+                            border-radius: var(--radius-md);
+                            border: none;
+                            background: transparent;
+                            color: var(--text-main);
+                            font-family: var(--font-display);
+                            font-size: 13.5px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: background 0.15s ease;
+                        " onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">picture_as_pdf</span>
+                            <span>${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}</span>
+                        </button>
+
                         <button type="button" id="btnMenuCopyAll" style="
                             display: flex;
                             align-items: center;
@@ -4524,8 +4556,10 @@ openOrderForm(supplierId) {
                             transition: background 0.15s ease;
                         " onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
                             <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary-dark);">content_copy</span>
-                            <span>${isEn ? 'Copy All Orders' : 'Copiar Todo el Pedido'}</span>
+                            <span>${isEn ? 'Copy All Orders (Text)' : 'Copiar Todo el Pedido (Texto)'}</span>
                         </button>
+
+                        <div style="height: 1px; background: var(--border); margin: 4px 0;"></div>
 
                         <button type="button" id="btnMenuClearAll" style="
                             display: flex;
@@ -4561,6 +4595,16 @@ openOrderForm(supplierId) {
             document.body.appendChild(backdrop);
             document.body.appendChild(menu);
 
+            menu.querySelector('#btnMenuSendWhatsAppPdf')?.addEventListener('click', () => {
+                closeMenu();
+                this.shareConsolidatedOrdersPDF();
+            });
+
+            menu.querySelector('#btnMenuDownloadPdf')?.addEventListener('click', () => {
+                closeMenu();
+                this.downloadConsolidatedOrdersPDF();
+            });
+
             menu.querySelector('#btnMenuCopyAll')?.addEventListener('click', () => {
                 closeMenu();
                 this.copyAllOrdersText();
@@ -4572,7 +4616,6 @@ openOrderForm(supplierId) {
             });
         }
 
-        /** Cierra modal */
         closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.classList.add('hidden');
