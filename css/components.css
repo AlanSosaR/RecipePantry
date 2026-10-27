@@ -18851,3 +18851,223 @@ body.product-side-sheet-open #m3FabBackdrop {
         padding: 14px 12px !important;
     }
 }
+
+/* ==========================================================================
+   Desktop Compact Density (PC & Laptops >= 1024px)
+   Aislamiento 100% seguro: No altera en absoluto la versión móvil (< 1024px).
+   Adaptación M3 Expressive a pantallas de computadora (elimina sensación de zoom).
+   ========================================================================== */
+@media (min-width: 1024px) {
+    /* 1. Sidebar estilizada y proporcionada en Desktop */
+    .sidebar {
+        width: 240px !important;
+        padding: 20px 0 !important;
+    }
+
+    .sidebar-logo {
+        padding: 0 24px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .sidebar-user-profile {
+        padding: 10px 16px !important;
+        margin: 0 12px 14px 12px !important;
+    }
+
+    .sidebar-nav {
+        padding: 0 10px !important;
+        gap: 2px !important;
+    }
+
+    .sidebar-nav .nav-item {
+        padding: 9px 14px !important;
+        font-size: 13.5px !important;
+        border-radius: 12px !important;
+    }
+
+    .sidebar-nav .nav-item .material-symbols-outlined {
+        font-size: 20px !important;
+    }
+
+    /* 2. Top Bar compacta (elimina el padding muerto vertical) */
+    .top-bar-m3 {
+        padding: 14px 32px 10px 32px !important;
+        gap: 16px !important;
+        min-height: auto !important;
+    }
+
+    .btn-new-dropbox {
+        height: 38px !important;
+        padding: 6px 16px !important;
+        font-size: 13px !important;
+        border-radius: 999px !important;
+    }
+
+    .btn-new-dropbox .material-symbols-outlined {
+        font-size: 18px !important;
+    }
+
+    .search-wrapper-m3 {
+        height: 40px !important;
+        max-width: 680px !important;
+        border-radius: 20px !important;
+        padding: 0 16px !important;
+    }
+
+    .search-wrapper-m3 input {
+        font-size: 13.5px !important;
+    }
+
+    .search-wrapper-m3 .material-symbols-outlined {
+        font-size: 20px !important;
+    }
+
+    .btn-icon-m3 {
+        width: 38px !important;
+        height: 38px !important;
+    }
+
+    /* 3. Carrusel Sugerido de Carpetas compacto */
+    .dropbox-suggested-section {
+        padding: 0 32px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .suggested-header {
+        margin-bottom: 8px !important;
+    }
+
+    .suggested-title {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+    }
+
+    .dropbox-carousel-card {
+        height: 50px !important;
+        flex: 0 0 210px !important;
+        min-width: 185px !important;
+        padding: 6px 12px !important;
+        border-radius: 12px !important;
+        gap: 10px !important;
+    }
+
+    .dropbox-carousel-card .card-media {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 8px !important;
+    }
+
+    .dropbox-carousel-card .card-media .folder-icon {
+        font-size: 20px !important;
+    }
+
+    .dropbox-carousel-card .card-title {
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+    }
+
+    .dropbox-carousel-card .card-subtitle {
+        font-size: 11px !important;
+    }
+
+    .card-action-btn {
+        width: 26px !important;
+        height: 26px !important;
+    }
+
+    .card-action-btn .material-symbols-outlined {
+        font-size: 16px !important;
+    }
+
+    /* 4. Breadcrumbs & Cabecera de Lista */
+    .folder-breadcrumb-bar {
+        padding: 6px 32px !important;
+        margin-bottom: 8px !important;
+        font-size: 13px !important;
+    }
+
+    .folder-back-btn {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .folder-back-btn .material-symbols-outlined {
+        font-size: 18px !important;
+    }
+
+    .dashboard-header {
+        padding: 4px 32px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .dashboard-header h3 {
+        font-size: 14.5px !important;
+        font-weight: 700 !important;
+    }
+
+    .btn-segmented-action,
+    .btn-danger-pill,
+    .btn-cancel-selection-pill {
+        padding: 5px 12px !important;
+        font-size: 12px !important;
+    }
+
+    /* 5. Rejilla y Filas de Recetas Compactas (Desktop Density) */
+    .recipes-grid.list-view-m3 {
+        padding: 0 0 40px 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .list-header-m3,
+    .file-row-m3 {
+        display: grid !important;
+        grid-template-columns: 44px 38px minmax(180px, 1fr) 130px 130px 60px !important;
+        padding: 0 32px !important;
+        gap: 12px !important;
+        align-items: center !important;
+    }
+
+    .list-header-m3 {
+        height: 36px !important;
+        font-size: 10.5px !important;
+        letter-spacing: 0.6px !important;
+    }
+
+    .file-row-m3 {
+        height: 44px !important;
+    }
+
+    .file-row-m3 .recipe-name {
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+    }
+
+    .file-row-m3 .col-icon .material-symbols-outlined {
+        font-size: 20px !important;
+    }
+
+    .file-row-m3 .col-access,
+    .file-row-m3 .col-date {
+        font-size: 12.5px !important;
+    }
+
+    .file-row-m3 .row-actions-dropbox {
+        right: 32px !important;
+        padding: 2px 6px !important;
+    }
+
+    .file-row-m3 .row-actions-dropbox .btn-icon-m3 {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .file-row-m3 .row-actions-dropbox .btn-icon-m3 .material-symbols-outlined {
+        font-size: 18px !important;
+    }
+
+    .file-row-m3 .btn-share-highlight {
+        padding: 3px 10px !important;
+        font-size: 12px !important;
+    }
+}

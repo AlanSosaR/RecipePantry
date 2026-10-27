@@ -2846,3 +2846,18 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
 
 
 
+
+/* Desktop Compact Density for Notas (>= 1024px) - Seguro: no altera mvil */
+@media (min-width: 1024px) {
+    .notas-main .top-bar-m3 {
+        padding: 14px 32px 10px 32px !important;
+        gap: 16px !important;
+    }
+    .notas-sidebar {
+        width: 240px !important;
+        min-width: 240px !important;
+    }
+    .notas-page-header {
+        padding: 16px 32px 12px 32px !important;
+    }
+}
