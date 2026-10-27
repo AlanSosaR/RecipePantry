@@ -5533,7 +5533,7 @@ html[data-auth-likely="true"] #dashboard-app {
 
 .snackbar-header-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     width: 100%;
@@ -5541,25 +5541,27 @@ html[data-auth-likely="true"] #dashboard-app {
 
 .snackbar-m3 .snackbar-content {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     flex: 1;
     min-width: 0;
 }
 
 .snackbar-m3 .message {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
     font-size: 14.5px;
     font-weight: 600;
     color: #10B981;
+    line-height: 1.45;
 }
 
 .snackbar-m3 .icon {
     color: #10B981;
     font-size: 24px;
     flex-shrink: 0;
+    margin-top: -1px;
 }
 
 .snackbar-close-btn {
@@ -5575,6 +5577,7 @@ html[data-auth-likely="true"] #dashboard-app {
     transition: background-color 0.15s, opacity 0.15s;
     flex-shrink: 0;
     opacity: 0.8;
+    margin-top: -2px;
 }
 
 .snackbar-close-btn:hover {
