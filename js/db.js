@@ -833,15 +833,34 @@ class DatabaseManager {
 
     async addIngredients(recipeId, ingredients) {
         await this._checkLocalDB();
-        const items = ingredients.map(ing => ({
-            recipe_id: recipeId, name_es: ing.name_es, name_en: ing.name_en,
-            unit_es: ing.unit_es, unit_en: ing.unit_en, quantity: ing.quantity
-        }));
+        const items = ingredients.map(ing => {
+            const rawQty = (ing.quantity !== '' && ing.quantity !== undefined && ing.quantity !== null)
+                ? parseFloat(String(ing.quantity).replace(',', '.'))
+                : null;
+            const safeQty = (rawQty !== null && !isNaN(rawQty)) ? rawQty : null;
+
+            return {
+                recipe_id: recipeId,
+                name_es: ing.name_es || ing.name || '',
+                name_en: ing.name_en || ing.name_es || ing.name || '',
+                unit_es: ing.unit_es || ing.unit || null,
+                unit_en: ing.unit_en || ing.unit_es || ing.unit || null,
+                quantity: safeQty
+            };
+        });
+
         if (this._isOnline) {
             try {
-                await window.supabaseClient.from('ingredients').insert(items);
+                const { error } = await window.supabaseClient.from('ingredients').insert(items);
+                if (error) {
+                    console.error('❌ Error guardando ingredientes en Supabase:', error);
+                    return { success: false, error: error.message };
+                }
                 return { success: true };
-            } catch (e) { return { success: false, error: e.message }; }
+            } catch (e) {
+                console.error('❌ Excepción guardando ingredientes:', e);
+                return { success: false, error: e.message };
+            }
         } else {
             for (let item of items) await window.localDB.enqueueSync('insert', 'ingredients', item, recipeId);
             return { success: true, offline: true };
@@ -851,14 +870,24 @@ class DatabaseManager {
     async addSteps(recipeId, steps) {
         await this._checkLocalDB();
         const items = steps.map((step, idx) => ({
-            recipe_id: recipeId, instruction_es: step.instruction_es, instruction_en: step.instruction_en,
+            recipe_id: recipeId,
+            instruction_es: step.instruction_es || step.instruction || (typeof step === 'string' ? step : ''),
+            instruction_en: step.instruction_en || step.instruction_es || step.instruction || (typeof step === 'string' ? step : ''),
             step_number: step.step_order || step.step_number || (idx + 1)
         }));
+
         if (this._isOnline) {
             try {
-                await window.supabaseClient.from('preparation_steps').insert(items);
+                const { error } = await window.supabaseClient.from('preparation_steps').insert(items);
+                if (error) {
+                    console.error('❌ Error guardando pasos en Supabase:', error);
+                    return { success: false, error: error.message };
+                }
                 return { success: true };
-            } catch (e) { return { success: false, error: e.message }; }
+            } catch (e) {
+                console.error('❌ Excepción guardando pasos:', e);
+                return { success: false, error: e.message };
+            }
         } else {
             for (let item of items) await window.localDB.enqueueSync('insert', 'preparation_steps', item, recipeId);
             return { success: true, offline: true };
