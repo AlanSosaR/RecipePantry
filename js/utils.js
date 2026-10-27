@@ -84,6 +84,9 @@ window.showToast = (message, type = 'info') => {
         toastContainer.id = 'toast-container';
         toastContainer.className = 'toast-container';
         document.body.appendChild(toastContainer);
+    } else {
+        // Limpiar toasts previos para evitar mensajes dobles o apilados
+        toastContainer.innerHTML = '';
     }
 
     const toast = document.createElement('div');

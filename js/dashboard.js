@@ -1771,8 +1771,6 @@ class DashboardManager {
 
         window.showActionSnackbar(confirmMsg, 'ELIMINAR', async () => {
             try {
-                window.showToast(window.i18n ? window.i18n.t('deleting') : 'Eliminando...', 'info');
-                
                 console.log('[Dashboard] Executing deletion for captured IDs:', selectedIdsArr);
                 
                 // --- Optimistic UI Update ---
