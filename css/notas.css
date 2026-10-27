@@ -2850,29 +2850,53 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
 /* Desktop Compact Density for Notas (>= 1024px) - Seguro: no altera mvil */
 @media (min-width: 1024px) {
     .notas-sidebar-profile {
-        padding: 8px 16px 6px 16px !important;
-        gap: 6px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 8px 12px 14px 12px !important;
+        margin: 0 12px 10px 12px !important;
+        gap: 12px !important;
+        position: relative !important;
+        border-radius: 12px !important;
+        text-align: left !important;
     }
     .notas-sidebar-profile::after {
-        margin-top: 8px !important;
-        width: 70% !important;
-        opacity: 0.5 !important;
+        content: '' !important;
+        position: absolute !important;
+        bottom: 0 !important;
+        left: 4px !important;
+        right: 4px !important;
+        width: auto !important;
+        height: 1.5px !important;
+        background: var(--primary, #10B981) !important;
+        margin-top: 0 !important;
+        border-radius: 2px !important;
+        opacity: 0.85 !important;
     }
     .notas-avatar-ring {
-        width: 60px !important;
-        height: 60px !important;
-        border-width: 3px !important;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        border-width: 2.5px !important;
         padding: 2px !important;
+        flex-shrink: 0 !important;
     }
     .notas-avatar-circle {
-        font-size: 20px !important;
+        font-size: 16px !important;
     }
     .notas-initials {
-        font-size: 20px !important;
+        font-size: 16px !important;
     }
     .notas-sidebar-username {
-        font-size: 13.5px !important;
+        font-size: 14px !important;
         font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
     }
     .notas-main .top-bar-m3 {
         padding: 14px 32px 10px 32px !important;
