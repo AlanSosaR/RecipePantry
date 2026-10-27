@@ -5633,13 +5633,41 @@ html[data-auth-likely="true"] #dashboard-app {
     cursor: pointer;
     padding: 10px 14px;
     border-radius: 8px;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
     text-transform: uppercase;
     white-space: nowrap;
 }
 
 .snackbar-btn:hover {
     background: rgba(52, 211, 153, 0.1);
+}
+
+/* Destructive / Delete Actions in Snackbar M3 (Color Rojo) */
+.snackbar-btn.snackbar-btn-danger,
+.snackbar-btn[data-action="delete"],
+body.selection-mode-active .snackbar-action-mode .snackbar-btn,
+.snackbar-m3.snackbar-destructive .snackbar-btn {
+    color: var(--error, #EF4444) !important;
+}
+
+.snackbar-btn.snackbar-btn-danger:hover,
+.snackbar-btn[data-action="delete"]:hover,
+body.selection-mode-active .snackbar-action-mode .snackbar-btn:hover,
+.snackbar-m3.snackbar-destructive .snackbar-btn:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
+}
+
+.snackbar-m3.snackbar-destructive {
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+.snackbar-m3.snackbar-destructive .icon,
+.snackbar-m3.snackbar-destructive .snackbar-close-btn {
+    color: var(--error, #EF4444) !important;
+}
+
+.snackbar-m3.snackbar-destructive .snackbar-close-btn:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
 }
 
 /* ─── Simplified Share Modal ─── */

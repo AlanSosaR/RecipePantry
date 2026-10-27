@@ -269,7 +269,7 @@ window.showSnackbar = (message, duration = 4000) => {
 /**
  * Muestra un Snackbar con un botón de acción en la fila inferior
  */
-window.showActionSnackbar = (message, actionText, onAction) => {
+window.showActionSnackbar = (message, actionText, onAction, options = {}) => {
     // Eliminar cualquier snackbar anterior del DOM para evitar residuos
     const old = document.getElementById('global-snackbar');
     if (old) {
@@ -277,17 +277,23 @@ window.showActionSnackbar = (message, actionText, onAction) => {
         old.remove();
     }
 
+    // Detectar si la acción es destructiva / eliminar
+    const cleanAction = (actionText || '').trim();
+    const isDestructive = (options && (options.isDestructive || options.type === 'error' || options.type === 'danger')) ||
+        /^(eliminar|delete|borrar|remove)/i.test(cleanAction) ||
+        (document.body && document.body.classList.contains('selection-mode-active'));
+
     // Crear snackbar fresco en el DOM
     const snackbar = document.createElement('div');
     snackbar.id = 'global-snackbar';
-    snackbar.className = 'snackbar-m3 snackbar-action-mode';
+    snackbar.className = 'snackbar-m3 snackbar-action-mode' + (isDestructive ? ' snackbar-destructive' : '');
     snackbar.innerHTML = `
         <div class="snackbar-header-row">
             <div class="snackbar-content">
-                <span class="material-symbols-outlined icon">info</span>
-                <span class="message"></span>
+                <span class="material-symbols-outlined icon" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">${isDestructive ? 'warning' : 'info'}</span>
+                <span class="message" style="${isDestructive ? 'color: #1F2937;' : ''}"></span>
             </div>
-            <button class="btn-icon-m3 snackbar-close-btn" aria-label="Cerrar">
+            <button class="btn-icon-m3 snackbar-close-btn" aria-label="Cerrar" style="${isDestructive ? 'color: var(--error, #EF4444);' : ''}">
                 <span class="material-symbols-outlined" style="font-size:20px;">close</span>
             </button>
         </div>
@@ -316,8 +322,12 @@ window.showActionSnackbar = (message, actionText, onAction) => {
 
     // Botón de acción principal abajo (ELIMINAR, ACEPTAR, etc.)
     const btn = document.createElement('button');
-    btn.className = 'snackbar-btn';
+    btn.className = 'snackbar-btn' + (isDestructive ? ' snackbar-btn-danger' : '');
     btn.textContent = actionText;
+    if (isDestructive) {
+        btn.setAttribute('data-action', 'delete');
+        btn.style.color = 'var(--error, #EF4444)';
+    }
     btn.onclick = (e) => {
         if (e) e.preventDefault();
         closeSnackbar();
