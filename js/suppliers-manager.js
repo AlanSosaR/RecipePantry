@@ -2312,38 +2312,43 @@ renderItemCard(item, supplierId) {
 
             sheet.innerHTML = `
                 <!-- 1. Header del Side Sheet -->
-                <div class="side-sheet-header" style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #ffffff; z-index: 10;">
-                    <div>
-                        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #0d7a50; text-transform: uppercase;">
-                            ${isEn ? "ITEM DETAIL" : "DETALLE DEL INSUMO"}
-                        </div>
-                        <div style="font-size: 12.5px; font-weight: 600; color: #5f6368; margin-top: 2px;">
-                            ${positionText}
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="side-sheet-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #ffffff; z-index: 10;">
+                    <!-- Navegación: Flecha Izquierda + Nombre del Producto + Flecha Derecha -->
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
                         <button type="button" 
                                 class="btn-icon-m3 tonal" 
                                 title="${isEn ? "Previous item" : "Insumo anterior"}"
                                 onclick="window.suppliersManager.navigateProductSideSheet(-1)"
-                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
                         </button>
+                        <div style="min-width: 0; flex: 1; text-align: center;">
+                            <div id="sideSheetProductName" class="side-sheet-header-title" style="margin: 0; font-size: 15.5px; font-weight: 700; color: #1a1c19; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); line-height: 1.25;" title="${item.name}">
+                                ${item.name}
+                            </div>
+                            ${positionText ? `
+                                <div style="font-size: 11.5px; font-weight: 600; color: #5f6368; margin-top: 1px;">
+                                    ${positionText}
+                                </div>
+                            ` : ""}
+                        </div>
                         <button type="button" 
                                 class="btn-icon-m3 tonal" 
                                 title="${isEn ? "Next item" : "Insumo siguiente"}"
                                 onclick="window.suppliersManager.navigateProductSideSheet(1)"
-                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
-                        </button>
-                        <button type="button" 
-                                class="btn-icon-m3 close" 
-                                title="${isEn ? "Close panel" : "Cerrar panel"}"
-                                onclick="window.suppliersManager.closeProductSideSheet()"
-                                style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease;">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
                         </button>
                     </div>
+
+                    <!-- Botón Cerrar Panel -->
+                    <button type="button" 
+                            class="btn-icon-m3 close" 
+                            title="${isEn ? "Close panel" : "Cerrar panel"}"
+                            onclick="window.suppliersManager.closeProductSideSheet()"
+                            style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; margin-left: 4px; transition: transform 0.15s ease;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                    </button>
                 </div>
 
                 <!-- 2. Cuerpo del Side Sheet: Hero Image y Metadatos -->
@@ -2396,9 +2401,9 @@ renderItemCard(item, supplierId) {
 
                     <!-- Metadatos y Chips M3 -->
                     <div style="margin-top: 18px;">
-                        <h3 id="sideSheetProductName" style="margin: 0 0 12px 0; font-size: 1.35rem; font-weight: 800; color: #1a1c19; line-height: 1.25; letter-spacing: -0.01em; font-family: var(--font-display);">
+                        <div class="side-sheet-body-name" style="margin: 0 0 12px 0; font-size: 1.35rem; font-weight: 800; color: #1a1c19; line-height: 1.25; letter-spacing: -0.01em; font-family: var(--font-display);">
                             ${item.name}
-                        </h3>
+                        </div>
 
                         <!-- Chips M3 Expressive -->
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
@@ -2468,9 +2473,6 @@ renderItemCard(item, supplierId) {
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                     <div class="product-avatar-initials" style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
                         ${initials}
-                    </div>
-                    <div class="product-has-photo-badge" title="${isEn ? "Has photo" : "Contiene foto"}" style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: 50%; background: #14b87a; border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center;">
-                        <span class="material-symbols-outlined" style="font-size: 9px; color: #ffffff; line-height: 1;">image</span>
                     </div>
                 `;
             } else {
