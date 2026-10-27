@@ -1878,10 +1878,6 @@
                             <div class="product-avatar-initials" style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
                                 ${initials}
                             </div>
-                            <!-- Indicador sutil de que contiene imagen -->
-                            <div class="product-has-photo-badge" title="${isEn ? "Has photo" : "Contiene foto"}" style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: 50%; background: #14b87a; border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center;">
-                                <span class="material-symbols-outlined" style="font-size: 9px; color: #ffffff; line-height: 1;">image</span>
-                            </div>
                         ` : `
                             <div class="product-avatar-initials" style="width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; font-family: var(--font-display);">
                                 ${initials}
@@ -2366,22 +2362,13 @@ renderItemCard(item, supplierId) {
                             <img src="${item.image_url}" 
                                  id="sideSheetHeroImg" 
                                  class="side-sheet-hero-img"
-                                 alt="${item.name}" 
-                                 onclick="window.suppliersManager.togglePhotoZoom()"
-                                 style="cursor: zoom-in;" />
-                            <!-- Badge Zoom (izquierda) -->
-                            <div class="photo-zoom-badge" 
-                                 onclick="window.suppliersManager.togglePhotoZoom()"
-                                 style="position: absolute; bottom: 12px; left: 12px; background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); user-select: none; z-index: 4;">
-                                <span class="material-symbols-outlined" style="font-size: 14px;">zoom_in</span>
-                                <span id="zoomBadgeText">${isEn ? "Tap to zoom" : "Toca para zoom"}</span>
-                            </div>
-                            <!-- Botón Cambiar / Subir foto sobre la imagen (derecha) -->
+                                 alt="${item.name}" />
+                            <!-- Botón Cambiar / Subir foto sobre la imagen -->
                             <button type="button" 
                                     class="photo-upload-badge-btn" 
                                     onclick="event.stopPropagation(); document.getElementById('sideSheetPhotoInput').click()" 
-                                    style="position: absolute; bottom: 12px; right: 12px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); user-select: none; z-index: 4; transition: transform 0.15s ease, background 0.15s ease;">
-                                <span class="material-symbols-outlined" style="font-size: 14px;">photo_camera</span>
+                                    style="position: absolute; bottom: 12px; left: 12px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); font-size: 11.5px; font-weight: 600; padding: 5px 13px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); user-select: none; z-index: 4; transition: transform 0.15s ease, background 0.15s ease;">
+                                <span class="material-symbols-outlined" style="font-size: 15px;">photo_camera</span>
                                 <span>${isEn ? "Change photo" : "Cambiar foto"}</span>
                             </button>
                         ` : `
@@ -2724,7 +2711,17 @@ renderItemCard(item, supplierId) {
         }
 
         /** Navega a la vista dedicada para armar pedido rápido */
-        openOrderForm(supplierId) {
+                /** Inicia el flujo de hacer órdenes / armar pedidos */
+        startMakingOrders() {
+            const targetSupplierId = this.selectedSupplierDetailId || this.activeOrderSupplierId || (this.suppliers && this.suppliers[0]?.id);
+            if (targetSupplierId) {
+                this.openOrderForm(targetSupplierId);
+            } else {
+                if (window.toast) window.toast.show(this.isEnglish() ? 'Please add a supplier first' : 'Por favor agrega un proveedor primero', 'info');
+            }
+        }
+
+openOrderForm(supplierId) {
             this.activeOrderSupplierId = supplierId;
             this.currentSubView = 'order-form';
             this.render();

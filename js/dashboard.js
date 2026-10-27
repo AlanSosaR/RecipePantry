@@ -2116,9 +2116,15 @@ class DashboardManager {
         const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
 
         if (this.currentView === 'suppliers') {
-            if (heading) heading.textContent = isEn ? 'Suppliers & Products' : 'Proveedores y Productos';
+            if (heading) heading.textContent = isEn ? 'Suppliers & Orders' : 'Proveedores y Pedidos';
             if (itemsContainer) {
                 itemsContainer.innerHTML = `
+                    <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('supplier-order')">
+                        <div class="row-icon-box" style="background: rgba(16, 185, 129, 0.12); color: var(--primary-dark);">
+                            <span class="material-symbols-outlined">shopping_cart_checkout</span>
+                        </div>
+                        <span class="row-title">${isEn ? 'Make Orders' : 'Hacer Órdenes'}</span>
+                    </div>
                     <div class="dropbox-create-row" onclick="window.dashboard.handleDropboxOption('supplier')">
                         <div class="row-icon-box" style="background: rgba(16, 185, 129, 0.12); color: var(--primary-dark);">
                             <span class="material-symbols-outlined">add_business</span>
@@ -2209,6 +2215,12 @@ class DashboardManager {
             const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
             if (this.currentView === 'suppliers') {
                 actions.innerHTML = `
+                    <div class="m3-fab-action-item" data-action="supplier-order" onclick="window.dashboard.handleDropboxOption('supplier-order')">
+                        <span class="m3-fab-action-label">${isEn ? 'Make Orders' : 'Hacer Órdenes'}</span>
+                        <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'Make Orders' : 'Hacer Órdenes'}">
+                            <span class="material-symbols-outlined">shopping_cart_checkout</span>
+                        </button>
+                    </div>
                     <div class="m3-fab-action-item" data-action="supplier" onclick="window.dashboard.handleDropboxOption('supplier')">
                         <span class="m3-fab-action-label">${isEn ? 'New Supplier' : 'Nuevo Proveedor'}</span>
                         <button type="button" class="m3-fab-mini-btn" title="${isEn ? 'New Supplier' : 'Nuevo Proveedor'}">
@@ -2303,7 +2315,11 @@ class DashboardManager {
     handleDropboxOption(option) {
         this.closeNewDropboxMenu();
         this.closeFabMenu();
-        if (option === 'supplier') {
+        if (option === 'supplier-order') {
+            if (window.suppliersManager) {
+                window.suppliersManager.startMakingOrders();
+            }
+        } else if (option === 'supplier') {
             if (window.suppliersManager) {
                 window.suppliersManager.openSupplierForm();
             }
