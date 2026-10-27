@@ -4980,10 +4980,18 @@ select.input-field {
         transition: left 0.3s var(--m3-easing);
         box-shadow: 20px 0 50px rgba(0, 0, 0, 0.25);
         border-right: 1px solid var(--outline-variant, #E5E7EB) !important;
+        padding-top: 14px !important;
     }
 
     .sidebar.active {
         left: 0;
+    }
+
+    /* Subir perfil de usuario más arriba en móvil (elimina espacio muerto superior) */
+    .sidebar-user-profile,
+    .notas-sidebar-profile {
+        padding-top: 6px !important;
+        padding-bottom: 12px !important;
     }
 }
 

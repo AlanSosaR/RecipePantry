@@ -2910,3 +2910,14 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
         padding: 16px 32px 12px 32px !important;
     }
 }
+
+/* Subir perfil de usuario más arriba en móvil (Notas) */
+@media (max-width: 1023px) {
+    .notas-sidebar {
+        padding-top: 14px !important;
+    }
+    .notas-sidebar-profile {
+        padding-top: 6px !important;
+        padding-bottom: 12px !important;
+    }
+}
