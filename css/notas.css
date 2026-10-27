@@ -2849,6 +2849,31 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
 
 /* Desktop Compact Density for Notas (>= 1024px) - Seguro: no altera mvil */
 @media (min-width: 1024px) {
+    .notas-sidebar-profile {
+        padding: 8px 16px 6px 16px !important;
+        gap: 6px !important;
+    }
+    .notas-sidebar-profile::after {
+        margin-top: 8px !important;
+        width: 70% !important;
+        opacity: 0.5 !important;
+    }
+    .notas-avatar-ring {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 3px !important;
+        padding: 2px !important;
+    }
+    .notas-avatar-circle {
+        font-size: 20px !important;
+    }
+    .notas-initials {
+        font-size: 20px !important;
+    }
+    .notas-sidebar-username {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+    }
     .notas-main .top-bar-m3 {
         padding: 14px 32px 10px 32px !important;
         gap: 16px !important;

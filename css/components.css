@@ -18857,6 +18857,7 @@ body.product-side-sheet-open #m3FabBackdrop {
    Aislamiento 100% seguro: No altera en absoluto la versión móvil (< 1024px).
    Cabecera fija permanente (Top bar, carrusel de carpetas y list-header).
    Solo la lista de recetas se desplaza al hacer scroll.
+   Perfil de usuario compacto para maximizar el espacio de navegación.
    ========================================================================== */
 @media (min-width: 1024px) {
     /* 1. Contenedor Principal: Altura de viewport fija sin scroll global */
@@ -18871,17 +18872,53 @@ body.product-side-sheet-open #m3FabBackdrop {
     /* 2. Sidebar estilizada y proporcionada en Desktop */
     .sidebar {
         width: 240px !important;
-        padding: 20px 0 !important;
+        padding: 16px 0 20px 0 !important;
     }
 
     .sidebar-logo {
-        padding: 0 24px !important;
-        margin-bottom: 20px !important;
+        padding: 0 20px !important;
+        margin-bottom: 8px !important;
     }
 
-    .sidebar-user-profile {
-        padding: 10px 16px !important;
-        margin: 0 12px 14px 12px !important;
+    /* Perfil de usuario compacto (reducido para ganar espacio vertical) */
+    .sidebar-user-profile,
+    .notas-sidebar-profile {
+        padding: 8px 16px 6px 16px !important;
+        margin: 0 12px 10px 12px !important;
+        gap: 6px !important;
+    }
+
+    .sidebar-user-profile::after,
+    .notas-sidebar-profile::after {
+        margin-top: 8px !important;
+        width: 70% !important;
+        opacity: 0.5 !important;
+    }
+
+    .user-avatar-wrapper,
+    .user-avatar-ring,
+    .notas-avatar-ring {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 3px !important;
+        padding: 2px !important;
+    }
+
+    .user-avatar-m3,
+    .notas-avatar-circle {
+        font-size: 20px !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+    }
+
+    .user-initials-m3,
+    .notas-initials {
+        font-size: 20px !important;
+    }
+
+    .user-greeting,
+    .notas-sidebar-username {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
     }
 
     .sidebar-nav {
@@ -18890,7 +18927,7 @@ body.product-side-sheet-open #m3FabBackdrop {
     }
 
     .sidebar-nav .nav-item {
-        padding: 9px 14px !important;
+        padding: 8px 14px !important;
         font-size: 13.5px !important;
         border-radius: 12px !important;
     }
@@ -19035,6 +19072,8 @@ body.product-side-sheet-open #m3FabBackdrop {
     }
 
     /* 6. Contenedor de Recetas: Ocupa el espacio restante */
+    #recipesGrid,
+    .recipes-grid,
     .recipes-grid.list-view-m3 {
         flex: 1 !important;
         min-height: 0 !important;
