@@ -1,9 +1,9 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v909) - ABSOLUTE STABLE
+// Configuración Global Recipe Pantry (v910) - ABSOLUTE STABLE
 
 var APP_CONFIG = {
-    BUILD_ID: 'v909',
-    APP_VERSION: 'v909',
+    BUILD_ID: 'v910',
+    APP_VERSION: 'v910',
     LANG: 'es',
     THEME: 'light'
 };
@@ -17,4 +17,4 @@ window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 window.Config = { SUPABASE_URL, SUPABASE_ANON_KEY };
 
-console.log('✅ v909 STABLE LOADED - NUCLEAR SYNC ACTIVE');
+console.log('✅ v910 STABLE LOADED - NUCLEAR SYNC ACTIVE');
