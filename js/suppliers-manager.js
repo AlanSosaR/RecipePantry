@@ -3750,7 +3750,7 @@ openOrderForm(supplierId) {
                             <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
                             <span>${isEn ? 'Copy' : 'Copiar'}</span>
                         </button>
-                        <button type="button" onclick="window.suppliersManager.sendOrderByWhatsApp('${supplierId}')" class="btn-supplier-save" style="
+                        <button type="button" onclick="window.suppliersManager.shareConsolidatedOrdersPDF('${supplierId}')" class="btn-supplier-save" style="
                             display: inline-flex;
                             align-items: center;
                             justify-content: center;
@@ -3760,7 +3760,25 @@ openOrderForm(supplierId) {
                             flex: 1 1 auto;
                         ">
                             <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
-                            <span>${isEn ? 'WhatsApp' : 'WhatsApp'}</span>
+                            <span>${isEn ? 'WhatsApp (PDF)' : 'WhatsApp (PDF)'}</span>
+                        </button>
+                        <button type="button" onclick="window.suppliersManager.downloadConsolidatedOrdersPDF('${supplierId}')" class="btn-icon-m3" title="${isEn ? 'Download PDF Receipt' : 'Descargar Recibo PDF'}" style="
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 4px;
+                            height: 44px;
+                            padding: 0 14px;
+                            border-radius: var(--radius-full);
+                            background: var(--surface);
+                            border: 1px solid var(--border);
+                            color: var(--text-main);
+                            font-size: 13px;
+                            font-weight: 700;
+                            cursor: pointer;
+                        ">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">picture_as_pdf</span>
+                            <span>PDF</span>
                         </button>
                         <button type="button" onclick="window.suppliersManager.renderConsolidatedOrdersPage()" style="
                             display: inline-flex;
@@ -3981,24 +3999,9 @@ openOrderForm(supplierId) {
             }
         }
 
-        /** Abre WhatsApp con la orden precargada */
+        /** Abre WhatsApp con la orden en formato Recibo PDF */
         sendOrderByWhatsApp(supplierId) {
-            const isEn = this.isEnglish();
-            const sup = this.suppliers.find(s => s.id === supplierId);
-            const text = this.buildOrderSummary(supplierId);
-
-            if (!text) {
-                this.notify(isEn ? 'Please add quantities to at least 1 product' : 'Indica la cantidad de al menos 1 producto', 'warning');
-                return;
-            }
-
-            const cleanPhone = (sup?.phone || '').replace(/[^0-9]/g, '');
-            const encoded = encodeURIComponent(text);
-            const waUrl = cleanPhone 
-                ? `https://wa.me/${cleanPhone}?text=${encoded}` 
-                : `https://wa.me/?text=${encoded}`;
-
-            window.open(waUrl, '_blank');
+            this.shareConsolidatedOrdersPDF(supplierId);
         }
 
 
@@ -4576,377 +4579,11 @@ openOrderForm(supplierId) {
         }
 
         /**
-         * Abre el Material 3 Expressive Time Picker Modal Dialog
-         * Implementa la especificación oficial de Google M3 con selector Dial (Reloj circular),
-         * modo Input (teclado), cambio AM/PM y selección de Horas/Minutos.
-         */
-        openM3TimePicker(targetInputId) {
-            const isEn = this.isEnglish();
-            const targetInput = document.getElementById(targetInputId);
-            const currentValue = targetInput?.value || '18:00';
-            
-            let [hStr, mStr] = currentValue.split(':');
-            let h = parseInt(hStr, 10) || 18;
-            let m = parseInt(mStr, 10) || 0;
-
-            // Modo 12h para M3 Time Picker con selector AM/PM
-            let period = h >= 12 ? 'PM' : 'AM';
-            let hour12 = h % 12;
-            if (hour12 === 0) hour12 = 12;
-
-            this._m3TpState = {
-                targetInputId,
-                hour12,
-                minute: m,
-                period,
-                mode: 'dial', // 'dial' | 'input'
-                activeUnit: 'hours' // 'hours' | 'minutes'
-            };
-
-            const existing = document.getElementById('m3TimePickerBackdrop');
-            if (existing) existing.remove();
-
-            const backdrop = document.createElement('div');
-            backdrop.id = 'm3TimePickerBackdrop';
-            backdrop.className = 'm3-timepicker-backdrop';
-            backdrop.onclick = (e) => {
-                if (e.target === backdrop) this.closeM3TimePicker();
-            };
-
-            backdrop.innerHTML = `
-                <div class="m3-timepicker-dialog" role="dialog" aria-modal="true" aria-label="${isEn ? 'Select time' : 'Seleccionar hora'}">
-                    <div class="m3-timepicker-header">
-                        <span class="m3-timepicker-title">${isEn ? 'Select time' : 'Seleccionar hora'}</span>
-                    </div>
-
-                    <!-- Display de Horas : Minutos + AM/PM -->
-                    <div class="m3-timepicker-display-row">
-                        <div class="m3-timepicker-digits-group">
-                            <button type="button" id="m3TpHourBtn" class="m3-timepicker-digit-btn active" onclick="window.suppliersManager._switchM3TpUnit('hours')">
-                                ${String(hour12).padStart(2, '0')}
-                            </button>
-                            <span class="m3-timepicker-separator">:</span>
-                            <button type="button" id="m3TpMinuteBtn" class="m3-timepicker-digit-btn" onclick="window.suppliersManager._switchM3TpUnit('minutes')">
-                                ${String(m).padStart(2, '0')}
-                            </button>
-                        </div>
-
-                        <div class="m3-timepicker-period-group">
-                            <button type="button" id="m3TpAmBtn" class="m3-timepicker-period-btn ${period === 'AM' ? 'active' : ''}" onclick="window.suppliersManager._setM3TpPeriod('AM')">
-                                AM
-                            </button>
-                            <button type="button" id="m3TpPmBtn" class="m3-timepicker-period-btn ${period === 'PM' ? 'active' : ''}" onclick="window.suppliersManager._setM3TpPeriod('PM')">
-                                PM
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Modo Dial (Reloj circular interactivo) -->
-                    <div id="m3TpDialContainer" class="m3-timepicker-clock-container">
-                        <div class="m3-timepicker-clock-face" id="m3TpClockFace">
-                            <div class="m3-timepicker-clock-center"></div>
-                            <div class="m3-timepicker-clock-hand" id="m3TpClockHand">
-                                <div class="m3-timepicker-clock-thumb"></div>
-                            </div>
-                            <div id="m3TpClockNumbers" style="position: absolute; inset: 0;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Modo Input (Teclado numérico alternativo) -->
-                    <div id="m3TpInputContainer" class="m3-timepicker-input-mode-container" style="display: none;">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <div>
-                                <input type="number" id="m3TpHourInput" min="1" max="12" value="${hour12}" class="m3-timepicker-text-input" oninput="window.suppliersManager._onM3TpHourInput(this)" />
-                                <div class="m3-timepicker-input-caption">${isEn ? 'Hour' : 'Hora'}</div>
-                            </div>
-                            <span class="m3-timepicker-separator" style="margin-bottom: 20px;">:</span>
-                            <div>
-                                <input type="number" id="m3TpMinuteInput" min="0" max="59" value="${String(m).padStart(2, '0')}" class="m3-timepicker-text-input" oninput="window.suppliersManager._onM3TpMinuteInput(this)" />
-                                <div class="m3-timepicker-input-caption">${isEn ? 'Minute' : 'Minuto'}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Acciones Inferiores M3 -->
-                    <div class="m3-timepicker-actions">
-                        <button type="button" id="m3TpToggleModeBtn" class="m3-timepicker-btn-icon" title="${isEn ? 'Switch to text input' : 'Cambiar a modo teclado'}" onclick="window.suppliersManager._toggleM3TpMode()">
-                            <span class="material-symbols-outlined" id="m3TpModeIcon" style="font-size: 24px;">keyboard</span>
-                        </button>
-                        <div style="display: flex; gap: 8px;">
-                            <button type="button" class="m3-timepicker-btn-text btn-cancel" onclick="window.suppliersManager.closeM3TimePicker()">
-                                ${isEn ? 'Cancel' : 'Cancelar'}
-                            </button>
-                            <button type="button" class="m3-timepicker-btn-text" onclick="window.suppliersManager._confirmM3TimePicker()">
-                                ${isEn ? 'OK' : 'Aceptar'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(backdrop);
-            this._renderM3TpClockDial();
-            this._setupM3TpClockDragging();
-        }
-
-        closeM3TimePicker() {
-            const backdrop = document.getElementById('m3TimePickerBackdrop');
-            if (backdrop) backdrop.remove();
-            this._m3TpState = null;
-        }
-
-        _switchM3TpUnit(unit) {
-            if (!this._m3TpState) return;
-            this._m3TpState.activeUnit = unit;
-            
-            const hourBtn = document.getElementById('m3TpHourBtn');
-            const minuteBtn = document.getElementById('m3TpMinuteBtn');
-            if (hourBtn) hourBtn.classList.toggle('active', unit === 'hours');
-            if (minuteBtn) minuteBtn.classList.toggle('active', unit === 'minutes');
-
-            this._renderM3TpClockDial();
-        }
-
-        _setM3TpPeriod(period) {
-            if (!this._m3TpState) return;
-            this._m3TpState.period = period;
-            
-            const amBtn = document.getElementById('m3TpAmBtn');
-            const pmBtn = document.getElementById('m3TpPmBtn');
-            if (amBtn) amBtn.classList.toggle('active', period === 'AM');
-            if (pmBtn) pmBtn.classList.toggle('active', period === 'PM');
-        }
-
-        _toggleM3TpMode() {
-            if (!this._m3TpState) return;
-            const newMode = this._m3TpState.mode === 'dial' ? 'input' : 'dial';
-            this._m3TpState.mode = newMode;
-
-            const dialEl = document.getElementById('m3TpDialContainer');
-            const inputEl = document.getElementById('m3TpInputContainer');
-            const iconEl = document.getElementById('m3TpModeIcon');
-
-            if (newMode === 'input') {
-                if (dialEl) dialEl.style.display = 'none';
-                if (inputEl) inputEl.style.display = 'flex';
-                if (iconEl) iconEl.textContent = 'schedule';
-            } else {
-                if (dialEl) dialEl.style.display = 'flex';
-                if (inputEl) inputEl.style.display = 'none';
-                if (iconEl) iconEl.textContent = 'keyboard';
-                this._renderM3TpClockDial();
-            }
-        }
-
-        _onM3TpHourInput(input) {
-            if (!this._m3TpState) return;
-            let val = parseInt(input.value, 10);
-            if (!isNaN(val)) {
-                if (val > 12) val = 12;
-                if (val < 1) val = 1;
-                this._m3TpState.hour12 = val;
-                const hBtn = document.getElementById('m3TpHourBtn');
-                if (hBtn) hBtn.textContent = String(val).padStart(2, '0');
-            }
-        }
-
-        _onM3TpMinuteInput(input) {
-            if (!this._m3TpState) return;
-            let val = parseInt(input.value, 10);
-            if (!isNaN(val)) {
-                if (val > 59) val = 59;
-                if (val < 0) val = 0;
-                this._m3TpState.minute = val;
-                const mBtn = document.getElementById('m3TpMinuteBtn');
-                if (mBtn) mBtn.textContent = String(val).padStart(2, '0');
-            }
-        }
-
-        _renderM3TpClockDial() {
-            if (!this._m3TpState) return;
-            const numbersContainer = document.getElementById('m3TpClockNumbers');
-            const hand = document.getElementById('m3TpClockHand');
-            if (!numbersContainer || !hand) return;
-
-            numbersContainer.innerHTML = '';
-            const isHours = this._m3TpState.activeUnit === 'hours';
-            const radius = 100; // Radio del círculo del dial (256px / 2 = 128px centro)
-            const cx = 128;
-            const cy = 128;
-
-            let angle = 0;
-
-            if (isHours) {
-                const hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-                hours.forEach((h, i) => {
-                    const theta = (i * 30 - 90) * (Math.PI / 180);
-                    const x = cx + radius * Math.cos(theta);
-                    const y = cy + radius * Math.sin(theta);
-                    const isSelected = this._m3TpState.hour12 === h;
-
-                    const numEl = document.createElement('div');
-                    numEl.className = `m3-timepicker-clock-num ${isSelected ? 'selected' : ''}`;
-                    numEl.style.left = `${x}px`;
-                    numEl.style.top = `${y}px`;
-                    numEl.textContent = h;
-                    numEl.onclick = (e) => {
-                        e.stopPropagation();
-                        this._setM3TpHour(h);
-                    };
-                    numbersContainer.appendChild(numEl);
-                });
-
-                angle = (this._m3TpState.hour12 % 12) * 30;
-            } else {
-                // Minutos: marcas cada 5 minutos
-                const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-                minutes.forEach((m, i) => {
-                    const theta = (i * 30 - 90) * (Math.PI / 180);
-                    const x = cx + radius * Math.cos(theta);
-                    const y = cy + radius * Math.sin(theta);
-                    const isSelected = Math.round(this._m3TpState.minute / 5) * 5 === m;
-
-                    const numEl = document.createElement('div');
-                    numEl.className = `m3-timepicker-clock-num ${isSelected ? 'selected' : ''}`;
-                    numEl.style.left = `${x}px`;
-                    numEl.style.top = `${y}px`;
-                    numEl.textContent = String(m).padStart(2, '0');
-                    numEl.onclick = (e) => {
-                        e.stopPropagation();
-                        this._setM3TpMinute(m);
-                    };
-                    numbersContainer.appendChild(numEl);
-                });
-
-                angle = this._m3TpState.minute * 6;
-            }
-
-            hand.style.transform = `rotate(${angle}deg)`;
-        }
-
-        _setM3TpHour(h) {
-            if (!this._m3TpState) return;
-            this._m3TpState.hour12 = h;
-            const hourBtn = document.getElementById('m3TpHourBtn');
-            const hInput = document.getElementById('m3TpHourInput');
-            if (hourBtn) hourBtn.textContent = String(h).padStart(2, '0');
-            if (hInput) hInput.value = h;
-
-            this._renderM3TpClockDial();
-
-            // En la especificación oficial de M3, seleccionar la hora pasa automáticamente a minutos
-            setTimeout(() => {
-                if (this._m3TpState && this._m3TpState.activeUnit === 'hours') {
-                    this._switchM3TpUnit('minutes');
-                }
-            }, 250);
-        }
-
-        _setM3TpMinute(m) {
-            if (!this._m3TpState) return;
-            this._m3TpState.minute = m;
-            const minuteBtn = document.getElementById('m3TpMinuteBtn');
-            const mInput = document.getElementById('m3TpMinuteInput');
-            if (minuteBtn) minuteBtn.textContent = String(m).padStart(2, '0');
-            if (mInput) mInput.value = String(m).padStart(2, '0');
-
-            this._renderM3TpClockDial();
-        }
-
-        _setupM3TpClockDragging() {
-            const clockFace = document.getElementById('m3TpClockFace');
-            if (!clockFace) return;
-
-            let isDragging = false;
-
-            const handlePointer = (e) => {
-                if (!this._m3TpState) return;
-                const rect = clockFace.getBoundingClientRect();
-                const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
-                const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
-                if (clientX === undefined || clientY === undefined) return;
-
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                const dx = clientX - cx;
-                const dy = clientY - cy;
-
-                let theta = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-                if (theta < 0) theta += 360;
-
-                if (this._m3TpState.activeUnit === 'hours') {
-                    let hour = Math.round(theta / 30);
-                    if (hour === 0) hour = 12;
-                    if (hour > 12) hour = 12;
-                    this._m3TpState.hour12 = hour;
-                    const hBtn = document.getElementById('m3TpHourBtn');
-                    if (hBtn) hBtn.textContent = String(hour).padStart(2, '0');
-                } else {
-                    let min = Math.round(theta / 6);
-                    if (min >= 60) min = 0;
-                    this._m3TpState.minute = min;
-                    const mBtn = document.getElementById('m3TpMinuteBtn');
-                    if (mBtn) mBtn.textContent = String(min).padStart(2, '0');
-                }
-
-                this._renderM3TpClockDial();
-            };
-
-            clockFace.addEventListener('pointerdown', (e) => {
-                isDragging = true;
-                clockFace.setPointerCapture?.(e.pointerId);
-                handlePointer(e);
-            });
-
-            clockFace.addEventListener('pointermove', (e) => {
-                if (isDragging) handlePointer(e);
-            });
-
-            const stopDrag = () => {
-                if (isDragging) {
-                    isDragging = false;
-                    if (this._m3TpState?.activeUnit === 'hours') {
-                        setTimeout(() => {
-                            if (this._m3TpState && this._m3TpState.activeUnit === 'hours') {
-                                this._switchM3TpUnit('minutes');
-                            }
-                        }, 200);
-                    }
-                }
-            };
-
-            clockFace.addEventListener('pointerup', stopDrag);
-            clockFace.addEventListener('pointercancel', stopDrag);
-        }
-
-        _confirmM3TimePicker() {
-            if (!this._m3TpState) return;
-            const { targetInputId, hour12, minute, period } = this._m3TpState;
-
-            // Convertir a formato 24 horas (HH:MM) para almacenamiento estándar
-            let h24 = hour12 % 12;
-            if (period === 'PM') h24 += 12;
-            const formatted24 = `${String(h24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-
-            const targetInput = document.getElementById(targetInputId);
-            if (targetInput) {
-                targetInput.value = formatted24;
-                targetInput.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-
-            const displayEl = document.getElementById(`${targetInputId}Display`);
-            if (displayEl) {
-                displayEl.textContent = formatted24;
-            }
-
-            this.closeM3TimePicker();
-        }
-
-/**
          * Genera un documento PDF formateado como recibo / ticket oficial con todos los productos pedidos
+         * @param {string|null} targetSupplierId Si se especifica, genera el recibo solo para este proveedor
          * @returns {Object} { blob, filename, doc }
          */
-        buildOrdersReceiptPDF() {
+        buildOrdersReceiptPDF(targetSupplierId = null) {
             const jsPDFClass = window.jspdf ? window.jspdf.jsPDF : null;
             if (!jsPDFClass) {
                 console.error('[SuppliersManager] jsPDF library is not loaded');
@@ -4954,17 +4591,26 @@ openOrderForm(supplierId) {
             }
 
             const isEn = this.isEnglish();
-            const allSuppliers = this.suppliers || [];
-            const orderedSuppliers = allSuppliers.filter(s => {
-                const cart = this.orderCart[s.id] || {};
-                return Object.values(cart).some(q => q > 0);
-            });
-
             const doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const marginX = 14;
             const pageWidth = 210;
             const contentWidth = pageWidth - (marginX * 2);
             let y = 18;
+
+            // Obtener todos los IDs de proveedores que tienen productos en el carrito
+            let supplierIdsInCart = Object.keys(this.orderCart || {}).filter(sId => {
+                const c = this.orderCart[sId] || {};
+                return Object.values(c).some(q => (parseInt(q, 10) || 0) > 0);
+            });
+
+            if (targetSupplierId) {
+                supplierIdsInCart = supplierIdsInCart.filter(sId => String(sId).toLowerCase() === String(targetSupplierId).toLowerCase());
+            }
+
+            if (supplierIdsInCart.length === 0) {
+                this.notify(isEn ? 'No products selected in order' : 'No hay productos seleccionados en el pedido', 'warning');
+                return null;
+            }
 
             const now = new Date();
             const dateStr = now.toLocaleDateString(isEn ? 'en-US' : 'es-ES', { 
@@ -4978,10 +4624,18 @@ openOrderForm(supplierId) {
                 minute: '2-digit' 
             });
 
-            let totalProductsCount = 0;
-            orderedSuppliers.forEach(s => {
-                const cart = this.orderCart[s.id] || {};
-                totalProductsCount += Object.values(cart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
+            // Contar total de unidades y líneas
+            let grandTotalUnits = 0;
+            let grandTotalLines = 0;
+            supplierIdsInCart.forEach(sId => {
+                const c = this.orderCart[sId] || {};
+                Object.values(c).forEach(q => {
+                    const num = parseInt(q, 10) || 0;
+                    if (num > 0) {
+                        grandTotalUnits += num;
+                        grandTotalLines += 1;
+                    }
+                });
             });
 
             // 1. Encabezado Oficial Estilo Recibo / Ticket
@@ -4999,14 +4653,14 @@ openOrderForm(supplierId) {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(13);
             doc.setTextColor(26, 28, 25);
-            doc.text(isEn ? 'CONSOLIDATED ORDERS SUMMARY' : 'RESUMEN CONSOLIDADO DE PEDIDOS', marginX, y);
+            doc.text(targetSupplierId ? (isEn ? 'PURCHASE ORDER RECEIPT' : 'RECIBO DE PEDIDO A PROVEEDOR') : (isEn ? 'CONSOLIDATED ORDERS SUMMARY' : 'RESUMEN CONSOLIDADO DE PEDIDOS'), marginX, y);
 
             y += 6;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
             doc.setTextColor(80, 80, 80);
             doc.text(`${isEn ? 'Date' : 'Fecha'}: ${dateStr} - ${timeStr}`, marginX, y);
-            doc.text(`${orderedSuppliers.length} ${isEn ? 'Suppliers' : 'Proveedores'}  |  ${totalProductsCount} ${isEn ? 'Products Ordered' : 'Productos Solicitados'}`, pageWidth - marginX, y, { align: 'right' });
+            doc.text(`${supplierIdsInCart.length} ${isEn ? 'Supplier(s)' : 'Proveedor(es)'}  |  ${grandTotalLines} ${isEn ? 'Products' : 'Productos'} (${grandTotalUnits} ${isEn ? 'units' : 'uds.'})`, pageWidth - marginX, y, { align: 'right' });
 
             y += 4;
             doc.setDrawColor(200, 200, 200);
@@ -5017,12 +4671,35 @@ openOrderForm(supplierId) {
             y += 8;
 
             // 2. Secciones por Proveedor
-            orderedSuppliers.forEach((sup, idx) => {
+            supplierIdsInCart.forEach((supId, idx) => {
+                const sup = (this.suppliers || []).find(s => String(s.id).toLowerCase() === String(supId).toLowerCase()) || {
+                    id: supId,
+                    name: isEn ? 'Supplier' : 'Proveedor',
+                    category: 'otros',
+                    phone: ''
+                };
+
                 const status = this.getDeliveryStatus(sup);
-                const cart = this.orderCart[sup.id] || {};
-                const supItems = this.items.filter(it => it.supplier_id === sup.id && (cart[it.id] || 0) > 0);
-                const notes = this.orderNotes[sup.id] || '';
+                const cart = this.orderCart[supId] || {};
+                const notes = this.orderNotes[supId] || '';
                 const cat = this.getCategoryObj(sup.category);
+
+                // Extraer de forma directa y garantizada todos los items con cantidad > 0
+                const selectedItems = [];
+                for (const [itemId, rawQty] of Object.entries(cart)) {
+                    const qty = parseInt(rawQty, 10) || 0;
+                    if (qty > 0) {
+                        const it = (this.items || []).find(i => String(i.id).toLowerCase() === String(itemId).toLowerCase());
+                        selectedItems.push({
+                            id: itemId,
+                            name: it?.name || `Producto (${itemId.substring(0, 8)})`,
+                            unit: it?.package_format || it?.unit || (isEn ? 'Unit' : 'Unidad'),
+                            qty: qty
+                        });
+                    }
+                }
+
+                if (selectedItems.length === 0) return;
 
                 if (y > 235) {
                     doc.addPage();
@@ -5036,7 +4713,7 @@ openOrderForm(supplierId) {
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10.5);
                 doc.setTextColor(13, 122, 80);
-                const supTitle = `${idx + 1}. ${sup.name.toUpperCase()} (${cat.displayLabel || cat.label})`;
+                const supTitle = `${idx + 1}. ${sup.name.toUpperCase()} (${cat.displayLabel || cat.label || 'Proveedor'})`;
                 doc.text(supTitle, marginX + 4, y + 7.5);
 
                 doc.setFont('helvetica', 'normal');
@@ -5059,15 +4736,12 @@ openOrderForm(supplierId) {
 
                 y += 7;
 
-                // Lista de Productos
-                supItems.forEach((item, itemIdx) => {
+                // Lista de Productos garantizada
+                selectedItems.forEach((item, itemIdx) => {
                     if (y > 265) {
                         doc.addPage();
                         y = 18;
                     }
-
-                    const qty = cart[item.id] || 0;
-                    const unitStr = item.package_format || item.unit || (isEn ? 'Unit' : 'Unidad');
 
                     if (itemIdx % 2 === 1) {
                         doc.setFillColor(249, 251, 250);
@@ -5077,17 +4751,27 @@ openOrderForm(supplierId) {
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(9);
                     doc.setTextColor(13, 122, 80);
-                    doc.text(`${qty}x`, marginX + 4, y + 3.8);
+                    doc.text(`${item.qty}x`, marginX + 4, y + 3.8);
+
+                    // Truncado defensivo del nombre para evitar colisión con unidad
+                    let displayName = item.name;
+                    const maxNameWidth = contentWidth - 48;
+                    if (doc.getTextWidth(displayName) > maxNameWidth) {
+                        while (displayName.length > 5 && doc.getTextWidth(displayName + '...') > maxNameWidth) {
+                            displayName = displayName.substring(0, displayName.length - 1);
+                        }
+                        displayName += '...';
+                    }
 
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(9);
                     doc.setTextColor(30, 30, 30);
-                    doc.text(item.name, marginX + 26, y + 3.8);
+                    doc.text(displayName, marginX + 26, y + 3.8);
 
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(8.5);
                     doc.setTextColor(100, 100, 100);
-                    doc.text(unitStr, pageWidth - marginX - 4, y + 3.8, { align: 'right' });
+                    doc.text(item.unit, pageWidth - marginX - 4, y + 3.8, { align: 'right' });
 
                     y += 7.5;
                 });
@@ -5116,21 +4800,19 @@ openOrderForm(supplierId) {
 
             const blob = doc.output('blob');
             const dateISO = now.toISOString().split('T')[0];
-            const filename = `Recibo_Pedidos_${dateISO}.pdf`;
+            const filename = targetSupplierId ? `Recibo_Pedido_${dateISO}.pdf` : `Recibo_Pedidos_${dateISO}.pdf`;
 
             return { blob, filename, doc };
         }
 
         /**
-         * Envía el pedido consolidado en formato Recibo PDF a través de WhatsApp (con Web Share API o descarga)
+         * Envía el pedido en formato Recibo PDF a través de WhatsApp (con Web Share API o descarga)
+         * @param {string|null} targetSupplierId Si se especifica, envía solo el recibo de este proveedor
          */
-        async shareConsolidatedOrdersPDF() {
+        async shareConsolidatedOrdersPDF(targetSupplierId = null) {
             const isEn = this.isEnglish();
-            const res = this.buildOrdersReceiptPDF();
-            if (!res) {
-                this.notify(isEn ? 'Error creating PDF receipt' : 'Error al generar el recibo PDF', 'error');
-                return;
-            }
+            const res = this.buildOrdersReceiptPDF(targetSupplierId);
+            if (!res) return;
 
             const { blob, filename } = res;
             const file = new File([blob], filename, { type: 'application/pdf' });
@@ -5140,7 +4822,7 @@ openOrderForm(supplierId) {
                 try {
                     await navigator.share({
                         title: isEn ? 'Order Receipt' : 'Recibo de Pedido',
-                        text: isEn ? 'Attached is the consolidated wholesale order receipt (PDF).' : 'Adjunto el recibo de pedido consolidado a proveedores en formato PDF.',
+                        text: isEn ? 'Attached is the wholesale order receipt (PDF).' : 'Adjunto el recibo de pedido a proveedores en formato PDF.',
                         files: [file]
                     });
                     this.notify(isEn ? 'Order receipt shared!' : '¡Recibo de pedido compartido!', 'success');
@@ -5158,12 +4840,8 @@ openOrderForm(supplierId) {
             // Abre WhatsApp con mensaje descriptivo y enlace
             const textMsg = encodeURIComponent(
                 isEn 
-                    ? `📄 *ORDER RECEIPT - RECIPE PANTRY*
-
-The consolidated order receipt has been generated in PDF format (${filename}). Please find it attached.` 
-                    : `📄 *RECIBO DE PEDIDO - RECIPE PANTRY*
-
-He generado el recibo oficial de pedidos en formato PDF (${filename}) con el desglose de todos los productos y cantidades solicitadas.`
+                    ? `📄 *ORDER RECEIPT - RECIPE PANTRY*\n\nThe order receipt has been generated in PDF format (${filename}). Please find it attached.` 
+                    : `📄 *RECIBO DE PEDIDO - RECIPE PANTRY*\n\nHe generado el recibo oficial de pedidos en formato PDF (${filename}) con el desglose de todos los productos y cantidades solicitadas.`
             );
             const waUrl = `https://wa.me/?text=${textMsg}`;
             window.open(waUrl, '_blank');
@@ -5175,13 +4853,10 @@ He generado el recibo oficial de pedidos en formato PDF (${filename}) con el des
         }
 
         /** Descarga directa del archivo PDF del recibo */
-        downloadConsolidatedOrdersPDF() {
+        downloadConsolidatedOrdersPDF(targetSupplierId = null) {
             const isEn = this.isEnglish();
-            const res = this.buildOrdersReceiptPDF();
-            if (!res) {
-                this.notify(isEn ? 'Error creating PDF receipt' : 'Error al generar el recibo PDF', 'error');
-                return;
-            }
+            const res = this.buildOrdersReceiptPDF(targetSupplierId);
+            if (!res) return;
             this.downloadBlob(res.blob, res.filename);
             this.notify(isEn ? 'PDF Receipt downloaded!' : '¡Recibo PDF descargado correctamente!', 'success');
         }
