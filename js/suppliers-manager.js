@@ -3620,10 +3620,10 @@ openOrderForm(supplierId) {
 
             this.container.innerHTML = `
                 <div class="suppliers-subview-page suppliers-order-flat-page" style="max-width: 860px; margin: 0 auto; padding: 12px 16px 90px; font-family: var(--font-display);">
-                    <!-- Cabecera con Jerarquía M3 Expressive Optimizada -->
-                    <header class="order-page-header" style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                        <!-- Fila Superior: Botón Volver Estándar M3, Título de Proveedor y Menú 3 Puntos Plano -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <!-- Cabecera con Jerarquía M3 Expressive Optimizada (Sticky) -->
+                    <header class="order-page-header">
+                        <!-- Fila Superior: Botón Volver Estándar M3, Título "Crear Orden" y Menú 3 Puntos Plano -->
+                        <div class="order-header-title-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
                                 <button type="button" 
                                         onclick="window.suppliersManager.backToList()" 
@@ -3633,11 +3633,8 @@ openOrderForm(supplierId) {
                                     <span class="material-symbols-outlined">arrow_back</span>
                                 </button>
                                 <div style="min-width: 0; flex: 1;">
-                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-dark); line-height: 1.2;">
-                                        ${isEn ? 'Fast Order' : 'Armar Pedido'}
-                                    </div>
-                                    <h1 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                        ${sup.name}
+                                    <h1 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+                                        ${isEn ? 'Create Order' : 'Crear Orden'}
                                     </h1>
                                 </div>
                             </div>
@@ -3673,12 +3670,87 @@ openOrderForm(supplierId) {
                             </button>
                         </div>
 
+                        <!-- Selector / Carrusel de Proveedores (Dentro del Header Sticky) -->
+                        <div class="order-supplier-switcher-container" style="margin-top: 10px; margin-bottom: 6px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px;">
+                                <span style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
+                                    ${isEn ? 'Switch Supplier:' : 'Cambiar de Proveedor:'}
+                                </span>
+                                ${totalSuppliersWithOrders > 0 ? `
+                                    <button type="button" 
+                                            onclick="window.suppliersManager.renderConsolidatedOrdersPage()"
+                                            style="background: none; border: none; color: var(--primary-dark); font-weight: 800; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
+                                        <span class="material-symbols-outlined" style="font-size: 17px;">receipt_long</span>
+                                        <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
+                                    </button>
+                                ` : ''}
+                            </div>
+
+                            <!-- Lista deslizante de Chips de Proveedor con padding vertical para no cortar sombras -->
+                            <div class="order-supplier-chips-scroll" style="
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                overflow-x: auto;
+                                padding-top: 6px;
+                                padding-bottom: 6px;
+                                -webkit-overflow-scrolling: touch;
+                                scrollbar-width: none;
+                            ">
+                                ${allSuppliers.map(s => {
+                                    const isCurrent = s.id === supplierId;
+                                    const sCart = this.orderCart[s.id] || {};
+                                    const sCount = Object.values(sCart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
+                                    return `
+                                        <button type="button" 
+                                                onclick="window.suppliersManager.switchOrderSupplier('${s.id}')"
+                                                class="order-supplier-chip ${isCurrent ? 'active' : ''}"
+                                                style="
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    gap: 6px;
+                                                    height: 38px;
+                                                    padding: 0 14px;
+                                                    border-radius: var(--radius-full);
+                                                    font-family: var(--font-display);
+                                                    font-size: 13px;
+                                                    font-weight: 700;
+                                                    white-space: nowrap;
+                                                    flex-shrink: 0;
+                                                    cursor: pointer;
+                                                    border: 1.5px solid ${isCurrent ? 'var(--primary-dark)' : 'var(--border)'};
+                                                    background: ${isCurrent ? 'var(--primary-light)' : 'var(--surface)'};
+                                                    color: ${isCurrent ? 'var(--primary-dark)' : 'var(--text-main)'};
+                                                    transition: all 0.15s ease;
+                                                ">
+                                            <span>${s.name}</span>
+                                            ${sCount > 0 ? `
+                                                <span style="
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    min-width: 20px;
+                                                    height: 20px;
+                                                    padding: 0 5px;
+                                                    border-radius: 10px;
+                                                    font-size: 11px;
+                                                    font-weight: 800;
+                                                    background: ${isCurrent ? 'var(--primary-dark)' : 'var(--primary)'};
+                                                    color: #ffffff;
+                                                ">${sCount}</span>
+                                            ` : ''}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
                         <!-- Fila Inferior: Banner Tonal con Info de Entrega (sin icono de calendario) -->
                         <div class="order-delivery-info-banner" style="
                             display: flex;
                             align-items: center;
                             gap: 8px;
-                            margin-top: 10px;
+                            margin-top: 6px;
                             padding: 8px 12px;
                             background: var(--surface);
                             border: 1px solid var(--border);
@@ -3692,145 +3764,8 @@ openOrderForm(supplierId) {
                         </div>
                     </header>
 
-                    <!-- Selector / Carrusel de Proveedores (Cambiar de Proveedor M3 Expressive) -->
-                    <section class="order-supplier-switcher-container" style="margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px;">
-                            <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
-                                ${isEn ? 'Switch Supplier:' : 'Cambiar de Proveedor:'}
-                            </span>
-                            ${totalSuppliersWithOrders > 0 ? `
-                                <button type="button" 
-                                        onclick="window.suppliersManager.renderConsolidatedOrdersPage()"
-                                        style="background: none; border: none; color: var(--primary-dark); font-weight: 800; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
-                                    <span class="material-symbols-outlined" style="font-size: 17px;">receipt_long</span>
-                                    <span>${isEn ? 'Consolidated Order' : 'Ver Pedido Consolidado'} (${totalSuppliersWithOrders})</span>
-                                </button>
-                            ` : ''}
-                        </div>
-
-                        <!-- Lista deslizante de Chips de Proveedor -->
-                        <div class="order-supplier-chips-scroll" style="
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                            overflow-x: auto;
-                            padding-top: 6px;
-                            padding-bottom: 6px;
-                            -webkit-overflow-scrolling: touch;
-                            scrollbar-width: none;
-                        ">
-                            ${allSuppliers.map(s => {
-                                const isCurrent = s.id === supplierId;
-                                const sCart = this.orderCart[s.id] || {};
-                                const sCount = Object.values(sCart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
-                                return `
-                                    <button type="button" 
-                                            onclick="window.suppliersManager.switchOrderSupplier('${s.id}')"
-                                            class="order-supplier-chip ${isCurrent ? 'active' : ''}"
-                                            style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                gap: 6px;
-                                                height: 38px;
-                                                padding: 0 14px;
-                                                border-radius: var(--radius-full);
-                                                font-family: var(--font-display);
-                                                font-size: 13px;
-                                                font-weight: 700;
-                                                white-space: nowrap;
-                                                flex-shrink: 0;
-                                                cursor: pointer;
-                                                border: 1.5px solid ${isCurrent ? 'var(--primary-dark)' : 'var(--border)'};
-                                                background: ${isCurrent ? 'var(--primary-light)' : 'var(--surface)'};
-                                                color: ${isCurrent ? 'var(--primary-dark)' : 'var(--text-main)'};
-                                                transition: all 0.15s ease;
-                                            ">
-                                        <span>${s.name}</span>
-                                        ${sCount > 0 ? `
-                                            <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                min-width: 20px;
-                                                height: 20px;
-                                                padding: 0 5px;
-                                                border-radius: 10px;
-                                                font-size: 11px;
-                                                font-weight: 800;
-                                                background: ${isCurrent ? 'var(--primary-dark)' : 'var(--primary)'};
-                                                color: #ffffff;
-                                            ">${sCount}</span>
-                                        ` : ''}
-                                    </button>
-                                `;
-                            }).join('')}
-                        </div>
-                    </section>
-
                     <!-- Lista de Productos y Steppers (Formato Plano) -->
                     <div id="order-modal-items-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
-                    </div>
-
-                    <!-- Observaciones del Pedido para este Proveedor -->
-                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 24px;">
-                        <label style="display: block; font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                            ${isEn ? 'Order Notes (Optional)' : 'Observaciones del Pedido (Opcional)'}
-                        </label>
-                        <input type="text" id="orderNotesInput" value="${this.orderNotes[supplierId] || ''}" placeholder="Ej. Entregar antes de las 11:00 AM, factura a nombre de..." class="folder-modal-input" style="width: 100%; box-sizing: border-box; height: 42px; font-size: 14px;" oninput="window.suppliersManager.orderNotes['${supplierId}'] = this.value" />
-                    </div>
-
-                    <!-- Acciones Finales (Flat & Responsive) -->
-                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap;">
-                        <button type="button" onclick="window.suppliersManager.shareConsolidatedOrdersPDF('${supplierId}')" class="btn-supplier-save" style="
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 6px;
-                            height: 44px;
-                            padding: 0 18px;
-                            flex: 1 1 auto;
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">chat</span>
-                            <span>${isEn ? 'WhatsApp (PDF)' : 'WhatsApp (PDF)'}</span>
-                        </button>
-                        <button type="button" onclick="window.suppliersManager.downloadConsolidatedOrdersPDF('${supplierId}')" class="btn-icon-m3" title="${isEn ? 'Download PDF Receipt' : 'Descargar Recibo PDF'}" style="
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 4px;
-                            height: 44px;
-                            padding: 0 14px;
-                            border-radius: var(--radius-full);
-                            background: var(--surface);
-                            border: 1px solid var(--border);
-                            color: var(--text-main);
-                            font-size: 13px;
-                            font-weight: 700;
-                            cursor: pointer;
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">picture_as_pdf</span>
-                            <span>PDF</span>
-                        </button>
-                        <button type="button" onclick="window.suppliersManager.renderConsolidatedOrdersPage()" style="
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 8px;
-                            height: 44px;
-                            padding: 0 20px;
-                            border-radius: var(--radius-full);
-                            font-weight: 800;
-                            font-size: 13.5px;
-                            background: var(--text-main);
-                            color: var(--bg);
-                            border: none;
-                            cursor: pointer;
-                            flex: 2 1 auto;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-                        ">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">receipt_long</span>
-                            <span>${isEn ? 'Consolidated Order' : 'Ver Pedido Consolidado'} ${totalSuppliersWithOrders > 0 ? `(${totalSuppliersWithOrders})` : ''}</span>
-                        </button>
                     </div>
                 </div>
             `;
