@@ -4898,14 +4898,7 @@ openOrderForm(supplierId) {
                     <span class="material-symbols-outlined" style="pointer-events: none;">restart_alt</span>
                     <span>${isEn ? 'Clear' : 'Limpiar'}</span>
                 </button>
-                <div class="m3-toolbar-divider"></div>
-                <button type="button" 
-                        class="m3-toolbar-item-btn primary" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.renderConsolidatedOrdersPage();" 
-                        title="${isEn ? 'View Order' : 'Ver Pedido'}">
-                    <span class="material-symbols-outlined" style="pointer-events: none;">receipt_long</span>
-                    <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
-                </button>
+                
                 <div class="m3-toolbar-divider"></div>
                 <button type="button" 
                         class="m3-toolbar-item-btn" 
