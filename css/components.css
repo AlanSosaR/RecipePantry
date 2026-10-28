@@ -16026,21 +16026,24 @@ body:has(#suppliersView:not(.hidden)) .suppliers-view-container {
 
 .suppliers-sticky-header {
     position: sticky !important;
-    top: 60px !important;
+    top: 56px !important;
     z-index: 45 !important;
     background: var(--bg) !important;
     margin-top: 0 !important;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
     margin-bottom: 12px !important;
     border-bottom: 1px solid var(--border) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 @media (min-width: 1024px) {
     .suppliers-sticky-header {
-        top: 0 !important;
+        top: 60px !important;
         margin-top: 0 !important;
         padding-top: 14px !important;
+        padding-bottom: 12px !important;
     }
 }
 

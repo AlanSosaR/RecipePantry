@@ -798,129 +798,131 @@
         renderListPage() {
             if (!this.container) return;
             const isEn = this.isEnglish();
-            const totalSuppliersWithOrders = Object.keys(this.orderCart || {}).filter(supId => {
-                return Object.values(this.orderCart[supId] || {}).some(q => Number(q) > 0);
-            }).length;
+            const allSuppliers = this.suppliers || [];
+            const orderedSuppliers = allSuppliers.filter(s => {
+                const cart = this.orderCart[s.id] || {};
+                return Object.values(cart).some(q => q > 0);
+            });
+            const totalSuppliersWithOrders = orderedSuppliers.length;
 
             this.container.innerHTML = `
-                <div class="suppliers-view-container" style="max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Header Principal Plano (Sin caja, igual a Recetas) -->
-                    <div class="suppliers-header-flat" style="margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                        <div>
+                <div class="suppliers-view-container" style="max-width: 1200px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
+                    <!-- Header Principal y Filtros Fijos al Scroll (Sticky) -->
+                    <div class="suppliers-sticky-header">
+                        <div class="suppliers-header-flat">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span class="material-symbols-outlined" style="font-size: 26px; color: var(--primary-dark);">local_shipping</span>
                                 <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
-                                    ${isEn ? 'Suppliers & Orders' : 'Proveedores y Órdenes'}
+                                    ${isEn ? 'Suppliers' : 'Proveedores'}
                                 </h2>
                             </div>
-                            <p style="margin: 4px 0 0 0; font-size: 13.5px; color: var(--text-secondary);">
-                                ${isEn ? 'Restaurant wholesale suppliers directory, delivery days, cutoff hours and catalog.' : 'Directorio de proveedores mayoristas, días de reparto, horario de corte y catálogo de productos.'}
-                            </p>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" 
-                                    class="btn-supplier-orders-nav" 
-                                    onclick="${totalSuppliersWithOrders > 0 ? 'window.suppliersManager.openConsolidatedOrders()' : 'window.suppliersManager.startMakingOrders()'}" 
-                                    title="${totalSuppliersWithOrders > 0 ? (isEn ? 'View Active Orders' : 'Ver Pedidos Activos') : (isEn ? 'Make Orders' : 'Hacer Pedido')}">
-                                <span class="material-symbols-outlined">${totalSuppliersWithOrders > 0 ? 'receipt_long' : 'shopping_cart_checkout'}</span>
-                                <span>${totalSuppliersWithOrders > 0 ? (isEn ? 'Active Orders' : 'Ver Pedidos') : (isEn ? 'Make Orders' : 'Hacer Pedido')}</span>
-                                ${totalSuppliersWithOrders > 0 ? `<span class="supplier-orders-badge">${totalSuppliersWithOrders}</span>` : ''}
-                            </button>
-                        ${!this.isSuperAdmin() ? `
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                ${this.getSuppliersMode() === 'empty' ? `
-                                    <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptRestoreSharedSuppliers()" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 6px;
-                                        padding: 8px 14px;
-                                        border-radius: var(--radius-full);
-                                        border: 1px solid var(--border);
-                                        background: var(--surface);
-                                        color: var(--text-main);
-                                        font-size: 12.5px;
-                                        font-weight: 600;
-                                        cursor: pointer;
-                                        font-family: var(--font-display);
-                                        transition: background var(--transition-fast);
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">visibility</span>
-                                        <span>${isEn ? 'View assigned suppliers' : 'Ver proveedores asignados'}</span>
-                                    </button>
-                                ` : `
-                                    <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptCustomSuppliersMode()" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 6px;
-                                        padding: 8px 14px;
-                                        border-radius: var(--radius-full);
-                                        border: 1px solid var(--border);
-                                        background: var(--surface);
-                                        color: var(--text-secondary);
-                                        font-size: 12.5px;
-                                        font-weight: 600;
-                                        cursor: pointer;
-                                        font-family: var(--font-display);
-                                        transition: background var(--transition-fast);
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark);">inventory_2</span>
-                                        <span>${isEn ? 'Use custom directory' : 'Quitar proveedores asignados'}</span>
-                                    </button>
-                                `}
+                                <button type="button" 
+                                        class="btn-supplier-orders-nav" 
+                                        onclick="window.suppliersManager.startMakingOrders()" 
+                                        title="${isEn ? 'Create or view orders' : 'Ir a crear órdenes'}">
+                                    <span class="material-symbols-outlined">receipt_long</span>
+                                    <span>${isEn ? 'Orders' : 'Órdenes'}</span>
+                                    ${totalSuppliersWithOrders > 0 ? `
+                                        <span class="supplier-orders-badge">${totalSuppliersWithOrders}</span>
+                                    ` : ''}
+                                </button>
+                                ${!this.isSuperAdmin() ? `
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        ${this.getSuppliersMode() === 'empty' ? `
+                                            <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptRestoreSharedSuppliers()" style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                                padding: 8px 14px;
+                                                border-radius: var(--radius-full);
+                                                border: 1px solid var(--border);
+                                                background: var(--surface);
+                                                color: var(--text-main);
+                                                font-size: 12.5px;
+                                                font-weight: 600;
+                                                cursor: pointer;
+                                                font-family: var(--font-display);
+                                                transition: background var(--transition-fast);
+                                            ">
+                                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">visibility</span>
+                                                <span>${isEn ? 'View assigned suppliers' : 'Ver proveedores asignados'}</span>
+                                            </button>
+                                        ` : `
+                                            <button type="button" class="btn-m3-tonal" onclick="window.suppliersManager.promptCustomSuppliersMode()" style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                                padding: 8px 14px;
+                                                border-radius: var(--radius-full);
+                                                border: 1px solid var(--border);
+                                                background: var(--surface);
+                                                color: var(--text-secondary);
+                                                font-size: 12.5px;
+                                                font-weight: 600;
+                                                cursor: pointer;
+                                                font-family: var(--font-display);
+                                                transition: background var(--transition-fast);
+                                            ">
+                                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark);">inventory_2</span>
+                                                <span>${isEn ? 'Use custom directory' : 'Quitar proveedores asignados'}</span>
+                                            </button>
+                                        `}
+                                    </div>
+                                ` : ''}
                             </div>
-                        ` : ''}
                         </div>
-                    </div>
 
-                    <!-- Barra de Filtros Rápidos M3 y Estado de Búsqueda Global -->
-                    <div class="suppliers-filters-container" style="
-                        display: flex;
-                        flex-wrap: wrap;
-                        align-items: center;
-                        justify-content: space-between;
-                        gap: 12px;
-                        margin-bottom: 16px;
-                    ">
-                        <!-- Filtros tipo Pills M3 y Filtro por Tipo/Categoría -->
-                        <div class="suppliers-filter-bar" style="display: flex; align-items: center; gap: 8px;">
-                            <button type="button" class="supplier-filter-pill ${this.activeFilter === 'all' ? 'active' : ''}" 
-                                onclick="window.suppliersManager.setFilter('all')">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">apps</span>
-                                <span id="supplierAllCountPill">${isEn ? 'All' : 'Todos'} (${this.suppliers.length})</span>
-                            </button>
+                        <!-- Barra de Filtros Rápidos M3 y Estado de Búsqueda Global -->
+                        <div class="suppliers-filters-container" style="
+                            display: flex;
+                            flex-wrap: wrap;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 12px;
+                            margin-top: 10px;
+                        ">
+                            <!-- Filtros tipo Pills M3 y Filtro por Tipo/Categoría -->
+                            <div class="suppliers-filter-bar" style="display: flex; align-items: center; gap: 8px;">
+                                <button type="button" class="supplier-filter-pill ${this.activeFilter === 'all' ? 'active' : ''}" 
+                                    onclick="window.suppliersManager.setFilter('all')">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">apps</span>
+                                    <span id="supplierAllCountPill">${isEn ? 'All' : 'Todos'} (${this.suppliers.length})</span>
+                                </button>
 
-                            <button type="button" class="supplier-filter-pill ${this.activeFilter === 'delivery_tomorrow' ? 'active' : ''}" 
-                                onclick="window.suppliersManager.setFilter('delivery_tomorrow')">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">local_shipping</span>
-                                <span>${isEn ? 'Delivering Tomorrow' : 'Entregan Mañana'}</span>
-                            </button>
+                                <button type="button" class="supplier-filter-pill ${this.activeFilter === 'delivery_tomorrow' ? 'active' : ''}" 
+                                    onclick="window.suppliersManager.setFilter('delivery_tomorrow')">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">local_shipping</span>
+                                    <span>${isEn ? 'Delivering Tomorrow' : 'Entregan Mañana'}</span>
+                                </button>
 
-                            <button type="button" class="supplier-filter-pill ${this.activeFilter === 'open_today' ? 'active' : ''}" 
-                                onclick="window.suppliersManager.setFilter('open_today')">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark);">schedule</span>
-                                <span>${isEn ? 'Order Open Today' : 'Corte Abierto Hoy'}</span>
-                            </button>
+                                <button type="button" class="supplier-filter-pill ${this.activeFilter === 'open_today' ? 'active' : ''}" 
+                                    onclick="window.suppliersManager.setFilter('open_today')">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark);">schedule</span>
+                                    <span>${isEn ? 'Order Open Today' : 'Corte Abierto Hoy'}</span>
+                                </button>
 
-                            <!-- Selector de Tipo de Proveedor (Carnes, Verduras, etc.) -->
-                            <div style="display: inline-flex; align-items: center; gap: 6px; margin-left: 4px;">
-                                <select id="supplierCategoryFilter" onchange="window.suppliersManager.setCategoryFilter(this.value)" style="
-                                    height: 38px;
-                                    padding: 0 14px;
-                                    border-radius: var(--radius-full);
-                                    font-size: 13px;
-                                    font-weight: 700;
-                                    font-family: var(--font-display);
-                                    color: var(--text-main);
-                                    border: 1.5px solid var(--border);
-                                    background: var(--bg);
-                                    cursor: pointer;
-                                    outline: none;
-                                ">
-                                    <option value="all">${isEn ? 'All Types (Meat, Veggies...)' : 'Todos los Tipos (Carne, Verdura...)'}</option>
-                                    ${this.CATEGORIES.map(c => `
-                                        <option value="${c.id}" ${this.categoryFilter === c.id ? 'selected' : ''}>${c.displayLabel || c.label}</option>
-                                    `).join('')}
-                                </select>
+                                <!-- Selector de Tipo de Proveedor (Carnes, Verduras, etc.) -->
+                                <div style="display: inline-flex; align-items: center; gap: 6px; margin-left: 4px;">
+                                    <select id="supplierCategoryFilter" onchange="window.suppliersManager.setCategoryFilter(this.value)" style="
+                                        height: 38px;
+                                        padding: 0 14px;
+                                        border-radius: var(--radius-full);
+                                        font-size: 13px;
+                                        font-weight: 700;
+                                        font-family: var(--font-display);
+                                        color: var(--text-main);
+                                        border: 1.5px solid var(--border);
+                                        background: var(--bg);
+                                        cursor: pointer;
+                                        outline: none;
+                                    ">
+                                        <option value="all">${isEn ? 'All Types (Meat, Veggies...)' : 'Todos los Tipos (Carne, Verdura...)'}</option>
+                                        ${this.CATEGORIES.map(c => `
+                                            <option value="${c.id}" ${this.categoryFilter === c.id ? 'selected' : ''}>${c.displayLabel || c.label}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
