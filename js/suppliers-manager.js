@@ -798,6 +798,9 @@
         renderListPage() {
             if (!this.container) return;
             const isEn = this.isEnglish();
+            const totalSuppliersWithOrders = Object.keys(this.orderCart || {}).filter(supId => {
+                return Object.values(this.orderCart[supId] || {}).some(q => Number(q) > 0);
+            }).length;
 
             this.container.innerHTML = `
                 <div class="suppliers-view-container" style="max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px 16px; font-family: var(--font-display);">
@@ -814,6 +817,15 @@
                                 ${isEn ? 'Restaurant wholesale suppliers directory, delivery days, cutoff hours and catalog.' : 'Directorio de proveedores mayoristas, días de reparto, horario de corte y catálogo de productos.'}
                             </p>
                         </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" 
+                                    class="btn-supplier-orders-nav" 
+                                    onclick="${totalSuppliersWithOrders > 0 ? 'window.suppliersManager.openConsolidatedOrders()' : 'window.suppliersManager.startMakingOrders()'}" 
+                                    title="${totalSuppliersWithOrders > 0 ? (isEn ? 'View Active Orders' : 'Ver Pedidos Activos') : (isEn ? 'Make Orders' : 'Hacer Pedido')}">
+                                <span class="material-symbols-outlined">${totalSuppliersWithOrders > 0 ? 'receipt_long' : 'shopping_cart_checkout'}</span>
+                                <span>${totalSuppliersWithOrders > 0 ? (isEn ? 'Active Orders' : 'Ver Pedidos') : (isEn ? 'Make Orders' : 'Hacer Pedido')}</span>
+                                ${totalSuppliersWithOrders > 0 ? `<span class="supplier-orders-badge">${totalSuppliersWithOrders}</span>` : ''}
+                            </button>
                         ${!this.isSuperAdmin() ? `
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 ${this.getSuppliersMode() === 'empty' ? `
@@ -857,6 +869,7 @@
                                 `}
                             </div>
                         ` : ''}
+                        </div>
                     </div>
 
                     <!-- Barra de Filtros Rápidos M3 y Estado de Búsqueda Global -->
@@ -2719,7 +2732,10 @@ renderItemCard(item, supplierId) {
         /** Navega a la vista dedicada para armar pedido rápido */
                 /** Inicia el flujo de hacer órdenes / armar pedidos */
         startMakingOrders() {
-            const targetSupplierId = this.selectedSupplierDetailId || this.activeOrderSupplierId || (this.suppliers && this.suppliers[0]?.id);
+            const supplierWithOrder = Object.keys(this.orderCart || {}).find(supId => {
+                return Object.values(this.orderCart[supId] || {}).some(q => Number(q) > 0);
+            });
+            const targetSupplierId = supplierWithOrder || this.selectedSupplierDetailId || this.activeOrderSupplierId || (this.suppliers && this.suppliers[0]?.id);
             if (targetSupplierId) {
                 this.openOrderForm(targetSupplierId);
             } else {
@@ -2757,6 +2773,7 @@ openOrderForm(supplierId) {
             try {
                 const url = new URL(window.location.href);
                 url.searchParams.delete('order');
+                url.searchParams.delete('subview');
                 window.history.replaceState({}, '', url);
             } catch (e) {}
             document.body.classList.remove('supplier-subview-item-active');
