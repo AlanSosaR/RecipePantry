@@ -159,7 +159,9 @@ const requestHandler = async (req, res) => {
     // Disable caching in development
     res.writeHead(200, {
         'Content-Type': contentType,
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
     });
 
     const readStream = fs.createReadStream(filePath);

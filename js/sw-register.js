@@ -1,4 +1,4 @@
-const APP_VERSION_ID = 'v949';
+const APP_VERSION_ID = 'v950';
 const SW_PATH = '/sw.js';
 let currentWorker = null;
 let updateBannerDismissed = false;
@@ -7,6 +7,10 @@ let _updateNotified = false; // guard: evita notificaciones duplicadas en la mis
 // 1. Registro del Service Worker
 async function registerSW() {
     if (!('serviceWorker' in navigator)) return;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        console.log('[SW] Modo desarrollo en localhost: Service Worker desactivado para recarga en vivo sin caché.');
+        return;
+    }
 
     // En entorno de pruebas en red local con HTTPS autofirmado (ej. https://192.168.1.x:3443),
     // Chromium bloquea la descarga de scripts de Service Worker lanzando "An SSL certificate error occurred when fetching the script".
