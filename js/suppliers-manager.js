@@ -15,6 +15,12 @@
             this.searchQuery = '';
             this.orderCart = {}; // { [supplierId]: { [itemId]: number } }
             this.orderNotes = {}; // { [supplierId]: string }
+            try {
+                const savedChecked = sessionStorage.getItem('rp_consolidated_checked');
+                this.consolidatedCheckedItems = savedChecked ? JSON.parse(savedChecked) : {};
+            } catch (e) {
+                this.consolidatedCheckedItems = {};
+            }
             this.isLoading = false;
             this.initialized = false;
             this._hasSyncedOnce = false;
@@ -4178,18 +4184,38 @@ openOrderForm(supplierId) {
                                             ${supItems.map(item => {
                                                 const qty = cart[item.id] || 0;
                                                 const unitStr = item.package_format || item.unit || 'Unidad';
+                                                const key = `${sup.id}_${item.id}`;
+                                                const isChecked = Boolean(this.consolidatedCheckedItems && this.consolidatedCheckedItems[key]);
                                                 return `
-                                                    <div style="
-                                                        display: flex;
-                                                        align-items: center;
-                                                        justify-content: space-between;
-                                                        padding: 8px 12px;
-                                                        background: var(--bg);
-                                                        border: 1px solid var(--border);
-                                                        border-radius: var(--radius-md);
-                                                        gap: 10px;
-                                                    ">
-                                                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                                    <div id="consolidated-item-${key}"
+                                                         onclick="window.suppliersManager.toggleConsolidatedItemCheck('${sup.id}', '${item.id}')"
+                                                         title="${isEn ? 'Click to toggle done / checked' : 'Toca para marcar o tachar como completado'}"
+                                                         style="
+                                                             display: flex;
+                                                             align-items: center;
+                                                             justify-content: space-between;
+                                                             padding: 9px 12px;
+                                                             background: ${isChecked ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg)'};
+                                                             border: 1px solid ${isChecked ? 'rgba(16, 185, 129, 0.35)' : 'var(--border)'};
+                                                             border-radius: var(--radius-md);
+                                                             gap: 10px;
+                                                             cursor: pointer;
+                                                             user-select: none;
+                                                             opacity: ${isChecked ? '0.62' : '1'};
+                                                             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                                         "
+                                                         onmouseenter="if (!${isChecked}) this.style.background='rgba(0,0,0,0.02)';"
+                                                         onmouseleave="if (!${isChecked}) this.style.background='var(--bg)';">
+                                                        
+                                                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                                                            <!-- Checkbox / Checkmark Circular Interactivo -->
+                                                            <span class="material-symbols-outlined consolidated-check-icon" style="
+                                                                font-size: 22px;
+                                                                color: ${isChecked ? 'var(--primary)' : 'var(--border)'};
+                                                                flex-shrink: 0;
+                                                                transition: color 0.15s ease, transform 0.15s ease;
+                                                            ">${isChecked ? 'check_circle' : 'radio_button_unchecked'}</span>
+
                                                             <div style="
                                                                 width: 32px;
                                                                 height: 32px;
@@ -4208,26 +4234,41 @@ openOrderForm(supplierId) {
                                                                     <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary);">photo_camera</span>
                                                                 `}
                                                             </div>
-                                                            <div style="min-width: 0;">
-                                                                <span style="font-size: 13.5px; font-weight: 700; color: var(--text-main);">${item.name}</span>
-                                                                <span style="font-size: 11.5px; color: var(--text-secondary); margin-left: 6px;">(${unitStr})</span>
+                                                            <div style="min-width: 0; flex: 1;">
+                                                                <span class="consolidated-item-name" style="
+                                                                    font-size: 13.5px;
+                                                                    font-weight: 700;
+                                                                    color: var(--text-main);
+                                                                    text-decoration: ${isChecked ? 'line-through' : 'none'};
+                                                                    transition: text-decoration 0.15s ease;
+                                                                ">${item.name}</span>
+                                                                <span class="consolidated-item-unit" style="
+                                                                    font-size: 11.5px;
+                                                                    color: var(--text-secondary);
+                                                                    margin-left: 6px;
+                                                                    text-decoration: ${isChecked ? 'line-through' : 'none'};
+                                                                ">(${unitStr})</span>
                                                             </div>
                                                         </div>
 
-                                                        <div style="
-        font-size: 13px;
-        font-weight: 800;
-        color: var(--primary-dark);
-        background: var(--primary-light);
-        padding: 4px 10px;
-        border-radius: var(--radius-full);
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    ">
-        <span>${qty}</span> <span style="font-size: 11px; font-weight: 600; opacity: 0.85;">${isEn ? 'ordered' : 'solicitados'}</span>
-    </div>
+                                                        <div class="consolidated-item-badge" style="
+                                                            font-size: 13px;
+                                                            font-weight: 800;
+                                                            color: var(--primary-dark);
+                                                            background: var(--primary-light);
+                                                            padding: 4px 10px;
+                                                            border-radius: var(--radius-full);
+                                                            white-space: nowrap;
+                                                            display: inline-flex;
+                                                            align-items: center;
+                                                            gap: 4px;
+                                                            opacity: ${isChecked ? '0.7' : '1'};
+                                                            text-decoration: ${isChecked ? 'line-through' : 'none'};
+                                                            transition: opacity 0.15s ease;
+                                                            flex-shrink: 0;
+                                                        ">
+                                                            <span>${qty}</span> <span style="font-size: 11px; font-weight: 600; opacity: 0.85;">${isEn ? 'ordered' : 'solicitados'}</span>
+                                                        </div>
                                                     </div>
                                                 `;
                                             }).join('')}
@@ -4329,6 +4370,61 @@ openOrderForm(supplierId) {
         }
 
         /** Vacía todos los pedidos del carrito tras confirmación */
+        
+        /**
+         * Marca o desmarca un ítem como tachado / completado en la lista consolidada
+         */
+        toggleConsolidatedItemCheck(supplierId, itemId) {
+            if (!this.consolidatedCheckedItems) this.consolidatedCheckedItems = {};
+            const key = `${supplierId}_${itemId}`;
+            const isChecked = !this.consolidatedCheckedItems[key];
+            this.consolidatedCheckedItems[key] = isChecked;
+
+            try {
+                sessionStorage.setItem('rp_consolidated_checked', JSON.stringify(this.consolidatedCheckedItems));
+            } catch (e) {}
+
+            const rowEl = document.getElementById(`consolidated-item-${key}`);
+            if (rowEl) {
+                const checkIcon = rowEl.querySelector('.consolidated-check-icon');
+                const nameEl = rowEl.querySelector('.consolidated-item-name');
+                const unitEl = rowEl.querySelector('.consolidated-item-unit');
+                const qtyBadge = rowEl.querySelector('.consolidated-item-badge');
+
+                if (isChecked) {
+                    rowEl.style.background = 'rgba(16, 185, 129, 0.05)';
+                    rowEl.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+                    rowEl.style.opacity = '0.62';
+                    if (checkIcon) {
+                        checkIcon.textContent = 'check_circle';
+                        checkIcon.style.color = 'var(--primary)';
+                        checkIcon.style.transform = 'scale(1.15)';
+                        setTimeout(() => { if (checkIcon) checkIcon.style.transform = 'scale(1)'; }, 150);
+                    }
+                    if (nameEl) nameEl.style.textDecoration = 'line-through';
+                    if (unitEl) unitEl.style.textDecoration = 'line-through';
+                    if (qtyBadge) {
+                        qtyBadge.style.opacity = '0.7';
+                        qtyBadge.style.textDecoration = 'line-through';
+                    }
+                } else {
+                    rowEl.style.background = 'var(--bg)';
+                    rowEl.style.borderColor = 'var(--border)';
+                    rowEl.style.opacity = '1';
+                    if (checkIcon) {
+                        checkIcon.textContent = 'radio_button_unchecked';
+                        checkIcon.style.color = 'var(--border)';
+                    }
+                    if (nameEl) nameEl.style.textDecoration = 'none';
+                    if (unitEl) unitEl.style.textDecoration = 'none';
+                    if (qtyBadge) {
+                        qtyBadge.style.opacity = '1';
+                        qtyBadge.style.textDecoration = 'none';
+                    }
+                }
+            }
+        }
+
         clearAllOrders() {
             const isEn = this.isEnglish();
             if (!confirm(isEn ? 'Clear all orders for all suppliers?' : '¿Deseas vaciar los pedidos de todos los proveedores?')) {
@@ -4336,6 +4432,8 @@ openOrderForm(supplierId) {
             }
             this.orderCart = {};
             this.orderNotes = {};
+            this.consolidatedCheckedItems = {};
+            try { sessionStorage.removeItem('rp_consolidated_checked'); } catch (e) {}
             this.saveCache();
             this.renderConsolidatedOrdersPage();
             this.notify(isEn ? 'All orders cleared' : 'Todos los pedidos fueron vaciados', 'info');
