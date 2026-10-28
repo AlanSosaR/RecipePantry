@@ -3640,7 +3640,7 @@ openOrderForm(supplierId) {
                                     onmouseleave="this.style.background='transparent'"
                                     onmousedown="this.style.transform='scale(0.92)'"
                                     onmouseup="this.style.transform='scale(1)'">
-                                <span class="material-symbols-outlined" style="font-size: 24px;">more_vert</span>
+                                <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
                             </button>
                         </div>
 
@@ -4087,7 +4087,7 @@ openOrderForm(supplierId) {
                                         "
                                         onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
                                         onmouseleave="this.style.background='transparent'">
-                                    <span class="material-symbols-outlined" style="font-size: 24px;">more_vert</span>
+                                    <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
                                 </button>
                             ` : ''}
                         </div>
@@ -4369,7 +4369,7 @@ openOrderForm(supplierId) {
          * Muestra opciones para Copiar Todo y Vaciar en Bottom Sheet táctil en móvil
          * o Menú emergente M3 en escritorio.
          */
-        closeConsolidatedMoreMenu() {
+                closeConsolidatedMoreMenu() {
             const existingMenu = document.getElementById('consolidatedMoreMenu');
             const existingBackdrop = document.getElementById('consolidatedMenuBackdrop');
             if (existingMenu) existingMenu.remove();
@@ -4377,9 +4377,8 @@ openOrderForm(supplierId) {
         }
 
         /**
-         * Menú de 3 puntos M3 Expressive para el Pedido Consolidado
-         * Muestra opciones para Enviar por WhatsApp (PDF), Descargar PDF, Copiar Todo y Vaciar
-         * en Bottom Sheet táctil en móvil o Menú emergente M3 en escritorio.
+         * Barra Flotante de Herramientas (Floating Toolbar) M3 Expressive para el Pedido Consolidado
+         * (WhatsApp, Descargar PDF, Copiar Texto, Vaciar)
          */
         showConsolidatedMoreMenu(event) {
             if (event) {
@@ -4387,131 +4386,81 @@ openOrderForm(supplierId) {
                 event.preventDefault();
             }
 
+            const existingMenu = document.getElementById('consolidatedMoreMenu');
+            if (existingMenu) {
+                this.closeConsolidatedMoreMenu();
+                return;
+            }
+
             this.closeConsolidatedMoreMenu();
 
             const isEn = this.isEnglish();
-            const isMobile = window.innerWidth < 768;
+            const trigger = event?.currentTarget || document.getElementById('btnConsolidatedMore');
+            const rect = trigger?.getBoundingClientRect() || { bottom: 60, right: window.innerWidth - 16 };
 
+            const openTime = Date.now();
             const backdrop = document.createElement('div');
             backdrop.id = 'consolidatedMenuBackdrop';
-            backdrop.className = 'm3-sheet-backdrop';
-            backdrop.style.cssText = `
-                position: fixed;
-                inset: 0;
-                z-index: ${isMobile ? '2990' : '9990'};
-                background: ${isMobile ? 'rgba(15, 23, 42, 0.45)' : 'transparent'};
-            `;
-            backdrop.onclick = () => this.closeConsolidatedMoreMenu();
+            backdrop.style.cssText = 'position: fixed; inset: 0; z-index: 9999; background: transparent;';
+            backdrop.onclick = (e) => {
+                if (Date.now() - openTime < 200) return;
+                this.closeConsolidatedMoreMenu();
+            };
+            document.body.appendChild(backdrop);
 
             const menu = document.createElement('div');
             menu.id = 'consolidatedMoreMenu';
-            
-            if (isMobile) {
-                menu.className = 'm3-modal-bottom-sheet';
-                menu.style.cssText = `
-                    position: fixed !important;
-                    bottom: 0 !important;
-                    left: 0 !important;
-                    right: 0 !important;
-                    width: 100% !important;
-                    z-index: 3005 !important;
-                    background: #ffffff !important;
-                    border-radius: 28px 28px 0 0 !important;
-                    padding: 12px 18px calc(24px + env(safe-area-inset-bottom, 0px)) 18px !important;
-                    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22) !important;
-                `;
-                menu.innerHTML = `
-                    <div style="width: 38px; height: 4px; background: var(--border); border-radius: 2px; margin: 4px auto 14px auto;"></div>
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding: 0 4px;">
-                        ${isEn ? 'Consolidated Order Options' : 'Opciones del Pedido Consolidado'}
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.shareConsolidatedOrdersPDF();"
-                                style="display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; padding: 0 16px; border-radius: 16px; border: none; background: #e8f7f0; color: #0d7a50; font-family: var(--font-display); font-size: 14.5px; font-weight: 700; cursor: pointer; text-align: left;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: #14b87a;">chat</span>
-                            <span>${isEn ? 'Send via WhatsApp (PDF Receipt)' : 'Enviar por WhatsApp (Recibo PDF)'}</span>
-                        </button>
+            menu.className = 'm3-floating-toolbar consolidated-floating-toolbar';
 
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.downloadConsolidatedOrdersPDF();"
-                                style="display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: var(--font-display); font-size: 14.5px; font-weight: 700; cursor: pointer; text-align: left;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: #dc2626;">picture_as_pdf</span>
-                            <span>${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}</span>
-                        </button>
+            const topPos = Math.round(rect.bottom + 6);
+            const rightPos = Math.max(12, Math.round(window.innerWidth - rect.right));
 
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.copyAllOrdersText();"
-                                style="display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: var(--font-display); font-size: 14.5px; font-weight: 700; cursor: pointer; text-align: left;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">content_copy</span>
-                            <span>${isEn ? 'Copy All Orders (Text)' : 'Copiar Todo el Pedido (Texto)'}</span>
-                        </button>
+            menu.style.top = `${topPos}px`;
+            menu.style.right = `${rightPos}px`;
+            menu.style.maxWidth = 'calc(100vw - 24px)';
 
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();"
-                                style="display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; padding: 0 16px; border-radius: 16px; border: none; background: #fef2f2; color: #dc2626; font-family: var(--font-display); font-size: 14.5px; font-weight: 700; cursor: pointer; text-align: left;">
-                            <span class="material-symbols-outlined" style="font-size: 22px; color: #dc2626;">delete_sweep</span>
-                            <span>${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}</span>
-                        </button>
-                    </div>
-                `;
-            } else {
-                const trigger = event?.currentTarget || document.getElementById('btnConsolidatedMore');
-                const rect = trigger?.getBoundingClientRect() || { bottom: 80, right: 300 };
+            menu.innerHTML = `
+                <button type="button" 
+                        class="m3-toolbar-item-btn primary" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.shareConsolidatedOrdersPDF();" 
+                        title="${isEn ? 'Send via WhatsApp (PDF Receipt)' : 'Enviar por WhatsApp (Recibo PDF)'}">
+                    <span class="material-symbols-outlined" style="color: #10b981; pointer-events: none;">chat</span>
+                    <span>WhatsApp</span>
+                </button>
+                <div class="m3-toolbar-divider"></div>
+                <button type="button" 
+                        class="m3-toolbar-item-btn" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.downloadConsolidatedOrdersPDF();" 
+                        title="${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}">
+                    <span class="material-symbols-outlined" style="color: #ef4444; pointer-events: none;">picture_as_pdf</span>
+                    <span>PDF</span>
+                </button>
+                <div class="m3-toolbar-divider"></div>
+                <button type="button" 
+                        class="m3-toolbar-item-btn" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.copyAllOrdersText();" 
+                        title="${isEn ? 'Copy All Orders' : 'Copiar Todo el Pedido'}">
+                    <span class="material-symbols-outlined" style="color: var(--primary-dark); pointer-events: none;">content_copy</span>
+                    <span>${isEn ? 'Copy' : 'Copiar'}</span>
+                </button>
+                <div class="m3-toolbar-divider"></div>
+                <button type="button" 
+                        class="m3-toolbar-item-btn danger" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();" 
+                        title="${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}">
+                    <span class="material-symbols-outlined" style="pointer-events: none;">delete_sweep</span>
+                    <span>${isEn ? 'Clear All' : 'Vaciar'}</span>
+                </button>
+                <div class="m3-toolbar-divider"></div>
+                <button type="button" 
+                        class="m3-toolbar-item-btn" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu();" 
+                        title="${isEn ? 'Close' : 'Cerrar'}"
+                        style="padding: 0 8px; min-width: 32px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary); pointer-events: none;">close</span>
+                </button>
+            `;
 
-                menu.style.cssText = `
-                    position: fixed;
-                    top: ${rect.bottom + 6}px;
-                    right: ${window.innerWidth - rect.right}px;
-                    z-index: 10000;
-                    background: var(--surface);
-                    border: 1px solid var(--border);
-                    border-radius: var(--radius-lg);
-                    padding: 8px;
-                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-                    min-width: 270px;
-                    animation: fadeInSubView 0.15s ease;
-                `;
-                menu.innerHTML = `
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.shareConsolidatedOrdersPDF();"
-                                style="display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border-radius: var(--radius-md); border: none; background: #e8f7f0; color: #0d7a50; font-family: var(--font-display); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background 0.15s ease;"
-                                onmouseenter="this.style.background='#d8f3e5'" onmouseleave="this.style.background='#e8f7f0'">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: #14b87a;">chat</span>
-                            <span>${isEn ? 'Send via WhatsApp (PDF)' : 'Enviar por WhatsApp (Recibo PDF)'}</span>
-                        </button>
-
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.downloadConsolidatedOrdersPDF();"
-                                style="display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border-radius: var(--radius-md); border: none; background: transparent; color: var(--text-main); font-family: var(--font-display); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background 0.15s ease;"
-                                onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">picture_as_pdf</span>
-                            <span>${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}</span>
-                        </button>
-
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.copyAllOrdersText();"
-                                style="display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border-radius: var(--radius-md); border: none; background: transparent; color: var(--text-main); font-family: var(--font-display); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background 0.15s ease;"
-                                onmouseenter="this.style.background='var(--bg)'" onmouseleave="this.style.background='transparent'">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--primary-dark);">content_copy</span>
-                            <span>${isEn ? 'Copy All Orders (Text)' : 'Copiar Todo el Pedido (Texto)'}</span>
-                        </button>
-
-                        <div style="height: 1px; background: var(--border); margin: 4px 0;"></div>
-
-                        <button type="button" 
-                                onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();"
-                                style="display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border-radius: var(--radius-md); border: none; background: transparent; color: #dc2626; font-family: var(--font-display); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background 0.15s ease;"
-                                onmouseenter="this.style.background='#fef2f2'" onmouseleave="this.style.background='transparent'">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: #dc2626;">delete_sweep</span>
-                            <span>${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}</span>
-                        </button>
-                    </div>
-                `;
-            }
-
-            document.body.appendChild(backdrop);
             document.body.appendChild(menu);
         }
 
@@ -4816,7 +4765,7 @@ openOrderForm(supplierId) {
                 URL.revokeObjectURL(url);
             }, 1000);
         }
-        /** Barra Flotante de Herramientas (Floating Toolbar) M3 Expressive para opciones del pedido */
+                /** Barra Flotante de Herramientas (Floating Toolbar) M3 Expressive para opciones del pedido */
         showOrderPageMoreMenu(event, supplierId) {
             if (event) {
                 event.preventDefault();
@@ -4836,13 +4785,16 @@ openOrderForm(supplierId) {
             const trigger = event?.currentTarget || document.getElementById('btnOrderPageMore');
             const rect = trigger?.getBoundingClientRect() || { bottom: 60, right: window.innerWidth - 16 };
 
-            // Backdrop transparente para cerrar al hacer clic afuera
+            const openTime = Date.now();
             let backdrop = document.getElementById('orderMoreMenuBackdrop');
             if (!backdrop) {
                 backdrop = document.createElement('div');
                 backdrop.id = 'orderMoreMenuBackdrop';
                 backdrop.style.cssText = 'position: fixed; inset: 0; z-index: 9999; background: transparent;';
-                backdrop.onclick = () => this.closeOrderPageMoreMenu();
+                backdrop.onclick = (e) => {
+                    if (Date.now() - openTime < 200) return;
+                    this.closeOrderPageMoreMenu();
+                };
                 document.body.appendChild(backdrop);
             } else {
                 backdrop.style.display = 'block';
@@ -4865,7 +4817,7 @@ openOrderForm(supplierId) {
                         class="m3-toolbar-item-btn danger" 
                         onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.clearSupplierOrder('${supplierId}');" 
                         title="${isEn ? 'Clear Quantities' : 'Limpiar Cantidades'}">
-                    <span class="material-symbols-outlined">restart_alt</span>
+                    <span class="material-symbols-outlined" style="pointer-events: none;">restart_alt</span>
                     <span>${isEn ? 'Clear' : 'Limpiar'}</span>
                 </button>
                 <div class="m3-toolbar-divider"></div>
@@ -4873,7 +4825,7 @@ openOrderForm(supplierId) {
                         class="m3-toolbar-item-btn primary" 
                         onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.renderConsolidatedOrdersPage();" 
                         title="${isEn ? 'View Order' : 'Ver Pedido'}">
-                    <span class="material-symbols-outlined">receipt_long</span>
+                    <span class="material-symbols-outlined" style="pointer-events: none;">receipt_long</span>
                     <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
                 </button>
                 <div class="m3-toolbar-divider"></div>
@@ -4882,7 +4834,7 @@ openOrderForm(supplierId) {
                         onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu();" 
                         title="${isEn ? 'Close' : 'Cerrar'}"
                         style="padding: 0 8px; min-width: 32px;">
-                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary);">close</span>
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary); pointer-events: none;">close</span>
                 </button>
             `;
 

@@ -19711,7 +19711,9 @@ body.supplier-subview-item-active .suppliers-subview-page,
 
 /* ─── Toolbar Flotante M3 de Crear Orden (Siempre visible al abrir en PC y Móvil) ─── */
 .order-floating-toolbar,
-#orderMoreMenuDropdown.order-floating-toolbar {
+.consolidated-floating-toolbar,
+#orderMoreMenuDropdown.order-floating-toolbar,
+#consolidatedMoreMenu.consolidated-floating-toolbar {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
