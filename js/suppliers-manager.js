@@ -4094,6 +4094,7 @@ openOrderForm(supplierId) {
 
                                 return `
                                     <div class="consolidated-supplier-card" style="
+                                        position: relative;
                                         background: var(--surface);
                                         border: 1px solid var(--border);
                                         border-radius: var(--radius-lg);
@@ -4102,71 +4103,74 @@ openOrderForm(supplierId) {
                                         flex-direction: column;
                                         gap: 14px;
                                     ">
-                                        <!-- Encabezado de la Tarjeta del Proveedor -->
-                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                                            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                                <div style="
-                                                    width: 44px;
-                                                    height: 44px;
-                                                    border-radius: 50%;
-                                                    background: var(--surface);
+                                        <!-- Botón Editar posicionado exactamente en la esquina superior derecha de la tarjeta -->
+                                        <button type="button" 
+                                                onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
+                                                title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                                aria-label="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                                style="
+                                                    position: absolute;
+                                                    top: 16px;
+                                                    right: 16px;
+                                                    width: 36px;
+                                                    height: 36px;
+                                                    padding: 0;
+                                                    margin: 0;
+                                                    border-radius: var(--radius-full);
+                                                    background: var(--bg);
                                                     border: 1px solid var(--border);
-                                                    display: flex;
+                                                    color: var(--text-main);
+                                                    display: inline-flex;
                                                     align-items: center;
                                                     justify-content: center;
-                                                    overflow: hidden;
+                                                    cursor: pointer;
                                                     flex-shrink: 0;
-                                                ">
-                                                    ${sup.image_url ? `
-                                                        <img src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
-                                                    ` : `
-                                                        <div style="font-weight: 800; font-size: 15px; color: ${cat.color};">
-                                                            ${sup.name.substring(0, 2).toUpperCase()}
-                                                        </div>
-                                                    `}
+                                                    z-index: 2;
+                                                    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+                                                "
+                                                onmouseenter="this.style.background='var(--primary-light)'; this.style.color='var(--primary-dark)';"
+                                                onmouseleave="this.style.background='var(--bg)'; this.style.color='var(--text-main)';"
+                                                onmousedown="this.style.transform='scale(0.93)';"
+                                                onmouseup="this.style.transform='scale(1)';">
+                                            <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                                        </button>
+
+                                        <!-- Encabezado de la Tarjeta del Proveedor con espacio para el botón de editar -->
+                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: 44px;">
+                                            <div style="
+                                                width: 44px;
+                                                height: 44px;
+                                                border-radius: 50%;
+                                                background: var(--surface);
+                                                border: 1px solid var(--border);
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                overflow: hidden;
+                                                flex-shrink: 0;
+                                            ">
+                                                ${sup.image_url ? `
+                                                    <img src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                                ` : `
+                                                    <div style="font-weight: 800; font-size: 15px; color: ${cat.color};">
+                                                        ${sup.name.substring(0, 2).toUpperCase()}
+                                                    </div>
+                                                `}
+                                            </div>
+                                            <div style="min-width: 0; flex: 1;">
+                                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                    <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+                                                        ${sup.name}
+                                                    </h3>
+                                                    <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-full); background: ${cat.bg}; color: ${cat.color}; font-weight: 700; border: 1px solid var(--border);">
+                                                        ${cat.displayLabel}
+                                                    </span>
                                                 </div>
-                                                <div style="min-width: 0;">
-                                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                                        <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
-                                                            ${sup.name}
-                                                        </h3>
-                                                        <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-full); background: ${cat.bg}; color: ${cat.color}; font-weight: 700; border: 1px solid var(--border);">
-                                                            ${cat.displayLabel}
-                                                        </span>
-                                                    </div>
-                                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
-                                                        <strong>${status.statusTitle}</strong> · <span>${status.statusSub}</span>
-                                                        ${sup.phone ? ` · 📞 ${sup.phone}` : ''}
-                                                    </div>
+                                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
+                                                    <strong>${status.statusTitle}</strong> · <span>${status.statusSub}</span>
+                                                    ${sup.phone ? ` · 📞 ${sup.phone}` : ''}
                                                 </div>
                                             </div>
-
-                                            <button type="button" 
-                                onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
-                                title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
-                                aria-label="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
-                                style="
-                                    width: 36px;
-                                    height: 36px;
-                                    padding: 0;
-                                    margin: 0;
-                                    border-radius: var(--radius-full);
-                                    background: var(--bg);
-                                    border: 1px solid var(--border);
-                                    color: var(--text-main);
-                                    display: inline-flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    cursor: pointer;
-                                    flex-shrink: 0;
-                                    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
-                                "
-                                onmouseenter="this.style.background='var(--primary-light)'; this.style.color='var(--primary-dark)';"
-                                onmouseleave="this.style.background='var(--bg)'; this.style.color='var(--text-main)';"
-                                onmousedown="this.style.transform='scale(0.93)';"
-                                onmouseup="this.style.transform='scale(1)';">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
-                        </button>
                                         </div>
 
                                         <!-- Tabla / Lista de Productos del Proveedor -->
@@ -4369,73 +4373,173 @@ openOrderForm(supplierId) {
             this.closeConsolidatedMoreMenu();
 
             const isEn = this.isEnglish();
-            const trigger = event?.currentTarget || document.getElementById('btnConsolidatedMore');
-            const rect = trigger?.getBoundingClientRect() || { bottom: 60, right: window.innerWidth - 16 };
-
             const openTime = Date.now();
+
             const backdrop = document.createElement('div');
             backdrop.id = 'consolidatedMenuBackdrop';
-            backdrop.style.cssText = 'position: fixed; inset: 0; z-index: 9999; background: transparent;';
+            backdrop.className = 'm3-sheet-backdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                inset: 0;
+                z-index: 2990;
+                background: rgba(15, 23, 42, 0.45);
+                animation: fadeIn 0.2s ease;
+            `;
             backdrop.onclick = (e) => {
                 if (Date.now() - openTime < 200) return;
                 this.closeConsolidatedMoreMenu();
             };
             document.body.appendChild(backdrop);
 
-            const menu = document.createElement('div');
-            menu.id = 'consolidatedMoreMenu';
-            menu.className = 'm3-floating-toolbar consolidated-floating-toolbar';
-
-            const topPos = Math.round(rect.bottom + 6);
-            const rightPos = Math.max(12, Math.round(window.innerWidth - rect.right));
-
-            menu.style.top = `${topPos}px`;
-            menu.style.right = `${rightPos}px`;
-            menu.style.maxWidth = 'calc(100vw - 24px)';
-
-            menu.innerHTML = `
-                <button type="button" 
-                        class="m3-toolbar-item-btn primary" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.shareConsolidatedOrdersPDF();" 
-                        title="${isEn ? 'Send via WhatsApp (PDF Receipt)' : 'Enviar por WhatsApp (Recibo PDF)'}">
-                    <span class="material-symbols-outlined" style="color: #10b981; pointer-events: none;">chat</span>
-                    <span>WhatsApp</span>
-                </button>
-                <div class="m3-toolbar-divider"></div>
-                <button type="button" 
-                        class="m3-toolbar-item-btn" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.downloadConsolidatedOrdersPDF();" 
-                        title="${isEn ? 'Download PDF Receipt' : 'Descargar Recibo en PDF'}">
-                    <span class="material-symbols-outlined" style="color: #ef4444; pointer-events: none;">picture_as_pdf</span>
-                    <span>PDF</span>
-                </button>
-                <div class="m3-toolbar-divider"></div>
-                <button type="button" 
-                        class="m3-toolbar-item-btn" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.copyAllOrdersText();" 
-                        title="${isEn ? 'Copy All Orders' : 'Copiar Todo el Pedido'}">
-                    <span class="material-symbols-outlined" style="color: var(--primary-dark); pointer-events: none;">content_copy</span>
-                    <span>${isEn ? 'Copy' : 'Copiar'}</span>
-                </button>
-                <div class="m3-toolbar-divider"></div>
-                <button type="button" 
-                        class="m3-toolbar-item-btn danger" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();" 
-                        title="${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}">
-                    <span class="material-symbols-outlined" style="pointer-events: none;">delete_sweep</span>
-                    <span>${isEn ? 'Clear All' : 'Vaciar'}</span>
-                </button>
-                <div class="m3-toolbar-divider"></div>
-                <button type="button" 
-                        class="m3-toolbar-item-btn" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu();" 
-                        title="${isEn ? 'Close' : 'Cerrar'}"
-                        style="padding: 0 8px; min-width: 32px;">
-                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary); pointer-events: none;">close</span>
-                </button>
+            const sheet = document.createElement('div');
+            sheet.id = 'consolidatedMoreMenu';
+            sheet.className = 'm3-modal-bottom-sheet';
+            sheet.style.cssText = `
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                max-width: 520px !important;
+                margin: 0 auto !important;
+                z-index: 3005 !important;
+                background: var(--surface, #ffffff) !important;
+                border-radius: 28px 28px 0 0 !important;
+                padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px !important;
+                box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22) !important;
+                font-family: var(--font-display);
+                animation: slideUpM3 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                box-sizing: border-box;
             `;
 
-            document.body.appendChild(menu);
+            sheet.innerHTML = `
+                <div style="width: 38px; height: 4px; background: var(--border); border-radius: 2px; margin: 4px auto 16px auto;"></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+                        ${isEn ? 'Consolidated Order Options' : 'Opciones del Pedido Consolidado'}
+                    </div>
+                    <button type="button" 
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu()" 
+                            style="width: 32px; height: 32px; background: transparent; border: none; border-radius: var(--radius-full); cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; padding: 0;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                    </button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button type="button" 
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.shareConsolidatedOrdersPDF();"
+                            style="
+                                width: 100%;
+                                display: flex;
+                                align-items: center;
+                                gap: 14px;
+                                padding: 12px 14px;
+                                border-radius: var(--radius-lg);
+                                border: 1px solid var(--border);
+                                background: var(--bg);
+                                color: var(--text-main);
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: background 0.15s ease;
+                                font-family: var(--font-display);
+                                text-align: left;
+                            "
+                            onmouseenter="this.style.background='var(--primary-light)'"
+                            onmouseleave="this.style.background='var(--bg)'">
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: #10b981;">chat</span>
+                        <div style="flex: 1;">
+                            <div style="line-height: 1.2;">${isEn ? 'Send via WhatsApp' : 'Enviar por WhatsApp'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Official PDF receipt with all orders' : 'Recibo PDF oficial con todos los pedidos'}</div>
+                        </div>
+                    </button>
+
+                    <button type="button" 
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.downloadConsolidatedOrdersPDF();"
+                            style="
+                                width: 100%;
+                                display: flex;
+                                align-items: center;
+                                gap: 14px;
+                                padding: 12px 14px;
+                                border-radius: var(--radius-lg);
+                                border: 1px solid var(--border);
+                                background: var(--bg);
+                                color: var(--text-main);
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: background 0.15s ease;
+                                font-family: var(--font-display);
+                                text-align: left;
+                            "
+                            onmouseenter="this.style.background='var(--primary-light)'"
+                            onmouseleave="this.style.background='var(--bg)'">
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: #ef4444;">picture_as_pdf</span>
+                        <div style="flex: 1;">
+                            <div style="line-height: 1.2;">${isEn ? 'Download PDF' : 'Descargar Recibo en PDF'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Formatted printable orders ticket' : 'Ticket imprimible con productos agrupados'}</div>
+                        </div>
+                    </button>
+
+                    <button type="button" 
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.copyAllOrdersText();"
+                            style="
+                                width: 100%;
+                                display: flex;
+                                align-items: center;
+                                gap: 14px;
+                                padding: 12px 14px;
+                                border-radius: var(--radius-lg);
+                                border: 1px solid var(--border);
+                                background: var(--bg);
+                                color: var(--text-main);
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: background 0.15s ease;
+                                font-family: var(--font-display);
+                                text-align: left;
+                            "
+                            onmouseenter="this.style.background='var(--primary-light)'"
+                            onmouseleave="this.style.background='var(--bg)'">
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary-dark);">content_copy</span>
+                        <div style="flex: 1;">
+                            <div style="line-height: 1.2;">${isEn ? 'Copy Orders Text' : 'Copiar Texto del Pedido'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Plain text to clipboard' : 'Copia la lista al portapapeles'}</div>
+                        </div>
+                    </button>
+
+                    <button type="button" 
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();"
+                            style="
+                                width: 100%;
+                                display: flex;
+                                align-items: center;
+                                gap: 14px;
+                                padding: 12px 14px;
+                                border-radius: var(--radius-lg);
+                                border: 1px solid rgba(239, 68, 68, 0.25);
+                                background: rgba(239, 68, 68, 0.05);
+                                color: #dc2626;
+                                font-size: 14px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: background 0.15s ease;
+                                font-family: var(--font-display);
+                                text-align: left;
+                            "
+                            onmouseenter="this.style.background='rgba(239, 68, 68, 0.12)'"
+                            onmouseleave="this.style.background='rgba(239, 68, 68, 0.05)'">
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: #dc2626;">delete_sweep</span>
+                        <div style="flex: 1;">
+                            <div style="line-height: 1.2;">${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: #ef4444; opacity: 0.9; margin-top: 2px;">${isEn ? 'Reset all quantities to zero' : 'Pone a cero las cantidades de todos los proveedores'}</div>
+                        </div>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(sheet);
         }
 
         closeModal(modalId) {
