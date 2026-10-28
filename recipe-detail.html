@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="959">
+<html lang="es" data-app-version="960">
 
 <head>
     <meta charset="UTF-8">
@@ -39,8 +39,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- App Styles Fallback -->
-    <link rel="stylesheet" href="css/styles.css?v=959">
-    <link rel="stylesheet" href="css/components.css?v=959">
+    <link rel="stylesheet" href="css/styles.css?v=960">
+    <link rel="stylesheet" href="css/components.css?v=960">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -345,6 +345,78 @@
             display: none;
         }
 
+        /* ─── Mobile Sticky Stepper Portion Selector (v960) ─── */
+        @media (max-width: 768px) {
+            .detail-main {
+                padding-top: 64px !important;
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            .recipe-hero-header {
+                position: sticky !important;
+                top: 64px !important;
+                z-index: 80 !important;
+                background: var(--bg) !important;
+                margin-left: -16px !important;
+                margin-right: -16px !important;
+                padding: 10px 16px !important;
+                margin-top: 0 !important;
+                margin-bottom: 16px !important;
+                border-bottom: 1px solid var(--border) !important;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+                -webkit-backdrop-filter: blur(20px);
+                backdrop-filter: blur(20px);
+            }
+
+            .recipe-hero-header .m3-stepper-selector {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
+            .stepper-pill-horizontal {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                width: 100% !important;
+                gap: 12px !important;
+            }
+
+            .stepper-label-text {
+                font-size: 12px !important;
+                font-weight: 800 !important;
+                letter-spacing: 0.04em !important;
+                color: var(--on-surface) !important;
+                white-space: nowrap !important;
+            }
+
+            .stepper-controls {
+                gap: 12px !important;
+                padding: 4px 10px !important;
+                background: var(--primary-light, #f0faf7) !important;
+            }
+
+            .stepper-btn {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .recipe-portion-text {
+                font-size: 11px !important;
+                margin-top: 2px !important;
+                line-height: 1.2 !important;
+            }
+        }
+
+        .dark .stepper-controls {
+            background: var(--surface-container, #1E293B) !important;
+        }
+
+        .dark .stepper-label-text {
+            color: var(--on-surface, #F1F5F9) !important;
+        }
+
         .section-group {
             margin-bottom: 64px;
         }
@@ -514,19 +586,19 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=959"></script>
-    <script src="js/supabase-client.js?v=959"></script>
-    <script src="js/auth.js?v=959"></script>
-    <script src="js/localdb.js?v=959"></script>
-    <script src="js/sync-manager.js?v=959"></script>
-    <script src="js/db.js?v=959"></script>
-    <script src="js/m3-loading-indicator.js?v=959"></script>
-  <script src="js/utils.js?v=959"></script>
-    <script src="js/ui.js?v=959"></script>
-    <script src="js/i18n.js?v=959"></script>
-    <script src="js/recipe-detail.js?v=959"></script>
-    <script src="js/sw-register.js?v=959"></script>
-    <script src="js/pwa-install.js?v=959"></script>
+    <script src="js/config.js?v=960"></script>
+    <script src="js/supabase-client.js?v=960"></script>
+    <script src="js/auth.js?v=960"></script>
+    <script src="js/localdb.js?v=960"></script>
+    <script src="js/sync-manager.js?v=960"></script>
+    <script src="js/db.js?v=960"></script>
+    <script src="js/m3-loading-indicator.js?v=960"></script>
+  <script src="js/utils.js?v=960"></script>
+    <script src="js/ui.js?v=960"></script>
+    <script src="js/i18n.js?v=960"></script>
+    <script src="js/recipe-detail.js?v=960"></script>
+    <script src="js/sw-register.js?v=960"></script>
+    <script src="js/pwa-install.js?v=960"></script>
     <script>
         // RecipeDetailManager initializes itself via window.recipeDetailManager
     </script>
