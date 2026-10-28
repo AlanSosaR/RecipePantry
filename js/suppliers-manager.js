@@ -2673,6 +2673,7 @@ renderItemCard(item, supplierId) {
             const orderList = document.getElementById('order-modal-items-list');
             if (orderList) {
                 this.renderOrderModalItems(supplierId);
+            this.updateOrderBadgesAndChips(supplierId);
             }
         }
 
@@ -3682,14 +3683,17 @@ openOrderForm(supplierId) {
                                 <span style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
                                     ${isEn ? 'Switch Supplier:' : 'Cambiar de Proveedor:'}
                                 </span>
-                                ${totalSuppliersWithOrders > 0 ? `
-                                    <button type="button" 
-                                            onclick="window.suppliersManager.renderConsolidatedOrdersPage()"
-                                            style="background: none; border: none; color: var(--primary-dark); font-weight: 800; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
-                                        <span class="material-symbols-outlined" style="font-size: 17px;">receipt_long</span>
+                                <button type="button" 
+                                            id="btnOrderSwitcherViewOrder"
+                                            class="btn-supplier-orders-nav" 
+                                            onclick="window.suppliersManager.renderConsolidatedOrdersPage()" 
+                                            title="${isEn ? 'View consolidated order' : 'Ver pedido consolidado'}">
+                                        <span class="material-symbols-outlined">receipt_long</span>
                                         <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
+                                        ${totalSuppliersWithOrders > 0 ? `
+                                            <span class="supplier-orders-badge" id="orderSwitcherViewOrderBadge">${totalSuppliersWithOrders}</span>
+                                        ` : ''}
                                     </button>
-                                ` : ''}
                             </div>
 
                             <!-- Lista deslizante de Chips de Proveedor con padding vertical para no cortar sombras -->
@@ -3888,6 +3892,82 @@ openOrderForm(supplierId) {
             }).join('');
         }
 
+        updateOrderBadgesAndChips(currentSupplierId) {
+            const allSuppliers = this.suppliers || [];
+            const activeSuppliersWithItems = allSuppliers.filter(s => {
+                const c = this.orderCart[s.id] || {};
+                return Object.values(c).some(q => q > 0);
+            });
+            const totalSuppliersWithOrders = activeSuppliersWithItems.length;
+
+            // Actualizar badge del botón "Ver Pedido" fijo
+            const viewOrderBtn = document.getElementById('btnOrderSwitcherViewOrder');
+            if (viewOrderBtn) {
+                let badgeEl = viewOrderBtn.querySelector('.supplier-orders-badge');
+                if (totalSuppliersWithOrders > 0) {
+                    if (!badgeEl) {
+                        badgeEl = document.createElement('span');
+                        badgeEl.className = 'supplier-orders-badge';
+                        badgeEl.id = 'orderSwitcherViewOrderBadge';
+                        viewOrderBtn.appendChild(badgeEl);
+                    }
+                    badgeEl.textContent = totalSuppliersWithOrders;
+                } else if (badgeEl) {
+                    badgeEl.remove();
+                }
+            }
+
+            // Actualizar lista deslizante de Chips de Proveedor
+            const chipsScroll = document.querySelector('.order-supplier-chips-scroll');
+            if (chipsScroll) {
+                chipsScroll.innerHTML = allSuppliers.map(s => {
+                    const isCurrent = s.id === currentSupplierId;
+                    const sCart = this.orderCart[s.id] || {};
+                    const sCount = Object.values(sCart).reduce((sum, q) => sum + (q > 0 ? 1 : 0), 0);
+                    return `
+                        <button type="button" 
+                                onclick="window.suppliersManager.switchOrderSupplier('${s.id}')"
+                                class="order-supplier-chip ${isCurrent ? 'active' : ''}"
+                                style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                    height: 38px;
+                                    padding: 0 14px;
+                                    border-radius: var(--radius-full);
+                                    font-family: var(--font-display);
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    white-space: nowrap;
+                                    flex-shrink: 0;
+                                    cursor: pointer;
+                                    border: 1.5px solid ${isCurrent ? 'var(--primary-dark)' : 'var(--border)'};
+                                    background: ${isCurrent ? 'var(--primary-light)' : 'var(--surface)'};
+                                    color: ${isCurrent ? 'var(--primary-dark)' : 'var(--text-main)'};
+                                    transition: all 0.15s ease;
+                                ">
+                            <span>${s.name}</span>
+                            ${sCount > 0 ? `
+                                <span style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    min-width: 20px;
+                                    height: 20px;
+                                    padding: 0 5px;
+                                    border-radius: 10px;
+                                    font-size: 11px;
+                                    font-weight: 800;
+                                    background: ${isCurrent ? 'var(--primary-dark)' : 'var(--primary)'};
+                                    color: #ffffff;
+                                ">${sCount}</span>
+                            ` : ''}
+                        </button>
+                    `;
+                }).join('');
+            }
+        }
+
         setOrderQty(supplierId, itemId, val) {
             const num = Math.max(0, parseInt(val, 10) || 0);
             if (!this.orderCart[supplierId]) this.orderCart[supplierId] = {};
@@ -3910,12 +3990,25 @@ openOrderForm(supplierId) {
             }
 
             this.renderOrderModalItems(supplierId);
+            this.updateOrderBadgesAndChips(supplierId);
+        }
+
+        clearAllOrdersFromOrderPage(supplierId) {
+            this.orderCart = {};
+            this.orderNotes = {};
+            this.consolidatedCheckedItems = {};
+            try { sessionStorage.removeItem('rp_consolidated_checked'); } catch (e) {}
+            this.saveCache();
+            this.renderOrderPage(supplierId);
+            this.notify(this.isEnglish() ? 'All orders cleared' : 'Se limpiaron todos los pedidos y cantidades', 'info');
         }
 
         clearSupplierOrder(supplierId) {
             delete this.orderCart[supplierId];
+            if (this.orderNotes) delete this.orderNotes[supplierId];
             this.saveCache();
             this.renderOrderModalItems(supplierId);
+            this.updateOrderBadgesAndChips(supplierId);
             this.notify(this.isEnglish() ? 'Quantities reset' : 'Cantidades reiniciadas', 'info');
         }
 
@@ -4991,7 +5084,7 @@ openOrderForm(supplierId) {
             menu.innerHTML = `
                 <button type="button" 
                         class="m3-toolbar-item-btn danger" 
-                        onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.clearSupplierOrder('${supplierId}');" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.clearAllOrdersFromOrderPage('${supplierId}');" 
                         title="${isEn ? 'Clear Quantities' : 'Limpiar Cantidades'}">
                     <span class="material-symbols-outlined" style="pointer-events: none;">restart_alt</span>
                     <span>${isEn ? 'Clear' : 'Limpiar'}</span>
