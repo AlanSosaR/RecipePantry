@@ -3572,9 +3572,19 @@ openOrderForm(supplierId) {
         renderOrderPage() {
             if (!this.container) return;
             const isEn = this.isEnglish();
-            const supplierId = this.activeOrderSupplierId;
-            const sup = this.suppliers.find(s => s.id === supplierId);
+                        const supplierId = this.activeOrderSupplierId;
+            const sup = this.suppliers && this.suppliers.find(s => s.id === supplierId);
             if (!sup) {
+                if (!this.suppliers || this.suppliers.length === 0) {
+                    this.container.innerHTML = `
+                        <div style="padding: 60px 20px; text-align: center; font-family: var(--font-display);">
+                            <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary); animation: spin 1s linear infinite;">sync</span>
+                            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">${isEn ? 'Loading order...' : 'Cargando pedido...'}</p>
+                        </div>
+                    `;
+                    setTimeout(() => { if (this.currentSubView === 'order-form') this.renderOrderPage(); }, 300);
+                    return;
+                }
                 this.backToList();
                 return;
             }
@@ -4019,7 +4029,17 @@ openOrderForm(supplierId) {
                 url.searchParams.set('subview', 'consolidated');
                 window.history.replaceState({}, '', url);
             } catch (e) {}
-            const isEn = this.isEnglish();
+                        const isEn = this.isEnglish();
+            if (!this.suppliers || this.suppliers.length === 0) {
+                this.container.innerHTML = `
+                    <div style="padding: 60px 20px; text-align: center; font-family: var(--font-display);">
+                        <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary); animation: spin 1s linear infinite;">sync</span>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">${isEn ? 'Loading orders...' : 'Cargando pedidos...'}</p>
+                    </div>
+                `;
+                setTimeout(() => { if (this.currentSubView === 'order-consolidated') this.renderConsolidatedOrdersPage(); }, 300);
+                return;
+            }
             const allSuppliers = this.suppliers || [];
 
             // Obtener proveedores que tienen al menos un producto pedido
