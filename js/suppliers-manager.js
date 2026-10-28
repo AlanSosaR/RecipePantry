@@ -2723,6 +2723,12 @@ renderItemCard(item, supplierId) {
 openOrderForm(supplierId) {
             this.activeOrderSupplierId = supplierId;
             this.currentSubView = 'order-form';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('view', 'suppliers');
+                url.searchParams.set('order', supplierId);
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
             this.render();
         }
 
@@ -2730,11 +2736,22 @@ openOrderForm(supplierId) {
         switchOrderSupplier(supplierId) {
             this.activeOrderSupplierId = supplierId;
             this.currentSubView = 'order-form';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('view', 'suppliers');
+                url.searchParams.set('order', supplierId);
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
             this.renderOrderPage();
         }
 
         /** Regresa a la vista previa de proveedores o detalle */
         backToList() {
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('order');
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
             document.body.classList.remove('supplier-subview-item-active');
             if (this.currentSubView === 'item-form' && this.selectedSupplierDetailId) {
                 this.editingItemId = null;
@@ -3569,15 +3586,15 @@ openOrderForm(supplierId) {
                 <div class="suppliers-subview-page suppliers-order-flat-page" style="max-width: 860px; margin: 0 auto; padding: 12px 16px 90px; font-family: var(--font-display);">
                     <!-- Cabecera con Jerarquía M3 Expressive Optimizada -->
                     <header class="order-page-header" style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                        <!-- Fila Superior: Navegación, Título de Proveedor y Acción Limpiar -->
+                        <!-- Fila Superior: Botón Volver Estándar M3, Título de Proveedor y Menú 3 Puntos Plano -->
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
                                 <button type="button" 
                                         onclick="window.suppliersManager.backToList()" 
-                                        class="btn-icon-m3" 
-                                        title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
-                                        style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;">
-                                    <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                                        class="btn-back-circle-m3" 
+                                        title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}"
+                                        aria-label="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}">
+                                    <span class="material-symbols-outlined">arrow_back</span>
                                 </button>
                                 <div style="min-width: 0; flex: 1;">
                                     <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-dark); line-height: 1.2;">
@@ -3589,38 +3606,38 @@ openOrderForm(supplierId) {
                                 </div>
                             </div>
 
-                            <!-- Botón Limpiar Expresivo M3 con Icono y Contenedor Tonal -->
+                            <!-- Menú de 3 puntos M3 Expressive plano (sin círculo) que abre el Toolbar M3 -->
                             <button type="button" 
-                                    onclick="window.suppliersManager.clearSupplierOrder('${supplierId}')" 
-                                    class="btn-order-clear-m3"
-                                    title="${isEn ? 'Clear quantities for this supplier' : 'Limpiar cantidades de este proveedor'}"
+                                    id="btnOrderPageMore"
+                                    onclick="window.suppliersManager.showOrderPageMoreMenu(event, '${supplierId}')" 
+                                    title="${isEn ? 'More options' : 'Más opciones'}"
+                                    aria-label="${isEn ? 'More options' : 'Más opciones'}"
                                     style="
+                                        width: 36px;
+                                        height: 36px;
+                                        padding: 0;
+                                        margin: 0;
+                                        background: transparent;
+                                        border: none;
+                                        box-shadow: none;
+                                        color: var(--text-main);
                                         display: inline-flex;
                                         align-items: center;
-                                        gap: 5px;
-                                        padding: 0 12px;
-                                        height: 36px;
-                                        border-radius: var(--radius-full);
-                                        background: #fef2f2;
-                                        border: 1px solid rgba(239, 68, 68, 0.25);
-                                        color: #dc2626;
-                                        font-size: 12px;
-                                        font-weight: 700;
+                                        justify-content: center;
                                         cursor: pointer;
-                                        white-space: nowrap;
+                                        border-radius: var(--radius-full);
                                         flex-shrink: 0;
                                         transition: background 0.15s ease, transform 0.1s ease;
                                     "
-                                    onmouseenter="this.style.background='#fee2e2'"
-                                    onmouseleave="this.style.background='#fef2f2'"
-                                    onmousedown="this.style.transform='scale(0.96)'"
+                                    onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
+                                    onmouseleave="this.style.background='transparent'"
+                                    onmousedown="this.style.transform='scale(0.92)'"
                                     onmouseup="this.style.transform='scale(1)'">
-                                <span class="material-symbols-outlined" style="font-size: 17px; color: #dc2626;">restart_alt</span>
-                                <span>${isEn ? 'Clear' : 'Limpiar'}</span>
+                                <span class="material-symbols-outlined" style="font-size: 24px;">more_vert</span>
                             </button>
                         </div>
 
-                        <!-- Fila Inferior: Banner Tonal con Info de Entrega -->
+                        <!-- Fila Inferior: Banner Tonal con Info de Entrega (sin icono de calendario) -->
                         <div class="order-delivery-info-banner" style="
                             display: flex;
                             align-items: center;
@@ -3633,8 +3650,7 @@ openOrderForm(supplierId) {
                             font-size: 12.5px;
                             color: var(--text-secondary);
                         ">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary-dark); flex-shrink: 0;">event</span>
-                            <div style="min-width: 0; flex: 1; line-height: 1.3;">
+                            <div style="min-width: 0; flex: 1; line-height: 1.35;">
                                 <strong style="color: var(--text-main); font-weight: 700;">${status.statusTitle}</strong> · <span>${status.statusSub}</span>
                             </div>
                         </div>
@@ -3662,6 +3678,7 @@ openOrderForm(supplierId) {
                             align-items: center;
                             gap: 8px;
                             overflow-x: auto;
+                            padding-top: 6px;
                             padding-bottom: 6px;
                             -webkit-overflow-scrolling: touch;
                             scrollbar-width: none;
@@ -4011,15 +4028,15 @@ openOrderForm(supplierId) {
                 <div class="suppliers-subview-page suppliers-consolidated-flat-page" style="max-width: 900px; margin: 0 auto; padding: 12px 16px 100px; font-family: var(--font-display);">
                     <!-- Header Consolidado con Jerarquía M3 Ajustada -->
                     <header class="consolidated-header-m3" style="margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                        <!-- Fila Superior: Back, Título y Menú 3 Puntos Móvil M3 -->
+                        <!-- Fila Superior: Back Estándar M3, Título y Menú 3 Puntos Plano -->
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
                                 <button type="button" 
                                         onclick="window.suppliersManager.backToOrderForm()" 
-                                        class="btn-icon-m3" 
+                                        class="btn-back-circle-m3" 
                                         title="${isEn ? 'Back to Order Form' : 'Volver a Armar Pedido'}" 
-                                        style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;">
-                                    <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back</span>
+                                        aria-label="${isEn ? 'Back to Order Form' : 'Volver a Armar Pedido'}">
+                                    <span class="material-symbols-outlined">arrow_back</span>
                                 </button>
                                 <div style="min-width: 0; flex: 1;">
                                     <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-dark); line-height: 1.2;">
@@ -4031,39 +4048,35 @@ openOrderForm(supplierId) {
                                 </div>
                             </div>
 
-                            <!-- Botón 3 puntos M3 para Copiar Todo o Vaciar sin saturar el ancho de pantalla -->
+                            <!-- Botón 3 puntos M3 plano para Opciones del Pedido Consolidado -->
                             ${totalSuppliersCount > 0 ? `
                                 <button type="button" 
                                         id="btnConsolidatedMore"
                                         onclick="window.suppliersManager.showConsolidatedMoreMenu(event)" 
-                                        class="btn-icon-m3" 
                                         title="${isEn ? 'More options' : 'Más opciones'}"
                                         aria-label="${isEn ? 'More options' : 'Más opciones'}"
-                                        style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: background 0.15s ease;">
-                                    <span class="material-symbols-outlined" style="font-size: 22px;">more_vert</span>
+                                        style="
+                                            width: 36px; 
+                                            height: 36px; 
+                                            padding: 0; 
+                                            margin: 0; 
+                                            background: transparent; 
+                                            border: none; 
+                                            box-shadow: none; 
+                                            color: var(--text-main); 
+                                            display: inline-flex; 
+                                            align-items: center; 
+                                            justify-content: center; 
+                                            cursor: pointer; 
+                                            border-radius: var(--radius-full); 
+                                            flex-shrink: 0;
+                                            transition: background 0.15s ease;
+                                        "
+                                        onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
+                                        onmouseleave="this.style.background='transparent'">
+                                    <span class="material-symbols-outlined" style="font-size: 24px;">more_vert</span>
                                 </button>
                             ` : ''}
-                        </div>
-
-                        <!-- Barra de Resumen / Métricas Tonal M3 -->
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                            margin-top: 10px;
-                            padding: 8px 12px;
-                            background: var(--surface);
-                            border: 1px solid var(--border);
-                            border-radius: var(--radius-md);
-                            font-size: 12px;
-                            color: var(--text-secondary);
-                            flex-wrap: wrap;
-                        ">
-                            <span>📅 <strong style="color: var(--text-main);">${nowStr}</strong></span>
-                            <span>·</span>
-                            <span>🏢 <strong style="color: var(--text-main);">${totalSuppliersCount}</strong> ${isEn ? 'suppliers' : 'proveedores con pedido'}</span>
-                            <span>·</span>
-                            <span>📦 <strong style="color: var(--text-main);">${totalProductsCount}</strong> ${isEn ? 'products' : 'productos solicitados'}</span>
                         </div>
                     </header>
 
@@ -4135,34 +4148,38 @@ openOrderForm(supplierId) {
                                                         </span>
                                                     </div>
                                                     <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
-                                                        🚚 <strong>${status.statusTitle}</strong> (${status.statusSub})
+                                                        <strong>${status.statusTitle}</strong> · <span>${status.statusSub}</span>
                                                         ${sup.phone ? ` · 📞 ${sup.phone}` : ''}
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <button type="button" 
-                                                        onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
-                                                        title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
-                                                        style="
-                                                            display: inline-flex;
-                                                            align-items: center;
-                                                            gap: 4px;
-                                                            height: 32px;
-                                                            padding: 0 10px;
-                                                            border-radius: var(--radius-full);
-                                                            background: var(--bg);
-                                                            border: 1px solid var(--border);
-                                                            color: var(--text-main);
-                                                            font-size: 12px;
-                                                            font-weight: 700;
-                                                            cursor: pointer;
-                                                        ">
-                                                    <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
-                                                    <span>${isEn ? 'Edit' : 'Editar'}</span>
-                                                </button>
-                                            </div>
+                                            <button type="button" 
+                                onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
+                                title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                aria-label="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                style="
+                                    width: 36px;
+                                    height: 36px;
+                                    padding: 0;
+                                    margin: 0;
+                                    border-radius: var(--radius-full);
+                                    background: var(--bg);
+                                    border: 1px solid var(--border);
+                                    color: var(--text-main);
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    cursor: pointer;
+                                    flex-shrink: 0;
+                                    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+                                "
+                                onmouseenter="this.style.background='var(--primary-light)'; this.style.color='var(--primary-dark)';"
+                                onmouseleave="this.style.background='var(--bg)'; this.style.color='var(--text-main)';"
+                                onmousedown="this.style.transform='scale(0.93)';"
+                                onmouseup="this.style.transform='scale(1)';">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                        </button>
                                         </div>
 
                                         <!-- Tabla / Lista de Productos del Proveedor -->
@@ -4206,9 +4223,20 @@ openOrderForm(supplierId) {
                                                             </div>
                                                         </div>
 
-                                                        <div style="font-size: 14px; font-weight: 800; color: var(--primary-dark); white-space: nowrap;">
-                                                            ${qty} <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">solicitados</span>
-                                                        </div>
+                                                        <div style="
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--primary-dark);
+        background: var(--primary-light);
+        padding: 4px 10px;
+        border-radius: var(--radius-full);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    ">
+        <span>${qty}</span> <span style="font-size: 11px; font-weight: 600; opacity: 0.85;">${isEn ? 'ordered' : 'solicitados'}</span>
+    </div>
                                                     </div>
                                                 `;
                                             }).join('')}
@@ -4766,8 +4794,86 @@ openOrderForm(supplierId) {
                 URL.revokeObjectURL(url);
             }, 1000);
         }
-    }
+        /** Barra Flotante de Herramientas (Floating Toolbar) M3 Expressive para opciones del pedido */
+        showOrderPageMoreMenu(event, supplierId) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
 
+            // Toggle: si ya está abierta, cerrarla
+            const existingMenu = document.getElementById('orderMoreMenuDropdown');
+            if (existingMenu) {
+                this.closeOrderPageMoreMenu();
+                return;
+            }
+
+            this.closeOrderPageMoreMenu();
+
+            const isEn = this.isEnglish();
+            const trigger = event?.currentTarget || document.getElementById('btnOrderPageMore');
+            const rect = trigger?.getBoundingClientRect() || { bottom: 60, right: window.innerWidth - 16 };
+
+            // Backdrop transparente para cerrar al hacer clic afuera
+            let backdrop = document.getElementById('orderMoreMenuBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'orderMoreMenuBackdrop';
+                backdrop.style.cssText = 'position: fixed; inset: 0; z-index: 9999; background: transparent;';
+                backdrop.onclick = () => this.closeOrderPageMoreMenu();
+                document.body.appendChild(backdrop);
+            } else {
+                backdrop.style.display = 'block';
+            }
+
+            let menu = document.createElement('div');
+            menu.id = 'orderMoreMenuDropdown';
+            menu.className = 'm3-floating-toolbar order-floating-toolbar';
+
+            // Posicionar como Toolbar Flotante M3 directamente anclada a los 3 puntos
+            const topPos = Math.round(rect.bottom + 6);
+            const rightPos = Math.max(12, Math.round(window.innerWidth - rect.right));
+
+            menu.style.top = `${topPos}px`;
+            menu.style.right = `${rightPos}px`;
+            menu.style.maxWidth = 'calc(100vw - 24px)';
+
+            menu.innerHTML = `
+                <button type="button" 
+                        class="m3-toolbar-item-btn danger" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.clearSupplierOrder('${supplierId}');" 
+                        title="${isEn ? 'Clear Quantities' : 'Limpiar Cantidades'}">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                    <span>${isEn ? 'Clear' : 'Limpiar'}</span>
+                </button>
+                <div class="m3-toolbar-divider"></div>
+                <button type="button" 
+                        class="m3-toolbar-item-btn primary" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu(); window.suppliersManager.renderConsolidatedOrdersPage();" 
+                        title="${isEn ? 'View Order' : 'Ver Pedido'}">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
+                </button>
+                <div class="m3-toolbar-divider"></div>
+                <button type="button" 
+                        class="m3-toolbar-item-btn" 
+                        onclick="event.stopPropagation(); window.suppliersManager.closeOrderPageMoreMenu();" 
+                        title="${isEn ? 'Close' : 'Cerrar'}"
+                        style="padding: 0 8px; min-width: 32px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary);">close</span>
+                </button>
+            `;
+
+            document.body.appendChild(menu);
+        }
+
+        closeOrderPageMoreMenu() {
+            const backdrop = document.getElementById('orderMoreMenuBackdrop');
+            if (backdrop) backdrop.remove();
+            const menu = document.getElementById('orderMoreMenuDropdown');
+            if (menu) menu.remove();
+        }
+    }
 
     window.suppliersManager = new SuppliersManager();
     window.openProductSideSheet = (productId) => window.suppliersManager?.openProductSideSheet(productId);

@@ -946,7 +946,10 @@ class DashboardManager {
         const carousel = document.getElementById('suggestedCarouselSection');
         const breadcrumb = document.getElementById('folderBreadcrumb');
 
-        if (grid) grid.classList.add('hidden');
+        if (grid) {
+            grid.classList.add('hidden');
+            grid.style.setProperty('display', 'none', 'important');
+        }
         if (empty) empty.classList.add('hidden');
         if (help) help.classList.add('hidden');
         if (allergensView) allergensView.classList.add('hidden');
@@ -3862,6 +3865,18 @@ class DashboardManager {
     renderRecipesGrid(recipes) {
         const container = document.getElementById('recipesGrid');
         if (!container) return;
+        // Si la vista actual no es de recetas (ej. suppliers, menu, allergens, help, tasks),
+        // nunca renderizar ni desplegar recetas para evitar filtraciones en PC o móvil
+        if (!['recipes', 'favorites', 'shared'].includes(this.currentView)) {
+            const container = document.getElementById('recipesGrid');
+            if (container) {
+                container.classList.add('hidden');
+                container.style.setProperty('display', 'none', 'important');
+            }
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) emptyState.classList.add('hidden');
+            return;
+        }
 
         // Helper para identificar la raíz (recetas sin carpeta asignada)
         const isRootFolder = (f) => {
@@ -4302,7 +4317,7 @@ class DashboardManager {
         container.innerHTML = `
             <div class="pc-detail-panel">
                 <div class="pc-detail-topbar">
-                    <button class="m3-icon-btn" id="btnPanelBack" onclick="window.dashboard.closeDetailPanel()" title="Volver">
+                    <button class="btn-back-circle-m3" id="btnPanelBack" onclick="window.dashboard.closeDetailPanel()" title="Volver">
                         <span class="material-symbols-outlined">arrow_back</span>
                     </button>
                     <div style="display:flex; gap:10px;" id="panelActionBtns">

@@ -15541,9 +15541,12 @@ body.dark-theme .btn-cancel-selection-pill:hover {
         color: #F3F4F6 !important;
     }
 
-    /* En PC, la barra flotante móvil se oculta */
-    .floating-selection-toolbar {
+    /* En PC, la barra flotante móvil de recetas se oculta, pero la Toolbar de Crear Orden sí se muestra */
+    .floating-selection-toolbar:not(.order-floating-toolbar) {
         display: none !important;
+    }
+    .order-floating-toolbar {
+        display: flex !important;
     }
 }
 
@@ -16004,9 +16007,136 @@ body.dark-theme .safe-recipe-card-fluid h4 {
     transform: scale(1.04);
 }
 
+/* ─── Suppliers Sticky Header & Orders Action (M3 Expressive) ─── */
+body:has(#suppliersView:not(.hidden)) .top-bar-m3,
+.main-content:has(#suppliersView:not(.hidden)) .top-bar-m3 {
+    margin-bottom: 0 !important;
+}
+
+body:has(#suppliersView:not(.hidden)) #suppliersView,
+.main-content:has(#suppliersView:not(.hidden)) #suppliersView {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+body:has(#suppliersView:not(.hidden)) .suppliers-view-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.suppliers-sticky-header {
+    position: sticky !important;
+    top: 60px !important;
+    z-index: 45 !important;
+    background: var(--bg) !important;
+    margin-top: 0 !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+@media (min-width: 1024px) {
+    .suppliers-sticky-header {
+        top: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 14px !important;
+    }
+}
+
+.suppliers-header-flat {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn-supplier-orders-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-display);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-supplier-orders-nav:hover {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+}
+
+.btn-supplier-orders-nav:active {
+    transform: scale(0.97);
+}
+
+.btn-supplier-orders-nav .material-symbols-outlined {
+    font-size: 19px;
+    color: var(--primary-dark);
+    transition: transform 0.15s ease;
+}
+
+.btn-supplier-orders-nav:hover .material-symbols-outlined {
+    transform: scale(1.08);
+}
+
+.supplier-orders-badge {
+    background: var(--primary);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    line-height: 1.3;
+}
+
+/* ─── Order Pages Sticky Headers (M3 Expressive) ─── */
+.order-page-header,
+.consolidated-header-m3 {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: var(--bg) !important;
+    margin-left: -16px !important;
+    margin-right: -16px !important;
+    padding: 12px 16px !important;
+    margin-bottom: 14px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+.suppliers-order-flat-page,
+.suppliers-consolidated-flat-page {
+    padding-top: 0 !important;
+    transform: none !important;
+}
+
+@media (max-width: 768px) {
+    .order-page-header,
+    .consolidated-header-m3 {
+        margin-left: -6px !important;
+        margin-right: -6px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+    .suppliers-order-flat-page,
+    .suppliers-consolidated-flat-page {
+        padding-top: 0 !important;
+    }
+}
+
 @media (max-width: 640px) {
     .suppliers-view-container {
-        padding: 16px 12px 100px 12px !important;
+        padding: 0 12px 100px 12px !important;
     }
     .suppliers-header-card {
         padding: 16px !important;
@@ -16028,11 +16158,9 @@ body.dark-theme .safe-recipe-card-fluid h4 {
 @keyframes fadeInSubView {
     from {
         opacity: 0;
-        transform: translateY(8px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
@@ -18817,6 +18945,7 @@ body.product-side-sheet-open #m3FabBackdrop {
     align-items: center;
     gap: 8px;
     overflow-x: auto;
+    padding-top: 6px;
     padding-bottom: 6px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -19319,4 +19448,400 @@ body.product-side-sheet-open #m3FabBackdrop {
         min-height: 0 !important;
         overflow-y: auto !important;
     }
+}
+
+
+
+/* ─── Fix Definitivo: Cero Salto/Movimiento al Scroll en Proveedores y Pedidos ─── */
+body:has(#suppliersView:not(.hidden)) .top-bar-m3,
+.main-content:has(#suppliersView:not(.hidden)) .top-bar-m3 {
+    margin-bottom: 0 !important;
+}
+
+body:has(#suppliersView:not(.hidden)) #suppliersView,
+.main-content:has(#suppliersView:not(.hidden)) #suppliersView {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+body.supplier-subview-item-active .main-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+body.supplier-subview-item-active #suppliersView,
+body.supplier-subview-item-active .suppliers-view-container,
+body.supplier-subview-item-active .suppliers-subview-page,
+.suppliers-subview-page.suppliers-order-flat-page,
+.suppliers-subview-page.suppliers-consolidated-flat-page {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+
+/* Asegurar que las recetas nunca se muestren en proveedores u otras vistas en desktop */
+#recipesGrid.hidden,
+.recipes-grid.hidden,
+body[data-current-view="suppliers"] #recipesGrid,
+body[data-current-view="suppliers"] .recipes-grid,
+body:has(#suppliersView:not(.hidden)) #recipesGrid,
+body:has(#suppliersView:not(.hidden)) .recipes-grid {
+    display: none !important;
+}
+
+
+/* Campana de Notificaciones: Visible siempre en PC (>=769px), solo condicional en móvil */
+@media (min-width: 769px) {
+    .top-bar-actions-m3,
+    .top-bar-actions-m3.hidden,
+    .notifications-wrapper,
+    .notifications-wrapper.hidden,
+    #btn-notifications,
+    #btn-notifications.hidden {
+        display: flex !important;
+    }
+
+    .top-bar-m3.no-notifications .search-wrapper-m3 {
+        max-width: 520px;
+    }
+}
+
+@media (max-width: 768px) {
+    .top-bar-actions-m3.hidden,
+    .notifications-wrapper.hidden,
+    #btn-notifications.hidden,
+    .top-bar-m3.no-notifications .notifications-wrapper,
+    .top-bar-m3.no-notifications .top-bar-actions-m3 {
+        display: none !important;
+    }
+}
+
+
+/* Sincronización precisa de Headers Sticky sin saltos al scroll */
+body:has(#suppliersView:not(.hidden)) .top-bar-m3,
+.main-content:has(#suppliersView:not(.hidden)) .top-bar-m3 {
+    margin-bottom: 0 !important;
+}
+
+body:has(#suppliersView:not(.hidden)) #suppliersView,
+.main-content:has(#suppliersView:not(.hidden)) #suppliersView,
+#suppliersView {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+body:has(#suppliersView:not(.hidden)) .suppliers-view-container,
+.suppliers-view-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.suppliers-sticky-header {
+    position: sticky !important;
+    top: 60px !important;
+    z-index: 45 !important;
+    background: var(--bg) !important;
+    margin-top: 0 !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+@media (min-width: 1024px) {
+    .suppliers-sticky-header {
+        top: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 14px !important;
+    }
+}
+
+body.supplier-subview-item-active .main-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+body.supplier-subview-item-active #suppliersView,
+body.supplier-subview-item-active .suppliers-view-container,
+body.supplier-subview-item-active .suppliers-subview-page,
+.suppliers-subview-page.suppliers-order-flat-page,
+.suppliers-subview-page.suppliers-consolidated-flat-page {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.order-page-header,
+.consolidated-header-m3 {
+    position: sticky !important;
+    top: 0 !important;
+    margin-top: 0 !important;
+    z-index: 100 !important;
+    background: var(--bg) !important;
+    margin-left: -16px !important;
+    margin-right: -16px !important;
+    padding: 12px 16px !important;
+    margin-bottom: 14px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+@media (max-width: 768px) {
+    .order-page-header,
+    .consolidated-header-m3 {
+        margin-left: -6px !important;
+        margin-right: -6px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+    .suppliers-subview-page.suppliers-order-flat-page,
+    .suppliers-subview-page.suppliers-consolidated-flat-page {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+}
+
+
+/* Campana de Notificaciones: Visible permanentemente en desktop / PC */
+@media (min-width: 769px) {
+    #mainTopBar .notifications-wrapper,
+    #mainTopBar .notifications-wrapper.hidden,
+    #mainTopBar .top-bar-actions-m3,
+    #mainTopBar .top-bar-actions-m3.hidden,
+    #btn-notifications,
+    #btn-notifications.hidden {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+
+/* Línea separadora exclusiva debajo de Crear Orden (no al final del header completo) */
+.order-page-header {
+    border-bottom: none !important;
+}
+
+.order-header-title-row {
+    border-bottom: 1px solid var(--border) !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+
+/* Botón de más opciones plano en Crear Orden (solo 3 puntos, sin círculo ni borde) */
+#btnOrderPageMore {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+
+/* Espaciado de seguridad para píldoras de proveedor (evita que se corten arriba al tocarlas / active) */
+.order-supplier-chips-scroll {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+
+.order-supplier-chip:active {
+    transform: scale(0.97) !important;
+}
+
+
+/* ─── Botón Volver Estándar M3 Expressive (Circular 40px con Icono 22px) ─── */
+.btn-back-circle-m3,
+.m3-back-btn-standard {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    border: 1.5px solid var(--border) !important;
+    background: var(--surface) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--primary) !important;
+    cursor: pointer !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.btn-back-circle-m3:hover,
+.m3-back-btn-standard:hover {
+    background: rgba(16, 185, 129, 0.08) !important;
+    border-color: var(--primary) !important;
+}
+
+.btn-back-circle-m3:active,
+.m3-back-btn-standard:active {
+    transform: scale(0.95) !important;
+}
+
+.btn-back-circle-m3 .material-symbols-outlined,
+.m3-back-btn-standard .material-symbols-outlined {
+    font-size: 22px !important;
+    color: var(--primary) !important;
+    line-height: 1 !important;
+}
+
+.dark .btn-back-circle-m3,
+.dark .m3-back-btn-standard {
+    background: var(--surface-container, #1E293B) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #34D399 !important;
+}
+
+.dark .btn-back-circle-m3 .material-symbols-outlined,
+.dark .m3-back-btn-standard .material-symbols-outlined {
+    color: #34D399 !important;
+}
+
+
+/* ─── Toolbar Flotante M3 de Crear Orden (Siempre visible al abrir en PC y Móvil) ─── */
+.order-floating-toolbar,
+#orderMoreMenuDropdown.order-floating-toolbar {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10000 !important;
+}
+
+
+/* ==========================================================================
+   MATERIAL 3 EXPRESSIVE - FLOATING TOOLBAR SPECIFICATION (Official M3)
+   Reference: https://m3.material.io/components/toolbars/overview
+   ========================================================================== */
+
+.m3-floating-toolbar {
+    position: fixed;
+    z-index: 10000;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-full);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform-origin: top right;
+    animation: m3ToolbarPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    touch-action: manipulation;
+}
+
+@keyframes m3ToolbarPop {
+    from {
+        opacity: 0;
+        transform: scale(0.85) translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.m3-toolbar-item-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.1s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m3-toolbar-item-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.m3-toolbar-item-btn:active {
+    transform: scale(0.95);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.m3-toolbar-item-btn.danger {
+    color: #DC2626;
+}
+
+.m3-toolbar-item-btn.danger:hover {
+    background: #FEE2E2;
+}
+
+.m3-toolbar-item-btn.primary {
+    color: var(--primary-dark);
+}
+
+.m3-toolbar-item-btn.primary:hover {
+    background: var(--primary-light);
+}
+
+.m3-toolbar-item-btn .material-symbols-outlined {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.m3-toolbar-divider {
+    width: 1px;
+    height: 22px;
+    background: var(--border);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* Modo oscuro */
+.dark .m3-floating-toolbar {
+    background: #1E293B;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
+}
+
+.dark .m3-toolbar-item-btn {
+    color: #F1F5F9;
+}
+
+.dark .m3-toolbar-item-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .m3-toolbar-item-btn.danger {
+    color: #F87171;
+}
+
+.dark .m3-toolbar-item-btn.danger:hover {
+    background: rgba(248, 113, 113, 0.15);
+}
+
+.dark .m3-toolbar-item-btn.primary {
+    color: #34D399;
+}
+
+.dark .m3-toolbar-item-btn.primary:hover {
+    background: rgba(52, 211, 153, 0.15);
+}
+
+.dark .m3-toolbar-divider {
+    background: rgba(255, 255, 255, 0.15);
 }

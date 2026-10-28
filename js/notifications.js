@@ -316,10 +316,18 @@ class NotificationManager {
             }
         } else {
             if (this.badge) this.badge.classList.add('hidden');
-            if (actionsContainer) actionsContainer.classList.add('hidden');
-            if (wrapper) wrapper.classList.add('hidden');
-            if (btn) btn.classList.add('hidden');
-            if (topBar) topBar.classList.add('no-notifications');
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                if (actionsContainer) actionsContainer.classList.add('hidden');
+                if (wrapper) wrapper.classList.add('hidden');
+                if (btn) btn.classList.add('hidden');
+                if (topBar) topBar.classList.add('no-notifications');
+            } else {
+                if (actionsContainer) actionsContainer.classList.remove('hidden');
+                if (wrapper) wrapper.classList.remove('hidden');
+                if (btn) btn.classList.remove('hidden');
+                if (topBar) topBar.classList.remove('no-notifications');
+            }
             if (this.menu && !this.menu.classList.contains('hidden')) {
                 this.menu.classList.add('hidden');
             }

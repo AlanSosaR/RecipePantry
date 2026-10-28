@@ -1503,7 +1503,7 @@
                 <div class="menu-form-view-container" style="max-width: 820px; margin: 0 auto; padding: 16px 16px 60px 16px;">
                     <!-- Top Navigation Bar / Breadcrumb (sin botones duplicados arriba) -->
                     <div style="display: flex; align-items: center; margin-bottom: 24px; gap: 14px;">
-                        <button type="button" class="btn-icon-m3" onclick="window.restaurantMenu.cancelAddDish()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+                        <button type="button" class="btn-back-circle-m3" onclick="window.restaurantMenu.cancelAddDish()" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
                             <span class="material-symbols-outlined" style="font-size: 20px; color: #374151;">arrow_back</span>
                         </button>
                         <div>
@@ -1770,7 +1770,7 @@
                     <!-- Top Navigation Bar / Breadcrumb -->
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
-                            <button type="button" id="btnBackDocViewer" class="btn-icon-m3" onclick="window.restaurantMenu.closeDocumentViewer();" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 42px; height: 42px; min-width: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; z-index: 10;">
+                            <button type="button" id="btnBackDocViewer" class="btn-back-circle-m3" onclick="window.restaurantMenu.closeDocumentViewer();" title="${isEn ? 'Back to menu' : 'Volver a la carta'}" style="background: #FFFFFF; border: 1px solid var(--outline-variant, #E5E7EB); box-shadow: 0 2px 6px rgba(0,0,0,0.06); width: 42px; height: 42px; min-width: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; z-index: 10;">
                                 <span class="material-symbols-outlined" style="font-size: 22px; color: #1F2937; pointer-events: none;">arrow_back</span>
                             </button>
                             <div>
