@@ -55,11 +55,18 @@
             this._pendingSupplierImageBlob = null;
             this._pendingSupplierImageName = null;
 
-            // Restaurar estado de URL al inicializar (soporte para F5 dentro de un proveedor)
+            // Restaurar estado de URL al inicializar (soporte para F5 dentro de un proveedor, pedido o consolidado)
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const supplierParam = urlParams.get('supplier');
-                if (supplierParam) {
+                const orderParam = urlParams.get('order');
+                const subviewParam = urlParams.get('subview');
+                if (subviewParam === 'consolidated' || orderParam === 'consolidated') {
+                    this.currentSubView = 'order-consolidated';
+                } else if (orderParam) {
+                    this.activeOrderSupplierId = orderParam;
+                    this.currentSubView = 'order-form';
+                } else if (supplierParam) {
                     this.selectedSupplierDetailId = supplierParam;
                     this.currentSubView = 'supplier-detail';
                 }
@@ -4006,6 +4013,12 @@ openOrderForm(supplierId) {
         renderConsolidatedOrdersPage() {
             if (!this.container) return;
             this.currentSubView = 'order-consolidated';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('view', 'suppliers');
+                url.searchParams.set('subview', 'consolidated');
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
             const isEn = this.isEnglish();
             const allSuppliers = this.suppliers || [];
 
@@ -4266,6 +4279,15 @@ openOrderForm(supplierId) {
                 this.activeOrderSupplierId = this.suppliers[0].id;
             }
             this.currentSubView = 'order-form';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('view', 'suppliers');
+                url.searchParams.delete('subview');
+                if (this.activeOrderSupplierId) {
+                    url.searchParams.set('order', this.activeOrderSupplierId);
+                }
+                window.history.replaceState({}, '', url);
+            } catch (e) {}
             this.renderOrderPage();
         }
 
