@@ -1004,7 +1004,7 @@ class DashboardManager {
             const isSupplierDetail = window.suppliersManager && (window.suppliersManager.currentSubView === 'supplier-detail' || Boolean(window.suppliersManager.selectedSupplierDetailId));
             searchInput.placeholder = isSupplierDetail
                 ? (isEn ? 'Search product...' : 'Buscar producto...')
-                : (isEn ? 'Search supplier or product...' : 'Buscar proveedor o producto...');
+                : (isEn ? 'Search supplier...' : 'Buscar proveedor...');
             searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
             if (clearBtn) {
                 clearBtn.classList.toggle('hidden', !searchInput.value);

@@ -2852,7 +2852,7 @@ renderItemCard(item, supplierId) {
             if (isSupplierDetail) {
                 searchInput.placeholder = isEn ? 'Search product...' : 'Buscar producto...';
             } else {
-                searchInput.placeholder = isEn ? 'Search supplier or product...' : 'Buscar proveedor o producto...';
+                searchInput.placeholder = isEn ? 'Search supplier...' : 'Buscar proveedor...';
             }
         }
 

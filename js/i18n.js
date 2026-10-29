@@ -834,7 +834,10 @@
                     return;
                 }
                 if (window.dashboard.currentView === 'suppliers') {
-                    el.placeholder = lang === 'en' ? 'Search supplier or product...' : 'Buscar proveedor o producto...';
+                    const isSupplierDetail = window.suppliersManager && (window.suppliersManager.currentSubView === 'supplier-detail' || Boolean(window.suppliersManager.selectedSupplierDetailId));
+                    el.placeholder = isSupplierDetail
+                        ? (lang === 'en' ? 'Search product...' : 'Buscar producto...')
+                        : (lang === 'en' ? 'Search supplier...' : 'Buscar proveedor...');
                     return;
                 }
                 if (window.dashboard.currentView === 'menu') {
