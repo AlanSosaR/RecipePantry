@@ -16988,6 +16988,7 @@ body:has(#suppliersView:not(.hidden)) .suppliers-view-container {
 .delivery-card-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     margin-bottom: 12px;
 }

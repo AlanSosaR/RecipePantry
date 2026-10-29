@@ -1714,16 +1714,24 @@
 
                     <!-- Tarjeta M3 Detalles de Entrega (Aprovechamiento completo de pantalla y línea unificada de horario) -->
                     <div class="supplier-delivery-card-m3">
-                        <!-- Header de la tarjeta -->
-                        <div class="delivery-card-header">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #1e7a46;">local_shipping</span>
-                            <span class="delivery-card-title">
-                                ${isEn ? 'DELIVERY DETAILS' : 'DETALLES DE ENTREGA'}
-                            </span>
+                        <!-- Header de la tarjeta con Próxima Entrega en la esquina superior derecha -->
+                        <div class="delivery-card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #1e7a46;">local_shipping</span>
+                                <span class="delivery-card-title">
+                                    ${isEn ? 'DELIVERY DETAILS' : 'DETALLES DE ENTREGA'}
+                                </span>
+                            </div>
+
+                            <!-- Pill Próxima entrega en la esquina superior derecha -->
+                            <div class="delivery-timing-pill next-delivery" style="padding: 4px 10px; font-size: 11.5px; margin: 0; box-shadow: 0 1px 3px rgba(30, 122, 70, 0.2);" title="${isEn ? 'Next delivery day' : 'Día de la próxima entrega'}">
+                                <span class="material-symbols-outlined icon" style="font-size: 14px;">calendar_month</span>
+                                <span class="timing-value">${isEn ? 'Next:' : 'Próxima entrega:'} <strong>${nextDayName}</strong></span>
+                            </div>
                         </div>
 
-                        <!-- Fila Responsive: Días de reparto y Horario/Próxima entrega -->
-                        <div class="delivery-card-grid">
+                        <!-- Fila Responsive: Días de reparto -->
+                        <div class="delivery-card-grid" style="margin-bottom: 12px;">
                             <!-- Bloque Días de reparto -->
                             <div class="delivery-days-block">
                                 <div class="delivery-block-label">
@@ -1738,24 +1746,6 @@
                                             </div>
                                         `;
                                     }).join('')}
-                                </div>
-                            </div>
-
-                            <!-- Bloque: Hora límite y Próxima entrega en una sola línea -->
-                            <div class="delivery-timing-block">
-                                <div class="delivery-timing-row">
-                                    <!-- Pill Hora límite -->
-                                    <div class="delivery-timing-pill cutoff" title="${isEn ? 'Cut-off time' : 'Hora límite de pedido'}">
-                                        <span class="timing-label">${isEn ? 'Cut-off:' : 'Hora límite:'}</span>
-                                        <span class="material-symbols-outlined icon">schedule</span>
-                                        <span class="timing-value">${status.cutoffFormatted} hrs</span>
-                                    </div>
-
-                                    <!-- Pill Próxima entrega -->
-                                    <div class="delivery-timing-pill next-delivery" title="${isEn ? 'Next delivery day' : 'Día de la próxima entrega'}">
-                                        <span class="material-symbols-outlined icon">calendar_month</span>
-                                        <span class="timing-value">${isEn ? 'Next:' : 'Próxima entrega:'} <strong>${nextDayName}</strong></span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
