@@ -100,25 +100,61 @@
         });
     }
 
-    // Agrega todos los productos directo al carrito usando la API oficial de IPA (/api/orderpad/get/ + /api/basket/add)
+    // Agrega todos los productos directo al carrito usando la API oficial de IPA (/api/suggestions/get/ + /api/basket/add)
     async function addItemsDirectlyViaIpaApi(orderData) {
         const items = orderData.items || [];
         if (items.length === 0) return;
 
+        // Consultar el carrito actual de esta sesión para evitar duplicar si el servidor ya los cargó
+        let existingSkus = new Set();
+        if (orderData.serverAdded) {
+            try {
+                const basketRes = await fetch('/api/basket/contents', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                if (basketRes.ok) {
+                    const basketData = await basketRes.json();
+                    const prods = Array.isArray(basketData?.Products) ? basketData.Products : [];
+                    prods.forEach(p => {
+                        if (p.Sku) existingSkus.add(String(p.Sku).trim().toUpperCase());
+                    });
+                }
+            } catch (e) {}
+        }
+
+        const itemsToAdd = items.filter(it => {
+            const sku = String(it.sku || '').trim().toUpperCase();
+            return sku && !existingSkus.has(sku);
+        });
+
+        if (itemsToAdd.length === 0) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            showStatusBanner(
+                `¡${items.length} productos en tu carrito! 🛒`,
+                `Enviados desde RecipePantry (${orderData.supplierName || 'IPA'}).`,
+                'success'
+            );
+            if (!window.location.pathname.toLowerCase().includes('/basket')) {
+                window.location.href = '/basket';
+            }
+            return;
+        }
+
         showStatusBanner(
-            `Cargando ${items.length} productos al carrito...`,
+            `Cargando ${itemsToAdd.length} productos al carrito...`,
             `Proveedor: ${orderData.supplierName || 'IPA'}`,
             'info'
         );
 
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
+        for (let i = 0; i < itemsToAdd.length; i++) {
+            const item = itemsToAdd[i];
             const sku = String(item.sku || '').trim();
             const qty = Number(item.qty) || 1;
             if (!sku) continue;
 
             showStatusBanner(
-                `Agregando ${i + 1} de ${items.length} al carrito...`,
+                `Agregando ${i + 1} de ${itemsToAdd.length} al carrito...`,
                 `${sku} (x${qty}) · ${item.name || ''}`,
                 'info'
             );
@@ -127,7 +163,7 @@
             let supplierId = null;
 
             try {
-                const searchUrl = `/api/orderpad/get/?overrideMode=&page=1&pageSize=20&search=${encodeURIComponent(sku)}&category=-1&strict=-1&identifier=-1&supplierId=-1&cache=false`;
+                const searchUrl = `/api/suggestions/get/?query=${encodeURIComponent(sku)}&categoryId=`;
                 const res = await fetch(searchUrl, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     credentials: 'same-origin'
@@ -135,9 +171,9 @@
                 if (res.ok) {
                     const data = await res.json();
                     const prods = Array.isArray(data?.Products) ? data.Products : [];
-                    const match = prods.find(p => String(p.Code || '').trim().toUpperCase() === sku.toUpperCase()) || prods[0];
-                    if (match && match.ID) {
-                        productId = match.ID;
+                    const match = prods.find(p => String(p.Origin || p.Code || '').trim().toUpperCase() === sku.toUpperCase()) || prods[0];
+                    if (match && (match.Id || match.ID)) {
+                        productId = match.Id || match.ID;
                         supplierId = match.SupplierId || null;
                     }
                 }
@@ -172,23 +208,12 @@
 
         setTimeout(() => {
             window.location.href = '/basket';
-        }, 500);
+        }, 400);
     }
 
     function init() {
         const orderData = extractOrderFromUrl();
         if (!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) return;
-
-        // Si ya vienen marcados como agregados por la Edge Function del servidor, solo limpiar y mostrar confirmación
-        if (orderData.serverAdded) {
-            sessionStorage.removeItem(STORAGE_KEY);
-            showStatusBanner(
-                `¡${orderData.items.length} productos en tu carrito! 🛒`,
-                `Enviados desde RecipePantry (${orderData.supplierName || 'IPA'}).`,
-                'success'
-            );
-            return;
-        }
 
         const path = window.location.pathname.toLowerCase();
         if (path.includes('login') || document.querySelector('input[type="password"]')) {
