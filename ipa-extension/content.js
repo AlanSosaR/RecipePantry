@@ -3,7 +3,6 @@
 
     const STORAGE_KEY = 'rp_pending_ipa_order';
 
-    // 1. Extraer orden si viene en la URL (?rp_order=... o #rp_order=...)
     function extractOrderFromUrl() {
         try {
             const url = new URL(window.location.href);
@@ -31,14 +30,11 @@
 
         try {
             const saved = sessionStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                return JSON.parse(saved);
-            }
+            if (saved) return JSON.parse(saved);
         } catch (e) {}
         return null;
     }
 
-    // 2. Mostrar banner visual flotante estilo M3 en la esquina superior derecha de IPA
     function showStatusBanner(title, subtitle, type = 'info', actions = []) {
         let banner = document.getElementById('rp-ipa-assistant-banner');
         if (!banner) {
@@ -104,256 +100,107 @@
         });
     }
 
-    // 3. Detectar si el formulario de Quick Order ya está visible en la pantalla actual
-    function isQuickOrderViewVisible() {
-        const skuInput = document.querySelector('input[placeholder*="Sku" i], input[placeholder*="SKU" i]');
-        const fileInput = document.querySelector('input[type="file"]');
-        const bodyText = (document.body?.innerText || '').toLowerCase();
-        return Boolean(skuInput || fileInput || bodyText.includes('upload a csv file that includes the product sku'));
-    }
-
-    // 4. Hacer clic en la opción "Quick Order" del menú lateral izquierdo de IPA
-    function clickQuickOrderMenuLink() {
-        const clickableElements = Array.from(document.querySelectorAll('a, button, li, span, div'));
-        const quickOrderEl = clickableElements.find(el => {
-            const text = (el.textContent || '').trim().toLowerCase();
-            return text === 'quick order' && el.children.length <= 2;
-        });
-
-        if (quickOrderEl) {
-            const linkParent = quickOrderEl.closest('a, button, li') || quickOrderEl;
-            linkParent.click();
-            return true;
-        }
-        return false;
-    }
-
-    // 5. Abrir o redirigir directamente al Carrito (Basket 🛒) de IPA
-    function navigateToIpaCart() {
-        const cartSelectors = [
-            'a[href*="basket" i]',
-            'a[href*="cart" i]',
-            'a[href*="checkout" i]',
-            '[class*="basket" i] a',
-            '[class*="cart" i] a',
-            '[id*="basket" i]',
-            '[id*="cart" i]'
-        ];
-
-        for (const sel of cartSelectors) {
-            const el = document.querySelector(sel);
-            if (el) {
-                if (el.tagName === 'A' && el.href) {
-                    window.location.href = el.href;
-                    return;
-                }
-                el.click();
-                return;
-            }
-        }
-
-        const headerLinks = Array.from(document.querySelectorAll('header a, .header a, nav a, a'));
-        const basketLink = headerLinks.find(a => {
-            const href = (a.getAttribute('href') || '').toLowerCase();
-            return href.includes('basket') || href.includes('cart') || href.includes('trolley');
-        });
-
-        if (basketLink) {
-            basketLink.click();
-        }
-    }
-
-    // 6. Pulsar el botón final de "Add to Basket" y luego redirigir al Carrito (🛒)
-    function finalizeAndGoToCart() {
-        const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a'));
-        const basketBtn = candidates.find(el => {
-            const txt = (el.textContent || el.value || '').trim().toLowerCase();
-            return (
-                txt.includes('add to basket') ||
-                txt.includes('add all to basket') ||
-                txt.includes('add to cart') ||
-                txt.includes('confirm') ||
-                txt.includes('upload')
-            );
-        });
-
-        if (basketBtn) {
-            basketBtn.click();
-        }
+    // Agrega todos los productos directo al carrito usando la API oficial de IPA (/api/orderpad/get/ + /api/basket/add)
+    async function addItemsDirectlyViaIpaApi(orderData) {
+        const items = orderData.items || [];
+        if (items.length === 0) return;
 
         showStatusBanner(
-            '¡Productos enviados al carrito! 🛒',
-            'Abriendo tu carrito de IPA para que solo tengas que confirmar...',
-            'success',
-            [
-                {
-                    label: 'Ir al Carrito ahora 🛒',
-                    primary: true,
-                    onClick: () => navigateToIpaCart()
-                }
-            ]
+            `Cargando ${items.length} productos al carrito...`,
+            `Proveedor: ${orderData.supplierName || 'IPA'}`,
+            'info'
         );
-
-        setTimeout(() => {
-            navigateToIpaCart();
-        }, 1100);
-    }
-
-    // 7. Inyectar archivo CSV directamente en el <input type="file"> o zona de drop de Quick Order
-    function injectCsvIntoQuickOrder(orderData) {
-        const items = orderData.items || [];
-        if (items.length === 0) return false;
-
-        const csvLines = items.map(it => `${String(it.sku).trim()},${Number(it.qty) || 1}`);
-        const csvContent = csvLines.join('\r\n');
-        const csvFile = new File([csvContent], 'ipa_quick_order.csv', { type: 'text/csv' });
-
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) {
-            try {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(csvFile);
-                fileInput.files = dataTransfer.files;
-
-                fileInput.dispatchEvent(new Event('input', { bubbles: true }));
-                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-
-                const dropTarget = fileInput.closest('.dropzone, [class*="upload"], [class*="drop"], div') || fileInput.parentElement;
-                if (dropTarget) {
-                    const dropEvent = new DragEvent('drop', {
-                        bubbles: true,
-                        cancelable: true,
-                        dataTransfer
-                    });
-                    dropTarget.dispatchEvent(dropEvent);
-                }
-
-                sessionStorage.removeItem(STORAGE_KEY);
-                showStatusBanner(
-                    `Cargando ${items.length} productos al carrito...`,
-                    `Proveedor: ${orderData.supplierName || 'IPA'}. Redirigiendo al carrito automáticamente...`,
-                    'info',
-                    [
-                        {
-                            label: 'Ir al Carrito 🛒',
-                            primary: true,
-                            onClick: () => navigateToIpaCart()
-                        },
-                        {
-                            label: 'Modo SKU 1x1',
-                            primary: false,
-                            onClick: () => addSkusSequentially(items)
-                        }
-                    ]
-                );
-
-                setTimeout(finalizeAndGoToCart, 1200);
-                return true;
-            } catch (err) {
-                console.warn('[RecipePantry → IPA] Falló inyección directa en input file:', err);
-            }
-        }
-
-        return false;
-    }
-
-    // 8. Modo respaldo: escribir cada SKU en la caja "Product Sku" y pulsar "Add"
-    async function addSkusSequentially(items) {
-        const skuInput = document.querySelector('input[placeholder*="Sku" i], input[placeholder*="SKU" i], input[type="text"]');
-        if (!skuInput) {
-            alert('Abre primero "Quick Order" en el menú izquierdo.');
-            return;
-        }
-
-        const buttons = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], a.btn'));
-        const addBtn = buttons.find(b => (b.textContent || b.value || '').trim().toLowerCase() === 'add');
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
+            const sku = String(item.sku || '').trim();
+            const qty = Number(item.qty) || 1;
+            if (!sku) continue;
+
             showStatusBanner(
-                `Agregando producto ${i + 1} de ${items.length}...`,
-                `SKU: ${item.sku} (Cant: ${item.qty}) - ${item.name || ''}`,
+                `Agregando ${i + 1} de ${items.length} al carrito...`,
+                `${sku} (x${qty}) · ${item.name || ''}`,
                 'info'
             );
 
-            skuInput.focus();
-            skuInput.value = item.sku;
-            skuInput.dispatchEvent(new Event('input', { bubbles: true }));
-            skuInput.dispatchEvent(new Event('change', { bubbles: true }));
-            skuInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter', keyCode: 13 }));
+            let productId = null;
+            let supplierId = null;
 
-            await new Promise(r => setTimeout(r, 450));
+            try {
+                const searchUrl = `/api/orderpad/get/?overrideMode=&page=1&pageSize=20&search=${encodeURIComponent(sku)}&category=-1&strict=-1&identifier=-1&supplierId=-1&cache=false`;
+                const res = await fetch(searchUrl, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const prods = Array.isArray(data?.Products) ? data.Products : [];
+                    const match = prods.find(p => String(p.Code || '').trim().toUpperCase() === sku.toUpperCase()) || prods[0];
+                    if (match && match.ID) {
+                        productId = match.ID;
+                        supplierId = match.SupplierId || null;
+                    }
+                }
+            } catch (e) {}
 
-            if (addBtn) {
-                addBtn.click();
-            }
-            await new Promise(r => setTimeout(r, 650));
+            const params = new URLSearchParams();
+            if (productId !== null) params.set('ProductId', String(productId));
+            params.set('VariationId', '');
+            params.set('Qty', String(qty));
+            params.set('Sku', sku);
+            if (supplierId !== null) params.set('SupplierId', String(supplierId));
+            params.set('ServiceAdditionId', '0');
+            params.set('CustomisationGroupId', '');
+
+            await fetch('/api/basket/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: params.toString()
+            });
         }
 
         sessionStorage.removeItem(STORAGE_KEY);
-        finalizeAndGoToCart();
+        showStatusBanner(
+            `¡${items.length} productos agregados al carrito! 🛒`,
+            'Abriendo tu carrito de IPA...',
+            'success'
+        );
+
+        setTimeout(() => {
+            window.location.href = '/basket';
+        }, 500);
     }
 
-    // 9. Flujo principal al cargar cualquier página de ipa-pay.ipapurchasing.co.uk
     function init() {
         const orderData = extractOrderFromUrl();
         if (!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) return;
 
-        const path = window.location.pathname.toLowerCase();
+        // Si ya vienen marcados como agregados por la Edge Function del servidor, solo limpiar y mostrar confirmación
+        if (orderData.serverAdded) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            showStatusBanner(
+                `¡${orderData.items.length} productos en tu carrito! 🛒`,
+                `Enviados desde RecipePantry (${orderData.supplierName || 'IPA'}).`,
+                'success'
+            );
+            return;
+        }
 
+        const path = window.location.pathname.toLowerCase();
         if (path.includes('login') || document.querySelector('input[type="password"]')) {
             showStatusBanner(
                 'Inicia sesión en IPA',
-                `Tienes un pedido pendiente de ${orderData.items.length} productos (${orderData.supplierName || 'IPA'}). En cuanto entres se enviará directo a tu carrito.`,
+                `Tienes ${orderData.items.length} productos listos para agregarse a tu carrito en cuanto inicies sesión.`,
                 'warning'
             );
             return;
         }
 
-        // Si aún no está visible el panel de Quick Order, hacer clic en "Quick Order" del menú izquierdo
-        if (!isQuickOrderViewVisible()) {
-            showStatusBanner(
-                `Pedido recibido (${orderData.items.length} productos)`,
-                'Abriendo Quick Order en el menú lateral para cargar tu carrito...',
-                'info',
-                [
-                    {
-                        label: 'Cargar en Quick Order ahora',
-                        primary: true,
-                        onClick: () => {
-                            clickQuickOrderMenuLink();
-                            setTimeout(() => injectCsvIntoQuickOrder(orderData), 700);
-                        }
-                    }
-                ]
-            );
-
-            setTimeout(() => {
-                const clicked = clickQuickOrderMenuLink();
-                if (clicked) {
-                    // Esperar a que cargue el panel de Quick Order (tanto si recarga página como si es AJAX/UpdatePanel)
-                    let checks = 0;
-                    const poll = setInterval(() => {
-                        checks++;
-                        if (isQuickOrderViewVisible()) {
-                            clearInterval(poll);
-                            setTimeout(() => injectCsvIntoQuickOrder(orderData), 300);
-                        } else if (checks > 20) {
-                            clearInterval(poll);
-                        }
-                    }, 350);
-                }
-            }, 400);
-            return;
-        }
-
-        // Si ya está visible el panel de Quick Order, inyectar CSV y saltar al carrito
-        setTimeout(() => {
-            const injected = injectCsvIntoQuickOrder(orderData);
-            if (!injected) {
-                setTimeout(() => injectCsvIntoQuickOrder(orderData), 800);
-            }
-        }, 400);
+        addItemsDirectlyViaIpaApi(orderData);
     }
 
     if (document.readyState === 'loading') {
