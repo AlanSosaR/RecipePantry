@@ -1698,8 +1698,8 @@
                                 title="${isEn ? 'Options' : 'Opciones'}" 
                                 aria-label="${isEn ? 'Options' : 'Opciones'}"
                                 style="width: 36px; height: 36px; padding: 0; margin: 0; background: transparent; border: none; box-shadow: none; color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: var(--radius-full); flex-shrink: 0; transition: background 0.15s ease, transform 0.1s ease;"
-                                onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
-                                onmouseleave="this.style.background='transparent'"
+                                onmouseenter="this.style.background='rgba(16, 185, 129, 0.12)'; this.style.color='var(--primary-dark)';"
+                                onmouseleave="this.style.background='transparent'; this.style.color='var(--text-main)';"
                                 onmousedown="this.style.transform='scale(0.92)'"
                                 onmouseup="this.style.transform='scale(1)'">
                             <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
@@ -1711,20 +1711,12 @@
 
                     <!-- Tarjeta M3 Detalles de Entrega (Aprovechamiento completo de pantalla y línea unificada de horario) -->
                     <div class="supplier-delivery-card-m3">
-                        <!-- Header de la tarjeta con Próxima Entrega en la esquina superior derecha -->
-                        <div class="delivery-card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span class="material-symbols-outlined" style="font-size: 18px; color: #1e7a46;">local_shipping</span>
-                                <span class="delivery-card-title">
-                                    ${isEn ? 'DELIVERY DETAILS' : 'DETALLES DE ENTREGA'}
-                                </span>
-                            </div>
-
-                            <!-- Pill Próxima entrega en la esquina superior derecha -->
-                            <div class="delivery-timing-pill next-delivery" style="padding: 4px 10px; font-size: 11.5px; margin: 0; box-shadow: 0 1px 3px rgba(30, 122, 70, 0.2);" title="${isEn ? 'Next delivery day' : 'Día de la próxima entrega'}">
-                                <span class="material-symbols-outlined icon" style="font-size: 14px;">calendar_month</span>
-                                <span class="timing-value">${isEn ? 'Next:' : 'Próxima entrega:'} <strong>${nextDayName}</strong></span>
-                            </div>
+                        <!-- Header de la tarjeta limpio -->
+                        <div class="delivery-card-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #1e7a46;">local_shipping</span>
+                            <span class="delivery-card-title">
+                                ${isEn ? 'DELIVERY DETAILS' : 'DETALLES DE ENTREGA'}
+                            </span>
                         </div>
 
                         <!-- Fila Responsive: Días de reparto -->
@@ -1737,8 +1729,11 @@
                                 <div class="delivery-days-pills">
                                     ${this.DAYS.map(d => {
                                         const isActive = activeDays.includes(d.id);
+                                        const isNext = nextDayObj && d.id === nextDayObj.id;
                                         return `
-                                            <div class="delivery-day-dot ${isActive ? 'active' : ''}">
+                                            <div class="delivery-day-dot ${isNext ? 'next-delivery-day active' : (isActive ? 'active' : '')}"
+                                                 style="${isNext ? 'background: #F59E0B !important; color: #FFFFFF !important; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.45) !important; transform: scale(1.08); font-weight: 800;' : ''}"
+                                                 title="${isNext ? (isEn ? `Next delivery: ${d.labelEn}` : `Próxima entrega: ${d.label}`) : (isActive ? (isEn ? `Delivery day: ${d.labelEn}` : `Día de reparto: ${d.label}`) : (isEn ? d.labelEn : d.label))}">
                                                 ${d.short}
                                             </div>
                                         `;
@@ -3787,8 +3782,8 @@ openOrderForm(supplierId) {
                                         flex-shrink: 0;
                                         transition: background 0.15s ease, transform 0.1s ease;
                                     "
-                                    onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
-                                    onmouseleave="this.style.background='transparent'"
+                                    onmouseenter="this.style.background='rgba(16, 185, 129, 0.12)'; this.style.color='var(--primary-dark)';"
+                                    onmouseleave="this.style.background='transparent'; this.style.color='var(--text-main)';"
                                     onmousedown="this.style.transform='scale(0.92)'"
                                     onmouseup="this.style.transform='scale(1)'">
                                 <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
@@ -4276,8 +4271,8 @@ openOrderForm(supplierId) {
                                             flex-shrink: 0;
                                             transition: background 0.15s ease;
                                         "
-                                        onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
-                                        onmouseleave="this.style.background='transparent'">
+                                        onmouseenter="this.style.background='rgba(16, 185, 129, 0.12)'; this.style.color='var(--primary-dark)';"
+                                        onmouseleave="this.style.background='transparent'; this.style.color='var(--text-main)';">
                                     <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
                                 </button>
                             ` : ''}

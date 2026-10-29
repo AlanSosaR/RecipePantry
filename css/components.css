@@ -19851,3 +19851,25 @@ body.supplier-subview-item-active .suppliers-subview-page,
 .dark .m3-toolbar-divider {
     background: rgba(255, 255, 255, 0.15);
 }
+
+/* Hover verde M3 para botones planos de más opciones (3 puntos) */
+#btnConsolidatedMore,
+#btnOrderPageMore,
+#supplierDetailMoreBtn {
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease !important;
+}
+
+#btnConsolidatedMore:hover,
+#btnOrderPageMore:hover,
+#supplierDetailMoreBtn:hover {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    color: var(--primary-dark, #059669) !important;
+}
+
+/* Próximo día de entrega resaltado en otro color (Ámbar M3) */
+.delivery-day-dot.next-delivery-day {
+    background: #F59E0B !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4) !important;
+    transform: scale(1.08);
+}
