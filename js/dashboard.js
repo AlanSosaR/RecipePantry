@@ -90,6 +90,12 @@ class DashboardManager {
                 this.currentView = viewParam;
             }
 
+            // Sincronizar texto de carga inicial contextual según la vista activa
+            const initialLoadingText = this.getLoadingTextForCurrentView();
+            document.querySelectorAll('.m3-loading-text').forEach(el => {
+                el.textContent = initialLoadingText;
+            });
+
             if (this.currentView === 'recipes') {
                 const folderParam = urlParams.get('folder');
                 const sessionFolder = sessionStorage.getItem('rp_current_folder');

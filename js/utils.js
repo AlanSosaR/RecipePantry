@@ -448,7 +448,35 @@ window.utils.scaleText = (text, scale) => {
  * Genera el markup oficial de Material 3 Expressive: Contained Loading Indicator
  */
 window.utils.getContainedLoaderHtml = (text, i18nKey = 'loadingRecipes') => {
-    const label = text || (window.i18n ? window.i18n.t(i18nKey) : 'Cargando recetas...');
+    let defaultLabel = 'Cargando recetas...';
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentView = (window.dashboard && window.dashboard.currentView) || urlParams.get('view') || localStorage.getItem('recipe_pantry_current_view') || 'recipes';
+        const hasSupplier = Boolean(urlParams.get('supplier') || (window.suppliersManager && window.suppliersManager.selectedSupplierDetailId));
+        const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+
+        if (currentView === 'suppliers') {
+            defaultLabel = hasSupplier 
+                ? (isEn ? 'Loading supplier...' : 'Cargando proveedor...') 
+                : (isEn ? 'Loading suppliers...' : 'Cargando proveedores...');
+        } else if (currentView === 'menu') {
+            defaultLabel = isEn ? 'Loading menu...' : 'Cargando menú...';
+        } else if (currentView === 'tasks') {
+            defaultLabel = isEn ? 'Loading to-do...' : 'Cargando por hacer...';
+        } else if (currentView === 'favorites') {
+            defaultLabel = isEn ? 'Loading favorites...' : 'Cargando favoritos...';
+        } else if (currentView === 'shared') {
+            defaultLabel = isEn ? 'Loading shared...' : 'Cargando compartidas...';
+        } else if (currentView === 'allergens') {
+            defaultLabel = isEn ? 'Loading allergens...' : 'Cargando alérgenos...';
+        } else if (currentView === 'help' || currentView === 'settings') {
+            defaultLabel = isEn ? 'Loading settings...' : 'Cargando ajustes...';
+        } else {
+            defaultLabel = isEn ? 'Loading recipes...' : 'Cargando recetas...';
+        }
+    } catch (e) {}
+
+    const label = text || defaultLabel;
     const i18nAttr = i18nKey ? ` data-i18n="${i18nKey}"` : '';
     return `
         <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">

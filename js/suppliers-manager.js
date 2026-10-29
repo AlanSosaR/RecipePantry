@@ -737,7 +737,7 @@
                     this.container.innerHTML = `
                         <div style="padding: 60px 20px; text-align: center; font-family: var(--font-display);">
                             <span class="material-symbols-outlined" style="font-size: 36px; color: var(--primary); animation: spin 1s linear infinite;">sync</span>
-                            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">Cargando proveedores...</p>
+                            <p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">${this.selectedSupplierDetailId ? (this.isEnglish() ? "Loading supplier..." : "Cargando proveedor...") : (this.isEnglish() ? "Loading suppliers..." : "Cargando proveedores...")}</p>
                         </div>
                     `;
                     return;

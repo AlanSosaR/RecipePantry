@@ -822,6 +822,44 @@
         // Text content
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.dataset.i18n;
+            if (key === 'loadingRecipes') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentView = (window.dashboard && window.dashboard.currentView) || urlParams.get('view') || localStorage.getItem('recipe_pantry_current_view') || 'recipes';
+                const hasSupplier = Boolean(urlParams.get('supplier') || (window.suppliersManager && window.suppliersManager.selectedSupplierDetailId));
+
+                if (currentView === 'suppliers') {
+                    el.textContent = hasSupplier 
+                        ? (lang === 'en' ? 'Loading supplier...' : 'Cargando proveedor...') 
+                        : (lang === 'en' ? 'Loading suppliers...' : 'Cargando proveedores...');
+                    return;
+                }
+                if (currentView === 'menu') {
+                    el.textContent = lang === 'en' ? 'Loading menu...' : 'Cargando menú...';
+                    return;
+                }
+                if (currentView === 'tasks') {
+                    el.textContent = lang === 'en' ? 'Loading to-do...' : 'Cargando por hacer...';
+                    return;
+                }
+                if (currentView === 'favorites') {
+                    el.textContent = lang === 'en' ? 'Loading favorites...' : 'Cargando favoritos...';
+                    return;
+                }
+                if (currentView === 'shared') {
+                    el.textContent = lang === 'en' ? 'Loading shared...' : 'Cargando compartidas...';
+                    return;
+                }
+                if (currentView === 'allergens') {
+                    el.textContent = lang === 'en' ? 'Loading allergens...' : 'Cargando alérgenos...';
+                    return;
+                }
+                if (currentView === 'help' || currentView === 'settings') {
+                    el.textContent = lang === 'en' ? 'Loading settings...' : 'Cargando ajustes...';
+                    return;
+                }
+                el.textContent = lang === 'en' ? 'Loading recipes...' : 'Cargando recetas...';
+                return;
+            }
             if (t[key] !== undefined) el.textContent = t[key];
         });
 
