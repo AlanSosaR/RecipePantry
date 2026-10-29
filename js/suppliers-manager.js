@@ -563,8 +563,8 @@
                     this.suppliers = supData.filter(item => !hidden.includes(item.id));
                 }
 
-                // 2. Cargar productos
-                let itemQuery = sb.from('supplier_items').select('*');
+                // 2. Cargar productos junto con su catálogo normalizado (supplier_item_catalog)
+                let itemQuery = sb.from('supplier_items').select('*, supplier_item_catalog(*)');
                 if (!this.isSuperAdmin() && currentMode === 'empty') {
                     if (currentUserId) {
                         itemQuery = itemQuery.eq('user_id', currentUserId);
@@ -578,7 +578,21 @@
                     .order('name', { ascending: true });
 
                 if (itemErr) throw itemErr;
-                if (itemData) this.items = itemData;
+                if (itemData) {
+                    this.items = itemData.map(it => {
+                        const catRow = Array.isArray(it.supplier_item_catalog)
+                            ? it.supplier_item_catalog[0]
+                            : it.supplier_item_catalog;
+                        return {
+                            ...it,
+                            sku: catRow?.sku || it.sku || '',
+                            unit_price: catRow?.unit_price ?? it.unit_price ?? null,
+                            currency: catRow?.currency || it.currency || 'GBP',
+                            catalog_uom: catRow?.uom || '',
+                            external_category: catRow?.external_category || ''
+                        };
+                    });
+                }
 
                 this.saveCache();
             } catch (err) {
@@ -1147,7 +1161,7 @@
                     <!-- 1. Foto / Avatar (Limpia, Circular con protagonismo, sin recuadro ni marco) -->
                     <div class="col-sup-logo" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent;">
                         ${supplier.image_url ? `
-                            <img src="${supplier.image_url}" 
+                            <img referrerpolicy="no-referrer" src="${supplier.image_url}" 
                                  alt="${supplier.name}" 
                                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 1px 3px rgba(0,0,0,0.08);"
                                  loading="lazy"
@@ -1235,10 +1249,10 @@
 
                         <button type="button" 
                                 class="btn-supplier-hover-pill" 
-                                onclick="window.suppliersManager.openOrderForm('${supplier.id}')" 
-                                title="${isEn ? 'Create Order' : 'Armar Pedido'}">
+                                onclick="window.suppliersManager.renderConsolidatedOrdersPage()" 
+                                title="${isEn ? 'View Order' : 'Ver Pedido'}">
                             <span class="material-symbols-outlined">shopping_cart_checkout</span>
-                            <span>${isEn ? 'Order' : 'Pedido'}</span>
+                            <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
                         </button>
 
                         <button type="button" 
@@ -1398,9 +1412,9 @@
                         <span class="material-symbols-outlined">inventory_2</span>
                         <span>${isEn ? 'Products' : 'Productos'}</span>
                     </button>
-                    <button type="button" class="m3-quick-pill" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openOrderForm('${supplier.id}');">
+                    <button type="button" class="m3-quick-pill" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.renderConsolidatedOrdersPage();">
                         <span class="material-symbols-outlined">shopping_cart_checkout</span>
-                        <span>${isEn ? 'Order' : 'Pedido'}</span>
+                        <span>${isEn ? 'View Order' : 'Ver Pedido'}</span>
                     </button>
                     ${(this.isSuperAdmin() || supplier.user_id === this.getCurrentUserId() || !supplier.user_id) ? `
                         <button type="button" class="m3-quick-pill" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openSupplierForm('${supplier.id}');">
@@ -1669,7 +1683,7 @@
                                     onmousedown="this.style.transform='scale(0.95)'"
                                     onmouseup="this.style.transform='scale(1.05)'">
                                 ${supplier.image_url ? `
-                                    <img src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                                     <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
                                         ${supplier.name.substring(0, 2).toUpperCase()}
                                     </div>
@@ -1811,7 +1825,8 @@
                     const matchCat = it.category && it.category.toLowerCase().includes(q);
                     const matchUnit = (it.package_format || it.unit) && (it.package_format || it.unit).toLowerCase().includes(q);
                     const matchNotes = it.notes && it.notes.toLowerCase().includes(q);
-                    return matchName || matchCat || matchUnit || matchNotes;
+                    const matchSku = it.sku && it.sku.toLowerCase().includes(q);
+                    return matchName || matchCat || matchUnit || matchNotes || matchSku;
                 });
             }
 
@@ -1891,7 +1906,7 @@
                     <!-- 1. Foto / Avatar Circular Protagónico del Producto -->
                     <div class="product-avatar-wrap" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative;">
                         ${item.image_url ? `
-                            <img src="${item.image_url}" 
+                            <img referrerpolicy="no-referrer" src="${item.image_url}" 
                                  alt="${item.name}" 
                                  class="product-avatar-img"
                                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 1px 4px rgba(0,0,0,0.12);" 
@@ -2013,7 +2028,7 @@
                     <!-- Avatar o Miniatura -->
                     <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #e8f7f0; position: relative;">
                         ${hasPhoto ? `
-                            <img src="${item.image_url}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                            <img referrerpolicy="no-referrer" src="${item.image_url}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                             <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 700; color: #0d7a50; font-size: 16px;">${initials}</div>
                         ` : `
                             <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #0d7a50; font-size: 16px;">${initials}</div>
@@ -2186,7 +2201,8 @@ renderItemCard(item, supplierId) {
                     const matchCat = it.category && it.category.toLowerCase().includes(q);
                     const matchUnit = (it.package_format || it.unit) && (it.package_format || it.unit).toLowerCase().includes(q);
                     const matchNotes = it.notes && it.notes.toLowerCase().includes(q);
-                    return matchName || matchCat || matchUnit || matchNotes;
+                    const matchSku = it.sku && it.sku.toLowerCase().includes(q);
+                    return matchName || matchCat || matchUnit || matchNotes || matchSku;
                 });
             }
             return supItems;
@@ -2396,7 +2412,7 @@ renderItemCard(item, supplierId) {
                     <!-- Contenedor Hero 1:1 -->
                     <div class="side-sheet-hero-wrap" id="sideSheetHeroContainer">
                         ${item.image_url ? `
-                            <img src="${item.image_url}" 
+                            <img referrerpolicy="no-referrer" src="${item.image_url}" 
                                  id="sideSheetHeroImg" 
                                  class="side-sheet-hero-img"
                                  alt="${item.name}" />
@@ -2436,6 +2452,18 @@ renderItemCard(item, supplierId) {
 
                         <!-- Chips M3 Expressive -->
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                            ${item.sku ? `
+                                <div class="m3-meta-chip" style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary-light); color: var(--primary-dark); padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--border);">
+                                    <span>🔢</span>
+                                    <span>SKU: <strong>${item.sku}</strong></span>
+                                </div>
+                            ` : ""}
+                            ${item.unit_price !== null && item.unit_price !== undefined && item.unit_price !== "" ? `
+                                <div class="m3-meta-chip" style="display: inline-flex; align-items: center; gap: 6px; background: #f3f5f4; color: #1a1c19; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--border);">
+                                    <span>💷</span>
+                                    <span>£${Number(item.unit_price).toFixed(2)}</span>
+                                </div>
+                            ` : ""}
                             ${unit ? `
                                 <div class="m3-meta-chip" style="display: inline-flex; align-items: center; gap: 6px; background: #f3f5f4; color: #1a1c19; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--border);">
                                     <span>📦</span>
@@ -2623,7 +2651,7 @@ renderItemCard(item, supplierId) {
 
             if (item.image_url) {
                 avatarWrap.innerHTML = `
-                    <img src="${item.image_url}" 
+                    <img referrerpolicy="no-referrer" src="${item.image_url}" 
                          alt="${item.name}" 
                          class="product-avatar-img"
                          style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 1px 4px rgba(0,0,0,0.12);" 
@@ -3526,6 +3554,18 @@ openOrderForm(supplierId) {
                             </div>
                         </div>
 
+                        <!-- Código SKU y Precio Unitario (Tabla normalizada supplier_item_catalog) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <input type="text" id="itemSku" value="${item?.sku || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemSku" class="m3-field-label">${isEn ? 'Supplier SKU Code (e.g. BAG1011, 02873C)' : 'Código SKU del Proveedor (ej. BAG1011, 02873C)'}</label>
+                            </div>
+                            <div class="m3-field-container">
+                                <input type="number" step="0.01" min="0" id="itemUnitPrice" value="${item?.unit_price !== null && item?.unit_price !== undefined ? item.unit_price : ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemUnitPrice" class="m3-field-label">${isEn ? 'Unit Price (£ GBP)' : 'Precio Unitario (£ GBP)'}</label>
+                            </div>
+                        </div>
+
                         <!-- Notas del Producto (M3 Expressive Outlined) -->
                         <div class="m3-field-container">
                             <input type="text" id="itemNotes" value="${item?.notes || ''}" placeholder=" " class="m3-field-input" />
@@ -3641,6 +3681,9 @@ openOrderForm(supplierId) {
             const name = document.getElementById('itemName').value.trim();
             const category = document.getElementById('itemCategory').value;
             const package_format = document.getElementById('itemFormat').value.trim();
+            const sku = (document.getElementById('itemSku')?.value || '').trim();
+            const rawPrice = document.getElementById('itemUnitPrice')?.value;
+            const unit_price = rawPrice !== '' && rawPrice !== undefined && rawPrice !== null ? parseFloat(rawPrice) : null;
             const notes = document.getElementById('itemNotes').value.trim();
             let image_url = document.getElementById('itemImageUrl').value;
 
@@ -3677,19 +3720,38 @@ openOrderForm(supplierId) {
                 const sb = window.supabaseClient;
                 if (!sb) throw new Error('Supabase no inicializado');
 
+                let savedItemId = itemId;
                 if (itemId) {
                     const { error } = await sb.from('supplier_items').update(payload).eq('id', itemId);
                     if (error) throw error;
                     const idx = this.items.findIndex(it => it.id === itemId);
-                    if (idx !== -1) this.items[idx] = { ...this.items[idx], ...payload };
+                    if (idx !== -1) this.items[idx] = { ...this.items[idx], ...payload, sku, unit_price };
                     this.notify(isEn ? 'Product updated' : 'Producto actualizado', 'success');
                 } else {
                     const { data, error } = await sb.from('supplier_items').insert([payload]).select();
                     if (error) throw error;
                     if (data && data[0]) {
-                        this.items.push(data[0]);
+                        savedItemId = data[0].id;
+                        this.items.push({ ...data[0], sku, unit_price });
                     }
                     this.notify(isEn ? 'Product added' : 'Producto agregado con éxito', 'success');
+                }
+
+                // Sincronizar con la tabla normalizada supplier_item_catalog
+                if (savedItemId) {
+                    if (sku) {
+                        await sb.from('supplier_item_catalog').upsert({
+                            item_id: savedItemId,
+                            supplier_id,
+                            sku,
+                            unit_price,
+                            currency: 'GBP',
+                            uom: package_format || 'unidad',
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'item_id' });
+                    } else if (itemId) {
+                        await sb.from('supplier_item_catalog').delete().eq('item_id', savedItemId);
+                    }
                 }
 
                 this._pendingImageBlob = null;
@@ -3979,7 +4041,7 @@ openOrderForm(supplierId) {
                                 justify-content: center;
                             ">
                                 ${item.image_url ? `
-                                    <img src="${item.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                    <img referrerpolicy="no-referrer" src="${item.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
                                 ` : `
                                     <span class="material-symbols-outlined" style="font-size: 22px; color: var(--text-secondary);">photo_camera</span>
                                 `}
@@ -4227,12 +4289,18 @@ openOrderForm(supplierId) {
         renderConsolidatedOrdersPage() {
             if (!this.container) return;
             this.currentSubView = 'order-consolidated';
+            this.selectedSupplierDetailId = null;
+            document.body.classList.remove('supplier-detail-active');
+            document.body.classList.add('supplier-subview-item-active');
             try {
                 const url = new URL(window.location.href);
                 url.searchParams.set('view', 'suppliers');
                 url.searchParams.set('subview', 'consolidated');
+                url.searchParams.delete('supplier');
                 window.history.replaceState({}, '', url);
             } catch (e) {}
+            this.updateFabVisibility();
+            this.updateSearchPlaceholder();
                         const isEn = this.isEnglish();
             if (!this.suppliers || this.suppliers.length === 0) {
                 this.container.innerHTML = `
@@ -4353,40 +4421,70 @@ openOrderForm(supplierId) {
                                         flex-direction: column;
                                         gap: 14px;
                                     ">
-                                        <!-- Botón Editar posicionado exactamente en la esquina superior derecha de la tarjeta -->
-                                        <button type="button" 
-                                                onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
-                                                title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
-                                                aria-label="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
-                                                style="
-                                                    position: absolute;
-                                                    top: 16px;
-                                                    right: 16px;
-                                                    width: 36px;
-                                                    height: 36px;
-                                                    padding: 0;
-                                                    margin: 0;
-                                                    border-radius: var(--radius-full);
-                                                    background: var(--bg);
-                                                    border: 1px solid var(--border);
-                                                    color: var(--text-main);
-                                                    display: inline-flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    cursor: pointer;
-                                                    flex-shrink: 0;
-                                                    z-index: 2;
-                                                    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
-                                                "
-                                                onmouseenter="this.style.background='var(--primary-light)'; this.style.color='var(--primary-dark)';"
-                                                onmouseleave="this.style.background='var(--bg)'; this.style.color='var(--text-main)';"
-                                                onmousedown="this.style.transform='scale(0.93)';"
-                                                onmouseup="this.style.transform='scale(1)';">
-                                            <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
-                                        </button>
+                                        <!-- Acciones en la esquina superior derecha de la tarjeta (Enviar a IPA + Editar) -->
+                                        <div style="position: absolute; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 8px; z-index: 2;">
+                                            ${supItems.some(it => Boolean(it.sku)) ? `
+                                                <button type="button"
+                                                        onclick="window.suppliersManager.sendOrderToIpaPortal('${sup.id}')"
+                                                        title="${isEn ? 'Send order directly to IPA Cart' : 'Enviar pedido directo al carrito de IPA'}"
+                                                        aria-label="${isEn ? 'Send to IPA' : 'Enviar a IPA'}"
+                                                        style="
+                                                            height: 36px;
+                                                            padding: 0 12px;
+                                                            margin: 0;
+                                                            border-radius: var(--radius-full);
+                                                            background: var(--primary);
+                                                            border: 1px solid var(--primary-dark);
+                                                            color: var(--on-primary, #ffffff);
+                                                            display: inline-flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            gap: 6px;
+                                                            cursor: pointer;
+                                                            font-family: var(--font-display);
+                                                            font-size: 12px;
+                                                            font-weight: 700;
+                                                            box-shadow: var(--shadow-sm);
+                                                            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
+                                                        "
+                                                        onmouseenter="this.style.filter='brightness(1.06)';"
+                                                        onmouseleave="this.style.filter='none';"
+                                                        onmousedown="this.style.transform='scale(0.95)';"
+                                                        onmouseup="this.style.transform='scale(1)';">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
+                                                    <span>IPA</span>
+                                                </button>
+                                            ` : ''}
+                                            <button type="button" 
+                                                    onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
+                                                    title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                                    aria-label="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
+                                                    style="
+                                                        width: 36px;
+                                                        height: 36px;
+                                                        padding: 0;
+                                                        margin: 0;
+                                                        border-radius: var(--radius-full);
+                                                        background: var(--bg);
+                                                        border: 1px solid var(--border);
+                                                        color: var(--text-main);
+                                                        display: inline-flex;
+                                                        align-items: center;
+                                                        justify-content: center;
+                                                        cursor: pointer;
+                                                        flex-shrink: 0;
+                                                        transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+                                                    "
+                                                    onmouseenter="this.style.background='var(--primary-light)'; this.style.color='var(--primary-dark)';"
+                                                    onmouseleave="this.style.background='var(--bg)'; this.style.color='var(--text-main)';"
+                                                    onmousedown="this.style.transform='scale(0.93)';"
+                                                    onmouseup="this.style.transform='scale(1)';">
+                                                <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                                            </button>
+                                        </div>
 
-                                        <!-- Encabezado de la Tarjeta del Proveedor con espacio para el botón de editar -->
-                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: 44px;">
+                                        <!-- Encabezado de la Tarjeta del Proveedor con espacio para los botones de acción -->
+                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: ${supItems.some(it => Boolean(it.sku)) ? '120px' : '44px'};">
                                             <div style="
                                                 width: 44px;
                                                 height: 44px;
@@ -4400,7 +4498,7 @@ openOrderForm(supplierId) {
                                                 flex-shrink: 0;
                                             ">
                                                 ${sup.image_url ? `
-                                                    <img src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                                    <img referrerpolicy="no-referrer" src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
                                                 ` : `
                                                     <div style="font-weight: 800; font-size: 15px; color: ${cat.color};">
                                                         ${sup.name.substring(0, 2).toUpperCase()}
@@ -4473,7 +4571,7 @@ openOrderForm(supplierId) {
                                                                 flex-shrink: 0;
                                                             ">
                                                                 ${item.image_url ? `
-                                                                    <img src="${item.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                                                    <img referrerpolicy="no-referrer" src="${item.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
                                                                 ` : `
                                                                     <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary);">photo_camera</span>
                                                                 `}
@@ -4534,6 +4632,50 @@ openOrderForm(supplierId) {
                 </div>
             `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /** Envía el pedido del proveedor directamente al portal Quick Order de IPA Purchasing */
+        sendOrderToIpaPortal(supplierId) {
+            const isEn = this.isEnglish();
+            const sup = this.suppliers.find(s => s.id === supplierId);
+            if (!sup) return;
+
+            const cart = this.orderCart[supplierId] || {};
+            const orderedItems = this.items
+                .filter(it => it.supplier_id === supplierId && (cart[it.id] || 0) > 0 && Boolean(it.sku))
+                .map(it => ({
+                    sku: String(it.sku).trim(),
+                    qty: Number(cart[it.id]) || 1,
+                    name: it.name
+                }));
+
+            if (orderedItems.length === 0) {
+                this.notify(
+                    isEn ? 'No products with SKU code in this order' : 'No hay productos con código SKU en este pedido',
+                    'warning'
+                );
+                return;
+            }
+
+            const payload = {
+                supplierId: sup.id,
+                supplierName: sup.name,
+                accountCode: sup.account_code || '',
+                timestamp: Date.now(),
+                items: orderedItems
+            };
+
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            const targetUrl = `https://ipa-pay.ipapurchasing.co.uk/my-account/quick-order.aspx?rp_order=${encodeURIComponent(encoded)}`;
+
+            this.notify(
+                isEn
+                    ? `Opening IPA Quick Order with ${orderedItems.length} products...`
+                    : `Abriendo IPA Quick Order con ${orderedItems.length} productos...`,
+                'success'
+            );
+
+            window.open(targetUrl, '_blank');
         }
 
         /** Regresa desde el consolidado a la pantalla de armar pedido del proveedor activo o del primero disponible */

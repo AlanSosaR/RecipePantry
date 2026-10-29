@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="974">
+<html lang="es" data-app-version="977">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=974">
-  <link rel="stylesheet" href="css/components.css?v=974">
-  <script src="js/m3-loading-indicator.js?v=974"></script>
+  <link rel="stylesheet" href="css/styles.css?v=977">
+  <link rel="stylesheet" href="css/components.css?v=977">
+  <script src="js/m3-loading-indicator.js?v=977"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -62,15 +62,19 @@
       if (!v && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu', 'suppliers', 'tasks'].includes(h)) {
         v = h;
       }
-      if (p.get('supplier') || p.get('order')) {
-        v = 'suppliers';
-      }
+      // Solo asumir suppliers por parámetro si no hay view explícita que diga lo contrario
       if (!v) {
-        v = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
+        if (p.get('supplier') || p.get('order')) {
+          v = 'suppliers';
+        } else {
+          v = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
+        }
       }
+      if (v === 'settings') v = 'help';
+
       const lang = localStorage.getItem('lang') || 'es';
       const isEn = lang === 'en';
-      const hasSupplier = Boolean(p.get('supplier'));
+      const hasSupplier = (v === 'suppliers') && Boolean(p.get('supplier'));
 
       const map = {
         suppliers: hasSupplier ? (isEn ? 'Loading supplier...' : 'Cargando proveedor...') : (isEn ? 'Loading suppliers...' : 'Cargando proveedores...'),
@@ -903,35 +907,35 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=974"></script>
-  <script src="js/supabase-client.js?v=974"></script>
-  <script src="js/localdb.js?v=974"></script>
-  <script src="js/sync-manager.js?v=974"></script>
-  <script src="js/m3-loading-indicator.js?v=974"></script>
-  <script src="js/utils.js?v=974"></script>
-  <script src="js/i18n.js?v=974"></script>
-  <script src="js/allergen-data.js?v=974"></script>
-  <script src="js/menu-data.js?v=974"></script>
-  <script src="js/lib/pdf.min.js?v=974"></script>
-  <script src="js/restaurant-menu.js?v=974"></script>
-  <script src="js/db.js?v=974"></script>
-  <script src="js/auth.js?v=974"></script>
-  <script src="js/dashboard.js?v=974"></script>
-  <script src="js/share-modal.js?v=974"></script>
-  <script src="js/help-modal.js?v=974"></script>
-  <script src="js/admin-users.js?v=974"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=974"></script>
-  <script src="js/suppliers-manager.js?v=974"></script>
-  <script src="js/tasks-manager.js?v=974"></script>
+  <script src="js/config.js?v=977"></script>
+  <script src="js/supabase-client.js?v=977"></script>
+  <script src="js/localdb.js?v=977"></script>
+  <script src="js/sync-manager.js?v=977"></script>
+  <script src="js/m3-loading-indicator.js?v=977"></script>
+  <script src="js/utils.js?v=977"></script>
+  <script src="js/i18n.js?v=977"></script>
+  <script src="js/allergen-data.js?v=977"></script>
+  <script src="js/menu-data.js?v=977"></script>
+  <script src="js/lib/pdf.min.js?v=977"></script>
+  <script src="js/restaurant-menu.js?v=977"></script>
+  <script src="js/db.js?v=977"></script>
+  <script src="js/auth.js?v=977"></script>
+  <script src="js/dashboard.js?v=977"></script>
+  <script src="js/share-modal.js?v=977"></script>
+  <script src="js/help-modal.js?v=977"></script>
+  <script src="js/admin-users.js?v=977"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=977"></script>
+  <script src="js/suppliers-manager.js?v=977"></script>
+  <script src="js/tasks-manager.js?v=977"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=974"></script>
-  <script src="js/core/push.js?v=974"></script>
-  <script src="js/notifications.js?v=974"></script>
-  <script src="js/ui.js?v=974"></script>
-  <script src="js/sw-register.js?v=974"></script>
-<script src="js/pwa-install.js?v=974"></script>
-  <script src="js/gemini-client.js?v=974"></script>
-  <script type="module" src="js/url-importer.js?v=974"></script>
+  <script type="module" src="js/core/firebase.js?v=977"></script>
+  <script src="js/core/push.js?v=977"></script>
+  <script src="js/notifications.js?v=977"></script>
+  <script src="js/ui.js?v=977"></script>
+  <script src="js/sw-register.js?v=977"></script>
+<script src="js/pwa-install.js?v=977"></script>
+  <script src="js/gemini-client.js?v=977"></script>
+  <script type="module" src="js/url-importer.js?v=977"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

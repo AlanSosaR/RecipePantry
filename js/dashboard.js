@@ -74,6 +74,38 @@ class DashboardManager {
         // No-op - El indicador global ahora se gestiona de forma pasiva o se ha eliminado
     }
 
+    getLoadingTextForCurrentView() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentView = this.currentView || urlParams.get("view") || localStorage.getItem("recipe_pantry_current_view") || "recipes";
+        const hasSupplier = Boolean(urlParams.get("supplier") || (window.suppliersManager && window.suppliersManager.selectedSupplierDetailId));
+        const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === "en";
+
+        if (currentView === "suppliers") {
+            return hasSupplier 
+                ? (isEn ? "Loading supplier..." : "Cargando proveedor...") 
+                : (isEn ? "Loading suppliers..." : "Cargando proveedores...");
+        }
+        if (currentView === "menu") {
+            return isEn ? "Loading menu..." : "Cargando menú...";
+        }
+        if (currentView === "tasks") {
+            return isEn ? "Loading to-do..." : "Cargando por hacer...";
+        }
+        if (currentView === "favorites") {
+            return isEn ? "Loading favorites..." : "Cargando favoritos...";
+        }
+        if (currentView === "shared") {
+            return isEn ? "Loading shared..." : "Cargando compartidas...";
+        }
+        if (currentView === "allergens") {
+            return isEn ? "Loading allergens..." : "Cargando alérgenos...";
+        }
+        if (currentView === "help" || currentView === "settings") {
+            return isEn ? "Loading settings..." : "Cargando ajustes...";
+        }
+        return isEn ? "Loading recipes..." : "Cargando recetas...";
+    }
+
     async init() {
         try {
             console.log('%c🚀 Dashboard Inicializado (Recipe Pantry Premium)', 'color: #10B981; font-weight: bold;');
@@ -704,6 +736,23 @@ class DashboardManager {
             }
         }
 
+        if (view !== 'suppliers') {
+            document.body.classList.remove('supplier-detail-active');
+            document.body.classList.remove('supplier-subview-item-active');
+            if (window.suppliersManager) {
+                window.suppliersManager.selectedSupplierDetailId = null;
+                window.suppliersManager.activeOrderSupplierId = null;
+                window.suppliersManager.currentSubView = 'list';
+            }
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('supplier');
+                url.searchParams.delete('order');
+                url.searchParams.delete('subview');
+                window.history.replaceState({ view, folder: this.currentFolder }, '', url.toString());
+            } catch (e) {}
+        }
+
         if (['allergens', 'menu', 'help', 'settings', 'suppliers', 'tasks'].includes(view)) {
             if (dashHeader) {
                 dashHeader.classList.add('hidden');
@@ -1150,13 +1199,19 @@ class DashboardManager {
 
         const recipesGrid = document.getElementById('recipesGrid');
         if (recipesGrid && (!this.currentRecipes || this.currentRecipes.length === 0)) {
+            const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+            const recipesLoadLabel = this.currentView === 'favorites' 
+                ? (isEn ? 'Loading favorites...' : 'Cargando favoritos...')
+                : (this.currentView === 'shared' 
+                    ? (isEn ? 'Loading shared...' : 'Cargando compartidas...')
+                    : (isEn ? 'Loading recipes...' : 'Cargando recetas...'));
             recipesGrid.classList.remove('hidden');
             recipesGrid.innerHTML = `
                 <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
-                    ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml() : `
+                    ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml(recipesLoadLabel, 'loadingRecipes') : `
                         <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
                             <m3-loading-indicator contained size="48"></m3-loading-indicator>
-                            <span class="m3-loading-text" data-i18n="loadingRecipes">${window.i18n ? window.i18n.t('loadingRecipes') : 'Cargando recetas...'}</span>
+                            <span class="m3-loading-text" data-i18n="loadingRecipes">${recipesLoadLabel}</span>
                         </div>
                     `}
                 </div>

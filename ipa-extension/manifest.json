@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "RecipePantry → IPA Auto Cart",
+  "version": "1.0.0",
+  "description": "Carga automáticamente los pedidos de IPA Supplies y Bidfood desde RecipePantry al carrito de IPA Purchasing con 1 solo clic.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://ipa-pay.ipapurchasing.co.uk/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ipa-pay.ipapurchasing.co.uk/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
+
