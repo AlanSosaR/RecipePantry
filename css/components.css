@@ -18399,7 +18399,10 @@ body:has(#suppliersView:not(.hidden)) .suppliers-view-container {
 /* Ocultar botón flotante de agregar (+ FAB) al editar o crear proveedores, productos u órdenes */
 body.supplier-subview-item-active #mainFabBtn,
 body.supplier-subview-item-active #m3FabMenuContainer,
-body.supplier-subview-item-active .fab-m3 {
+body.supplier-subview-item-active .fab-m3,
+body.supplier-detail-active #mainFabBtn,
+body.supplier-detail-active #m3FabMenuContainer,
+body.supplier-detail-active .fab-m3 {
     display: none !important;
 }
 

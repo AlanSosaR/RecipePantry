@@ -984,6 +984,12 @@ class DashboardManager {
             suppliersView.style.display = 'block';
             if (window.suppliersManager) {
                 window.suppliersManager.render(suppliersView);
+                if (typeof window.suppliersManager.updateFabVisibility === 'function') {
+                    window.suppliersManager.updateFabVisibility();
+                }
+                if (typeof window.suppliersManager.updateSearchPlaceholder === 'function') {
+                    window.suppliersManager.updateSearchPlaceholder();
+                }
             }
         }
 
@@ -995,9 +1001,10 @@ class DashboardManager {
         const clearBtn = document.getElementById('clearSearch');
         if (searchInput) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
-            searchInput.placeholder = isEn 
-                ? 'Search supplier or product...' 
-                : 'Buscar proveedor o producto...';
+            const isSupplierDetail = window.suppliersManager && (window.suppliersManager.currentSubView === 'supplier-detail' || Boolean(window.suppliersManager.selectedSupplierDetailId));
+            searchInput.placeholder = isSupplierDetail
+                ? (isEn ? 'Search product...' : 'Buscar producto...')
+                : (isEn ? 'Search supplier or product...' : 'Buscar proveedor o producto...');
             searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
             if (clearBtn) {
                 clearBtn.classList.toggle('hidden', !searchInput.value);

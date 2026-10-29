@@ -765,7 +765,13 @@
             } else {
                 document.body.classList.remove('supplier-subview-item-active');
             }
+            if (this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId)) {
+                document.body.classList.add('supplier-detail-active');
+            } else {
+                document.body.classList.remove('supplier-detail-active');
+            }
             this.updateFabVisibility();
+            this.updateSearchPlaceholder();
 
             if (this.currentSubView === 'supplier-detail') {
                 this.renderSupplierDetailPage(this.selectedSupplierDetailId);
@@ -1259,12 +1265,15 @@
         openSupplierDetail(supplierId) {
             this.selectedSupplierDetailId = supplierId;
             this.currentSubView = 'supplier-detail';
+            document.body.classList.add('supplier-detail-active');
             // Persistir estado en la URL para que F5 restaure la misma vista
             try {
                 const url = new URL(window.location.href);
                 url.searchParams.set('supplier', supplierId);
                 history.replaceState({ supplierDetailId: supplierId }, '', url.toString());
             } catch (e) { /* ignore */ }
+            this.updateFabVisibility();
+            this.updateSearchPlaceholder();
             this.render();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1572,6 +1581,9 @@
          */
         renderSupplierDetailPage(supplierId) {
             if (!this.container) return;
+            document.body.classList.add('supplier-detail-active');
+            this.updateFabVisibility();
+            this.updateSearchPlaceholder();
             const isEn = this.isEnglish();
             const supplier = this.suppliers.find(s => s.id === supplierId);
 
@@ -1767,9 +1779,7 @@
                                 <span id="supplierProductsCountBadge" style="font-size: 12px; font-weight: 700; color: var(--primary-dark); background: var(--primary-light); padding: 2px 8px; border-radius: var(--radius-full); border: 1px solid var(--border);">${supItems.length}</span>
                             </div>
                         </div>
-                        <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
-                            ${isEn ? 'Products available from this supplier with packaging and rapid order quantities.' : 'Insumos disponibles de este proveedor con formato y cantidades para pedido.'}
-                        </p>
+                        
                     </div>
 
                     <!-- Layout dinámico con Catálogo y Side Sheet M3 Expressive -->
@@ -1783,6 +1793,8 @@
                     <div class="m3-side-sheet-backdrop" id="productSideSheetBackdrop" onclick="window.suppliersManager.closeProductSideSheet()"></div>
                 </div>
             `;
+            this.updateFabVisibility();
+            this.updateSearchPlaceholder();
         }
 
         /**
@@ -2803,7 +2815,8 @@ renderItemCard(item, supplierId) {
             const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
             const fabContainer = document.getElementById('m3FabMenuContainer');
             const isSideSheetOpen = !!this.activeSideSheetProductId || document.body.classList.contains("product-side-sheet-open");
-            const isEditingOrForm = (this.currentSubView === 'supplier-form' || this.currentSubView === 'item-form' || this.currentSubView === 'order-form' || isSideSheetOpen);
+            const isSupplierDetail = this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId) || document.body.classList.contains('supplier-detail-active');
+            const isEditingOrForm = (this.currentSubView === 'supplier-form' || this.currentSubView === 'item-form' || this.currentSubView === 'order-form' || this.currentSubView === 'order-consolidated' || isSupplierDetail || isSideSheetOpen);
 
             if (isEditingOrForm) {
                 if (window.dashboard?.closeFabMenu) window.dashboard.closeFabMenu();
@@ -2827,6 +2840,19 @@ renderItemCard(item, supplierId) {
                         fabContainer.style.removeProperty('display');
                     }
                 }
+            }
+        }
+
+        /** Actualiza el placeholder del buscador según la vista activa de proveedores */
+        updateSearchPlaceholder() {
+            const searchInput = document.getElementById('searchInput');
+            if (!searchInput) return;
+            const isEn = this.isEnglish();
+            const isSupplierDetail = this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId) || document.body.classList.contains('supplier-detail-active');
+            if (isSupplierDetail) {
+                searchInput.placeholder = isEn ? 'Search product...' : 'Buscar producto...';
+            } else {
+                searchInput.placeholder = isEn ? 'Search supplier or product...' : 'Buscar proveedor o producto...';
             }
         }
 
@@ -2899,10 +2925,13 @@ openOrderForm(supplierId) {
                 window.history.replaceState({}, '', url);
             } catch (e) {}
             document.body.classList.remove('supplier-subview-item-active');
+            document.body.classList.remove('supplier-detail-active');
             if (this.currentSubView === 'item-form' && this.selectedSupplierDetailId) {
                 this.editingItemId = null;
                 this.currentSubView = 'supplier-detail';
+                document.body.classList.add('supplier-detail-active');
                 this.updateFabVisibility();
+                this.updateSearchPlaceholder();
                 this.render();
                 return;
             }
@@ -2913,6 +2942,7 @@ openOrderForm(supplierId) {
             this.editingItemId = null;
             this.activeOrderSupplierId = null;
             this.updateFabVisibility();
+            this.updateSearchPlaceholder();
             // Limpiar el parámetro de detalle de la URL para que F5 no reabra el proveedor
             try {
                 const url = new URL(window.location.href);
