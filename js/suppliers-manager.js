@@ -2003,8 +2003,6 @@
             const unit = item.package_format || item.unit || "";
             const category = item.category || "";
             const hasPhoto = !!item.image_url;
-            const currentCart = this.orderCart[item.supplier_id] || {};
-            let currentQty = currentCart[item.id] || 0;
 
             const menu = document.createElement("div");
             menu.className = "m3-modal-bottom-sheet product-bottom-sheet";
@@ -2062,62 +2060,7 @@
                     </button>
                 </div>
 
-                <div class="context-menu-divider" style="margin: 8px 0;"></div>
-
-                <!-- Tarjeta interactiva: Agregar a la lista de órdenes -->
-                <div class="m3-sheet-order-action-card" style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 10px 14px;
-                    background: var(--surface-container-low, var(--bg));
-                    border: 1.5px solid var(--border);
-                    border-radius: var(--radius-lg);
-                    margin-bottom: 6px;
-                    gap: 10px;
-                ">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-                        <span class="material-symbols-outlined" style="color: var(--primary-dark); font-size: 24px; flex-shrink: 0;">add_shopping_cart</span>
-                        <div style="min-width: 0;">
-                            <div style="font-weight: 700; font-size: 13.5px; color: var(--text-main); line-height: 1.2;">
-                                ${isEn ? "Add to Order" : "Agregar a la orden"}
-                            </div>
-                            <div id="sheetOrderQtySubtitle" style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">
-                                ${currentQty > 0 ? (isEn ? `${currentQty} in current order` : `${currentQty} en la orden actual`) : (isEn ? "Tap + to add" : "Toca + para agregar")}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Stepper interactivo directo -->
-                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <button type="button" 
-                                id="btnSheetOrderMinus" 
-                                title="${isEn ? 'Decrease' : 'Disminuir'}"
-                                style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease; ${currentQty === 0 ? 'opacity: 0.35; pointer-events: none;' : ''}">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
-                        </button>
-                        <span id="sheetOrderQtyValue" style="min-width: 22px; text-align: center; font-weight: 800; font-size: 14px; color: ${currentQty > 0 ? 'var(--primary-dark)' : 'var(--text-main)'}; font-family: var(--font-display);">
-                            ${currentQty}
-                        </span>
-                        <button type="button" 
-                                id="btnSheetOrderPlus" 
-                                title="${isEn ? 'Increase' : 'Aumentar'}"
-                                style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--primary-dark); background: var(--primary-light); color: var(--primary-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; transition: transform 0.1s ease;"
-                                onmousedown="this.style.transform='scale(0.92)'"
-                                onmouseup="this.style.transform='scale(1)'">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Botón de acceso directo a crear orden / ver pedido de este proveedor -->
-                <button type="button" class="context-menu-item" id="btnSheetGoToOrder" style="padding: 10px 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: transparent; cursor: pointer; border-radius: var(--radius-md); font-family: var(--font-display);">
-                    <span class="material-symbols-outlined" style="color: var(--primary-dark); font-size: 20px;">shopping_cart_checkout</span>
-                    <span style="flex: 1; text-align: left; font-weight: 600; font-size: 13.5px; color: var(--text-main);">${isEn ? "Go to order list" : "Ir a la lista de órdenes"}</span>
-                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-secondary);">chevron_right</span>
-                </button>
-
-                <div class="context-menu-divider" style="margin: 6px 0 8px 0;"></div>
+                <div class="context-menu-divider" style="margin: 10px 0;"></div>
 
                 <button type="button" class="context-menu-item danger" id="btnSheetActionDeleteRow">
                     <span class="material-symbols-outlined" style="color: #dc2626;">delete</span>
@@ -2184,82 +2127,6 @@
                 dismiss();
                 this.deleteItem(item.id);
             };
-
-            // Eventos del bloque interactivo de agregar a la orden
-            const orderPlusBtn = menu.querySelector("#btnSheetOrderPlus");
-            const orderMinusBtn = menu.querySelector("#btnSheetOrderMinus");
-            const orderQtyVal = menu.querySelector("#sheetOrderQtyValue");
-            const orderQtySubtitle = menu.querySelector("#sheetOrderQtySubtitle");
-            const goToOrderBtn = menu.querySelector("#btnSheetGoToOrder");
-
-            const updateOrderQtyDisplay = (qty) => {
-                if (orderQtyVal) {
-                    orderQtyVal.textContent = qty;
-                    orderQtyVal.style.color = qty > 0 ? "var(--primary-dark)" : "var(--text-main)";
-                }
-                if (orderQtySubtitle) {
-                    orderQtySubtitle.textContent = qty > 0 
-                        ? (isEn ? `${qty} in current order` : `${qty} en la orden actual`) 
-                        : (isEn ? "Tap + to add" : "Toca + para agregar");
-                }
-                if (orderMinusBtn) {
-                    if (qty === 0) {
-                        orderMinusBtn.style.opacity = "0.35";
-                        orderMinusBtn.style.pointerEvents = "none";
-                    } else {
-                        orderMinusBtn.style.opacity = "1";
-                        orderMinusBtn.style.pointerEvents = "auto";
-                    }
-                }
-            };
-
-            if (orderPlusBtn) {
-                orderPlusBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const supId = item.supplier_id;
-                    if (!this.orderCart[supId]) this.orderCart[supId] = {};
-                    const newQty = (this.orderCart[supId][item.id] || 0) + 1;
-                    this.orderCart[supId][item.id] = newQty;
-                    this.saveCache();
-                    updateOrderQtyDisplay(newQty);
-                    this.notify(isEn ? `Added 1x ${item.name} to order (${newQty})` : `Agregado 1x ${item.name} a la orden (${newQty})`, 'success');
-                    if (typeof this.updateOrderBadgesAndChips === 'function') {
-                        this.updateOrderBadgesAndChips(supId);
-                    }
-                });
-            }
-
-            if (orderMinusBtn) {
-                orderMinusBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const supId = item.supplier_id;
-                    if (!this.orderCart[supId]) return;
-                    const current = this.orderCart[supId][item.id] || 0;
-                    if (current <= 1) {
-                        delete this.orderCart[supId][item.id];
-                        this.saveCache();
-                        updateOrderQtyDisplay(0);
-                        this.notify(isEn ? `Removed ${item.name} from order` : `${item.name} removido de la orden`, 'info');
-                    } else {
-                        const newQty = current - 1;
-                        this.orderCart[supId][item.id] = newQty;
-                        this.saveCache();
-                        updateOrderQtyDisplay(newQty);
-                        this.notify(isEn ? `Order: ${newQty}x ${item.name}` : `En orden: ${newQty}x ${item.name}`, 'info');
-                    }
-                    if (typeof this.updateOrderBadgesAndChips === 'function') {
-                        this.updateOrderBadgesAndChips(supId);
-                    }
-                });
-            }
-
-            if (goToOrderBtn) {
-                goToOrderBtn.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    dismiss();
-                    this.openOrderForm(item.supplier_id);
-                });
-            }
 
             menu.querySelector("#btnSheetActionPhoto")?.addEventListener("click", triggerPhoto);
             menu.querySelector("#btnSheetActionPreview")?.addEventListener("click", triggerPreview);
