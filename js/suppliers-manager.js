@@ -2335,23 +2335,38 @@ renderItemCard(item, supplierId) {
             if (!sheet) return;
 
             sheet.innerHTML = `
-                <!-- 1. Header del Side Sheet -->
-                <div class="side-sheet-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #ffffff; z-index: 10;">
-                    <!-- Navegación: Flecha Izquierda + Nombre del Producto + Flecha Derecha -->
-                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
+                <!-- 1. Header del Side Sheet (Fila 1: Botón Cerrar X; Fila 2: Nombre del Producto con Flechas) -->
+                <div class="side-sheet-header" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 14px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #ffffff; z-index: 10;">
+                    <!-- Fila 1: Botón Cerrar Panel (X) en su propia fila en la esquina superior derecha -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
+                        <button type="button" 
+                                class="btn-icon-m3 close" 
+                                title="${isEn ? "Close panel" : "Cerrar panel"}"
+                                onclick="window.suppliersManager.closeProductSideSheet()"
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;"
+                                onmouseenter="this.style.background='#e2e5e4'"
+                                onmouseleave="this.style.background='#f3f5f4'">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                        </button>
+                    </div>
+
+                    <!-- Fila 2: Flecha Izquierda + Nombre del Producto + Flecha Derecha -->
+                    <div style="display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0;">
                         <button type="button" 
                                 class="btn-icon-m3 tonal" 
                                 title="${isEn ? "Previous item" : "Insumo anterior"}"
                                 onclick="window.suppliersManager.navigateProductSideSheet(-1)"
-                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;">
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;"
+                                onmouseenter="this.style.background='#d1f0e2'"
+                                onmouseleave="this.style.background='#e8f7f0'">
                             <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
                         </button>
                         <div style="min-width: 0; flex: 1; text-align: center;">
-                            <div id="sideSheetProductName" class="side-sheet-header-title" style="margin: 0; font-size: 15.5px; font-weight: 700; color: #1a1c19; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); line-height: 1.25;" title="${item.name}">
+                            <div id="sideSheetProductName" class="side-sheet-header-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #1a1c19; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); line-height: 1.25;" title="${item.name}">
                                 ${item.name}
                             </div>
                             ${positionText ? `
-                                <div style="font-size: 11.5px; font-weight: 600; color: #5f6368; margin-top: 1px;">
+                                <div style="font-size: 11.5px; font-weight: 600; color: #5f6368; margin-top: 2px;">
                                     ${positionText}
                                 </div>
                             ` : ""}
@@ -2360,19 +2375,12 @@ renderItemCard(item, supplierId) {
                                 class="btn-icon-m3 tonal" 
                                 title="${isEn ? "Next item" : "Insumo siguiente"}"
                                 onclick="window.suppliersManager.navigateProductSideSheet(1)"
-                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;">
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #e8f7f0; color: #0d7a50; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;"
+                                onmouseenter="this.style.background='#d1f0e2'"
+                                onmouseleave="this.style.background='#e8f7f0'">
                             <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
                         </button>
                     </div>
-
-                    <!-- Botón Cerrar Panel -->
-                    <button type="button" 
-                            class="btn-icon-m3 close" 
-                            title="${isEn ? "Close panel" : "Cerrar panel"}"
-                            onclick="window.suppliersManager.closeProductSideSheet()"
-                            style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; margin-left: 4px; transition: transform 0.15s ease;">
-                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-                    </button>
                 </div>
 
                 <!-- 2. Cuerpo del Side Sheet: Hero Image y Metadatos -->
