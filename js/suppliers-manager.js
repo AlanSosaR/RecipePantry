@@ -4409,6 +4409,7 @@ openOrderForm(supplierId) {
                                 const supItems = this.items.filter(it => it.supplier_id === sup.id && (cart[it.id] || 0) > 0);
                                 const notes = this.orderNotes[sup.id] || '';
                                 const cat = this.getCategoryObj(sup.category);
+                                const hasIpaLink = Boolean((sup.portal_url && sup.portal_url.trim()) || supItems.some(it => Boolean(it.sku)));
 
                                 return `
                                     <div class="consolidated-supplier-card" style="
@@ -4421,16 +4422,16 @@ openOrderForm(supplierId) {
                                         flex-direction: column;
                                         gap: 14px;
                                     ">
-                                        <!-- Acciones en la esquina superior derecha de la tarjeta (Enviar a IPA + Editar) -->
+                                        <!-- Acciones en la esquina superior derecha de la tarjeta (Enlace a IPA + Editar) -->
                                         <div style="position: absolute; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 8px; z-index: 2;">
-                                            ${supItems.some(it => Boolean(it.sku)) ? `
+                                            ${hasIpaLink ? `
                                                 <button type="button"
                                                         onclick="window.suppliersManager.sendOrderToIpaPortal('${sup.id}')"
-                                                        title="${isEn ? 'Send order directly to IPA Cart' : 'Enviar pedido directo al carrito de IPA'}"
-                                                        aria-label="${isEn ? 'Send to IPA' : 'Enviar a IPA'}"
+                                                        title="${isEn ? 'Open IPA link' : 'Abrir enlace de IPA'}"
+                                                        aria-label="IPA"
                                                         style="
                                                             height: 36px;
-                                                            padding: 0 12px;
+                                                            padding: 0 16px;
                                                             margin: 0;
                                                             border-radius: var(--radius-full);
                                                             background: var(--primary);
@@ -4439,19 +4440,18 @@ openOrderForm(supplierId) {
                                                             display: inline-flex;
                                                             align-items: center;
                                                             justify-content: center;
-                                                            gap: 6px;
                                                             cursor: pointer;
                                                             font-family: var(--font-display);
-                                                            font-size: 12px;
+                                                            font-size: 13px;
                                                             font-weight: 700;
+                                                            letter-spacing: 0.5px;
                                                             box-shadow: var(--shadow-sm);
                                                             transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
                                                         "
-                                                        onmouseenter="this.style.filter='brightness(1.06)';"
+                                                        onmouseenter="this.style.filter='brightness(1.08)';"
                                                         onmouseleave="this.style.filter='none';"
                                                         onmousedown="this.style.transform='scale(0.95)';"
                                                         onmouseup="this.style.transform='scale(1)';">
-                                                    <span class="material-symbols-outlined" style="font-size: 18px;">send</span>
                                                     <span>IPA</span>
                                                 </button>
                                             ` : ''}
@@ -4484,7 +4484,7 @@ openOrderForm(supplierId) {
                                         </div>
 
                                         <!-- Encabezado de la Tarjeta del Proveedor con espacio para los botones de acción -->
-                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: ${supItems.some(it => Boolean(it.sku)) ? '120px' : '44px'};">
+                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: ${hasIpaLink ? '110px' : '44px'};">
                                             <div style="
                                                 width: 44px;
                                                 height: 44px;
@@ -4634,7 +4634,7 @@ openOrderForm(supplierId) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /** Envía el pedido del proveedor directamente al portal Quick Order de IPA Purchasing */
+        /** Envía al enlace/portal de IPA Purchasing (con payload de orden si existen SKUs) */
         sendOrderToIpaPortal(supplierId) {
             const isEn = this.isEnglish();
             const sup = this.suppliers.find(s => s.id === supplierId);
@@ -4649,45 +4649,49 @@ openOrderForm(supplierId) {
                     name: it.name
                 }));
 
-            if (orderedItems.length === 0) {
+            const rawPortalUrl = (sup.portal_url && sup.portal_url.trim())
+                ? sup.portal_url.trim()
+                : 'https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx';
+            const baseUrl = rawPortalUrl.replace(/quick-order\.aspx/i, 'overview.aspx');
+
+            let targetUrl = baseUrl;
+
+            if (orderedItems.length > 0) {
+                // Descargar también el archivo CSV oficial (SKU,Quantity sin cabeceras)
+                try {
+                    const csvContent = orderedItems.map(it => `${it.sku},${it.qty}`).join('\r\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `IPA_Order_${sup.name.replace(/\s+/g, '_')}.csv`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+                } catch (e) {}
+
+                const payload = {
+                    supplierId: sup.id,
+                    supplierName: sup.name,
+                    accountCode: sup.account_code || '',
+                    timestamp: Date.now(),
+                    items: orderedItems
+                };
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+                targetUrl = `${baseUrl.split('#')[0]}#rp_order=${encodeURIComponent(encoded)}`;
+
                 this.notify(
-                    isEn ? 'No products with SKU code in this order' : 'No hay productos con código SKU en este pedido',
-                    'warning'
+                    isEn
+                        ? `Opening IPA Quick Order with ${orderedItems.length} products...`
+                        : `Abriendo IPA Quick Order con ${orderedItems.length} productos...`,
+                    'success'
                 );
-                return;
+            } else {
+                this.notify(
+                    isEn ? 'Opening IPA link...' : 'Abriendo enlace de IPA...',
+                    'info'
+                );
             }
-
-            const payload = {
-                supplierId: sup.id,
-                supplierName: sup.name,
-                accountCode: sup.account_code || '',
-                timestamp: Date.now(),
-                items: orderedItems
-            };
-
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-            // Generar también descarga directa del CSV oficial (SKU,Quantity sin cabeceras) como respaldo instantáneo
-            try {
-                const csvContent = orderedItems.map(it => `${it.sku},${it.qty}`).join('\r\n');
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `IPA_Order_${sup.name.replace(/\s+/g, '_')}.csv`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(link.href), 2000);
-            } catch (e) {}
-
-            // Usar #rp_order sobre overview.aspx para que el servidor .aspx nunca bloquee ni muestre pantalla blanca
-            const targetUrl = `https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx#rp_order=${encodeURIComponent(encoded)}`;
-
-            this.notify(
-                isEn
-                    ? `Opening IPA Quick Order with ${orderedItems.length} products...`
-                    : `Abriendo IPA Quick Order con ${orderedItems.length} productos...`,
-                'success'
-            );
 
             window.open(targetUrl, '_blank');
         }
