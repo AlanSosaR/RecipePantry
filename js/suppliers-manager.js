@@ -4666,7 +4666,21 @@ openOrderForm(supplierId) {
             };
 
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-            const targetUrl = `https://ipa-pay.ipapurchasing.co.uk/my-account/quick-order.aspx?rp_order=${encodeURIComponent(encoded)}`;
+            // Generar también descarga directa del CSV oficial (SKU,Quantity sin cabeceras) como respaldo instantáneo
+            try {
+                const csvContent = orderedItems.map(it => `${it.sku},${it.qty}`).join('\r\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `IPA_Order_${sup.name.replace(/\s+/g, '_')}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+            } catch (e) {}
+
+            // Usar #rp_order sobre overview.aspx para que el servidor .aspx nunca bloquee ni muestre pantalla blanca
+            const targetUrl = `https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx#rp_order=${encodeURIComponent(encoded)}`;
 
             this.notify(
                 isEn

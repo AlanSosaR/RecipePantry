@@ -17,7 +17,6 @@
                 const parsed = JSON.parse(jsonStr);
                 if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
                     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-                    // Limpiar parámetro de la URL sin recargar
                     url.searchParams.delete('rp_order');
                     if (window.location.hash.includes('rp_order=')) {
                         url.hash = '';
@@ -105,17 +104,110 @@
         });
     }
 
-    // 3. Inyectar archivo CSV directamente en el <input type="file"> o zona de drop de Quick Order
+    // 3. Detectar si el formulario de Quick Order ya está visible en la pantalla actual
+    function isQuickOrderViewVisible() {
+        const skuInput = document.querySelector('input[placeholder*="Sku" i], input[placeholder*="SKU" i]');
+        const fileInput = document.querySelector('input[type="file"]');
+        const bodyText = (document.body?.innerText || '').toLowerCase();
+        return Boolean(skuInput || fileInput || bodyText.includes('upload a csv file that includes the product sku'));
+    }
+
+    // 4. Hacer clic en la opción "Quick Order" del menú lateral izquierdo de IPA
+    function clickQuickOrderMenuLink() {
+        const clickableElements = Array.from(document.querySelectorAll('a, button, li, span, div'));
+        const quickOrderEl = clickableElements.find(el => {
+            const text = (el.textContent || '').trim().toLowerCase();
+            return text === 'quick order' && el.children.length <= 2;
+        });
+
+        if (quickOrderEl) {
+            const linkParent = quickOrderEl.closest('a, button, li') || quickOrderEl;
+            linkParent.click();
+            return true;
+        }
+        return false;
+    }
+
+    // 5. Abrir o redirigir directamente al Carrito (Basket 🛒) de IPA
+    function navigateToIpaCart() {
+        const cartSelectors = [
+            'a[href*="basket" i]',
+            'a[href*="cart" i]',
+            'a[href*="checkout" i]',
+            '[class*="basket" i] a',
+            '[class*="cart" i] a',
+            '[id*="basket" i]',
+            '[id*="cart" i]'
+        ];
+
+        for (const sel of cartSelectors) {
+            const el = document.querySelector(sel);
+            if (el) {
+                if (el.tagName === 'A' && el.href) {
+                    window.location.href = el.href;
+                    return;
+                }
+                el.click();
+                return;
+            }
+        }
+
+        const headerLinks = Array.from(document.querySelectorAll('header a, .header a, nav a, a'));
+        const basketLink = headerLinks.find(a => {
+            const href = (a.getAttribute('href') || '').toLowerCase();
+            return href.includes('basket') || href.includes('cart') || href.includes('trolley');
+        });
+
+        if (basketLink) {
+            basketLink.click();
+        }
+    }
+
+    // 6. Pulsar el botón final de "Add to Basket" y luego redirigir al Carrito (🛒)
+    function finalizeAndGoToCart() {
+        const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a'));
+        const basketBtn = candidates.find(el => {
+            const txt = (el.textContent || el.value || '').trim().toLowerCase();
+            return (
+                txt.includes('add to basket') ||
+                txt.includes('add all to basket') ||
+                txt.includes('add to cart') ||
+                txt.includes('confirm') ||
+                txt.includes('upload')
+            );
+        });
+
+        if (basketBtn) {
+            basketBtn.click();
+        }
+
+        showStatusBanner(
+            '¡Productos enviados al carrito! 🛒',
+            'Abriendo tu carrito de IPA para que solo tengas que confirmar...',
+            'success',
+            [
+                {
+                    label: 'Ir al Carrito ahora 🛒',
+                    primary: true,
+                    onClick: () => navigateToIpaCart()
+                }
+            ]
+        );
+
+        setTimeout(() => {
+            navigateToIpaCart();
+        }, 1100);
+    }
+
+    // 7. Inyectar archivo CSV directamente en el <input type="file"> o zona de drop de Quick Order
     function injectCsvIntoQuickOrder(orderData) {
         const items = orderData.items || [];
         if (items.length === 0) return false;
 
-        // Formato oficial pedido por IPA: primera columna SKU, segunda columna Cantidad, sin cabeceras
         const csvLines = items.map(it => `${String(it.sku).trim()},${Number(it.qty) || 1}`);
         const csvContent = csvLines.join('\r\n');
         const csvFile = new File([csvContent], 'ipa_quick_order.csv', { type: 'text/csv' });
 
-        // Buscar input[type="file"] en la página (incluso si está oculto dentro del dropzone)
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) {
             try {
@@ -126,7 +218,6 @@
                 fileInput.dispatchEvent(new Event('input', { bubbles: true }));
                 fileInput.dispatchEvent(new Event('change', { bubbles: true }));
 
-                // Si usa Dropzone.js u otro listener de drag & drop en el contenedor:
                 const dropTarget = fileInput.closest('.dropzone, [class*="upload"], [class*="drop"], div') || fileInput.parentElement;
                 if (dropTarget) {
                     const dropEvent = new DragEvent('drop', {
@@ -139,21 +230,24 @@
 
                 sessionStorage.removeItem(STORAGE_KEY);
                 showStatusBanner(
-                    `¡${items.length} productos cargados!`,
-                    `Proveedor: ${orderData.supplierName || 'IPA'}. Se inyectó el archivo CSV automáticamente.`,
-                    'success',
+                    `Cargando ${items.length} productos al carrito...`,
+                    `Proveedor: ${orderData.supplierName || 'IPA'}. Redirigiendo al carrito automáticamente...`,
+                    'info',
                     [
                         {
-                            label: 'Usar modo SKU 1x1 (Respaldo)',
+                            label: 'Ir al Carrito 🛒',
+                            primary: true,
+                            onClick: () => navigateToIpaCart()
+                        },
+                        {
+                            label: 'Modo SKU 1x1',
                             primary: false,
                             onClick: () => addSkusSequentially(items)
                         }
                     ]
                 );
 
-                // Buscar automáticamente botón de "Add to Basket" / "Confirm" si aparece tras subir el CSV
-                setTimeout(tryClickAddAllToBasket, 900);
-                setTimeout(tryClickAddAllToBasket, 2000);
+                setTimeout(finalizeAndGoToCart, 1200);
                 return true;
             } catch (err) {
                 console.warn('[RecipePantry → IPA] Falló inyección directa en input file:', err);
@@ -163,15 +257,14 @@
         return false;
     }
 
-    // 4. Modo respaldo: escribir cada SKU en la caja "Product Sku" y pulsar "Add"
+    // 8. Modo respaldo: escribir cada SKU en la caja "Product Sku" y pulsar "Add"
     async function addSkusSequentially(items) {
         const skuInput = document.querySelector('input[placeholder*="Sku" i], input[placeholder*="SKU" i], input[type="text"]');
         if (!skuInput) {
-            alert('No se encontró el campo "Product Sku" en esta pantalla.');
+            alert('Abre primero "Quick Order" en el menú izquierdo.');
             return;
         }
 
-        // Buscar el botón "Add" al lado del input
         const buttons = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], a.btn'));
         const addBtn = buttons.find(b => (b.textContent || b.value || '').trim().toLowerCase() === 'add');
 
@@ -198,84 +291,69 @@
         }
 
         sessionStorage.removeItem(STORAGE_KEY);
-        showStatusBanner(
-            `¡Listo! ${items.length} productos procesados`,
-            'Revisa las cantidades en la lista y confirma tu carrito.',
-            'success'
-        );
+        finalizeAndGoToCart();
     }
 
-    // 5. Intentar pulsar el botón final de "Add to Basket" si la tabla de Quick Order lo muestra tras subir el CSV
-    function tryClickAddAllToBasket() {
-        const candidates = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a'));
-        const basketBtn = candidates.find(el => {
-            const txt = (el.textContent || el.value || '').trim().toLowerCase();
-            return txt.includes('add to basket') || txt.includes('add all to basket') || txt.includes('add to cart');
-        });
-        if (basketBtn) {
-            basketBtn.click();
-        }
-    }
-
-    // 6. Flujo principal al cargar cualquier página de ipa-pay.ipapurchasing.co.uk
+    // 9. Flujo principal al cargar cualquier página de ipa-pay.ipapurchasing.co.uk
     function init() {
         const orderData = extractOrderFromUrl();
         if (!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) return;
 
         const path = window.location.pathname.toLowerCase();
 
-        // Si el usuario fue redirigido al login porque su sesión estaba cerrada:
         if (path.includes('login') || document.querySelector('input[type="password"]')) {
             showStatusBanner(
                 'Inicia sesión en IPA',
-                `Tienes un pedido pendiente de ${orderData.items.length} productos (${orderData.supplierName || 'IPA'}). En cuanto entres se cargará automáticamente.`,
+                `Tienes un pedido pendiente de ${orderData.items.length} productos (${orderData.supplierName || 'IPA'}). En cuanto entres se enviará directo a tu carrito.`,
                 'warning'
             );
             return;
         }
 
-        // Si está en overview u otra página pero hay un pedido pendiente, llevarlo directo a Quick Order:
-        if (!path.includes('quick-order')) {
+        // Si aún no está visible el panel de Quick Order, hacer clic en "Quick Order" del menú izquierdo
+        if (!isQuickOrderViewVisible()) {
             showStatusBanner(
-                'Abriendo Quick Order...',
-                `Redirigiendo para cargar tus ${orderData.items.length} productos automáticamente...`,
-                'info'
+                `Pedido recibido (${orderData.items.length} productos)`,
+                'Abriendo Quick Order en el menú lateral para cargar tu carrito...',
+                'info',
+                [
+                    {
+                        label: 'Cargar en Quick Order ahora',
+                        primary: true,
+                        onClick: () => {
+                            clickQuickOrderMenuLink();
+                            setTimeout(() => injectCsvIntoQuickOrder(orderData), 700);
+                        }
+                    }
+                ]
             );
+
             setTimeout(() => {
-                window.location.href = 'https://ipa-pay.ipapurchasing.co.uk/my-account/quick-order.aspx';
+                const clicked = clickQuickOrderMenuLink();
+                if (clicked) {
+                    // Esperar a que cargue el panel de Quick Order (tanto si recarga página como si es AJAX/UpdatePanel)
+                    let checks = 0;
+                    const poll = setInterval(() => {
+                        checks++;
+                        if (isQuickOrderViewVisible()) {
+                            clearInterval(poll);
+                            setTimeout(() => injectCsvIntoQuickOrder(orderData), 300);
+                        } else if (checks > 20) {
+                            clearInterval(poll);
+                        }
+                    }, 350);
+                }
             }, 400);
             return;
         }
 
-        // Estamos en /my-account/quick-order.aspx: esperar un instante a que el DOM termine de montar el dropzone
+        // Si ya está visible el panel de Quick Order, inyectar CSV y saltar al carrito
         setTimeout(() => {
             const injected = injectCsvIntoQuickOrder(orderData);
             if (!injected) {
-                // Si el input[type=file] tarda en renderizarse, reintentar o mostrar botón directo
-                setTimeout(() => {
-                    const retry = injectCsvIntoQuickOrder(orderData);
-                    if (!retry) {
-                        showStatusBanner(
-                            `Pedido listo (${orderData.items.length} productos)`,
-                            'Haz clic abajo para inyectar los productos en Quick Order:',
-                            'info',
-                            [
-                                {
-                                    label: 'Cargar por CSV ahora',
-                                    primary: true,
-                                    onClick: () => injectCsvIntoQuickOrder(orderData)
-                                },
-                                {
-                                    label: 'Cargar por SKU 1x1',
-                                    primary: false,
-                                    onClick: () => addSkusSequentially(orderData.items)
-                                }
-                            ]
-                        );
-                    }
-                }, 900);
+                setTimeout(() => injectCsvIntoQuickOrder(orderData), 800);
             }
-        }, 450);
+        }, 400);
     }
 
     if (document.readyState === 'loading') {
@@ -284,4 +362,3 @@
         init();
     }
 })();
-
