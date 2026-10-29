@@ -4434,9 +4434,9 @@ openOrderForm(supplierId) {
                                                             padding: 0 16px;
                                                             margin: 0;
                                                             border-radius: var(--radius-full);
-                                                            background: var(--primary);
-                                                            border: 1px solid var(--primary-dark);
-                                                            color: var(--on-primary, #ffffff);
+                                                            background: var(--primary-light);
+                                                            border: none;
+                                                            color: var(--primary-dark);
                                                             display: inline-flex;
                                                             align-items: center;
                                                             justify-content: center;
@@ -4445,11 +4445,11 @@ openOrderForm(supplierId) {
                                                             font-size: 13px;
                                                             font-weight: 700;
                                                             letter-spacing: 0.5px;
-                                                            box-shadow: var(--shadow-sm);
-                                                            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
+                                                            box-shadow: var(--shadow-xs);
+                                                            transition: background 0.15s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
                                                         "
-                                                        onmouseenter="this.style.filter='brightness(1.08)';"
-                                                        onmouseleave="this.style.filter='none';"
+                                                        onmouseenter="this.style.background='#dcfce7';"
+                                                        onmouseleave="this.style.background='var(--primary-light)';"
                                                         onmousedown="this.style.transform='scale(0.95)';"
                                                         onmouseup="this.style.transform='scale(1)';">
                                                     <span>IPA</span>
@@ -4669,7 +4669,6 @@ openOrderForm(supplierId) {
                     document.body.removeChild(link);
                     setTimeout(() => URL.revokeObjectURL(link.href), 2000);
                 } catch (e) {}
-
                 const payload = {
                     supplierId: sup.id,
                     supplierName: sup.name,
