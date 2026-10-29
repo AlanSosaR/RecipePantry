@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="973">
+<html lang="es" data-app-version="974">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=973">
-  <link rel="stylesheet" href="css/components.css?v=973">
-  <script src="js/m3-loading-indicator.js?v=973"></script>
+  <link rel="stylesheet" href="css/styles.css?v=974">
+  <link rel="stylesheet" href="css/components.css?v=974">
+  <script src="js/m3-loading-indicator.js?v=974"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -53,6 +53,59 @@
     }
     document.documentElement.setAttribute('data-theme', 'light');
     localStorage.removeItem('theme');
+
+    // ── Detección instantánea de vista activa para indicador de carga y título contextual ──
+    try {
+      const p = new URLSearchParams(window.location.search);
+      let v = p.get('view');
+      const h = (window.location.hash || '').replace('#', '').toLowerCase();
+      if (!v && ['help', 'settings', 'shared', 'favorites', 'allergens', 'menu', 'suppliers', 'tasks'].includes(h)) {
+        v = h;
+      }
+      if (p.get('supplier') || p.get('order')) {
+        v = 'suppliers';
+      }
+      if (!v) {
+        v = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
+      }
+      const lang = localStorage.getItem('lang') || 'es';
+      const isEn = lang === 'en';
+      const hasSupplier = Boolean(p.get('supplier'));
+
+      const map = {
+        suppliers: hasSupplier ? (isEn ? 'Loading supplier...' : 'Cargando proveedor...') : (isEn ? 'Loading suppliers...' : 'Cargando proveedores...'),
+        menu: isEn ? 'Loading menu...' : 'Cargando menú...',
+        tasks: isEn ? 'Loading to-do...' : 'Cargando por hacer...',
+        favorites: isEn ? 'Loading favorites...' : 'Cargando favoritos...',
+        shared: isEn ? 'Loading shared...' : 'Cargando compartidas...',
+        allergens: isEn ? 'Loading allergens...' : 'Cargando alérgenos...',
+        help: isEn ? 'Loading settings...' : 'Cargando ajustes...',
+        settings: isEn ? 'Loading settings...' : 'Cargando ajustes...',
+        recipes: isEn ? 'Loading recipes...' : 'Cargando recetas...'
+      };
+
+      const titleMap = {
+        suppliers: isEn ? 'Suppliers' : 'Proveedores',
+        menu: isEn ? 'Menu' : 'Menú',
+        tasks: isEn ? 'Daily Prep' : 'Prep Diario',
+        favorites: isEn ? 'Favorites' : 'Favoritos',
+        shared: isEn ? 'Shared' : 'Compartidas',
+        allergens: isEn ? 'Allergens' : 'Alérgenos',
+        help: isEn ? 'Settings' : 'Ajustes',
+        settings: isEn ? 'Settings' : 'Ajustes',
+        recipes: isEn ? 'My Recipes' : 'Mis Recetas'
+      };
+
+      window.__initialLoadingText = map[v] || (isEn ? 'Loading recipes...' : 'Cargando recetas...');
+      window.__initialViewTitle = titleMap[v] || (isEn ? 'My Recipes' : 'Mis Recetas');
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const loadEl = document.getElementById('initialLoadingText') || document.querySelector('.m3-loading-text');
+        if (loadEl && window.__initialLoadingText) loadEl.textContent = window.__initialLoadingText;
+        const titleEl = document.getElementById('view-title');
+        if (titleEl && window.__initialViewTitle) titleEl.textContent = window.__initialViewTitle;
+      });
+    } catch(e) {}
 
     // ── Detección instantánea de carpeta para prevenir cualquier parpadeo de "Mis Recetas" ──
     try {
@@ -576,57 +629,9 @@
         <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
           <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
             <m3-loading-indicator contained size="48"></m3-loading-indicator>
-            <span class="m3-loading-text" id="initialLoadingText" data-i18n="loadingRecipes">Cargando recetas...</span>
+            <span class="m3-loading-text" id="initialLoadingText"><script>document.write(window.__initialLoadingText || "Cargando recetas...");</script></span>
           </div>
         </div>
-        <script>
-          (function() {
-            try {
-              var params = new URLSearchParams(window.location.search);
-              var view = params.get("view");
-              var hash = (window.location.hash || "").replace("#", "").toLowerCase();
-              if (!view && ["help", "settings", "shared", "favorites", "allergens", "menu", "suppliers", "tasks"].indexOf(hash) !== -1) {
-                view = hash;
-              }
-              if (!view) {
-                view = localStorage.getItem("recipe_pantry_current_view") || "recipes";
-              }
-              var lang = localStorage.getItem("lang") || "es";
-              var isEn = lang === "en";
-              var hasSupplier = Boolean(params.get("supplier"));
-              var map = {
-                suppliers: hasSupplier ? (isEn ? "Loading supplier..." : "Cargando proveedor...") : (isEn ? "Loading suppliers..." : "Cargando proveedores..."),
-                menu: isEn ? "Loading menu..." : "Cargando menú...",
-                tasks: isEn ? "Loading to-do..." : "Cargando por hacer...",
-                favorites: isEn ? "Loading favorites..." : "Cargando favoritos...",
-                shared: isEn ? "Loading shared..." : "Cargando compartidas...",
-                allergens: isEn ? "Loading allergens..." : "Cargando alérgenos...",
-                help: isEn ? "Loading settings..." : "Cargando ajustes...",
-                settings: isEn ? "Loading settings..." : "Cargando ajustes...",
-                recipes: isEn ? "Loading recipes..." : "Cargando recetas..."
-              };
-              var titleMap = {
-                suppliers: isEn ? "Suppliers" : "Proveedores",
-                menu: isEn ? "Menu" : "Menú",
-                tasks: isEn ? "Daily Prep" : "Prep Diario",
-                favorites: isEn ? "Favorites" : "Favoritos",
-                shared: isEn ? "Shared" : "Compartidas",
-                allergens: isEn ? "Allergens" : "Alérgenos",
-                help: isEn ? "Settings" : "Ajustes",
-                settings: isEn ? "Settings" : "Ajustes",
-                recipes: isEn ? "My Recipes" : "Mis Recetas"
-              };
-              var el = document.getElementById("initialLoadingText");
-              if (el && map[view]) {
-                el.textContent = map[view];
-              }
-              var titleEl = document.getElementById("view-title");
-              if (titleEl && titleMap[view]) {
-                titleEl.textContent = titleMap[view];
-              }
-            } catch (e) {}
-          })();
-        </script>
       </div>
 
       <div id="emptyState" class="hidden" style="text-align: center; padding: 60px 20px;">
@@ -898,35 +903,35 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=973"></script>
-  <script src="js/supabase-client.js?v=973"></script>
-  <script src="js/localdb.js?v=973"></script>
-  <script src="js/sync-manager.js?v=973"></script>
-  <script src="js/m3-loading-indicator.js?v=973"></script>
-  <script src="js/utils.js?v=973"></script>
-  <script src="js/i18n.js?v=973"></script>
-  <script src="js/allergen-data.js?v=973"></script>
-  <script src="js/menu-data.js?v=973"></script>
-  <script src="js/lib/pdf.min.js?v=973"></script>
-  <script src="js/restaurant-menu.js?v=973"></script>
-  <script src="js/db.js?v=973"></script>
-  <script src="js/auth.js?v=973"></script>
-  <script src="js/dashboard.js?v=973"></script>
-  <script src="js/share-modal.js?v=973"></script>
-  <script src="js/help-modal.js?v=973"></script>
-  <script src="js/admin-users.js?v=973"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=973"></script>
-  <script src="js/suppliers-manager.js?v=973"></script>
-  <script src="js/tasks-manager.js?v=973"></script>
+  <script src="js/config.js?v=974"></script>
+  <script src="js/supabase-client.js?v=974"></script>
+  <script src="js/localdb.js?v=974"></script>
+  <script src="js/sync-manager.js?v=974"></script>
+  <script src="js/m3-loading-indicator.js?v=974"></script>
+  <script src="js/utils.js?v=974"></script>
+  <script src="js/i18n.js?v=974"></script>
+  <script src="js/allergen-data.js?v=974"></script>
+  <script src="js/menu-data.js?v=974"></script>
+  <script src="js/lib/pdf.min.js?v=974"></script>
+  <script src="js/restaurant-menu.js?v=974"></script>
+  <script src="js/db.js?v=974"></script>
+  <script src="js/auth.js?v=974"></script>
+  <script src="js/dashboard.js?v=974"></script>
+  <script src="js/share-modal.js?v=974"></script>
+  <script src="js/help-modal.js?v=974"></script>
+  <script src="js/admin-users.js?v=974"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=974"></script>
+  <script src="js/suppliers-manager.js?v=974"></script>
+  <script src="js/tasks-manager.js?v=974"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=973"></script>
-  <script src="js/core/push.js?v=973"></script>
-  <script src="js/notifications.js?v=973"></script>
-  <script src="js/ui.js?v=973"></script>
-  <script src="js/sw-register.js?v=973"></script>
-<script src="js/pwa-install.js?v=973"></script>
-  <script src="js/gemini-client.js?v=973"></script>
-  <script type="module" src="js/url-importer.js?v=973"></script>
+  <script type="module" src="js/core/firebase.js?v=974"></script>
+  <script src="js/core/push.js?v=974"></script>
+  <script src="js/notifications.js?v=974"></script>
+  <script src="js/ui.js?v=974"></script>
+  <script src="js/sw-register.js?v=974"></script>
+<script src="js/pwa-install.js?v=974"></script>
+  <script src="js/gemini-client.js?v=974"></script>
+  <script type="module" src="js/url-importer.js?v=974"></script>
 
   <script type="module">
     import '@material/web/button/filled-button.js'

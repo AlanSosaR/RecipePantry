@@ -19876,3 +19876,12 @@ body.supplier-subview-item-active .suppliers-subview-page,
     box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4) !important;
     transform: scale(1.08);
 }
+
+/* Ajuste de título de producto en Side Sheet para visualización completa sin recortes */
+.side-sheet-header-title {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    text-overflow: clip !important;
+    max-height: none !important;
+}

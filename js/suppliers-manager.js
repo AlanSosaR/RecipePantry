@@ -2361,12 +2361,12 @@ renderItemCard(item, supplierId) {
                                 onmouseleave="this.style.background='#e8f7f0'">
                             <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
                         </button>
-                        <div style="min-width: 0; flex: 1; text-align: center;">
-                            <div id="sideSheetProductName" class="side-sheet-header-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #1a1c19; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); line-height: 1.25;" title="${item.name}">
+                        <div style="min-width: 0; flex: 1; text-align: center; padding: 0 4px;">
+                            <div id="sideSheetProductName" class="side-sheet-header-title" style="margin: 0; font-size: 15.5px; font-weight: 700; color: #1a1c19; font-family: var(--font-display); line-height: 1.35; word-break: break-word; overflow-wrap: break-word; white-space: normal;" title="${item.name}">
                                 ${item.name}
                             </div>
                             ${positionText ? `
-                                <div style="font-size: 11.5px; font-weight: 600; color: #5f6368; margin-top: 2px;">
+                                <div style="font-size: 11.5px; font-weight: 600; color: #5f6368; margin-top: 3px;">
                                     ${positionText}
                                 </div>
                             ` : ""}
