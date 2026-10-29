@@ -4663,7 +4663,7 @@ openOrderForm(supplierId) {
 
         clearAllOrders() {
             const isEn = this.isEnglish();
-            if (!confirm(isEn ? 'Clear all orders for all suppliers?' : '¿Deseas vaciar los pedidos de todos los proveedores?')) {
+            if (!confirm(isEn ? 'Mark all orders as completed?' : '¿Marcar todos los pedidos como realizados?')) {
                 return;
             }
             this.orderCart = {};
@@ -4672,7 +4672,7 @@ openOrderForm(supplierId) {
             try { sessionStorage.removeItem('rp_consolidated_checked'); } catch (e) {}
             this.saveCache();
             this.renderConsolidatedOrdersPage();
-            this.notify(isEn ? 'All orders cleared' : 'Todos los pedidos fueron vaciados', 'info');
+            this.notify(isEn ? 'All orders marked as completed' : 'Todos los pedidos fueron marcados como realizados', 'success');
         }
 
 
@@ -4788,7 +4788,7 @@ openOrderForm(supplierId) {
                     </button>
 
                     <button type="button" 
-                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.downloadConsolidatedOrdersPDF();"
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.viewConsolidatedOrdersPDF();"
                             style="
                                 width: 100%;
                                 display: flex;
@@ -4810,13 +4810,13 @@ openOrderForm(supplierId) {
                             onmouseleave="this.style.background='var(--bg)'">
                         <span class="material-symbols-outlined" style="font-size: 24px; color: #ef4444;">picture_as_pdf</span>
                         <div style="flex: 1;">
-                            <div style="line-height: 1.2;">${isEn ? 'Download PDF' : 'Descargar Recibo en PDF'}</div>
-                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Formatted printable orders ticket' : 'Ticket imprimible con productos agrupados'}</div>
+                            <div style="line-height: 1.2;">${isEn ? 'View PDF' : 'Ver PDF'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Printable receipt with grouped products' : 'Ticket imprimible con productos agrupados'}</div>
                         </div>
                     </button>
 
                     <button type="button" 
-                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.copyAllOrdersText();"
+                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();"
                             style="
                                 width: 100%;
                                 display: flex;
@@ -4836,38 +4836,10 @@ openOrderForm(supplierId) {
                             "
                             onmouseenter="this.style.background='var(--primary-light)'"
                             onmouseleave="this.style.background='var(--bg)'">
-                        <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary-dark);">content_copy</span>
+                        <span class="material-symbols-outlined" style="font-size: 24px; color: #10b981;">task_alt</span>
                         <div style="flex: 1;">
-                            <div style="line-height: 1.2;">${isEn ? 'Copy Orders Text' : 'Copiar Texto del Pedido'}</div>
-                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Plain text to clipboard' : 'Copia la lista al portapapeles'}</div>
-                        </div>
-                    </button>
-
-                    <button type="button" 
-                            onclick="window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();"
-                            style="
-                                width: 100%;
-                                display: flex;
-                                align-items: center;
-                                gap: 14px;
-                                padding: 12px 14px;
-                                border-radius: var(--radius-lg);
-                                border: 1px solid rgba(239, 68, 68, 0.25);
-                                background: rgba(239, 68, 68, 0.05);
-                                color: #dc2626;
-                                font-size: 14px;
-                                font-weight: 700;
-                                cursor: pointer;
-                                transition: background 0.15s ease;
-                                font-family: var(--font-display);
-                                text-align: left;
-                            "
-                            onmouseenter="this.style.background='rgba(239, 68, 68, 0.12)'"
-                            onmouseleave="this.style.background='rgba(239, 68, 68, 0.05)'">
-                        <span class="material-symbols-outlined" style="font-size: 24px; color: #dc2626;">delete_sweep</span>
-                        <div style="flex: 1;">
-                            <div style="line-height: 1.2;">${isEn ? 'Clear All Orders' : 'Vaciar Todos los Pedidos'}</div>
-                            <div style="font-size: 12px; font-weight: 500; color: #ef4444; opacity: 0.9; margin-top: 2px;">${isEn ? 'Reset all quantities to zero' : 'Pone a cero las cantidades de todos los proveedores'}</div>
+                            <div style="line-height: 1.2;">${isEn ? 'Completed' : 'Realizados'}</div>
+                            <div style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 2px;">${isEn ? 'Reset all quantities to zero' : 'Pone a cero las cantidades de todos los proveedores'}</div>
                         </div>
                     </button>
                 </div>
@@ -5153,6 +5125,18 @@ openOrderForm(supplierId) {
                 isEn ? 'PDF Receipt downloaded! Attach it to your WhatsApp chat.' : '¡Recibo PDF descargado! Adjúntalo en tu chat de WhatsApp.', 
                 'success'
             );
+        }
+
+        /** Visualiza directamente el archivo PDF del recibo en una pestaña nueva */
+        viewConsolidatedOrdersPDF(targetSupplierId = null) {
+            const isEn = this.isEnglish();
+            const res = this.buildOrdersReceiptPDF(targetSupplierId);
+            if (!res) return;
+            const pdfBlobUrl = URL.createObjectURL(res.blob);
+            const win = window.open(pdfBlobUrl, '_blank');
+            if (!win) {
+                window.location.href = pdfBlobUrl;
+            }
         }
 
         /** Descarga directa del archivo PDF del recibo */
