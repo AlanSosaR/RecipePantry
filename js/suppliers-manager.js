@@ -649,20 +649,13 @@
                 const tomorrowName = isEn ? tomorrowDayObj.labelEn : tomorrowDayObj.label;
                 const isUrgent = diffHours < 2; // Menos de 2 horas
 
-                let sub = '';
-                if (diffHours > 0) {
-                    sub = isEn ? `Quedan ${diffHours}h ${diffMinutes}m (Corte: ${cutoffTime})` : `Quedan ${diffHours}h ${diffMinutes}m (Corte: ${cutoffTime})`;
-                } else {
-                    sub = isEn ? `⚠️ Quedan solo ${diffMinutes} min (Corte: ${cutoffTime})` : `⚠️ Quedan solo ${diffMinutes} min (Corte: ${cutoffTime})`;
-                }
-
                 return {
                     isOpenToday: true,
                     isDeliveringTomorrow: true,
                     isUrgent,
                     badgeType: isUrgent ? 'warning' : 'success',
                     statusTitle: isEn ? `🟢 Delivery Tomorrow (${tomorrowName})` : `🟢 Entrega Mañana (${tomorrowName})`,
-                    statusSub: sub,
+                    statusSub: '',
                     nextDeliveryDay: tomorrowDayObj,
                     cutoffFormatted: cutoffTime
                 };
@@ -1700,12 +1693,16 @@
 
                         <!-- Botón de Acciones de 3 Puntos alineado con el nombre -->
                         <button type="button" 
-                                class="btn-icon-m3" 
                                 id="supplierDetailMoreBtn" 
                                 onclick="event.stopPropagation(); window.suppliersManager.showMoreOptions('${supplier.id}', event);" 
                                 title="${isEn ? 'Options' : 'Opciones'}" 
-                                style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); flex-shrink: 0;">
-                            <span class="material-symbols-outlined" style="font-size: 22px;">more_vert</span>
+                                aria-label="${isEn ? 'Options' : 'Opciones'}"
+                                style="width: 36px; height: 36px; padding: 0; margin: 0; background: transparent; border: none; box-shadow: none; color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: var(--radius-full); flex-shrink: 0; transition: background 0.15s ease, transform 0.1s ease;"
+                                onmouseenter="this.style.background='rgba(0,0,0,0.05)'"
+                                onmouseleave="this.style.background='transparent'"
+                                onmousedown="this.style.transform='scale(0.92)'"
+                                onmouseup="this.style.transform='scale(1)'">
+                            <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
                         </button>
                     </div>
 
@@ -3890,7 +3887,7 @@ openOrderForm(supplierId) {
                             color: var(--text-secondary);
                         ">
                             <div style="min-width: 0; flex: 1; line-height: 1.35;">
-                                <strong style="color: var(--text-main); font-weight: 700;">${status.statusTitle}</strong> · <span>${status.statusSub}</span>
+                                <strong style="color: var(--text-main); font-weight: 700;">${status.statusTitle}</strong>${status.statusSub ? ` · <span>${status.statusSub}</span>` : ''}
                             </div>
                         </div>
                     </header>
@@ -4387,7 +4384,7 @@ openOrderForm(supplierId) {
                                                     </span>
                                                 </div>
                                                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
-                                                    <strong>${status.statusTitle}</strong> · <span>${status.statusSub}</span>
+                                                    <strong>${status.statusTitle}</strong>${status.statusSub ? ` · <span>${status.statusSub}</span>` : ''}
                                                     ${sup.phone ? ` · 📞 ${sup.phone}` : ''}
                                                 </div>
                                             </div>
