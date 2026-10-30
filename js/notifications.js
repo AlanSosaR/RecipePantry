@@ -713,40 +713,42 @@ class NotificationManager {
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
-                        <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; overflow:hidden;">
-                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
-                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:24px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">folder</span>
-                            </div>
-                            <div style="flex:1; min-width:0;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
-                                        style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
-                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                                <div class="notification-avatar" style="flex-shrink:0; width:34px; height:34px; border-radius:50%; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                    ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                    <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">person</span>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
-                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">folder</span>
-                                    <span>${isEn ? 'Shared a folder with you:' : 'Te ha compartido una carpeta:'} <strong style="font-weight:800;">${folderTitle}</strong> <span style="font-weight:500; font-size:12px; color:#4b5563;">${countText}</span></span>
-                                </span>
-                                <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                                
-                                <!-- Action buttons -->
-                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptFolder('${n.id}', '${safeFolderName}', '${safeRecipeIdsJson}')"
-                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
-                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                        <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
-                                        <span>${isEn ? 'Save folder' : 'Guardar toda la carpeta'}</span>
+                                <span style="color:var(--primary, #10B981) !important; font-size:14.5px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${senderDisplayName}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
+                                style="background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1; transition:color 0.2s;"
+                                onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#9ca3af'"
+                                title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        </div>
+
+                        <div style="padding-left:2px;">
+                            <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; font-size:13.5px; line-height:1.4;">
+                                <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">folder</span>
+                                <span>${isEn ? 'Shared a folder with you:' : 'Te ha compartido una carpeta:'} <strong style="font-weight:800;">${folderTitle}</strong> <span style="font-weight:500; font-size:12px; color:#4b5563;">${countText}</span></span>
+                            </span>
+                            <span style="color:#6b7280; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                            
+                            <!-- Action buttons -->
+                            <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptFolder('${n.id}', '${safeFolderName}', '${safeRecipeIdsJson}')"
+                                    style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                    onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                    <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
+                                    <span>${isEn ? 'Save folder' : 'Guardar toda la carpeta'}</span>
+                                </button>
+                                <div style="display:flex; gap:9px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
+                                        style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                        onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                        ✕ ${isEn ? 'Dismiss' : 'Omitir'}
                                     </button>
-                                    <div style="display:flex; gap:9px;">
-                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
-                                            style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
-                                            title="${isEn ? 'Dismiss' : 'Omitir'}">
-                                            ✕ ${isEn ? 'Dismiss' : 'Omitir'}
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -762,46 +764,48 @@ class NotificationManager {
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
-                        <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; font-size:20px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; overflow:hidden;">
-                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
-                                <span style="${n.avatarUrl ? 'display:none;' : ''}font-size:20px;">🍽️</span>
-                            </div>
-                            <div style="flex:1; min-width:0;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
-                                        style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
-                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                                <div class="notification-avatar" style="flex-shrink:0; width:34px; height:34px; border-radius:50%; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                    ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                    <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">person</span>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
-                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">restaurant_menu</span>
-                                    <span>${isEn ? 'Shared restaurant access with you:' : 'Te ha compartido el restaurante:'} <strong style="font-weight:800;">${menuTitle}</strong></span>
-                                </span>
-                                <span style="color:#111827 !important; font-size:12.5px; font-weight:500; display:block; margin-top:2px;">${isEn ? 'Includes food menu dishes & official allergen matrix' : 'Incluye carta de platos completa y matriz oficial de alérgenos.'}</span>
-                                ${n.menuMessage ? `<span style="color:#111827 !important; font-size:12.5px; display:block; margin-top:3px; font-style:italic;">💬 "${n.menuMessage}"</span>` : ''}
-                                <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                                
-                                <!-- Action buttons -->
-                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptMenu('${n.id}', '${safeMenuId}')"
-                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
-                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                        ✅ ${isEn ? 'Accept Restaurant (Menu & Allergens)' : 'Aceptar Restaurante (Carta y Alérgenos)'}
+                                <span style="color:var(--primary, #10B981) !important; font-size:14.5px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${senderDisplayName}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
+                                style="background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1; transition:color 0.2s;"
+                                onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#9ca3af'"
+                                title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        </div>
+
+                        <div style="padding-left:2px;">
+                            <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; font-size:13.5px; line-height:1.4;">
+                                <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">restaurant_menu</span>
+                                <span>${isEn ? 'Shared restaurant access with you:' : 'Te ha compartido el restaurante:'} <strong style="font-weight:800;">${menuTitle}</strong></span>
+                            </span>
+                            <span style="color:#111827 !important; font-size:12.5px; font-weight:500; display:block; margin-top:2px;">${isEn ? 'Includes food menu dishes & official allergen matrix' : 'Incluye carta de platos completa y matriz oficial de alérgenos.'}</span>
+                            ${n.menuMessage ? `<span style="color:#111827 !important; font-size:12.5px; display:block; margin-top:3px; font-style:italic;">💬 "${n.menuMessage}"</span>` : ''}
+                            <span style="color:#6b7280; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                            
+                            <!-- Action buttons -->
+                            <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptMenu('${n.id}', '${safeMenuId}')"
+                                    style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                    onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                    ✅ ${isEn ? 'Accept Restaurant (Menu & Allergens)' : 'Aceptar Restaurante (Carta y Alérgenos)'}
+                                </button>
+                                <div style="display:flex; gap:9px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineMenu('${n.id}', '${safeMenuId}')"
+                                        style="flex:1; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                        onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                        title="${isEn ? 'Decline' : 'Rechazar'}">
+                                        ✕ ${isEn ? 'Decline' : 'Rechazar'}
                                     </button>
-                                    <div style="display:flex; gap:9px;">
-                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDeclineMenu('${n.id}', '${safeMenuId}')"
-                                            style="flex:1; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
-                                            title="${isEn ? 'Decline' : 'Rechazar'}">
-                                            ✕ ${isEn ? 'Decline' : 'Rechazar'}
-                                        </button>
-                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
-                                            style="flex:1; min-height:38px; padding:8px 10px; background:#f1f5f9; color:#111827; border:1px solid #cbd5e1; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                            onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                                            ${isEn ? 'Later' : 'Omitir'}
-                                        </button>
-                                    </div>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
+                                        style="flex:1; min-height:38px; padding:8px 10px; background:#f1f5f9; color:#111827; border:1px solid #cbd5e1; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                                        ${isEn ? 'Later' : 'Omitir'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -819,41 +823,43 @@ class NotificationManager {
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
-                        <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; overflow:hidden;">
-                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
-                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:22px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">library_books</span>
-                            </div>
-                            <div style="flex:1; min-width:0;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
-                                        style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
-                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                                <div class="notification-avatar" style="flex-shrink:0; width:34px; height:34px; border-radius:50%; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                    ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                    <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">person</span>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
-                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">collections_bookmark</span>
-                                    <span>${isEn ? `Shared ${countText} with you` : `Te ha compartido ${countText}`} <span style="font-weight:500; font-size:12px; color:#4b5563;">(${isEn ? 'Multiple selection' : 'Selección múltiple'})</span></span>
-                                </span>
-                                ${messageText}
-                                <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                                
-                                <!-- Action buttons -->
-                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
-                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
-                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                        <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
-                                        <span>${isEn ? `Save all ${count} recipes in...` : `Guardar las ${count} recetas en...`}</span>
+                                <span style="color:var(--primary, #10B981) !important; font-size:14.5px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${senderDisplayName}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
+                                style="background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1; transition:color 0.2s;"
+                                onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#9ca3af'"
+                                title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        </div>
+
+                        <div style="padding-left:2px;">
+                            <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; font-size:13.5px; line-height:1.4;">
+                                <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">collections_bookmark</span>
+                                <span>${isEn ? `Shared ${countText} with you` : `Te ha compartido ${countText}`} <span style="font-weight:500; font-size:12px; color:#4b5563;">(${isEn ? 'Multiple selection' : 'Selección múltiple'})</span></span>
+                            </span>
+                            ${messageText}
+                            <span style="color:#6b7280; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                            
+                            <!-- Action buttons -->
+                            <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
+                                    style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                    onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                    <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
+                                    <span>${isEn ? `Save all ${count} recipes in...` : `Guardar las ${count} recetas en...`}</span>
+                                </button>
+                                <div style="display:flex; gap:9px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
+                                        style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                        onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                        ✕ ${isEn ? 'Dismiss' : 'Omitir'}
                                     </button>
-                                    <div style="display:flex; gap:9px;">
-                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
-                                            style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
-                                            title="${isEn ? 'Dismiss' : 'Omitir'}">
-                                            ✕ ${isEn ? 'Dismiss' : 'Omitir'}
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -869,40 +875,42 @@ class NotificationManager {
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
-                        <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
-                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:20px;">description</span>
-                            </div>
-                            <div style="flex:1; min-width:0;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
-                                        style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
-                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                                <div class="notification-avatar" style="flex-shrink:0; width:34px; height:34px; border-radius:50%; font-size:16px; font-weight:700; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                    ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                    <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:18px; color:#b45309; font-variation-settings: 'FILL' 1;">person</span>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
-                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">description</span>
-                                    <span>${isEn ? 'Shared a note with you:' : 'Te ha compartido una nota:'} <strong style="font-weight:800;">${noteTitle}</strong></span>
-                                </span>
-                                <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                                
-                                <!-- Action buttons -->
-                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptNote('${n.id}', '${safeNoteId}')"
-                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
-                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                        <span class="material-symbols-outlined" style="font-size:18px;">note_add</span>
-                                        <span>${isEn ? 'Save note' : 'Guardar nota'}</span>
+                                <span style="color:var(--primary, #10B981) !important; font-size:14.5px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${senderDisplayName}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
+                                style="background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1; transition:color 0.2s;"
+                                onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#9ca3af'"
+                                title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                        </div>
+
+                        <div style="padding-left:2px;">
+                            <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; font-size:13.5px; line-height:1.4;">
+                                <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">description</span>
+                                <span>${isEn ? 'Shared a note with you:' : 'Te ha compartido una nota:'} <strong style="font-weight:800;">${noteTitle}</strong></span>
+                            </span>
+                            <span style="color:#6b7280; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                            
+                            <!-- Action buttons -->
+                            <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptNote('${n.id}', '${safeNoteId}')"
+                                    style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                    onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                    <span class="material-symbols-outlined" style="font-size:18px;">note_add</span>
+                                    <span>${isEn ? 'Save note' : 'Guardar nota'}</span>
+                                </button>
+                                <div style="display:flex; gap:9px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
+                                        style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                        onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                        ✕ ${isEn ? 'Dismiss' : 'Omitir'}
                                     </button>
-                                    <div style="display:flex; gap:9px;">
-                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
-                                            style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
-                                            title="${isEn ? 'Dismiss' : 'Omitir'}">
-                                            ✕ ${isEn ? 'Dismiss' : 'Omitir'}
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -916,44 +924,46 @@ class NotificationManager {
             
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
-                    <div style="display:flex; align-items:flex-start; gap:12px;">
-                        <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                            ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
-                            <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:20px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">menu_book</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+                        <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                            <div class="notification-avatar" style="flex-shrink:0; width:34px; height:34px; border-radius:50%; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">person</span>
+                            </div>
+                            <span style="color:var(--primary, #10B981) !important; font-size:14.5px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${senderDisplayName}</span>
                         </div>
-                        <div style="flex:1; min-width:0;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
+                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
+                            style="background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1; transition:color 0.2s;"
+                            onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#9ca3af'"
+                            title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                    </div>
+
+                    <div style="padding-left:2px;">
+                        <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; font-size:13.5px; line-height:1.4;">
+                            <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">menu_book</span>
+                            <span>${isEn ? 'Shared 1 recipe with you:' : 'Te ha compartido 1 receta:'} <strong style="font-weight:800;">${n.recipeName}</strong></span>
+                        </span>
+                        <span style="color:#6b7280; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                        
+                        <!-- Action buttons -->
+                        <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px; ${isRecipeIdValid ? '' : 'opacity:0.5; pointer-events:none;'}">
+                            <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${safeRecipeId}', '${(n.recipeName || '').replace(/'/g, "\'")}')"
+                                style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
+                                <span>${isEn ? 'Save recipe in...' : 'Guardar receta en...'}</span>
+                            </button>
+                            <div style="display:flex; gap:9px;">
                                 <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
-                                    style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
-                                    title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
-                            </div>
-                            <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
-                                <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">menu_book</span>
-                                <span>${isEn ? 'Shared 1 recipe with you:' : 'Te ha compartido 1 receta:'} <strong style="font-weight:800;">${n.recipeName}</strong></span>
-                            </span>
-                            <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-                            
-                            <!-- Action buttons -->
-                            <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px; ${isRecipeIdValid ? '' : 'opacity:0.5; pointer-events:none;'}">
-                                <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptRecipe('${n.id}', '${safeRecipeId}', '${(n.recipeName || '').replace(/'/g, "\\'")}')"
-                                    style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
-                                    onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
-                                    <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
-                                    <span>${isEn ? 'Save recipe in...' : 'Guardar receta en...'}</span>
+                                    style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                    onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                    title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                    ✕ ${isEn ? 'Dismiss' : 'Omitir'}
                                 </button>
-                                <div style="display:flex; gap:9px;">
-                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
-                                        style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
-                                        onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
-                                        title="${isEn ? 'Dismiss' : 'Omitir'}">
-                                        ✕ ${isEn ? 'Dismiss' : 'Omitir'}
-                                    </button>
-                                </div>
                             </div>
-                            <!-- Error fallback message if ID is invalid -->
-                            ${!isRecipeIdValid ? '<span style="color:#ef4444; font-size:10.5px; display:block; margin-top:4px;">⚠️ Error: ID de receta no válido</span>' : ''}
                         </div>
+                        <!-- Error fallback message if ID is invalid -->
+                        ${!isRecipeIdValid ? '<span style="color:#ef4444; font-size:10.5px; display:block; margin-top:4px;">⚠️ Error: ID de receta no válido</span>' : ''}
                     </div>
                 </div>
             `;
