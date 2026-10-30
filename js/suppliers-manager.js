@@ -4678,6 +4678,22 @@ openOrderForm(supplierId) {
             );
 
             try {
+                const lastLoginTs = Number(localStorage.getItem('rp_ipa_autologin_ts') || 0);
+                const isSessionFresh = lastLoginTs > 0 && (Date.now() - lastLoginTs) < (10 * 24 * 60 * 60 * 1000);
+
+                // Si el navegador aún no ha sincronizado su cookie de sesión con autoLoginForm,
+                // limpiar cualquier cookie previa antes de que el servidor arme el carrito
+                if (!isSessionFresh) {
+                    try {
+                        await fetch('https://ipa-pay.ipapurchasing.co.uk/?logout=1', {
+                            method: 'GET',
+                            mode: 'no-cors',
+                            credentials: 'include',
+                            cache: 'no-store'
+                        });
+                    } catch (_e) {}
+                }
+
                 const sb = window.supabaseClient;
                 const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
                     body: {
@@ -4696,34 +4712,6 @@ openOrderForm(supplierId) {
                         'error'
                     );
                     return;
-                }
-
-                const resolvedItems = Array.isArray(data?.items) && data.items.length > 0
-                    ? data.items
-                    : orderedItems;
-
-                // Sincronizar también en la sesión activa del navegador móvil (SameSite=None cookies)
-                for (const item of resolvedItems) {
-                    try {
-                        const addParams = new URLSearchParams();
-                        if (item.productId) addParams.set('ProductId', String(item.productId));
-                        addParams.set('VariationId', '');
-                        addParams.set('Qty', String(item.qty || 1));
-                        addParams.set('Sku', String(item.sku || '').trim());
-                        addParams.set('SupplierId', '');
-                        addParams.set('ServiceAdditionId', '0');
-                        addParams.set('CustomisationGroupId', '');
-
-                        await fetch('https://ipa-pay.ipapurchasing.co.uk/api/basket/add', {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            credentials: 'include',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: addParams.toString()
-                        });
-                    } catch (_e) {}
                 }
 
                 const payload = {
@@ -4746,6 +4734,26 @@ openOrderForm(supplierId) {
                             : `✅ ¡${data.addedCount} productos agregados al carrito de IPA! Abriendo carrito...`,
                         'success'
                     );
+                }
+
+                // Si este dispositivo (móvil o PC) aún no tiene sesión iniciada en IPA, enviar el formulario POST de auto-login directo a /basket
+                if (data && data.success && data.autoLoginForm && !isSessionFresh) {
+                    localStorage.setItem('rp_ipa_autologin_ts', String(Date.now()));
+                    const targetDoc = (portalWin && !portalWin.closed && portalWin.document) ? portalWin.document : document;
+                    const form = targetDoc.createElement('form');
+                    form.method = 'POST';
+                    form.action = data.autoLoginForm.action;
+                    form.style.display = 'none';
+                    for (const [k, v] of Object.entries(data.autoLoginForm.fields || {})) {
+                        const input = targetDoc.createElement('input');
+                        input.type = 'hidden';
+                        input.name = k;
+                        input.value = String(v ?? '');
+                        form.appendChild(input);
+                    }
+                    targetDoc.body.appendChild(form);
+                    form.submit();
+                    return;
                 }
 
                 if (portalWin && !portalWin.closed) {

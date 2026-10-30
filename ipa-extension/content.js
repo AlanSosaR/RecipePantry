@@ -105,28 +105,21 @@
         const items = orderData.items || [];
         if (items.length === 0) return;
 
-        // Consultar el carrito actual de esta sesión para evitar duplicar si el servidor ya los cargó
-        let existingSkus = new Set();
+        // Si el servidor (ipa-auto-cart) ya cargó los productos en la cuenta vinculada, no volver a agregarlos
         if (orderData.serverAdded) {
-            try {
-                const basketRes = await fetch('/api/basket/contents', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    credentials: 'same-origin'
-                });
-                if (basketRes.ok) {
-                    const basketData = await basketRes.json();
-                    const prods = Array.isArray(basketData?.Products) ? basketData.Products : [];
-                    prods.forEach(p => {
-                        if (p.Sku) existingSkus.add(String(p.Sku).trim().toUpperCase());
-                    });
-                }
-            } catch (e) {}
+            sessionStorage.removeItem(STORAGE_KEY);
+            showStatusBanner(
+                `¡${items.length} productos en tu carrito! 🛒`,
+                `Enviados desde RecipePantry (${orderData.supplierName || 'IPA'}).`,
+                'success'
+            );
+            if (!window.location.pathname.toLowerCase().includes('/basket')) {
+                window.location.href = '/basket';
+            }
+            return;
         }
 
-        const itemsToAdd = items.filter(it => {
-            const sku = String(it.sku || '').trim().toUpperCase();
-            return sku && !existingSkus.has(sku);
-        });
+        const itemsToAdd = items.filter(it => Boolean(String(it.sku || '').trim()));
 
         if (itemsToAdd.length === 0) {
             sessionStorage.removeItem(STORAGE_KEY);
