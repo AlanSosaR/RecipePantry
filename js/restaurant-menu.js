@@ -2455,6 +2455,20 @@
                 dropdown.classList.add('is-open');
                 btn?.setAttribute('aria-expanded', 'true');
 
+                const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+                // En móvil, portal al body para garantizar que sea un bottom sheet desacoplado
+                if (isMobile && dropdown.parentElement !== document.body) {
+                    let placeholder = document.getElementById('menuHeroDropdownPlaceholder');
+                    if (!placeholder) {
+                        placeholder = document.createElement('div');
+                        placeholder.id = 'menuHeroDropdownPlaceholder';
+                        placeholder.style.display = 'none';
+                        dropdown.parentElement.insertBefore(placeholder, dropdown);
+                    }
+                    document.body.appendChild(dropdown);
+                }
+
                 // Backdrop para Bottom Sheet en móvil
                 let backdrop = document.getElementById('menuHeroDropdownBackdrop');
                 if (!backdrop) {
@@ -2479,7 +2493,15 @@
 
         closeOptionsMenu() {
             const dropdown = document.getElementById('menuHeroDropdown');
-            if (dropdown) dropdown.classList.remove('is-open');
+            if (dropdown) {
+                dropdown.classList.remove('is-open');
+                // Restaurar de vuelta a su posición original si fue movido al body en móvil
+                const placeholder = document.getElementById('menuHeroDropdownPlaceholder');
+                if (placeholder && placeholder.parentElement) {
+                    placeholder.parentElement.insertBefore(dropdown, placeholder);
+                    placeholder.remove();
+                }
+            }
             const btn = document.querySelector('.menu-hero-more-btn');
             if (btn) btn.setAttribute('aria-expanded', 'false');
             const backdrop = document.getElementById('menuHeroDropdownBackdrop');
