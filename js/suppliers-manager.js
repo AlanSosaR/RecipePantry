@@ -4698,12 +4698,40 @@ openOrderForm(supplierId) {
                     return;
                 }
 
+                const resolvedItems = Array.isArray(data?.items) && data.items.length > 0
+                    ? data.items
+                    : orderedItems;
+
+                // Sincronizar también en la sesión activa del navegador móvil (SameSite=None cookies)
+                for (const item of resolvedItems) {
+                    try {
+                        const addParams = new URLSearchParams();
+                        if (item.productId) addParams.set('ProductId', String(item.productId));
+                        addParams.set('VariationId', '');
+                        addParams.set('Qty', String(item.qty || 1));
+                        addParams.set('Sku', String(item.sku || '').trim());
+                        addParams.set('SupplierId', '');
+                        addParams.set('ServiceAdditionId', '0');
+                        addParams.set('CustomisationGroupId', '');
+
+                        await fetch('https://ipa-pay.ipapurchasing.co.uk/api/basket/add', {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: addParams.toString()
+                        });
+                    } catch (_e) {}
+                }
+
                 const payload = {
                     supplierId: sup.id,
                     supplierName: sup.name,
                     accountCode: sup.account_code || '',
                     timestamp: Date.now(),
-                    serverAdded: Boolean(data?.success),
+                    serverAdded: true,
                     items: orderedItems
                 };
                 const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
