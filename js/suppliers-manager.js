@@ -5033,6 +5033,18 @@ openOrderForm(supplierId) {
 
             const isEn = this.isEnglish();
             const doc = new jsPDFClass({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            // Helper para remover emojis y símbolos incompatibles con las fuentes estándar de jsPDF (evita caracteres corruptos como Ø=ÜÅ)
+            const stripPdfEmojis = (str) => {
+                if (!str) return '';
+                return String(str)
+                    .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]|[\uFE00-\uFE0F])/g, '')
+                    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
+                    .replace(/[\u2300-\u23FF\u2B50-\u2B55]/g, '')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+            };
+
             const marginX = 14;
             const pageWidth = 210;
             const contentWidth = pageWidth - (marginX * 2);
@@ -5147,23 +5159,53 @@ openOrderForm(supplierId) {
                     y = 18;
                 }
 
-                // Tarjeta / Barra del Proveedor
+                // Tarjeta / Barra del Proveedor (formato 2 filas para legibilidad perfecta y cero colisiones)
                 doc.setFillColor(242, 247, 244);
-                doc.roundedRect(marginX, y, contentWidth, 12, 2, 2, 'F');
+                doc.roundedRect(marginX, y, contentWidth, 14, 2, 2, 'F');
+
+                const phoneText = sup.phone ? `Tel: ${stripPdfEmojis(sup.phone)}` : '';
+                if (phoneText) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(phoneText, pageWidth - marginX - 4, y + 5.5, { align: 'right' });
+                }
 
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(10.5);
+                doc.setFontSize(10);
                 doc.setTextColor(13, 122, 80);
-                const supTitle = `${idx + 1}. ${sup.name.toUpperCase()} (${cat.displayLabel || cat.label || 'Proveedor'})`;
-                doc.text(supTitle, marginX + 4, y + 7.5);
+                let supTitle = stripPdfEmojis(`${idx + 1}. ${sup.name.toUpperCase()} (${cat.displayLabel || cat.label || 'Proveedor'})`);
+                const maxTitleWidth = phoneText ? (contentWidth - doc.getTextWidth(phoneText) - 8) : (contentWidth - 8);
+                if (doc.getTextWidth(supTitle) > maxTitleWidth) {
+                    while (supTitle.length > 5 && doc.getTextWidth(supTitle + '...') > maxTitleWidth) {
+                        supTitle = supTitle.substring(0, supTitle.length - 1);
+                    }
+                    supTitle += '...';
+                }
+                doc.text(supTitle, marginX + 4, y + 5.5);
 
+                // Información de entrega y pedido limpia (sin emojis ni caracteres corruptos)
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
-                doc.setTextColor(80, 80, 80);
-                const supInfo = `${sup.phone ? 'Tel: ' + sup.phone + ' | ' : ''}${status.statusTitle} (${status.statusSub})`;
-                doc.text(supInfo, pageWidth - marginX - 4, y + 7.5, { align: 'right' });
+                doc.setTextColor(70, 75, 72);
+                const rawTitle = stripPdfEmojis(status.statusTitle || '');
+                const rawSub = stripPdfEmojis(status.statusSub || '');
+                let deliveryInfo = rawTitle;
+                if (rawSub) {
+                    deliveryInfo = deliveryInfo ? `${deliveryInfo} · ${rawSub}` : rawSub;
+                }
+                if (deliveryInfo) {
+                    const maxDeliveryWidth = contentWidth - 8;
+                    if (doc.getTextWidth(deliveryInfo) > maxDeliveryWidth) {
+                        while (deliveryInfo.length > 5 && doc.getTextWidth(deliveryInfo + '...') > maxDeliveryWidth) {
+                            deliveryInfo = deliveryInfo.substring(0, deliveryInfo.length - 1);
+                        }
+                        deliveryInfo += '...';
+                    }
+                    doc.text(deliveryInfo, marginX + 4, y + 10.5);
+                }
 
-                y += 15;
+                y += 18;
 
                 // Encabezados de Tabla de Productos
                 doc.setFillColor(232, 237, 234);
@@ -5195,7 +5237,7 @@ openOrderForm(supplierId) {
                     doc.text(`${item.qty}x`, marginX + 4, y + 3.8);
 
                     // Truncado defensivo del nombre para evitar colisión con unidad
-                    let displayName = item.name;
+                    let displayName = stripPdfEmojis(item.name);
                     const maxNameWidth = contentWidth - 48;
                     if (doc.getTextWidth(displayName) > maxNameWidth) {
                         while (displayName.length > 5 && doc.getTextWidth(displayName + '...') > maxNameWidth) {
@@ -5212,7 +5254,7 @@ openOrderForm(supplierId) {
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(8.5);
                     doc.setTextColor(100, 100, 100);
-                    doc.text(item.unit, pageWidth - marginX - 4, y + 3.8, { align: 'right' });
+                    doc.text(stripPdfEmojis(item.unit), pageWidth - marginX - 4, y + 3.8, { align: 'right' });
 
                     y += 7.5;
                 });
@@ -5226,7 +5268,7 @@ openOrderForm(supplierId) {
                     doc.setFont('helvetica', 'italic');
                     doc.setFontSize(8.5);
                     doc.setTextColor(80, 80, 80);
-                    doc.text(`${isEn ? 'Order Note' : 'Nota al proveedor'}: ${notes}`, marginX + 4, y + 4);
+                    doc.text(`${isEn ? 'Order Note' : 'Nota al proveedor'}: ${stripPdfEmojis(notes)}`, marginX + 4, y + 4);
                     y += 7;
                 }
 
