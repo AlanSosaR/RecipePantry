@@ -16458,13 +16458,20 @@ body.supplier-detail-active .suppliers-subview-page {
 .col-sup-logo {
     display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+.col-sup-logo img {
+    object-fit: contain !important;
 }
 
 .supplier-row-avatar-img {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 4px;
+    box-sizing: border-box;
     border: 1.5px solid #CBD5E1;
     background: #FFFFFF;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);

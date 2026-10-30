@@ -1158,12 +1158,12 @@
                      onclick="window.suppliersManager.openSupplierDetail('${supplier.id}')"
                      title="${isEn ? 'Click to view products & details' : 'Clic para ver productos y detalles'}">
                     
-                    <!-- 1. Foto / Avatar (Limpia, Circular con protagonismo, sin recuadro ni marco) -->
-                    <div class="col-sup-logo" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent;">
+                    <!-- 1. Foto / Avatar (Limpia, Circular con protagonismo, ajuste óptimo sin cortes) -->
+                    <div class="col-sup-logo" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1.5px solid var(--outline-variant); box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
                         ${supplier.image_url ? `
                             <img referrerpolicy="no-referrer" src="${supplier.image_url}" 
                                  alt="${supplier.name}" 
-                                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 1px 3px rgba(0,0,0,0.08);"
+                                 style="width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; display: block;"
                                  loading="lazy"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                             <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: ${cat.bg}; color: ${cat.color}; align-items: center; justify-content: center; font-weight: 800; font-size: 17px;">
@@ -1668,8 +1668,8 @@
                                             height: 52px;
                                             border-radius: 50%;
                                             overflow: hidden;
-                                            background: transparent;
-                                            border: none;
+                                            background: #FFFFFF;
+                                            border: 1.5px solid var(--outline-variant);
                                             display: flex;
                                             align-items: center;
                                             justify-content: center;
@@ -1684,7 +1684,7 @@
                                         onmousedown="this.style.transform='scale(0.95)'"
                                         onmouseup="this.style.transform='scale(1.05)'">
                                     ${supplier.image_url ? `
-                                        <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                        <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                                         <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
                                             ${supplier.name.substring(0, 2).toUpperCase()}
                                         </div>
@@ -3104,7 +3104,7 @@ renderItemCard(item, supplierId) {
                                     position: relative;
                                     flex-shrink: 0;
                                 ">
-                                    <img id="supPhotoImg" src="${supplier?.image_url || ''}" alt="Preview" style="${supplier?.image_url ? 'display: block;' : 'display: none;'} width: 100%; height: 100%; object-fit: cover;" />
+                                    <img id="supPhotoImg" src="${supplier?.image_url || ''}" alt="Preview" style="${supplier?.image_url ? 'display: block;' : 'display: none;'} width: 100%; height: 100%; object-fit: contain; padding: 5px; box-sizing: border-box; background: #FFFFFF;" />
                                     <span id="supPhotoIcon" class="material-symbols-outlined" style="${supplier?.image_url ? 'display: none;' : 'display: block;'} font-size: 30px; color: var(--text-secondary);">storefront</span>
                                 </div>
 
@@ -3682,6 +3682,8 @@ renderItemCard(item, supplierId) {
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, width, height);
                     ctx.drawImage(img, 0, 0, width, height);
                     canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas toBlob falló')), 'image/jpeg', quality);
                 };
@@ -4516,16 +4518,17 @@ renderItemCard(item, supplierId) {
                                                 width: 44px;
                                                 height: 44px;
                                                 border-radius: 50%;
-                                                background: var(--surface);
-                                                border: 1px solid var(--border);
+                                                background: #FFFFFF;
+                                                border: 1.5px solid var(--border);
                                                 display: flex;
                                                 align-items: center;
                                                 justify-content: center;
                                                 overflow: hidden;
                                                 flex-shrink: 0;
+                                                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
                                             ">
                                                 ${sup.image_url ? `
-                                                    <img referrerpolicy="no-referrer" src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" />
+                                                    <img referrerpolicy="no-referrer" src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box;" onerror="this.style.display='none';" />
                                                 ` : `
                                                     <div style="font-weight: 800; font-size: 15px; color: ${cat.color};">
                                                         ${sup.name.substring(0, 2).toUpperCase()}
