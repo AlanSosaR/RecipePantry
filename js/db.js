@@ -171,7 +171,8 @@ class DatabaseManager {
     }
 
     async _fetchRecipesFromServer(filters = {}) {
-        if (!this._isOnline) {
+        const isOnline = this._isOnline || (typeof navigator !== 'undefined' && navigator.onLine);
+        if (!isOnline) {
             return { success: false, error: 'Estás sin conexión', recipes: [] };
         }
 
@@ -187,11 +188,25 @@ class DatabaseManager {
                 }
             }
 
-            // v229: QUITADO fallback a auth_user_id porque causa fallos en la API de recetas (espera PK int/uuid de tabla users)
+            // Fallback directo a Supabase users si currentUser aún no tiene id poblado
+            if (!userId && (window.authManager?.currentUser?.auth_user_id || window.supabaseClient?.auth)) {
+                try {
+                    const authUid = window.authManager?.currentUser?.auth_user_id || (await window.supabaseClient.auth.getUser())?.data?.user?.id;
+                    if (authUid) {
+                        const { data: uRow } = await window.supabaseClient.from('users').select('id').eq('auth_user_id', authUid).single();
+                        if (uRow?.id) {
+                            userId = uRow.id;
+                            if (window.authManager?.currentUser) window.authManager.currentUser.id = uRow.id;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('⚠️ [DB] Error obteniendo user.id en fallback:', e);
+                }
+            }
+
             if (!userId) {
                 console.error('❌ ERROR: userId no disponible en _fetchRecipesFromServer. Perfil:', window.authManager?.currentUser);
                 console.warn('⚠️ Abortando fetch para proteger caché de recipes_index.');
-                // Retornamos éxito falso pero indicando que viene de cache para no borrar el localDB
                 const localRecipes = await window.localDB?.getAll('recipes_index') || [];
                 return { success: true, recipes: localRecipes, fromCache: true };
             }
@@ -270,7 +285,7 @@ class DatabaseManager {
             } else {
                 let query = window.supabaseClient
                     .from('recipes')
-                    .select(`id, name_es, name_en, updated_at, is_favorite, pantry_es, pantry_en, tags`)
+                    .select(`id, name_es, name_en, image_url, category_id, updated_at, is_favorite, pantry_es, pantry_en, tags`)
                     .eq('is_active', true)
                     .eq('user_id', userId);
 

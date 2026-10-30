@@ -756,8 +756,35 @@ class DashboardManager {
         if (['allergens', 'menu', 'help', 'settings', 'suppliers', 'tasks'].includes(view)) {
             if (dashHeader) {
                 dashHeader.classList.add('hidden');
-                dashHeader.style.display = 'none';
+                dashHeader.style.setProperty('display', 'none', 'important');
             }
+            const grid = document.getElementById('recipesGrid');
+            if (grid) {
+                grid.classList.add('hidden');
+                grid.style.setProperty('display', 'none', 'important');
+            }
+        } else if (['recipes', 'favorites', 'shared'].includes(view)) {
+            // Asegurar que la cabecera de recetas y el grid estén 100% visibles y libres de display:none
+            if (dashHeader) {
+                dashHeader.classList.remove('hidden');
+                dashHeader.style.removeProperty('display');
+                dashHeader.style.display = '';
+            }
+            const grid = document.getElementById('recipesGrid');
+            if (grid) {
+                grid.classList.remove('hidden');
+                grid.style.removeProperty('display');
+                grid.style.display = '';
+            }
+            // Ocultar sincrónicamente todas las vistas ajenas al recetario
+            const otherViewIds = ['menuView', 'helpView', 'allergensView', 'suppliersView', 'tasksView'];
+            otherViewIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.style.setProperty('display', 'none', 'important');
+                }
+            });
         }
 
         if (view === 'favorites') {
@@ -1198,27 +1225,35 @@ class DashboardManager {
         if (emptyState) emptyState.classList.add('hidden');
 
         const recipesGrid = document.getElementById('recipesGrid');
-        if (recipesGrid && (!this.currentRecipes || this.currentRecipes.length === 0)) {
-            const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
-            const recipesLoadLabel = this.currentView === 'favorites' 
-                ? (isEn ? 'Loading favorites...' : 'Cargando favoritos...')
-                : (this.currentView === 'shared' 
-                    ? (isEn ? 'Loading shared...' : 'Cargando compartidas...')
-                    : (isEn ? 'Loading recipes...' : 'Cargando recetas...'));
+        if (recipesGrid) {
             recipesGrid.classList.remove('hidden');
-            recipesGrid.innerHTML = `
-                <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
-                    ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml(recipesLoadLabel, 'loadingRecipes') : `
-                        <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
-                            <m3-loading-indicator contained size="48"></m3-loading-indicator>
-                            <span class="m3-loading-text" data-i18n="loadingRecipes">${recipesLoadLabel}</span>
-                        </div>
-                    `}
-                </div>
-            `;
+            recipesGrid.style.removeProperty('display');
+            recipesGrid.style.display = '';
+
+            if (this.currentRecipes && this.currentRecipes.length > 0) {
+                // Renderizar de inmediato lo que tenemos en memoria para no dejar pantalla en blanco
+                this.renderRecipesGrid(this.currentRecipes);
+            } else {
+                const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+                const recipesLoadLabel = this.currentView === 'favorites' 
+                    ? (isEn ? 'Loading favorites...' : 'Cargando favoritos...')
+                    : (this.currentView === 'shared' 
+                        ? (isEn ? 'Loading shared...' : 'Cargando compartidas...')
+                        : (isEn ? 'Loading recipes...' : 'Cargando recetas...'));
+                recipesGrid.innerHTML = `
+                    <div class="loading-inline" style="padding: 60px 20px; text-align: center; width: 100%;">
+                        ${window.utils && window.utils.getContainedLoaderHtml ? window.utils.getContainedLoaderHtml(recipesLoadLabel, 'loadingRecipes') : `
+                            <div class="m3-contained-loader-wrapper" role="status" aria-live="polite">
+                                <m3-loading-indicator contained size="48"></m3-loading-indicator>
+                                <span class="m3-loading-text" data-i18n="loadingRecipes">${recipesLoadLabel}</span>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }
         }
 
-        // Si se solicita forceRefresh, asegurar que se pase a db.js
+        // Consultar SIEMPRE directo a la base de datos Supabase
         const result = await window.db.getMyRecipes(filters);
 
         this.isLoadingRecipes = false;
@@ -3944,15 +3979,17 @@ class DashboardManager {
         // Si la vista actual no es de recetas (ej. suppliers, menu, allergens, help, tasks),
         // nunca renderizar ni desplegar recetas para evitar filtraciones en PC o móvil
         if (!['recipes', 'favorites', 'shared'].includes(this.currentView)) {
-            const container = document.getElementById('recipesGrid');
-            if (container) {
-                container.classList.add('hidden');
-                container.style.setProperty('display', 'none', 'important');
-            }
+            container.classList.add('hidden');
+            container.style.setProperty('display', 'none', 'important');
             const emptyState = document.getElementById('emptyState');
             if (emptyState) emptyState.classList.add('hidden');
             return;
         }
+
+        // Si la vista es de recetas, asegurar que el contenedor esté visible
+        container.classList.remove('hidden');
+        container.style.removeProperty('display');
+        container.style.display = '';
 
         // Helper para identificar la raíz (recetas sin carpeta asignada)
         const isRootFolder = (f) => {
@@ -4151,6 +4188,9 @@ class DashboardManager {
 
         // Solo renderizamos en modo lista (v34)
         container.className = 'recipes-grid list-view-m3';
+        container.classList.remove('hidden');
+        container.style.removeProperty('display');
+        container.style.display = '';
         const colName = window.i18n ? window.i18n.t('colName') : 'NOMBRE';
         const colCategory = window.i18n ? window.i18n.t('colCategory') : 'CATEGORÍA';
         const colAccess = window.i18n ? window.i18n.t('colAccess') : 'ACCESO';
