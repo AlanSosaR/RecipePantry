@@ -508,81 +508,65 @@
         }
 
         renderIpaCredentialsBox() {
-            if (!this.isSuperAdmin()) return;
-            const listEl = document.getElementById('admin-users-list');
-            if (!listEl || !listEl.parentElement) return;
+            // Remueve cualquier caja residual que hubiera quedado fuera del modal
+            const box = document.getElementById('superadmin-ipa-config-box');
+            if (box && !box.closest('#admin-user-detail-card')) {
+                box.remove();
+            }
+        }
 
-            let box = document.getElementById('superadmin-ipa-config-box');
-            if (box) box.remove();
-
+        getIpaCredentialsBoxHtml() {
             const isEn = this.isEnglish();
-            box = document.createElement('div');
-            box.id = 'superadmin-ipa-config-box';
-            box.style.cssText = 'background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px;margin-top:8px;';
-            box.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <span class="material-symbols-outlined" style="font-size: 22px;">shopping_cart_checkout</span>
+            return `
+                <div id="superadmin-ipa-config-box" style="
+                    background: #F8FAFC;
+                    border: 1.5px solid #E2E8F0;
+                    border-radius: 18px;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 14px;
+                    margin-top: 4px;
+                ">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">shopping_cart_checkout</span>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #064E3B; line-height: 1.2;">
+                                    ${isEn ? 'IPA Purchasing Linked Account' : 'Cuenta Vinculada IPA Purchasing'}
+                                </h4>
+                                <p style="margin: 2px 0 0 0; font-size: 11.5px; color: #64748B;">
+                                    ${isEn
+                                        ? 'Exclusive to Super Admin (alansosa225@gmail.com). Orders use this linked account automatically.'
+                                        : 'Exclusivo Super Usuario (alansosa225@gmail.com). Los pedidos usan esta cuenta automáticamente sin pedir clave.'}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 style="margin: 0; font-size: 15.5px; font-weight: 800; color: #064E3B; line-height: 1.2;">
-                                ${isEn ? 'IPA Purchasing Linked Account' : 'Cuenta Vinculada IPA Purchasing'}
-                            </h4>
-                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748B;">
-                                ${isEn
-                                    ? 'Exclusive to Super Admin (alansosa225@gmail.com). Orders use this linked account automatically.'
-                                    : 'Exclusivo Super Usuario (alansosa225@gmail.com). Los pedidos usan esta cuenta automáticamente sin pedir clave.'}
-                            </p>
-                        </div>
-                    </div>
-                    <span id="admin-ipa-status-badge" style="
-                        font-size: 11.5px;
-                        font-weight: 700;
-                        padding: 4px 12px;
-                        border-radius: 999px;
-                        background: #FEF3C7;
-                        color: #92400E;
-                        border: 1px solid #FDE68A;
-                    ">
-                        ${isEn ? 'Checking...' : 'Verificando...'}
-                    </span>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;">
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label for="admin-ipa-username" style="font-size: 12px; font-weight: 700; color: #334155;">
-                            ${isEn ? 'IPA Username / Email' : 'Usuario o Correo de IPA'}
-                        </label>
-                        <input type="text" id="admin-ipa-username" autocomplete="off"
-                            placeholder="${isEn ? 'Enter IPA username or email' : 'Ej. usuario@empresa.co.uk'}"
-                            style="
-                                height: 42px;
-                                padding: 0 14px;
-                                border-radius: 12px;
-                                border: 1.5px solid #CBD5E1;
-                                background: #FFFFFF;
-                                font-family: var(--font-display, 'Poppins', sans-serif);
-                                font-size: 13.5px;
-                                color: #0F172A;
-                                outline: none;
-                                box-sizing: border-box;
-                            "
-                            onfocus="this.style.borderColor='#10B981'"
-                            onblur="this.style.borderColor='#CBD5E1'" />
+                        <span id="admin-ipa-status-badge" style="
+                            font-size: 11.5px;
+                            font-weight: 700;
+                            padding: 4px 12px;
+                            border-radius: 999px;
+                            background: #FEF3C7;
+                            color: #92400E;
+                            border: 1px solid #FDE68A;
+                        ">
+                            ${isEn ? 'Checking...' : 'Verificando...'}
+                        </span>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label for="admin-ipa-password" style="font-size: 12px; font-weight: 700; color: #334155;">
-                            ${isEn ? 'IPA Password' : 'Contraseña de IPA'}
-                        </label>
-                        <div style="position: relative; display: flex; align-items: center;">
-                            <input type="password" id="admin-ipa-password" autocomplete="new-password"
-                                placeholder="••••••••••••"
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <label for="admin-ipa-username" style="font-size: 12px; font-weight: 700; color: #334155;">
+                                ${isEn ? 'IPA Username / Email' : 'Usuario o Correo de IPA'}
+                            </label>
+                            <input type="text" id="admin-ipa-username" autocomplete="off"
+                                placeholder="${isEn ? 'Enter IPA username or email' : 'Ej. usuario@empresa.co.uk'}"
                                 style="
-                                    width: 100%;
                                     height: 42px;
-                                    padding: 0 40px 0 14px;
+                                    padding: 0 14px;
                                     border-radius: 12px;
                                     border: 1.5px solid #CBD5E1;
                                     background: #FFFFFF;
@@ -594,44 +578,66 @@
                                 "
                                 onfocus="this.style.borderColor='#10B981'"
                                 onblur="this.style.borderColor='#CBD5E1'" />
-                            <button type="button" onclick="window.adminUsersManager.toggleIpaPasswordVisibility()"
-                                title="${isEn ? 'Show/Hide password' : 'Mostrar/Ocultar contraseña'}"
-                                style="position: absolute; right: 6px; background: transparent; border: none; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
-                                <span id="admin-ipa-pass-eye" class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
-                            </button>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <label for="admin-ipa-password" style="font-size: 12px; font-weight: 700; color: #334155;">
+                                ${isEn ? 'IPA Password' : 'Contraseña de IPA'}
+                            </label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <input type="password" id="admin-ipa-password" autocomplete="new-password"
+                                    placeholder="••••••••••••"
+                                    style="
+                                        width: 100%;
+                                        height: 42px;
+                                        padding: 0 40px 0 14px;
+                                        border-radius: 12px;
+                                        border: 1.5px solid #CBD5E1;
+                                        background: #FFFFFF;
+                                        font-family: var(--font-display, 'Poppins', sans-serif);
+                                        font-size: 13.5px;
+                                        color: #0F172A;
+                                        outline: none;
+                                        box-sizing: border-box;
+                                    "
+                                    onfocus="this.style.borderColor='#10B981'"
+                                    onblur="this.style.borderColor='#CBD5E1'" />
+                                <button type="button" onclick="window.adminUsersManager.toggleIpaPasswordVisibility()"
+                                    title="${isEn ? 'Show/Hide password' : 'Mostrar/Ocultar contraseña'}"
+                                    style="position: absolute; right: 6px; background: transparent; border: none; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                                    <span id="admin-ipa-pass-eye" class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div style="display: flex; justify-content: flex-end;">
-                    <button type="button" id="btn-admin-save-ipa" onclick="window.adminUsersManager.saveIpaCredentialsConfig()"
-                        style="
-                            height: 40px;
-                            padding: 0 20px;
-                            border-radius: 999px;
-                            border: none;
-                            background: #10B981;
-                            color: #FFFFFF;
-                            font-family: var(--font-display, 'Poppins', sans-serif);
-                            font-size: 13px;
-                            font-weight: 700;
-                            cursor: pointer;
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 6px;
-                            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-                        "
-                        onmouseover="this.style.background='#059669'"
-                        onmouseout="this.style.background='#10B981'">
-                        <span class="material-symbols-outlined" style="font-size: 18px;">link</span>
-                        <span>${isEn ? 'Save & Link IPA Account' : 'Guardar y Vincular Cuenta IPA'}</span>
-                    </button>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="button" id="btn-admin-save-ipa" onclick="window.adminUsersManager.saveIpaCredentialsConfig()"
+                            style="
+                                height: 40px;
+                                padding: 0 20px;
+                                border-radius: 999px;
+                                border: none;
+                                background: #10B981;
+                                color: #FFFFFF;
+                                font-family: var(--font-display, 'Poppins', sans-serif);
+                                font-size: 13px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 6px;
+                                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+                                transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                            "
+                            onmouseover="this.style.background='#059669'"
+                            onmouseout="this.style.background='#10B981'">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">link</span>
+                            <span>${isEn ? 'Save & Link IPA Account' : 'Guardar y Vincular Cuenta IPA'}</span>
+                        </button>
+                    </div>
                 </div>
             `;
-
-            listEl.parentElement.appendChild(box);
-            this.loadIpaCredentialsConfig();
         }
 
         toggleIpaPasswordVisibility() {
@@ -1665,6 +1671,9 @@
                         ` : ''}
                     </div>
 
+                    <!-- Módulo Exclusivo IPA Purchasing para Super Admin alansosa225@gmail.com -->
+                    ${isSuperAdminUser ? this.getIpaCredentialsBoxHtml() : ''}
+
                     <!-- Panel de Acción: Restablecer Contraseña, Conceder / Revocar Acceso y Eliminación Definitiva -->
                     <div style="margin-top: 4px; display: flex; flex-direction: column; gap: 8px;">
                         
@@ -1860,6 +1869,11 @@
 
             // Disparar carga real de estadísticas (notas y recetas)
             this.loadUserStats(user);
+
+            // Cargar credenciales IPA si se visualiza al Super Admin
+            if (isSuperAdminUser) {
+                this.loadIpaCredentialsConfig();
+            }
         }
 
         /**
