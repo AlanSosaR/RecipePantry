@@ -4692,30 +4692,6 @@ openOrderForm(supplierId) {
                 'info',
                 3500
             );
-
-            // 3. Sincronización en segundo plano con Supabase Edge Function (silenciosa, no bloquea al usuario)
-            try {
-                const sb = window.supabaseClient;
-                if (sb && sb.functions) {
-                    sb.functions.invoke('ipa-auto-cart', {
-                        body: {
-                            supplierName: sup.name,
-                            accountCode: sup.account_code || '',
-                            items: orderedItems
-                        }
-                    }).then(({ data, error }) => {
-                        if (!error && data?.success) {
-                            console.log('[IPA] Sincronización en servidor completada:', data);
-                        } else if (data?.code === 'INVALID_CREDENTIALS') {
-                            console.warn('[IPA] Cuenta temporalmente bloqueada o credenciales en revisión:', data?.error);
-                        }
-                    }).catch(err => {
-                        console.warn('[IPA] Info background sync:', err);
-                    });
-                }
-            } catch (err) {
-                console.warn('[IPA] Error secundario:', err);
-            }
         }
 
         /** Regresa desde el consolidado a la pantalla de armar pedido del proveedor activo o del primero disponible */
