@@ -706,6 +706,7 @@ class NotificationManager {
                 const countText = count ? `(${count} ${count === 1 ? (isEn ? 'recipe' : 'receta') : (isEn ? 'recipes' : 'recetas')})` : '';
                 const safeRecipeIdsJson = encodeURIComponent(JSON.stringify(n.recipeIds || []));
                 const safeFolderName = encodeURIComponent(n.folderName || '');
+                const senderDisplayName = [n.prefix, n.sender].filter(Boolean).join(' ') || (isEn ? 'Someone' : 'Alguien');
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
@@ -715,14 +716,14 @@ class NotificationManager {
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} te ha compartido una carpeta</span>
+                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleDismissFolder('${n.id}', '${safeRecipeIdsJson}')"
                                         style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
                                         title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:800; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:14.5px;">
-                                    <span class="material-symbols-outlined" style="font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1; flex-shrink:0;">folder</span>
-                                    <span>${folderTitle} <span style="font-weight:500; font-size:12px; color:#4b5563;">${countText}</span></span>
+                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
+                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">folder</span>
+                                    <span>${isEn ? 'Shared a folder with you:' : 'Te ha compartido una carpeta:'} <strong style="font-weight:800;">${folderTitle}</strong> <span style="font-weight:500; font-size:12px; color:#4b5563;">${countText}</span></span>
                                 </span>
                                 <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                                 
@@ -753,6 +754,7 @@ class NotificationManager {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const menuTitle = n.restaurantName || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
                 const safeMenuId = n.menuId || '';
+                const senderDisplayName = [n.prefix, n.sender].filter(Boolean).join(' ') || (isEn ? 'Someone' : 'Alguien');
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
@@ -762,12 +764,15 @@ class NotificationManager {
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} ${isEn ? 'has shared restaurant access (Menu & Allergens)' : 'te ha compartido el restaurante (Carta y Alérgenos)'}</span>
+                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleDismissMenu('${n.id}', '${safeMenuId}')"
                                         style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
                                         title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:800; display:block; margin-top:3px; font-size:14.5px;">🏪 ${menuTitle}</span>
+                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
+                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">restaurant_menu</span>
+                                    <span>${isEn ? 'Shared restaurant access with you:' : 'Te ha compartido el restaurante:'} <strong style="font-weight:800;">${menuTitle}</strong></span>
+                                </span>
                                 <span style="color:#111827 !important; font-size:12.5px; font-weight:500; display:block; margin-top:2px;">${isEn ? 'Includes food menu dishes & official allergen matrix' : 'Incluye carta de platos completa y matriz oficial de alérgenos.'}</span>
                                 ${n.menuMessage ? `<span style="color:#111827 !important; font-size:12.5px; display:block; margin-top:3px; font-style:italic;">💬 "${n.menuMessage}"</span>` : ''}
                                 <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
@@ -805,6 +810,7 @@ class NotificationManager {
                 const countText = `${count} ${count === 1 ? (isEn ? 'recipe' : 'receta') : (isEn ? 'recipes' : 'recetas')}`;
                 const safeRecipeIdsJson = encodeURIComponent(JSON.stringify(n.recipeIds || []));
                 const messageText = n.metadata?.message ? `<span style="color:#111827 !important; font-size:12.5px; display:block; margin-top:3px; font-style:italic;">💬 "${n.metadata.message}"</span>` : '';
+                const senderDisplayName = [n.prefix, n.sender].filter(Boolean).join(' ') || (isEn ? 'Someone' : 'Alguien');
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
@@ -814,14 +820,14 @@ class NotificationManager {
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} ${isEn ? 'has shared multiple recipes with you' : 'te ha compartido varias recetas'}</span>
+                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
                                         style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
                                         title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:800; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:14.5px;">
-                                    <span class="material-symbols-outlined" style="font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1; flex-shrink:0;">collections_bookmark</span>
-                                    <span>${countText} <span style="font-weight:500; font-size:12px; color:#4b5563;">(${isEn ? 'Multiple selection' : 'Selección múltiple'})</span></span>
+                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
+                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">collections_bookmark</span>
+                                    <span>${isEn ? `Shared ${countText} with you` : `Te ha compartido ${countText}`} <span style="font-weight:500; font-size:12px; color:#4b5563;">(${isEn ? 'Multiple selection' : 'Selección múltiple'})</span></span>
                                 </span>
                                 ${messageText}
                                 <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
@@ -853,6 +859,7 @@ class NotificationManager {
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
                 const safeNoteId = n.noteId || '';
                 const noteTitle = n.noteTitle || (isEn ? 'Shared Note' : 'Nota compartida');
+                const senderDisplayName = [n.prefix, n.sender].filter(Boolean).join(' ') || (isEn ? 'Someone' : 'Alguien');
 
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
@@ -862,12 +869,15 @@ class NotificationManager {
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                    <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} ${isEn ? 'has shared a note with you' : 'te ha compartido una nota'}</span>
+                                    <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
                                     <button onclick="event.stopPropagation(); window.notificationManager.handleDismissNote('${n.id}')"
                                         style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
                                         title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
                                 </div>
-                                <span style="color:#111827 !important; font-weight:800; display:block; margin-top:3px; font-size:14.5px;">📝 ${noteTitle}</span>
+                                <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
+                                    <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">description</span>
+                                    <span>${isEn ? 'Shared a note with you:' : 'Te ha compartido una nota:'} <strong style="font-weight:800;">${noteTitle}</strong></span>
+                                </span>
                                 <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                                 
                                 <!-- Action buttons -->
@@ -895,6 +905,7 @@ class NotificationManager {
 
             const safeRecipeId = n.recipeId || '';
             const isRecipeIdValid = safeRecipeId.length > 10 && safeRecipeId !== 'undefined';
+            const senderDisplayName = [n.prefix, n.sender].filter(Boolean).join(' ') || (isEn ? 'Someone' : 'Alguien');
             
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
@@ -904,12 +915,15 @@ class NotificationManager {
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                                <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} te ha compartido una receta</span>
+                                <span style="color:var(--primary, #10B981) !important; display:block; font-size:14px; font-weight:700; line-height:1.35;">${senderDisplayName}</span>
                                 <button onclick="event.stopPropagation(); window.notificationManager.handleDismissRecipe('${n.id}', '${safeRecipeId}')"
                                     style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
                                     title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
                             </div>
-                            <span style="color:#111827 !important; font-weight:800; display:block; margin-top:3px; font-size:14.5px;">${n.recipeName}</span>
+                            <span style="color:#111827 !important; font-weight:700; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:13.5px;">
+                                <span class="material-symbols-outlined" style="font-size:18px; color:var(--primary, #10B981); font-variation-settings: 'FILL' 1; flex-shrink:0;">menu_book</span>
+                                <span>${isEn ? 'Shared 1 recipe with you:' : 'Te ha compartido 1 receta:'} <strong style="font-weight:800;">${n.recipeName}</strong></span>
+                            </span>
                             <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                             
                             <!-- Action buttons -->
@@ -1209,13 +1223,10 @@ class NotificationManager {
             if (!user) return;
 
             const cleanFolder = (targetFolder && typeof targetFolder === 'string') ? targetFolder.trim() : '';
+            const d = window.dashboard || window.dashboardManager;
 
-            // 1. Duplicar la receta en la carpeta de destino
-            const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id, cleanFolder, false);
-            if (!duplicateResult.success) {
-                window.utils.showToast(duplicateResult.error || (isEn ? 'Error saving recipe' : 'Error al guardar la receta'), 'warning');
-                return;
-            }
+            // 1. Descartar notificación inmediatamente (0 ms)
+            this._dismissLocally(notificationId);
 
             // 2. Si la carpeta es nueva y tiene nombre, registrarla inmediatamente
             if (cleanFolder && window.db && window.db.createFolder) {
@@ -1223,39 +1234,32 @@ class NotificationManager {
             }
 
             // 3. ACTUALIZACIÓN INSTANTÁNEA OPTIMISTA A 0 MILISEGUNDOS
-            const newRecData = duplicateResult.newRecipe || {};
+            const existing = (d?.currentRecipes || []).find(r => r.id === recipeId) || (d?.allRecipes || []).find(r => r.id === recipeId);
             const savedRecipeObj = {
-                ...newRecData,
-                id: duplicateResult.newRecipeId || newRecData.id || recipeId,
-                name_es: newRecData.name_es || recipeName || 'Receta',
-                name_en: newRecData.name_en || null,
+                ...(existing || {}),
+                id: recipeId,
+                name_es: existing?.name_es || recipeName || 'Receta',
+                name_en: existing?.name_en || null,
                 pantry_es: cleanFolder,
                 pantry_en: cleanFolder,
                 is_favorite: false,
                 is_active: true,
                 sharingContext: null,
-                updated_at: newRecData.updated_at || new Date().toISOString()
+                updated_at: new Date().toISOString()
             };
 
-            const d = window.dashboard || window.dashboardManager;
             if (d) {
                 if (Array.isArray(d.currentRecipes)) {
-                    // Limpiar tanto el ID nuevo como el ID fuente (receta compartida original)
-                    d.currentRecipes = d.currentRecipes.filter(r => r.id !== savedRecipeObj.id && r.id !== recipeId);
+                    d.currentRecipes = d.currentRecipes.filter(r => r.id !== recipeId);
                     d.currentRecipes.unshift(savedRecipeObj);
                 }
                 if (Array.isArray(d.allRecipes)) {
-                    d.allRecipes = d.allRecipes.filter(r => r.id !== savedRecipeObj.id && r.id !== recipeId);
+                    d.allRecipes = d.allRecipes.filter(r => r.id !== recipeId);
                     d.allRecipes.unshift(savedRecipeObj);
                 }
 
                 d.currentView = 'recipes';
                 try { localStorage.setItem('recipe_pantry_current_view', 'recipes'); } catch (e) {}
-
-                // Guardar carpeta activa en sessionStorage para navegación atrás
-                if (cleanFolder) {
-                    try { sessionStorage.setItem('rp_current_folder', cleanFolder); } catch (e) {}
-                }
 
                 // Navegar y abrir la carpeta inmediatamente (0 ms)
                 if (typeof d.openFolder === 'function') {
@@ -1264,18 +1268,16 @@ class NotificationManager {
                     d.selectFolder(cleanFolder, true);
                 } else {
                     d.currentFolder = cleanFolder || null;
+                    if (typeof d.renderFolders === 'function') d.renderFolders();
+                    if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+                    if (typeof d.updateTitleHeader === 'function') d.updateTitleHeader();
                 }
-
-                // Renderizar inmediatamente la UI a 0ms sin requerir refrescar la página
-                if (typeof d.renderFolders === 'function') d.renderFolders();
-                if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
-                if (typeof d.updateTitleHeader === 'function') d.updateTitleHeader();
             }
 
             // Guardar inmediatamente en recipes_index local para que persista a 0ms al salir/volver
             if (window.localDB) {
                 try {
-                    await window.localDB.put('recipes_index', {
+                    window.localDB.put('recipes_index', {
                         id: savedRecipeObj.id,
                         name_es: savedRecipeObj.name_es,
                         name_en: savedRecipeObj.name_en || null,
@@ -1292,63 +1294,40 @@ class NotificationManager {
                 }
             }
 
-            // Disparar eventos de sincronización instantánea
-            const updatedRecipes = d ? (d.currentRecipes || []) : [];
-            window.dispatchEvent(new CustomEvent('recipes-index-updated', { detail: updatedRecipes }));
-            window.dispatchEvent(new CustomEvent('recipe-created', { detail: savedRecipeObj }));
-            try {
-                localStorage.setItem('rp_recipe_mutation', JSON.stringify({
-                    action: 'create',
-                    recipeId: savedRecipeObj.id,
-                    folder: cleanFolder,
-                    timestamp: Date.now()
-                }));
-            } catch (e) {}
-
-            // Actualizar UI de notificaciones localmente (blocklist + filter + badge)
-            this._dismissLocally(notificationId);
-
             const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
-            window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
+            window.utils.showToast(isEn ? `Saving recipe in ${folderDesc}...` : `Guardando receta en ${folderDesc}...`, 'info');
 
-            // 4. MARCAR COMO LEÍDA EN SUPABASE (síncrono, antes del toast y de cualquier
-            // posible refresco de página). Si este await falla, el blocklist local lo cubre.
-            try {
-                await window.supabaseClient
-                    .from('notifications')
-                    .update({ leido: true })
-                    .eq('id', notificationId);
-                // También marcar por recipe_id para cubrir posibles duplicados
-                if (recipeId) {
-                    await window.supabaseClient
-                        .from('notifications')
-                        .update({ leido: true })
-                        .eq('user_id', user.id)
-                        .eq('recipe_id', recipeId);
-                }
-            } catch (notifErr) {
-                console.warn('⚠️ [Notifications] Error marcando notificación (cubierto por blocklist):', notifErr);
-            }
-
-            // 5. LIMPIEZA EN SEGUNDO PLANO (lento, no bloquea la UI)
+            // 4. DUPLICACIÓN EN SEGUNDO PLANO
             (async () => {
                 try {
-                    // Eliminar de compartidas (localDB ya fue actualizado en duplicateRecipe,
-                    // aquí solo se limpia Supabase shared_recipes y caches)
-                    await window.db.deleteSharedRecipe(user.id, recipeId);
+                    const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id, cleanFolder, false);
+                    if (duplicateResult && duplicateResult.success) {
+                        if (d && Array.isArray(d.currentRecipes) && duplicateResult.newRecipeId) {
+                            const idx = d.currentRecipes.findIndex(r => r.id === recipeId);
+                            if (idx !== -1) {
+                                d.currentRecipes[idx].id = duplicateResult.newRecipeId;
+                                if (duplicateResult.newRecipe?.name_es) d.currentRecipes[idx].name_es = duplicateResult.newRecipe.name_es;
+                            }
+                            if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+                        }
+                        await window.supabaseClient
+                            .from('notifications')
+                            .update({ leido: true })
+                            .eq('id', notificationId);
+                        window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
+                    }
                 } catch (bgErr) {
-                    console.warn('⚠️ [Notifications] Sincronización en segundo plano:', bgErr);
+                    console.error('❌ Error en duplicación en background:', bgErr);
                 }
             })();
-
         } catch (err) {
-            console.error('Error guardando receta compartida en carpeta:', err);
+            console.error('❌ Error guardando receta en carpeta:', err);
             window.utils.showToast(isEn ? 'Error saving recipe' : 'Error al guardar la receta', 'error');
         }
     }
 
     /**
-     * Decline: Dejar en compartidas
+     * Decline Recipe: Guarda la receta en la sección Compartidas
      */
     async handleDeclineRecipe(notificationId, recipeId) {
         try {
@@ -1431,61 +1410,172 @@ class NotificationManager {
             if (!user) return;
 
             const cleanFolder = (targetFolder && typeof targetFolder === 'string') ? targetFolder.trim() : '';
-            window.utils.showToast(isEn ? `Saving ${recipeIds.length} recipes...` : `Guardando ${recipeIds.length} recetas...`, 'info');
+            const d = window.dashboard || window.dashboardManager;
 
+            // 1. Quitar notificación de inmediato de la campana localmente (0 ms)
+            this._dismissLocally(notificationId);
+
+            // 2. Si la carpeta es nueva y tiene nombre, registrarla inmediatamente
             if (cleanFolder && window.db && typeof window.db.createFolder === 'function') {
-                try { await window.db.createFolder(cleanFolder); } catch (e) {}
+                try { window.db.createFolder(cleanFolder); } catch (e) {}
             }
 
-            let successCount = 0;
-            for (const rId of recipeIds) {
-                try {
-                    await window.supabaseClient
-                        .from('shared_recipes')
-                        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-                        .eq('recipe_id', rId)
-                        .eq('recipient_user_id', user.id);
+            // 3. ACTUALIZACIÓN INSTANTÁNEA OPTIMISTA A 0 MILISEGUNDOS
+            const existingMap = new Map();
+            if (d && Array.isArray(d.currentRecipes)) {
+                d.currentRecipes.forEach(r => existingMap.set(r.id, r));
+            }
+            if (d && Array.isArray(d.allRecipes)) {
+                d.allRecipes.forEach(r => {
+                    if (!existingMap.has(r.id)) existingMap.set(r.id, r);
+                });
+            }
 
-                    const dupRes = await window.db.duplicateRecipe(rId, user.id, cleanFolder, true);
-                    if (dupRes && dupRes.success) {
-                        successCount++;
+            // Si hay recetas cuyos nombres aún no están en memoria, intentar leerlas de IndexedDB sincrónicamente
+            if (window.localDB) {
+                try {
+                    const localIndex = await window.localDB.getAll('recipes_index');
+                    if (Array.isArray(localIndex)) {
+                        localIndex.forEach(lr => {
+                            if (!existingMap.has(lr.id)) existingMap.set(lr.id, lr);
+                        });
+                    }
+                } catch (e) {}
+            }
+
+            // Si aún faltan nombres, consultar de forma masiva en Supabase (1 sola petición rápida ~40ms)
+            const missingIds = recipeIds.filter(id => !existingMap.has(id));
+            if (missingIds.length > 0 && window.supabaseClient) {
+                try {
+                    const { data: missingData } = await window.supabaseClient
+                        .from('recipes')
+                        .select('id, name_es, name_en, image_url, description_es')
+                        .in('id', missingIds);
+                    if (Array.isArray(missingData)) {
+                        missingData.forEach(mr => existingMap.set(mr.id, mr));
+                    }
+                } catch (e) {}
+            }
+
+            // Construir recetas optimistas para la carpeta destino
+            const optimisticRecipes = recipeIds.map((rId, idx) => {
+                const ex = existingMap.get(rId);
+                return {
+                    ...(ex || {}),
+                    id: rId,
+                    name_es: ex?.name_es || (isEn ? `Recipe ${idx + 1}` : `Receta ${idx + 1}`),
+                    name_en: ex?.name_en || null,
+                    pantry_es: cleanFolder,
+                    pantry_en: cleanFolder,
+                    is_favorite: false,
+                    is_active: true,
+                    sharingContext: null,
+                    updated_at: ex?.updated_at || new Date().toISOString()
+                };
+            });
+
+            // Guardar optimísticamente en IndexedDB local
+            if (window.localDB) {
+                try {
+                    for (const optRec of optimisticRecipes) {
+                        window.localDB.put('recipes_index', {
+                            id: optRec.id,
+                            name_es: optRec.name_es,
+                            name_en: optRec.name_en || null,
+                            pantry_es: cleanFolder,
+                            pantry_en: cleanFolder,
+                            image_url: optRec.image_url || null,
+                            updated_at: optRec.updated_at,
+                            is_favorite: false,
+                            sharingContext: null,
+                            user_id: user.id
+                        });
+                    }
+                } catch (e) {}
+            }
+
+            if (d) {
+                const idSet = new Set(recipeIds);
+                if (Array.isArray(d.currentRecipes)) {
+                    d.currentRecipes = d.currentRecipes.filter(r => !idSet.has(r.id));
+                    d.currentRecipes.unshift(...optimisticRecipes);
+                }
+                if (Array.isArray(d.allRecipes)) {
+                    d.allRecipes = d.allRecipes.filter(r => !idSet.has(r.id));
+                    d.allRecipes.unshift(...optimisticRecipes);
+                }
+
+                d.currentView = 'recipes';
+                try { localStorage.setItem('recipe_pantry_current_view', 'recipes'); } catch (e) {}
+
+                // Navegar directamente a la carpeta destino a 0 ms
+                if (typeof d.openFolder === 'function') {
+                    d.openFolder(cleanFolder, true);
+                } else if (typeof d.selectFolder === 'function') {
+                    d.selectFolder(cleanFolder, true);
+                } else {
+                    d.currentFolder = cleanFolder || null;
+                    if (typeof d.renderFolders === 'function') d.renderFolders();
+                    if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+                    if (typeof d.updateTitleHeader === 'function') d.updateTitleHeader();
+                }
+            }
+
+            const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
+            const infoToast = isEn ? `Saving ${recipeIds.length} recipes in ${folderDesc}...` : `Guardando ${recipeIds.length} recetas en ${folderDesc}...`;
+            window.utils.showToast(infoToast, 'info');
+
+            // 4. PERSISTENCIA EN SEGUNDO PLANO EN PARALELO (PROMISE.ALL)
+            (async () => {
+                try {
+                    const results = await Promise.all(recipeIds.map(async (rId) => {
+                        try {
+                            await window.supabaseClient
+                                .from('shared_recipes')
+                                .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                                .eq('recipe_id', rId)
+                                .eq('recipient_user_id', user.id);
+
+                            const dupRes = await window.db.duplicateRecipe(rId, user.id, cleanFolder, true);
+                            await window.db.deleteSharedRecipe(user.id, rId);
+                            return { rId, success: dupRes?.success, newRecipe: dupRes?.newRecipe, newRecipeId: dupRes?.newRecipeId };
+                        } catch (rErr) {
+                            console.warn(`⚠️ Error procesando receta ${rId} del lote:`, rErr);
+                            return { rId, success: false };
+                        }
+                    }));
+
+                    const successCount = results.filter(r => r.success).length;
+
+                    // Marcar notificación como leída en Supabase
+                    await window.supabaseClient
+                        .from('notifications')
+                        .update({ leido: true })
+                        .eq('id', notificationId);
+
+                    // Reemplazar IDs temporales en memoria con los nuevos IDs definitivos generados en backend
+                    if (d && Array.isArray(d.currentRecipes)) {
+                        results.forEach(res => {
+                            if (res.success && res.newRecipeId) {
+                                const targetIdx = d.currentRecipes.findIndex(r => r.id === res.rId);
+                                if (targetIdx !== -1) {
+                                    d.currentRecipes[targetIdx].id = res.newRecipeId;
+                                    if (res.newRecipe?.name_es) d.currentRecipes[targetIdx].name_es = res.newRecipe.name_es;
+                                }
+                            }
+                        });
+                        // Actualizar silenciosamente las tarjetas con sus IDs definitivos
+                        if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
                     }
 
-                    await window.db.deleteSharedRecipe(user.id, rId);
-                } catch (rErr) {
-                    console.warn(`⚠️ Error procesando receta ${rId} del lote:`, rErr);
+                    const toastSuccess = isEn 
+                        ? `✅ ${successCount} recipes saved in ${folderDesc}!`
+                        : `✅ ¡${successCount} recetas guardadas en ${folderDesc}!`;
+                    window.utils.showToast(toastSuccess, 'success');
+                } catch (bgErr) {
+                    console.error('❌ Error guardando lote de recetas en background:', bgErr);
                 }
-            }
-
-            if (successCount > 0) {
-                await window.supabaseClient
-                    .from('notifications')
-                    .update({ leido: true })
-                    .eq('id', notificationId);
-
-                this._dismissLocally(notificationId);
-            } else {
-                throw new Error('No se pudo guardar ninguna receta del lote');
-            }
-
-            const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'your recipes' : 'tus recetas');
-            const toastSuccess = isEn 
-                ? `✅ ${successCount} recipes saved in ${folderDesc}!`
-                : `✅ ¡${successCount} recetas guardadas en ${folderDesc}!`;
-            window.utils.showToast(toastSuccess, 'success');
-
-            const d = window.dashboard || window.dashboardManager;
-            if (d) {
-                d.currentView = 'recipes';
-                if (cleanFolder) {
-                    try { sessionStorage.setItem('rp_current_folder', cleanFolder); } catch (e) {}
-                    d.currentFolder = cleanFolder;
-                }
-                if (typeof d.loadRecipes === 'function') {
-                    await d.loadRecipes({ forceRefresh: true });
-                }
-                if (typeof d.renderFolders === 'function') d.renderFolders();
-            }
+            })();
         } catch (err) {
             console.error('❌ Error guardando lote de recetas en carpeta:', err);
             window.utils.showToast(isEn ? 'Error saving recipes' : 'Error al guardar las recetas', 'error');

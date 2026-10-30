@@ -3,11 +3,11 @@
  * Soporte Offline Total + Sync Background
  */
 
-const VERSION = 'v1000';
-const BUILD_ID = 'v1000';
-const CACHE_NAME = `recipe-pantry-v1000`;
-const STATIC_CACHE = 'static-v1000';
-const DATA_CACHE = 'data-v1000';
+const VERSION = 'v1001';
+const BUILD_ID = 'v1001';
+const CACHE_NAME = `recipe-pantry-v1001`;
+const STATIC_CACHE = 'static-v1001';
+const DATA_CACHE = 'data-v1001';
 // Recursos esenciales para la App Shell
 const STATIC_RESOURCES = [
     '/',

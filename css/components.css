@@ -15256,14 +15256,14 @@ body.dark-theme .context-menu-divider {
     left: 50%;
     transform: translateX(-50%);
     z-index: 2500;
-    background: #25282A;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 36px;
     padding: 6px 14px;
     display: flex;
     align-items: center;
     gap: 4px;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     animation: floatingToolbarIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -15285,7 +15285,7 @@ body.dark-theme .context-menu-divider {
 .floating-toolbar-btn {
     background: transparent;
     border: none;
-    color: #FFFFFF;
+    color: #1F2937;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -15301,27 +15301,27 @@ body.dark-theme .context-menu-divider {
 }
 
 .floating-toolbar-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(16, 185, 129, 0.08);
 }
 
 .floating-toolbar-btn:active {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(16, 185, 129, 0.16);
     transform: scale(0.94);
 }
 
 .floating-toolbar-btn .toolbar-icon {
     font-size: 22px;
-    color: #FFFFFF;
+    color: var(--primary, #10B981) !important;
     line-height: 1;
     display: block;
     margin-bottom: 3px;
-    font-variation-settings: 'FILL' 0, 'wght' 400;
+    font-variation-settings: 'FILL' 0, 'wght' 500;
 }
 
 .floating-toolbar-btn .toolbar-label {
     font-size: 11px;
-    font-weight: 500;
-    color: #E2E8F0;
+    font-weight: 600;
+    color: #1F2937;
     line-height: 1.2;
     white-space: nowrap;
 }
@@ -15329,26 +15329,26 @@ body.dark-theme .context-menu-divider {
 .floating-toolbar-divider {
     width: 1px;
     height: 28px;
-    background: rgba(255, 255, 255, 0.18);
+    background: #E5E7EB !important;
     margin: 0 4px;
     flex-shrink: 0;
 }
 
 .floating-toolbar-btn.danger .toolbar-icon {
-    color: #F87171;
+    color: #EF4444 !important;
 }
 
 .floating-toolbar-btn.danger .toolbar-label {
-    color: #F87171;
+    color: #EF4444 !important;
     font-weight: 600;
 }
 
 .floating-toolbar-btn.danger:hover {
-    background: rgba(248, 113, 113, 0.12);
+    background: rgba(239, 68, 68, 0.08);
 }
 
 .floating-toolbar-btn.danger:active {
-    background: rgba(248, 113, 113, 0.22);
+    background: rgba(239, 68, 68, 0.18);
 }
 
 /* Ocultar el FAB verde en modo selección */
