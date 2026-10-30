@@ -143,7 +143,7 @@ class NotificationManager {
                     from_user_id, 
                     recipe_id,
                     metadata,
-                    from_user:users!from_user_id(first_name, last_name, email, prefix),
+                    from_user:users!from_user_id(first_name, last_name, email, prefix, avatar_url),
                     recipe:recipes(id, name_es, name_en)
                 `)
                 .eq('user_id', user.id)
@@ -163,6 +163,7 @@ class NotificationManager {
                     || n.from_user?.email
                     || (isEn ? 'Someone' : 'Alguien');
                 const senderPrefix = n.from_user?.prefix || (isEn ? 'Chef' : 'Chef');
+                const senderAvatar = n.from_user?.avatar_url || '';
                 let meta = n.metadata || {};
                 if (typeof meta === 'string') {
                     try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
@@ -193,6 +194,7 @@ class NotificationManager {
                     timestamp: n.created_at,
                     sender: senderName,
                     prefix: senderPrefix,
+                    avatarUrl: senderAvatar,
                     leido: n.leido
                 };
             });
@@ -269,6 +271,7 @@ class NotificationManager {
                         timestamp: payload.new.created_at || new Date().toISOString(),
                         sender: '...',
                         prefix: '',
+                        avatarUrl: '',
                         leido: false
                     });
                     this.updateBadge(); // Esto hará que tiemble y suba el contador inmediatamente
@@ -711,8 +714,9 @@ class NotificationManager {
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
-                                <span class="material-symbols-outlined" style="font-size:24px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">folder</span>
+                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; overflow:hidden;">
+                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:24px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">folder</span>
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -759,8 +763,9 @@ class NotificationManager {
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; font-size:20px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
-                                🍽️
+                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; font-size:20px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; overflow:hidden;">
+                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                <span style="${n.avatarUrl ? 'display:none;' : ''}font-size:20px;">🍽️</span>
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -815,8 +820,9 @@ class NotificationManager {
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
-                                <span class="material-symbols-outlined" style="font-size:22px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">library_books</span>
+                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; overflow:hidden;">
+                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:22px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">library_books</span>
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -864,8 +870,9 @@ class NotificationManager {
                 return `
                     <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
-                            <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center;">
-                                <span class="material-symbols-outlined" style="font-size:20px;">description</span>
+                            <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                                <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:20px;">description</span>
                             </div>
                             <div style="flex:1; min-width:0;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -910,8 +917,9 @@ class NotificationManager {
             return `
                 <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
-                        <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center;">
-                            <span class="material-symbols-outlined" style="font-size:20px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">menu_book</span>
+                        <div class="notification-avatar" style="flex-shrink:0; width:38px; height:38px; border-radius:10px; font-size:16px; font-weight:700; background:#d7f5e8; color:#0d5f3a; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                            ${n.avatarUrl ? `<img src="${n.avatarUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:10px; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">` : ''}
+                            <span class="material-symbols-outlined" style="${n.avatarUrl ? 'display:none;' : ''}font-size:20px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">menu_book</span>
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -1274,50 +1282,57 @@ class NotificationManager {
                 }
             }
 
-            // Guardar inmediatamente en recipes_index local para que persista a 0ms al salir/volver
-            if (window.localDB) {
-                try {
-                    window.localDB.put('recipes_index', {
-                        id: savedRecipeObj.id,
-                        name_es: savedRecipeObj.name_es,
-                        name_en: savedRecipeObj.name_en || null,
-                        pantry_es: cleanFolder || null,
-                        pantry_en: cleanFolder || null,
-                        image_url: savedRecipeObj.image_url || null,
-                        updated_at: savedRecipeObj.updated_at,
-                        is_favorite: false,
-                        sharingContext: null,
-                        user_id: user.id
-                    });
-                } catch (idxErr) {
-                    console.warn('⚠️ Error guardando en localDB recipes_index:', idxErr);
-                }
-            }
-
             const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'Main Pantry' : 'Despensa Principal');
             window.utils.showToast(isEn ? `Saving recipe in ${folderDesc}...` : `Guardando receta en ${folderDesc}...`, 'info');
 
-            // 4. DUPLICACIÓN EN SEGUNDO PLANO
+            // 4. GUARDADO DE UN SOLO GOLPE EN SUPABASE
             (async () => {
                 try {
-                    const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id, cleanFolder, false);
-                    if (duplicateResult && duplicateResult.success) {
-                        if (d && Array.isArray(d.currentRecipes) && duplicateResult.newRecipeId) {
-                            const idx = d.currentRecipes.findIndex(r => r.id === recipeId);
-                            if (idx !== -1) {
-                                d.currentRecipes[idx].id = duplicateResult.newRecipeId;
-                                if (duplicateResult.newRecipe?.name_es) d.currentRecipes[idx].name_es = duplicateResult.newRecipe.name_es;
-                            }
-                            if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+                    let newId = null;
+                    const { data: rpcData, error: rpcError } = await window.supabaseClient.rpc('batch_accept_shared_recipes', {
+                        p_recipe_ids: [recipeId],
+                        p_target_user_id: user.id,
+                        p_target_folder: cleanFolder || null,
+                        p_notification_id: notificationId
+                    });
+
+                    if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+                        newId = rpcData[0].new_recipe_id;
+                    } else {
+                        const duplicateResult = await window.db.duplicateRecipe(recipeId, user.id, cleanFolder, false);
+                        if (duplicateResult && duplicateResult.success) {
+                            newId = duplicateResult.newRecipeId;
+                            await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
                         }
-                        await window.supabaseClient
-                            .from('notifications')
-                            .update({ leido: true })
-                            .eq('id', notificationId);
-                        window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
                     }
+
+                    if (newId && d && Array.isArray(d.currentRecipes)) {
+                        const idx = d.currentRecipes.findIndex(r => r.id === recipeId);
+                        if (idx !== -1) {
+                            d.currentRecipes[idx].id = newId;
+                        }
+                        if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+
+                        if (window.localDB) {
+                            try {
+                                window.localDB.put('recipes_index', {
+                                    id: newId,
+                                    name_es: savedRecipeObj.name_es,
+                                    name_en: savedRecipeObj.name_en || null,
+                                    pantry_es: cleanFolder,
+                                    pantry_en: cleanFolder,
+                                    updated_at: new Date().toISOString(),
+                                    is_favorite: false,
+                                    sharingContext: null,
+                                    user_id: user.id
+                                });
+                            } catch (e) {}
+                        }
+                    }
+
+                    window.utils.showToast(isEn ? `✅ Recipe saved in ${folderDesc}!` : `✅ ¡Receta guardada en ${folderDesc}!`, 'success');
                 } catch (bgErr) {
-                    console.error('❌ Error en duplicación en background:', bgErr);
+                    console.error('❌ Error en guardado en background:', bgErr);
                 }
             })();
         } catch (err) {
@@ -1431,32 +1446,6 @@ class NotificationManager {
                 });
             }
 
-            // Si hay recetas cuyos nombres aún no están en memoria, intentar leerlas de IndexedDB sincrónicamente
-            if (window.localDB) {
-                try {
-                    const localIndex = await window.localDB.getAll('recipes_index');
-                    if (Array.isArray(localIndex)) {
-                        localIndex.forEach(lr => {
-                            if (!existingMap.has(lr.id)) existingMap.set(lr.id, lr);
-                        });
-                    }
-                } catch (e) {}
-            }
-
-            // Si aún faltan nombres, consultar de forma masiva en Supabase (1 sola petición rápida ~40ms)
-            const missingIds = recipeIds.filter(id => !existingMap.has(id));
-            if (missingIds.length > 0 && window.supabaseClient) {
-                try {
-                    const { data: missingData } = await window.supabaseClient
-                        .from('recipes')
-                        .select('id, name_es, name_en, image_url, description_es')
-                        .in('id', missingIds);
-                    if (Array.isArray(missingData)) {
-                        missingData.forEach(mr => existingMap.set(mr.id, mr));
-                    }
-                } catch (e) {}
-            }
-
             // Construir recetas optimistas para la carpeta destino
             const optimisticRecipes = recipeIds.map((rId, idx) => {
                 const ex = existingMap.get(rId);
@@ -1473,26 +1462,6 @@ class NotificationManager {
                     updated_at: ex?.updated_at || new Date().toISOString()
                 };
             });
-
-            // Guardar optimísticamente en IndexedDB local
-            if (window.localDB) {
-                try {
-                    for (const optRec of optimisticRecipes) {
-                        window.localDB.put('recipes_index', {
-                            id: optRec.id,
-                            name_es: optRec.name_es,
-                            name_en: optRec.name_en || null,
-                            pantry_es: cleanFolder,
-                            pantry_en: cleanFolder,
-                            image_url: optRec.image_url || null,
-                            updated_at: optRec.updated_at,
-                            is_favorite: false,
-                            sharingContext: null,
-                            user_id: user.id
-                        });
-                    }
-                } catch (e) {}
-            }
 
             if (d) {
                 const idSet = new Set(recipeIds);
@@ -1525,47 +1494,73 @@ class NotificationManager {
             const infoToast = isEn ? `Saving ${recipeIds.length} recipes in ${folderDesc}...` : `Guardando ${recipeIds.length} recetas en ${folderDesc}...`;
             window.utils.showToast(infoToast, 'info');
 
-            // 4. PERSISTENCIA EN SEGUNDO PLANO EN PARALELO (PROMISE.ALL)
+            // 4. GUARDADO DE UN SOLO GOLPE DIRECTO EN SUPABASE (RPC batch_accept_shared_recipes)
             (async () => {
                 try {
-                    const results = await Promise.all(recipeIds.map(async (rId) => {
-                        try {
-                            await window.supabaseClient
-                                .from('shared_recipes')
-                                .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-                                .eq('recipe_id', rId)
-                                .eq('recipient_user_id', user.id);
+                    let successCount = 0;
+                    let savedRows = [];
 
-                            const dupRes = await window.db.duplicateRecipe(rId, user.id, cleanFolder, true);
-                            await window.db.deleteSharedRecipe(user.id, rId);
-                            return { rId, success: dupRes?.success, newRecipe: dupRes?.newRecipe, newRecipeId: dupRes?.newRecipeId };
-                        } catch (rErr) {
-                            console.warn(`⚠️ Error procesando receta ${rId} del lote:`, rErr);
-                            return { rId, success: false };
-                        }
-                    }));
+                    const { data: rpcData, error: rpcError } = await window.supabaseClient.rpc('batch_accept_shared_recipes', {
+                        p_recipe_ids: recipeIds,
+                        p_target_user_id: user.id,
+                        p_target_folder: cleanFolder || null,
+                        p_notification_id: notificationId
+                    });
 
-                    const successCount = results.filter(r => r.success).length;
+                    if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+                        savedRows = rpcData;
+                        successCount = rpcData.length;
+                    } else {
+                        console.warn('⚠️ RPC fallback a duplicación estándar:', rpcError?.message);
+                        const results = await Promise.all(recipeIds.map(async (rId) => {
+                            try {
+                                await window.supabaseClient
+                                    .from('shared_recipes')
+                                    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                                    .eq('recipe_id', rId)
+                                    .eq('recipient_user_id', user.id);
 
-                    // Marcar notificación como leída en Supabase
-                    await window.supabaseClient
-                        .from('notifications')
-                        .update({ leido: true })
-                        .eq('id', notificationId);
+                                const dupRes = await window.db.duplicateRecipe(rId, user.id, cleanFolder, true);
+                                await window.db.deleteSharedRecipe(user.id, rId);
+                                return { rId, success: dupRes?.success, newRecipe: dupRes?.newRecipe, newRecipeId: dupRes?.newRecipeId };
+                            } catch (rErr) {
+                                return { rId, success: false };
+                            }
+                        }));
+                        successCount = results.filter(r => r.success).length;
+                        savedRows = results.filter(r => r.success).map(r => ({ old_recipe_id: r.rId, new_recipe_id: r.newRecipeId, name_es: r.newRecipe?.name_es }));
+                        await window.supabaseClient.from('notifications').update({ leido: true }).eq('id', notificationId);
+                    }
 
-                    // Reemplazar IDs temporales en memoria con los nuevos IDs definitivos generados en backend
+                    // Actualizar IDs definitivos en memoria
                     if (d && Array.isArray(d.currentRecipes)) {
-                        results.forEach(res => {
-                            if (res.success && res.newRecipeId) {
-                                const targetIdx = d.currentRecipes.findIndex(r => r.id === res.rId);
-                                if (targetIdx !== -1) {
-                                    d.currentRecipes[targetIdx].id = res.newRecipeId;
-                                    if (res.newRecipe?.name_es) d.currentRecipes[targetIdx].name_es = res.newRecipe.name_es;
-                                }
+                        savedRows.forEach(row => {
+                            const targetIdx = d.currentRecipes.findIndex(r => r.id === row.old_recipe_id);
+                            if (targetIdx !== -1) {
+                                d.currentRecipes[targetIdx].id = row.new_recipe_id;
+                                if (row.name_es) d.currentRecipes[targetIdx].name_es = row.name_es;
                             }
                         });
-                        // Actualizar silenciosamente las tarjetas con sus IDs definitivos
                         if (typeof d.renderRecipesGrid === 'function') d.renderRecipesGrid(d.currentRecipes);
+                    }
+
+                    // Guardar en IndexedDB local
+                    if (window.localDB) {
+                        for (const row of savedRows) {
+                            try {
+                                window.localDB.put('recipes_index', {
+                                    id: row.new_recipe_id,
+                                    name_es: row.name_es,
+                                    name_en: row.name_en || null,
+                                    pantry_es: cleanFolder,
+                                    pantry_en: cleanFolder,
+                                    updated_at: new Date().toISOString(),
+                                    is_favorite: false,
+                                    sharingContext: null,
+                                    user_id: user.id
+                                });
+                            } catch (e) {}
+                        }
                     }
 
                     const toastSuccess = isEn 
@@ -1573,7 +1568,7 @@ class NotificationManager {
                         : `✅ ¡${successCount} recetas guardadas en ${folderDesc}!`;
                     window.utils.showToast(toastSuccess, 'success');
                 } catch (bgErr) {
-                    console.error('❌ Error guardando lote de recetas en background:', bgErr);
+                    console.error('❌ Error guardando lote en Supabase:', bgErr);
                 }
             })();
         } catch (err) {
