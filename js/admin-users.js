@@ -408,27 +408,49 @@
                             </p>
                         </div>
 
-                        <!-- Botón Refrescar en la esquina superior derecha -->
-                        <button type="button" id="btn-admin-refresh-users" onclick="window.adminUsersManager.loadUsers(true)" style="
-                            padding: 7px 13px;
-                            background: rgba(255, 255, 255, 0.95);
-                            border: 1px solid #E2E8F0;
-                            border-radius: 12px;
-                            font-size: 12px;
-                            font-weight: 600;
-                            color: #059669;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 5px;
-                            flex-shrink: 0;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-                            transition: all 0.2s;
-                            white-space: nowrap;
-                        " onmouseover="this.style.background='#ECFDF5'" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'">
-                            <span class="material-symbols-outlined" style="font-size: 17px;">refresh</span>
-                            <span>${isEn ? 'Refresh' : 'Actualizar'}</span>
-                        </button>
+                        <!-- Botones de Acción: Compartir con Equipo y Refrescar en la esquina superior derecha -->
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                            <button type="button" id="btn-admin-share-team" onclick="if(window.restaurantMenu?.shareRestaurantMenu){window.restaurantMenu.shareRestaurantMenu();}else if(window.shareModal){window.shareModal.open('default_menu','restaurant');}" style="
+                                padding: 7px 13px;
+                                background: rgba(255, 255, 255, 0.95);
+                                border: 1px solid #E2E8F0;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                color: #059669;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 5px;
+                                box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+                                transition: all 0.2s;
+                                white-space: nowrap;
+                            " onmouseover="this.style.background='#ECFDF5'" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'"
+                            title="${isEn ? 'Share Restaurant Menu with Team' : 'Compartir Carta con Equipo'}">
+                                <span class="material-symbols-outlined" style="font-size: 17px;">group</span>
+                                <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
+                            </button>
+
+                            <button type="button" id="btn-admin-refresh-users" onclick="window.adminUsersManager.loadUsers(true)" style="
+                                padding: 7px 13px;
+                                background: rgba(255, 255, 255, 0.95);
+                                border: 1px solid #E2E8F0;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                color: #059669;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 5px;
+                                box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+                                transition: all 0.2s;
+                                white-space: nowrap;
+                            " onmouseover="this.style.background='#ECFDF5'" onmouseout="this.style.background='rgba(255, 255, 255, 0.95)'">
+                                <span class="material-symbols-outlined" style="font-size: 17px;">refresh</span>
+                                <span>${isEn ? 'Refresh' : 'Actualizar'}</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Métricas M3 Expressive (KPIs) en una sola barra unificada -->

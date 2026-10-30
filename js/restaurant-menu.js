@@ -441,20 +441,20 @@
             this.saveToSupabase({ removed_items: this.removedItemIds });
         }
 
-        shareRestaurantMenu() {
+        async shareRestaurantMenu() {
             if (!this.activeMenu?.id) {
-                if (window.showActionToast) {
-                    window.showActionToast({
-                        message: 'No hay una carta de restaurante activa para compartir.',
-                        type: 'warning'
-                    });
+                if (typeof this.loadMenuData === 'function') {
+                    await this.loadMenuData();
                 }
-                return;
             }
+            const menuId = this.activeMenu?.id || 'default_menu';
             if (window.shareModal) {
-                window.shareModal.open(this.activeMenu.id, 'menu');
-            } else {
-                console.error('ShareModalManager no disponible.');
+                window.shareModal.open(menuId, 'restaurant');
+            } else if (window.showActionToast) {
+                window.showActionToast({
+                    message: 'No hay una carta de restaurante activa para compartir.',
+                    type: 'warning'
+                });
             }
         }
 
@@ -2454,6 +2454,17 @@
             } else {
                 dropdown.classList.add('is-open');
                 btn?.setAttribute('aria-expanded', 'true');
+
+                // Backdrop para Bottom Sheet en móvil
+                let backdrop = document.getElementById('menuHeroDropdownBackdrop');
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.id = 'menuHeroDropdownBackdrop';
+                    backdrop.className = 'menu-hero-dropdown-backdrop';
+                    backdrop.onclick = () => this.closeOptionsMenu();
+                    document.body.appendChild(backdrop);
+                }
+
                 const closeOnClickOutside = (evt) => {
                     if (!dropdown.contains(evt.target) && evt.target !== btn && !btn?.contains(evt.target)) {
                         this.closeOptionsMenu();
@@ -2471,6 +2482,10 @@
             if (dropdown) dropdown.classList.remove('is-open');
             const btn = document.querySelector('.menu-hero-more-btn');
             if (btn) btn.setAttribute('aria-expanded', 'false');
+            const backdrop = document.getElementById('menuHeroDropdownBackdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
         }
 
         getRemovedItems() {
@@ -2768,12 +2783,6 @@
                                         <button type="button" class="menu-hero-dropdown-btn" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.openEditMenuModal();">
                                             <span class="material-symbols-outlined">edit</span>
                                             <span>${isEn ? 'Edit menu' : 'Editar carta'}</span>
-                                        </button>
-
-                                        <!-- Compartir con Equipo -->
-                                        <button type="button" class="menu-hero-dropdown-btn" onclick="window.restaurantMenu.closeOptionsMenu(); window.restaurantMenu.shareRestaurantMenu();">
-                                            <span class="material-symbols-outlined">group</span>
-                                            <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
                                         </button>
                                     ` : ''}
 

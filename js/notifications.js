@@ -169,21 +169,24 @@ class NotificationManager {
                 }
                 const isMenu = n.type === 'menu_shared';
                 const isNote = n.type === 'note_shared';
+                const isBatch = n.type === 'recipes_shared' || (Array.isArray(meta.recipe_ids) && meta.recipe_ids.length > 1);
+                const batchCount = meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1);
                 const restaurantName = meta.restaurant_name || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
                 const noteTitle = meta.note_title || (isEn ? 'Shared Note' : 'Nota compartida');
                 const noteId = meta.note_id || n.recipe_id || null;
+                const batchTitle = isEn ? `${batchCount} Shared recipes` : `${batchCount} Recetas compartidas`;
 
                 return {
                     id: n.id,
                     recipeId: n.recipe_id,
-                    recipeName: isMenu ? restaurantName : (isNote ? noteTitle : (recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida'))),
-                    type: n.type || 'recipe_shared',
+                    recipeName: isMenu ? restaurantName : (isNote ? noteTitle : (isBatch ? batchTitle : (recipeName || (isEn ? 'Shared Recipe' : 'Receta compartida')))),
+                    type: isBatch ? 'recipes_shared' : (n.type || 'recipe_shared'),
                     noteId: noteId,
                     noteTitle: noteTitle,
                     metadata: meta,
                     folderName: meta.folder_name || '',
                     recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (n.recipe_id ? [n.recipe_id] : []),
-                    recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
+                    recipeCount: batchCount,
                     menuId: meta.menu_id || null,
                     restaurantName: restaurantName,
                     menuMessage: meta.message || '',
@@ -248,12 +251,15 @@ class NotificationManager {
                         try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
                     }
                     const isMenu = nType === 'menu_shared';
+                    const isBatch = nType === 'recipes_shared' || (Array.isArray(meta.recipe_ids) && meta.recipe_ids.length > 1);
+                    const batchCount = meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1);
+                    const batchTitle = isEn ? `${batchCount} Shared recipes` : `${batchCount} Recetas compartidas`;
                     const restaurantName = meta.restaurant_name || (isEn ? 'Restaurant Menu' : 'Carta de Restaurante');
                     this.notifications.unshift({
                         id: payload.new.id,
                         recipeId: payload.new.recipe_id,
-                        recipeName: isMenu ? restaurantName : (isEn ? 'Loading recipe...' : 'Cargando receta...'),
-                        type: nType,
+                        recipeName: isMenu ? restaurantName : (isBatch ? batchTitle : (isEn ? 'Loading recipe...' : 'Cargando receta...')),
+                        type: isBatch ? 'recipes_shared' : nType,
                         folderName: meta.folder_name || '',
                         recipeIds: Array.isArray(meta.recipe_ids) ? meta.recipe_ids : (payload.new.recipe_id ? [payload.new.recipe_id] : []),
                         recipeCount: meta.recipe_count || (Array.isArray(meta.recipe_ids) ? meta.recipe_ids.length : 1),
@@ -275,10 +281,13 @@ class NotificationManager {
                 setTimeout(() => this.fetchNotifications(), 800);
                 
                 const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const isBatchNotif = payload.new?.type === 'recipes_shared' || (Array.isArray(payload.new?.metadata?.recipe_ids) && payload.new.metadata.recipe_ids.length > 1);
                 const toastMsg = (payload.new?.type === 'folder_shared')
                     ? (isEn ? '📁 You have received a new folder!' : '📁 ¡Has recibido una nueva carpeta!')
                     : (payload.new?.type === 'menu_shared')
                     ? (isEn ? '🍽️ You have been invited to a restaurant menu!' : '🍽️ ¡Te han compartido una carta de restaurante!')
+                    : isBatchNotif
+                    ? (isEn ? '📚 You have received multiple shared recipes!' : '📚 ¡Has recibido varias recetas compartidas!')
                     : (isEn ? '🔔 You have received a new recipe!' : '🔔 ¡Has recibido una nueva receta!');
                 if (window.utils && window.utils.showToast) {
                     window.utils.showToast(toastMsg, 'info');
@@ -781,6 +790,56 @@ class NotificationManager {
                                             style="flex:1; min-height:38px; padding:8px 10px; background:#f1f5f9; color:#111827; border:1px solid #cbd5e1; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
                                             onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                                             ${isEn ? 'Later' : 'Omitir'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (n.type === 'recipes_shared') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const count = n.recipeCount || (n.recipeIds ? n.recipeIds.length : 0);
+                const countText = `${count} ${count === 1 ? (isEn ? 'recipe' : 'receta') : (isEn ? 'recipes' : 'recetas')}`;
+                const safeRecipeIdsJson = encodeURIComponent(JSON.stringify(n.recipeIds || []));
+                const messageText = n.metadata?.message ? `<span style="color:#111827 !important; font-size:12.5px; display:block; margin-top:3px; font-style:italic;">💬 "${n.metadata.message}"</span>` : '';
+
+                return `
+                    <div class="notification-item ${n.leido ? '' : 'unread'}" style="background:transparent !important; padding:16px 18px; border-bottom:1px solid #f1f5f9; position:relative;">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:#d7f5e8; color:#0d5f3a; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px;">
+                                <span class="material-symbols-outlined" style="font-size:22px; color:#0d5f3a; font-variation-settings: 'FILL' 1;">library_books</span>
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <span style="color:#111827 !important; display:block; font-size:13.5px; font-weight:700; line-height:1.35;">${n.prefix} ${n.sender} ${isEn ? 'has shared multiple recipes with you' : 'te ha compartido varias recetas'}</span>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
+                                        style="background:transparent; border:none; color:#111827; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.2s;"
+                                        title="${isEn ? 'Dismiss' : 'Omitir'}">✕</button>
+                                </div>
+                                <span style="color:#111827 !important; font-weight:800; display:flex; align-items:center; gap:6px; margin-top:3px; font-size:14.5px;">
+                                    <span class="material-symbols-outlined" style="font-size:18px; color:#0d5f3a; font-variation-settings: 'FILL' 1; flex-shrink:0;">collections_bookmark</span>
+                                    <span>${countText} <span style="font-weight:500; font-size:12px; color:#4b5563;">(${isEn ? 'Multiple selection' : 'Selección múltiple'})</span></span>
+                                </span>
+                                ${messageText}
+                                <span style="color:#4b5563; font-size:11px; display:block; margin-top:4px;">${new Date(n.timestamp).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                
+                                <!-- Action buttons -->
+                                <div style="display:flex; flex-direction:column; gap:9px; margin-top:14px;">
+                                    <button onclick="event.stopPropagation(); window.notificationManager.handleAcceptBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
+                                        style="width:100%; padding:10px 14px; background:#10B981; color:white; border:none; border-radius:12px; font-size:12.5px; font-weight:700; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); transition: transform 0.15s, filter 0.15s;"
+                                        onmouseover="this.style.filter='brightness(1.08)'" onmouseout="this.style.filter='none'">
+                                        <span class="material-symbols-outlined" style="font-size:18px; font-variation-settings: 'FILL' 1;">folder</span>
+                                        <span>${isEn ? `Save all ${count} recipes in...` : `Guardar las ${count} recetas en...`}</span>
+                                    </button>
+                                    <div style="display:flex; gap:9px;">
+                                        <button onclick="event.stopPropagation(); window.notificationManager.handleDismissBatchRecipes('${n.id}', '${safeRecipeIdsJson}')"
+                                            style="width:100%; min-height:38px; padding:8px 10px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:10px; font-size:11.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-align:center; transition: background 0.2s;"
+                                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                            title="${isEn ? 'Dismiss' : 'Omitir'}">
+                                            ✕ ${isEn ? 'Dismiss' : 'Omitir'}
                                         </button>
                                     </div>
                                 </div>
@@ -1334,6 +1393,188 @@ class NotificationManager {
         } catch (err) {
             console.error('Error procesando receta:', err);
             window.utils.showToast('Error al procesar', 'error');
+        }
+    }
+
+    /**
+     * Accept Batch Recipes: Abre el modal para guardar todas las recetas compartidas en la carpeta elegida
+     */
+    handleAcceptBatchRecipes(notificationId, encodedRecipeIdsJson) {
+        this.closeMenu();
+        let recipeIds = [];
+        try { recipeIds = JSON.parse(decodeURIComponent(encodedRecipeIdsJson)); } catch (e) { recipeIds = []; }
+        if (!recipeIds || recipeIds.length === 0) {
+            const notif = this.notifications.find(item => item.id === notificationId);
+            if (notif && notif.recipeIds) recipeIds = notif.recipeIds;
+        }
+        if (!recipeIds || recipeIds.length === 0) {
+            console.warn('⚠️ [Notifications] No se encontraron IDs de recetas para el lote');
+            return;
+        }
+
+        const d = window.dashboard || window.dashboardManager;
+        if (d && typeof d.openSaveSharedRecipeModal === 'function') {
+            d.openSaveSharedRecipeModal(notificationId, null, `${recipeIds.length} recetas`, recipeIds);
+            return;
+        }
+        // Fallback directo a Despensa Principal si el modal no estuviese disponible
+        this.executeSaveBatchRecipesToFolder(notificationId, recipeIds, '');
+    }
+
+    /**
+     * Guarda todas las recetas del lote en la carpeta especificada
+     */
+    async executeSaveBatchRecipesToFolder(notificationId, recipeIds, targetFolder) {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            const cleanFolder = (targetFolder && typeof targetFolder === 'string') ? targetFolder.trim() : '';
+            window.utils.showToast(isEn ? `Saving ${recipeIds.length} recipes...` : `Guardando ${recipeIds.length} recetas...`, 'info');
+
+            if (cleanFolder && window.db && typeof window.db.createFolder === 'function') {
+                try { await window.db.createFolder(cleanFolder); } catch (e) {}
+            }
+
+            let successCount = 0;
+            for (const rId of recipeIds) {
+                try {
+                    await window.supabaseClient
+                        .from('shared_recipes')
+                        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                        .eq('recipe_id', rId)
+                        .eq('recipient_user_id', user.id);
+
+                    const dupRes = await window.db.duplicateRecipe(rId, user.id, cleanFolder, true);
+                    if (dupRes && dupRes.success) {
+                        successCount++;
+                    }
+
+                    await window.db.deleteSharedRecipe(user.id, rId);
+                } catch (rErr) {
+                    console.warn(`⚠️ Error procesando receta ${rId} del lote:`, rErr);
+                }
+            }
+
+            if (successCount > 0) {
+                await window.supabaseClient
+                    .from('notifications')
+                    .update({ leido: true })
+                    .eq('id', notificationId);
+
+                this._dismissLocally(notificationId);
+            } else {
+                throw new Error('No se pudo guardar ninguna receta del lote');
+            }
+
+            const folderDesc = cleanFolder ? `"${cleanFolder}"` : (isEn ? 'your recipes' : 'tus recetas');
+            const toastSuccess = isEn 
+                ? `✅ ${successCount} recipes saved in ${folderDesc}!`
+                : `✅ ¡${successCount} recetas guardadas en ${folderDesc}!`;
+            window.utils.showToast(toastSuccess, 'success');
+
+            const d = window.dashboard || window.dashboardManager;
+            if (d) {
+                d.currentView = 'recipes';
+                if (cleanFolder) {
+                    try { sessionStorage.setItem('rp_current_folder', cleanFolder); } catch (e) {}
+                    d.currentFolder = cleanFolder;
+                }
+                if (typeof d.loadRecipes === 'function') {
+                    await d.loadRecipes({ forceRefresh: true });
+                }
+                if (typeof d.renderFolders === 'function') d.renderFolders();
+            }
+        } catch (err) {
+            console.error('❌ Error guardando lote de recetas en carpeta:', err);
+            window.utils.showToast(isEn ? 'Error saving recipes' : 'Error al guardar las recetas', 'error');
+        }
+    }
+
+    /**
+     * Decline Batch Recipes: Guarda las recetas en la sección Compartidas
+     */
+    async handleDeclineBatchRecipes(notificationId, encodedRecipeIdsJson) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            let recipeIds = [];
+            try { recipeIds = JSON.parse(decodeURIComponent(encodedRecipeIdsJson)); } catch (e) { recipeIds = []; }
+
+            if (!recipeIds || recipeIds.length === 0) {
+                const notif = this.notifications.find(item => item.id === notificationId);
+                if (notif && notif.recipeIds) recipeIds = notif.recipeIds;
+            }
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Saving recipes in shared...' : 'Guardando recetas en compartidas...', 'info');
+
+            if (recipeIds.length > 0) {
+                await window.supabaseClient
+                    .from('shared_recipes')
+                    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+                    .in('recipe_id', recipeIds)
+                    .eq('recipient_user_id', user.id);
+            }
+
+            await window.supabaseClient
+                .from('notifications')
+                .update({ leido: true })
+                .eq('id', notificationId);
+
+            this._dismissLocally(notificationId);
+
+            window.utils.showToast(isEn ? `${recipeIds.length} recipes kept in Shared section` : `${recipeIds.length} recetas guardadas en compartidas`, 'success');
+
+            if (window.dashboardManager) {
+                window.dashboardManager.switchView('shared');
+            } else if (window.dashboard) {
+                window.dashboard.switchView('shared');
+            }
+        } catch (err) {
+            console.error('❌ Error guardando recetas en compartidas:', err);
+            window.utils.showToast('Error al procesar', 'error');
+        }
+    }
+
+    /**
+     * Dismiss Batch Recipes: Omite / descarta el lote de recetas compartidas
+     */
+    async handleDismissBatchRecipes(notificationId, encodedRecipeIdsJson) {
+        try {
+            const user = window.authManager?.currentUser;
+            if (!user) return;
+
+            let recipeIds = [];
+            try { recipeIds = JSON.parse(decodeURIComponent(encodedRecipeIdsJson)); } catch (e) { recipeIds = []; }
+
+            if (!recipeIds || recipeIds.length === 0) {
+                const notif = this.notifications.find(item => item.id === notificationId);
+                if (notif && notif.recipeIds) recipeIds = notif.recipeIds;
+            }
+
+            if (recipeIds.length > 0) {
+                await window.supabaseClient
+                    .from('shared_recipes')
+                    .delete()
+                    .in('recipe_id', recipeIds)
+                    .eq('recipient_user_id', user.id);
+            }
+
+            await window.supabaseClient
+                .from('notifications')
+                .update({ leido: true })
+                .eq('id', notificationId);
+
+            this._dismissLocally(notificationId);
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            window.utils.showToast(isEn ? 'Recipes dismissed' : 'Recetas omitidas', 'info');
+        } catch (err) {
+            console.error('❌ Error omitiendo lote de recetas:', err);
+            window.utils.showToast('Error al omitir', 'error');
         }
     }
 

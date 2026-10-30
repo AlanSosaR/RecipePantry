@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="983">
+<html lang="es" data-app-version="984">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=983">
-  <link rel="stylesheet" href="css/components.css?v=983">
-  <script src="js/m3-loading-indicator.js?v=983"></script>
+  <link rel="stylesheet" href="css/styles.css?v=984">
+  <link rel="stylesheet" href="css/components.css?v=984">
+  <script src="js/m3-loading-indicator.js?v=984"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -71,6 +71,7 @@
         }
       }
       if (v === 'settings') v = 'help';
+      document.documentElement.setAttribute('data-current-view', v);
 
       const lang = localStorage.getItem('lang') || 'es';
       const isEn = lang === 'en';
@@ -132,6 +133,23 @@
     /* Si hay carpeta activa, ocultar cabecera general y mostrar breadcrumb desde el primer frame */
     html[data-active-folder] .dashboard-header,
     html[data-active-folder] #suggestedCarouselSection {
+      display: none !important;
+    }
+    /* Ocultar cabecera de recetas en vistas autónomas (alergias, menú, ayuda, proveedores, tareas) desde el frame 0 */
+    html:not([data-current-view="recipes"]):not([data-current-view="favorites"]):not([data-current-view="shared"]) .dashboard-header,
+    body:not([data-current-view="recipes"]):not([data-current-view="favorites"]):not([data-current-view="shared"]) .dashboard-header,
+    html[data-current-view="allergens"] .dashboard-header,
+    body[data-current-view="allergens"] .dashboard-header,
+    html[data-current-view="menu"] .dashboard-header,
+    body[data-current-view="menu"] .dashboard-header,
+    html[data-current-view="help"] .dashboard-header,
+    body[data-current-view="help"] .dashboard-header,
+    html[data-current-view="settings"] .dashboard-header,
+    body[data-current-view="settings"] .dashboard-header,
+    html[data-current-view="suppliers"] .dashboard-header,
+    body[data-current-view="suppliers"] .dashboard-header,
+    html[data-current-view="tasks"] .dashboard-header,
+    body[data-current-view="tasks"] .dashboard-header {
       display: none !important;
     }
     /* En modo selección dentro de carpeta, mostrar el header para "Seleccionar todo" y "Anular selección" */
@@ -907,35 +925,37 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=983"></script>
-  <script src="js/supabase-client.js?v=983"></script>
-  <script src="js/localdb.js?v=983"></script>
-  <script src="js/sync-manager.js?v=983"></script>
-  <script src="js/m3-loading-indicator.js?v=983"></script>
-  <script src="js/utils.js?v=983"></script>
-  <script src="js/i18n.js?v=983"></script>
-  <script src="js/allergen-data.js?v=983"></script>
-  <script src="js/menu-data.js?v=983"></script>
-  <script src="js/lib/pdf.min.js?v=983"></script>
-  <script src="js/restaurant-menu.js?v=983"></script>
-  <script src="js/db.js?v=983"></script>
-  <script src="js/auth.js?v=983"></script>
-  <script src="js/dashboard.js?v=983"></script>
-  <script src="js/share-modal.js?v=983"></script>
-  <script src="js/help-modal.js?v=983"></script>
-  <script src="js/admin-users.js?v=983"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=983"></script>
-  <script src="js/suppliers-manager.js?v=983"></script>
-  <script src="js/tasks-manager.js?v=983"></script>
+
+  <script src="js/config.js?v=984"></script>
+  <script src="js/supabase-client.js?v=984"></script>
+  <script src="js/localdb.js?v=984"></script>
+  <script src="js/sync-manager.js?v=984"></script>
+  <script src="js/m3-loading-indicator.js?v=984"></script>
+  <script src="js/utils.js?v=984"></script>
+  <script src="js/i18n.js?v=984"></script>
+  <script src="js/allergen-data.js?v=984"></script>
+  <script src="js/menu-data.js?v=984"></script>
+  <script src="js/lib/pdf.min.js?v=984"></script>
+  <script src="js/restaurant-menu.js?v=984"></script>
+  <script src="js/db.js?v=984"></script>
+  <script src="js/auth.js?v=984"></script>
+  <script src="js/dashboard.js?v=984"></script>
+  <script src="js/share-modal.js?v=984"></script>
+  <script src="js/help-modal.js?v=984"></script>
+  <script src="js/admin-users.js?v=984"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=984"></script>
+  <script src="js/suppliers-manager.js?v=984"></script>
+  <script src="js/tasks-manager.js?v=984"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=983"></script>
-  <script src="js/core/push.js?v=983"></script>
-  <script src="js/notifications.js?v=983"></script>
-  <script src="js/ui.js?v=983"></script>
-  <script src="js/sw-register.js?v=983"></script>
-<script src="js/pwa-install.js?v=983"></script>
-  <script src="js/gemini-client.js?v=983"></script>
-  <script type="module" src="js/url-importer.js?v=983"></script>
+  <script type="module" src="js/core/firebase.js?v=984"></script>
+  <script src="js/core/push.js?v=984"></script>
+  <script src="js/notifications.js?v=984"></script>
+  <script src="js/ui.js?v=984"></script>
+  <script src="js/sw-register.js?v=984"></script>
+<script src="js/pwa-install.js?v=984"></script>
+  <script src="js/gemini-client.js?v=984"></script>
+  <script type="module" src="js/url-importer.js?v=984"></script>
+
 
   <script type="module">
     import '@material/web/button/filled-button.js'

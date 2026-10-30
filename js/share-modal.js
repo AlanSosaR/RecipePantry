@@ -139,31 +139,32 @@ class ShareModalManager {
             const noteName = note ? (note.title || (note.type === 'checklist' ? 'Lista sin título' : 'Nota sin título')) : 'Nota';
             if (subElem) subElem.textContent = `${noteName} • 1 elemento`;
         } else {
-            if (iconElem) iconElem.textContent = 'description';
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
             const allRecs = window.dashboard?.currentRecipes || [];
 
             if (Array.isArray(targetId)) {
                 const count = targetId.length;
                 if (count === 1) {
+                    if (iconElem) iconElem.textContent = 'description';
                     const recipe = allRecs.find(r => String(r.id) === String(targetId[0]));
-                    const recipeName = recipe ? (recipe.name_es || recipe.name_en || 'Receta') : 'Receta';
-                    if (titleElem) titleElem.textContent = 'Compartir receta';
-                    if (subElem) subElem.textContent = `${recipeName} • 1 elemento`;
+                    const recipeName = recipe ? (recipe.name_es || recipe.name_en || (isEn ? 'Recipe' : 'Receta')) : (isEn ? 'Recipe' : 'Receta');
+                    if (titleElem) titleElem.textContent = isEn ? 'Share recipe' : 'Compartir receta';
+                    if (subElem) subElem.textContent = `${recipeName} • ${isEn ? '1 item' : '1 elemento'}`;
                 } else {
-                    const firstRecipe = allRecs.find(r => String(r.id) === String(targetId[0]));
-                    const firstName = firstRecipe ? (firstRecipe.name_es || firstRecipe.name_en) : null;
-                    if (titleElem) titleElem.textContent = 'Compartir receta';
+                    if (iconElem) iconElem.textContent = 'library_books';
+                    if (titleElem) titleElem.textContent = isEn ? 'Share recipes' : 'Compartir recetas';
                     if (subElem) {
-                        subElem.textContent = firstName 
-                            ? `${firstName} • ${count} elementos` 
-                            : `${count} elementos`;
+                        subElem.textContent = isEn 
+                            ? `${count} selected items` 
+                            : `${count} elementos seleccionados`;
                     }
                 }
             } else {
+                if (iconElem) iconElem.textContent = 'description';
                 const recipe = allRecs.find(r => String(r.id) === String(targetId));
-                const recipeName = recipe ? (recipe.name_es || recipe.name_en || 'Receta') : 'Receta';
-                if (titleElem) titleElem.textContent = 'Compartir receta';
-                if (subElem) subElem.textContent = `${recipeName} • 1 elemento`;
+                const recipeName = recipe ? (recipe.name_es || recipe.name_en || (isEn ? 'Recipe' : 'Receta')) : (isEn ? 'Recipe' : 'Receta');
+                if (titleElem) titleElem.textContent = isEn ? 'Share recipe' : 'Compartir receta';
+                if (subElem) subElem.textContent = `${recipeName} • ${isEn ? '1 item' : '1 elemento'}`;
             }
         }
 

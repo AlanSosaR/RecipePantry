@@ -3734,10 +3734,10 @@ class DashboardManager {
         modal.classList.remove('hidden');
     }
 
-    async openSaveSharedRecipeModal(notificationId, recipeId, recipeName) {
-        if (!recipeId) return;
+    async openSaveSharedRecipeModal(notificationId, recipeId, recipeName, recipeIds = null) {
+        if (!recipeId && (!recipeIds || recipeIds.length === 0)) return;
         this.pendingMoveRecipeIds = null;
-        this.pendingSaveSharedRecipe = { notificationId, recipeId, recipeName };
+        this.pendingSaveSharedRecipe = { notificationId, recipeId, recipeIds, recipeName };
         this.selectedMoveTargetFolder = null;
 
         document.querySelectorAll('.recipe-context-menu').forEach(m => m.remove());
@@ -3766,8 +3766,12 @@ class DashboardManager {
         }
 
         if (titleEl) {
-            const displayName = recipeName ? `"${recipeName}"` : (isEn ? 'recipe' : 'receta');
-            titleEl.textContent = isEn ? `Save ${displayName} to...` : `Guardar ${displayName} en...`;
+            if (recipeIds && recipeIds.length > 1) {
+                titleEl.textContent = isEn ? `Save ${recipeIds.length} recipes in...` : `Guardar ${recipeIds.length} recetas en...`;
+            } else {
+                const displayName = recipeName ? `"${recipeName}"` : (isEn ? 'recipe' : 'receta');
+                titleEl.textContent = isEn ? `Save ${displayName} to...` : `Guardar ${displayName} en...`;
+            }
         }
 
         await this.populateMoveModalFolderList(null);
@@ -3816,11 +3820,15 @@ class DashboardManager {
         const targetFolder = this.selectedMoveTargetFolder.trim();
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
-        // Caso especial: Guardar receta compartida
+        // Caso especial: Guardar receta(s) compartida(s)
         if (this.pendingSaveSharedRecipe) {
-            const { notificationId, recipeId, recipeName } = this.pendingSaveSharedRecipe;
+            const { notificationId, recipeId, recipeIds, recipeName } = this.pendingSaveSharedRecipe;
             this.closeMoveModal();
-            if (window.notificationManager && typeof window.notificationManager.executeSaveRecipeToFolder === 'function') {
+            if (recipeIds && recipeIds.length > 1) {
+                if (window.notificationManager && typeof window.notificationManager.executeSaveBatchRecipesToFolder === 'function') {
+                    await window.notificationManager.executeSaveBatchRecipesToFolder(notificationId, recipeIds, targetFolder);
+                }
+            } else if (window.notificationManager && typeof window.notificationManager.executeSaveRecipeToFolder === 'function') {
                 await window.notificationManager.executeSaveRecipeToFolder(notificationId, recipeId, targetFolder, recipeName);
             }
             return;
@@ -3913,8 +3921,8 @@ class DashboardManager {
             this.cancelCreateFolderInMoveModal();
 
             if (this.pendingSaveSharedRecipe) {
-                const { notificationId, recipeId, recipeName } = this.pendingSaveSharedRecipe;
-                await this.openSaveSharedRecipeModal(notificationId, recipeId, recipeName);
+                const { notificationId, recipeId, recipeName, recipeIds } = this.pendingSaveSharedRecipe;
+                await this.openSaveSharedRecipeModal(notificationId, recipeId, recipeName, recipeIds);
                 this.selectMoveTarget(name);
             } else {
                 // Re-render move modal keeping current pendingMoveRecipeIds
