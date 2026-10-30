@@ -462,68 +462,6 @@
                         <!-- Se llena dinámicamente -->
                     </div>
 
-                    <!-- Módulo M3 Expressive: Gestión de Carta de Menú -->
-                    <div id="admin-menu-management-card" style="
-                        background: #F8FAFC;
-                        border: 1px solid #E2E8F0;
-                        border-radius: 18px;
-                        padding: 16px 18px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        gap: 14px;
-                        flex-wrap: wrap;
-                        margin-top: 4px;
-                    ">
-                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-                            <div style="
-                                width: 42px;
-                                height: 42px;
-                                border-radius: 14px;
-                                background: rgba(16, 185, 129, 0.12);
-                                color: #059669;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                flex-shrink: 0;
-                            ">
-                                <span class="material-symbols-outlined" style="font-size: 22px;">restaurant_menu</span>
-                            </div>
-                            <div style="min-width: 0;">
-                                <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #064E3B; line-height: 1.25;">
-                                    ${isEn ? 'Menu Card Management' : 'Gestión de Carta de Menú'}
-                                </h4>
-                                <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748B; line-height: 1.35;">
-                                    ${isEn 
-                                        ? 'Share the current restaurant menu and wine list with team members.' 
-                                        : 'Comparte la carta y menú actual del restaurante con los miembros del equipo.'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <button type="button" id="btn-admin-share-team" onclick="if(window.restaurantMenu?.shareRestaurantMenu){window.restaurantMenu.shareRestaurantMenu();}else if(window.shareModal){window.shareModal.open('default_menu','restaurant');}" style="
-                            padding: 9px 18px;
-                            background: #10B981;
-                            border: none;
-                            border-radius: 999px;
-                            font-family: var(--font-display, 'Poppins', sans-serif);
-                            font-size: 13px;
-                            font-weight: 700;
-                            color: #FFFFFF;
-                            cursor: pointer;
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 7px;
-                            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-                            white-space: nowrap;
-                            flex-shrink: 0;
-                        " onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10B981'"
-                        title="${isEn ? 'Share Restaurant Menu with Team' : 'Compartir Carta con Equipo'}">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">group</span>
-                            <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
-                        </button>
-                    </div>
                 </div>
                 <div style="border-top: 1px solid #E2E8F0; margin: 4px -2px 0 -2px;"></div>
 
