@@ -4662,89 +4662,41 @@ openOrderForm(supplierId) {
             const orderedItems = Array.from(skuMap.values());
 
             if (orderedItems.length === 0) {
-                window.open('https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx', '_blank');
+                window.open('https://ipa-pay.ipapurchasing.co.uk/basket', '_blank');
                 return;
             }
 
-            // Mostrar overlay de carga M3 Expressive en la ventana actual
-            let loadingOverlay = document.getElementById('rpIpaLoadingOverlay');
-            if (!loadingOverlay) {
-                loadingOverlay = document.createElement('div');
-                loadingOverlay.id = 'rpIpaLoadingOverlay';
-                loadingOverlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;font-family:var(--font-display,Poppins,sans-serif);';
-                loadingOverlay.innerHTML = `
-                    <div style="background:var(--surface,#fff);border:2px solid var(--primary,#10b981);border-radius:24px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 16px 40px rgba(0,0,0,0.18);text-align:center;">
-                        <div style="width:40px;height:40px;border:4px solid #d1fae5;border-top-color:#10b981;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;"></div>
-                        <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;color:var(--text-main,#111827);">${isEn ? `Adding ${orderedItems.length} product(s) to cart...` : `Cargando ${orderedItems.length} producto(s) al carrito...`}</h3>
-                        <p style="margin:0;font-size:13.5px;color:var(--text-secondary,#4b5563);line-height:1.45;">${isEn ? `Syncing with IPA Purchasing (${sup.name})...` : `Sincronizando con IPA Purchasing (${sup.name})...`}</p>
-                    </div>
-                `;
-                document.body.appendChild(loadingOverlay);
-            }
-
-            // 1. Abrir ventana auxiliar temporal para ejecutar /?logout=1 como navegación First-Party (limpia .AspNet.ApplicationCookie en móvil y PC)
-            // y cerrarla automáticamente apenas haga commit, para luego navegar la ventana principal (_self) con el POST de autoLoginForm.
-            const logoutWin = window.open('about:blank', 'rp_ipa_logout_' + Date.now(), 'width=120,height=120,left=9999,top=9999');
-            if (logoutWin) {
+            // 1. Abrir de inmediato una nueva pestaña/página en segundo plano para que el navegador NO bloquee el popup y NO te saque del sistema en PC ni en móvil
+            const portalWin = window.open('about:blank', '_blank');
+            if (portalWin && portalWin.document) {
                 try {
-                    logoutWin.location.href = 'https://ipa-pay.ipapurchasing.co.uk/?logout=1';
+                    portalWin.document.open();
+                    portalWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cargando Carrito IPA...</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f8faf9;font-family:Poppins,system-ui,sans-serif;color:#111827;text-align:center;padding:24px;box-sizing:border-box}.card{background:#fff;border:2px solid #10b981;border-radius:24px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 12px 32px rgba(0,0,0,0.08)}.spinner{width:38px;height:38px;border:4px solid #d1fae5;border-top-color:#10b981;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}@keyframes spin{to{transform:rotate(360deg)}}h2{margin:0 0 8px;font-size:18px;font-weight:700}p{margin:0;font-size:13.5px;color:#4b5563;line-height:1.45}</style></head><body><div class="card"><div class="spinner"></div><h2>Cargando ${orderedItems.length} producto(s) al carrito...</h2><p>Conectando con IPA Purchasing (${sup.name})...</p></div></body></html>`);
+                    portalWin.document.close();
                 } catch (_e) {}
             }
 
-            const waitForLogoutAndClose = () => new Promise((resolve) => {
-                if (!logoutWin) {
-                    fetch('https://ipa-pay.ipapurchasing.co.uk/?logout=1', {
-                        method: 'GET',
-                        mode: 'no-cors',
-                        credentials: 'include',
-                        cache: 'no-store'
-                    }).catch(() => {}).finally(() => setTimeout(resolve, 600));
-                    return;
-                }
-                const startTs = Date.now();
-                const timer = setInterval(() => {
-                    if (logoutWin.closed || (Date.now() - startTs) > 4500) {
-                        clearInterval(timer);
-                        try { if (!logoutWin.closed) logoutWin.close(); } catch (_e) {}
-                        resolve();
-                        return;
-                    }
-                    try {
-                        const currentHref = logoutWin.location.href;
-                        if (currentHref && currentHref !== 'about:blank') {
-                            clearInterval(timer);
-                            setTimeout(() => {
-                                try { if (!logoutWin.closed) logoutWin.close(); } catch (_e) {}
-                                resolve();
-                            }, 350);
-                        }
-                    } catch (_crossOriginCommitted) {
-                        // Commit cross-origin completado: .AspNet.ApplicationCookie ya fue eliminada
-                        clearInterval(timer);
-                        setTimeout(() => {
-                            try { if (!logoutWin.closed) logoutWin.close(); } catch (_e) {}
-                            resolve();
-                        }, 350);
-                    }
-                }, 80);
-            });
+            this.notify(
+                isEn
+                    ? `Adding ${orderedItems.length} product(s) to your IPA shopping cart...`
+                    : `Cargando ${orderedItems.length} producto(s) directo a tu carrito de IPA...`,
+                'info',
+                4000
+            );
 
             try {
+                // 2. Invocar la función en Supabase (agrega en ~1.8s los productos a la cuenta vinculada)
                 const sb = window.supabaseClient;
-                const [, invokeResult] = await Promise.all([
-                    waitForLogoutAndClose(),
-                    sb.functions.invoke('ipa-auto-cart', {
-                        body: {
-                            supplierName: sup.name,
-                            accountCode: sup.account_code || '',
-                            items: orderedItems
-                        }
-                    })
-                ]);
-                const { data, error } = invokeResult || {};
+                const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
+                    body: {
+                        supplierName: sup.name,
+                        accountCode: sup.account_code || '',
+                        items: orderedItems
+                    }
+                });
 
                 if (error || (data && (data.code === 'INVALID_CREDENTIALS' || data.code === 'MISSING_CREDENTIALS'))) {
-                    if (loadingOverlay) loadingOverlay.remove();
+                    if (portalWin && !portalWin.closed) portalWin.close();
                     this.notify(
                         data?.error || (isEn
                             ? 'IPA account is not configured. Check Super Admin Settings.'
@@ -4754,30 +4706,56 @@ openOrderForm(supplierId) {
                     return;
                 }
 
-                if (data && data.success && data.autoLoginForm && data.autoLoginForm.action) {
-                    // 2. Enviar POST de auto-login en _self (misma ventana: nunca es bloqueado por Chrome en PC ni en móvil)
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = data.autoLoginForm.action;
-                    form.target = '_self';
-                    form.style.display = 'none';
-                    for (const [k, v] of Object.entries(data.autoLoginForm.fields || {})) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = k;
-                        input.value = String(v ?? '');
-                        form.appendChild(input);
+                if (data && data.success) {
+                    this.notify(
+                        isEn
+                            ? `✅ ${data.addedCount} product(s) added to IPA Cart! Opening basket...`
+                            : `✅ ¡${data.addedCount} producto(s) agregados al carrito de IPA! Abriendo carrito...`,
+                        'success'
+                    );
+
+                    // 3. Escribir un formulario auto-ejecutable dentro de la nueva pestaña (portalWin)
+                    // para que haga auto-login y aterrice directamente en /basket con el carrito activo
+                    if (data.autoLoginForm && data.autoLoginForm.action && portalWin && !portalWin.closed && portalWin.document) {
+                        try {
+                            const fields = data.autoLoginForm.fields || {};
+                            let inputsHtml = '';
+                            for (const [k, v] of Object.entries(fields)) {
+                                inputsHtml += '<input type="hidden" name="' + k.replace(/"/g, '&quot;') + '" value="' + String(v ?? '').replace(/"/g, '&quot;') + '">';
+                            }
+
+                            portalWin.document.open();
+                            portalWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Abriendo Carrito...</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f8faf9;font-family:Poppins,system-ui,sans-serif;color:#111827;text-align:center;padding:24px;box-sizing:border-box}.card{background:#fff;border:2px solid #10b981;border-radius:24px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 12px 32px rgba(0,0,0,0.08)}.spinner{width:38px;height:38px;border:4px solid #d1fae5;border-top-color:#10b981;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}@keyframes spin{to{transform:rotate(360deg)}}h2{margin:0 0 8px;font-size:18px;font-weight:700}p{margin:0;font-size:13.5px;color:#4b5563;line-height:1.45}</style></head><body><div class="card"><div class="spinner"></div><h2>Abriendo tu Carrito de IPA...</h2><p>Entrando a la cuenta vinculada...</p></div><form id="autoForm" method="POST" action="${data.autoLoginForm.action}">${inputsHtml}</form><script>document.getElementById('autoForm').submit();</script></body></html>`);
+                            portalWin.document.close();
+                            return;
+                        } catch (docErr) {
+                            console.warn('[IPA AutoLogin] Fallback a navegación directa:', docErr);
+                        }
                     }
-                    document.body.appendChild(form);
-                    form.submit();
+
+                    const targetUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket';
+                    if (portalWin && !portalWin.closed) {
+                        portalWin.location.href = targetUrl;
+                    } else {
+                        window.open(targetUrl, '_blank');
+                    }
                     return;
                 }
 
-                window.location.href = 'https://ipa-pay.ipapurchasing.co.uk/basket?e20=1';
+                const fallbackUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket';
+                if (portalWin && !portalWin.closed) {
+                    portalWin.location.href = fallbackUrl;
+                } else {
+                    window.open(fallbackUrl, '_blank');
+                }
             } catch (err) {
                 console.warn('Error invocando ipa-auto-cart:', err);
-                if (loadingOverlay) loadingOverlay.remove();
-                window.location.href = 'https://ipa-pay.ipapurchasing.co.uk/basket?e20=1';
+                const fallbackUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket';
+                if (portalWin && !portalWin.closed) {
+                    portalWin.location.href = fallbackUrl;
+                } else {
+                    window.open(fallbackUrl, '_blank');
+                }
             }
         }
 
