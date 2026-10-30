@@ -4634,148 +4634,8 @@ openOrderForm(supplierId) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /** Obtiene las credenciales guardadas de IPA Purchasing desde caché local o Supabase app_settings */
-        async _getIpaCredentials() {
-            try {
-                const cached = localStorage.getItem('recipe_pantry_ipa_credentials');
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (parsed && parsed.username && parsed.password) return parsed;
-                }
-            } catch (e) {}
-
-            try {
-                const sb = window.supabaseClient;
-                if (sb) {
-                    const { data } = await sb
-                        .from('app_settings')
-                        .select('setting_value')
-                        .eq('setting_key', 'ipa_portal_credentials')
-                        .maybeSingle();
-                    if (data && data.setting_value) {
-                        const parsed = JSON.parse(data.setting_value);
-                        if (parsed && parsed.username && parsed.password) {
-                            localStorage.setItem('recipe_pantry_ipa_credentials', JSON.stringify(parsed));
-                            return parsed;
-                        }
-                    }
-                }
-            } catch (e) {}
-            return null;
-        }
-
-        /** Muestra modal M3 Expressive para conectar usuario y contraseña de IPA Purchasing (Teléfono y PC) */
-        _promptIpaCredentialsModal(onSavedCallback) {
-            const isEn = this.isEnglish();
-            const existing = document.getElementById('ipaCredentialsModalOverlay');
-            if (existing) existing.remove();
-
-            let currentCreds = { username: '', password: '' };
-            try {
-                const raw = localStorage.getItem('recipe_pantry_ipa_credentials');
-                if (raw) currentCreds = JSON.parse(raw) || currentCreds;
-            } catch (e) {}
-
-            const overlay = document.createElement('div');
-            overlay.id = 'ipaCredentialsModalOverlay';
-            overlay.className = 'modal-overlay';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.48);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:10000;padding:16px;';
-            overlay.innerHTML = `
-                <div style="
-                    background: var(--surface, #ffffff);
-                    border: 1px solid var(--border);
-                    border-radius: var(--radius-xl, 24px);
-                    max-width: 420px;
-                    width: 100%;
-                    padding: 24px;
-                    box-shadow: var(--shadow-lg);
-                    font-family: var(--font-display);
-                    animation: modalSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-                ">
-                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-                        <div style="width:42px;height:42px;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <span class="material-symbols-outlined" style="font-size:22px;">shopping_cart_checkout</span>
-                        </div>
-                        <div>
-                            <h3 style="margin:0;font-size:17px;font-weight:800;color:var(--text-main);line-height:1.2;">
-                                ${isEn ? 'Connect IPA Account' : 'Conectar Cuenta de IPA'}
-                            </h3>
-                            <p style="margin:2px 0 0 0;font-size:12px;color:var(--text-secondary);">
-                                ${isEn ? 'Works automatically on Phone & PC' : 'Envío directo al carrito desde Teléfono y PC'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <p style="margin:0 0 16px 0;font-size:13px;color:var(--text-secondary);line-height:1.45;">
-                        ${isEn
-                            ? 'Enter your IPA Purchasing login once so the server can add your products directly into your IPA shopping cart.'
-                            : 'Ingresa tu usuario y contraseña de IPA una sola vez para que el servidor cargue los productos directo a tu carrito de IPA.'}
-                    </p>
-
-                    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
-                        <div class="m3-field-container" style="margin:0;">
-                            <input type="text" id="ipaModalUsername" value="${currentCreds.username || ''}" placeholder=" " class="m3-field-input" autocomplete="username" />
-                            <label for="ipaModalUsername" class="m3-field-label">${isEn ? 'IPA Email / Username' : 'Usuario o Correo de IPA'}</label>
-                        </div>
-                        <div class="m3-field-container" style="margin:0;">
-                            <input type="password" id="ipaModalPassword" value="${currentCreds.password || ''}" placeholder=" " class="m3-field-input" autocomplete="current-password" />
-                            <label for="ipaModalPassword" class="m3-field-label">${isEn ? 'IPA Password' : 'Contraseña de IPA'}</label>
-                        </div>
-                    </div>
-
-                    <div style="display:flex;justify-content:flex-end;gap:10px;">
-                        <button type="button" id="btnIpaModalCancel" style="
-                            height:40px;padding:0 18px;border-radius:var(--radius-full);
-                            border:1px solid var(--border);background:var(--bg);color:var(--text-main);
-                            font-family:var(--font-display);font-size:13px;font-weight:600;cursor:pointer;
-                        ">${isEn ? 'Cancel' : 'Cancelar'}</button>
-                        <button type="button" id="btnIpaModalSave" style="
-                            height:40px;padding:0 20px;border-radius:var(--radius-full);
-                            border:none;background:var(--primary);color:var(--on-primary, #ffffff);
-                            font-family:var(--font-display);font-size:13px;font-weight:700;cursor:pointer;
-                        ">${isEn ? 'Save & Send to Cart' : 'Guardar y Enviar al Carrito'}</button>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(overlay);
-
-            const close = () => overlay.remove();
-            overlay.querySelector('#btnIpaModalCancel').onclick = close;
-            overlay.onclick = (e) => { if (e.target === overlay) close(); };
-
-            overlay.querySelector('#btnIpaModalSave').onclick = async () => {
-                const username = (overlay.querySelector('#ipaModalUsername')?.value || '').trim();
-                const password = overlay.querySelector('#ipaModalPassword')?.value || '';
-                if (!username || !password) {
-                    this.notify(isEn ? 'Enter both username and password' : 'Ingresa tu usuario y contraseña de IPA', 'warning');
-                    return;
-                }
-
-                const credsObj = { username, password, updatedAt: Date.now() };
-                localStorage.setItem('recipe_pantry_ipa_credentials', JSON.stringify(credsObj));
-
-                close();
-                if (typeof onSavedCallback === 'function') {
-                    onSavedCallback(credsObj);
-                }
-
-                try {
-                    const sb = window.supabaseClient;
-                    if (sb) {
-                        await sb.from('app_settings').upsert({
-                            setting_key: 'ipa_portal_credentials',
-                            setting_value: JSON.stringify(credsObj),
-                            description: 'Credenciales de acceso automático al portal IPA Purchasing',
-                            updated_at: new Date().toISOString()
-                        }, { onConflict: 'setting_key' });
-                    }
-                } catch (e) {}
-            };
-        }
-
-        /** Envía el pedido directamente al carrito de IPA Purchasing desde servidor (Teléfono y PC) */
-        async sendOrderToIpaPortal(supplierId, forcePrompt = false) {
+        /** Envía el pedido directamente al carrito de IPA Purchasing usando la cuenta vinculada en servidor (Teléfono y PC) */
+        async sendOrderToIpaPortal(supplierId) {
             const isEn = this.isEnglish();
             const sup = this.suppliers.find(s => s.id === supplierId);
             if (!sup) return;
@@ -4800,17 +4660,6 @@ openOrderForm(supplierId) {
                 return;
             }
 
-            if (forcePrompt) {
-                this._promptIpaCredentialsModal(() => this.sendOrderToIpaPortal(supplierId, false));
-                return;
-            }
-
-            const creds = await this._getIpaCredentials();
-            if (!creds || !creds.username || !creds.password) {
-                this._promptIpaCredentialsModal(() => this.sendOrderToIpaPortal(supplierId, false));
-                return;
-            }
-
             // Abrir pestaña de forma inmediata para evitar bloqueadores de popups en teléfono y PC
             const portalWin = window.open('about:blank', '_blank');
             if (portalWin && portalWin.document) {
@@ -4832,21 +4681,20 @@ openOrderForm(supplierId) {
                 const sb = window.supabaseClient;
                 const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
                     body: {
-                        username: creds.username,
-                        password: creds.password,
                         supplierName: sup.name,
                         accountCode: sup.account_code || '',
                         items: orderedItems
                     }
                 });
 
-                if (error || (data && data.code === 'INVALID_CREDENTIALS')) {
+                if (error || (data && (data.code === 'INVALID_CREDENTIALS' || data.code === 'MISSING_CREDENTIALS'))) {
                     if (portalWin && !portalWin.closed) portalWin.close();
                     this.notify(
-                        isEn ? 'IPA login failed. Please check your IPA credentials.' : 'Usuario o contraseña de IPA incorrectos. Verifícalos.',
+                        data?.error || (isEn
+                            ? 'IPA account is not configured. Check Super Admin Settings.'
+                            : 'Verifica la cuenta vinculada de IPA en Configuración de Super Usuario.'),
                         'error'
                     );
-                    this._promptIpaCredentialsModal(() => this.sendOrderToIpaPortal(supplierId, false));
                     return;
                 }
 
