@@ -100,37 +100,14 @@
         });
     }
 
-    // Agrega todos los productos directo al carrito usando la API oficial de IPA (/api/suggestions/get/ + /api/basket/add)
+    // Agrega todos los productos directo al carrito en la sesión del navegador
     async function addItemsDirectlyViaIpaApi(orderData) {
         const items = orderData.items || [];
         if (items.length === 0) return;
 
-        // Si el servidor (ipa-auto-cart) ya cargó los productos en la cuenta vinculada, no volver a agregarlos
-        if (orderData.serverAdded) {
-            sessionStorage.removeItem(STORAGE_KEY);
-            showStatusBanner(
-                `¡${items.length} productos en tu carrito! 🛒`,
-                `Enviados desde RecipePantry (${orderData.supplierName || 'IPA'}).`,
-                'success'
-            );
-            if (!window.location.pathname.toLowerCase().includes('/basket')) {
-                window.location.href = '/basket';
-            }
-            return;
-        }
-
         const itemsToAdd = items.filter(it => Boolean(String(it.sku || '').trim()));
-
         if (itemsToAdd.length === 0) {
             sessionStorage.removeItem(STORAGE_KEY);
-            showStatusBanner(
-                `¡${items.length} productos en tu carrito! 🛒`,
-                `Enviados desde RecipePantry (${orderData.supplierName || 'IPA'}).`,
-                'success'
-            );
-            if (!window.location.pathname.toLowerCase().includes('/basket')) {
-                window.location.href = '/basket';
-            }
             return;
         }
 
@@ -140,6 +117,15 @@
             'info'
         );
 
+        // 1. Limpiar primero el carrito de esta sesión de navegador en 100ms para evitar duplicados
+        try {
+            await fetch('/api/basket/clear', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+        } catch (_e) {}
+
+        // 2. Agregar cada producto con su cantidad exacta
         for (let i = 0; i < itemsToAdd.length; i++) {
             const item = itemsToAdd[i];
             const sku = String(item.sku || '').trim();
@@ -185,7 +171,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': '/my-account/quick-order.aspx'
                 },
                 credentials: 'same-origin',
                 body: params.toString()
@@ -194,14 +181,19 @@
 
         sessionStorage.removeItem(STORAGE_KEY);
         showStatusBanner(
-            `¡${items.length} productos agregados al carrito! 🛒`,
-            'Abriendo tu carrito de IPA...',
+            `¡${itemsToAdd.length} producto(s) en tu carrito! 🛒`,
+            'Carrito actualizado con éxito.',
             'success'
         );
 
+        // Si ya estamos en /basket, recargar suavemente para que la vista muestre los nuevos productos
         setTimeout(() => {
-            window.location.href = '/basket';
-        }, 400);
+            if (window.location.pathname.toLowerCase().includes('/basket')) {
+                window.location.reload();
+            } else {
+                window.location.href = '/basket';
+            }
+        }, 500);
     }
 
     function init() {

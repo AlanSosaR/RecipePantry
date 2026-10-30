@@ -4685,7 +4685,7 @@ openOrderForm(supplierId) {
             );
 
             try {
-                // 2. El servidor Supabase agrega los productos al carrito de la cuenta vinculada (~1.8s)
+                // 2. Ejecutar ipa-auto-cart en Supabase en paralelo (~1.8s) para que la cuenta vinculada quede actualizada a nivel servidor
                 const sb = window.supabaseClient;
                 const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
                     body: {
@@ -4715,8 +4715,17 @@ openOrderForm(supplierId) {
                     );
                 }
 
-                // 3. Navegar directamente al carrito en la nueva pestaña (sin hacer POST cruzado que cause error 500)
-                const targetUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket';
+                // 3. Pasar el payload codificado en hash #rp_order= para que la sesión del navegador agregue y sincronice los productos directamente en su shopperID local
+                const payload = {
+                    supplierId: sup.id,
+                    supplierName: sup.name,
+                    accountCode: sup.account_code || '',
+                    timestamp: Date.now(),
+                    items: orderedItems
+                };
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+                const targetUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=' + encodeURIComponent(encoded);
+
                 if (portalWin && !portalWin.closed) {
                     portalWin.location.href = targetUrl;
                 } else {
@@ -4724,7 +4733,15 @@ openOrderForm(supplierId) {
                 }
             } catch (err) {
                 console.warn('Error invocando ipa-auto-cart:', err);
-                const fallbackUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket';
+                const payload = {
+                    supplierId: sup.id,
+                    supplierName: sup.name,
+                    accountCode: sup.account_code || '',
+                    timestamp: Date.now(),
+                    items: orderedItems
+                };
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+                const fallbackUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=' + encodeURIComponent(encoded);
                 if (portalWin && !portalWin.closed) {
                     portalWin.location.href = fallbackUrl;
                 } else {
