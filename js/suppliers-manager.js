@@ -4647,52 +4647,46 @@ openOrderForm(supplierId) {
                 supOrdered = this.items.filter(it => it.supplier_id === supplierId && (cart[it.id] || 0) > 0);
             }
 
-            const orderedItems = supOrdered
-                .filter(it => Boolean(it.sku))
-                .map(it => ({
-                    sku: String(it.sku).trim(),
+            // Deduplicar por SKU conservando la cantidad exacta solicitada
+            const skuMap = new Map();
+            for (const it of supOrdered) {
+                if (!it.sku) continue;
+                const cleanSku = String(it.sku).trim();
+                if (!cleanSku) continue;
+                skuMap.set(cleanSku.toUpperCase(), {
+                    sku: cleanSku,
                     qty: Number(cart[it.id]) || 1,
                     name: it.name
-                }));
+                });
+            }
+            const orderedItems = Array.from(skuMap.values());
 
             if (orderedItems.length === 0) {
                 window.open('https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx', '_blank');
                 return;
             }
 
-            // Abrir pestaña de forma inmediata para evitar bloqueadores de popups en teléfono y PC
-            const portalWin = window.open('about:blank', '_blank');
-            if (portalWin && portalWin.document) {
-                try {
-                    portalWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cargando Carrito IPA...</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#f8faf9;font-family:Poppins,system-ui,sans-serif;color:#111827;text-align:center;padding:24px;box-sizing:border-box}.card{background:#fff;border:2px solid #10b981;border-radius:24px;padding:28px 24px;max-width:360px;box-shadow:0 12px 32px rgba(0,0,0,0.08)}.spinner{width:38px;height:38px;border:4px solid #d1fae5;border-top-color:#10b981;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}@keyframes spin{to{transform:rotate(360deg)}}h2{margin:0 0 8px;font-size:18px;font-weight:700}p{margin:0;font-size:13.5px;color:#4b5563;line-height:1.45}</style></head><body><div class="card"><div class="spinner"></div><h2>Cargando ${orderedItems.length} productos al carrito...</h2><p>Conectando con IPA Purchasing (${sup.name})...</p></div></body></html>`);
-                    portalWin.document.close();
-                } catch (e) {}
-            }
+            // 1. Abrir pestaña con navegación First-Party a /?logout=1 en paralelo mientras el servidor arma el carrito.
+            // Esto limpia cualquier cookie previa (.AspNet.ApplicationCookie / ASP.NET_SessionId) tanto en Móvil como en PC.
+            const winName = 'rp_ipa_portal';
+            const portalWin = window.open('https://ipa-pay.ipapurchasing.co.uk/?logout=1', winName);
 
             this.notify(
                 isEn
-                    ? `Adding ${orderedItems.length} products to your IPA shopping cart...`
-                    : `Cargando ${orderedItems.length} productos directo a tu carrito de IPA...`,
+                    ? `Adding ${orderedItems.length} product(s) to your IPA shopping cart...`
+                    : `Cargando ${orderedItems.length} producto(s) directo a tu carrito de IPA...`,
                 'info',
-                5000
+                4000
             );
 
             try {
-                const lastLoginTs = Number(localStorage.getItem('rp_ipa_autologin_ts') || 0);
-                const isSessionFresh = lastLoginTs > 0 && (Date.now() - lastLoginTs) < (10 * 24 * 60 * 60 * 1000);
-
-                // Si el navegador aún no ha sincronizado su cookie de sesión con autoLoginForm,
-                // limpiar cualquier cookie previa antes de que el servidor arme el carrito
-                if (!isSessionFresh) {
-                    try {
-                        await fetch('https://ipa-pay.ipapurchasing.co.uk/?logout=1', {
-                            method: 'GET',
-                            mode: 'no-cors',
-                            credentials: 'include',
-                            cache: 'no-store'
-                        });
-                    } catch (_e) {}
-                }
+                // Respaldo no-cors adicional en paralelo
+                fetch('https://ipa-pay.ipapurchasing.co.uk/?logout=1', {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    credentials: 'include',
+                    cache: 'no-store'
+                }).catch(() => {});
 
                 const sb = window.supabaseClient;
                 const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
@@ -4714,64 +4708,53 @@ openOrderForm(supplierId) {
                     return;
                 }
 
-                const payload = {
-                    supplierId: sup.id,
-                    supplierName: sup.name,
-                    accountCode: sup.account_code || '',
-                    timestamp: Date.now(),
-                    serverAdded: true,
-                    items: orderedItems
-                };
-                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-                const targetUrl = (data && data.success)
-                    ? `https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=${encodeURIComponent(encoded)}`
-                    : `https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx#rp_order=${encodeURIComponent(encoded)}`;
-
                 if (data && data.success) {
                     this.notify(
                         isEn
-                            ? `✅ ${data.addedCount} products added to IPA Cart! Opening basket...`
-                            : `✅ ¡${data.addedCount} productos agregados al carrito de IPA! Abriendo carrito...`,
+                            ? `✅ ${data.addedCount} product(s) added to IPA Cart! Opening basket...`
+                            : `✅ ¡${data.addedCount} producto(s) agregados al carrito de IPA! Abriendo carrito...`,
                         'success'
                     );
-                }
 
-                // Si este dispositivo (móvil o PC) aún no tiene sesión iniciada en IPA, enviar el formulario POST de auto-login directo a /basket
-                if (data && data.success && data.autoLoginForm && !isSessionFresh) {
-                    localStorage.setItem('rp_ipa_autologin_ts', String(Date.now()));
-                    const targetDoc = (portalWin && !portalWin.closed && portalWin.document) ? portalWin.document : document;
-                    const form = targetDoc.createElement('form');
-                    form.method = 'POST';
-                    form.action = data.autoLoginForm.action;
-                    form.style.display = 'none';
-                    for (const [k, v] of Object.entries(data.autoLoginForm.fields || {})) {
-                        const input = targetDoc.createElement('input');
-                        input.type = 'hidden';
-                        input.name = k;
-                        input.value = String(v ?? '');
-                        form.appendChild(input);
+                    // 2. Enviar POST de auto-login directo a la pestaña abierta (target = rp_ipa_portal) SIN hash #rp_order
+                    // para sincronizar la sesión en móvil y PC sin disparar duplicados por extensión.
+                    if (data.autoLoginForm && data.autoLoginForm.action) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = data.autoLoginForm.action;
+                        form.target = (portalWin && !portalWin.closed) ? winName : '_self';
+                        form.style.display = 'none';
+                        for (const [k, v] of Object.entries(data.autoLoginForm.fields || {})) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = k;
+                            input.value = String(v ?? '');
+                            form.appendChild(input);
+                        }
+                        document.body.appendChild(form);
+                        form.submit();
+                        setTimeout(() => { try { form.remove(); } catch (_e) {} }, 1500);
+                        return;
                     }
-                    targetDoc.body.appendChild(form);
-                    form.submit();
+
+                    const cleanBasketUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket?e20=1';
+                    if (portalWin && !portalWin.closed) {
+                        portalWin.location.href = cleanBasketUrl;
+                    } else {
+                        window.location.href = cleanBasketUrl;
+                    }
                     return;
                 }
 
+                const fallbackBasketUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket?e20=1';
                 if (portalWin && !portalWin.closed) {
-                    portalWin.location.href = targetUrl;
+                    portalWin.location.href = fallbackBasketUrl;
                 } else {
-                    window.location.href = targetUrl;
+                    window.location.href = fallbackBasketUrl;
                 }
             } catch (err) {
                 console.warn('Error invocando ipa-auto-cart:', err);
-                const payload = {
-                    supplierId: sup.id,
-                    supplierName: sup.name,
-                    accountCode: sup.account_code || '',
-                    timestamp: Date.now(),
-                    items: orderedItems
-                };
-                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-                const fallbackUrl = `https://ipa-pay.ipapurchasing.co.uk/my-account/overview.aspx#rp_order=${encodeURIComponent(encoded)}`;
+                const fallbackUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket?e20=1';
                 if (portalWin && !portalWin.closed) {
                     portalWin.location.href = fallbackUrl;
                 } else {

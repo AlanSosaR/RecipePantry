@@ -1,4 +1,4 @@
-const APP_VERSION_ID = 'v977';
+const APP_VERSION_ID = 'v990';
 const SW_PATH = '/sw.js';
 let currentWorker = null;
 let updateBannerDismissed = false;
