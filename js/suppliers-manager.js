@@ -2923,16 +2923,19 @@ renderItemCard(item, supplierId) {
             }
         }
 
-openOrderForm(supplierId) {
+        openOrderForm(supplierId) {
             this.activeOrderSupplierId = supplierId;
             this.currentSubView = 'order-form';
             try {
                 const url = new URL(window.location.href);
                 url.searchParams.set('view', 'suppliers');
                 url.searchParams.set('order', supplierId);
+                url.searchParams.delete('subview');
                 window.history.replaceState({}, '', url);
             } catch (e) {}
             this.render();
+            this.scrollActiveOrderSupplierChipIntoView(false);
+            setTimeout(() => this.scrollActiveOrderSupplierChipIntoView(true), 100);
         }
 
         /** Cambia de proveedor activo dentro del flujo de pedido sin perder las cantidades seleccionadas */
@@ -2943,9 +2946,35 @@ openOrderForm(supplierId) {
                 const url = new URL(window.location.href);
                 url.searchParams.set('view', 'suppliers');
                 url.searchParams.set('order', supplierId);
+                url.searchParams.delete('subview');
                 window.history.replaceState({}, '', url);
             } catch (e) {}
             this.renderOrderPage();
+            this.scrollActiveOrderSupplierChipIntoView(false);
+            setTimeout(() => this.scrollActiveOrderSupplierChipIntoView(true), 80);
+        }
+
+        /**
+         * Centra suavemente en el carrusel horizontal el chip del proveedor actualmente seleccionado
+         * para que el usuario siempre sepa de inmediato en qué proveedor está editando.
+         */
+        scrollActiveOrderSupplierChipIntoView(smooth = true) {
+            requestAnimationFrame(() => {
+                const chipsScroll = document.querySelector('.order-supplier-chips-scroll');
+                if (!chipsScroll) return;
+                const activeChip = chipsScroll.querySelector('.order-supplier-chip.active');
+                if (!activeChip) return;
+
+                const chipRect = activeChip.getBoundingClientRect();
+                const containerRect = chipsScroll.getBoundingClientRect();
+                const currentScrollLeft = chipsScroll.scrollLeft;
+                const targetScrollLeft = currentScrollLeft + (chipRect.left - containerRect.left) - (containerRect.width / 2) + (chipRect.width / 2);
+
+                chipsScroll.scrollTo({
+                    left: Math.max(0, targetScrollLeft),
+                    behavior: smooth ? 'smooth' : 'auto'
+                });
+            });
         }
 
         /** Regresa a la vista previa de proveedores o detalle */
@@ -3990,6 +4019,8 @@ openOrderForm(supplierId) {
             `;
             this.renderOrderModalItems(supplierId);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            this.scrollActiveOrderSupplierChipIntoView(false);
+            setTimeout(() => this.scrollActiveOrderSupplierChipIntoView(true), 80);
         }
 
         renderOrderModalItems(supplierId) {
