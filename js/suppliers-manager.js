@@ -4666,87 +4666,55 @@ openOrderForm(supplierId) {
                 return;
             }
 
-            // 1. Abrir de inmediato una nueva pestaña/página en segundo plano para evitar bloqueos de popups y no tocar la pestaña de RecipePantry
+            // 1. Preparar payload con productos solicitados para IPA
+            const payload = {
+                supplierId: sup.id,
+                supplierName: sup.name,
+                accountCode: sup.account_code || '',
+                timestamp: Date.now(),
+                items: orderedItems
+            };
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            const targetUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=' + encodeURIComponent(encoded);
+
+            // 2. Abrir de inmediato la pestaña del portal IPA para evitar bloqueos del navegador
             const portalWin = window.open('about:blank', '_blank');
-            if (portalWin && portalWin.document) {
-                try {
-                    portalWin.document.open();
-                    portalWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cargando Carrito IPA...</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f8faf9;font-family:Poppins,system-ui,sans-serif;color:#111827;text-align:center;padding:24px;box-sizing:border-box}.card{background:#fff;border:2px solid #10b981;border-radius:24px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 12px 32px rgba(0,0,0,0.08)}.spinner{width:38px;height:38px;border:4px solid #d1fae5;border-top-color:#10b981;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}@keyframes spin{to{transform:rotate(360deg)}}h2{margin:0 0 8px;font-size:18px;font-weight:700}p{margin:0;font-size:13.5px;color:#4b5563;line-height:1.45}</style></head><body><div class="card"><div class="spinner"></div><h2>Cargando ${orderedItems.length} producto(s) al carrito...</h2><p>Conectando con IPA Purchasing (${sup.name})...</p></div></body></html>`);
-                    portalWin.document.close();
-                } catch (_e) {}
+            if (portalWin && !portalWin.closed) {
+                portalWin.location.href = targetUrl;
+            } else {
+                window.open(targetUrl, '_blank');
             }
 
             this.notify(
                 isEn
-                    ? `Adding ${orderedItems.length} product(s) to your IPA shopping cart...`
-                    : `Cargando ${orderedItems.length} producto(s) directo a tu carrito de IPA...`,
+                    ? `Opening IPA shopping basket with ${orderedItems.length} product(s)...`
+                    : `Abriendo carrito de IPA con ${orderedItems.length} producto(s)...`,
                 'info',
-                4000
+                3500
             );
 
+            // 3. Sincronización en segundo plano con Supabase Edge Function (silenciosa, no bloquea al usuario)
             try {
-                // 2. Ejecutar ipa-auto-cart en Supabase en paralelo (~1.8s) para que la cuenta vinculada quede actualizada a nivel servidor
                 const sb = window.supabaseClient;
-                const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
-                    body: {
-                        supplierName: sup.name,
-                        accountCode: sup.account_code || '',
-                        items: orderedItems
-                    }
-                });
-
-                if (error || (data && (data.code === 'INVALID_CREDENTIALS' || data.code === 'MISSING_CREDENTIALS'))) {
-                    if (portalWin && !portalWin.closed) portalWin.close();
-                    this.notify(
-                        data?.error || (isEn
-                            ? 'IPA account is not configured. Check Super Admin Settings.'
-                            : 'Verifica la cuenta vinculada de IPA en Configuración de Super Usuario.'),
-                        'error'
-                    );
-                    return;
-                }
-
-                if (data && data.success) {
-                    this.notify(
-                        isEn
-                            ? `✅ ${data.addedCount} product(s) added to IPA Cart! Opening basket...`
-                            : `✅ ¡${data.addedCount} producto(s) agregados al carrito de IPA! Abriendo carrito...`,
-                        'success'
-                    );
-                }
-
-                // 3. Pasar el payload codificado en hash #rp_order= para que la sesión del navegador agregue y sincronice los productos directamente en su shopperID local
-                const payload = {
-                    supplierId: sup.id,
-                    supplierName: sup.name,
-                    accountCode: sup.account_code || '',
-                    timestamp: Date.now(),
-                    items: orderedItems
-                };
-                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-                const targetUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=' + encodeURIComponent(encoded);
-
-                if (portalWin && !portalWin.closed) {
-                    portalWin.location.href = targetUrl;
-                } else {
-                    window.open(targetUrl, '_blank');
+                if (sb && sb.functions) {
+                    sb.functions.invoke('ipa-auto-cart', {
+                        body: {
+                            supplierName: sup.name,
+                            accountCode: sup.account_code || '',
+                            items: orderedItems
+                        }
+                    }).then(({ data, error }) => {
+                        if (!error && data?.success) {
+                            console.log('[IPA] Sincronización en servidor completada:', data);
+                        } else if (data?.code === 'INVALID_CREDENTIALS') {
+                            console.warn('[IPA] Cuenta temporalmente bloqueada o credenciales en revisión:', data?.error);
+                        }
+                    }).catch(err => {
+                        console.warn('[IPA] Info background sync:', err);
+                    });
                 }
             } catch (err) {
-                console.warn('Error invocando ipa-auto-cart:', err);
-                const payload = {
-                    supplierId: sup.id,
-                    supplierName: sup.name,
-                    accountCode: sup.account_code || '',
-                    timestamp: Date.now(),
-                    items: orderedItems
-                };
-                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-                const fallbackUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=' + encodeURIComponent(encoded);
-                if (portalWin && !portalWin.closed) {
-                    portalWin.location.href = fallbackUrl;
-                } else {
-                    window.open(fallbackUrl, '_blank');
-                }
+                console.warn('[IPA] Error secundario:', err);
             }
         }
 
