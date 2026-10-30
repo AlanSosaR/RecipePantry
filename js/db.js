@@ -285,7 +285,7 @@ class DatabaseManager {
             } else {
                 let query = window.supabaseClient
                     .from('recipes')
-                    .select(`id, name_es, name_en, image_url, category_id, updated_at, is_favorite, pantry_es, pantry_en, tags`)
+                    .select(`id, name_es, name_en, updated_at, is_favorite, pantry_es, pantry_en, tags`)
                     .eq('is_active', true)
                     .eq('user_id', userId);
 

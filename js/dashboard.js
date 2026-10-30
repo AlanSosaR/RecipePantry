@@ -782,7 +782,7 @@ class DashboardManager {
                 const el = document.getElementById(id);
                 if (el) {
                     el.classList.add('hidden');
-                    el.style.setProperty('display', 'none', 'important');
+                    el.style.removeProperty('display');
                 }
             });
         }
@@ -899,6 +899,8 @@ class DashboardManager {
         if (help) {
             console.log('[Dashboard] Showing helpView container');
             help.classList.remove('hidden');
+            help.style.removeProperty('display');
+            help.style.display = '';
             if (window.helpModal) {
                 console.log('[Dashboard] Calling helpModal.render()');
                 window.helpModal.render();
@@ -982,6 +984,8 @@ class DashboardManager {
 
         if (menuView) {
             menuView.classList.remove('hidden');
+            menuView.style.removeProperty('display');
+            menuView.style.display = '';
             if (window.restaurantMenu) {
                 window.restaurantMenu.isAddingDish = false;
                 window.restaurantMenu.isViewingDocument = false;
