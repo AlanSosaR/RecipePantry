@@ -16567,17 +16567,17 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 .supplier-day-dot.active {
-    width: 25px;
-    height: 25px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--primary, #059669);
     color: #FFFFFF;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1.5px 4px rgba(5, 150, 105, 0.28);
+    box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
     flex-shrink: 0;
     font-family: var(--font-body);
     letter-spacing: 0;
