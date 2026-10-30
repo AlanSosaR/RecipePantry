@@ -16462,18 +16462,22 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 .col-sup-logo img {
-    object-fit: contain !important;
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
 }
 
 .supplier-row-avatar-img {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    object-fit: contain;
-    padding: 4px;
+    object-fit: cover;
+    padding: 0;
     box-sizing: border-box;
     border: 1.5px solid #CBD5E1;
-    background: #FFFFFF;
+    background: var(--surface);
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 

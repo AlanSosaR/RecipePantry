@@ -1159,11 +1159,11 @@
                      title="${isEn ? 'Click to view products & details' : 'Clic para ver productos y detalles'}">
                     
                     <!-- 1. Foto / Avatar (Limpia, Circular con protagonismo, ajuste óptimo sin cortes) -->
-                    <div class="col-sup-logo" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1.5px solid var(--outline-variant); box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                    <div class="col-sup-logo" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--outline-variant); box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
                         ${supplier.image_url ? `
                             <img referrerpolicy="no-referrer" src="${supplier.image_url}" 
                                  alt="${supplier.name}" 
-                                 style="width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; display: block;"
+                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;"
                                  loading="lazy"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                             <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: ${cat.bg}; color: ${cat.color}; align-items: center; justify-content: center; font-weight: 800; font-size: 17px;">
@@ -1684,7 +1684,7 @@
                                         onmousedown="this.style.transform='scale(0.95)'"
                                         onmouseup="this.style.transform='scale(1.05)'">
                                     ${supplier.image_url ? `
-                                        <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                        <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                                         <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
                                             ${supplier.name.substring(0, 2).toUpperCase()}
                                         </div>
@@ -3104,7 +3104,7 @@ renderItemCard(item, supplierId) {
                                     position: relative;
                                     flex-shrink: 0;
                                 ">
-                                    <img id="supPhotoImg" src="${supplier?.image_url || ''}" alt="Preview" style="${supplier?.image_url ? 'display: block;' : 'display: none;'} width: 100%; height: 100%; object-fit: contain; padding: 5px; box-sizing: border-box; background: #FFFFFF;" />
+                                    <img id="supPhotoImg" src="${supplier?.image_url || ''}" alt="Preview" style="${supplier?.image_url ? 'display: block;' : 'display: none;'} width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
                                     <span id="supPhotoIcon" class="material-symbols-outlined" style="${supplier?.image_url ? 'display: none;' : 'display: block;'} font-size: 30px; color: var(--text-secondary);">storefront</span>
                                 </div>
 
@@ -3249,7 +3249,7 @@ renderItemCard(item, supplierId) {
             if (!file) return;
 
             try {
-                const blob = await this._toJpegBlob(file, 900, 0.82);
+                const blob = await this._toJpegBlob(file, 900, 0.85, true);
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const dataUrl = e.target.result;
@@ -3662,7 +3662,7 @@ renderItemCard(item, supplierId) {
         }
 
         /** Compresión de imagen a JPEG usando canvas */
-        _toJpegBlob(file, maxSize = 900, quality = 0.82) {
+        _toJpegBlob(file, maxSize = 900, quality = 0.82, square = false) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 const objUrl = URL.createObjectURL(file);
@@ -3678,14 +3678,41 @@ renderItemCard(item, supplierId) {
                             height = maxSize;
                         }
                     }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas toBlob falló')), 'image/jpeg', quality);
+                    if (!square) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas toBlob falló')), 'image/jpeg', quality);
+                    } else {
+                        const side = Math.min(Math.max(width, height), maxSize);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = side;
+                        canvas.height = side;
+                        const ctx = canvas.getContext('2d');
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = 1;
+                        tempCanvas.height = 1;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCtx.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
+                        const p = tempCtx.getImageData(0, 0, 1, 1).data;
+                        ctx.fillStyle = `rgb(${p[0]}, ${p[1]}, ${p[2]})`;
+                        ctx.fillRect(0, 0, side, side);
+                        let drawW = width;
+                        let drawH = height;
+                        if (drawW > side || drawH > side) {
+                            const ratio = Math.min(side / drawW, side / drawH);
+                            drawW = Math.round(drawW * ratio);
+                            drawH = Math.round(drawH * ratio);
+                        }
+                        const dx = Math.round((side - drawW) / 2);
+                        const dy = Math.round((side - drawH) / 2);
+                        ctx.drawImage(img, dx, dy, drawW, drawH);
+                        canvas.toBlob(b => b ? resolve(b) : reject(new Error('Canvas toBlob falló')), 'image/jpeg', quality);
+                    }
                 };
                 img.onerror = () => {
                     URL.revokeObjectURL(objUrl);
@@ -4528,7 +4555,7 @@ renderItemCard(item, supplierId) {
                                                 box-shadow: 0 1px 3px rgba(0,0,0,0.06);
                                             ">
                                                 ${sup.image_url ? `
-                                                    <img referrerpolicy="no-referrer" src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box;" onerror="this.style.display='none';" />
+                                                    <img referrerpolicy="no-referrer" src="${sup.image_url}" alt="${sup.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none';" />
                                                 ` : `
                                                     <div style="font-weight: 800; font-size: 15px; color: ${cat.color};">
                                                         ${sup.name.substring(0, 2).toUpperCase()}
