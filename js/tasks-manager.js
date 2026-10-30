@@ -533,17 +533,28 @@
         async checkFreshUserTasksMode() {
             if (this.isSuperAdmin()) return 'shared';
             const sb = window.supabaseClient;
-            const currentUserId = window.authManager?.currentUser?.id || 
-                                  window.authManager?.session?.user?.id ||
-                                  (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
-            if (!sb || !currentUserId) return this.getTasksMode();
+            if (!sb) return this.getTasksMode();
 
             try {
-                const { data: latestUser } = await sb
-                    .from('users')
-                    .select('id, can_access_tasks, tasks_mode')
-                    .eq('id', currentUserId)
-                    .maybeSingle();
+                const profile = window.authManager?.currentUser || 
+                                JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+                const authId = window.authManager?.session?.user?.id || profile.auth_user_id;
+                const email = (window.authManager?.session?.user?.email || profile.email || '').toLowerCase().trim();
+
+                let query = sb.from('users').select('id, auth_user_id, email, can_access_tasks, tasks_mode');
+                if (profile.id && authId && profile.id !== authId) {
+                    query = query.or(`id.eq.${profile.id},auth_user_id.eq.${authId}`);
+                } else if (profile.id) {
+                    query = query.or(`id.eq.${profile.id},auth_user_id.eq.${profile.id}`);
+                } else if (authId) {
+                    query = query.or(`id.eq.${authId},auth_user_id.eq.${authId}`);
+                } else if (email) {
+                    query = query.eq('email', email);
+                } else {
+                    return this.getTasksMode();
+                }
+
+                const { data: latestUser } = await query.maybeSingle();
 
                 if (latestUser) {
                     const oldMode = this.getTasksMode();
@@ -552,16 +563,29 @@
                     if (window.authManager?.currentUser) {
                         window.authManager.currentUser.tasks_mode = latestUser.tasks_mode;
                         window.authManager.currentUser.can_access_tasks = latestUser.can_access_tasks;
-                        localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                        if (!window.authManager.currentUser.id && latestUser.id) {
+                            window.authManager.currentUser.id = latestUser.id;
+                        }
                     }
+
+                    try {
+                        const cached = JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+                        cached.tasks_mode = latestUser.tasks_mode;
+                        cached.can_access_tasks = latestUser.can_access_tasks;
+                        if (latestUser.id) cached.id = latestUser.id;
+                        localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(cached));
+                    } catch (e) {}
 
                     if (oldMode !== newMode) {
                         console.log(`🔄 [TasksManager] tasks_mode actualizado de ${oldMode} a ${newMode}`);
                         if (newMode === 'isolated') {
                             this.tasks = [];
-                            this.saveCache();
-                            this.renderList();
+                        } else {
+                            this.loadCache();
                         }
+                        this.saveCache();
+                        this.renderList();
+                        this.updateCarouselBadges();
                     }
                     return newMode;
                 }
@@ -629,6 +653,9 @@
                 this.tasks = cleanTasks;
                 const cacheKey = this._getCacheKey();
                 localStorage.setItem(cacheKey, JSON.stringify(cleanTasks));
+                if (this.isSuperAdmin() || this.getTasksMode() === 'shared') {
+                    localStorage.setItem('recipe_pantry_tasks_cache_v6', JSON.stringify(cleanTasks));
+                }
             } catch (e) {}
         }
 
@@ -869,11 +896,14 @@
         handleUserRealtimeEvent(payload) {
             const updatedUser = payload.new;
             if (!updatedUser) return;
-            const currentUserId = window.authManager?.currentUser?.id || 
-                                  window.authManager?.session?.user?.id ||
-                                  (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id);
+            const profile = window.authManager?.currentUser || 
+                            JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+            const authId = window.authManager?.session?.user?.id || profile.auth_user_id;
+            const matchesUser = (profile.id && updatedUser.id === profile.id) ||
+                                (authId && (updatedUser.auth_user_id === authId || updatedUser.id === authId)) ||
+                                (profile.email && updatedUser.email && profile.email.toLowerCase() === updatedUser.email.toLowerCase());
 
-            if (currentUserId && updatedUser.id === currentUserId) {
+            if (matchesUser) {
                 console.log('📡 [Tasks Realtime] Perfil de usuario actualizado en tiempo real:', updatedUser.email, 'tasks_mode:', updatedUser.tasks_mode);
                 const oldMode = this.getTasksMode();
                 const newMode = updatedUser.tasks_mode === 'isolated' ? 'isolated' : 'shared';
@@ -881,8 +911,15 @@
                 if (window.authManager?.currentUser) {
                     window.authManager.currentUser.tasks_mode = updatedUser.tasks_mode;
                     window.authManager.currentUser.can_access_tasks = updatedUser.can_access_tasks;
-                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(window.authManager.currentUser));
+                    if (updatedUser.id) window.authManager.currentUser.id = updatedUser.id;
                 }
+                try {
+                    const cached = JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+                    cached.tasks_mode = updatedUser.tasks_mode;
+                    cached.can_access_tasks = updatedUser.can_access_tasks;
+                    if (updatedUser.id) cached.id = updatedUser.id;
+                    localStorage.setItem('recipe_pantry_user_profile', JSON.stringify(cached));
+                } catch (e) {}
 
                 this.updateVisibility();
 
@@ -892,6 +929,8 @@
                         this.saveCache();
                         this.renderList();
                         this.updateCarouselBadges();
+                    } else {
+                        this.loadCache();
                     }
                     this.syncData();
                 }
@@ -1087,6 +1126,9 @@
         /** Renderiza la vista principal del módulo en el contenedor asignado */
         render(container) {
             if (!container) return;
+            if (!this.tasks || this.tasks.length === 0) {
+                this.loadCache();
+            }
             const mode = this.getTasksMode();
             const isSuper = this.isSuperAdmin();
             const myUserId = window.authManager?.currentUser?.id || 
@@ -1888,12 +1930,20 @@
                             </button>
                         </div>
                     `;
+                } else if (this.isLoading && (!this.tasks || this.tasks.length === 0)) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 48px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #FFFFFF; border-radius: 24px; border: 1.5px dashed #E4E4E7;">
+                            <div class="m3-loading-spinner" style="width: 32px; height: 32px; border: 3px solid #E5E7EB; border-top-color: #12B078; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                            <span style="font-size: 13px; font-weight: 600; color: #71717A;">Cargando actividades...</span>
+                        </div>
+                    `;
                 } else {
+                    const isIsolated = !this.isSuperAdmin() && this.getTasksMode() === 'isolated';
                     container.innerHTML = `
                         <div style="text-align: center; padding: 48px 20px; background: #FFFFFF; border-radius: 24px; border: 1.5px dashed #E4E4E7;">
-                            <span class="material-symbols-outlined" style="font-size: 40px; color: #12B078; opacity: 0.6;">checklist</span>
+                            <span class="material-symbols-outlined" style="font-size: 40px; color: ${isIsolated ? '#2563EB' : '#12B078'}; opacity: 0.7;">${isIsolated ? 'lock' : 'checklist'}</span>
                             <h4 style="font-size: 16px; font-weight: 700; color: #18181B; margin: 10px 0 4px 0;">No hay tareas para este día</h4>
-                            <p style="font-size: 12.5px; color: #71717A; margin: 0;">Agrega una tarea a tu lista para comenzar el servicio de hoy</p>
+                            <p style="font-size: 12.5px; color: #71717A; margin: 0;">${isIsolated ? 'Estás en modo independiente (privado). Toca "+" para agregar tus propias tareas.' : 'Agrega una tarea a tu lista para comenzar el servicio de hoy'}</p>
                         </div>
                     `;
                 }
