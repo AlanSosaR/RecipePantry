@@ -2582,7 +2582,6 @@ renderItemCard(item, supplierId) {
                     this.orderCart[supId][item.id] = newQty;
                     this.saveCache();
                     updateSideSheetOrderQtyDisplay(newQty);
-                    this.notify(isEn ? `Added 1x ${item.name} to order (${newQty})` : `Agregado 1x ${item.name} a la orden (${newQty})`, 'success');
                     if (typeof this.updateOrderBadgesAndChips === 'function') {
                         this.updateOrderBadgesAndChips(supId);
                     }
@@ -2599,13 +2598,11 @@ renderItemCard(item, supplierId) {
                         delete this.orderCart[supId][item.id];
                         this.saveCache();
                         updateSideSheetOrderQtyDisplay(0);
-                        this.notify(isEn ? `Removed ${item.name} from order` : `${item.name} removido de la orden`, 'info');
                     } else {
                         const newQty = current - 1;
                         this.orderCart[supId][item.id] = newQty;
                         this.saveCache();
                         updateSideSheetOrderQtyDisplay(newQty);
-                        this.notify(isEn ? `Order: ${newQty}x ${item.name}` : `En orden: ${newQty}x ${item.name}`, 'info');
                     }
                     if (typeof this.updateOrderBadgesAndChips === 'function') {
                         this.updateOrderBadgesAndChips(supId);
