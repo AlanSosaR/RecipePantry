@@ -38,6 +38,91 @@ class SettingsViewManager {
                     <div id="superadmin-users-section"></div>
                 </div>
 
+                <!-- 1.1 Tarjeta Independiente: Gestión de Carta de Menú (Afuera de usuarios, adaptativa M3) -->
+                <div id="superadmin-menu-card" class="settings-panel-m3" style="display: none; margin-bottom: 24px;">
+                    <style>
+                        .admin-menu-card-inner {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 16px;
+                            width: 100%;
+                            box-sizing: border-box;
+                        }
+                        .admin-menu-card-btn {
+                            height: 42px;
+                            padding: 0 20px;
+                            background: #10B981;
+                            border: none;
+                            border-radius: 100px;
+                            font-family: var(--font-display, 'Poppins', sans-serif);
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #FFFFFF;
+                            cursor: pointer;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 7px;
+                            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+                            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                            white-space: nowrap;
+                            flex-shrink: 0;
+                        }
+                        .admin-menu-card-btn:hover {
+                            background: #059669;
+                            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+                            transform: translateY(-1px);
+                        }
+                        @media (max-width: 640px) {
+                            .admin-menu-card-inner {
+                                flex-direction: column !important;
+                                align-items: stretch !important;
+                                gap: 14px !important;
+                            }
+                            .admin-menu-card-btn {
+                                width: 100% !important;
+                                height: 44px !important;
+                                font-size: 13.5px !important;
+                            }
+                        }
+                    </style>
+                    <div class="admin-menu-card-inner">
+                        <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+                            <div style="
+                                width: 44px;
+                                height: 44px;
+                                border-radius: 14px;
+                                background: rgba(16, 185, 129, 0.12);
+                                color: #059669;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                            ">
+                                <span class="material-symbols-outlined" style="font-size: 24px;">restaurant_menu</span>
+                            </div>
+                            <div style="min-width: 0; flex: 1;">
+                                <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #064E3B; letter-spacing: -0.01em; line-height: 1.25;">
+                                    ${isEn ? 'Menu Card Management' : 'Gestión de Carta de Menú'}
+                                </h3>
+                                <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #64748B; line-height: 1.35;">
+                                    ${isEn 
+                                        ? 'Share the current restaurant menu and wine list with team members.' 
+                                        : 'Comparte la carta y menú actual del restaurante con los miembros del equipo.'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-admin-share-team" class="admin-menu-card-btn"
+                            onclick="if(window.restaurantMenu?.shareRestaurantMenu){window.restaurantMenu.shareRestaurantMenu();}else if(window.shareModal){window.shareModal.open('default_menu','restaurant');}"
+                            title="${isEn ? 'Share Restaurant Menu with Team' : 'Compartir Carta con Equipo'}">
+                            <span class="material-symbols-outlined" style="font-size: 19px;">group</span>
+                            <span>${isEn ? 'Share with Team' : 'Compartir con Equipo'}</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 2. Tarjeta: Preferencias de Idioma, Uso Offline y Almacenamiento -->
                 <div class="settings-panel-m3" style="margin-bottom: 24px;">
                     <!-- Selector de Idioma en píldora unificada M3 al inicio del segmento -->
@@ -255,10 +340,15 @@ class SettingsViewManager {
         // Renderizar sección de Super Administrador si aplica
         const adminSection = document.getElementById('superadmin-users-section');
         const adminCard = document.getElementById('superadmin-users-card');
+        const menuCard = document.getElementById('superadmin-menu-card');
         if (adminSection && window.adminUsersManager) {
             window.adminUsersManager.render(adminSection);
+            const isSuper = window.adminUsersManager.isSuperAdmin();
             if (adminCard) {
-                adminCard.style.display = window.adminUsersManager.isSuperAdmin() ? 'flex' : 'none';
+                adminCard.style.display = isSuper ? 'flex' : 'none';
+            }
+            if (menuCard) {
+                menuCard.style.display = isSuper ? 'flex' : 'none';
             }
         }
 
