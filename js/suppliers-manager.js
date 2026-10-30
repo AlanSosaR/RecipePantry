@@ -4666,10 +4666,41 @@ openOrderForm(supplierId) {
                 return;
             }
 
-            // 1. Abrir pestaña con navegación First-Party a /?logout=1 en paralelo mientras el servidor arma el carrito.
-            // Esto limpia cualquier cookie previa (.AspNet.ApplicationCookie / ASP.NET_SessionId) tanto en Móvil como en PC.
-            const winName = 'rp_ipa_portal';
-            const portalWin = window.open('https://ipa-pay.ipapurchasing.co.uk/?logout=1', winName);
+            // 1. Abrir pestaña nueva en about:blank y navegar a /?logout=1.
+            // Esperamos a que el documento cross-origin (/login/) haga commit real antes de enviar el POST de autoLoginForm,
+            // garantizando que .AspNet.ApplicationCookie se haya eliminado y evitando el error 500 de ASP.NET.
+            const winName = 'rp_ipa_portal_' + Date.now();
+            const portalWin = window.open('about:blank', winName);
+            if (portalWin) {
+                try {
+                    portalWin.location.href = 'https://ipa-pay.ipapurchasing.co.uk/?logout=1';
+                } catch (_e) {}
+            }
+
+            const waitForLogoutCommit = () => new Promise((resolve) => {
+                if (!portalWin) {
+                    setTimeout(resolve, 1200);
+                    return;
+                }
+                const startTs = Date.now();
+                const timer = setInterval(() => {
+                    if (portalWin.closed || (Date.now() - startTs) > 4500) {
+                        clearInterval(timer);
+                        resolve();
+                        return;
+                    }
+                    try {
+                        const currentHref = portalWin.location.href;
+                        if (currentHref && currentHref !== 'about:blank') {
+                            clearInterval(timer);
+                            setTimeout(resolve, 500);
+                        }
+                    } catch (_crossOriginCommitted) {
+                        clearInterval(timer);
+                        setTimeout(resolve, 500);
+                    }
+                }, 80);
+            });
 
             this.notify(
                 isEn
@@ -4680,22 +4711,18 @@ openOrderForm(supplierId) {
             );
 
             try {
-                // Respaldo no-cors adicional en paralelo
-                fetch('https://ipa-pay.ipapurchasing.co.uk/?logout=1', {
-                    method: 'GET',
-                    mode: 'no-cors',
-                    credentials: 'include',
-                    cache: 'no-store'
-                }).catch(() => {});
-
                 const sb = window.supabaseClient;
-                const { data, error } = await sb.functions.invoke('ipa-auto-cart', {
-                    body: {
-                        supplierName: sup.name,
-                        accountCode: sup.account_code || '',
-                        items: orderedItems
-                    }
-                });
+                const [, invokeResult] = await Promise.all([
+                    waitForLogoutCommit(),
+                    sb.functions.invoke('ipa-auto-cart', {
+                        body: {
+                            supplierName: sup.name,
+                            accountCode: sup.account_code || '',
+                            items: orderedItems
+                        }
+                    })
+                ]);
+                const { data, error } = invokeResult || {};
 
                 if (error || (data && (data.code === 'INVALID_CREDENTIALS' || data.code === 'MISSING_CREDENTIALS'))) {
                     if (portalWin && !portalWin.closed) portalWin.close();
