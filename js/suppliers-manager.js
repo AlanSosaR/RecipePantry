@@ -1654,86 +1654,85 @@
 
             this.container.innerHTML = `
                 <div class="suppliers-subview-page" style="max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Cabecera del Proveedor (Foto Circular como Botón Atrás, Nombre, Tipo y Menú 3 puntos) -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; margin-top: 4px;">
-                        <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
-                            <!-- Foto / Logo Circular interactivo: Actúa directamente como botón Atrás sin ninguna flecha visible -->
-                            <button type="button" 
-                                    onclick="window.suppliersManager.backToList()" 
-                                    title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
-                                    class="btn-supplier-photo-back"
-                                    style="
-                                        width: 54px;
-                                        height: 54px;
-                                        border-radius: 50%;
-                                        overflow: hidden;
-                                        background: transparent;
-                                        border: none;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        flex-shrink: 0;
-                                        cursor: pointer;
-                                        padding: 0;
-                                        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-                                        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-                                    "
-                                    onmouseenter="this.style.transform='scale(1.05)'"
-                                    onmouseleave="this.style.transform='scale(1)'"
-                                    onmousedown="this.style.transform='scale(0.95)'"
-                                    onmouseup="this.style.transform='scale(1.05)'">
-                                ${supplier.image_url ? `
-                                    <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                                    <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
-                                        ${supplier.name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                ` : `
-                                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
-                                        ${supplier.name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                `}
-                            </button>
+                    <!-- Cabecera Sticky Fija del Proveedor (Foto Circular como Botón Atrás, Nombre, Tipo y Menú 3 puntos) -->
+                    <div class="supplier-detail-sticky-header">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
+                                <!-- Foto / Logo Circular interactivo: Actúa directamente como botón Atrás sin ninguna flecha visible -->
+                                <button type="button" 
+                                        onclick="window.suppliersManager.backToList()" 
+                                        title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
+                                        class="btn-supplier-photo-back"
+                                        style="
+                                            width: 52px;
+                                            height: 52px;
+                                            border-radius: 50%;
+                                            overflow: hidden;
+                                            background: transparent;
+                                            border: none;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            flex-shrink: 0;
+                                            cursor: pointer;
+                                            padding: 0;
+                                            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                                            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+                                        "
+                                        onmouseenter="this.style.transform='scale(1.05)'"
+                                        onmouseleave="this.style.transform='scale(1)'"
+                                        onmousedown="this.style.transform='scale(0.95)'"
+                                        onmouseup="this.style.transform='scale(1.05)'">
+                                    ${supplier.image_url ? `
+                                        <img referrerpolicy="no-referrer" src="${supplier.image_url}" alt="${supplier.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                        <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
+                                            ${supplier.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                    ` : `
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: ${cat.color}; background: ${cat.bg};">
+                                            ${supplier.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                    `}
+                                </button>
 
-                            <div style="flex: 1; min-width: 0;">
-                                <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
-                                    ${supplier.name}
-                                </h1>
-                                <div style="margin-top: 4px;">
-                                    <span style="
-                                        background: #eaf2ed;
-                                        color: #1e4d30;
-                                        font-size: 12px;
-                                        font-weight: 700;
-                                        padding: 3px 10px;
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 5px;
-                                        border-radius: var(--radius-full);
-                                    ">
-                                        <span class="material-symbols-outlined" style="font-size: 14px;">${cat.icon}</span>
-                                        <span>${cat.displayLabel}</span>
-                                    </span>
+                                <div style="flex: 1; min-width: 0;">
+                                    <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
+                                        ${supplier.name}
+                                    </h1>
+                                    <div style="margin-top: 3px;">
+                                        <span style="
+                                            background: #eaf2ed;
+                                            color: #1e4d30;
+                                            font-size: 12px;
+                                            font-weight: 700;
+                                            padding: 2.5px 9px;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 4px;
+                                            border-radius: var(--radius-full);
+                                        ">
+                                            <span class="material-symbols-outlined" style="font-size: 14px;">${cat.icon}</span>
+                                            <span>${cat.displayLabel}</span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Botón de Acciones de 3 Puntos alineado con el nombre -->
+                            <button type="button" 
+                                    id="supplierDetailMoreBtn" 
+                                    onclick="event.stopPropagation(); window.suppliersManager.showMoreOptions('${supplier.id}', event);" 
+                                    title="${isEn ? 'Options' : 'Opciones'}" 
+                                    aria-label="${isEn ? 'Options' : 'Opciones'}"
+                                    style="width: 36px; height: 36px; padding: 0; margin: 0; background: transparent; border: none; box-shadow: none; color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: var(--radius-full); flex-shrink: 0; transition: background 0.15s ease, transform 0.1s ease;"
+                                    onmouseenter="this.style.background='rgba(16, 185, 129, 0.12)'; this.style.color='var(--primary-dark)';"
+                                    onmouseleave="this.style.background='transparent'; this.style.color='var(--text-main)';"
+                                    onmousedown="this.style.transform='scale(0.92)'"
+                                    onmouseup="this.style.transform='scale(1)'">
+                                <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
+                            </button>
                         </div>
-
-                        <!-- Botón de Acciones de 3 Puntos alineado con el nombre -->
-                        <button type="button" 
-                                id="supplierDetailMoreBtn" 
-                                onclick="event.stopPropagation(); window.suppliersManager.showMoreOptions('${supplier.id}', event);" 
-                                title="${isEn ? 'Options' : 'Opciones'}" 
-                                aria-label="${isEn ? 'Options' : 'Opciones'}"
-                                style="width: 36px; height: 36px; padding: 0; margin: 0; background: transparent; border: none; box-shadow: none; color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: var(--radius-full); flex-shrink: 0; transition: background 0.15s ease, transform 0.1s ease;"
-                                onmouseenter="this.style.background='rgba(16, 185, 129, 0.12)'; this.style.color='var(--primary-dark)';"
-                                onmouseleave="this.style.background='transparent'; this.style.color='var(--text-main)';"
-                                onmousedown="this.style.transform='scale(0.92)'"
-                                onmouseup="this.style.transform='scale(1)'">
-                            <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
-                        </button>
                     </div>
-
-                    <!-- Línea divisoria abajo del nombre del proveedor -->
-                    <hr style="border: none; border-top: 1px solid var(--border); margin: 0 0 20px 0;" />
 
                     <!-- Tarjeta M3 Detalles de Entrega (Aprovechamiento completo de pantalla y línea unificada de horario) -->
                     <div class="supplier-delivery-card-m3">

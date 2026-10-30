@@ -16232,6 +16232,46 @@ body:has(#suppliersView:not(.hidden)) .suppliers-view-container {
 }
 
 /* ─── Order Pages Sticky Headers (M3 Expressive) ─── */
+/* Cabecera Fija / Sticky del detalle del proveedor (permanece visible al hacer scroll) */
+body.supplier-detail-active .suppliers-subview-page {
+    padding-top: 0 !important;
+}
+
+.supplier-detail-sticky-header {
+    position: sticky !important;
+    top: 60px !important;
+    margin-top: 0 !important;
+    z-index: 45 !important;
+    background: var(--bg) !important;
+    margin-left: -6px !important;
+    margin-right: -6px !important;
+    padding: 10px 10px 12px 10px !important;
+    margin-bottom: 16px !important;
+    border-bottom: 1px solid var(--border) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+@media (min-width: 769px) {
+    .supplier-detail-sticky-header {
+        top: 64px !important;
+        margin-left: -16px !important;
+        margin-right: -16px !important;
+        padding: 12px 16px 14px 16px !important;
+        margin-bottom: 20px !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .supplier-detail-sticky-header {
+        top: 0 !important;
+        margin-left: -16px !important;
+        margin-right: -16px !important;
+        padding: 14px 16px 14px 16px !important;
+        margin-bottom: 20px !important;
+    }
+}
+
 .order-page-header,
 .consolidated-header-m3 {
     position: sticky !important;
