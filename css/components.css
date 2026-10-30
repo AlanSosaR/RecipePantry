@@ -20057,6 +20057,14 @@ body.supplier-subview-item-active .suppliers-subview-page,
     transform: scale(1.08);
 }
 
+.supplier-day-dot.active.next-delivery-day {
+    background: #F59E0B !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 1.5px 5px rgba(245, 158, 11, 0.45) !important;
+    font-weight: 800 !important;
+    transform: scale(1.08);
+}
+
 /* Ajuste de título de producto en Side Sheet para visualización completa sin recortes */
 .side-sheet-header-title {
     white-space: normal !important;

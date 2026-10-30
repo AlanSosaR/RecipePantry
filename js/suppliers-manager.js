@@ -1116,6 +1116,7 @@
         renderSupplierRow(supplier) {
             const isEn = this.isEnglish();
             const status = this.getDeliveryStatus(supplier);
+            const nextDayObj = status?.nextDeliveryDay;
             const supItems = this.items.filter(it => it.supplier_id === supplier.id);
             const activeDays = Array.isArray(supplier.delivery_days) ? supplier.delivery_days : [];
             const cat = this.getCategoryObj(supplier.category);
@@ -1193,11 +1194,15 @@
                             ${activeDaysList.length > 0 ? `
                                 <div class="sup-mobile-days-row">
                                     <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px;">
-                                        ${activeDaysList.map(d => `
-                                            <div class="supplier-day-dot active" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
-                                                ${d.short}
-                                            </div>
-                                        `).join('')}
+                                        ${activeDaysList.map(d => {
+                                            const isNext = nextDayObj && d.id === nextDayObj.id;
+                                            return `
+                                                <div class="supplier-day-dot active ${isNext ? 'next-delivery-day' : ''}" 
+                                                     title="${isNext ? (isEn ? `Next delivery: ${d.labelEn}` : `Próxima entrega: ${d.label}`) : (isEn ? `${d.labelEn}: Delivery` : `${d.label}: Hace entrega`)}">
+                                                    ${d.short}
+                                                </div>
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                             ` : ''}
@@ -1225,12 +1230,15 @@
                     <div class="col-sup-days">
                         ${activeDaysList.length > 0 ? `
                             <div class="supplier-days-pill-group">
-                                ${activeDaysList.map(d => `
-                                    <div class="supplier-day-dot active"
-                                         title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
-                                        ${d.short}
-                                    </div>
-                                `).join('')}
+                                ${activeDaysList.map(d => {
+                                    const isNext = nextDayObj && d.id === nextDayObj.id;
+                                    return `
+                                        <div class="supplier-day-dot active ${isNext ? 'next-delivery-day' : ''}"
+                                             title="${isNext ? (isEn ? `Next delivery: ${d.labelEn}` : `Próxima entrega: ${d.label}`) : (isEn ? `${d.labelEn}: Delivery` : `${d.label}: Hace entrega`)}">
+                                            ${d.short}
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
                         ` : `
                             <span style="color: var(--text-secondary); font-size: 13px; font-weight: 500;">—</span>
@@ -1328,6 +1336,8 @@
 
             const isDesktop = window.innerWidth > 768;
             const isEn = this.isEnglish();
+            const status = this.getDeliveryStatus(supplier);
+            const nextDayObj = status?.nextDeliveryDay;
             const cat = this.getCategoryObj(supplier.category);
             const supItems = this.items.filter(it => it.supplier_id === supplier.id);
             const activeDays = Array.isArray(supplier.delivery_days) ? supplier.delivery_days : [];
@@ -1362,11 +1372,14 @@
                         <h4 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-main); line-height: 1.2;">${supplier.name}</h4>
                         ${activeDaysList.length > 0 ? `
                             <div class="supplier-days-pill-group" style="display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0;">
-                                ${activeDaysList.map(d => `
-                                    <div class="supplier-day-dot active" style="width: 22px; height: 22px; font-size: 10.5px;" title="${isEn ? d.labelEn : d.label}: ${isEn ? 'Delivery' : 'Hace entrega'}">
-                                        ${d.short}
-                                    </div>
-                                `).join('')}
+                                ${activeDaysList.map(d => {
+                                    const isNext = nextDayObj && d.id === nextDayObj.id;
+                                    return `
+                                        <div class="supplier-day-dot active ${isNext ? 'next-delivery-day' : ''}" style="width: 20px; height: 20px; font-size: 10px;" title="${isNext ? (isEn ? `Next delivery: ${d.labelEn}` : `Próxima entrega: ${d.label}`) : (isEn ? `${d.labelEn}: Delivery` : `${d.label}: Hace entrega`)}">
+                                            ${d.short}
+                                        </div>
+                                    `;
+                                }).join('')}
                             </div>
                         ` : ''}
                     </div>
