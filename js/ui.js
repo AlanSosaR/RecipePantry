@@ -126,6 +126,69 @@ window.updateGlobalUserUI = function () {
         };
         profileSection.dataset.listenerAdded = 'true';
     }
+
+    // Actualizar visibilidad de accesos especiales (Proveedores, Tareas)
+    if (window.updateSidebarNavAccess) {
+        window.updateSidebarNavAccess();
+    }
+}
+
+// Actualizador global de visibilidad de accesos especiales en el sidebar
+window.updateSidebarNavAccess = function () {
+    const adminEmails = ['rodezn6@gmail.com', 'admin@recipepantry.com'];
+    let profile = null;
+    try {
+        profile = window.authManager?.currentUser || 
+                  (window.authManager?.session?.user ? { email: window.authManager.session.user.email } : null) || 
+                  JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+    } catch (e) {
+        profile = null;
+    }
+
+    const email = (
+        profile?.email ||
+        window.authManager?.currentUser?.email ||
+        window.authManager?.session?.user?.email ||
+        ''
+    ).toLowerCase().trim();
+
+    const isSuperAdmin = adminEmails.includes(email);
+    const canSuppliers = isSuperAdmin || Boolean(profile && profile.can_access_suppliers === true);
+    const canTasks = isSuperAdmin || Boolean(profile && profile.can_access_tasks === true);
+
+    const supEl = document.getElementById('navItemSuppliers');
+    if (supEl) {
+        if (canSuppliers) {
+            supEl.classList.remove('hidden');
+        } else {
+            const hasAuthUser = Boolean(email || localStorage.getItem('recipe_pantry_user_profile'));
+            if (hasAuthUser) supEl.classList.add('hidden');
+        }
+    }
+
+    const taskEl = document.getElementById('navItemTasks');
+    if (taskEl) {
+        if (canTasks) {
+            taskEl.classList.remove('hidden');
+        } else {
+            const hasAuthUser = Boolean(email || localStorage.getItem('recipe_pantry_user_profile'));
+            if (hasAuthUser) taskEl.classList.add('hidden');
+        }
+    }
+};
+
+window.addEventListener('auth-ready', () => {
+    if (window.updateSidebarNavAccess) window.updateSidebarNavAccess();
+});
+window.addEventListener('auth-changed', () => {
+    if (window.updateSidebarNavAccess) window.updateSidebarNavAccess();
+});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.updateSidebarNavAccess) window.updateSidebarNavAccess();
+    });
+} else {
+    if (window.updateSidebarNavAccess) window.updateSidebarNavAccess();
 }
 
 // Global slim sidebar toggle (desktop)

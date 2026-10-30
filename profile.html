@@ -341,31 +341,39 @@
         </div>
       </div>
       <nav class="sidebar-nav">
-        <a href="/" class="nav-item">
+        <a href="/" class="nav-item" title="Recetas">
           <span class="material-symbols-outlined">menu_book</span>
           <span data-i18n="navRecipes">Recetas</span>
         </a>
-        <a href="/notas" class="nav-item">
+        <a href="/?view=tasks" class="nav-item hidden" id="navItemTasks" title="Prep Diario & To-Do">
+          <span class="material-symbols-outlined">checklist</span>
+          <span data-i18n="navTasks">Prep Diario</span>
+        </a>
+        <a href="/notas" class="nav-item" title="Notas">
           <span class="material-symbols-outlined">edit_note</span>
           <span data-i18n="navNotes">Notas</span>
         </a>
-        <a href="/?view=menu" class="nav-item">
+        <a href="/?view=menu" class="nav-item" title="Menú">
           <span class="material-symbols-outlined">restaurant_menu</span>
           <span data-i18n="navMenu">Menú</span>
         </a>
-        <a href="/?view=allergens" class="nav-item">
+        <a href="/?view=allergens" class="nav-item" title="Alergias">
           <span class="material-symbols-outlined">health_and_safety</span>
           <span data-i18n="navAllergies">Alergias</span>
         </a>
-        <a href="/#favorites" class="nav-item">
+        <a href="/#favorites" class="nav-item" title="Favoritos">
           <span class="material-symbols-outlined">star</span>
           <span data-i18n="navFavorites">Favoritos</span>
         </a>
-        <a href="/?view=help" class="nav-item">
+        <a href="/?view=suppliers" class="nav-item hidden" id="navItemSuppliers" title="Proveedores y Órdenes">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <span data-i18n="navSuppliers">Proveedores</span>
+        </a>
+        <a href="/?view=help" class="nav-item" title="Configuración">
           <span class="material-symbols-outlined">settings</span>
           <span data-i18n="navHelp">Configuración</span>
         </a>
-        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
+        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()" title="Cerrar Sesión">
           <span class="material-symbols-outlined">logout</span>
           <span data-i18n="navLogout">Cerrar Sesión</span>
         </a>
