@@ -1859,7 +1859,7 @@ body.nf-dark-contrast .nf-divider {
 }
 
 .keep-modal-title {
-    width: calc(100% - 44px);
+    width: calc(100% - 84px);
     border: none;
     background: transparent;
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -2920,4 +2920,76 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
         padding-top: 6px !important;
         padding-bottom: 12px !important;
     }
+}
+
+/* M3 Favorite Button for Notes */
+.note-fav-btn {
+    position: absolute;
+    top: 6px;
+    right: 40px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5f6368;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+    z-index: 4;
+}
+
+.note-card:hover .note-fav-btn,
+.note-fav-btn.favorited {
+    opacity: 1;
+}
+
+.note-fav-btn.favorited {
+    color: #f59e0b !important;
+}
+
+.note-fav-btn.favorited .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+.note-fav-btn:hover {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+@media (hover: none) {
+    .note-fav-btn {
+        opacity: 0.7;
+    }
+}
+
+.keep-modal-fav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+
+.keep-modal-fav-btn:hover {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.keep-modal-fav-btn.favorited {
+    color: #f59e0b !important;
+}
+
+.keep-modal-fav-btn.favorited .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
 }

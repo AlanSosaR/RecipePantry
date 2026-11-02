@@ -2,11 +2,259 @@
 console.log('📄 [File] js/dashboard.js loaded (v646)');
 
 class DashboardManager {
+    escapeHTML(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    setFavFilter(type) {
+        this.favFilterType = type;
+        this.renderRecipesGrid(this.currentRecipes);
+    }
+
+    async loadFavoriteNotes() {
+        try {
+            if (!window.supabaseClient) return [];
+            try {
+                const cached = JSON.parse(localStorage.getItem('rp_cached_fav_notes') || '[]');
+                if (Array.isArray(cached) && cached.length > 0) {
+                    this.favoriteNotes = cached;
+                }
+            } catch (e) {}
+
+            const { data, error } = await window.supabaseClient
+                .from('notes')
+                .select('id, title, content, type, color, is_pinned, is_favorite, updated_at, note_items(id, content, is_completed)')
+                .eq('is_favorite', true)
+                .order('updated_at', { ascending: false });
+
+            if (!error && data) {
+                this.favoriteNotes = data;
+                localStorage.setItem('rp_cached_fav_notes', JSON.stringify(data));
+            }
+            return this.favoriteNotes || [];
+        } catch (e) {
+            console.warn('⚠️ Error al cargar notas favoritas:', e);
+            return this.favoriteNotes || [];
+        }
+    }
+
+
+    handleNoteClick(event, noteId) {
+        if (event && event.target && event.target.closest('.col-actions, .col-checkbox, button')) return;
+        const isDesktop = window.innerWidth >= 768;
+        if (isDesktop) {
+            this.openNoteInPanel(noteId);
+            return;
+        }
+        window.location.href = `/nota-form?id=${encodeURIComponent(noteId)}&from=favoritos`;
+    }
+
+    async openNoteInPanel(noteId) {
+        const container = document.getElementById('recipesGrid');
+        const emptyState = document.getElementById('emptyState');
+        if (!container) return;
+
+        let note = (this.favoriteNotes || []).find(n => n.id === noteId);
+        if (!note && window.supabaseClient) {
+            try {
+                const { data } = await window.supabaseClient
+                    .from('notes')
+                    .select('id, title, content, type, color, is_pinned, is_favorite, updated_at, note_items(id, content, is_completed)')
+                    .eq('id', noteId)
+                    .single();
+                if (data) note = data;
+            } catch (e) {}
+        }
+
+        if (!note) {
+            window.location.href = `/nota-form?id=${encodeURIComponent(noteId)}&from=favoritos`;
+            return;
+        }
+
+        const panelUrl = this.currentFolder ? `/?view=recipes&folder=${encodeURIComponent(this.currentFolder)}` : '/?view=recipes';
+        history.pushState({ panelNote: noteId, folder: this.currentFolder }, '', panelUrl);
+
+        this._panelPopstateHandler = () => {
+            if (document.getElementById('panelDetailBody')) {
+                this._closeDetailPanelInternal();
+            }
+        };
+        window.addEventListener('popstate', this._panelPopstateHandler, { once: true });
+
+        if (emptyState) emptyState.classList.add('hidden');
+        const dashHeader = document.querySelector('.dashboard-header');
+        if (dashHeader) dashHeader.classList.add('hidden');
+
+        const breadcrumb = document.getElementById('folderBreadcrumb');
+        if (breadcrumb) {
+            breadcrumb.classList.add('hidden');
+            breadcrumb.style.display = 'none';
+        }
+
+        const suggestedCarousel = document.getElementById('suggestedCarouselSection');
+        if (suggestedCarousel) suggestedCarousel.classList.add('hidden');
+
+        const fab = document.querySelector('.fab-m3');
+        if (fab) fab.classList.add('hidden');
+        if (this.closeFabMenu) this.closeFabMenu();
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const titleText = note.title && note.title.trim() ? note.title.trim() : (note.type === 'checklist' ? 'Lista sin título' : 'Nota sin título');
+        const date = new Date(note.updated_at || note.created_at || Date.now()).toLocaleDateString(isEn ? 'en-US' : 'es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+
+        let contentHtml = '';
+        if (note.type === 'checklist') {
+            const items = note.note_items || [];
+            if (items.length === 0) {
+                contentHtml = '<p style="color: var(--text-muted); font-style: italic;">(Sin elementos en la lista)</p>';
+            } else {
+                contentHtml = `
+                    <div class="note-panel-checklist" style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+                        ${items.map(item => `
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 15px; color: ${item.is_completed ? '#9ca3af' : 'var(--text-main, #1e293b)'}; ${item.is_completed ? 'text-decoration: line-through;' : ''}">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: ${item.is_completed ? 'var(--primary, #10b981)' : '#9ca3af'}; font-variation-settings: 'FILL' ${item.is_completed ? 1 : 0};">
+                                    ${item.is_completed ? 'check_box' : 'check_box_outline_blank'}
+                                </span>
+                                <span>${this.escapeHTML(item.content || '')}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        } else {
+            contentHtml = `
+                <div class="note-panel-text-content" style="font-size: 15px; line-height: 1.6; color: var(--text-main, #1e293b); white-space: pre-wrap; margin-top: 16px;">
+                    ${this.escapeHTML(note.content || '(Nota vacía)')}
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="pc-detail-panel note-detail-panel">
+                <div class="pc-detail-topbar">
+                    <button class="btn-back-circle-m3" id="btnPanelBack" onclick="window.dashboard.closeDetailPanel()" title="Volver">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <div style="display:flex; gap:10px;" id="panelActionBtns">
+                        <button class="m3-icon-btn active" id="panelBtnFavorite" title="Quitar de favoritos" style="color: #f59e0b;" onclick="window.dashboard.toggleFavoriteNoteFromDashboard('${note.id}'); window.dashboard.closeDetailPanel();">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                        </button>
+                        <button class="m3-icon-btn" id="panelBtnEdit" title="Editar en Notas" onclick="window.location.href='/nota-form?id=${encodeURIComponent(note.id)}&from=favoritos'">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="pc-detail-body" id="panelDetailBody" style="padding: 24px 28px; max-width: 800px; margin: 0 auto;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <span class="badge-folder-pill" style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #b45309; background: #fef3c7; padding: 3px 10px; border-radius: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 15px;">${note.type === 'checklist' ? 'check_box' : 'sticky_note_2'}</span>
+                            <span>${note.type === 'checklist' ? (isEn ? 'Checklist Note' : 'Nota de lista') : (isEn ? 'Kitchen Note' : 'Nota de cocina')}</span>
+                        </span>
+                        <span style="font-size: 13px; color: var(--text-muted, #64748b);">• ${date}</span>
+                    </div>
+                    <h1 style="font-size: 26px; font-weight: 700; color: var(--text-main, #0f172a); margin: 0 0 16px 0; font-family: 'Poppins', sans-serif;">
+                        ${this.escapeHTML(titleText)}
+                    </h1>
+                    <div class="note-panel-body-content" style="background: ${note.color && note.color !== 'transparent' ? note.color : '#f8fafc'}; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
+                        ${contentHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async toggleFavoriteNoteFromDashboard(noteId) {
+        try {
+            const noteIndex = (this.favoriteNotes || []).findIndex(n => n.id === noteId);
+            if (noteIndex !== -1) {
+                this.favoriteNotes.splice(noteIndex, 1);
+                localStorage.setItem('rp_cached_fav_notes', JSON.stringify(this.favoriteNotes));
+            }
+            if (window.supabaseClient) {
+                await window.supabaseClient.from('notes').update({ is_favorite: false }).eq('id', noteId);
+            }
+            if (window.utils?.showToast) {
+                window.utils.showToast(window.i18n ? 'Removed from favorites' : 'Nota eliminada de favoritos', 'success');
+            }
+            this.renderFolders();
+            this.renderRecipesGrid(this.currentRecipes);
+            this.updateTitleHeader();
+        } catch (e) {
+            console.warn('Error removing note from favorites:', e);
+        }
+    }
+
+    renderNoteRow(note) {
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const date = new Date(note.updated_at || note.created_at || Date.now()).toLocaleDateString(isEn ? 'en-US' : 'es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        const titleText = note.title && note.title.trim() ? note.title.trim() : (note.type === 'checklist' ? 'Lista sin título' : 'Nota sin título');
+        const snippet = note.type === 'checklist' 
+            ? `${(note.note_items || []).length} ítems` 
+            : (note.content ? note.content.trim().slice(0, 45) : '');
+
+        return `
+            <div class="file-row-m3 note-file-row" 
+                 id="note-${note.id}"
+                 role="option"
+                 tabindex="0"
+                 onclick="window.dashboard.handleNoteClick(event, '${note.id}')"
+                 style="cursor: pointer;">
+                
+                <div class="col-checkbox" onclick="event.stopPropagation()">
+                    <span class="material-symbols-outlined" style="font-size: 20px; color: #f59e0b; font-variation-settings: 'FILL' 1;">star</span>
+                </div>
+
+                <div class="col-icon">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: #d97706;">${note.type === 'checklist' ? 'check_box' : 'sticky_note_2'}</span>
+                </div>
+
+                <div class="col-name text-ellipsis" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="recipe-name" style="font-weight: 600;">${this.escapeHTML(titleText)}</span>
+                    <span class="badge-folder-pill" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 6px;" title="Nota de cocina">
+                        <span class="material-symbols-outlined" style="font-size: 13px;">sticky_note_2</span>
+                        <span>${isEn ? 'Note' : 'Nota'}</span>
+                    </span>
+                    ${snippet ? `<span style="font-size: 12px; color: #6b7280; margin-left: 4px;">• ${this.escapeHTML(snippet)}</span>` : ''}
+                </div>
+
+                <div class="col-access">
+                    <span style="color: #4b5563; display: flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 17px;">edit_note</span>
+                        ${note.type === 'checklist' ? (isEn ? 'Checklist' : 'Lista') : (isEn ? 'Text Note' : 'Nota de texto')}
+                    </span>
+                </div>
+
+                <div class="col-date">${date}</div>
+
+                <div class="col-actions">
+                    <div class="row-actions-dropbox">
+                        <button class="btn-icon-m3" title="${isEn ? 'Open note' : 'Abrir nota'}" onclick="event.stopPropagation(); window.dashboard.handleNoteClick(event, '${note.id}')">
+                            <span class="material-symbols-outlined">open_in_new</span>
+                        </button>
+                        <button class="btn-icon-m3 active" 
+                            title="Quitar de favoritos"
+                            style="color: #f59e0b;"
+                            onclick="event.stopPropagation(); window.dashboard.toggleFavoriteNoteFromDashboard('${note.id}')">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     constructor() {
         this.currentFilters = {};
         this.displayMode = 'list'; // Forzado a lista por solicitud de diseño
         this.currentView = localStorage.getItem('recipe_pantry_current_view') || 'recipes';
         this.currentRecipes = [];
+        this.favoriteNotes = [];
+        this.favFilterType = "all";
         this.isLoadingRecipes = true;
         this.hasLoadedInitialRecipes = false;
         this.selectedRecipeId = null;
@@ -118,6 +366,7 @@ class DashboardManager {
                 viewParam = rawHash;
             }
             if (viewParam === 'settings') viewParam = 'help';
+            if (viewParam === 'favorites') { viewParam = 'recipes'; this.currentFolder = 'Favoritos'; }
             if (viewParam && ['recipes', 'favorites', 'shared', 'help', 'allergens', 'menu', 'suppliers', 'tasks'].includes(viewParam)) {
                 this.currentView = viewParam;
             }
@@ -684,6 +933,7 @@ class DashboardManager {
 
 
     switchView(view, activeItem) {
+        if (view === 'favorites') { this.currentFolder = 'Favoritos'; this.switchView('recipes'); return; }
         console.log(`[Dashboard] switchView triggered: ${view}`);
         this.currentView = view;
 
@@ -1190,13 +1440,21 @@ class DashboardManager {
         if (this.currentView === 'recipes') {
             if (this.currentFolder) {
                 // Dentro de una carpeta: cuenta sólo las recetas de esa carpeta
-                const targetFolderClean = this.currentFolder.trim().toLowerCase();
-                const folderCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => {
-                    const fEs = (r.pantry_es || '').trim().toLowerCase();
-                    const fEn = (r.pantry_en || '').trim().toLowerCase();
-                    return fEs === targetFolderClean || fEn === targetFolderClean;
-                }).length;
-                titleEl.textContent = `${this.currentFolder} (${folderCount})`;
+                if (this.currentFolder === 'Favoritos') {
+                    const favRecipesCount = (this.currentRecipes || []).filter(r => r.is_favorite).length;
+                    const favNotesCount = (this.favoriteNotes || []).length;
+                    const totalFav = forcedCount !== null ? forcedCount : (favRecipesCount + favNotesCount);
+                    const favLabel = window.i18n ? (window.i18n.t('navFavorites') || 'Favoritos') : 'Favoritos';
+                    titleEl.textContent = `${favLabel} (${totalFav})`;
+                } else {
+                    const targetFolderClean = this.currentFolder.trim().toLowerCase();
+                    const folderCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => {
+                        const fEs = (r.pantry_es || '').trim().toLowerCase();
+                        const fEn = (r.pantry_en || '').trim().toLowerCase();
+                        return fEs === targetFolderClean || fEn === targetFolderClean;
+                    }).length;
+                    titleEl.textContent = `${this.currentFolder} (${folderCount})`;
+                }
             } else if (isSearching) {
                 const s = this.lastFilters.search.trim().toLowerCase();
                 const searchCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => {
@@ -1212,7 +1470,7 @@ class DashboardManager {
                 ).length;
                 titleEl.textContent = `${baseTitle} (${rootCount})`;
             }
-        } else if (this.currentView === 'favorites') {
+        } else if (this.currentView === 'favorites' || this.currentFolder === 'Favoritos') {
             const favCount = forcedCount !== null ? forcedCount : (this.currentRecipes || []).filter(r => r.is_favorite).length;
             titleEl.textContent = `${window.i18n ? window.i18n.t('navFavorites') : 'Favoritos'} (${favCount})`;
         } else if (this.currentView === 'shared') {
@@ -1259,6 +1517,7 @@ class DashboardManager {
 
         // Consultar SIEMPRE directo a la base de datos Supabase
         const result = await window.db.getMyRecipes(filters);
+        await this.loadFavoriteNotes();
 
         this.isLoadingRecipes = false;
         this.hasLoadedInitialRecipes = true;
@@ -2499,17 +2758,39 @@ class DashboardManager {
             if (breadcrumb) {
                 breadcrumb.classList.remove('hidden');
                 breadcrumb.style.display = 'flex';
-                // Contar recetas dentro de esta carpeta (si ya cargaron)
+                const isFavFolder = this.currentFolder === 'Favoritos';
                 const targetFolderClean = this.currentFolder.trim().toLowerCase();
                 const hasRecs = this.currentRecipes && this.currentRecipes.length > 0;
-                const folderCount = hasRecs
-                    ? (this.currentRecipes || []).filter(r => {
-                        const fEs = (r.pantry_es || '').trim().toLowerCase();
-                        const fEn = (r.pantry_en || '').trim().toLowerCase();
-                        return fEs === targetFolderClean || fEn === targetFolderClean;
-                    }).length
-                    : null;
-                if (folderLabel) folderLabel.textContent = folderCount !== null ? `${this.currentFolder} (${folderCount})` : this.currentFolder;
+                let folderCount = null;
+                if (hasRecs) {
+                    if (isFavFolder) {
+                        folderCount = ((this.currentRecipes || []).filter(r => r.is_favorite).length) + ((this.favoriteNotes || []).length);
+                    } else {
+                        folderCount = (this.currentRecipes || []).filter(r => {
+                            const fEs = (r.pantry_es || '').trim().toLowerCase();
+                            const fEn = (r.pantry_en || '').trim().toLowerCase();
+                            return fEs === targetFolderClean || fEn === targetFolderClean;
+                        }).length;
+                    }
+                }
+                const favLabel = window.i18n ? (window.i18n.t('navFavorites') || 'Favoritos') : 'Favoritos';
+                const displayName = isFavFolder ? favLabel : this.currentFolder;
+                if (folderLabel) folderLabel.textContent = folderCount !== null ? `${displayName} (${folderCount})` : displayName;
+
+                const crumbIcon = breadcrumb.querySelector('.folder-crumb-icon');
+                if (crumbIcon) {
+                    crumbIcon.textContent = isFavFolder ? 'star' : 'folder';
+                    crumbIcon.style.color = isFavFolder ? '#f59e0b' : '';
+                    if (isFavFolder) {
+                        crumbIcon.style.fontVariationSettings = "'FILL' 1";
+                    } else {
+                        crumbIcon.style.fontVariationSettings = '';
+                    }
+                }
+                const moreActions = breadcrumb.querySelector('.folder-breadcrumb-actions');
+                if (moreActions) {
+                    moreActions.style.display = isFavFolder ? 'none' : '';
+                }
             }
         } else {
             document.documentElement.removeAttribute('data-active-folder');
@@ -2582,9 +2863,13 @@ class DashboardManager {
         const track = document.getElementById('suggestedCarouselTrack');
         if (!section || !track) return;
 
-        folders = (folders || []).filter(f => f && f.trim().toLowerCase() !== 'prueba 2');
+        folders = (folders || []).filter(f => f && f.trim().toLowerCase() !== 'prueba 2' && f.trim().toLowerCase() !== 'favoritos');
 
-        if (this.currentView !== 'recipes' || this.currentFolder || folders.length === 0) {
+        const favRecipesCount = (this.currentRecipes || []).filter(r => r.is_favorite).length;
+        const favNotesCount = (this.favoriteNotes || []).length;
+        const totalFav = favRecipesCount + favNotesCount;
+
+        if (this.currentView !== 'recipes' || this.currentFolder || (folders.length === 0 && totalFav === 0)) {
             section.classList.add('hidden');
             section.style.display = 'none';
             track.innerHTML = '';
@@ -2592,10 +2877,35 @@ class DashboardManager {
         }
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+        let favoritesCard = '';
+        if (totalFav > 0) {
+            const favTitle = isEn ? 'Favorites' : 'Favoritos';
+            let countLabel = '';
+            if (favRecipesCount > 0 && favNotesCount > 0) {
+                countLabel = `${favRecipesCount} ${favRecipesCount === 1 ? 'receta' : 'recetas'}, ${favNotesCount} ${favNotesCount === 1 ? 'nota' : 'notas'}`;
+            } else if (favNotesCount > 0) {
+                countLabel = `${favNotesCount} ${favNotesCount === 1 ? 'nota' : 'notas'}`;
+            } else {
+                countLabel = `${favRecipesCount} ${favRecipesCount === 1 ? 'receta' : 'recetas'}`;
+            }
+            favoritesCard = `
+                <div class="dropbox-carousel-card favorites-carousel-card" data-folder="Favoritos" onclick="window.dashboard.openFolder('Favoritos')" title="${favTitle}">
+                    <div class="card-media card-media-favorites">
+                        <span class="material-symbols-outlined folder-icon">star</span>
+                    </div>
+                    <div class="card-meta">
+                        <span class="card-title" title="${favTitle}">${favTitle}</span>
+                        <span class="card-subtitle">Carpeta • ${countLabel}</span>
+                    </div>
+                </div>
+            `;
+        }
+
         const folderCards = folders.map(f => {
             const safeF = f.replace(/'/g, "\\'");
             const count = counts[f] || 0;
-            const countLabel = `${count} ${count === 1 ? (isEn ? 'receta' : 'receta') : (isEn ? 'recetas' : 'recetas')}`;
+            const countLabel = `${count} ${count === 1 ? 'receta' : 'recetas'}`;
 
             return `
                 <div class="dropbox-carousel-card" data-folder="${safeF}" onclick="window.dashboard.openFolder('${safeF}')">
@@ -2621,7 +2931,7 @@ class DashboardManager {
             `;
         }).join('');
 
-        track.innerHTML = folderCards;
+        track.innerHTML = favoritesCard + folderCards;
         section.classList.remove('hidden');
         section.style.display = '';
 
@@ -4017,12 +4327,16 @@ class DashboardManager {
         } else if (this.currentView === 'recipes') {
             if (this.currentFolder) {
                 // Dentro de una carpeta: solo recetas pertenecientes a esa carpeta
-                const targetFolderClean = this.currentFolder.trim().toLowerCase();
-                displayRecipes = (recipes || []).filter(r => {
-                    const fEs = (r.pantry_es || '').trim().toLowerCase();
-                    const fEn = (r.pantry_en || '').trim().toLowerCase();
-                    return fEs === targetFolderClean || fEn === targetFolderClean;
-                });
+                if (this.currentFolder === 'Favoritos') {
+                    displayRecipes = (recipes || []).filter(r => r.is_favorite);
+                } else {
+                    const targetFolderClean = this.currentFolder.trim().toLowerCase();
+                    displayRecipes = (recipes || []).filter(r => {
+                        const fEs = (r.pantry_es || '').trim().toLowerCase();
+                        const fEn = (r.pantry_en || '').trim().toLowerCase();
+                        return fEs === targetFolderClean || fEn === targetFolderClean;
+                    });
+                }
             } else {
                 // En la vista global (raíz): recetas sueltas sin carpeta asignada
                 displayRecipes = (recipes || []).filter(r => isRootFolder(r.pantry_es) && isRootFolder(r.pantry_en));
@@ -4093,7 +4407,10 @@ class DashboardManager {
             return;
         }
 
-        if (displayRecipes.length === 0) {
+        const isFavFolderCheck = this.currentFolder === 'Favoritos';
+        const favNotesCountCheck = isFavFolderCheck ? (this.favoriteNotes || []).length : 0;
+        const hasAnyContent = isFavFolderCheck ? (displayRecipes.length > 0 || favNotesCountCheck > 0) : (displayRecipes.length > 0);
+        if (!hasAnyContent) {
             container.innerHTML = '';
             if (emptyState) {
                 // Actualizar contenido del empty state según la vista
@@ -4220,8 +4537,43 @@ class DashboardManager {
             </div>
         `;
 
-        const rows = displayRecipes.map(recipe => this.renderRecipeRow(recipe)).join('');
-        container.innerHTML = header + `<div class="recipe-list-body">${rows}</div>`;
+        const isFavFolder = this.currentFolder === 'Favoritos';
+        let displayNotes = isFavFolder ? (this.favoriteNotes || []) : [];
+        if (isFavFolder && isSearching) {
+            const s = this.lastFilters.search.trim().toLowerCase();
+            displayNotes = displayNotes.filter(n => (n.title && n.title.toLowerCase().includes(s)) || (n.content && n.content.toLowerCase().includes(s)));
+        }
+
+        let filterBarHtml = '';
+        if (isFavFolder && (displayRecipes.length > 0 || displayNotes.length > 0)) {
+            const favType = this.favFilterType || 'all';
+            filterBarHtml = `
+                <div class="favorites-filter-bar" style="display: flex; gap: 8px; padding: 0 0 12px 0; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="m3-filter-chip ${favType === 'all' ? 'active' : ''}" onclick="window.dashboard.setFavFilter('all')">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
+                        <span>Todos (${displayRecipes.length + displayNotes.length})</span>
+                    </button>
+                    <button type="button" class="m3-filter-chip ${favType === 'recipes' ? 'active' : ''}" onclick="window.dashboard.setFavFilter('recipes')">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
+                        <span>Recetas (${displayRecipes.length})</span>
+                    </button>
+                    <button type="button" class="m3-filter-chip ${favType === 'notes' ? 'active' : ''}" onclick="window.dashboard.setFavFilter('notes')">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">sticky_note_2</span>
+                        <span>Notas (${displayNotes.length})</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        const favType = this.favFilterType || 'all';
+        let recipeRows = (favType === 'all' || favType === 'recipes') 
+            ? displayRecipes.map(recipe => this.renderRecipeRow(recipe)).join('') 
+            : '';
+        let noteRows = (isFavFolder && (favType === 'all' || favType === 'notes')) 
+            ? displayNotes.map(note => this.renderNoteRow(note)).join('') 
+            : '';
+
+        container.innerHTML = filterBarHtml + header + `<div class="recipe-list-body">${recipeRows}${noteRows}</div>`;
         this.updateSelectAllCheckbox();
         this.updateActionBar(); // Asegurar que botones globales se actualicen tras el render
     }

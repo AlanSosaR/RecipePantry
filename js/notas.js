@@ -290,6 +290,38 @@
         }
 
         // ── Fijar / Desfijar nota desde la lista ──
+        async toggleFavoriteNote(noteId, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const note = this.notes.find(n => n.id === noteId);
+            if (!note) return;
+
+            note.is_favorite = !note.is_favorite;
+
+            const user = window.authManager?.currentUser;
+            const userId = user?.auth_user_id || user?.id;
+            if (userId) {
+                this.updateNoteInCache(userId, note);
+            }
+
+            this.renderNotesList();
+
+            try {
+                await window.supabaseClient
+                    .from('notes')
+                    .update({ is_favorite: note.is_favorite })
+                    .eq('id', noteId);
+                const msg = note.is_favorite ? 'Nota añadida a favoritos' : 'Nota eliminada de favoritos';
+                if (window.utils && window.utils.showToast) {
+                    window.utils.showToast(msg, 'success');
+                }
+            } catch (e) {
+                console.warn('Error saving favorite state on note:', e);
+            }
+        }
+
         async togglePinNote(noteId, event) {
             if (event) {
                 event.preventDefault();
@@ -372,6 +404,11 @@
             }
 
             card.innerHTML = `
+                <button type="button" class="note-fav-btn ${note.is_favorite ? 'favorited' : ''}" 
+                    title="${note.is_favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}" 
+                    onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.toggleFavoriteNote('${note.id}', event)">
+                    <span class="material-symbols-outlined">${note.is_favorite ? 'star' : 'star_border'}</span>
+                </button>
                 <button type="button" class="note-pin-btn ${note.is_pinned ? 'pinned' : ''}" 
                     title="${note.is_pinned ? 'Desfijar nota' : 'Fijar nota'}" 
                     onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.togglePinNote('${note.id}', event)">
@@ -399,7 +436,7 @@
 
             const openNote = (e) => {
                 if (this.isDragging || this.justDragged) return;
-                if (e.target.closest('.note-card-footer') || e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('.note-color-palette') || e.target.closest('#note-color-palette') || e.target.closest('.modal-more-sheet') || e.target.closest('.card-popover') || e.target.closest('a')) return;
+                if (e.target.closest('.note-card-footer') || e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('.note-fav-btn') || e.target.closest('.note-color-palette') || e.target.closest('#note-color-palette') || e.target.closest('.modal-more-sheet') || e.target.closest('.card-popover') || e.target.closest('a')) return;
                 
                 // Abrir con efecto Google Keep expansivo desde la tarjeta
                 this.openKeepModal(note.id, 'text', card);
@@ -717,7 +754,7 @@
                     // ── Soporte Ratón (PC) ──
                     card.addEventListener('mousedown', (e) => {
                         if (e.button !== 0) return;
-                        if (e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('a') || e.target.closest('button')) return;
+                        if (e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('.note-fav-btn') || e.target.closest('a') || e.target.closest('button')) return;
 
                         startX = e.clientX;
                         startY = e.clientY;
@@ -749,7 +786,7 @@
 
                     // ── Soporte Táctil (Móvil) ──
                     card.addEventListener('touchstart', (e) => {
-                        if (e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('a') || e.target.closest('button')) return;
+                        if (e.target.closest('.note-action-btn') || e.target.closest('.note-pin-btn') || e.target.closest('.note-fav-btn') || e.target.closest('a') || e.target.closest('button')) return;
                         const t = e.touches[0];
                         startX = t.clientX;
                         startY = t.clientY;
@@ -1360,6 +1397,15 @@
                 pinBtn.classList.toggle('pinned', !!this.activeModalNote.is_pinned);
                 pinBtn.title = this.activeModalNote.is_pinned ? 'Desfijar nota' : 'Fijar nota';
             }
+            const favBtn = document.getElementById('modal-fav-btn');
+            if (favBtn) {
+                favBtn.classList.toggle('favorited', !!this.activeModalNote.is_favorite);
+                favBtn.title = this.activeModalNote.is_favorite ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                const icon = favBtn.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    icon.textContent = this.activeModalNote.is_favorite ? 'star' : 'star_border';
+                }
+            }
 
             const typeIcon = document.getElementById('modal-type-icon');
             if (typeIcon) {
@@ -1546,6 +1592,7 @@
                         note_items: items,
                         color: this.activeModalNote.color || 'transparent',
                         is_pinned: !!this.activeModalNote.is_pinned,
+                        is_favorite: !!this.activeModalNote.is_favorite,
                         updated_at: new Date().toISOString()
                     });
                 }
@@ -1555,6 +1602,7 @@
                     type: type,
                     color: this.activeModalNote.color || 'transparent',
                     is_pinned: !!this.activeModalNote.is_pinned,
+                    is_favorite: !!this.activeModalNote.is_favorite,
                     updated_at: new Date().toISOString()
                 };
                 if (type === 'text') updateData.content = content;
@@ -1598,6 +1646,7 @@
                     note_items: items,
                     color: this.activeModalNote.color || 'transparent',
                     is_pinned: !!this.activeModalNote.is_pinned,
+                    is_favorite: !!this.activeModalNote.is_favorite,
                     user_id: userId,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
@@ -1771,6 +1820,21 @@
         handleModalBackdropClick(event) {
             if (event.target === event.currentTarget) {
                 this.closeKeepModal(true);
+            }
+        }
+
+        toggleModalFavorite(event) {
+            event?.stopPropagation();
+            if (!this.activeModalNote) return;
+            this.activeModalNote.is_favorite = !this.activeModalNote.is_favorite;
+            const favBtn = document.getElementById('modal-fav-btn');
+            if (favBtn) {
+                favBtn.classList.toggle('favorited', !!this.activeModalNote.is_favorite);
+                favBtn.title = this.activeModalNote.is_favorite ? 'Quitar de favoritos' : 'Añadir a favoritos';
+                const icon = favBtn.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    icon.textContent = this.activeModalNote.is_favorite ? 'star' : 'star_border';
+                }
             }
         }
 
@@ -2651,7 +2715,12 @@
                 }
 
                 setTimeout(() => {
-                    window.location.href = '/notas';
+                    const fromParam = new URLSearchParams(window.location.search).get('from');
+                    if (fromParam === 'favoritos') {
+                        window.location.href = '/?view=recipes&folder=Favoritos';
+                    } else {
+                        window.location.href = '/notas';
+                    }
                 }, animDelay);
             };
 
