@@ -7520,7 +7520,7 @@ class SearchHistory {
 
         if (view === 'allergens') {
             return {
-                icon: 'no_food',
+                icon: 'health_and_safety',
                 title: isEn ? 'Search Allergens' : 'Buscar en Alérgenos',
                 text: isEn ? 'Search by dish, ingredient or allergen type in the matrix.' : 'Busca por plato, ingrediente o tipo de alérgeno en la matriz.'
             };
@@ -7860,7 +7860,7 @@ class SearchHistory {
                     return `
                         <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectRecipe('${r.id}', '${encodeURIComponent(query)}')">
                             <div class="result-tile-icon-box">
-                                <span class="material-symbols-outlined">no_food</span>
+                                <span class="material-symbols-outlined">health_and_safety</span>
                             </div>
                             <div class="result-tile-info">
                                 <div class="result-tile-title">${highlighted}</div>
