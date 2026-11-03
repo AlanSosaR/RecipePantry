@@ -1031,7 +1031,7 @@ class NotificationManager {
         this.showUpdateProgressUI(isEn);
     }
 
-    showUpdateProgressUI(isEn) {
+    showUpdateProgressUI(isEn, isPreview = false) {
         // Remover si ya existe
         const oldEl = document.getElementById('app-update-progress-modal');
         if (oldEl) oldEl.remove();
@@ -1043,20 +1043,21 @@ class NotificationManager {
             bottom: 28px;
             left: 50%;
             transform: translateX(-50%);
-            background: #18181B;
-            color: #FFFFFF;
-            padding: 18px 24px;
-            border-radius: 24px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+            background: #FFFFFF;
+            color: #0F172A;
+            padding: 16px 20px;
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06);
             display: flex;
             flex-direction: column;
             gap: 12px;
             z-index: 100000;
-            width: 90%;
+            width: calc(100% - 32px);
             max-width: 420px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            font-family: 'Poppins', sans-serif;
             animation: m3UpdateSlideUp 0.35s cubic-bezier(0.2, 0, 0, 1) forwards;
+            box-sizing: border-box;
         `;
 
         if (!document.getElementById('m3-update-progress-style')) {
@@ -1070,45 +1071,77 @@ class NotificationManager {
                 .m3-update-track {
                     width: 100%;
                     height: 8px;
-                    background: rgba(255, 255, 255, 0.12);
+                    background: #F1F5F9;
+                    border: 1px solid rgba(0, 0, 0, 0.04);
                     border-radius: 999px;
                     overflow: hidden;
                     position: relative;
                 }
                 .m3-update-fill {
                     height: 100%;
-                    background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+                    background: linear-gradient(90deg, #10B981 0%, #059669 100%);
                     width: 0%;
                     border-radius: 999px;
                     transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+                    box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+                }
+                .m3-update-close-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    border: none;
+                    background: transparent;
+                    color: #94A3B8;
+                    cursor: pointer;
+                    transition: background 0.15s ease, color 0.15s ease;
+                    margin-left: 4px;
+                }
+                .m3-update-close-btn:hover {
+                    background: #F1F5F9;
+                    color: #0F172A;
                 }
             `;
             document.head.appendChild(style);
         }
 
         modal.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div id="m3-update-icon-wrap" style="width: 36px; height: 36px; border-radius: 12px; background: rgba(16, 185, 129, 0.18); display: flex; align-items: center; justify-content: center; color: #34D399;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                    <div id="m3-update-icon-wrap" style="width: 36px; height: 36px; min-width: 36px; border-radius: 12px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #059669;">
                         <span class="material-symbols-outlined" style="font-size: 22px; animation: spin 2s linear infinite;">sync</span>
                     </div>
-                    <div>
-                        <div id="m3-update-title" style="font-size: 14px; font-weight: 700; color: #FFFFFF;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div id="m3-update-title" style="font-size: 14px; font-weight: 700; color: #0F172A; font-family: 'Poppins', sans-serif; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${isEn ? 'Downloading update...' : 'Descargando actualización...'}
                         </div>
-                        <div id="m3-update-sub" style="font-size: 12px; color: #A1A1AA; margin-top: 1px;">
+                        <div id="m3-update-sub" style="font-size: 12px; color: #64748B; margin-top: 1px; font-family: 'Poppins', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${isEn ? 'Preparing newest features' : 'Descargando recursos y mejoras'}
                         </div>
                     </div>
                 </div>
-                <span id="m3-update-percent" style="font-size: 15px; font-weight: 800; color: #34D399;">0%</span>
+                <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                    <span id="m3-update-percent" style="font-size: 14px; font-weight: 800; color: #059669; font-family: 'Poppins', sans-serif;">0%</span>
+                    <button class="m3-update-close-btn" id="m3-update-dismiss-btn" aria-label="Cerrar" title="Cerrar">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                    </button>
+                </div>
             </div>
             <div class="m3-update-track">
                 <div id="m3-update-fill" class="m3-update-fill"></div>
             </div>
         `;
         document.body.appendChild(modal);
+
+        const dismissBtn = document.getElementById('m3-update-dismiss-btn');
+        if (dismissBtn) {
+            dismissBtn.onclick = () => {
+                modal.style.animation = 'm3UpdateSlideUp 0.25s cubic-bezier(0.2, 0, 0, 1) reverse forwards';
+                setTimeout(() => modal.remove(), 250);
+            };
+        }
 
         const fillEl = document.getElementById('m3-update-fill');
         const percentEl = document.getElementById('m3-update-percent');
@@ -1141,15 +1174,26 @@ class NotificationManager {
             if (fillEl) fillEl.style.width = '100%';
             if (percentEl) percentEl.textContent = '100%';
             if (titleEl) titleEl.textContent = isEn ? '✅ App Updated!' : '✅ ¡Actualizado con éxito!';
-            if (subEl) subEl.textContent = isEn ? 'Reloading application...' : 'Reiniciando aplicación...';
+            if (subEl) subEl.textContent = isPreview 
+                ? (isEn ? 'Preview mode completed' : 'Vista previa completada')
+                : (isEn ? 'Reloading application...' : 'Reiniciando aplicación...');
             if (iconWrap) {
-                iconWrap.style.background = 'rgba(16, 185, 129, 0.3)';
-                iconWrap.innerHTML = '<span class="material-symbols-outlined" style="font-size: 22px; color: #34D399;">check_circle</span>';
+                iconWrap.style.background = 'rgba(16, 185, 129, 0.18)';
+                iconWrap.innerHTML = '<span class="material-symbols-outlined" style="font-size: 22px; color: #059669;">check_circle</span>';
+            }
+
+            if (isPreview) {
+                setTimeout(() => {
+                    if (document.getElementById('app-update-progress-modal')) {
+                        modal.style.animation = 'm3UpdateSlideUp 0.3s cubic-bezier(0.2, 0, 0, 1) reverse forwards';
+                        setTimeout(() => modal.remove(), 300);
+                    }
+                }, 10000);
+                return;
             }
 
             sessionStorage.setItem('recipe_pantry_just_updated', 'true');
 
-            // Dar tiempo a ver el estado "Actualizado" y recargar
             setTimeout(async () => {
                 try {
                     if ('caches' in window) {
@@ -1166,6 +1210,13 @@ class NotificationManager {
                 }, 300);
             }, 750);
         };
+
+        if (isPreview) {
+            setTimeout(() => {
+                finishUpdate();
+            }, 1800);
+            return;
+        }
 
         // Solicitar al worker activar la nueva versión
         if (this.updateWorker && this.updateWorker.state !== 'redundant') {
@@ -1188,6 +1239,7 @@ class NotificationManager {
             finishUpdate();
         }, 900);
     }
+
 
     handleSyncDownload(notificationId) {
         if (window.syncManager) {
@@ -2248,3 +2300,24 @@ class NotificationManager {
 
 // Inicializar y exponer globalmente
 window.notificationManager = new NotificationManager();
+
+
+// Helper global para previsualizar el snackbar de actualización sin recargar
+window.previewUpdateProgress = function() {
+    const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+    if (window.notificationManager && typeof window.notificationManager.showUpdateProgressUI === 'function') {
+        window.notificationManager.showUpdateProgressUI(isEn, true);
+    } else {
+        const dummy = { showUpdateProgressUI: NotificationManager.prototype.showUpdateProgressUI };
+        dummy.showUpdateProgressUI(isEn, true);
+    }
+};
+
+// Auto-trigger preview si viene parámetro ?preview=update o automáticamente para visualización
+if (window.location.search.includes('preview=update') || window.location.search.includes('preview_update')) {
+    setTimeout(() => {
+        if (typeof window.previewUpdateProgress === 'function') {
+            window.previewUpdateProgress();
+        }
+    }, 900);
+}

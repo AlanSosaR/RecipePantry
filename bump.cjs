@@ -4,16 +4,24 @@
  * Detecta la versión actual en sw.js y la incrementa en todos los archivos.
  */
 const fs = require('fs');
+const path = require('path');
 
-const FILES = [
+// 1. Detectar versión actual desde sw.js
+const swContent = fs.readFileSync('sw.js', 'utf8');
+const match = swContent.match(/const VERSION = 'v(\d+)'/);
+if (!match) { console.error('❌ No se encontró VERSION en sw.js'); process.exit(1); }
+
+const currentNum = parseInt(match[1], 10);
+const nextNum    = currentNum + 1;
+const oldVer     = `v${currentNum}`;
+const newVer     = `v${nextNum}`;
+
+console.log(`\n🔄 Bumping ${oldVer} → ${newVer}\n`);
+
+// Archivos JS y HTML
+const htmlFiles = fs.readdirSync('.').filter(f => f.endsWith('.html') && !f.startsWith('stitch_'));
+const jsFiles = [
   'sw.js',
-  'ocr.html',
-  'nota-form.html',
-  'notas.html',
-  'index.html',
-  'profile.html',
-  'recipe-detail.html',
-  'recipe-form.html',
   'js/auth.js',
   'js/config.js',
   'js/supabase-client.js',
@@ -29,50 +37,27 @@ const FILES = [
   'js/sw-register.js',
   'js/restaurant-menu.js',
   'js/menu-data.js',
+  'js/pwa-install.js',
   'js/core/firebase.js',
-  'js/core/push.js',
+  'js/core/push.js'
 ];
 
-// 1. Detectar versión actual desde sw.js
-const swContent = fs.readFileSync('sw.js', 'utf8');
-const match = swContent.match(/const VERSION = 'v(\d+)'/);
-if (!match) { console.error('❌ No se encontró VERSION en sw.js'); process.exit(1); }
+const ALL_FILES = [...new Set([...htmlFiles, ...jsFiles])];
 
-const currentNum = parseInt(match[1], 10);
-const nextNum    = currentNum + 1;
-const oldVer     = `v${currentNum}`;
-const newVer     = `v${nextNum}`;
-
-console.log(`\n🔄 Bumping ${oldVer} → ${newVer}\n`);
-
-// 2. Reemplazar en todos los archivos
-let total = 0;
-FILES.forEach(file => {
-  if (!fs.existsSync(file)) { console.log(`  SKIP (no existe): ${file}`); return; }
+ALL_FILES.forEach(file => {
+  if (!fs.existsSync(file)) return;
   const before = fs.readFileSync(file, 'utf8');
   let after = before.replaceAll(oldVer, newVer);
-  after = after.replaceAll(`?v=${currentNum}`, `?v=${nextNum}`);
-  after = after.replaceAll(`data-app-version="${currentNum}"`, `data-app-version="${nextNum}"`);
-  after = after.replaceAll(`CURRENT_VERSION = '${currentNum}'`, `CURRENT_VERSION = '${nextNum}'`);
+  after = after.replace(/\?v=\d+/g, `?v=${nextNum}`);
+  after = after.replace(/data-app-version="\d+"/g, `data-app-version="${nextNum}"`);
+  after = after.replace(/CURRENT_VERSION = '\d+'/g, `CURRENT_VERSION = '${nextNum}'`);
   if (after !== before) {
     fs.writeFileSync(file, after, 'utf8');
-    const n = (before.match(new RegExp(oldVer, 'g')) || []).length +
-              (before.match(new RegExp(`\\?v=${currentNum}`, 'g')) || []).length;
-    total += n;
-    console.log(`  ✅ ${file}  (${n} reemplazos)`);
-  } else {
-    console.log(`  ── sin cambios: ${file}`);
+    console.log(`  ✅ ${file}`);
   }
 });
 
-console.log(`\n✅ Total reemplazos: ${total}`);
-console.log(`   Nueva versión: ${newVer}`);
-
-// 3. Actualizar version.json (CRÍTICO: debe coincidir con sw.js o se dispara la notificación de update)
-const versionJsonPath = 'version.json';
-const versionData = { version: String(nextNum), build: newVer };
-fs.writeFileSync(versionJsonPath, JSON.stringify(versionData, null, 2) + '\n', 'utf8');
-console.log(`  ✅ ${versionJsonPath}  → build: ${newVer}`);
-
-console.log(`\n💡 Recuerda hacer git commit + push para que el SW descargue los nuevos assets.\n`);
-
+// version.json
+fs.writeFileSync('version.json', JSON.stringify({ version: String(nextNum), build: newVer }, null, 2) + '\n', 'utf8');
+console.log(`  ✅ version.json → build: ${newVer}`);
+console.log(`\n✅ Sincronización completa a ${newVer}\n`);
