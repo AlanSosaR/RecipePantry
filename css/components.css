@@ -5003,18 +5003,23 @@ select.input-field {
         padding-top: 6px !important;
         padding-bottom: 12px !important;
     }
+
+    .sidebar-footer {
+        display: none !important;
+    }
 }
 
-/* Línea divisoria antes de Cerrar Sesión (Full Width edge-to-edge en móvil y desktop) */
+/* Cerrar Sesión anclado al fondo del menú lateral (Mobile y Desktop) con línea divisoria */
 .nav-item.nav-logout-m3 {
-    margin-top: 14px !important;
+    margin-top: auto !important;
+    margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     position: relative !important;
 }
 
 .nav-item.nav-logout-m3::before {
     content: '' !important;
     position: absolute !important;
-    top: -8px !important;
+    top: -10px !important;
     left: -16px !important;
     right: -16px !important;
     width: calc(100% + 32px) !important;
@@ -5025,6 +5030,10 @@ select.input-field {
 }
 
 @media (min-width: 1024px) {
+    .nav-item.nav-logout-m3 {
+        margin-bottom: 8px !important;
+    }
+
     .nav-item.nav-logout-m3::before {
         left: -12px !important;
         right: -12px !important;
@@ -19569,6 +19578,7 @@ body.product-side-sheet-open #m3FabBackdrop {
         gap: 6px !important;
         display: flex !important;
         flex-direction: column !important;
+        flex: 1 !important;
     }
 
     .sidebar-nav .nav-item {
