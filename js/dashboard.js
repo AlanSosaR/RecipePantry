@@ -4631,7 +4631,7 @@ class DashboardManager {
         const header = `
             <div class="list-header-m3">
                 <div class="col-checkbox">
-                    <label class="m3-checkbox-wrapper" style="pointer-events: auto !important; opacity: 1 !important;">
+                    <label class="m3-checkbox-wrapper">
                         <input type="checkbox" id="selectAllCheckboxList" class="m3-checkbox-input" onchange="window.dashboard.handleSelectAll(event)">
                         <span class="m3-checkbox-visual"></span>
                     </label>

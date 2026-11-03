@@ -8588,12 +8588,25 @@ input:checked~.m3-ingredient-text {
     align-items: center !important;
     justify-content: flex-start !important;
     gap: 8px !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
 }
 
-/* Ensure checkbox is always visible in header on PC */
-.list-header-m3 .m3-checkbox-wrapper {
+/* Checkbox dinámico en cabecera de lista: aparece al pasar el cursor (hover) igual que en las filas */
+@media (hover: hover) {
+    .list-header-m3:hover .m3-checkbox-wrapper {
+        opacity: 0.7;
+        transform: scale(1);
+        pointer-events: auto;
+    }
+    .list-header-m3 .m3-checkbox-wrapper:hover {
+        opacity: 1;
+    }
+}
+
+/* Mostrar checkbox si está marcado, en selección o en modo selección activo */
+body.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
+#recipesGrid.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
+.list-header-m3:has(.m3-checkbox-input:checked) .m3-checkbox-wrapper,
+.list-header-m3:has(.m3-checkbox-input:indeterminate) .m3-checkbox-wrapper {
     opacity: 1 !important;
     transform: scale(1) !important;
     pointer-events: auto !important;
