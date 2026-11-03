@@ -4424,6 +4424,7 @@ renderItemCard(item, supplierId) {
 
                             <!-- Botón 3 puntos M3 plano para Opciones del Pedido Consolidado -->
                             ${totalSuppliersCount > 0 ? `
+                                <div class="consolidated-more-anchor-wrap" style="position: relative; display: inline-flex;">
                                 <button type="button" 
                                         id="btnConsolidatedMore"
                                         onclick="window.suppliersManager.showConsolidatedMoreMenu(event)" 
@@ -4450,6 +4451,7 @@ renderItemCard(item, supplierId) {
                                         onmouseleave="this.style.background='transparent'; this.style.color='var(--text-main)';">
                                     <span class="material-symbols-outlined" style="font-size: 24px; pointer-events: none;">more_vert</span>
                                 </button>
+                                </div>
                             ` : ''}
                         </div>
                     </header>
@@ -4920,13 +4922,25 @@ renderItemCard(item, supplierId) {
                 closeConsolidatedMoreMenu() {
             const existingMenu = document.getElementById('consolidatedMoreMenu');
             const existingBackdrop = document.getElementById('consolidatedMenuBackdrop');
+            const existingPopover = document.getElementById('consolidatedMorePopover');
             if (existingMenu) existingMenu.remove();
             if (existingBackdrop) existingBackdrop.remove();
+            if (existingPopover) existingPopover.remove();
+            if (this._consolidatedCloseHandler) {
+                document.removeEventListener('click', this._consolidatedCloseHandler);
+                this._consolidatedCloseHandler = null;
+            }
+            if (this._consolidatedKeyHandler) {
+                document.removeEventListener('keydown', this._consolidatedKeyHandler);
+                this._consolidatedKeyHandler = null;
+            }
         }
 
         /**
          * Barra Flotante de Herramientas (Floating Toolbar) M3 Expressive para el Pedido Consolidado
          * (WhatsApp, Descargar PDF, Copiar Texto, Vaciar)
+         * - Escritorio / PC (> 768px): Anchor Popover estilo .dropbox-create-popover (Material 3 Menu Surface)
+         * - Móvil (<= 768px): Bottom Sheet M3 táctil con drag handle
          */
         showConsolidatedMoreMenu(event) {
             if (event) {
@@ -4934,8 +4948,9 @@ renderItemCard(item, supplierId) {
                 event.preventDefault();
             }
 
+            const existingPopover = document.getElementById('consolidatedMorePopover');
             const existingMenu = document.getElementById('consolidatedMoreMenu');
-            if (existingMenu) {
+            if (existingPopover || existingMenu) {
                 this.closeConsolidatedMoreMenu();
                 return;
             }
@@ -4943,6 +4958,107 @@ renderItemCard(item, supplierId) {
             this.closeConsolidatedMoreMenu();
 
             const isEn = this.isEnglish();
+            const isDesktop = window.innerWidth > 768;
+
+            if (isDesktop) {
+                // PC / Escritorio: Anchor Popover estilo .dropbox-create-popover (Material 3 Menu Surface)
+                const btn = document.getElementById('btnConsolidatedMore');
+                const anchor = btn?.closest('.consolidated-more-anchor-wrap') || btn?.parentElement;
+                if (!anchor) return;
+
+                const popover = document.createElement('div');
+                popover.id = 'consolidatedMorePopover';
+                popover.className = 'dropbox-create-popover';
+                popover.style.cssText = `
+                    position: absolute !important;
+                    top: calc(100% + 6px) !important;
+                    right: 0 !important;
+                    left: auto !important;
+                    width: 320px !important;
+                    z-index: 3100 !important;
+                    background: #FFFFFF !important;
+                    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+                    border-radius: 20px !important;
+                    box-shadow: 0 14px 38px -6px rgba(0, 0, 0, 0.16), 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+                    padding: 16px 14px 14px 14px !important;
+                    box-sizing: border-box !important;
+                    animation: dropboxPopIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                    font-family: var(--font-display, 'Poppins', sans-serif) !important;
+                `;
+
+                popover.innerHTML = `
+                    <div class="dropbox-create-top" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">summarize</span>
+                            <h4 class="dropbox-create-heading" style="margin: 0; font-size: 14px; font-weight: 700; color: #111827;">${isEn ? 'Consolidated Order' : 'Pedido Consolidado'}</h4>
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: #047857; background: #D1FAE5; padding: 2px 8px; border-radius: 999px;">${isEn ? 'Options' : 'Opciones'}</span>
+                    </div>
+
+                    <div class="dropbox-create-items" style="display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Enviar por WhatsApp -->
+                        <div class="dropbox-create-row" onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.shareConsolidatedOrdersPDF();" style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s ease;" onmouseenter="this.style.background='var(--primary-light, #ECFDF5)'" onmouseleave="this.style.background='transparent'">
+                            <div class="row-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: #ECFDF5; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #10B981;">chat</span>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <span class="row-title" style="display: block; font-size: 13.5px; font-weight: 600; color: #111827;">${isEn ? 'Send via WhatsApp' : 'Enviar por WhatsApp'}</span>
+                                <span style="display: block; font-size: 11.5px; color: #64748B;">${isEn ? 'Official PDF receipt with all orders' : 'Recibo PDF oficial con todos los pedidos'}</span>
+                            </div>
+                            <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 18px;">arrow_forward</span>
+                        </div>
+
+                        <!-- Ver PDF -->
+                        <div class="dropbox-create-row" onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.viewConsolidatedOrdersPDF();" style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s ease;" onmouseenter="this.style.background='#FEF2F2'" onmouseleave="this.style.background='transparent'">
+                            <div class="row-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: #FEF2F2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #EF4444;">picture_as_pdf</span>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <span class="row-title" style="display: block; font-size: 13.5px; font-weight: 600; color: #111827;">${isEn ? 'View PDF' : 'Ver PDF'}</span>
+                                <span style="display: block; font-size: 11.5px; color: #64748B;">${isEn ? 'Printable receipt with grouped products' : 'Ticket imprimible con productos agrupados'}</span>
+                            </div>
+                            <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 18px;">open_in_new</span>
+                        </div>
+
+                        <!-- Realizados / Completed -->
+                        <div class="dropbox-create-row" onclick="event.stopPropagation(); window.suppliersManager.closeConsolidatedMoreMenu(); window.suppliersManager.clearAllOrders();" style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s ease;" onmouseenter="this.style.background='#F0FDF4'" onmouseleave="this.style.background='transparent'">
+                            <div class="row-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: #F0FDF4; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #10B981;">task_alt</span>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <span class="row-title" style="display: block; font-size: 13.5px; font-weight: 600; color: #111827;">${isEn ? 'Completed' : 'Realizados'}</span>
+                                <span style="display: block; font-size: 11.5px; color: #64748B;">${isEn ? 'Reset all quantities to zero' : 'Pone a cero las cantidades de todos los proveedores'}</span>
+                            </div>
+                            <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 18px;">check</span>
+                        </div>
+                    </div>
+                `;
+
+                anchor.appendChild(popover);
+
+                this._consolidatedCloseHandler = (evt) => {
+                    if (!popover.contains(evt.target) && !btn?.contains(evt.target)) {
+                        this.closeConsolidatedMoreMenu();
+                    }
+                };
+                this._consolidatedKeyHandler = (evt) => {
+                    if (evt.key === 'Escape') {
+                        this.closeConsolidatedMoreMenu();
+                    }
+                };
+
+                setTimeout(() => {
+                    if (this._consolidatedCloseHandler) {
+                        document.addEventListener('click', this._consolidatedCloseHandler);
+                    }
+                    if (this._consolidatedKeyHandler) {
+                        document.addEventListener('keydown', this._consolidatedKeyHandler);
+                    }
+                }, 10);
+                return;
+            }
+
+            // En Móvil (<= 768px): Se mantiene el Bottom Sheet que emerge fluidamente desde abajo con su drag handle
             const openTime = Date.now();
 
             const backdrop = document.createElement('div');
