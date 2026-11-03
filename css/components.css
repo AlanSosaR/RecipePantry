@@ -18432,8 +18432,8 @@ body.supplier-detail-active .suppliers-subview-page {
     .tasks-date-carousel {
         flex: 1 1 auto !important;
         min-width: 0 !important;
-        max-width: calc(100% - 160px) !important;
-        margin: 0 24px !important;
+        max-width: calc(100% - 215px) !important;
+        margin: 0 32px !important;
         padding: 6px 8px 14px 8px !important;
     }
 }

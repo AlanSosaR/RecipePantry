@@ -1143,7 +1143,7 @@
                 : 'position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; padding: 0 12px;';
             const carouselContainerStyle = isMobile
                 ? 'width: 100% !important; max-width: 100% !important; flex: 1 1 100% !important; margin: 0 !important; padding: 6px 4px 14px 4px !important; overflow-x: auto;'
-                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 160px) !important; width: auto !important; margin: 0 24px !important; padding: 6px 8px 14px 8px !important; overflow-x: auto;';
+                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 215px) !important; width: auto !important; margin: 0 32px !important; padding: 6px 8px 14px 8px !important; overflow-x: auto;';
             const carouselArrowStyle = isMobile
                 ? 'display: none !important;'
                 : 'position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 40px !important; height: 40px !important; min-width: 40px !important; margin: 0 !important; display: flex !important; z-index: 5 !important;';
@@ -3973,10 +3973,10 @@ if (typeof window !== 'undefined' && !window.tasks_date_carousel_resize_handler)
             } else {
                 wrapper.style.padding = '0 12px';
                 wrapper.style.justifyContent = 'space-between';
-                carousel.style.maxWidth = 'calc(100% - 160px)';
+                carousel.style.maxWidth = 'calc(100% - 215px)';
                 carousel.style.width = 'auto';
                 carousel.style.flex = '1 1 auto';
-                carousel.style.margin = '0 24px';
+                carousel.style.margin = '0 32px';
                 carousel.style.padding = '6px 8px 14px 8px';
                 arrows.forEach(a => a.style.display = 'flex');
             }
