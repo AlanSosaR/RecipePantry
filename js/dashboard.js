@@ -17,10 +17,14 @@ class DashboardManager {
         const topBar = document.getElementById('mainTopBar');
         if (topBar && window.innerWidth <= 768) {
             topBar.classList.add('search-mobile-active');
+            document.body.classList.add('search-view-active');
             const clearBtn = document.getElementById('clearSearch');
             const searchInput = document.getElementById('searchInput');
             if (clearBtn && searchInput) {
                 clearBtn.classList.toggle('hidden', !searchInput.value.trim());
+            }
+            if (this.searchHistory && searchInput) {
+                this.searchHistory.showSuggestions(searchInput.value.trim());
             }
         }
     }
@@ -34,6 +38,7 @@ class DashboardManager {
         if (topBar) {
             topBar.classList.remove('search-mobile-active');
         }
+        document.body.classList.remove('search-view-active');
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.blur();
@@ -63,6 +68,9 @@ class DashboardManager {
                 if (window.tasksManager) window.tasksManager.handleSearch('');
             } else {
                 this.loadRecipes({ search: '' });
+            }
+            if (this.searchHistory) {
+                this.searchHistory.showSuggestions('');
             }
             searchInput.focus();
         }
@@ -872,6 +880,15 @@ class DashboardManager {
                 }
             });
 
+            searchInput.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    this.openMobileSearch();
+                }
+                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
+                    this.searchHistory.showSuggestions(searchInput.value.trim());
+                }
+            });
+
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     this.closeMobileSearch();
@@ -1642,6 +1659,9 @@ class DashboardManager {
         }
 
         this.currentRecipes = result.recipes;
+        if (!filters.search && result.recipes && result.recipes.length) {
+            this.allRecipesCache = result.recipes;
+        }
 
         const isRecipeView = ['recipes', 'favorites', 'shared'].includes(this.currentView);
         if (!isRecipeView) return;
@@ -7400,89 +7420,196 @@ class SearchHistory {
         this.dashboard = dashboard;
         this.storageKey = 'recipe_pantry_search_history';
         this.history = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
-        this.suggestionsEl = document.getElementById('searchSuggestions');
+        this.suggestionsEl = document.getElementById('searchViewContent');
         this.inputEl = document.getElementById('searchInput');
     }
 
     save(query) {
-        if (!query || query.length < 2) return;
-
-        // Remove existing and add to front
-        this.history = this.history.filter(h => h.toLowerCase() !== query.toLowerCase());
-        this.history.unshift(query);
-
-        // Keep only top 10
+        if (!query || query.trim().length < 2) return;
+        const q = query.trim();
+        this.history = this.history.filter(h => h.toLowerCase() !== q.toLowerCase());
+        this.history.unshift(q);
         this.history = this.history.slice(0, 10);
         localStorage.setItem(this.storageKey, JSON.stringify(this.history));
     }
 
     remove(query) {
-        this.history = this.history.filter(h => h !== query);
+        const decoded = decodeURIComponent(query);
+        this.history = this.history.filter(h => h !== decoded);
         localStorage.setItem(this.storageKey, JSON.stringify(this.history));
-        this.showSuggestions(this.inputEl.value.trim());
+        this.showSuggestions(this.inputEl ? this.inputEl.value.trim() : '');
+    }
+
+    clearAll() {
+        this.history = [];
+        localStorage.removeItem(this.storageKey);
+        this.showSuggestions('');
     }
 
     showSuggestions(query) {
+        if (!this.suggestionsEl) {
+            this.suggestionsEl = document.getElementById('searchViewContent');
+        }
         if (!this.suggestionsEl) return;
 
-        let suggestions = [];
-        let headerText = '';
+        const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
+        const trimmed = (query || '').trim();
 
-        if (!query) {
-            // Show recent history
-            suggestions = this.history;
-            headerText = window.i18n ? window.i18n.t('recentSearches') : 'Búsquedas recientes';
+        if (!trimmed) {
+            this.renderEmptyStateSuggestions(isEn);
         } else {
-            // Filter history or suggest from current recipes
-            suggestions = this.history.filter(h => h.toLowerCase().includes(query.toLowerCase()));
-            headerText = window.i18n ? window.i18n.t('suggestions') : 'Sugerencias';
+            this.renderLiveSearchResults(trimmed, isEn);
         }
 
-        if (suggestions.length === 0) {
-            this.hideSuggestions();
-            return;
-        }
-
-        this.renderSuggestions(suggestions, headerText);
         this.suggestionsEl.classList.remove('hidden');
     }
 
     hideSuggestions() {
+        if (!this.suggestionsEl) {
+            this.suggestionsEl = document.getElementById('searchViewContent');
+        }
         if (this.suggestionsEl) {
             this.suggestionsEl.classList.add('hidden');
         }
     }
 
-    renderSuggestions(items, header) {
-        this.suggestionsEl.innerHTML = `
-            <div class="suggestions-header">${header}</div>
-            ${items.map(item => `
-                <div class="suggestion-item" data-value="${item}">
-                    <span class="material-symbols-outlined">history</span>
-                    <span class="suggestion-text">${item}</span>
-                    <span class="material-symbols-outlined suggestion-remove" data-remove="${item}">close</span>
+    renderEmptyStateSuggestions(isEn) {
+        let html = '';
+
+        // 1. Búsquedas recientes
+        if (this.history.length > 0) {
+            html += `
+                <div class="search-view-header-row">
+                    <span class="search-view-header-title">${isEn ? 'Recent Searches' : 'Búsquedas recientes'}</span>
+                    <button type="button" class="search-view-header-btn" onclick="window.dashboard.searchHistory.clearAll()">${isEn ? 'Clear all' : 'Borrar todo'}</button>
                 </div>
-            `).join('')}
+                <div class="search-history-list" style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px;">
+                    ${this.history.map(item => `
+                        <div class="search-history-item-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(item)}')">
+                            <span class="material-symbols-outlined history-icon">history</span>
+                            <span class="history-text">${this.escapeHtml(item)}</span>
+                            <button type="button" class="history-remove-btn" title="${isEn ? 'Remove' : 'Eliminar'}" onclick="event.stopPropagation(); window.dashboard.searchHistory.remove('${encodeURIComponent(item)}')">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 2. Chips de sugerencias rápidas / categorías populares
+        const defaultChips = isEn 
+            ? ['⭐ Favorites', '🥗 Salads & Starters', '🥩 Mains & Meats', '🍰 Desserts', '🥫 Sauces & Dips', '🌱 Vegetarian']
+            : ['⭐ Favoritos', '🥗 Ensaladas & Entrantes', '🥩 Carnes & Principales', '🍰 Postres & Dulces', '🥫 Salsas & Guarniciones', '🌱 Vegetariano'];
+
+        html += `
+            <div class="search-view-header-row" style="margin-top: 4px;">
+                <span class="search-view-header-title">${isEn ? 'Quick Suggestions' : 'Sugerencias de búsqueda'}</span>
+            </div>
+            <div class="search-chips-container-m3">
+                ${defaultChips.map(chip => {
+                    const cleanTerm = chip.replace(/^[^ws]+/, '').trim();
+                    return `<button type="button" class="search-suggestion-chip-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(cleanTerm)}')">${chip}</button>`;
+                }).join('')}
+            </div>
         `;
 
-        // Event listeners for suggestion items
-        this.suggestionsEl.querySelectorAll('.suggestion-item').forEach(el => {
-            el.addEventListener('click', (e) => {
-                if (e.target.dataset.remove) {
-                    e.stopPropagation();
-                    this.remove(e.target.dataset.remove);
-                    return;
-                }
-                const value = el.dataset.value;
-                this.inputEl.value = value;
-                this.hideSuggestions();
-                this.dashboard.loadRecipes({ search: value });
+        this.suggestionsEl.innerHTML = html;
+    }
 
-                // Show clear button
-                const clearBtn = document.getElementById('clearSearch');
-                if (clearBtn) clearBtn.classList.remove('hidden');
-            });
+    renderLiveSearchResults(query, isEn) {
+        const recipes = (this.dashboard.allRecipesCache && this.dashboard.allRecipesCache.length) 
+            ? this.dashboard.allRecipesCache 
+            : (this.dashboard.currentRecipes || []);
+        const lowerQ = query.toLowerCase();
+
+        // Buscar coincidencias
+        const matches = recipes.filter(r => {
+            const name = (r.name || r.name_es || r.name_en || '').toLowerCase();
+            const pantry = (r.pantry_es || r.pantry_en || r.category || '').toLowerCase();
+            const tags = Array.isArray(r.tags) ? r.tags.join(' ').toLowerCase() : '';
+            return name.includes(lowerQ) || pantry.includes(lowerQ) || tags.includes(lowerQ);
         });
+
+        if (matches.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3">
+                    <span class="material-symbols-outlined">search_off</span>
+                    <h4>${isEn ? 'No recipes found' : 'No se encontraron recetas'}</h4>
+                    <p>${isEn ? `No results match "${this.escapeHtml(query)}". Try another word or ingredient.` : `No hay recetas que coincidan con "<strong>${this.escapeHtml(query)}</strong>". Intenta con otra palabra clave.`}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const countLabel = matches.length === 1 
+            ? (isEn ? '1 recipe found' : '1 receta encontrada')
+            : (isEn ? `${matches.length} recipes found` : `${matches.length} recetas encontradas`);
+
+        let html = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${countLabel}</span>
+            </div>
+            <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                ${matches.slice(0, 30).map(recipe => {
+                    const recipeName = recipe.name || recipe.name_es || recipe.name_en || (isEn ? 'Untitled Recipe' : 'Receta sin título');
+                    const highlightedName = this.highlightText(recipeName, query);
+                    const folder = recipe.pantry_es || recipe.pantry_en || recipe.category || (isEn ? 'Recipe' : 'Receta');
+                    const time = (recipe.prep_time || recipe.cook_time) ? ` • ${recipe.prep_time || recipe.cook_time} min` : '';
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectRecipe('${recipe.id}', '${encodeURIComponent(query)}')">
+                            <div class="result-tile-icon-box">
+                                <span class="material-symbols-outlined">restaurant</span>
+                            </div>
+                            <div class="result-tile-info">
+                                <div class="result-tile-title">${highlightedName}</div>
+                                <div class="result-tile-meta">${this.escapeHtml(folder)}${time}</div>
+                            </div>
+                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        this.suggestionsEl.innerHTML = html;
+    }
+
+    selectTerm(encodedTerm) {
+        const term = decodeURIComponent(encodedTerm);
+        if (this.inputEl) {
+            this.inputEl.value = term;
+            const clearBtn = document.getElementById('clearSearch');
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        }
+        this.save(term);
+        this.dashboard.loadRecipes({ search: term });
+        this.showSuggestions(term);
+    }
+
+    selectRecipe(recipeId, encodedQuery) {
+        const query = decodeURIComponent(encodedQuery);
+        if (query) this.save(query);
+        this.hideSuggestions();
+        this.dashboard.closeMobileSearch();
+        this.dashboard.openRecipeDetails(recipeId);
+    }
+
+    highlightText(text, query) {
+        if (!query) return this.escapeHtml(text);
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+        return this.escapeHtml(text).replace(regex, '<mark>$1</mark>');
+    }
+
+    escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 }
 

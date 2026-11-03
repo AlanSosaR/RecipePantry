@@ -1,9 +1,9 @@
 // js/config.js
-// Configuración Global Recipe Pantry (v1040) - ABSOLUTE STABLE
+// Configuración Global Recipe Pantry (v1041) - ABSOLUTE STABLE
 
 var APP_CONFIG = {
-    BUILD_ID: 'v1040',
-    APP_VERSION: 'v1040',
+    BUILD_ID: 'v1041',
+    APP_VERSION: 'v1041',
     LANG: 'es',
     THEME: 'light'
 };
