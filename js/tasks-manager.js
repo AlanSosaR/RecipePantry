@@ -1229,14 +1229,14 @@
                             </div>
                         </div>
 
-                        <div class="tasks-date-carousel-wrapper">
-                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores">
+                        <div class="tasks-date-carousel-wrapper" style="${carouselWrapperStyle}">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores" style="${carouselArrowStyle}">
                                 <span class="material-symbols-outlined">chevron_left</span>
                             </button>
-                            <div id="tasksDateCarousel" class="tasks-date-carousel">
+                            <div id="tasksDateCarousel" class="tasks-date-carousel" style="${carouselContainerStyle}">
                                 ${this.renderDateCarouselPills()}
                             </div>
-                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes" style="${carouselArrowStyle}">
                                 <span class="material-symbols-outlined">chevron_right</span>
                             </button>
                         </div>
@@ -3939,3 +3939,38 @@
     // Instancia global disponible en window
     window.tasksManager = new TasksManager();
 })();
+
+
+// Resize handler responsivo para carrusel de tareas
+if (typeof window !== 'undefined' && !window.tasks_date_carousel_resize_handler) {
+    window.tasks_date_carousel_resize_handler = true;
+    window.addEventListener('resize', () => {
+        const isMob = window.innerWidth <= 768;
+        const wrapper = document.querySelector('.tasks-date-carousel-wrapper');
+        const carousel = document.getElementById('tasksDateCarousel');
+        const arrows = document.querySelectorAll('.tasks-carousel-arrow');
+        if (wrapper && carousel) {
+            if (isMob) {
+                wrapper.style.gap = '0';
+                wrapper.style.padding = '0';
+                wrapper.style.justifyContent = 'flex-start';
+                carousel.style.maxWidth = '100%';
+                carousel.style.width = '100%';
+                carousel.style.flex = '1 1 100%';
+                carousel.style.margin = '0';
+                carousel.style.padding = '6px 4px 14px 4px';
+                arrows.forEach(a => a.style.display = 'none');
+            } else {
+                wrapper.style.gap = '14px';
+                wrapper.style.padding = '0 4px';
+                wrapper.style.justifyContent = 'center';
+                carousel.style.maxWidth = 'calc(100% - 110px)';
+                carousel.style.width = 'auto';
+                carousel.style.flex = '1 1 auto';
+                carousel.style.margin = '0 auto';
+                carousel.style.padding = '6px 6px 14px 6px';
+                arrows.forEach(a => a.style.display = 'flex');
+            }
+        }
+    });
+}
