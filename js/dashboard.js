@@ -205,9 +205,7 @@ class DashboardManager {
                  onclick="window.dashboard.handleNoteClick(event, '${note.id}')"
                  style="cursor: pointer;">
                 
-                <div class="col-checkbox" onclick="event.stopPropagation()">
-                    <span class="material-symbols-outlined" style="font-size: 20px; color: #f59e0b; font-variation-settings: 'FILL' 1;">star</span>
-                </div>
+                <div class="col-checkbox" onclick="event.stopPropagation()"></div>
 
                 <div class="col-icon">
                     <span class="material-symbols-outlined" style="font-size: 24px; color: #d97706;">${note.type === 'checklist' ? 'check_box' : 'sticky_note_2'}</span>
@@ -4544,36 +4542,10 @@ class DashboardManager {
             displayNotes = displayNotes.filter(n => (n.title && n.title.toLowerCase().includes(s)) || (n.content && n.content.toLowerCase().includes(s)));
         }
 
-        let filterBarHtml = '';
-        if (isFavFolder && (displayRecipes.length > 0 || displayNotes.length > 0)) {
-            const favType = this.favFilterType || 'all';
-            filterBarHtml = `
-                <div class="favorites-filter-bar" style="display: flex; gap: 8px; padding: 0 0 12px 0; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="m3-filter-chip ${favType === 'all' ? 'active' : ''}" onclick="window.dashboard.setFavFilter('all')">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">star</span>
-                        <span>Todos (${displayRecipes.length + displayNotes.length})</span>
-                    </button>
-                    <button type="button" class="m3-filter-chip ${favType === 'recipes' ? 'active' : ''}" onclick="window.dashboard.setFavFilter('recipes')">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">restaurant</span>
-                        <span>Recetas (${displayRecipes.length})</span>
-                    </button>
-                    <button type="button" class="m3-filter-chip ${favType === 'notes' ? 'active' : ''}" onclick="window.dashboard.setFavFilter('notes')">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">sticky_note_2</span>
-                        <span>Notas (${displayNotes.length})</span>
-                    </button>
-                </div>
-            `;
-        }
+        let recipeRows = displayRecipes.map(recipe => this.renderRecipeRow(recipe)).join('');
+        let noteRows = isFavFolder ? displayNotes.map(note => this.renderNoteRow(note)).join('') : '';
 
-        const favType = this.favFilterType || 'all';
-        let recipeRows = (favType === 'all' || favType === 'recipes') 
-            ? displayRecipes.map(recipe => this.renderRecipeRow(recipe)).join('') 
-            : '';
-        let noteRows = (isFavFolder && (favType === 'all' || favType === 'notes')) 
-            ? displayNotes.map(note => this.renderNoteRow(note)).join('') 
-            : '';
-
-        container.innerHTML = filterBarHtml + header + `<div class="recipe-list-body">${recipeRows}${noteRows}</div>`;
+        container.innerHTML = header + `<div class="recipe-list-body">${recipeRows}${noteRows}</div>`;
         this.updateSelectAllCheckbox();
         this.updateActionBar(); // Asegurar que botones globales se actualicen tras el render
     }
