@@ -901,10 +901,16 @@ ol {
         justify-content: space-between;
     }
 
-    /* Selection mode: only show accent border, no background (v193) */
+    /* Selection mode: only show accent border, with clear separation from bottom line (v1034) */
     body.selection-mode-active .dashboard-header {
         background: transparent !important;
         border-bottom: 2px solid var(--primary) !important;
+        padding-top: 8px !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 12px !important;
+        height: auto !important;
+        min-height: 54px !important;
+        box-sizing: border-box !important;
     }
 
     .main-content-scroll {
@@ -15806,6 +15812,24 @@ body.dark-theme .btn-cancel-selection-pill {
 
 body.dark-theme .btn-cancel-selection-pill:hover {
     background: rgba(16, 185, 129, 0.3) !important;
+}
+
+@media (max-width: 768px) {
+    body.selection-mode-active .dashboard-header {
+        background: transparent !important;
+        border-bottom: 2px solid var(--primary) !important;
+        padding-top: 8px !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 12px !important;
+        height: auto !important;
+        min-height: 54px !important;
+        box-sizing: border-box !important;
+    }
+
+    #btnCancelSelectionTop,
+    .btn-cancel-selection-pill {
+        margin-bottom: 2px !important;
+    }
 }
 
 @media (min-width: 769px) {
