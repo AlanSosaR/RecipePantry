@@ -4780,16 +4780,20 @@ select.input-field {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Línea divisoria elegante debajo del perfil de usuario (Full Width) */
-.sidebar-user-profile::after {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 1px;
-    background: var(--primary, #10B981);
-    margin-top: 14px;
-    border-radius: 0;
-    opacity: 0.75;
+/* Línea divisoria elegante debajo del perfil de usuario (Full Width edge-to-edge en móvil y desktop) */
+.sidebar-user-profile::after,
+.notas-sidebar-profile::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 1.5px !important;
+    background: var(--primary, #10B981) !important;
+    margin-top: 0 !important;
+    border-radius: 0 !important;
+    opacity: 0.85 !important;
 }
 
 .sidebar-user-profile:hover {
@@ -5001,22 +5005,31 @@ select.input-field {
     }
 }
 
-/* Línea divisoria antes de Cerrar Sesión */
+/* Línea divisoria antes de Cerrar Sesión (Full Width edge-to-edge en móvil y desktop) */
 .nav-item.nav-logout-m3 {
-    margin-top: 10px !important;
-    position: relative;
+    margin-top: 14px !important;
+    position: relative !important;
 }
 
 .nav-item.nav-logout-m3::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 12px;
-    right: 12px;
-    height: 1px;
-    background: var(--primary, #10B981);
-    border-radius: 1px;
-    opacity: 0.75;
+    content: '' !important;
+    position: absolute !important;
+    top: -8px !important;
+    left: -16px !important;
+    right: -16px !important;
+    width: calc(100% + 32px) !important;
+    height: 1.5px !important;
+    background: var(--primary, #10B981) !important;
+    border-radius: 0 !important;
+    opacity: 0.85 !important;
+}
+
+@media (min-width: 1024px) {
+    .nav-item.nav-logout-m3::before {
+        left: -12px !important;
+        right: -12px !important;
+        width: calc(100% + 24px) !important;
+    }
 }
 
 /* Ocultar el botón flotante (FAB) cuando el menú lateral está abierto para evitar que compita por protagonismo */
