@@ -13769,6 +13769,16 @@ body.dark-theme .context-menu-divider {
     display: none !important;
 }
 
+.official-sheet-action-btn:hover {
+    background: #F8FAFC !important;
+    border-color: var(--primary, #10B981) !important;
+    transform: translateY(-1px);
+}
+
+.official-sheet-action-btn:active {
+    transform: scale(0.98);
+}
+
 /* Category Filter Chips & Carousel */
 .menu-category-carousel-wrapper {
     position: relative;

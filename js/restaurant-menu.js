@@ -1731,6 +1731,93 @@
             });
         }
 
+        openOfficialMenuSheet() {
+            document.getElementById('menuOfficialSheetModal')?.remove();
+
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+            const isStanley = this.isStanleyOriginal();
+            const hasSunday = isStanley || !!this.activeMenu?.doc_sunday_url;
+            const restaurantTitle = this.restaurantName || (isEn ? 'Restaurant' : 'Restaurante');
+            const website = this.websiteUrl || (isStanley ? (this.activeMenu?.website || 'https://www.stanleyssw16.com/food') : null);
+
+            const overlay = document.createElement('div');
+            overlay.id = 'menuOfficialSheetModal';
+            overlay.className = 'modal-overlay';
+            overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 10000; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); animation: fadeIn 0.2s ease;';
+
+            overlay.onclick = (e) => {
+                if (e.target === overlay) overlay.remove();
+            };
+
+            overlay.innerHTML = `
+                <div class="m3-modal-bottom-sheet" style="position: relative; width: 100%; max-width: 520px; background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 12px 20px 28px 20px; box-shadow: 0 -8px 32px rgba(0,0,0,0.18); animation: m3SheetSlideUp 0.24s cubic-bezier(0.2, 0, 0, 1) forwards; max-height: 85vh; overflow-y: auto;">
+                    <!-- Drag Handle -->
+                    <div class="m3-sheet-drag-handle" onclick="document.getElementById('menuOfficialSheetModal')?.remove()" style="width: 40px; height: 4px; border-radius: 999px; background: #CBD5E1; margin: 4px auto 16px auto; cursor: pointer;"></div>
+
+                    <!-- Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 14px; background: #ECFDF5; display: flex; align-items: center; justify-content: center; color: #10B981; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 26px;">description</span>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #111827;">${isEn ? 'Official Menu' : 'Menú Oficial'}</h3>
+                                <p style="margin: 2px 0 0 0; font-size: 12.5px; color: #64748B;">${restaurantTitle} • ${isEn ? 'Original documents & links' : 'Documentos y carta original'}</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="document.getElementById('menuOfficialSheetModal')?.remove()" style="background: #F1F5F9; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748B;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                    </div>
+
+                    <!-- Action Options -->
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+                        <!-- Ver Carta Principal -->
+                        <button type="button" class="official-sheet-action-btn" onclick="document.getElementById('menuOfficialSheetModal')?.remove(); window.restaurantMenu.openDocumentViewer('main');" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid #E2E8F0; background: #FFFFFF; cursor: pointer; text-align: left; transition: all 0.18s ease; width: 100%;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: #EFF6FF; display: flex; align-items: center; justify-content: center; color: #2563EB; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px;">restaurant</span>
+                            </div>
+                            <div style="flex: 1;">
+                                <span style="display: block; font-size: 14px; font-weight: 700; color: #1E293B;">${isEn ? 'View Main Menu & Pizzas' : 'Ver Menú Principal & Pizzas'}</span>
+                                <span style="display: block; font-size: 12px; color: #64748B;">${isEn ? 'Official document / kitchen sheet' : 'Documento oficial / carta de cocina'}</span>
+                            </div>
+                            <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">chevron_right</span>
+                        </button>
+
+                        <!-- Ver Sunday Roasts (si aplica) -->
+                        ${hasSunday ? `
+                            <button type="button" class="official-sheet-action-btn" onclick="document.getElementById('menuOfficialSheetModal')?.remove(); window.restaurantMenu.openDocumentViewer('sunday');" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid #E2E8F0; background: #FFFFFF; cursor: pointer; text-align: left; transition: all 0.18s ease; width: 100%;">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #FFF7ED; display: flex; align-items: center; justify-content: center; color: #EA580C; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">outdoor_grill</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <span style="display: block; font-size: 14px; font-weight: 700; color: #1E293B;">Sunday Roasts</span>
+                                    <span style="display: block; font-size: 12px; color: #64748B;">${isEn ? 'Sundays 12-8pm official sheet' : 'Carta oficial de domingos 12-8pm'}</span>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">chevron_right</span>
+                            </button>
+                        ` : ''}
+
+                        <!-- Web oficial (si aplica) -->
+                        ${website ? `
+                            <a href="${website}" target="_blank" rel="noopener noreferrer" class="official-sheet-action-btn" onclick="document.getElementById('menuOfficialSheetModal')?.remove();" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid #E2E8F0; background: #FFFFFF; cursor: pointer; text-align: left; transition: all 0.18s ease; width: 100%; text-decoration: none; box-sizing: border-box;">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #F0FDF4; display: flex; align-items: center; justify-content: center; color: #16A34A; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 22px;">language</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <span style="display: block; font-size: 14px; font-weight: 700; color: #1E293B;">${isEn ? 'Visit Official Website' : 'Visitar Web Oficial'}</span>
+                                    <span style="display: block; font-size: 12px; color: #64748B;">${website.replace(/^https?:\/\//, '')}</span>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 20px;">open_in_new</span>
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+        }
+
         openDocumentViewer(tab) {
             this.currentDocTab = tab || (this.activeTab === 'sunday' ? 'sunday' : 'main');
             this.docZoom = 1.0;
@@ -2690,7 +2777,6 @@
 
                 container.innerHTML = `
                     <div class="allergens-module menu-module-container">
-                    <div class="menu-sticky-header">
                         <div class="menu-hero-card" style="text-align: center; padding: 56px 24px; background: #FFFFFF; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #E2E8F0;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 20px auto; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.12);">
                                 <span class="material-symbols-outlined" style="font-size: 42px; color: #2563EB;">storefront</span>
@@ -2704,7 +2790,6 @@
                                     : 'Empieza creando la carta de tu restaurante o solicita al propietario de tu cocina que comparta su menú contigo. Tus recetas y tu espacio personal se mantienen 100% independientes.'}
                             </p>
                         </div>
-                    </div>
                     </div>
                 `;
                 return;
@@ -2781,8 +2866,10 @@
 
             let html = `
                 <div class="allergens-module menu-module-container">
-                    <!-- Modern Header Banner -->
-                    <div class="menu-hero-card">
+                    <!-- Sticky Header Wrapper: Hero Card + Macro Tabs Pills -->
+                    <div class="menu-sticky-header">
+                        <!-- Modern Header Banner -->
+                        <div class="menu-hero-card">
                         <!-- Botón de 3 puntos (Opciones del menú) en esquina superior derecha -->
                         <div class="menu-hero-more-wrapper">
                             <button type="button" 
@@ -2854,7 +2941,7 @@
                                     <img src="${logoSrc}" alt="${this.restaurantName}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                             `}
-                            <div class="allergens-hero-heading-block" style="flex: 1;">
+                            <div class="allergens-hero-heading-block" onclick="window.restaurantMenu.openOfficialMenuSheet()" title="${isEn ? 'Tap to view official menu' : 'Toca para ver el menú oficial'}" style="flex: 1; cursor: pointer; user-select: none;">
                                 <h1 style="margin: 0 0 3px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
                                     ${this.restaurantName || (isEn ? 'Food Menu' : 'Carta de Comida')}
                                 </h1>
@@ -2928,6 +3015,7 @@
                             </button>
                         </div>
                     ` : ''}
+                    </div>
             `;
 
             // Render all sections and categories
