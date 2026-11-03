@@ -7544,10 +7544,11 @@ class SearchHistory {
                     const highlightedName = this.highlightText(recipeName, query);
                     const folder = recipe.pantry_es || recipe.pantry_en || recipe.category || (isEn ? 'Recipe' : 'Receta');
                     const time = (recipe.prep_time || recipe.cook_time) ? ` • ${recipe.prep_time || recipe.cook_time} min` : '';
+                    const recipeIcon = recipe.icon || (recipe.type === 'checklist' ? 'check_box' : (recipe.type === 'note' ? 'sticky_note_2' : 'description'));
                     return `
                         <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectRecipe('${recipe.id}', '${encodeURIComponent(query)}')">
                             <div class="result-tile-icon-box">
-                                <span class="material-symbols-outlined">restaurant</span>
+                                <span class="material-symbols-outlined">${recipeIcon}</span>
                             </div>
                             <div class="result-tile-info">
                                 <div class="result-tile-title">${highlightedName}</div>
