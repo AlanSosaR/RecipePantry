@@ -18319,10 +18319,7 @@ body.supplier-detail-active .suppliers-subview-page {
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
     box-sizing: border-box;
-    padding: 0 4px;
 }
 
 .tasks-carousel-arrow {
@@ -18372,41 +18369,57 @@ body.supplier-detail-active .suppliers-subview-page {
     right: auto !important;
 }
 
-@media (min-width: 769px) {
-    .tasks-carousel-arrow {
-        display: flex !important;
-    }
-    .tasks-date-carousel {
-        padding-left: 6px !important;
-        padding-right: 6px !important;
-    }
-}
-
-@media (max-width: 768px) {
-    .tasks-carousel-arrow {
-        display: none !important;
-    }
-    .tasks-date-carousel {
-        max-width: 100% !important;
-    }
-}
-
 .tasks-date-carousel {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: calc(100% - 110px);
     display: flex;
     align-items: center;
     gap: 10px;
     overflow-x: auto;
-    padding: 6px 6px 14px 6px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
 }
+
 .tasks-date-carousel::-webkit-scrollbar {
     display: none;
+}
+
+/* 📱 Móvil (<= 768px): Pantalla completa, sin compresión, sin flechas, experiencia táctil original */
+@media (max-width: 768px) {
+    .tasks-date-carousel-wrapper {
+        gap: 0 !important;
+        padding: 0 !important;
+        justify-content: flex-start !important;
+    }
+    .tasks-carousel-arrow {
+        display: none !important;
+    }
+    .tasks-date-carousel {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        margin: 0 !important;
+        padding: 6px 4px 14px 4px !important;
+    }
+}
+
+/* 💻 PC / Desktop (>= 769px): Carrusel con flechas laterales visibles, espaciadas y ancho controlado */
+@media (min-width: 769px) {
+    .tasks-date-carousel-wrapper {
+        justify-content: center !important;
+        gap: 12px !important;
+        padding: 0 4px !important;
+    }
+    .tasks-carousel-arrow {
+        display: flex !important;
+    }
+    .tasks-date-carousel {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: calc(100% - 110px) !important;
+        margin: 0 auto !important;
+        padding: 6px 6px 14px 6px !important;
+    }
 }
 
 .task-day-card {
