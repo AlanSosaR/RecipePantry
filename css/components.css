@@ -7670,6 +7670,7 @@ body.dark-theme .folder-more-btn:hover {
         background: #fff;
         margin-bottom: 8px;
         height: 60px !important;
+        min-height: 60px !important;
         display: flex !important;
         align-items: center !important;
         width: 100% !important;
@@ -12593,8 +12594,8 @@ body.dark-theme .context-menu-divider {
     .main-content:has(#tasksView:not(.hidden)),
     body:has(#suppliersView:not(.hidden)) .main-content,
     .main-content:has(#suppliersView:not(.hidden)) {
-        padding-left: 6px !important;
-        padding-right: 6px !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 
     #allergensView,
@@ -12602,9 +12603,10 @@ body.dark-theme .context-menu-divider {
     #menuView,
     #tasksView,
     #suppliersView {
-        padding: 0 !important;
+        padding: 0 10px !important;
         margin: 4px 0 0 0 !important;
         width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     /* Ocultar botón flotante de crear receta en vista de alergias, configuración, tareas y menú en móvil */
@@ -20179,6 +20181,8 @@ body.supplier-subview-item-active .suppliers-subview-page,
         padding: 10px 12px !important;
         margin-bottom: 8px !important;
         box-sizing: border-box !important;
+        width: 100% !important;
+        position: relative !important;
     }
 
     .top-bar-m3.search-mobile-active .search-container-m3 {
