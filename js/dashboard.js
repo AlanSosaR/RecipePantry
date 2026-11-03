@@ -7474,43 +7474,31 @@ class SearchHistory {
     }
 
     renderEmptyStateSuggestions(isEn) {
-        let html = '';
-
-        // 1. Búsquedas recientes
-        if (this.history.length > 0) {
-            html += `
-                <div class="search-view-header-row">
-                    <span class="search-view-header-title">${isEn ? 'Recent Searches' : 'Búsquedas recientes'}</span>
-                    <button type="button" class="search-view-header-btn" onclick="window.dashboard.searchHistory.clearAll()">${isEn ? 'Clear all' : 'Borrar todo'}</button>
-                </div>
-                <div class="search-history-list" style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px;">
-                    ${this.history.map(item => `
-                        <div class="search-history-item-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(item)}')">
-                            <span class="material-symbols-outlined history-icon">history</span>
-                            <span class="history-text">${this.escapeHtml(item)}</span>
-                            <button type="button" class="history-remove-btn" title="${isEn ? 'Remove' : 'Eliminar'}" onclick="event.stopPropagation(); window.dashboard.searchHistory.remove('${encodeURIComponent(item)}')">
-                                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-                            </button>
-                        </div>
-                    `).join('')}
+        if (!this.history || this.history.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3" style="padding: 40px 16px;">
+                    <span class="material-symbols-outlined" style="font-size: 38px; color: var(--text-secondary); opacity: 0.4; margin-bottom: 8px;">history</span>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary);">${isEn ? 'No recent searches' : 'Sin búsquedas recientes'}</p>
                 </div>
             `;
+            return;
         }
 
-        // 2. Chips de sugerencias rápidas / categorías populares
-        const defaultChips = isEn 
-            ? ['⭐ Favorites', '🥗 Salads & Starters', '🥩 Mains & Meats', '🍰 Desserts', '🥫 Sauces & Dips', '🌱 Vegetarian']
-            : ['⭐ Favoritos', '🥗 Ensaladas & Entrantes', '🥩 Carnes & Principales', '🍰 Postres & Dulces', '🥫 Salsas & Guarniciones', '🌱 Vegetariano'];
-
-        html += `
-            <div class="search-view-header-row" style="margin-top: 4px;">
-                <span class="search-view-header-title">${isEn ? 'Quick Suggestions' : 'Sugerencias de búsqueda'}</span>
+        const html = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${isEn ? 'Recent Searches' : 'Búsquedas recientes'}</span>
+                <button type="button" class="search-view-header-btn" onclick="window.dashboard.searchHistory.clearAll()">${isEn ? 'Clear all' : 'Borrar todo'}</button>
             </div>
-            <div class="search-chips-container-m3">
-                ${defaultChips.map(chip => {
-                    const cleanTerm = chip.replace(/^[^ws]+/, '').trim();
-                    return `<button type="button" class="search-suggestion-chip-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(cleanTerm)}')">${chip}</button>`;
-                }).join('')}
+            <div class="search-history-list" style="display: flex; flex-direction: column; gap: 2px;">
+                ${this.history.map(item => `
+                    <div class="search-history-item-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(item)}')">
+                        <span class="material-symbols-outlined history-icon">history</span>
+                        <span class="history-text">${this.escapeHtml(item)}</span>
+                        <button type="button" class="history-remove-btn" title="${isEn ? 'Remove' : 'Eliminar'}" onclick="event.stopPropagation(); window.dashboard.searchHistory.remove('${encodeURIComponent(item)}')">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                        </button>
+                    </div>
+                `).join('')}
             </div>
         `;
 
