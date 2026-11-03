@@ -20161,7 +20161,10 @@ body.supplier-subview-item-active .suppliers-subview-page,
 
 @media (max-width: 768px) {
     .top-bar-m3 {
-        position: relative !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+        background: #ffffff !important;
     }
 
     /* Cuando el buscador está activo en móvil, sobreponer en todo el header */
@@ -20182,7 +20185,10 @@ body.supplier-subview-item-active .suppliers-subview-page,
         margin-bottom: 8px !important;
         box-sizing: border-box !important;
         width: 100% !important;
-        position: relative !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+        background: #ffffff !important;
     }
 
     .top-bar-m3.search-mobile-active .search-container-m3 {
