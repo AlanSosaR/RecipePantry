@@ -1138,12 +1138,12 @@
             }
 
             const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-            const carouselWrapperStyle = isMobile 
-                ? 'position: relative; display: flex; align-items: center; width: 100%;' 
+            const carouselWrapperStyle = isMobile
+                ? 'position: relative; display: flex; align-items: center; width: 100%; gap: 0; padding: 0;'
                 : 'position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; box-sizing: border-box; padding: 0 4px;';
             const carouselContainerStyle = isMobile
                 ? 'width: 100% !important; max-width: 100% !important; flex: 1 1 100% !important; margin: 0 !important; padding: 6px 4px 14px 4px !important; overflow-x: auto;'
-                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 110px) !important; width: auto !important; margin: 0 auto !important; overflow-x: auto;';
+                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 110px) !important; width: auto !important; margin: 0 auto !important; padding: 6px 14px 14px 14px !important; overflow-x: auto;';
             const carouselArrowStyle = isMobile
                 ? 'display: none !important;'
                 : 'position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 38px !important; height: 38px !important; min-width: 38px !important; margin: 0 !important; display: flex !important;';
@@ -1241,13 +1241,13 @@
                         </div>
 
                         <div class="tasks-date-carousel-wrapper" style="${carouselWrapperStyle}">
-                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores" style="${carouselArrowStyle}">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores" style="${carouselArrowStyle}">
                                 <span class="material-symbols-outlined">chevron_left</span>
                             </button>
                             <div id="tasksDateCarousel" class="tasks-date-carousel" style="${carouselContainerStyle}">
                                 ${this.renderDateCarouselPills()}
                             </div>
-                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes" style="${carouselArrowStyle}">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes" style="${carouselArrowStyle}">
                                 <span class="material-symbols-outlined">chevron_right</span>
                             </button>
                         </div>

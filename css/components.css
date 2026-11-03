@@ -18362,11 +18362,17 @@ body.supplier-detail-active .suppliers-subview-page {
 .tasks-carousel-arrow-prev {
     position: relative !important;
     left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
 }
 
 .tasks-carousel-arrow-next {
     position: relative !important;
+    left: auto !important;
     right: auto !important;
+    top: auto !important;
+    transform: none !important;
 }
 
 .tasks-date-carousel {
@@ -18407,18 +18413,24 @@ body.supplier-detail-active .suppliers-subview-page {
 @media (min-width: 769px) {
     .tasks-date-carousel-wrapper {
         justify-content: center !important;
-        gap: 12px !important;
+        gap: 14px !important;
         padding: 0 4px !important;
     }
     .tasks-carousel-arrow {
         display: flex !important;
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        transform: none !important;
+        flex-shrink: 0 !important;
     }
     .tasks-date-carousel {
         flex: 1 1 auto !important;
         min-width: 0 !important;
         max-width: calc(100% - 110px) !important;
         margin: 0 auto !important;
-        padding: 6px 6px 14px 6px !important;
+        padding: 6px 14px 14px 14px !important;
     }
 }
 
