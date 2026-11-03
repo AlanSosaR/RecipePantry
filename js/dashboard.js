@@ -890,8 +890,25 @@ class DashboardManager {
                     this.closeMobileSearch();
                 } else if (e.key === 'Enter') {
                     const q = searchInput.value.trim();
-                    if (q.length > 1) {
-                        this.searchHistory.save(q);
+                    if (this.currentView === 'menu' && window.restaurantMenu) {
+                        window.restaurantMenu.setSearchQuery(q);
+                        this.closeMobileSearch();
+                    } else if (this.currentView === 'suppliers' && window.suppliersManager) {
+                        window.suppliersManager.handleSearch(q);
+                        this.closeMobileSearch();
+                    } else if (this.currentView === 'allergens') {
+                        this.handleAllergenSearch(q);
+                        this.closeMobileSearch();
+                    } else if (this.currentView === 'tasks' && window.tasksManager) {
+                        window.tasksManager.handleSearch(q);
+                        this.closeMobileSearch();
+                    } else if (this.currentView === 'help' && window.adminUsersManager) {
+                        if (window.adminUsersManager.isSuperAdmin()) {
+                            window.adminUsersManager.handleSearch(q);
+                        }
+                        this.closeMobileSearch();
+                    } else {
+                        this.loadRecipes({ search: q });
                     }
                 }
             });
@@ -7723,15 +7740,42 @@ class SearchHistory {
         `;
     }
 
+    getMenuDishes() {
+        if (!window.restaurantMenu) return [];
+        let dishes = [];
+        if (typeof window.restaurantMenu.getAllSections === 'function') {
+            const sections = window.restaurantMenu.getAllSections() || [];
+            sections.forEach(sec => {
+                (sec.categories || []).forEach(cat => {
+                    (cat.items || []).forEach(item => {
+                        dishes.push(item);
+                    });
+                });
+            });
+        }
+        if (dishes.length === 0 && window.STANLEYS_MENU_DATA && window.STANLEYS_MENU_DATA.sections) {
+            window.STANLEYS_MENU_DATA.sections.forEach(sec => {
+                (sec.categories || []).forEach(cat => {
+                    (cat.items || []).forEach(item => {
+                        dishes.push(item);
+                    });
+                });
+            });
+        }
+        return dishes;
+    }
+
     renderMenuResults(query, isEn) {
-        const dishes = (window.restaurantMenu && window.restaurantMenu.dishes) ? window.restaurantMenu.dishes : [];
+        const dishes = this.getMenuDishes();
         const lowerQ = query.toLowerCase();
 
         const matches = dishes.filter(d => {
-            const name = (d.name_es || d.name_en || d.name || '').toLowerCase();
-            const cat = (d.category_es || d.category_en || d.category || '').toLowerCase();
-            const desc = (d.description_es || d.description_en || d.description || '').toLowerCase();
-            return name.includes(lowerQ) || cat.includes(lowerQ) || desc.includes(lowerQ);
+            const name = (d.name || d.name_es || d.name_en || '').toLowerCase();
+            const cat = (d.categoryName_es || d.categoryName_en || d.category_es || d.category_en || d.category || '').toLowerCase();
+            const desc = (d.desc_es || d.desc_en || d.description_es || d.description_en || d.description || '').toLowerCase();
+            const tags = Array.isArray(d.tags) ? d.tags.join(' ').toLowerCase() : '';
+            const allergens = Array.isArray(d.allergens) ? d.allergens.join(' ').toLowerCase() : '';
+            return name.includes(lowerQ) || cat.includes(lowerQ) || desc.includes(lowerQ) || tags.includes(lowerQ) || allergens.includes(lowerQ);
         });
 
         if (matches.length === 0) {
@@ -7755,9 +7799,9 @@ class SearchHistory {
             </div>
             <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
                 ${matches.slice(0, 30).map(d => {
-                    const name = d.name_es || d.name_en || d.name || 'Plato';
+                    const name = d.name || (isEn ? d.name_en : d.name_es) || 'Plato';
                     const highlighted = this.highlightText(name, query);
-                    const cat = d.category_es || d.category_en || d.category || '';
+                    const cat = (isEn ? d.categoryName_en : d.categoryName_es) || d.category || '';
                     const price = d.price ? `${d.price}€` : '';
                     const meta = [cat, price].filter(Boolean).join(' • ');
                     return `
@@ -7973,14 +8017,26 @@ class SearchHistory {
 
     selectMenuDish(dishId) {
         this.dashboard.closeMobileSearch();
+        const dishes = this.getMenuDishes();
+        const dish = dishes.find(d => d.id === dishId);
+        const name = dish ? (dish.name || (dish.name_es || dish.name_en || '')) : '';
         const input = document.getElementById('searchInput');
-        if (input && window.restaurantMenu) {
-            const dish = (window.restaurantMenu.dishes || []).find(d => d.id === dishId);
-            if (dish) {
-                const name = dish.name_es || dish.name_en || dish.name || '';
-                input.value = name;
+        if (input && name) {
+            input.value = name;
+        }
+        if (window.restaurantMenu) {
+            if (name) {
                 window.restaurantMenu.setSearchQuery(name);
             }
+            setTimeout(() => {
+                const card = document.getElementById(`card_${dishId}`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease';
+                    card.style.boxShadow = '0 0 0 3px var(--primary, #10b981)';
+                    setTimeout(() => { card.style.boxShadow = ''; }, 2200);
+                }
+            }, 150);
         }
     }
 

@@ -1286,6 +1286,9 @@
 
         setSearchQuery(q) {
             this.searchQuery = (q || '').trim().toLowerCase();
+            if (this.searchQuery && this.activeCategory !== 'all') {
+                this.activeCategory = 'all';
+            }
             this.render();
             const searchInput = document.getElementById('searchInput');
             if (searchInput && searchInput.value !== (q || '')) {
