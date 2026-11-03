@@ -47,6 +47,7 @@ window.toggleSidebar = function (open) {
 
     if (open) {
         sidebar.classList.add('active');
+        sidebar.classList.remove('sidebar--slim');
         if (overlay) overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         document.body.classList.add('sidebar-open');
