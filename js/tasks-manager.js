@@ -1229,14 +1229,14 @@
                             </div>
                         </div>
 
-                        <div class="tasks-date-carousel-wrapper" style="position: relative; display: flex; align-items: center; gap: 8px; width: 100%;">
-                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores">
+                        <div class="tasks-date-carousel-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 0 4px;">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores" style="position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 38px !important; height: 38px !important; min-width: 38px !important; margin: 0 !important;">
                                 <span class="material-symbols-outlined">chevron_left</span>
                             </button>
-                            <div id="tasksDateCarousel" class="tasks-date-carousel" style="flex: 1; min-width: 0;">
+                            <div id="tasksDateCarousel" class="tasks-date-carousel" style="flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 100px) !important; width: auto !important; margin: 0 !important; overflow-x: auto;">
                                 ${this.renderDateCarouselPills()}
                             </div>
-                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes" style="position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 38px !important; height: 38px !important; min-width: 38px !important; margin: 0 !important;">
                                 <span class="material-symbols-outlined">chevron_right</span>
                             </button>
                         </div>

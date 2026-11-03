@@ -18319,10 +18319,17 @@ body.supplier-detail-active .suppliers-subview-page {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 0 4px;
 }
 
 .tasks-carousel-arrow {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
     width: 38px;
     height: 38px;
     min-width: 38px;
@@ -18339,7 +18346,7 @@ body.supplier-detail-active .suppliers-subview-page {
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     outline: none;
     user-select: none;
-    margin-bottom: 8px;
+    margin: 0;
     z-index: 2;
 }
 
@@ -18347,20 +18354,22 @@ body.supplier-detail-active .suppliers-subview-page {
     background: #F0FDF4;
     color: #12B078;
     border-color: #12B078;
-    transform: scale(1.1);
+    transform: scale(1.08) !important;
     box-shadow: 0 6px 18px rgba(18, 176, 120, 0.25);
 }
 
 .tasks-carousel-arrow:active {
-    transform: scale(0.95);
+    transform: scale(0.95) !important;
 }
 
 .tasks-carousel-arrow-prev {
-    /* Posición natural en flexbox con su propio espacio */
+    position: relative !important;
+    left: auto !important;
 }
 
 .tasks-carousel-arrow-next {
-    /* Posición natural en flexbox con su propio espacio */
+    position: relative !important;
+    right: auto !important;
 }
 
 @media (min-width: 769px) {
@@ -18368,8 +18377,8 @@ body.supplier-detail-active .suppliers-subview-page {
         display: flex !important;
     }
     .tasks-date-carousel {
-        padding-left: 2px !important;
-        padding-right: 2px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
     }
 }
 
@@ -18377,16 +18386,20 @@ body.supplier-detail-active .suppliers-subview-page {
     .tasks-carousel-arrow {
         display: none !important;
     }
+    .tasks-date-carousel {
+        max-width: 100% !important;
+    }
 }
 
 .tasks-date-carousel {
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
+    max-width: calc(100% - 100px);
     display: flex;
     align-items: center;
     gap: 10px;
     overflow-x: auto;
-    padding: 6px 2px 14px 2px;
+    padding: 6px 6px 14px 6px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     scroll-snap-type: x mandatory;
