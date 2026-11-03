@@ -1731,7 +1731,17 @@
             });
         }
 
-        openOfficialMenuSheet() {
+        openOfficialMenuSheet(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            const existingPopover = document.getElementById('menuOfficialPopover');
+            if (existingPopover) {
+                existingPopover.remove();
+                return;
+            }
             document.getElementById('menuOfficialSheetModal')?.remove();
 
             const isEn = window.i18n && window.i18n.getLang() === 'en';
@@ -1740,6 +1750,95 @@
             const restaurantTitle = this.restaurantName || (isEn ? 'Restaurant' : 'Restaurante');
             const website = this.websiteUrl || (isStanley ? (this.activeMenu?.website || 'https://www.stanleyssw16.com/food') : null);
 
+            const isDesktop = window.innerWidth > 768;
+
+            if (isDesktop) {
+                // PC / Desktop: Anchor Popover estilo .dropbox-create-popover / Material 3 Menu Surface
+                const anchor = document.querySelector('.allergens-hero-heading-block') || document.querySelector('.menu-hero-card');
+                if (!anchor) return;
+                anchor.style.position = 'relative';
+
+                const popover = document.createElement('div');
+                popover.id = 'menuOfficialPopover';
+                popover.className = 'dropbox-create-popover';
+                popover.style.cssText = 'position: absolute; top: calc(100% + 8px); left: 0; min-width: 330px; width: 350px; z-index: 2500; background: #FFFFFF; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 20px; box-shadow: 0 14px 38px -6px rgba(0, 0, 0, 0.16), 0 4px 14px rgba(0, 0, 0, 0.06); padding: 16px 14px 14px 14px; box-sizing: border-box; animation: dropboxPopIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);';
+
+                popover.innerHTML = `
+                    <div class="dropbox-create-top" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">description</span>
+                            <h4 class="dropbox-create-heading" style="margin: 0; font-size: 15px; font-weight: 700; color: #111827;">${isEn ? 'Official Menu' : 'Menú Oficial'}</h4>
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: #047857; background: #D1FAE5; padding: 2px 8px; border-radius: 999px;">${restaurantTitle}</span>
+                    </div>
+
+                    <div class="dropbox-create-items" style="display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Ver Carta Principal -->
+                        <div class="dropbox-create-row" onclick="event.stopPropagation(); document.getElementById('menuOfficialPopover')?.remove(); window.restaurantMenu.openDocumentViewer('main');" style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s ease;">
+                            <div class="row-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: #EFF6FF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #2563EB;">restaurant</span>
+                            </div>
+                            <div style="flex: 1;">
+                                <span class="row-title" style="display: block; font-size: 13.5px; font-weight: 600; color: #111827;">${isEn ? 'View Main Menu & Pizzas' : 'Ver Menú Principal & Pizzas'}</span>
+                                <span style="display: block; font-size: 11.5px; color: #64748B;">${isEn ? 'Official kitchen sheet' : 'Documento / carta de cocina'}</span>
+                            </div>
+                            <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 18px;">open_in_new</span>
+                        </div>
+
+                        <!-- Ver Sunday Roasts (si aplica) -->
+                        ${hasSunday ? `
+                            <div class="dropbox-create-row" onclick="event.stopPropagation(); document.getElementById('menuOfficialPopover')?.remove(); window.restaurantMenu.openDocumentViewer('sunday');" style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s ease;">
+                                <div class="row-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: #FFF7ED; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px; color: #EA580C;">outdoor_grill</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <span class="row-title" style="display: block; font-size: 13.5px; font-weight: 600; color: #111827;">Sunday Roasts</span>
+                                    <span style="display: block; font-size: 11.5px; color: #64748B;">${isEn ? 'Sundays 12-8pm sheet' : 'Carta oficial de domingos 12-8pm'}</span>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 18px;">open_in_new</span>
+                            </div>
+                        ` : ''}
+
+                        <!-- Visitar Web Oficial (si aplica) -->
+                        ${website ? `
+                            <div class="dropbox-create-row" onclick="event.stopPropagation(); document.getElementById('menuOfficialPopover')?.remove(); window.open('${website}', '_blank');" style="display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s ease;">
+                                <div class="row-icon-box" style="width: 36px; height: 36px; border-radius: 10px; background: #ECFDF5; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px; color: #10B981;">language</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <span class="row-title" style="display: block; font-size: 13.5px; font-weight: 600; color: #111827;">${isEn ? 'Visit Official Website' : 'Visitar Web Oficial'}</span>
+                                    <span style="display: block; font-size: 11.5px; color: #64748B;">${website.replace(/^https?:\/\//, '')}</span>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: #94A3B8; font-size: 18px;">launch</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                anchor.appendChild(popover);
+
+                const closeHandler = (evt) => {
+                    if (!popover.contains(evt.target) && !anchor.contains(evt.target)) {
+                        popover.remove();
+                        document.removeEventListener('click', closeHandler);
+                        document.removeEventListener('keydown', keyHandler);
+                    }
+                };
+                const keyHandler = (evt) => {
+                    if (evt.key === 'Escape') {
+                        popover.remove();
+                        document.removeEventListener('click', closeHandler);
+                        document.removeEventListener('keydown', keyHandler);
+                    }
+                };
+                setTimeout(() => {
+                    document.addEventListener('click', closeHandler);
+                    document.addEventListener('keydown', keyHandler);
+                }, 10);
+                return;
+            }
+
+            // En móvil: Bottom Sheet M3
             const overlay = document.createElement('div');
             overlay.id = 'menuOfficialSheetModal';
             overlay.className = 'modal-overlay';
@@ -2941,7 +3040,7 @@
                                     <img src="${logoSrc}" alt="${this.restaurantName}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                             `}
-                            <div class="allergens-hero-heading-block" onclick="window.restaurantMenu.openOfficialMenuSheet()" title="${isEn ? 'Tap to view official menu' : 'Toca para ver el menú oficial'}" style="flex: 1; cursor: pointer; user-select: none;">
+                            <div class="allergens-hero-heading-block" onclick="window.restaurantMenu.openOfficialMenuSheet(event)" title="${isEn ? 'Tap to view official menu' : 'Toca para ver el menú oficial'}" style="flex: 1; cursor: pointer; user-select: none; position: relative;">
                                 <h1 style="margin: 0 0 3px 0; font-size: clamp(22px, 3.5vw, 28px); font-weight: 900; color: #111827; letter-spacing: -0.02em;">
                                     ${this.restaurantName || (isEn ? 'Food Menu' : 'Carta de Comida')}
                                 </h1>

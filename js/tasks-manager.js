@@ -368,6 +368,13 @@
             this.updateMetrics();
         }
 
+        scrollDateCarousel(direction) {
+            const el = document.getElementById('tasksDateCarousel');
+            if (!el) return;
+            const scrollAmount = direction * 320;
+            el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+
         /** Selecciona el día de hoy y lo centra en el carrusel */
         selectToday() {
             const today = new Date();
@@ -1222,8 +1229,16 @@
                             </div>
                         </div>
 
-                        <div id="tasksDateCarousel" class="tasks-date-carousel">
-                            ${this.renderDateCarouselPills()}
+                        <div class="tasks-date-carousel-wrapper" style="position: relative; display: flex; align-items: center; width: 100%;">
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <div id="tasksDateCarousel" class="tasks-date-carousel" style="width: 100%;">
+                                ${this.renderDateCarouselPills()}
+                            </div>
+                            <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </button>
                         </div>
                     </div>
 

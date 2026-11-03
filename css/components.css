@@ -18186,6 +18186,13 @@ body.supplier-detail-active .suppliers-subview-page {
     box-sizing: border-box;
 }
 
+@media (min-width: 1024px) {
+    .tasks-module-root {
+        max-width: 1280px !important;
+        padding: 24px 32px 100px 32px !important;
+    }
+}
+
 .tasks-progress-card {
     background: #EAF8F2;
     border-radius: 24px;
@@ -18273,7 +18280,71 @@ body.supplier-detail-active .suppliers-subview-page {
     }
 }
 
-/* ── Material 3 Expressive Horizontal Date Carousel ── */
+/* ── Material 3 Expressive Horizontal Date Carousel con Flechas de Navegación PC ── */
+.tasks-date-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.tasks-carousel-arrow {
+    position: absolute;
+    top: calc(50% - 4px);
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    color: #374151;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    outline: none;
+    user-select: none;
+}
+
+.tasks-carousel-arrow:hover {
+    background: #F0FDF4;
+    color: #12B078;
+    border-color: #12B078;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 18px rgba(18, 176, 120, 0.25);
+}
+
+.tasks-carousel-arrow:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.tasks-carousel-arrow-prev {
+    left: -16px;
+}
+
+.tasks-carousel-arrow-next {
+    right: -16px;
+}
+
+@media (min-width: 769px) {
+    .tasks-carousel-arrow {
+        display: flex !important;
+    }
+    .tasks-date-carousel {
+        padding-left: 28px !important;
+        padding-right: 28px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .tasks-carousel-arrow {
+        display: none !important;
+    }
+}
+
 .tasks-date-carousel {
     display: flex;
     align-items: center;
