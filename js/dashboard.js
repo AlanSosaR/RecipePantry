@@ -576,6 +576,7 @@ class DashboardManager {
 
             // Al restaurar la página desde la caché del navegador o volver atrás (pageshow)
             window.addEventListener('pageshow', async (event) => {
+                this.closeMobileSearch();
                 const p = new URLSearchParams(window.location.search);
                 const urlFolder = p.get('folder') ? decodeURIComponent(p.get('folder')).trim() : null;
                 const sessionFolder = sessionStorage.getItem('rp_current_folder');
@@ -7579,6 +7580,16 @@ class SearchHistory {
     selectRecipe(recipeId, encodedQuery) {
         const query = decodeURIComponent(encodedQuery);
         if (query) this.save(query);
+
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            // En móvil: navegamos directamente sin cerrar la vista de búsqueda antes,
+            // evitando que parpadee la interfaz principal ("Sugerido para ti") mientras carga la receta
+            this.dashboard.openRecipeDetails(recipeId);
+            return;
+        }
+
+        // En escritorio: cerramos la sugerencia flotante y abrimos el detalle en el panel
         this.hideSuggestions();
         this.dashboard.closeMobileSearch();
         this.dashboard.openRecipeDetails(recipeId);
