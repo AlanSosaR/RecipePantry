@@ -18430,10 +18430,11 @@ body.supplier-detail-active .suppliers-subview-page {
         z-index: 5 !important;
     }
     .tasks-date-carousel {
-        flex: 1 1 auto !important;
+        flex: 0 1 802px !important;
         min-width: 0 !important;
-        max-width: calc(100% - 215px) !important;
-        margin: 0 32px !important;
+        width: 802px !important;
+        max-width: min(802px, calc(100% - 104px)) !important;
+        margin: 0 16px !important;
         padding: 6px 8px 14px 8px !important;
     }
 }
