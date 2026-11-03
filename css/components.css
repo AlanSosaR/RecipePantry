@@ -20176,34 +20176,49 @@ body.supplier-subview-item-active .suppliers-subview-page,
         height: 100% !important;
         z-index: 100 !important;
         background: #ffffff !important;
-        padding: 7px 10px !important;
+        padding: 0 6px !important;
+        margin: 0 !important;
         box-sizing: border-box !important;
         display: flex !important;
         align-items: center !important;
         animation: m3MobileSearchExpand 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+        border-bottom: 1px solid var(--outline-variant, #e2e8f0) !important;
     }
 
-    .top-bar-m3.search-mobile-active .search-wrapper-m3 {
+    .top-bar-m3.search-mobile-active .search-wrapper-m3,
+    .top-bar-m3.search-mobile-active .search-wrapper-m3:focus-within {
         width: 100% !important;
         max-width: 100% !important;
-        height: 46px !important;
-        border-radius: 24px !important;
-        background: var(--surface-container-high, #f1f5f9) !important;
-        border: 1.5px solid var(--primary, #059669) !important;
-        padding: 0 8px 0 4px !important;
-        gap: 6px !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 8px 0 2px !important;
+        gap: 8px !important;
         box-shadow: none !important;
     }
 
     .top-bar-m3.search-mobile-active .search-wrapper-m3 input {
-        font-size: 15px !important;
+        font-size: 16px !important;
         font-weight: 500 !important;
         color: var(--text-main, #0f172a) !important;
+        height: 100% !important;
+        width: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
     }
 
     .top-bar-m3.search-mobile-active .btn-search-back {
         display: flex !important;
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    .top-bar-m3.search-mobile-active .btn-search-clear {
+        width: 40px !important;
+        height: 40px !important;
     }
 
     .top-bar-m3.search-mobile-active .search-icon-default {
