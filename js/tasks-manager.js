@@ -1136,6 +1136,17 @@
             if (!this.tasks || this.tasks.length === 0) {
                 this.loadCache();
             }
+
+            const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+            const carouselWrapperStyle = isMobile 
+                ? 'position: relative; display: flex; align-items: center; width: 100%;' 
+                : 'position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; box-sizing: border-box; padding: 0 4px;';
+            const carouselContainerStyle = isMobile
+                ? 'width: 100% !important; max-width: 100% !important; flex: 1 1 100% !important; margin: 0 !important; padding: 6px 4px 14px 4px !important; overflow-x: auto;'
+                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 110px) !important; width: auto !important; margin: 0 auto !important; overflow-x: auto;';
+            const carouselArrowStyle = isMobile
+                ? 'display: none !important;'
+                : 'position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 38px !important; height: 38px !important; min-width: 38px !important; margin: 0 !important; display: flex !important;';
             const mode = this.getTasksMode();
             const isSuper = this.isSuperAdmin();
             const myUserId = window.authManager?.currentUser?.id || 
