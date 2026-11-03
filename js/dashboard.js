@@ -70,13 +70,36 @@ class DashboardManager {
 
     async loadFavoriteNotes() {
         try {
-            if (!window.supabaseClient) return [];
+            const localFavNotes = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('pantry_notes_cache_')) {
+                    try {
+                        const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(n => {
+                                if (n.is_favorite && !localFavNotes.some(x => x.id === n.id)) {
+                                    localFavNotes.push(n);
+                                }
+                            });
+                        }
+                    } catch (_) {}
+                }
+            }
+
             try {
                 const cached = JSON.parse(localStorage.getItem('rp_cached_fav_notes') || '[]');
                 if (Array.isArray(cached) && cached.length > 0) {
-                    this.favoriteNotes = cached;
+                    this.favoriteNotes = cached.map(c => {
+                        const fresh = localFavNotes.find(l => l.id === c.id);
+                        return fresh ? { ...c, ...fresh } : c;
+                    });
+                } else if (localFavNotes.length > 0) {
+                    this.favoriteNotes = localFavNotes;
                 }
             } catch (e) {}
+
+            if (!window.supabaseClient) return this.favoriteNotes || [];
 
             const { data, error } = await window.supabaseClient
                 .from('notes')
@@ -264,9 +287,9 @@ class DashboardManager {
             displayTitle = isEn ? 'Untitled note' : 'Nota sin título';
         }
 
-        const snippet = note.type === 'checklist' 
+        const snippet = note.type === 'checklist' && (note.note_items || []).length > 0
             ? `${(note.note_items || []).length} ítems` 
-            : (note.content && displayTitle !== note.content.trim() ? note.content.trim().replace(/\n+/g, ' ').slice(0, 45) : '');
+            : '';
 
         return `
             <div class="file-row-m3 note-file-row" 
@@ -283,7 +306,7 @@ class DashboardManager {
                 </div>
 
                 <div class="col-name text-ellipsis" style="display: flex; align-items: center; gap: 8px;">
-                    <span class="recipe-name" style="font-weight: 600;">${this.escapeHTML(displayTitle)}</span>
+                    <span class="recipe-name" style="font-weight: 600; font-size: 14px; color: var(--text-main, #0f172a); letter-spacing: -0.1px;">${this.escapeHTML(displayTitle)}</span>
                     ${snippet ? `<span style="font-size: 12px; color: #6b7280; margin-left: 4px;">• ${this.escapeHTML(snippet)}</span>` : ''}
                 </div>
 

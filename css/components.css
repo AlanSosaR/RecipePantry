@@ -20173,8 +20173,11 @@ body.supplier-subview-item-active .suppliers-subview-page,
     }
 
     .top-bar-m3.search-mobile-active {
-        padding: 0 !important;
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 10px 12px !important;
         margin-bottom: 8px !important;
+        box-sizing: border-box !important;
     }
 
     .top-bar-m3.search-mobile-active .search-container-m3 {
@@ -20184,7 +20187,8 @@ body.supplier-subview-item-active .suppliers-subview-page,
         right: 0 !important;
         bottom: 0 !important;
         width: 100% !important;
-        height: 100% !important;
+        height: 60px !important;
+        min-height: 60px !important;
         z-index: 100 !important;
         background: #ffffff !important;
         padding: 6px 12px !important;

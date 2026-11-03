@@ -119,6 +119,7 @@
                 document.getElementById('pwa-custom-modal').remove();
             }
 
+            const isMobile = window.innerWidth <= 768;
             const isEn = window.i18n && window.i18n.getLang() === 'en';
             const title = isEn ? 'Install Recipe Pantry' : 'Instalar Recipe Pantry';
             const subtitle = isEn 
@@ -132,9 +133,10 @@
 
             const modal = document.createElement('div');
             modal.id = 'pwa-custom-modal';
-            modal.className = 'pwa-modal-overlay';
+            modal.className = `pwa-modal-overlay ${isMobile ? 'pwa-bottom-sheet-mode' : ''}`;
             modal.innerHTML = `
-                <div class="pwa-modal-card">
+                <div class="pwa-modal-card ${isMobile ? 'm3-modal-bottom-sheet' : ''}">
+                    ${isMobile ? '<div class="m3-sheet-drag-handle"></div>' : ''}
                     <div class="pwa-modal-header">
                         <div class="pwa-modal-icon-badge">
                             <img src="assets/icons/icon.svg" width="40" height="40" alt="Recipe Pantry" />
@@ -190,8 +192,12 @@
         closeModal() {
             const modal = document.getElementById('pwa-custom-modal');
             if (modal) {
+                const sheet = modal.querySelector('.m3-modal-bottom-sheet');
+                if (sheet) {
+                    sheet.style.animation = 'm3SheetSlideDown 0.22s ease-in forwards';
+                }
                 modal.classList.add('fade-out');
-                setTimeout(() => modal.remove(), 250);
+                setTimeout(() => modal.remove(), 240);
             }
         }
 
@@ -275,6 +281,33 @@
             const style = document.createElement('style');
             style.id = 'pwa-modal-styles';
             style.textContent = `
+                @media (max-width: 768px) {
+                    .pwa-modal-overlay.pwa-bottom-sheet-mode {
+                        align-items: flex-end !important;
+                        padding: 0 !important;
+                    }
+
+                    .pwa-modal-card.m3-modal-bottom-sheet {
+                        position: fixed !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        border-radius: 28px 28px 0 0 !important;
+                        padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px !important;
+                        box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22) !important;
+                        animation: m3SheetSlideUp 0.28s cubic-bezier(0.1, 0.9, 0.2, 1) forwards !important;
+                        box-sizing: border-box !important;
+                        z-index: 9999999 !important;
+                    }
+                }
+
+                @keyframes m3SheetSlideDown {
+                    from { transform: translateY(0); }
+                    to { transform: translateY(100%); }
+                }
+
                 .pwa-modal-overlay {
                     position: fixed;
                     inset: 0;
