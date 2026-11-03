@@ -502,28 +502,40 @@ window.utils.isSubrecipeItem = function(ing) {
     // Si tiene cantidad numérica mayor a 0, es un ingrediente regular
     if (qty && parseFloat(qty) > 0) return false;
 
-    // Flag explícito si viene marcado por OCR o parser IA
+    const text = `${unit} ${name}`.replace(/\s+/g, ' ').trim();
+    if (!text || text.length < 2) return false;
+
+    // Si el texto empieza con un número (ej. "10 cloves garlic", "5 Bayleave", "2 eggs", "500g sugar"):
+    // En gastronomía un número inicial indica cantidad de ingrediente, NUNCA subtítulo
+    // a menos que termine explícitamente en dos puntos (":") o sea una sección enumerada tipo "1. DOUGH (MASA):"
+    const startsWithNumber = /^[-*#(\[\s]*\d+/i.test(text);
+    if (startsWithNumber) {
+        const isExplicitSection = /^[-*#(\[\s]*(?:sub-?receta|sub-?recipe|secci[oó]n|section|parte|part|fase|phase)\b/i.test(text);
+        const endsInColon = /:\s*$/.test(text);
+        const hasSubrecipeKeywords = /\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text);
+
+        if (isExplicitSection) return true;
+        if (/^[-*#(\[\s]*\d+[\.\)]\s+/i.test(text) && (endsInColon || hasSubrecipeKeywords)) return true;
+        if (endsInColon && !/^\d+\s*(?:g|kg|ml|l|oz|lb|tbsp|tsp|cup|clove|bayleave|bay\s*leaf|diente|pz|ud)\b/i.test(text)) return true;
+
+        return false;
+    }
+
+    // Flag explícito si viene marcado por OCR o parser IA (pero nunca si empieza con número como los ingredientes regulares)
     if (typeof ing === 'object' && (ing.es_subtitulo || ing.is_header || ing.is_subtitle || ing.is_section)) {
         return true;
     }
 
-    const text = `${unit} ${name}`.replace(/\s+/g, ' ').trim();
-    if (!text || text.length < 2) return false;
-
     // 1. Empieza con For, Para, To serve, Para servir, etc.
     if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
 
-    // 2. Empieza con número de sección o subreceta (ej. "1. DOUGH (MASA)", "2. TOPPING / CRUST")
-    if (/^[-*#(\[\s]*\d+[\.\)\-\s]+[^:]{2,80}(?::|$)/i.test(text)) {
-        // Asegurar que no sea un ingrediente con número inicial (ej. "1 tsp salt", "2 eggs")
-        const isIngQty = /^\d+\s*(?:g|kg|ml|l|taza|cup|cucharada|tbsp|cucharadita|tsp|oz|lb|diente|egg|huevo|piez|gram)/i.test(text);
-        if (!isIngQty) return true;
-    }
+    // 2. Encabezado de sección explícito (ej. "Subreceta 1:", "Section A:", "Paso 1:")
+    if (/^[-*#(\[\s]*(?:sub-?receta|sub-?recipe|secci[oó]n|section|parte|part|fase|phase)\b/i.test(text)) return true;
 
-    // 3. Termina con dos puntos (ej. "Dough (Masa):", "Topping / Crust:")
-    if (/^[-*#(\[\s]*[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
+    // 3. Termina con dos puntos (ej. "Dough (Masa):", "Topping / Crust:", "Salsa:")
+    if (/^[-*#(\[\s]*[^:]{2,80}:\s*(\([^)]+\))?$/.test(text)) return true;
 
-    // 4. Contiene palabras clave de sub-recetas Y termina con dos puntos (nunca solo con paréntesis para no confundir con títulos)
+    // 4. Contiene palabras clave de sub-recetas Y termina con dos puntos
     if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /:\s*$/.test(text)) return true;
 
     // 5. Indicador de lote o multiplicador para sub-receta (ej. '(6 x for 10kg chicken)')

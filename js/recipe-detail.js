@@ -392,6 +392,7 @@ class RecipeDetailManager {
             if (originalQty && parseFloat(originalQty) > 0) return false;
             const text = `${unit || ''} ${name || ''}`.replace(/\s+/g, ' ').trim();
             if (!text) return false;
+            if (/^[-*#(\[\s]*\d+/i.test(text) && !/:\s*$/.test(text)) return false;
             if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
             if (/^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
             if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /[:\)]\s*$/.test(text)) return true;

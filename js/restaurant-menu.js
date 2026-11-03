@@ -2690,6 +2690,7 @@
 
                 container.innerHTML = `
                     <div class="allergens-module menu-module-container">
+                    <div class="menu-sticky-header">
                         <div class="menu-hero-card" style="text-align: center; padding: 56px 24px; background: #FFFFFF; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #E2E8F0;">
                             <div style="width: 80px; height: 80px; margin: 0 auto 20px auto; border-radius: 50%; background: #EFF6FF; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.12);">
                                 <span class="material-symbols-outlined" style="font-size: 42px; color: #2563EB;">storefront</span>
@@ -2703,6 +2704,7 @@
                                     : 'Empieza creando la carta de tu restaurante o solicita al propietario de tu cocina que comparta su menú contigo. Tus recetas y tu espacio personal se mantienen 100% independientes.'}
                             </p>
                         </div>
+                    </div>
                     </div>
                 `;
                 return;
@@ -2914,37 +2916,6 @@
                             }).join('')}
                         </div>
                     ` : '')}
-
-                    ${categoryList.length > 0 ? `
-                        <!-- Horizontal Scrollable Category Chips Carousel -->
-                        <div class="menu-category-carousel-wrapper">
-                            <button type="button" class="menu-carousel-arrow left" onclick="window.restaurantMenu.scrollChips(-260)" title="${isEn ? 'Previous categories' : 'Categorías anteriores'}">
-                                <span class="material-symbols-outlined">chevron_left</span>
-                            </button>
-                            <div class="menu-category-chips" id="menuCategoryChips" onwheel="window.restaurantMenu.handleChipsWheel(event)">
-                                <button class="menu-category-chip ${this.activeCategory === 'all' ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('all')">
-                                    <span>${isEn ? 'All Categories' : 'Todas las Secciones'}</span>
-                                    <span class="chip-count">${currentTabDishes}</span>
-                                </button>
-                                ${categoryList.map(c => `
-                                    <button class="menu-category-chip ${this.activeCategory === c.id ? 'active' : ''}" onclick="window.restaurantMenu.setCategory('${c.id}')">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">${c.icon}</span>
-                                        <span>${c.name}</span>
-                                        <span class="chip-count">${c.count}</span>
-                                    </button>
-                                `).join('')}
-                                ${outOfStockCount > 0 ? `
-                                    <div class="menu-status-pill out-of-stock-counter" title="${isEn ? 'Items currently marked out of stock' : 'Platos marcados como agotados en cocina'}" style="white-space: nowrap;">
-                                        <span class="material-symbols-outlined" style="font-size: 16px; color: #DC2626;">do_not_disturb_on</span>
-                                        <span>${outOfStockCount} ${isEn ? '86 Out' : '86 Agotados'}</span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <button type="button" class="menu-carousel-arrow right" onclick="window.restaurantMenu.scrollChips(260)" title="${isEn ? 'Next categories' : 'Siguientes categorías'}">
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </button>
-                        </div>
-                    ` : ''}
 
                     ${this.searchQuery ? `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 14px; background: #ECFDF5; border-radius: 12px; border: 1px solid #A7F3D0; margin: 4px 0 10px 0;">

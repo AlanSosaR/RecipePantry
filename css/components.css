@@ -13619,54 +13619,154 @@ body.dark-theme .context-menu-divider {
     color: #B91C1C;
 }
 
-/* Tabs Bar */
+/* Sticky Header Wrapper: Hero Card + Macro Tabs Pills */
+.menu-sticky-header {
+    position: sticky;
+    top: 60px;
+    z-index: 40;
+    background: #ffffff;
+    padding: 4px 0 10px 0;
+    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    body:has(#menuView:not(.hidden)) .top-bar-m3,
+    .main-content:has(#menuView:not(.hidden)) .top-bar-m3 {
+        margin-bottom: 0 !important;
+    }
+    body:has(#menuView:not(.hidden)) #menuView,
+    .main-content:has(#menuView:not(.hidden)) #menuView {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    .menu-sticky-header {
+        top: 60px !important;
+        margin-left: -10px !important;
+        margin-right: -10px !important;
+        margin-bottom: 8px !important;
+        padding: 4px 10px 10px 10px !important;
+        background: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    }
+    .menu-hero-card {
+        padding: 12px 14px !important;
+        border-radius: 18px !important;
+        gap: 8px !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .menu-sticky-header {
+        top: 0 !important;
+        background: #ffffff !important;
+        padding-top: 10px !important;
+        padding-bottom: 12px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    }
+}
+
+/* Tabs Bar - Pills M3 Expressive */
 .menu-tabs-bar {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #F3F4F6;
-    padding: 6px;
-    border-radius: 18px;
-    width: fit-content;
-    max-width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
+    background: transparent !important;
+    padding: 2px 2px 4px 2px !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.menu-tabs-bar::-webkit-scrollbar {
+    display: none !important;
 }
 
 .menu-tab-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: none;
-    background: transparent;
-    color: var(--on-surface-variant, #6B7280);
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 7px 16px !important;
+    border-radius: 9999px !important;
+    border: 1.5px solid var(--outline-variant, #E2E8F0) !important;
+    background: #FFFFFF !important;
+    color: var(--on-surface-variant, #4B5563) !important;
+    font-family: var(--font-body, 'Poppins', sans-serif) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 
 .menu-tab-btn:hover {
-    color: var(--on-surface, #111827);
+    border-color: var(--primary, #10B981) !important;
+    color: var(--primary, #10B981) !important;
+    transform: translateY(-1px);
+}
+
+.menu-tab-btn:active {
+    transform: scale(0.97);
 }
 
 .menu-tab-btn.active {
-    background: #FFFFFF;
-    color: #10B981;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: var(--primary, #10B981) !important;
+    border-color: var(--primary, #10B981) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 3px 12px rgba(16, 185, 129, 0.28) !important;
+}
+
+.menu-tab-btn .material-symbols-outlined {
+    font-size: 18px !important;
+    color: inherit !important;
+}
+
+.menu-tab-btn .chip-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    padding: 0 6px !important;
+    border-radius: 9999px !important;
+    background: rgba(0, 0, 0, 0.07) !important;
+    color: #4B5563 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+.menu-tab-btn.active .chip-count {
+    background: rgba(255, 255, 255, 0.28) !important;
+    color: #FFFFFF !important;
 }
 
 .menu-tab-badge {
-    background: #FEF3C7;
-    color: #92400E;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-weight: 800;
+    background: #FEF3C7 !important;
+    color: #92400E !important;
+    font-size: 10.5px !important;
+    padding: 2px 8px !important;
+    border-radius: 9999px !important;
+    font-weight: 800 !important;
+    margin-left: 2px !important;
+}
+
+.menu-tab-btn.active .menu-tab-badge {
+    background: rgba(255, 255, 255, 0.24) !important;
+    color: #FFFFFF !important;
+}
+
+/* Ocultar carrusel redundante de categorias */
+.menu-category-carousel-wrapper {
+    display: none !important;
 }
 
 /* Category Filter Chips & Carousel */
@@ -14525,14 +14625,15 @@ body.dark-theme .context-menu-divider {
     }
 
     .menu-tabs-bar {
-        width: 100%;
+        width: 100% !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
     }
 
     .menu-tab-btn {
-        flex: 1;
-        justify-content: center;
-        padding: 8px 12px;
-        font-size: 12.5px;
+        flex: 0 0 auto !important;
+        padding: 7px 14px !important;
+        font-size: 12.5px !important;
     }
 
     .menu-hero-card {
