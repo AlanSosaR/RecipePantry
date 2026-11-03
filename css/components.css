@@ -20470,7 +20470,7 @@ body.supplier-subview-item-active .suppliers-subview-page,
         background: #ffffff !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .search-container-m3 {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .search-container-m3 {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -20492,8 +20492,8 @@ body.supplier-subview-item-active .suppliers-subview-page,
         animation: fadeIn 0.16s ease-out !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .search-wrapper-m3,
-    body.body-drive .top-bar-m3.search-mobile-active .search-wrapper-m3:focus-within {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .search-wrapper-m3,
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .search-wrapper-m3:focus-within {
         width: calc(100% - 24px) !important;
         max-width: 100% !important;
         height: 48px !important;
@@ -20511,7 +20511,7 @@ body.supplier-subview-item-active .suppliers-subview-page,
         flex-shrink: 0 !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .search-wrapper-m3 input {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .search-wrapper-m3 input {
         font-size: 15.5px !important;
         font-weight: 500 !important;
         color: var(--text-main, #0f172a) !important;
@@ -20522,7 +20522,7 @@ body.supplier-subview-item-active .suppliers-subview-page,
         outline: none !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .btn-search-back {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .btn-search-back {
         display: flex !important;
         width: 38px !important;
         height: 38px !important;
@@ -20530,17 +20530,17 @@ body.supplier-subview-item-active .suppliers-subview-page,
         color: var(--primary, #059669) !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .btn-search-clear {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .btn-search-clear {
         width: 36px !important;
         height: 36px !important;
         border-radius: 50% !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .search-icon-default {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .search-icon-default {
         display: none !important;
     }
 
-    body.body-drive .top-bar-m3.search-mobile-active .search-view-content-m3 {
+    body.body-drive:not(.notas-body) .top-bar-m3.search-mobile-active .search-view-content-m3 {
         flex: 1 !important;
         width: 100% !important;
         overflow-y: auto !important;
@@ -20589,13 +20589,13 @@ body.search-view-active .fab-create,
 body.search-view-active .fab-container,
 body.search-view-active .mobile-nav-bar,
 body.search-view-active .bottom-nav-m3,
-body.body-drive:has(.top-bar-m3.search-mobile-active) .btn-fab,
-body.body-drive:has(.top-bar-m3.search-mobile-active) .fab,
-body.body-drive:has(.top-bar-m3.search-mobile-active) #fabAddRecipe,
-body.body-drive:has(.top-bar-m3.search-mobile-active) .fab-create,
-body.body-drive:has(.top-bar-m3.search-mobile-active) .fab-container,
-body.body-drive:has(.top-bar-m3.search-mobile-active) .mobile-nav-bar,
-body.body-drive:has(.top-bar-m3.search-mobile-active) .bottom-nav-m3 {
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) .btn-fab,
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) .fab,
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) #fabAddRecipe,
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) .fab-create,
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) .fab-container,
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) .mobile-nav-bar,
+body.body-drive:not(.notas-body):has(.top-bar-m3.search-mobile-active) .bottom-nav-m3 {
     display: none !important;
 }
 
