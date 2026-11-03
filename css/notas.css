@@ -2729,16 +2729,18 @@ body.nf-dark-contrast .color-sheet-reset-icon {
    NOTA-FORM BOTTOM TOOLBAR (Estilo Google Keep Móvil)
    ═══════════════════════════════════════════ */
 .nf-bottom-bar {
-    height: 52px;
+    height: auto;
+    min-height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px calc(env(safe-area-inset-bottom, 0px));
-    background: transparent;
+    padding: 0 16px env(safe-area-inset-bottom, 0px);
+    background: inherit;
     border-top: none;
     z-index: 100;
     transition: background-color 0.25s ease;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 body.nf-dark-contrast .nf-bottom-bar {
