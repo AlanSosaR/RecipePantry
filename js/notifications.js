@@ -1173,7 +1173,7 @@ class NotificationManager {
 
             if (fillEl) fillEl.style.width = '100%';
             if (percentEl) percentEl.textContent = '100%';
-            if (titleEl) titleEl.textContent = isEn ? '✅ App Updated!' : '✅ ¡Actualizado con éxito!';
+            if (titleEl) titleEl.textContent = isEn ? 'App Updated!' : '¡Actualizado con éxito!';
             if (subEl) subEl.textContent = isPreview 
                 ? (isEn ? 'Preview mode completed' : 'Vista previa completada')
                 : (isEn ? 'Reloading application...' : 'Reiniciando aplicación...');
