@@ -1140,13 +1140,13 @@
             const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
             const carouselWrapperStyle = isMobile
                 ? 'position: relative; display: flex; align-items: center; width: 100%; gap: 0; padding: 0;'
-                : 'position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; box-sizing: border-box; padding: 0 4px;';
+                : 'position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; padding: 0 12px;';
             const carouselContainerStyle = isMobile
                 ? 'width: 100% !important; max-width: 100% !important; flex: 1 1 100% !important; margin: 0 !important; padding: 6px 4px 14px 4px !important; overflow-x: auto;'
-                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 110px) !important; width: auto !important; margin: 0 auto !important; padding: 6px 14px 14px 14px !important; overflow-x: auto;';
+                : 'flex: 1 1 auto !important; min-width: 0 !important; max-width: calc(100% - 160px) !important; width: auto !important; margin: 0 24px !important; padding: 6px 8px 14px 8px !important; overflow-x: auto;';
             const carouselArrowStyle = isMobile
                 ? 'display: none !important;'
-                : 'position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 38px !important; height: 38px !important; min-width: 38px !important; margin: 0 !important; display: flex !important;';
+                : 'position: relative !important; left: auto !important; right: auto !important; top: auto !important; transform: none !important; flex-shrink: 0 !important; width: 40px !important; height: 40px !important; min-width: 40px !important; margin: 0 !important; display: flex !important; z-index: 5 !important;';
             const mode = this.getTasksMode();
             const isSuper = this.isSuperAdmin();
             const myUserId = window.authManager?.currentUser?.id || 
@@ -3962,7 +3962,6 @@ if (typeof window !== 'undefined' && !window.tasks_date_carousel_resize_handler)
         const arrows = document.querySelectorAll('.tasks-carousel-arrow');
         if (wrapper && carousel) {
             if (isMob) {
-                wrapper.style.gap = '0';
                 wrapper.style.padding = '0';
                 wrapper.style.justifyContent = 'flex-start';
                 carousel.style.maxWidth = '100%';
@@ -3972,14 +3971,13 @@ if (typeof window !== 'undefined' && !window.tasks_date_carousel_resize_handler)
                 carousel.style.padding = '6px 4px 14px 4px';
                 arrows.forEach(a => a.style.display = 'none');
             } else {
-                wrapper.style.gap = '14px';
-                wrapper.style.padding = '0 4px';
-                wrapper.style.justifyContent = 'center';
-                carousel.style.maxWidth = 'calc(100% - 110px)';
+                wrapper.style.padding = '0 12px';
+                wrapper.style.justifyContent = 'space-between';
+                carousel.style.maxWidth = 'calc(100% - 160px)';
                 carousel.style.width = 'auto';
                 carousel.style.flex = '1 1 auto';
-                carousel.style.margin = '0 auto';
-                carousel.style.padding = '6px 6px 14px 6px';
+                carousel.style.margin = '0 24px';
+                carousel.style.padding = '6px 8px 14px 8px';
                 arrows.forEach(a => a.style.display = 'flex');
             }
         }
