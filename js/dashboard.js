@@ -863,17 +863,15 @@ class DashboardManager {
                     }
                 }, 200);
 
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
-                    // Update suggestions only for recipes
+                // En móvil: actualizar sugerencias / resultados en vivo para la vista activa
+                if (this.searchHistory) {
                     this.searchHistory.showSuggestions(query);
-                } else {
-                    this.searchHistory.hideSuggestions();
                 }
             });
 
             searchInput.addEventListener('focus', () => {
                 this.openMobileSearch();
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
+                if (this.searchHistory) {
                     this.searchHistory.showSuggestions(searchInput.value.trim());
                 }
             });
@@ -882,7 +880,7 @@ class DashboardManager {
                 if (window.innerWidth <= 768) {
                     this.openMobileSearch();
                 }
-                if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
+                if (this.searchHistory) {
                     this.searchHistory.showSuggestions(searchInput.value.trim());
                 }
             });
@@ -941,6 +939,9 @@ class DashboardManager {
                         }
                     } else {
                         this.loadRecipes({ search: '' });
+                    }
+                    if (this.searchHistory) {
+                        this.searchHistory.showSuggestions('');
                     }
                     searchInput.focus();
                 });
@@ -7429,24 +7430,19 @@ class SearchHistory {
     }
 
     save(query) {
-        // Historial de búsquedas recientes deshabilitado por requerimiento de usuario
+        // Historial desactivado
     }
 
     remove(query) {
-        const decoded = decodeURIComponent(query);
-        this.history = this.history.filter(h => h !== decoded);
-        localStorage.setItem(this.storageKey, JSON.stringify(this.history));
         this.showSuggestions(this.inputEl ? this.inputEl.value.trim() : '');
     }
 
     clearAll() {
-        this.history = [];
-        localStorage.removeItem(this.storageKey);
         this.showSuggestions('');
     }
 
     showSuggestions(query) {
-        // En PC / escritorio (> 768px): No se muestra popover flotante, la grilla filtra directamente
+        // En PC / escritorio (> 768px): La búsqueda filtra directamente en la vista; no se muestra popover flotante
         if (window.innerWidth > 768) {
             this.hideSuggestions();
             return;
@@ -7459,14 +7455,15 @@ class SearchHistory {
 
         const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en';
         const trimmed = (query || '').trim();
+        const currentView = this.dashboard.currentView || 'recipes';
 
         if (!trimmed) {
-            this.suggestionsEl.innerHTML = '';
-            this.suggestionsEl.classList.add('hidden');
+            this.renderEmptyStateForView(currentView, isEn);
+            this.suggestionsEl.classList.remove('hidden');
             return;
         }
 
-        this.renderLiveSearchResults(trimmed, isEn);
+        this.renderLiveSearchResultsForView(currentView, trimmed, isEn);
         this.suggestionsEl.classList.remove('hidden');
     }
 
@@ -7479,18 +7476,96 @@ class SearchHistory {
         }
     }
 
-    renderEmptyStateSuggestions(isEn) {
-        this.suggestionsEl.innerHTML = '';
-        this.suggestionsEl.classList.add('hidden');
+    getEmptyStateConfig(view, isEn) {
+        if (view === 'suppliers') {
+            const isDetail = window.suppliersManager && Boolean(window.suppliersManager.activeSupplierId);
+            if (isDetail) {
+                return {
+                    icon: 'inventory_2',
+                    title: isEn ? 'Search Products' : 'Buscar en el Catálogo',
+                    text: isEn ? 'Type product name, format or SKU to find items instantly.' : 'Escribe nombre del producto, formato o SKU para encontrar artículos al instante.'
+                };
+            }
+            return {
+                icon: 'local_shipping',
+                title: isEn ? 'Search Suppliers' : 'Buscar Proveedores',
+                text: isEn ? 'Type supplier name, contact, phone or category.' : 'Escribe nombre del proveedor, contacto, teléfono o categoría.'
+            };
+        }
+
+        if (view === 'menu') {
+            return {
+                icon: 'restaurant',
+                title: isEn ? 'Search Restaurant Menu' : 'Buscar en la Carta',
+                text: isEn ? 'Type dish name, category, ingredients or allergens.' : 'Escribe nombre del plato, categoría, ingredientes o alérgenos.'
+            };
+        }
+
+        if (view === 'allergens') {
+            return {
+                icon: 'no_food',
+                title: isEn ? 'Search Allergens' : 'Buscar en Alérgenos',
+                text: isEn ? 'Search by dish, ingredient or allergen type in the matrix.' : 'Busca por plato, ingrediente o tipo de alérgeno en la matriz.'
+            };
+        }
+
+        if (view === 'tasks') {
+            return {
+                icon: 'checklist',
+                title: isEn ? 'Search Tasks' : 'Buscar Tareas',
+                text: isEn ? 'Type task title, assignee, date or status.' : 'Escribe título de tarea, responsable, fecha o estado.'
+            };
+        }
+
+        if (view === 'help' || view === 'settings') {
+            return {
+                icon: 'manage_accounts',
+                title: isEn ? 'Search Users' : 'Buscar Usuarios',
+                text: isEn ? 'Type name or email to filter users.' : 'Escribe nombre o correo electrónico para filtrar miembros.'
+            };
+        }
+
+        // Por defecto: Recetas (recipes, favorites, shared)
+        return {
+            icon: 'restaurant_menu',
+            title: isEn ? 'Search Recipes' : 'Buscar en mi recetario',
+            text: isEn ? 'Type recipe name, ingredients or category to find recipes instantly.' : 'Escribe nombre, ingredientes o categoría para encontrar recetas al instante.'
+        };
     }
 
-    renderLiveSearchResults(query, isEn) {
+    renderEmptyStateForView(view, isEn) {
+        const config = this.getEmptyStateConfig(view, isEn);
+        this.suggestionsEl.innerHTML = `
+            <div class="search-empty-state-m3">
+                <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary, #059669); margin-bottom: 12px;">${config.icon}</span>
+                <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${config.title}</h4>
+                <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${config.text}</p>
+            </div>
+        `;
+    }
+
+    renderLiveSearchResultsForView(view, query, isEn) {
+        if (view === 'suppliers') {
+            this.renderSuppliersResults(query, isEn);
+        } else if (view === 'menu') {
+            this.renderMenuResults(query, isEn);
+        } else if (view === 'allergens') {
+            this.renderAllergenResults(query, isEn);
+        } else if (view === 'tasks') {
+            this.renderTasksResults(query, isEn);
+        } else if (view === 'help' || view === 'settings') {
+            this.renderUsersResults(query, isEn);
+        } else {
+            this.renderRecipesResults(query, isEn);
+        }
+    }
+
+    renderRecipesResults(query, isEn) {
         const recipes = (this.dashboard.allRecipesCache && this.dashboard.allRecipesCache.length) 
             ? this.dashboard.allRecipesCache 
             : (this.dashboard.currentRecipes || []);
         const lowerQ = query.toLowerCase();
 
-        // Buscar coincidencias
         const matches = recipes.filter(r => {
             const name = (r.name || r.name_es || r.name_en || '').toLowerCase();
             const pantry = (r.pantry_es || r.pantry_en || r.category || '').toLowerCase();
@@ -7501,9 +7576,9 @@ class SearchHistory {
         if (matches.length === 0) {
             this.suggestionsEl.innerHTML = `
                 <div class="search-empty-state-m3">
-                    <span class="material-symbols-outlined">search_off</span>
-                    <h4>${isEn ? 'No recipes found' : 'No se encontraron recetas'}</h4>
-                    <p>${isEn ? `No results match "${this.escapeHtml(query)}". Try another word or ingredient.` : `No hay recetas que coincidan con "<strong>${this.escapeHtml(query)}</strong>". Intenta con otra palabra clave.`}</p>
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                    <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No recipes found' : 'No se encontraron recetas'}</h4>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No results match "${this.escapeHtml(query)}". Try another word or ingredient.` : `No hay recetas que coincidan con "<strong>${this.escapeHtml(query)}</strong>". Intenta con otra palabra clave.`}</p>
                 </div>
             `;
             return;
@@ -7543,6 +7618,322 @@ class SearchHistory {
         this.suggestionsEl.innerHTML = html;
     }
 
+    renderSuppliersResults(query, isEn) {
+        const mgr = window.suppliersManager;
+        const isDetail = mgr && Boolean(mgr.activeSupplierId);
+        const lowerQ = query.toLowerCase();
+
+        if (isDetail) {
+            const activeId = mgr.activeSupplierId;
+            const items = (mgr.items || []).filter(it => it.supplier_id === activeId);
+            const matches = items.filter(it => {
+                const name = (it.name || '').toLowerCase();
+                const sku = (it.sku || '').toLowerCase();
+                const fmt = (it.package_format || it.unit || '').toLowerCase();
+                return name.includes(lowerQ) || sku.includes(lowerQ) || fmt.includes(lowerQ);
+            });
+
+            if (matches.length === 0) {
+                this.suggestionsEl.innerHTML = `
+                    <div class="search-empty-state-m3">
+                        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                        <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No products found' : 'No se encontraron productos'}</h4>
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No items match "${this.escapeHtml(query)}".` : `No hay productos que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const countLabel = matches.length === 1 
+                ? (isEn ? '1 product found' : '1 producto encontrado') 
+                : (isEn ? `${matches.length} products found` : `${matches.length} productos encontrados`);
+
+            this.suggestionsEl.innerHTML = `
+                <div class="search-view-header-row">
+                    <span class="search-view-header-title">${countLabel}</span>
+                </div>
+                <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                    ${matches.slice(0, 30).map(it => {
+                        const highlighted = this.highlightText(it.name || 'Producto', query);
+                        const meta = [it.sku ? `SKU: ${it.sku}` : '', it.package_format || it.unit || ''].filter(Boolean).join(' • ');
+                        return `
+                            <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectSupplierItem('${it.id}', '${it.supplier_id}')">
+                                <div class="result-tile-icon-box">
+                                    <span class="material-symbols-outlined">inventory_2</span>
+                                </div>
+                                <div class="result-tile-info">
+                                    <div class="result-tile-title">${highlighted}</div>
+                                    <div class="result-tile-meta">${this.escapeHtml(meta || (isEn ? 'Product' : 'Producto'))}</div>
+                                </div>
+                                <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            return;
+        }
+
+        const suppliers = mgr ? (mgr.suppliers || []) : [];
+        const matches = suppliers.filter(s => {
+            const name = (s.name || '').toLowerCase();
+            const contact = (s.contact_name || '').toLowerCase();
+            const cat = (s.category || '').toLowerCase();
+            const phone = (s.phone || '').toLowerCase();
+            return name.includes(lowerQ) || contact.includes(lowerQ) || cat.includes(lowerQ) || phone.includes(lowerQ);
+        });
+
+        if (matches.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                    <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No suppliers found' : 'No se encontraron proveedores'}</h4>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No suppliers match "${this.escapeHtml(query)}".` : `No hay proveedores que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const countLabel = matches.length === 1 
+            ? (isEn ? '1 supplier found' : '1 proveedor encontrado') 
+            : (isEn ? `${matches.length} suppliers found` : `${matches.length} proveedores encontrados`);
+
+        this.suggestionsEl.innerHTML = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${countLabel}</span>
+            </div>
+            <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                ${matches.slice(0, 30).map(s => {
+                    const highlighted = this.highlightText(s.name || 'Proveedor', query);
+                    const meta = [s.category || '', s.contact_name || ''].filter(Boolean).join(' • ');
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectSupplier('${s.id}')">
+                            <div class="result-tile-icon-box">
+                                <span class="material-symbols-outlined">local_shipping</span>
+                            </div>
+                            <div class="result-tile-info">
+                                <div class="result-tile-title">${highlighted}</div>
+                                <div class="result-tile-meta">${this.escapeHtml(meta || (isEn ? 'Supplier' : 'Proveedor'))}</div>
+                            </div>
+                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    renderMenuResults(query, isEn) {
+        const dishes = (window.restaurantMenu && window.restaurantMenu.dishes) ? window.restaurantMenu.dishes : [];
+        const lowerQ = query.toLowerCase();
+
+        const matches = dishes.filter(d => {
+            const name = (d.name_es || d.name_en || d.name || '').toLowerCase();
+            const cat = (d.category_es || d.category_en || d.category || '').toLowerCase();
+            const desc = (d.description_es || d.description_en || d.description || '').toLowerCase();
+            return name.includes(lowerQ) || cat.includes(lowerQ) || desc.includes(lowerQ);
+        });
+
+        if (matches.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                    <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No dishes found' : 'No se encontraron platos'}</h4>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No dishes match "${this.escapeHtml(query)}".` : `No hay platos que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const countLabel = matches.length === 1 
+            ? (isEn ? '1 dish found' : '1 plato encontrado') 
+            : (isEn ? `${matches.length} dishes found` : `${matches.length} platos encontrados`);
+
+        this.suggestionsEl.innerHTML = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${countLabel}</span>
+            </div>
+            <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                ${matches.slice(0, 30).map(d => {
+                    const name = d.name_es || d.name_en || d.name || 'Plato';
+                    const highlighted = this.highlightText(name, query);
+                    const cat = d.category_es || d.category_en || d.category || '';
+                    const price = d.price ? `${d.price}€` : '';
+                    const meta = [cat, price].filter(Boolean).join(' • ');
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectMenuDish('${d.id}')">
+                            <div class="result-tile-icon-box">
+                                <span class="material-symbols-outlined">restaurant</span>
+                            </div>
+                            <div class="result-tile-info">
+                                <div class="result-tile-title">${highlighted}</div>
+                                <div class="result-tile-meta">${this.escapeHtml(meta || (isEn ? 'Dish' : 'Plato'))}</div>
+                            </div>
+                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    renderAllergenResults(query, isEn) {
+        const recipes = (this.dashboard.allRecipesCache && this.dashboard.allRecipesCache.length) 
+            ? this.dashboard.allRecipesCache 
+            : (this.dashboard.currentRecipes || []);
+        const lowerQ = query.toLowerCase();
+
+        const matches = recipes.filter(r => {
+            const name = (r.name || r.name_es || r.name_en || '').toLowerCase();
+            const allergens = Array.isArray(r.allergens) ? r.allergens.join(' ').toLowerCase() : '';
+            return name.includes(lowerQ) || allergens.includes(lowerQ);
+        });
+
+        if (matches.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                    <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No allergen matches found' : 'Sin coincidencias en alérgenos'}</h4>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No recipes or allergens match "${this.escapeHtml(query)}".` : `No hay recetas ni alérgenos que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const countLabel = matches.length === 1 
+            ? (isEn ? '1 recipe with allergens found' : '1 receta con alérgenos encontrada') 
+            : (isEn ? `${matches.length} recipes found` : `${matches.length} recetas encontradas`);
+
+        this.suggestionsEl.innerHTML = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${countLabel}</span>
+            </div>
+            <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                ${matches.slice(0, 30).map(r => {
+                    const name = r.name || r.name_es || r.name_en || 'Receta';
+                    const highlighted = this.highlightText(name, query);
+                    const allergensStr = Array.isArray(r.allergens) && r.allergens.length ? r.allergens.join(', ') : (isEn ? 'No allergens' : 'Sin alérgenos');
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectRecipe('${r.id}', '${encodeURIComponent(query)}')">
+                            <div class="result-tile-icon-box">
+                                <span class="material-symbols-outlined">no_food</span>
+                            </div>
+                            <div class="result-tile-info">
+                                <div class="result-tile-title">${highlighted}</div>
+                                <div class="result-tile-meta">${this.escapeHtml(allergensStr)}</div>
+                            </div>
+                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    renderTasksResults(query, isEn) {
+        const tasks = (window.tasksManager && window.tasksManager.tasks) ? window.tasksManager.tasks : [];
+        const lowerQ = query.toLowerCase();
+
+        const matches = tasks.filter(t => {
+            const title = (t.title || '').toLowerCase();
+            const desc = (t.description || '').toLowerCase();
+            const assignee = (t.assignee_name || '').toLowerCase();
+            return title.includes(lowerQ) || desc.includes(lowerQ) || assignee.includes(lowerQ);
+        });
+
+        if (matches.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                    <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No tasks found' : 'No se encontraron tareas'}</h4>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No tasks match "${this.escapeHtml(query)}".` : `No hay tareas que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const countLabel = matches.length === 1 
+            ? (isEn ? '1 task found' : '1 tarea encontrada') 
+            : (isEn ? `${matches.length} tasks found` : `${matches.length} tareas encontradas`);
+
+        this.suggestionsEl.innerHTML = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${countLabel}</span>
+            </div>
+            <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                ${matches.slice(0, 30).map(t => {
+                    const highlighted = this.highlightText(t.title || 'Tarea', query);
+                    const isDone = Boolean(t.is_completed || t.completed);
+                    const meta = [t.assignee_name || '', t.due_date || '', isDone ? (isEn ? 'Completed' : 'Completada') : (isEn ? 'Pending' : 'Pendiente')].filter(Boolean).join(' • ');
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectTask('${t.id}')">
+                            <div class="result-tile-icon-box">
+                                <span class="material-symbols-outlined">${isDone ? 'task_alt' : 'checklist'}</span>
+                            </div>
+                            <div class="result-tile-info">
+                                <div class="result-tile-title">${highlighted}</div>
+                                <div class="result-tile-meta">${this.escapeHtml(meta)}</div>
+                            </div>
+                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    renderUsersResults(query, isEn) {
+        const users = (window.adminUsersManager && window.adminUsersManager.users) ? window.adminUsersManager.users : [];
+        const lowerQ = query.toLowerCase();
+
+        const matches = users.filter(u => {
+            const name = (u.full_name || u.name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            const role = (u.role || '').toLowerCase();
+            return name.includes(lowerQ) || email.includes(lowerQ) || role.includes(lowerQ);
+        });
+
+        if (matches.length === 0) {
+            this.suggestionsEl.innerHTML = `
+                <div class="search-empty-state-m3">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                    <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No users found' : 'No se encontraron usuarios'}</h4>
+                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No users match "${this.escapeHtml(query)}".` : `No hay usuarios que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const countLabel = matches.length === 1 
+            ? (isEn ? '1 user found' : '1 usuario encontrado') 
+            : (isEn ? `${matches.length} users found` : `${matches.length} usuarios encontrados`);
+
+        this.suggestionsEl.innerHTML = `
+            <div class="search-view-header-row">
+                <span class="search-view-header-title">${countLabel}</span>
+            </div>
+            <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
+                ${matches.slice(0, 30).map(u => {
+                    const name = u.full_name || u.name || u.email || 'Usuario';
+                    const highlighted = this.highlightText(name, query);
+                    const meta = [u.email && u.email !== name ? u.email : '', u.role || ''].filter(Boolean).join(' • ');
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectUser('${u.id}')">
+                            <div class="result-tile-icon-box">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div class="result-tile-info">
+                                <div class="result-tile-title">${highlighted}</div>
+                                <div class="result-tile-meta">${this.escapeHtml(meta || (isEn ? 'User' : 'Usuario'))}</div>
+                            </div>
+                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
     selectTerm(encodedTerm) {
         const term = decodeURIComponent(encodedTerm);
         if (this.inputEl) {
@@ -7550,32 +7941,66 @@ class SearchHistory {
             const clearBtn = document.getElementById('clearSearch');
             if (clearBtn) clearBtn.classList.remove('hidden');
         }
-        this.save(term);
         this.dashboard.loadRecipes({ search: term });
         this.showSuggestions(term);
     }
 
     selectRecipe(recipeId, encodedQuery) {
         const query = decodeURIComponent(encodedQuery);
-        if (query) this.save(query);
-
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
-            // En móvil: navegamos directamente sin cerrar la vista de búsqueda antes,
-            // evitando que parpadee la interfaz principal ("Sugerido para ti") mientras carga la receta
             this.dashboard.openRecipeDetails(recipeId);
             return;
         }
-
-        // En escritorio: cerramos la sugerencia flotante y abrimos el detalle en el panel
         this.hideSuggestions();
         this.dashboard.closeMobileSearch();
         this.dashboard.openRecipeDetails(recipeId);
     }
 
+    selectSupplier(supId) {
+        this.dashboard.closeMobileSearch();
+        if (window.suppliersManager && typeof window.suppliersManager.openSupplierDetail === 'function') {
+            window.suppliersManager.openSupplierDetail(supId);
+        }
+    }
+
+    selectSupplierItem(itemId, supplierId) {
+        this.dashboard.closeMobileSearch();
+        if (window.suppliersManager && typeof window.suppliersManager.openItemModal === 'function') {
+            window.suppliersManager.openItemModal(itemId, supplierId);
+        }
+    }
+
+    selectMenuDish(dishId) {
+        this.dashboard.closeMobileSearch();
+        const input = document.getElementById('searchInput');
+        if (input && window.restaurantMenu) {
+            const dish = (window.restaurantMenu.dishes || []).find(d => d.id === dishId);
+            if (dish) {
+                const name = dish.name_es || dish.name_en || dish.name || '';
+                input.value = name;
+                window.restaurantMenu.setSearchQuery(name);
+            }
+        }
+    }
+
+    selectTask(taskId) {
+        this.dashboard.closeMobileSearch();
+        if (window.tasksManager && typeof window.tasksManager.openEditTaskModal === 'function') {
+            window.tasksManager.openEditTaskModal(taskId);
+        }
+    }
+
+    selectUser(userId) {
+        this.dashboard.closeMobileSearch();
+        if (window.adminUsersManager && typeof window.adminUsersManager.openUserModal === 'function') {
+            window.adminUsersManager.openUserModal(userId);
+        }
+    }
+
     highlightText(text, query) {
         if (!query) return this.escapeHtml(text);
-        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
         const regex = new RegExp('(' + escapedQuery + ')', 'gi');
         return this.escapeHtml(text).replace(regex, '<mark>$1</mark>');
     }
