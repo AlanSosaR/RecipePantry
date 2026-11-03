@@ -696,26 +696,32 @@
     width: 100%;
 }
 
-/* ─── Modo Cuadrícula (Estilo Google Keep en Filas / Columnas) ─── */
+/* ─── Modo Cuadrícula (Estilo Google Keep Masonry Multi-Columna sin huecos en blanco) ─── */
 .recipe-masonry {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 14px;
-    align-items: start;
+    display: block;
+    column-count: 3;
+    column-gap: 14px;
     width: 100%;
+}
+
+@media (min-width: 1200px) {
+    .recipe-masonry {
+        column-count: 4;
+        column-gap: 16px;
+    }
 }
 
 @media (max-width: 900px) {
     .recipe-masonry {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 12px;
+        column-count: 3;
+        column-gap: 12px;
     }
 }
 
 @media (max-width: 600px) {
     .recipe-masonry {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        column-count: 2;
+        column-gap: 8px;
     }
 }
 
@@ -1026,8 +1032,12 @@ body.notes-is-reordering {
 
 /* Hueco / Placeholder con borde sutil para indicar la posición destino (Estilo Google Keep) */
 .note-card-placeholder {
-    display: block;
+    display: inline-block;
     width: 100%;
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    vertical-align: top;
+    margin-bottom: 8px;
     border: 2px dashed rgba(60, 64, 67, 0.25) !important;
     border-radius: 8px !important;
     background: rgba(60, 64, 67, 0.04) !important;
@@ -2954,21 +2964,25 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
 }
 
 .note-fav-btn.favorited {
-    color: #f59e0b !important;
+    color: var(--primary, #10B981) !important;
 }
 
 .note-fav-btn.favorited .material-symbols-outlined {
     font-variation-settings: 'FILL' 1;
+    color: var(--primary, #10B981) !important;
 }
 
 .note-fav-btn:hover {
-    background: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary, #10B981);
 }
 
 @media (hover: none) {
     .note-fav-btn {
         opacity: 0.7;
+    }
+    .note-fav-btn.favorited {
+        opacity: 1 !important;
     }
 }
 
@@ -2988,14 +3002,15 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
 }
 
 .keep-modal-fav-btn:hover {
-    background: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary, #10B981);
 }
 
 .keep-modal-fav-btn.favorited {
-    color: #f59e0b !important;
+    color: var(--primary, #10B981) !important;
 }
 
 .keep-modal-fav-btn.favorited .material-symbols-outlined {
     font-variation-settings: 'FILL' 1;
+    color: var(--primary, #10B981) !important;
 }

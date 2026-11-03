@@ -221,7 +221,7 @@ class DashboardManager {
                         <span class="material-symbols-outlined">arrow_back</span>
                     </button>
                     <div style="display:flex; gap:10px;" id="panelActionBtns">
-                        <button class="m3-icon-btn active" id="panelBtnFavorite" title="Quitar de favoritos" style="color: #f59e0b;" onclick="window.dashboard.toggleFavoriteNoteFromDashboard('${note.id}'); window.dashboard.closeDetailPanel();">
+                        <button class="m3-icon-btn active" id="panelBtnFavorite" title="Quitar de favoritos" style="color: var(--primary, #10B981);" onclick="window.dashboard.toggleFavoriteNoteFromDashboard('${note.id}'); window.dashboard.closeDetailPanel();">
                             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
                         </button>
                         <button class="m3-icon-btn" id="panelBtnEdit" title="Editar en Notas" onclick="window.location.href='/nota-form?id=${encodeURIComponent(note.id)}&from=favoritos'">
@@ -326,7 +326,7 @@ class DashboardManager {
                         </button>
                         <button class="btn-icon-m3 active" 
                             title="Quitar de favoritos"
-                            style="color: #f59e0b;"
+                            style="color: var(--primary, #10B981);"
                             onclick="event.stopPropagation(); window.dashboard.toggleFavoriteNoteFromDashboard('${note.id}')">
                             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
                         </button>
