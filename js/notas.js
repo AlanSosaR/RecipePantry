@@ -241,22 +241,73 @@
                 if (e.key && e.key.includes('pantry_notes_cache')) refreshInstant();
             });
 
-            // ── Wire up search input ──
+            // ── Wire up search input & mobile overlay ──
             const searchInput = document.getElementById('searchInput') || document.querySelector('.notas-search-input');
+            const clearNotasBtn = document.getElementById('clearNotasSearch');
+            const searchWrapper = document.getElementById('searchWrapper');
+            const topBar = document.querySelector('.top-bar-m3');
+
+            const openMobileSearch = () => {
+                if (topBar && window.innerWidth <= 768) {
+                    topBar.classList.add('search-mobile-active');
+                    if (clearNotasBtn && searchInput) {
+                        clearNotasBtn.classList.toggle('hidden', !searchInput.value.trim());
+                    }
+                }
+            };
+
+            const closeMobileSearch = (e) => {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                if (topBar) topBar.classList.remove('search-mobile-active');
+                if (searchInput) searchInput.blur();
+            };
+
+            this.closeMobileSearch = closeMobileSearch;
+            this.clearSearchInput = (e) => {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                if (searchInput) {
+                    searchInput.value = '';
+                    this.searchQuery = '';
+                    this.renderNotesList();
+                    searchInput.focus();
+                }
+                if (clearNotasBtn) clearNotasBtn.classList.add('hidden');
+            };
+
+            if (searchWrapper) {
+                searchWrapper.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768) {
+                        if (e.target.closest('#btnNotasSearchBack') || e.target.closest('#clearNotasSearch')) return;
+                        openMobileSearch();
+                        if (searchInput) searchInput.focus();
+                    }
+                });
+            }
+
             if (searchInput) {
+                searchInput.addEventListener('focus', openMobileSearch);
                 searchInput.addEventListener('input', (e) => {
                     this.searchQuery = e.target.value.trim().toLowerCase();
+                    if (clearNotasBtn) clearNotasBtn.classList.toggle('hidden', !this.searchQuery);
                     this.renderNotesList();
                 });
                 searchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
+                        closeMobileSearch(e);
                         searchInput.value = '';
                         this.searchQuery = '';
                         this.renderNotesList();
-                        searchInput.blur();
                     }
                 });
             }
+
+            document.addEventListener('click', (e) => {
+                if (topBar && topBar.classList.contains('search-mobile-active')) {
+                    if (!topBar.contains(e.target)) {
+                        closeMobileSearch(e);
+                    }
+                }
+            });
         }
 
         // ── Vista de Lista / Cuadrícula estilo Google Keep ──

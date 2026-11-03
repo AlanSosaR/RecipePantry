@@ -12,6 +12,62 @@ class DashboardManager {
         this.renderRecipesGrid(this.currentRecipes);
     }
 
+
+    openMobileSearch() {
+        const topBar = document.getElementById('mainTopBar');
+        if (topBar && window.innerWidth <= 768) {
+            topBar.classList.add('search-mobile-active');
+            const clearBtn = document.getElementById('clearSearch');
+            const searchInput = document.getElementById('searchInput');
+            if (clearBtn && searchInput) {
+                clearBtn.classList.toggle('hidden', !searchInput.value.trim());
+            }
+        }
+    }
+
+    closeMobileSearch(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        const topBar = document.getElementById('mainTopBar');
+        if (topBar) {
+            topBar.classList.remove('search-mobile-active');
+        }
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.blur();
+        }
+        if (this.searchHistory) {
+            this.searchHistory.hideSuggestions();
+        }
+    }
+
+    clearSearchInput(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            searchInput.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (this.currentView === 'allergens') {
+                this.handleAllergenSearch('');
+            } else if (this.currentView === 'menu') {
+                if (window.restaurantMenu) window.restaurantMenu.setSearchQuery('');
+            } else if (this.currentView === 'suppliers') {
+                if (window.suppliersManager) window.suppliersManager.handleSearch('');
+            } else if (this.currentView === 'tasks') {
+                if (window.tasksManager) window.tasksManager.handleSearch('');
+            } else {
+                this.loadRecipes({ search: '' });
+            }
+            searchInput.focus();
+        }
+    }
+
     async loadFavoriteNotes() {
         try {
             if (!window.supabaseClient) return [];
@@ -31,6 +87,9 @@ class DashboardManager {
             if (!error && data) {
                 this.favoriteNotes = data;
                 localStorage.setItem('rp_cached_fav_notes', JSON.stringify(data));
+                if (this.currentFolder === 'Favoritos') {
+                    this.renderRecipesGrid(this.currentRecipes);
+                }
             }
             return this.favoriteNotes || [];
         } catch (e) {
@@ -192,10 +251,22 @@ class DashboardManager {
         const date = new Date(note.updated_at || note.created_at || Date.now()).toLocaleDateString(isEn ? 'en-US' : 'es-ES', {
             day: '2-digit', month: '2-digit', year: 'numeric'
         });
-        const titleText = note.title && note.title.trim() ? note.title.trim() : (note.type === 'checklist' ? 'Lista sin título' : 'Nota sin título');
+        
+        let displayTitle = '';
+        if (note.title && note.title.trim()) {
+            displayTitle = note.title.trim();
+        } else if (note.content && note.content.trim()) {
+            displayTitle = note.content.trim().split('\n')[0].slice(0, 50);
+        } else if (note.type === 'checklist' && note.note_items && note.note_items.length > 0) {
+            const firstItem = note.note_items.find(i => i.content && i.content.trim());
+            displayTitle = firstItem ? firstItem.content.trim() : (isEn ? 'Untitled list' : 'Lista sin título');
+        } else {
+            displayTitle = isEn ? 'Untitled note' : 'Nota sin título';
+        }
+
         const snippet = note.type === 'checklist' 
             ? `${(note.note_items || []).length} ítems` 
-            : (note.content ? note.content.trim().slice(0, 45) : '');
+            : (note.content && displayTitle !== note.content.trim() ? note.content.trim().replace(/\n+/g, ' ').slice(0, 45) : '');
 
         return `
             <div class="file-row-m3 note-file-row" 
@@ -212,11 +283,7 @@ class DashboardManager {
                 </div>
 
                 <div class="col-name text-ellipsis" style="display: flex; align-items: center; gap: 8px;">
-                    <span class="recipe-name" style="font-weight: 600;">${this.escapeHTML(titleText)}</span>
-                    <span class="badge-folder-pill" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 6px;" title="Nota de cocina">
-                        <span class="material-symbols-outlined" style="font-size: 13px;">sticky_note_2</span>
-                        <span>${isEn ? 'Note' : 'Nota'}</span>
-                    </span>
+                    <span class="recipe-name" style="font-weight: 600;">${this.escapeHTML(displayTitle)}</span>
                     ${snippet ? `<span style="font-size: 12px; color: #6b7280; margin-left: 4px;">• ${this.escapeHTML(snippet)}</span>` : ''}
                 </div>
 
@@ -776,13 +843,36 @@ class DashboardManager {
             });
 
             searchInput.addEventListener('focus', () => {
+                this.openMobileSearch();
                 if (this.currentView !== 'allergens' && this.currentView !== 'menu' && this.currentView !== 'help' && this.currentView !== 'suppliers' && this.currentView !== 'tasks') {
                     this.searchHistory.showSuggestions(searchInput.value.trim());
                 }
             });
 
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.closeMobileSearch();
+                }
+            });
+
+            if (searchWrapper) {
+                searchWrapper.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768) {
+                        if (e.target.closest('#btnSearchBack') || e.target.closest('#clearSearch')) return;
+                        this.openMobileSearch();
+                        searchInput.focus();
+                    }
+                });
+            }
+
             // Close suggestions when clicking outside
             document.addEventListener('click', (e) => {
+                const topBar = document.getElementById('mainTopBar');
+                if (topBar && topBar.classList.contains('search-mobile-active')) {
+                    if (!topBar.contains(e.target)) {
+                        this.closeMobileSearch();
+                    }
+                }
                 if (searchWrapper && !searchWrapper.contains(e.target)) {
                     this.searchHistory.hideSuggestions();
                 }

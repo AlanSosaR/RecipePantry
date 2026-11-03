@@ -148,8 +148,14 @@
                 </div>
                 <div class="search-container-m3">
                     <div class="search-wrapper-m3" id="searchWrapper">
-                        <span class="material-symbols-outlined">search</span>
+                        <button type="button" class="btn-search-back" id="btnNotasSearchBack" title="Cerrar búsqueda" onclick="window.notasManager && window.notasManager.closeMobileSearch(event)">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </button>
+                        <span class="material-symbols-outlined search-icon-default">search</span>
                         <input type="text" id="searchInput" class="notas-search-input" data-i18n-placeholder="searchNotesPlaceholder" placeholder="Buscar en mis notas..." aria-label="Buscar notas">
+                        <button type="button" class="btn-search-clear hidden" id="clearNotasSearch" title="Borrar búsqueda" onclick="window.notasManager && window.notasManager.clearSearchInput(event)">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
                     </div>
                 </div>
                 <div class="notas-top-bar-actions">
