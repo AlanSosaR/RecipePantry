@@ -1,3 +1,10 @@
+
+process.on('exit', (code) => {
+    console.log('dev-server process exiting with code:', code);
+});
+process.on('SIGINT', () => console.log('Received SIGINT'));
+process.on('SIGTERM', () => console.log('Received SIGTERM'));
+process.on('beforeExit', (code) => console.log('dev-server beforeExit:', code));
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
