@@ -860,9 +860,6 @@ class DashboardManager {
                         }
                     } else {
                         this.loadRecipes({ search: query });
-                        if (query.length > 2) {
-                            this.searchHistory.save(query);
-                        }
                     }
                 }, 200);
 
@@ -893,6 +890,11 @@ class DashboardManager {
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     this.closeMobileSearch();
+                } else if (e.key === 'Enter') {
+                    const q = searchInput.value.trim();
+                    if (q.length > 1) {
+                        this.searchHistory.save(q);
+                    }
                 }
             });
 
@@ -7486,10 +7488,6 @@ class SearchHistory {
         }
 
         const html = `
-            <div class="search-view-header-row">
-                <span class="search-view-header-title">${isEn ? 'Recent Searches' : 'Búsquedas recientes'}</span>
-                <button type="button" class="search-view-header-btn" onclick="window.dashboard.searchHistory.clearAll()">${isEn ? 'Clear all' : 'Borrar todo'}</button>
-            </div>
             <div class="search-history-list" style="display: flex; flex-direction: column; gap: 2px;">
                 ${this.history.map(item => `
                     <div class="search-history-item-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(item)}')">
