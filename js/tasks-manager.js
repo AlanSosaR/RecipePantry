@@ -1229,11 +1229,11 @@
                             </div>
                         </div>
 
-                        <div class="tasks-date-carousel-wrapper" style="position: relative; display: flex; align-items: center; width: 100%;">
+                        <div class="tasks-date-carousel-wrapper" style="position: relative; display: flex; align-items: center; gap: 8px; width: 100%;">
                             <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-prev desktop-only" onclick="window.tasksManager.scrollDateCarousel(-1)" aria-label="Días anteriores" title="Días anteriores">
                                 <span class="material-symbols-outlined">chevron_left</span>
                             </button>
-                            <div id="tasksDateCarousel" class="tasks-date-carousel" style="width: 100%;">
+                            <div id="tasksDateCarousel" class="tasks-date-carousel" style="flex: 1; min-width: 0;">
                                 ${this.renderDateCarouselPills()}
                             </div>
                             <button type="button" class="tasks-carousel-arrow tasks-carousel-arrow-next desktop-only" onclick="window.tasksManager.scrollDateCarousel(1)" aria-label="Días siguientes" title="Días siguientes">

@@ -18319,14 +18319,13 @@ body.supplier-detail-active .suppliers-subview-page {
     width: 100%;
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .tasks-carousel-arrow {
-    position: absolute;
-    top: calc(50% - 4px);
-    transform: translateY(-50%);
     width: 38px;
     height: 38px;
+    min-width: 38px;
     border-radius: 50%;
     background: #FFFFFF;
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -18336,30 +18335,32 @@ body.supplier-detail-active .suppliers-subview-page {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 10;
+    flex-shrink: 0;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     outline: none;
     user-select: none;
+    margin-bottom: 8px;
+    z-index: 2;
 }
 
 .tasks-carousel-arrow:hover {
     background: #F0FDF4;
     color: #12B078;
     border-color: #12B078;
-    transform: translateY(-50%) scale(1.1);
+    transform: scale(1.1);
     box-shadow: 0 6px 18px rgba(18, 176, 120, 0.25);
 }
 
 .tasks-carousel-arrow:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: scale(0.95);
 }
 
 .tasks-carousel-arrow-prev {
-    left: -16px;
+    /* Posición natural en flexbox con su propio espacio */
 }
 
 .tasks-carousel-arrow-next {
-    right: -16px;
+    /* Posición natural en flexbox con su propio espacio */
 }
 
 @media (min-width: 769px) {
@@ -18367,8 +18368,8 @@ body.supplier-detail-active .suppliers-subview-page {
         display: flex !important;
     }
     .tasks-date-carousel {
-        padding-left: 28px !important;
-        padding-right: 28px !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
     }
 }
 
@@ -18379,6 +18380,8 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 .tasks-date-carousel {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 10px;
