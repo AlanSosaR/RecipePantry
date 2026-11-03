@@ -7422,18 +7422,14 @@ class SearchHistory {
     constructor(dashboard) {
         this.dashboard = dashboard;
         this.storageKey = 'recipe_pantry_search_history';
-        this.history = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+        try { localStorage.removeItem(this.storageKey); } catch (e) {}
+        this.history = [];
         this.suggestionsEl = document.getElementById('searchViewContent');
         this.inputEl = document.getElementById('searchInput');
     }
 
     save(query) {
-        if (!query || query.trim().length < 2) return;
-        const q = query.trim();
-        this.history = this.history.filter(h => h.toLowerCase() !== q.toLowerCase());
-        this.history.unshift(q);
-        this.history = this.history.slice(0, 10);
-        localStorage.setItem(this.storageKey, JSON.stringify(this.history));
+        // Historial de búsquedas recientes deshabilitado por requerimiento de usuario
     }
 
     remove(query) {
@@ -7450,6 +7446,12 @@ class SearchHistory {
     }
 
     showSuggestions(query) {
+        // En PC / escritorio (> 768px): No se muestra popover flotante, la grilla filtra directamente
+        if (window.innerWidth > 768) {
+            this.hideSuggestions();
+            return;
+        }
+
         if (!this.suggestionsEl) {
             this.suggestionsEl = document.getElementById('searchViewContent');
         }
@@ -7459,11 +7461,12 @@ class SearchHistory {
         const trimmed = (query || '').trim();
 
         if (!trimmed) {
-            this.renderEmptyStateSuggestions(isEn);
-        } else {
-            this.renderLiveSearchResults(trimmed, isEn);
+            this.suggestionsEl.innerHTML = '';
+            this.suggestionsEl.classList.add('hidden');
+            return;
         }
 
+        this.renderLiveSearchResults(trimmed, isEn);
         this.suggestionsEl.classList.remove('hidden');
     }
 
@@ -7477,31 +7480,8 @@ class SearchHistory {
     }
 
     renderEmptyStateSuggestions(isEn) {
-        if (!this.history || this.history.length === 0) {
-            this.suggestionsEl.innerHTML = `
-                <div class="search-empty-state-m3" style="padding: 40px 16px;">
-                    <span class="material-symbols-outlined" style="font-size: 38px; color: var(--text-secondary); opacity: 0.4; margin-bottom: 8px;">history</span>
-                    <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary);">${isEn ? 'No recent searches' : 'Sin búsquedas recientes'}</p>
-                </div>
-            `;
-            return;
-        }
-
-        const html = `
-            <div class="search-history-list" style="display: flex; flex-direction: column; gap: 2px;">
-                ${this.history.map(item => `
-                    <div class="search-history-item-m3" onclick="window.dashboard.searchHistory.selectTerm('${encodeURIComponent(item)}')">
-                        <span class="material-symbols-outlined history-icon">history</span>
-                        <span class="history-text">${this.escapeHtml(item)}</span>
-                        <button type="button" class="history-remove-btn" title="${isEn ? 'Remove' : 'Eliminar'}" onclick="event.stopPropagation(); window.dashboard.searchHistory.remove('${encodeURIComponent(item)}')">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-                        </button>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        this.suggestionsEl.innerHTML = html;
+        this.suggestionsEl.innerHTML = '';
+        this.suggestionsEl.classList.add('hidden');
     }
 
     renderLiveSearchResults(query, isEn) {
