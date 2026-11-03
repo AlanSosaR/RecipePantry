@@ -7544,7 +7544,7 @@ class SearchHistory {
 
         // Por defecto: Recetas (recipes, favorites, shared)
         return {
-            icon: 'restaurant_menu',
+            icon: 'menu_book',
             title: isEn ? 'Search Recipes' : 'Buscar en mi recetario',
             text: isEn ? 'Type recipe name, ingredients or category to find recipes instantly.' : 'Escribe nombre, ingredientes o categoría para encontrar recetas al instante.'
         };
