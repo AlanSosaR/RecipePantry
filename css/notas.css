@@ -788,7 +788,11 @@
     box-shadow: 0 1px 3px 0 rgba(0,0,0,0.6), 0 4px 8px 3px rgba(0,0,0,0.3);
 }
 
-/* Botón Fijar / Pin estilo Google Keep (Top-Right) */
+/* Botón Fijar / Pin estilo Google Keep (Top-Right) - Solo al abrir la nota */
+.note-card .note-pin-btn {
+    display: none !important;
+}
+
 .note-pin-btn {
     position: absolute;
     top: 6px;
@@ -2927,8 +2931,8 @@ body.nf-dark-contrast .nf-btn-pin-top.pinned {
 /* M3 Favorite Button for Notes */
 .note-fav-btn {
     position: absolute;
-    top: 6px;
-    right: 40px;
+    top: 8px;
+    right: 8px;
     width: 32px;
     height: 32px;
     border-radius: 50%;

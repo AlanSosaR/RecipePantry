@@ -460,11 +460,6 @@
                     onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.toggleFavoriteNote('${note.id}', event)">
                     <span class="material-symbols-outlined">${note.is_favorite ? 'star' : 'star_border'}</span>
                 </button>
-                <button type="button" class="note-pin-btn ${note.is_pinned ? 'pinned' : ''}" 
-                    title="${note.is_pinned ? 'Desfijar nota' : 'Fijar nota'}" 
-                    onclick="event.preventDefault(); event.stopPropagation(); window.notasManager.togglePinNote('${note.id}', event)">
-                    <span class="material-symbols-outlined">${note.is_pinned ? 'push_pin' : 'push_pin'}</span>
-                </button>
                 ${note.title ? `<h3 class="note-title">${this.escapeHTML(note.title)}</h3>` : ''}
                 <div class="note-content-wrapper">
                     ${contentHtml}

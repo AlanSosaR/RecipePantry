@@ -5416,9 +5416,9 @@ html[data-auth-likely="true"] #dashboard-app {
 
     .list-header-m3,
     .file-row-m3 {
-        grid-template-columns: 48px 1fr 48px !important;
+        grid-template-columns: 0px 40px 1fr 48px !important;
         /* Icon | Name | More */
-        padding: 0 12px;
+        padding: 0 16px;
         width: 100% !important;
         height: 64px;
         /* Slightly taller for mobile touch */
@@ -8599,7 +8599,7 @@ input:checked~.m3-ingredient-text {
 
     .file-row-m3,
     .list-header-m3 {
-        grid-template-columns: 48px 40px 1fr 40px !important;
+        grid-template-columns: 0px 40px 1fr 40px !important;
     }
 
     .col-category,
@@ -8759,15 +8759,57 @@ input:checked~.m3-ingredient-text {
 
 @media (max-width: 800px) {
 
-    .file-row-m3,
-    .list-header-m3 {
-        /* Mobile Layout: [Checkbox] [Icon/Menu] [Name] [Actions] */
-        grid-template-columns: 48px 40px 1fr 48px !important;
+    .file-row-m3 {
+        /* Mobile Layout: [Icon] [Name] [Actions] por defecto sin hueco vacio */
+        grid-template-columns: 0px 40px 1fr 48px !important;
         gap: 0 !important;
-        padding: 0 4px !important;
-        align-items: center;
+        padding: 0 16px !important;
+        align-items: center !important;
         width: 100% !important;
-        height: 64px !important; 
+        height: 64px !important;
+        transition: grid-template-columns 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), padding 0.2s ease !important;
+    }
+
+    .file-row-m3 .col-checkbox {
+        width: 0 !important;
+        max-width: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: width 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease !important;
+    }
+
+    .file-row-m3 .col-icon {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 38px !important;
+    }
+
+    /* Solo en Modo Selección (al presionar o seleccionar una receta), se desplaza a la derecha para dar espacio al checkbox */
+    body.selection-mode-active .file-row-m3,
+    #recipesGrid.selection-mode-active .file-row-m3,
+    .file-row-m3.selected {
+        grid-template-columns: 44px 40px 1fr 48px !important;
+        padding: 0 12px 0 8px !important;
+    }
+
+    body.selection-mode-active .file-row-m3 .col-checkbox,
+    #recipesGrid.selection-mode-active .file-row-m3 .col-checkbox,
+    .file-row-m3.selected .col-checkbox {
+        width: 44px !important;
+        max-width: 44px !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    body.selection-mode-active .file-row-m3 .m3-checkbox-wrapper,
+    #recipesGrid.selection-mode-active .file-row-m3 .m3-checkbox-wrapper,
+    .file-row-m3.selected .m3-checkbox-wrapper {
+        opacity: 1 !important;
+        transform: scale(1) !important;
+        pointer-events: auto !important;
     }
 
     /* Hide Access and Date on mobile */
