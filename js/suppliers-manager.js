@@ -4480,7 +4480,6 @@ renderItemCard(item, supplierId) {
                                 const supItems = this.items.filter(it => it.supplier_id === sup.id && (cart[it.id] || 0) > 0);
                                 const notes = this.orderNotes[sup.id] || '';
                                 const cat = this.getCategoryObj(sup.category);
-                                const hasIpaLink = Boolean((sup.portal_url && sup.portal_url.trim()) || supItems.some(it => Boolean(it.sku)));
 
                                 return `
                                     <div class="consolidated-supplier-card" style="
@@ -4495,37 +4494,6 @@ renderItemCard(item, supplierId) {
                                     ">
                                         <!-- Acciones en la esquina superior derecha de la tarjeta (Enlace a IPA + Editar) -->
                                         <div style="position: absolute; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 8px; z-index: 2;">
-                                            ${hasIpaLink ? `
-                                                <button type="button"
-                                                        onclick="window.suppliersManager.sendOrderToIpaPortal('${sup.id}')"
-                                                        title="${isEn ? 'Open IPA link' : 'Abrir enlace de IPA'}"
-                                                        aria-label="IPA"
-                                                        style="
-                                                            height: 36px;
-                                                            padding: 0 16px;
-                                                            margin: 0;
-                                                            border-radius: var(--radius-full);
-                                                            background: var(--primary-light);
-                                                            border: none;
-                                                            color: var(--primary-dark);
-                                                            display: inline-flex;
-                                                            align-items: center;
-                                                            justify-content: center;
-                                                            cursor: pointer;
-                                                            font-family: var(--font-display);
-                                                            font-size: 13px;
-                                                            font-weight: 700;
-                                                            letter-spacing: 0.5px;
-                                                            box-shadow: var(--shadow-xs);
-                                                            transition: background 0.15s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-                                                        "
-                                                        onmouseenter="this.style.background='#dcfce7';"
-                                                        onmouseleave="this.style.background='var(--primary-light)';"
-                                                        onmousedown="this.style.transform='scale(0.95)';"
-                                                        onmouseup="this.style.transform='scale(1)';">
-                                                    <span>IPA</span>
-                                                </button>
-                                            ` : ''}
                                             <button type="button" 
                                                     onclick="window.suppliersManager.switchOrderSupplier('${sup.id}')" 
                                                     title="${isEn ? 'Edit quantities' : 'Editar cantidades'}"
@@ -4555,7 +4523,7 @@ renderItemCard(item, supplierId) {
                                         </div>
 
                                         <!-- Encabezado de la Tarjeta del Proveedor con espacio para los botones de acción -->
-                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: ${hasIpaLink ? '110px' : '44px'};">
+                                        <div style="display: flex; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); padding-right: 44px;">
                                             <div style="
                                                 width: 44px;
                                                 height: 44px;
@@ -4706,67 +4674,7 @@ renderItemCard(item, supplierId) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /** Envía el pedido directamente al carrito de IPA Purchasing usando la cuenta vinculada en servidor (Teléfono y PC) */
-        async sendOrderToIpaPortal(supplierId) {
-            const isEn = this.isEnglish();
-            const sup = this.suppliers.find(s => s.id === supplierId);
-            if (!sup) return;
-
-            const cart = this.orderCart[supplierId] || {};
-            let supOrdered = this.items.filter(it => it.supplier_id === supplierId && (cart[it.id] || 0) > 0);
-            if (supOrdered.some(it => !it.sku)) {
-                await this.syncData();
-                supOrdered = this.items.filter(it => it.supplier_id === supplierId && (cart[it.id] || 0) > 0);
-            }
-
-            // Deduplicar por SKU conservando la cantidad exacta solicitada
-            const skuMap = new Map();
-            for (const it of supOrdered) {
-                if (!it.sku) continue;
-                const cleanSku = String(it.sku).trim();
-                if (!cleanSku) continue;
-                skuMap.set(cleanSku.toUpperCase(), {
-                    sku: cleanSku,
-                    qty: Number(cart[it.id]) || 1,
-                    name: it.name
-                });
-            }
-            const orderedItems = Array.from(skuMap.values());
-
-            if (orderedItems.length === 0) {
-                window.open('https://ipa-pay.ipapurchasing.co.uk/basket', '_blank');
-                return;
-            }
-
-            // 1. Preparar payload con productos solicitados para IPA
-            const payload = {
-                supplierId: sup.id,
-                supplierName: sup.name,
-                accountCode: sup.account_code || '',
-                timestamp: Date.now(),
-                items: orderedItems
-            };
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-            const targetUrl = 'https://ipa-pay.ipapurchasing.co.uk/basket#rp_order=' + encodeURIComponent(encoded);
-
-            // 2. Abrir de inmediato la pestaña del portal IPA para evitar bloqueos del navegador
-            const portalWin = window.open('about:blank', '_blank');
-            if (portalWin && !portalWin.closed) {
-                portalWin.location.href = targetUrl;
-            } else {
-                window.open(targetUrl, '_blank');
-            }
-
-            this.notify(
-                isEn
-                    ? `Opening IPA shopping basket with ${orderedItems.length} product(s)...`
-                    : `Abriendo carrito de IPA con ${orderedItems.length} producto(s)...`,
-                'info',
-                3500
-            );
-        }
-
-        /** Regresa desde el consolidado a la pantalla de armar pedido del proveedor activo o del primero disponible */
+                /** Regresa desde el consolidado a la pantalla de armar pedido del proveedor activo o del primero disponible */
         backToOrderForm() {
             if (!this.activeOrderSupplierId && this.suppliers.length > 0) {
                 this.activeOrderSupplierId = this.suppliers[0].id;
