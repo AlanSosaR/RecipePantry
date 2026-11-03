@@ -247,19 +247,25 @@
             const searchWrapper = document.getElementById('searchWrapper');
             const topBar = document.querySelector('.top-bar-m3');
 
+            const searchViewContent = document.getElementById('searchViewContent');
+
             const openMobileSearch = () => {
                 if (topBar && window.innerWidth <= 768) {
                     topBar.classList.add('search-mobile-active');
+                    document.body.classList.add('search-view-active');
                     if (clearNotasBtn && searchInput) {
                         clearNotasBtn.classList.toggle('hidden', !searchInput.value.trim());
                     }
+                    this.renderSearchSuggestions(searchInput ? searchInput.value.trim() : '');
                 }
             };
 
             const closeMobileSearch = (e) => {
                 if (e) { e.preventDefault(); e.stopPropagation(); }
                 if (topBar) topBar.classList.remove('search-mobile-active');
+                document.body.classList.remove('search-view-active');
                 if (searchInput) searchInput.blur();
+                if (searchViewContent) searchViewContent.classList.add('hidden');
             };
 
             this.closeMobileSearch = closeMobileSearch;
@@ -269,6 +275,9 @@
                     searchInput.value = '';
                     this.searchQuery = '';
                     this.renderNotesList();
+                    if (window.innerWidth <= 768) {
+                        this.renderSearchSuggestions('');
+                    }
                     searchInput.focus();
                 }
                 if (clearNotasBtn) clearNotasBtn.classList.add('hidden');
@@ -290,6 +299,9 @@
                     this.searchQuery = e.target.value.trim().toLowerCase();
                     if (clearNotasBtn) clearNotasBtn.classList.toggle('hidden', !this.searchQuery);
                     this.renderNotesList();
+                    if (window.innerWidth <= 768) {
+                        this.renderSearchSuggestions(this.searchQuery);
+                    }
                 });
                 searchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
@@ -3211,6 +3223,103 @@
             
             const form = document.getElementById('editor-form');
             if (form && !show) form.style.display = 'flex';
+        }
+
+        renderSearchSuggestions(query) {
+            const container = document.getElementById("searchViewContent");
+            if (!container) return;
+            if (window.innerWidth > 768) {
+                container.classList.add("hidden");
+                return;
+            }
+            container.classList.remove("hidden");
+
+            const trimmed = (query || "").trim();
+            const isEn = window.i18n && window.i18n.getLang && window.i18n.getLang() === "en";
+
+            if (!trimmed) {
+                container.innerHTML = `
+                    <div class="search-empty-state-m3">
+                        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary, #059669); margin-bottom: 12px;">edit_note</span>
+                        <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? "Search Kitchen Notes" : "Buscar en Kitchen Notes"}</h4>
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? "Type title, ingredients or text to find notes instantly." : "Escribe título, ingredientes o texto para encontrar notas al instante."}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const lowerQ = trimmed.toLowerCase();
+            const matches = (this.notes || []).filter(n => {
+                const title = (n.title || "").toLowerCase();
+                let text = "";
+                if (n.type === "checklist" && Array.isArray(n.items)) {
+                    text = n.items.map(i => (typeof i === "string" ? i : (i.content || i.text || ""))).join(" ").toLowerCase();
+                } else if (n.content) {
+                    text = String(n.content).toLowerCase();
+                }
+                return title.includes(lowerQ) || text.includes(lowerQ);
+            });
+
+            if (matches.length === 0) {
+                container.innerHTML = `
+                    <div class="search-empty-state-m3">
+                        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
+                        <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? "No notes found" : "No se encontraron notas"}</h4>
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No notes match "${this.escapeHTML(trimmed)}".` : `No hay notas que coincidan con "<strong>${this.escapeHTML(trimmed)}</strong>".`}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const countLabel = matches.length === 1 
+                ? (isEn ? "1 note found" : "1 nota encontrada")
+                : (isEn ? `${matches.length} notes found` : `${matches.length} notas encontradas`);
+
+            const escapeRegex = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\\$&");
+            const highlight = (text, q) => {
+                if (!q) return this.escapeHTML(text);
+                const reg = new RegExp("(" + escapeRegex(q) + ")", "gi");
+                return this.escapeHTML(text).replace(reg, `<mark style="background: rgba(16, 185, 129, 0.22); color: inherit; padding: 0 2px; border-radius: 4px;">$1</mark>`);
+            };
+
+            let html = `
+                <div class="search-view-header-row" style="margin-bottom: 10px;">
+                    <span class="search-view-header-title" style="font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">${countLabel}</span>
+                </div>
+                <div class="search-results-list" style="display: flex; flex-direction: column; gap: 6px;">
+                    ${matches.slice(0, 30).map(note => {
+                        const titleText = note.title || (note.type === "checklist" ? (isEn ? "Ingredient checklist" : "Lista de ingredientes") : (isEn ? "Text note" : "Nota de texto"));
+                        const icon = note.type === "checklist" ? "checklist" : "description";
+                        let preview = "";
+                        if (note.type === "checklist" && Array.isArray(note.items)) {
+                            preview = `${note.items.length} ${isEn ? "items" : "elementos"}`;
+                        } else if (note.content) {
+                            preview = String(note.content).slice(0, 50).trim();
+                            if (String(note.content).length > 50) preview += "...";
+                        } else {
+                            preview = isEn ? "Empty note" : "Nota vacía";
+                        }
+                        return `
+                            <div class="search-result-tile-m3" onclick="window.notasManager.selectSearchResult('${note.id}')">
+                                <div class="result-tile-icon-box">
+                                    <span class="material-symbols-outlined">${icon}</span>
+                                </div>
+                                <div class="result-tile-info">
+                                    <div class="result-tile-title">${highlight(titleText, trimmed)}</div>
+                                    <div class="result-tile-meta">${this.escapeHTML(preview)}</div>
+                                </div>
+                                <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                            </div>
+                        `;
+                    }).join("")}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        selectSearchResult(noteId) {
+            this.closeMobileSearch();
+            this.openKeepModal(noteId);
         }
 
         escapeHTML(str) {
