@@ -20930,13 +20930,33 @@ body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item span:not(.materi
     margin: 0 !important;
 }
 
-.sidebar-nav .nav-item .material-symbols-outlined,
-.sidebar .sidebar-nav .nav-item .material-symbols-outlined,
-.sidebar.active .sidebar-nav .nav-item .material-symbols-outlined,
-body.sidebar-open .sidebar .sidebar-nav .nav-item .material-symbols-outlined,
-body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item .material-symbols-outlined {
+.sidebar-nav .nav-item:not(.nav-logout-m3) .material-symbols-outlined,
+.sidebar .sidebar-nav .nav-item:not(.nav-logout-m3) .material-symbols-outlined,
+.sidebar.active .sidebar-nav .nav-item:not(.nav-logout-m3) .material-symbols-outlined,
+body.sidebar-open .sidebar .sidebar-nav .nav-item:not(.nav-logout-m3) .material-symbols-outlined,
+body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item:not(.nav-logout-m3) .material-symbols-outlined {
     margin: 0 !important;
     font-size: 26px !important;
     flex-shrink: 0 !important;
     color: var(--primary) !important;
+}
+
+/* Icono de Cerrar Sesion en color rojo (M3 Expressive Error Token) */
+.sidebar-nav .nav-item.nav-logout-m3 .material-symbols-outlined,
+.sidebar .sidebar-nav .nav-item.nav-logout-m3 .material-symbols-outlined,
+.sidebar.active .sidebar-nav .nav-item.nav-logout-m3 .material-symbols-outlined,
+body.sidebar-open .sidebar .sidebar-nav .nav-item.nav-logout-m3 .material-symbols-outlined,
+body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item.nav-logout-m3 .material-symbols-outlined,
+.nav-item.nav-logout-m3 .material-symbols-outlined {
+    margin: 0 !important;
+    font-size: 26px !important;
+    flex-shrink: 0 !important;
+    color: var(--error, #EF4444) !important;
+}
+
+.sidebar-nav .nav-item.nav-logout-m3:hover .material-symbols-outlined,
+.sidebar .sidebar-nav .nav-item.nav-logout-m3:hover .material-symbols-outlined,
+.nav-item.nav-logout-m3:hover .material-symbols-outlined {
+    color: var(--error, #EF4444) !important;
+    opacity: 0.85;
 }
