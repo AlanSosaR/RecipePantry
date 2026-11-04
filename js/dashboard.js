@@ -1486,10 +1486,19 @@ class DashboardManager {
         const clearBtn = document.getElementById('clearSearch');
         if (searchInput) {
             const isEn = window.i18n && window.i18n.getLang() === 'en';
-            const isSupplierDetail = window.suppliersManager && (window.suppliersManager.currentSubView === 'supplier-detail' || Boolean(window.suppliersManager.selectedSupplierDetailId));
-            searchInput.placeholder = isSupplierDetail
-                ? (isEn ? 'Search product...' : 'Buscar producto...')
-                : (isEn ? 'Search supplier...' : 'Buscar proveedor...');
+            const mgr = window.suppliersManager;
+            const urlSupplierId = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null;
+            const supplierId = mgr ? (mgr.selectedSupplierDetailId || mgr.activeSupplierId || urlSupplierId) : urlSupplierId;
+            const isSupplierDetail = Boolean(supplierId) && (mgr ? (mgr.currentSubView === 'supplier-detail' || Boolean(mgr.selectedSupplierDetailId) || Boolean(urlSupplierId)) : true);
+            const currentSupplier = (mgr && mgr.suppliers && supplierId) ? mgr.suppliers.find(s => s.id === supplierId) : null;
+            const supName = currentSupplier ? (currentSupplier.name || '') : '';
+            if (isSupplierDetail) {
+                searchInput.placeholder = supName
+                    ? (isEn ? ('Search products in ' + supName + '...') : ('Buscar productos en ' + supName + '...'))
+                    : (isEn ? 'Search product...' : 'Buscar producto...');
+            } else {
+                searchInput.placeholder = isEn ? 'Search supplier...' : 'Buscar proveedor...';
+            }
             searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
             if (clearBtn) {
                 clearBtn.classList.toggle('hidden', !searchInput.value);
@@ -7495,12 +7504,21 @@ class SearchHistory {
 
     getEmptyStateConfig(view, isEn) {
         if (view === 'suppliers') {
-            const isDetail = window.suppliersManager && Boolean(window.suppliersManager.activeSupplierId);
-            if (isDetail) {
+            const mgr = window.suppliersManager;
+            const urlSupplierId = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null;
+            const activeId = mgr ? (mgr.selectedSupplierDetailId || mgr.activeSupplierId || urlSupplierId) : urlSupplierId;
+            const isDetail = Boolean(activeId) && (mgr ? (mgr.currentSubView === 'supplier-detail' || Boolean(mgr.selectedSupplierDetailId) || Boolean(urlSupplierId)) : true);
+            if (isDetail && activeId) {
+                const currentSupplier = (mgr && mgr.suppliers) ? mgr.suppliers.find(s => s.id === activeId) : null;
+                const supName = currentSupplier ? (currentSupplier.name || '') : '';
                 return {
                     icon: 'inventory_2',
-                    title: isEn ? 'Search Products' : 'Buscar en el Catálogo',
-                    text: isEn ? 'Type product name, format or SKU to find items instantly.' : 'Escribe nombre del producto, formato o SKU para encontrar artículos al instante.'
+                    title: supName
+                        ? (isEn ? ('Search products in ' + supName) : ('Buscar productos en ' + supName))
+                        : (isEn ? 'Search products' : 'Buscar productos'),
+                    text: supName
+                        ? (isEn ? ('Type product name, format or SKU from ' + supName + '.') : ('Escribe nombre del producto, formato o SKU de ' + supName + '.'))
+                        : (isEn ? 'Type product name, format or SKU to find items instantly.' : 'Escribe nombre del producto, formato o SKU para encontrar artículos al instante.')
                 };
             }
             return {
@@ -7637,17 +7655,22 @@ class SearchHistory {
 
     renderSuppliersResults(query, isEn) {
         const mgr = window.suppliersManager;
-        const isDetail = mgr && Boolean(mgr.activeSupplierId);
+        const urlSupplierId = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null;
+        const activeId = mgr ? (mgr.selectedSupplierDetailId || mgr.activeSupplierId || urlSupplierId) : urlSupplierId;
+        const isDetail = Boolean(activeId) && (mgr ? (mgr.currentSubView === 'supplier-detail' || Boolean(mgr.selectedSupplierDetailId) || Boolean(urlSupplierId)) : true);
         const lowerQ = query.toLowerCase();
 
-        if (isDetail) {
-            const activeId = mgr.activeSupplierId;
-            const items = (mgr.items || []).filter(it => it.supplier_id === activeId);
+        if (isDetail && activeId) {
+            const currentSupplier = (mgr && mgr.suppliers) ? mgr.suppliers.find(s => s.id === activeId) : null;
+            const supName = currentSupplier ? (currentSupplier.name || '') : '';
+            const items = (mgr && mgr.items) ? mgr.items.filter(it => it.supplier_id === activeId) : [];
             const matches = items.filter(it => {
                 const name = (it.name || '').toLowerCase();
                 const sku = (it.sku || '').toLowerCase();
                 const fmt = (it.package_format || it.unit || '').toLowerCase();
-                return name.includes(lowerQ) || sku.includes(lowerQ) || fmt.includes(lowerQ);
+                const cat = (it.category || '').toLowerCase();
+                const notes = (it.notes || '').toLowerCase();
+                return name.includes(lowerQ) || sku.includes(lowerQ) || fmt.includes(lowerQ) || cat.includes(lowerQ) || notes.includes(lowerQ);
             });
 
             if (matches.length === 0) {
@@ -7655,7 +7678,7 @@ class SearchHistory {
                     <div class="search-empty-state-m3">
                         <span class="material-symbols-outlined" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 12px;">search_off</span>
                         <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${isEn ? 'No products found' : 'No se encontraron productos'}</h4>
-                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? `No items match "${this.escapeHtml(query)}".` : `No hay productos que coincidan con "<strong>${this.escapeHtml(query)}</strong>".`}</p>
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${isEn ? ('No items match "' + this.escapeHtml(query) + '"' + (supName ? (' in <strong>' + this.escapeHtml(supName) + '</strong>') : '') + '.') : ('No hay productos que coincidan con "<strong>' + this.escapeHtml(query) + '</strong>"' + (supName ? (' en <strong>' + this.escapeHtml(supName) + '</strong>') : '') + '.')}</p>
                     </div>
                 `;
                 return;
@@ -8010,8 +8033,23 @@ class SearchHistory {
 
     selectSupplierItem(itemId, supplierId) {
         this.dashboard.closeMobileSearch();
-        if (window.suppliersManager && typeof window.suppliersManager.openItemModal === 'function') {
-            window.suppliersManager.openItemModal(itemId, supplierId);
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.blur();
+        if (window.suppliersManager) {
+            if (typeof window.suppliersManager.openProductSideSheet === 'function') {
+                window.suppliersManager.openProductSideSheet(itemId);
+            } else if (typeof window.suppliersManager.openItemModal === 'function') {
+                window.suppliersManager.openItemModal(itemId, supplierId);
+            }
+            setTimeout(() => {
+                const row = document.getElementById(`product-row-${itemId}`);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.style.transition = 'background-color 0.3s ease';
+                    row.style.backgroundColor = 'var(--primary-light, #d7f5e8)';
+                    setTimeout(() => { row.style.backgroundColor = ''; }, 2000);
+                }
+            }, 150);
         }
     }
 

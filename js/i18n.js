@@ -872,10 +872,19 @@
                     return;
                 }
                 if (window.dashboard.currentView === 'suppliers') {
-                    const isSupplierDetail = window.suppliersManager && (window.suppliersManager.currentSubView === 'supplier-detail' || Boolean(window.suppliersManager.selectedSupplierDetailId));
-                    el.placeholder = isSupplierDetail
-                        ? (lang === 'en' ? 'Search product...' : 'Buscar producto...')
-                        : (lang === 'en' ? 'Search supplier...' : 'Buscar proveedor...');
+                    const mgr = window.suppliersManager;
+                    const urlSupplierId = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null;
+                    const supplierId = mgr ? (mgr.selectedSupplierDetailId || mgr.activeSupplierId || urlSupplierId) : urlSupplierId;
+                    const isSupplierDetail = Boolean(supplierId) && (mgr ? (mgr.currentSubView === 'supplier-detail' || Boolean(mgr.selectedSupplierDetailId) || Boolean(urlSupplierId)) : true);
+                    const currentSupplier = (mgr && mgr.suppliers && supplierId) ? mgr.suppliers.find(s => s.id === supplierId) : null;
+                    const supName = currentSupplier ? (currentSupplier.name || '') : '';
+                    if (isSupplierDetail) {
+                        el.placeholder = supName
+                            ? (lang === 'en' ? ('Search products in ' + supName + '...') : ('Buscar productos en ' + supName + '...'))
+                            : (lang === 'en' ? 'Search product...' : 'Buscar producto...');
+                    } else {
+                        el.placeholder = lang === 'en' ? 'Search supplier...' : 'Buscar proveedor...';
+                    }
                     return;
                 }
                 if (window.dashboard.currentView === 'menu') {

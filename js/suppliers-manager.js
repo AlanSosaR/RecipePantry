@@ -86,6 +86,10 @@
             this._lastMenuClosedTime = 0;
         }
 
+        get activeSupplierId() {
+            return this.selectedSupplierDetailId || ((typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null);
+        }
+
         /** Determina si el idioma activo es inglés */
         isEnglish() {
             return Boolean(window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en');
@@ -2749,11 +2753,15 @@ renderItemCard(item, supplierId) {
         handleSearch(val) {
             this.searchQuery = val ? val.trim() : '';
 
+            const supplierId = this.selectedSupplierDetailId || ((typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null);
+            const isSupplierDetail = this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId) || document.body.classList.contains('supplier-detail-active') || Boolean(supplierId);
+
             // Si estamos en la vista de detalle del proveedor:
-            if (this.currentSubView === 'supplier-detail' && this.selectedSupplierDetailId) {
+            if (isSupplierDetail && supplierId) {
+                if (!this.selectedSupplierDetailId) this.selectedSupplierDetailId = supplierId;
                 const mount = document.getElementById('supplier-products-mount');
                 if (mount) {
-                    mount.innerHTML = this.renderSupplierProductsListHTML(this.selectedSupplierDetailId);
+                    mount.innerHTML = this.renderSupplierProductsListHTML(supplierId);
                 } else {
                     this.render();
                 }
@@ -2772,10 +2780,14 @@ renderItemCard(item, supplierId) {
             if (searchInput) searchInput.value = '';
             if (clearBtn) clearBtn.classList.add('hidden');
 
-            if (this.currentSubView === 'supplier-detail' && this.selectedSupplierDetailId) {
+            const supplierId = this.selectedSupplierDetailId || ((typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null);
+            const isSupplierDetail = this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId) || document.body.classList.contains('supplier-detail-active') || Boolean(supplierId);
+
+            if (isSupplierDetail && supplierId) {
+                if (!this.selectedSupplierDetailId) this.selectedSupplierDetailId = supplierId;
                 const mount = document.getElementById('supplier-products-mount');
                 if (mount) {
-                    mount.innerHTML = this.renderSupplierProductsListHTML(this.selectedSupplierDetailId);
+                    mount.innerHTML = this.renderSupplierProductsListHTML(supplierId);
                 } else {
                     this.render();
                 }
@@ -2893,9 +2905,12 @@ renderItemCard(item, supplierId) {
             const searchInput = document.getElementById('searchInput');
             if (!searchInput) return;
             const isEn = this.isEnglish();
-            const isSupplierDetail = this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId) || document.body.classList.contains('supplier-detail-active');
-            if (isSupplierDetail) {
-                searchInput.placeholder = isEn ? 'Search product...' : 'Buscar producto...';
+            const supplierId = this.selectedSupplierDetailId || ((typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null);
+            const isSupplierDetail = this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId) || document.body.classList.contains('supplier-detail-active') || Boolean(supplierId);
+            if (isSupplierDetail && supplierId) {
+                const currentSupplier = (this.suppliers && supplierId) ? this.suppliers.find(s => s.id === supplierId) : null;
+                const supName = currentSupplier ? (currentSupplier.name || '') : '';
+                searchInput.placeholder = supName ? (isEn ? ('Search products in ' + supName + '...') : ('Buscar productos en ' + supName + '...')) : (isEn ? 'Search product...' : 'Buscar producto...');
             } else {
                 searchInput.placeholder = isEn ? 'Search supplier...' : 'Buscar proveedor...';
             }

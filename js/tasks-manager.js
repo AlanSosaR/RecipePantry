@@ -2905,8 +2905,7 @@
                     cardEl.classList.add('task-card-archiving-out');
                     await new Promise(resolve => setTimeout(resolve, 180));
                 }
-                // Si la carpeta estaba cerrada o vacía, abrirla automáticamente para mostrar la tarea
-                this.isCompletedFolderOpen = true;
+                // La carpeta de Realizadas se mantiene en su estado actual (el usuario la abre manualmente si lo desea)
             }
 
             let isNowCompleted = false;
