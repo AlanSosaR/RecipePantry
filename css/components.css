@@ -4182,6 +4182,81 @@ select.input-field {
     transform: scale(0.92);
 }
 
+/* ==========================================================================
+   Material 3 Expressive Bottom Sheet para Crear Carpeta (Móvil <= 768px)
+   En escritorio (PC) mantiene el diseño modal centrado intacto
+   ========================================================================== */
+@media (max-width: 768px) {
+    #createFolderModal.modal-overlay {
+        align-items: flex-end !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        background: rgba(0, 0, 0, 0.45) !important;
+        backdrop-filter: blur(4px);
+    }
+
+    #createFolderModal .dropbox-folder-modal {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-top-left-radius: 28px !important;
+        border-top-right-radius: 28px !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 16px)) 20px !important;
+        box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22) !important;
+        animation: m3SheetSlideUp 0.28s cubic-bezier(0.1, 0.9, 0.2, 1) forwards !important;
+        max-height: 88vh !important;
+        overflow-y: auto !important;
+        touch-action: pan-y;
+    }
+
+    #createFolderModal .m3-sheet-drag-handle {
+        width: 38px;
+        height: 4px;
+        background: #cbd5e1;
+        border-radius: 4px;
+        margin: 4px auto 16px auto;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s;
+    }
+
+    #createFolderModal .m3-sheet-drag-handle:active {
+        transform: scaleX(1.2);
+        background: #94a3b8;
+    }
+
+    #createFolderModal .folder-modal-label {
+        font-size: 15px;
+    }
+
+    #createFolderModal .folder-modal-input {
+        font-size: 16px;
+        padding: 13px 16px;
+        border-radius: 14px;
+    }
+
+    #createFolderModal .folder-access-card {
+        padding: 14px 16px;
+        border-radius: 14px;
+    }
+
+    #createFolderModal .folder-modal-footer {
+        margin-top: 24px;
+        padding-top: 12px;
+    }
+
+    #createFolderModal .btn-folder-cancel,
+    #createFolderModal .btn-folder-create {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
 /* ─── Modal "Crear Carpeta" Estilo Dropbox (Screenshot 1:1) ─── */
 .dropbox-folder-modal {
     background: #ffffff !important;

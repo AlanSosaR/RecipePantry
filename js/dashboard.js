@@ -3990,19 +3990,84 @@ class DashboardManager {
         this.setFolderAccessType('only_me');
         if (modal) {
             modal.classList.remove('hidden');
+            const isMobile = window.innerWidth <= 768;
             if (input) {
                 input.value = 'Nueva carpeta';
                 setTimeout(() => {
                     input.focus();
                     input.select();
-                }, 50);
+                }, isMobile ? 250 : 50);
+            }
+            if (isMobile) {
+                this.initFolderBottomSheetTouch();
             }
         }
     }
 
     closeFolderModal() {
         const modal = document.getElementById('createFolderModal');
-        if (modal) modal.classList.add('hidden');
+        if (!modal) return;
+        const sheet = modal.querySelector('.dropbox-folder-modal');
+        if (sheet && window.innerWidth <= 768) {
+            sheet.style.transition = 'transform 0.22s cubic-bezier(0.1, 0.9, 0.2, 1)';
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                sheet.style.transform = '';
+                sheet.style.transition = '';
+            }, 220);
+        } else {
+            modal.classList.add('hidden');
+        }
+    }
+
+    initFolderBottomSheetTouch() {
+        const modal = document.getElementById('createFolderModal');
+        if (!modal) return;
+        const sheet = modal.querySelector('.dropbox-folder-modal');
+        if (!sheet || sheet._touchBound) return;
+        sheet._touchBound = true;
+
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        sheet.addEventListener('touchstart', (e) => {
+            if (sheet.scrollTop > 5) return;
+            startY = e.touches[0].clientY;
+            currentY = startY;
+            isDragging = true;
+            sheet.style.transition = 'none';
+        }, { passive: true });
+
+        sheet.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY;
+            const diffY = currentY - startY;
+            if (diffY > 0) {
+                sheet.style.transform = `translateY(${diffY}px)`;
+            }
+        }, { passive: true });
+
+        sheet.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const diffY = currentY - startY;
+            sheet.style.transition = 'transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1)';
+            if (diffY > 80) {
+                sheet.style.transform = 'translateY(100%)';
+                setTimeout(() => {
+                    this.closeFolderModal();
+                    sheet.style.transform = '';
+                    sheet.style.transition = '';
+                }, 240);
+            } else {
+                sheet.style.transform = 'translateY(0)';
+                setTimeout(() => {
+                    sheet.style.transition = '';
+                }, 250);
+            }
+        });
     }
 
     setFolderAccessType(type) {
