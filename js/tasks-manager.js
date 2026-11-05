@@ -17,6 +17,8 @@
             this.realtimeSubscription = null;
             this.searchQuery = '';
             this.pantryRecipes = [];
+            this.scannedDraftTasks = [];
+            this.isFabMenuOpen = false;
 
             // Catálogo predeterminado de recetas con ingredientes y pasos
             this.recipesCatalog = {
@@ -1324,11 +1326,44 @@
                         <!-- Cards renderizadas dinámicamente -->
                     </div>
 
-                    <!-- FLOATING ACTION BUTTON (Icon only +) -->
-                    <div class="tasks-fab-container">
-                        <button type="button" onclick="window.tasksManager.openCreateModal()" class="tasks-fab-circle" aria-label="Nueva Tarea" title="Nueva Tarea">
-                            <span class="material-symbols-outlined">add</span>
+                    <!-- BACKDROP PARA SPEED DIAL -->
+                    <div id="tasksFabSpeedDialBackdrop" class="tasks-fab-speed-dial-backdrop" onclick="window.tasksManager.closeFabMenu()" style="display: none;"></div>
+
+                    <!-- FLOATING ACTION BUTTON (M3 Expressive Speed Dial) -->
+                    <div class="tasks-fab-container" id="tasksFabContainer">
+                        <!-- Speed Dial Menu (Desplegable) -->
+                        <div id="tasksFabMenu" class="tasks-fab-menu" style="display: none;">
+                            <!-- Opción 1: Escanear con Cámara -->
+                            <div class="tasks-fab-item" onclick="window.tasksManager.triggerCameraScan()">
+                                <span class="tasks-fab-label">Escanear lista con Cámara</span>
+                                <button type="button" class="tasks-fab-mini-circle tasks-fab-cam" aria-label="Escanear con Cámara" title="Escanear con Cámara">
+                                    <span class="material-symbols-outlined">photo_camera</span>
+                                </button>
+                            </div>
+                            <!-- Opción 2: Subir foto / Galería -->
+                            <div class="tasks-fab-item" onclick="window.tasksManager.triggerGalleryScan()">
+                                <span class="tasks-fab-label">Subir foto de lista</span>
+                                <button type="button" class="tasks-fab-mini-circle tasks-fab-gallery" aria-label="Subir foto de lista" title="Subir foto de lista">
+                                    <span class="material-symbols-outlined">image</span>
+                                </button>
+                            </div>
+                            <!-- Opción 3: Tarea manual -->
+                            <div class="tasks-fab-item" onclick="window.tasksManager.openCreateModalFromFab()">
+                                <span class="tasks-fab-label">Nueva tarea manual</span>
+                                <button type="button" class="tasks-fab-mini-circle tasks-fab-manual" aria-label="Nueva tarea manual" title="Nueva tarea manual">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botón Principal FAB -->
+                        <button type="button" onclick="window.tasksManager.toggleFabMenu()" id="tasksMainFabCircle" class="tasks-fab-circle" aria-label="Nueva Tarea o Escanear Lista" title="Nueva Tarea o Escanear">
+                            <span class="material-symbols-outlined" id="tasksMainFabIcon">add</span>
                         </button>
+
+                        <!-- Inputs de archivo ocultos para Cámara y Galería -->
+                        <input type="file" id="prepListCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="window.tasksManager.handleScanImageSelected(event)">
+                        <input type="file" id="prepListGalleryInput" accept="image/*" style="display:none;" onchange="window.tasksManager.handleScanImageSelected(event)">
                     </div>
 
                     <!-- MODAL / BOTTOM SHEET CREAR NUEVA TAREA -->
@@ -1348,6 +1383,20 @@
                             <button type="button" onclick="window.tasksManager.closeCreateModal()" style="background: rgba(0,0,0,0.04); border: none; width: 36px; height: 36px; border-radius: 50%; color: #71717A; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: -6px; margin-right: -4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.08)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
                                 <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
                             </button>
+                        </div>
+
+                        <!-- Banner acceso rápido escáner cámara en modal -->
+                        <div class="tasks-scan-promo-banner" onclick="window.tasksManager.triggerCameraScan()">
+                            <div class="tasks-scan-promo-left">
+                                <div class="tasks-scan-promo-icon-box">
+                                    <span class="material-symbols-outlined">photo_camera</span>
+                                </div>
+                                <div>
+                                    <div class="tasks-scan-promo-title">¿Tienes una lista en papel o pizarra?</div>
+                                    <div class="tasks-scan-promo-desc">Toma una foto y la IA creará todas las tareas automáticamente</div>
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined tasks-scan-promo-arrow">arrow_forward</span>
                         </div>
 
                         <form onsubmit="window.tasksManager.handleCreateTaskSubmit(event)" style="display: flex; flex-direction: column; gap: 16px;">
@@ -1506,6 +1555,80 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- MODAL DE CARGA / ESCANEO CON IA -->
+                    <div id="prepScanLoadingModal" class="tasks-scan-loading-modal" style="display: none;">
+                        <div class="tasks-scan-loading-content">
+                            <div class="tasks-scan-pulse-ring">
+                                <span class="material-symbols-outlined tasks-scan-pulse-icon">auto_awesome</span>
+                            </div>
+                            <h3 class="tasks-scan-loading-title">Analizando tu lista con IA</h3>
+                            <p class="tasks-scan-loading-desc">Nuestra visión artificial está leyendo las notas manuscritas o impresas para detectar cada tarea...</p>
+                            <div class="tasks-scan-steps-track">
+                                <div class="tasks-scan-step active" id="prepScanStep1">
+                                    <span class="material-symbols-outlined">check_circle</span>
+                                    <span>Optimizando foto</span>
+                                </div>
+                                <div class="tasks-scan-step active" id="prepScanStep2">
+                                    <span class="material-symbols-outlined">sync</span>
+                                    <span>Gemini Vision IA</span>
+                                </div>
+                                <div class="tasks-scan-step" id="prepScanStep3">
+                                    <span class="material-symbols-outlined">radio_button_unchecked</span>
+                                    <span>Estructurando tareas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL / BOTTOM SHEET DE REVISIÓN DE TAREAS DETECTADAS -->
+                    <div id="prepScanPreviewBackdrop" onclick="window.tasksManager.closeScanPreviewModal()" class="tasks-backdrop" style="display: none;"></div>
+                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none;">
+                        <div class="prep-scan-drag-area">
+                            <div class="prep-scan-drag-handle"></div>
+                        </div>
+                        <div class="tasks-bottom-sheet-header">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="color: #12B078; font-size: 24px;">fact_check</span>
+                                    <h3 style="font-size: 18px; font-weight: 800; color: #18181B; margin: 0;">Tareas Detectadas</h3>
+                                    <span id="prepScanTotalBadge" class="prep-scan-counter-badge">0</span>
+                                </div>
+                                <p style="font-size: 12px; color: #71717A; margin: 3px 0 0 0;">Revisa, edita o desmarca las tareas antes de agregarlas al To-Do</p>
+                            </div>
+                            <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-close-btn" aria-label="Cerrar">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                            </button>
+                        </div>
+
+                        <!-- Barra de herramientas: Seleccionar todas + Añadir manual extra -->
+                        <div class="prep-scan-toolbar">
+                            <label class="prep-scan-select-all-label">
+                                <input type="checkbox" id="prepScanSelectAllToggle" checked onchange="window.tasksManager.toggleSelectAllScannedTasks(this.checked)">
+                                <span>Seleccionar todas</span>
+                            </label>
+                            <button type="button" onclick="window.tasksManager.addNewScannedRow()" class="prep-scan-add-row-btn">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+                                <span>Agregar ítem</span>
+                            </button>
+                        </div>
+
+                        <!-- Lista scrolleable de tareas detectadas -->
+                        <div id="prepScanItemsContainer" class="prep-scan-items-container">
+                            <!-- Filas generadas dinámicamente -->
+                        </div>
+
+                        <!-- Footer con acciones principales -->
+                        <div class="prep-scan-footer">
+                            <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-btn-cancel">
+                                Cancelar
+                            </button>
+                            <button type="button" onclick="window.tasksManager.commitScannedTasks()" id="prepScanSubmitBtn" class="prep-scan-btn-submit">
+                                <span class="material-symbols-outlined">library_add_check</span>
+                                <span id="prepScanSubmitText">Agregar a Prep List</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- RECIPE DETAIL SCREEN (SLIDE-IN MODAL) -->
@@ -2723,6 +2846,459 @@
             if (badge) badge.style.display = 'none';
             if (clearBtn) clearBtn.style.display = 'none';
             if (dropdown) dropdown.style.display = 'none';
+        }
+
+        /** Escapa caracteres HTML para inputs y vistas */
+        escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /** Alterna la apertura del menú flotante Speed Dial (M3 Expressive) */
+        toggleFabMenu() {
+            this.isFabMenuOpen = !this.isFabMenuOpen;
+            const menu = document.getElementById('tasksFabMenu');
+            const backdrop = document.getElementById('tasksFabSpeedDialBackdrop');
+            const icon = document.getElementById('tasksMainFabIcon');
+            const fab = document.getElementById('tasksMainFabCircle');
+            
+            if (this.isFabMenuOpen) {
+                if (menu) menu.style.display = 'flex';
+                if (backdrop) backdrop.style.display = 'block';
+                if (icon) icon.style.transform = 'rotate(45deg)';
+                if (fab) fab.setAttribute('aria-expanded', 'true');
+            } else {
+                this.closeFabMenu();
+            }
+        }
+
+        /** Cierra el menú Speed Dial */
+        closeFabMenu() {
+            this.isFabMenuOpen = false;
+            const menu = document.getElementById('tasksFabMenu');
+            const backdrop = document.getElementById('tasksFabSpeedDialBackdrop');
+            const icon = document.getElementById('tasksMainFabIcon');
+            const fab = document.getElementById('tasksMainFabCircle');
+            
+            if (menu) menu.style.display = 'none';
+            if (backdrop) backdrop.style.display = 'none';
+            if (icon) icon.style.transform = 'rotate(0deg)';
+            if (fab) fab.setAttribute('aria-expanded', 'false');
+        }
+
+        /** Abre el modal de creación manual desde el FAB */
+        openCreateModalFromFab() {
+            this.closeFabMenu();
+            this.openCreateModal();
+        }
+
+        /** Dispara el selector de cámara para escanear lista */
+        triggerCameraScan() {
+            this.closeFabMenu();
+            this.closeCreateModal();
+            const camInput = document.getElementById('prepListCameraInput');
+            if (camInput) {
+                camInput.value = '';
+                camInput.click();
+            }
+        }
+
+        /** Dispara el selector de galería/archivo */
+        triggerGalleryScan() {
+            this.closeFabMenu();
+            this.closeCreateModal();
+            const galInput = document.getElementById('prepListGalleryInput');
+            if (galInput) {
+                galInput.value = '';
+                galInput.click();
+            }
+        }
+
+        /** Redimensiona y optimiza una imagen a canvas JPEG */
+        async resizeImageForScan(file, maxDimension = 1600, quality = 0.88) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxDimension || height > maxDimension) {
+                            if (width > height) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            } else {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        const base64Data = dataUrl.split(',')[1];
+                        resolve({ base64Data, dataUrl, width, height });
+                    };
+                    img.onerror = () => reject(new Error('No se pudo procesar la imagen seleccionada.'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('Error al leer el archivo de imagen.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /** Procesa la imagen seleccionada y llama a Gemini Vision */
+        async handleScanImageSelected(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            // Mostrar modal de escaneo con IA
+            this.showScanLoadingModal('Optimizando foto de la lista...');
+            this.updateScanStep(1);
+
+            try {
+                // Paso 1: Redimensionar imagen
+                const { base64Data } = await this.resizeImageForScan(file);
+
+                // Paso 2: Consultar a Gemini Vision
+                this.updateScanStep(2, 'Gemini Vision está leyendo las tareas...');
+
+                const prompt = `Eres un asistente culinario profesional experto en transcripción y estructuración de listas de preparación (Prep List) y listas de tareas (To-Do) en cocina.
+Analiza con máxima atención la imagen adjunta. Puede contener notas manuscritas en papel, pizarras de cocina, comandas, o listas impresas con tareas culinarias.
+Tu objetivo es transcribir cada pendiente como una tarea individual para la lista de "To-Do / Prep List" del chef.
+
+REGLAS OBLIGATORIAS:
+1. Extrae cada tarea o preparación individualmente en el array "tasks".
+2. Si la línea incluye una cantidad, volumen, porciones o peso (ej: "Picar cebollas 5kg", "Salsa bechamel 2L", "10 kg harina", "Descongelar 3 cajas de salmón", "Hacer 40 porciones de puré"), separa la cantidad en el campo "qty" y el nombre en "title".
+3. Si la tarea no tiene cantidad explícita (ej: "Lavar trapos", "Revisar temperaturas", "Inventario carnes", "Limpiar campana"), deja "qty" como cadena vacía ("").
+4. Elimina viñetas, guiones ("-"), números ("1.", "2)") y marcas de checkbox ("[ ]") del título.
+5. Corrige faltas ortográficas o abreviaturas culinarias evidentes manteniendo el sentido original.
+6. Si una nota o garabato no es una tarea de cocina, ignóralo.
+7. Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
+{
+  "tasks": [
+    { "title": "Picar cebollas en brunoise", "qty": "5 kg" },
+    { "title": "Preparar salsa bechamel", "qty": "2 L" }
+  ]
+}`;
+
+                let tasks = [];
+                if (typeof window.callGemini === 'function') {
+                    const responseText = await window.callGemini({
+                        text: prompt,
+                        image: base64Data,
+                        mimeType: 'image/jpeg',
+                        model: 'gemini-3.6-flash',
+                        temperature: 0.1,
+                        maxOutputTokens: 2048
+                    });
+
+                    tasks = this.extractTasksFromJson(responseText);
+                } else {
+                    throw new Error('El módulo de Gemini Vision no está disponible.');
+                }
+
+                if (!tasks || tasks.length === 0) {
+                    this.hideScanLoadingModal();
+                    this.notify('No se detectaron tareas claras en la foto. Intenta con mejor iluminación o más cerca.', 'warning');
+                    return;
+                }
+
+                // Paso 3: Estructurando y abriendo preview
+                this.updateScanStep(3, 'Estructurando tareas...');
+                await new Promise(r => setTimeout(r, 350));
+
+                this.hideScanLoadingModal();
+                this.openScanPreviewModal(tasks);
+
+            } catch (err) {
+                console.error('Error al escanear lista con IA:', err);
+                this.hideScanLoadingModal();
+                this.notify('Error al analizar la imagen: ' + (err.message || 'Error de conexión'), 'error');
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        /** Extrae array de tareas desde respuesta de texto de IA */
+        extractTasksFromJson(text) {
+            if (!text) return [];
+            try {
+                const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(cleaned);
+                if (Array.isArray(parsed.tasks)) return parsed.tasks;
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {
+                const match = text.match(/\{[\s\S]*\}/);
+                if (match) {
+                    try {
+                        const parsed = JSON.parse(match[0]);
+                        if (Array.isArray(parsed.tasks)) return parsed.tasks;
+                    } catch (err) {}
+                }
+            }
+            // Fallback: procesar líneas de texto
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('{') && !l.startsWith('}') && !l.startsWith('"tasks"'));
+            return lines.map(line => {
+                const clean = line.replace(/^[-*•\d.)\]\s]+/, '').replace(/^["']|["'],?$/g, '').trim();
+                return { title: clean, qty: '' };
+            }).filter(t => t.title.length > 2);
+        }
+
+        /** Muestra modal de carga de escaneo */
+        showScanLoadingModal(desc) {
+            const modal = document.getElementById('prepScanLoadingModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                const descEl = modal.querySelector('.tasks-scan-loading-desc');
+                if (descEl && desc) descEl.textContent = desc;
+            }
+        }
+
+        /** Actualiza paso visual en modal de carga */
+        updateScanStep(stepNumber, desc) {
+            for (let i = 1; i <= 3; i++) {
+                const stepEl = document.getElementById('prepScanStep' + i);
+                if (stepEl) {
+                    if (i < stepNumber) {
+                        stepEl.className = 'tasks-scan-step completed';
+                        const icon = stepEl.querySelector('.material-symbols-outlined');
+                        if (icon) icon.textContent = 'check_circle';
+                    } else if (i === stepNumber) {
+                        stepEl.className = 'tasks-scan-step active';
+                        const icon = stepEl.querySelector('.material-symbols-outlined');
+                        if (icon) icon.textContent = 'sync';
+                    } else {
+                        stepEl.className = 'tasks-scan-step';
+                        const icon = stepEl.querySelector('.material-symbols-outlined');
+                        if (icon) icon.textContent = 'radio_button_unchecked';
+                    }
+                }
+            }
+            if (desc) {
+                const modal = document.getElementById('prepScanLoadingModal');
+                const descEl = modal?.querySelector('.tasks-scan-loading-desc');
+                if (descEl) descEl.textContent = desc;
+            }
+        }
+
+        /** Oculta modal de carga */
+        hideScanLoadingModal() {
+            const modal = document.getElementById('prepScanLoadingModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        /** Abre el modal de previsualización y edición de tareas detectadas */
+        openScanPreviewModal(tasks) {
+            this.scannedDraftTasks = tasks.map(t => ({
+                title: String(t.title || '').trim(),
+                qty: String(t.qty || '').trim(),
+                selected: true
+            })).filter(t => t.title.length > 0);
+
+            const sheet = document.getElementById('prepScanPreviewSheet');
+            const backdrop = document.getElementById('prepScanPreviewBackdrop');
+            if (sheet && backdrop) {
+                backdrop.style.display = 'block';
+                sheet.style.display = 'flex';
+                this.renderScannedDraftItems();
+            }
+        }
+
+        /** Cierra el modal de previsualización */
+        closeScanPreviewModal() {
+            const sheet = document.getElementById('prepScanPreviewSheet');
+            const backdrop = document.getElementById('prepScanPreviewBackdrop');
+            if (sheet) sheet.style.display = 'none';
+            if (backdrop) backdrop.style.display = 'none';
+            this.scannedDraftTasks = [];
+        }
+
+        /** Renderiza la lista de tareas en el modal de confirmación */
+        renderScannedDraftItems() {
+            const container = document.getElementById('prepScanItemsContainer');
+            const badge = document.getElementById('prepScanTotalBadge');
+            const submitText = document.getElementById('prepScanSubmitText');
+            const selectAllToggle = document.getElementById('prepScanSelectAllToggle');
+
+            if (!container) return;
+
+            const total = this.scannedDraftTasks.length;
+            const selectedCount = this.scannedDraftTasks.filter(t => t.selected).length;
+
+            if (badge) badge.textContent = `${selectedCount} de ${total}`;
+            if (submitText) {
+                submitText.textContent = selectedCount > 0 
+                    ? `Agregar ${selectedCount} ${selectedCount === 1 ? 'tarea' : 'tareas'} al To-Do` 
+                    : 'Selecciona al menos 1 tarea';
+            }
+            if (selectAllToggle) {
+                selectAllToggle.checked = (total > 0 && selectedCount === total);
+                selectAllToggle.indeterminate = (selectedCount > 0 && selectedCount < total);
+            }
+
+            if (total === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 32px 16px; color: #71717A;">
+                        <span class="material-symbols-outlined" style="font-size: 40px; color: #9CA3AF; margin-bottom: 8px;">checklist</span>
+                        <p style="margin: 0; font-size: 13.5px; font-weight: 600;">No hay tareas en la lista</p>
+                        <button type="button" onclick="window.tasksManager.addNewScannedRow()" style="margin-top: 12px; background: #EAF8F2; color: #12B078; border: none; border-radius: 9999px; padding: 8px 16px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                            + Agregar una tarea
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = this.scannedDraftTasks.map((t, idx) => `
+                <div class="prep-scan-item-card ${t.selected ? 'is-selected' : ''}" data-idx="${idx}">
+                    <label class="prep-scan-item-checkbox-wrap">
+                        <input type="checkbox" ${t.selected ? 'checked' : ''} onchange="window.tasksManager.toggleScannedTaskSelected(${idx}, this.checked)">
+                    </label>
+                    <div class="prep-scan-item-fields">
+                        <input 
+                            type="text" 
+                            class="prep-scan-input-title" 
+                            value="${this.escapeHtml(t.title)}" 
+                            placeholder="Nombre de la tarea"
+                            oninput="window.tasksManager.updateScannedTaskTitle(${idx}, this.value)"
+                        >
+                        <input 
+                            type="text" 
+                            class="prep-scan-input-qty" 
+                            value="${this.escapeHtml(t.qty)}" 
+                            placeholder="Cant. (ej: 5 kg)"
+                            title="Cantidad o porciones"
+                            oninput="window.tasksManager.updateScannedTaskQty(${idx}, this.value)"
+                        >
+                    </div>
+                    <button type="button" onclick="window.tasksManager.removeScannedTask(${idx})" class="prep-scan-item-delete" title="Eliminar de la lista">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        toggleScannedTaskSelected(idx, checked) {
+            if (this.scannedDraftTasks[idx]) {
+                this.scannedDraftTasks[idx].selected = checked;
+                this.renderScannedDraftItems();
+            }
+        }
+
+        toggleSelectAllScannedTasks(checked) {
+            this.scannedDraftTasks.forEach(t => t.selected = checked);
+            this.renderScannedDraftItems();
+        }
+
+        updateScannedTaskTitle(idx, val) {
+            if (this.scannedDraftTasks[idx]) {
+                this.scannedDraftTasks[idx].title = val;
+            }
+        }
+
+        updateScannedTaskQty(idx, val) {
+            if (this.scannedDraftTasks[idx]) {
+                this.scannedDraftTasks[idx].qty = val;
+            }
+        }
+
+        removeScannedTask(idx) {
+            this.scannedDraftTasks.splice(idx, 1);
+            this.renderScannedDraftItems();
+        }
+
+        addNewScannedRow() {
+            this.scannedDraftTasks.push({
+                title: '',
+                qty: '',
+                selected: true
+            });
+            this.renderScannedDraftItems();
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('.prep-scan-input-title');
+                if (inputs.length) inputs[inputs.length - 1].focus();
+            }, 50);
+        }
+
+        /** Guarda definitivamente las tareas seleccionadas en To-Do / Supabase */
+        async commitScannedTasks() {
+            const selectedItems = this.scannedDraftTasks.filter(t => t.selected && t.title.trim().length > 0);
+            if (selectedItems.length === 0) {
+                this.notify('Por favor selecciona o escribe al menos una tarea válida', 'warning');
+                return;
+            }
+
+            const currentUserId = window.authManager?.currentUser?.id || 
+                                  (this.isSuperAdmin() ? 'cf5ee75b-7182-4623-a8a0-fbeae25f4c61' : null);
+            const isShared = this.getTasksMode() === 'shared';
+            const today = this.selectedDate || this.getTodayDateString();
+
+            const newTasksPayload = selectedItems.map((item, idx) => {
+                const payload = {
+                    title: item.title.trim(),
+                    qty: item.qty ? item.qty.trim() : '',
+                    category: 'diario',
+                    is_daily: false,
+                    days_of_week: null,
+                    due_date: today,
+                    completed: false,
+                    completed_dates: [],
+                    recipe_id: null,
+                    recipe_data: null,
+                    portions: 1,
+                    order_index: this.tasks.length + 1 + idx,
+                    is_shared: isShared
+                };
+                if (currentUserId) {
+                    payload.user_id = currentUserId;
+                }
+                return payload;
+            });
+
+            // Inserción optimista en memoria
+            const tempTasks = newTasksPayload.map((p, idx) => ({
+                ...p,
+                id: 'temp_scan_' + Date.now() + '_' + idx
+            }));
+
+            this.tasks.unshift(...tempTasks);
+            this.saveCache();
+            this.renderList();
+            this.closeScanPreviewModal();
+            this.notify(`🎉 ¡${tempTasks.length} ${tempTasks.length === 1 ? 'tarea agregada' : 'tareas agregadas'} a tu To-Do!`, 'success');
+
+            // Persistir lote en Supabase
+            if (window.supabaseClient && newTasksPayload.length > 0) {
+                try {
+                    const { data, error } = await window.supabaseClient
+                        .from('prep_tasks')
+                        .insert(newTasksPayload)
+                        .select();
+
+                    if (!error && data && Array.isArray(data)) {
+                        tempTasks.forEach((temp, i) => {
+                            if (data[i]) {
+                                const index = this.tasks.findIndex(t => t.id === temp.id);
+                                if (index !== -1) {
+                                    this.tasks[index] = data[i];
+                                }
+                            }
+                        });
+                        this.saveCache();
+                        this.renderList();
+                    }
+                } catch (dbErr) {
+                    console.warn('⚠️ Error al persistir tareas escaneadas en Supabase:', dbErr);
+                }
+            }
         }
 
         /** Cierra el modal de crear nueva tarea */
