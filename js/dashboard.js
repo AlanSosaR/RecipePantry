@@ -1687,6 +1687,18 @@ class DashboardManager {
         this.lastFilters = filters;
         this.isLoadingRecipes = true;
 
+        // Si el panel de detalle de PC está abierto, actualizar datos silenciosamente sin sobreescribir la UI
+        if (this.isDetailPanelOpen || document.getElementById('panelDetailBody') || document.querySelector('.pc-detail-panel')) {
+            try {
+                const result = await window.db.getMyRecipes(filters);
+                if (result.success && result.recipes) {
+                    this.currentRecipes = result.recipes;
+                }
+            } catch (e) {}
+            this.isLoadingRecipes = false;
+            return;
+        }
+
         const emptyState = document.getElementById('emptyState');
         if (emptyState) emptyState.classList.add('hidden');
 
@@ -4747,6 +4759,12 @@ class DashboardManager {
     renderRecipesGrid(recipes) {
         const container = document.getElementById('recipesGrid');
         if (!container) return;
+
+        // Si el panel de detalle de receta o nota está abierto en PC, protegerlo y no sobreescribir
+        if (this.isDetailPanelOpen || document.getElementById('panelDetailBody') || document.querySelector('.pc-detail-panel')) {
+            console.log('🛡️ Panel de detalle activo en PC: renderRecipesGrid protegido');
+            return;
+        }
         // Si la vista actual no es de recetas (ej. suppliers, menu, allergens, help, tasks),
         // nunca renderizar ni desplegar recetas para evitar filtraciones en PC o móvil
         if (!['recipes', 'favorites', 'shared'].includes(this.currentView)) {
@@ -5175,6 +5193,7 @@ class DashboardManager {
     }
 
     async openDetailInPanel(recipeId, recipe, permission) {
+        this.isDetailPanelOpen = true;
         const container = document.getElementById('recipesGrid');
         const emptyState = document.getElementById('emptyState');
 
@@ -5573,6 +5592,9 @@ class DashboardManager {
     }
 
     _closeDetailPanelInternal() {
+        this.isDetailPanelOpen = false;
+        this._panelRecipe = null;
+        this._panelRecipeId = null;
         // Restaurar mainTopBar en PC
         const mainTopBar = document.getElementById('mainTopBar');
         if (mainTopBar) {

@@ -21635,3 +21635,15 @@ body:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar,
 .dashboard-app:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar {
     display: none !important;
 }
+
+/* Permitir seleccion de texto y elementos dentro del detalle de receta */
+.pc-detail-scroll,
+.pc-detail-scroll .m3-ingredient-text,
+.pc-detail-scroll .m3-step-text,
+.pc-detail-scroll .recipe-story,
+.pc-detail-scroll .recipe-hero-title,
+.m3-ingredient-text,
+.m3-step-text {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
