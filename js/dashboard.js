@@ -5273,6 +5273,9 @@ class DashboardManager {
             const titleParts = (name || 'Receta').split(' ');
             const firstWord = titleParts[0];
             const restTitle = titleParts.slice(1).join(' ');
+            const isFav = rec.is_favorite;
+            const currentUserId = window.authManager?.currentUser?.id;
+            const isOwner = rec.user_id === currentUserId;
             const topBarTitleEl = document.getElementById('topBarRecipeTitle');
             if (topBarTitleEl) {
                 topBarTitleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restTitle}`;
@@ -5394,10 +5397,6 @@ class DashboardManager {
                         <p class="m3-step-text">${instruction}</p>
                     </label>`;
             }).join('');
-
-            const isFav = rec.is_favorite;
-            const currentUserId = window.authManager?.currentUser?.id;
-            const isOwner = rec.user_id === currentUserId;
 
             document.getElementById('panelDetailBody').innerHTML = `
                 <div class="pc-detail-scroll">
