@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1094">
+<html lang="es" data-app-version="1095">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=1094">
-  <link rel="stylesheet" href="css/components.css?v=1094">
-  <script src="js/m3-loading-indicator.js?v=1094"></script>
+  <link rel="stylesheet" href="css/styles.css?v=1095">
+  <link rel="stylesheet" href="css/components.css?v=1095">
+  <script src="js/m3-loading-indicator.js?v=1095"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -387,25 +387,27 @@
     @keyframes m3-fade-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     .hidden { display: none !important; }
     #landing-section:not(.hidden)~#dashboard-app { display: none; }
-    /* ─── En móvil: Diseño integrado nativo 100% Sin Scroll ─── */
+    /* ─── En móvil: Diseño integrado nativo a pantalla completa con scroll fluido ─── */
     @media (max-width: 768px) {
       body:has(#landing-section:not(.hidden)),
       body.body-drive:has(#landing-section:not(.hidden)) {
         background-color: #ffffff !important;
         background: #ffffff !important;
         display: block !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        overflow: hidden !important;
+        overflow-y: auto !important;
+        min-height: 100dvh !important;
+        height: auto !important;
+        max-height: none !important;
       }
 
       .mode-landing-wrapper {
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        overflow: hidden !important;
+        min-height: 100dvh !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: stretch !important;
@@ -417,14 +419,16 @@
       .landing-unified-card {
         width: 100% !important;
         max-width: 100% !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        overflow: hidden !important;
+        min-height: 100dvh !important;
+        max-height: none !important;
+        height: auto !important;
         border-radius: 0 !important;
         box-shadow: none !important;
         border: none !important;
         background: #ffffff !important;
         animation: none !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
         display: flex !important;
         flex-direction: column !important;
         flex: 1 !important;
@@ -432,106 +436,106 @@
 
       .hero-part {
         width: 100% !important;
-        height: clamp(100px, 15vh, 125px) !important;
-        min-height: 95px !important;
-        border-bottom-left-radius: 50% 20% !important;
-        border-bottom-right-radius: 50% 20% !important;
+        height: clamp(140px, 20vh, 180px) !important;
+        min-height: 135px !important;
+        border-bottom-left-radius: 50% 28% !important;
+        border-bottom-right-radius: 50% 28% !important;
         padding-top: env(safe-area-inset-top, 0px) !important;
         position: relative !important;
         flex-shrink: 0 !important;
       }
 
       .hero-circle {
-        bottom: -38px !important;
-        width: 84px !important;
-        height: 84px !important;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+        bottom: -52px !important;
+        width: 114px !important;
+        height: 114px !important;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
       }
 
       .hero-circle-inner {
-        width: 68px !important;
-        height: 68px !important;
+        width: 90px !important;
+        height: 90px !important;
       }
 
       .hero-book-svg {
-        width: 36px !important;
-        height: 36px !important;
+        width: 48px !important;
+        height: 48px !important;
       }
 
       .content-part {
-        padding: 48px 20px calc(14px + env(safe-area-inset-bottom, 8px)) 20px !important;
+        padding: 68px 24px calc(28px + env(safe-area-inset-bottom, 16px)) 24px !important;
         flex: 1 !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        justify-content: space-between !important;
+        justify-content: flex-start !important;
         max-width: 440px !important;
         margin: 0 auto !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
+        overflow: visible !important;
       }
 
       .landing-title {
-        font-size: clamp(22px, 3.2vh, 26px) !important;
-        margin: 0 0 2px 0 !important;
+        font-size: clamp(26px, 3.8vh, 32px) !important;
+        margin: 0 0 6px 0 !important;
       }
 
       .landing-subtitle {
-        font-size: clamp(13px, 1.8vh, 14.5px) !important;
-        margin: 0 0 4px 0 !important;
+        font-size: clamp(14.5px, 2vh, 16.5px) !important;
+        margin: 0 0 8px 0 !important;
       }
 
       .pantry-description {
-        font-size: clamp(11.5px, 1.45vh, 12.5px) !important;
-        margin-bottom: clamp(10px, 1.6vh, 16px) !important;
-        line-height: 1.35 !important;
-        max-width: 330px !important;
+        font-size: clamp(12.5px, 1.6vh, 13.5px) !important;
+        margin-bottom: 22px !important;
+        max-width: 360px !important;
+        line-height: 1.4 !important;
       }
 
       .features-grid {
-        gap: 10px !important;
-        margin-bottom: clamp(12px, 1.8vh, 18px) !important;
-        max-width: 380px !important;
+        gap: 14px !important;
+        margin-bottom: 24px !important;
+        max-width: 420px !important;
       }
 
       .feature-card {
-        padding: clamp(8px, 1.4vh, 12px) 8px !important;
-        border-radius: 14px !important;
+        padding: 16px 12px !important;
+        border-radius: 18px !important;
       }
 
       .feature-icon-circle {
-        width: 32px !important;
-        height: 32px !important;
-        margin-bottom: 4px !important;
+        width: 38px !important;
+        height: 38px !important;
+        margin-bottom: 8px !important;
       }
 
       .feature-icon-circle .material-symbols-outlined {
-        font-size: 18px !important;
+        font-size: 20px !important;
       }
 
       .feature-card h3 {
-        font-size: 12px !important;
-        margin: 0 0 2px 0 !important;
+        font-size: 13px !important;
+        margin: 0 0 4px 0 !important;
       }
 
       .feature-card p {
-        font-size: 10.5px !important;
-        line-height: 1.25 !important;
+        font-size: 11.5px !important;
+        line-height: 1.35 !important;
       }
 
       .btn-comenzar {
-        min-height: 46px !important;
-        font-size: 15px !important;
-        padding: 10px 18px !important;
-        border-radius: 14px !important;
-        max-width: 380px !important;
-        box-shadow: 0 8px 24px rgba(0, 166, 118, 0.25) !important;
+        min-height: 52px !important;
+        font-size: 16px !important;
+        border-radius: 18px !important;
+        max-width: 420px !important;
+        padding: 14px 20px !important;
+        box-shadow: 0 10px 28px rgba(0, 166, 118, 0.3) !important;
       }
 
       .landing-card-footer {
-        margin-top: clamp(8px, 1.4vh, 14px) !important;
-        font-size: 11.5px !important;
+        margin-top: 20px !important;
+        font-size: 12px !important;
       }
     }
   </style>
@@ -1108,35 +1112,35 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="js/config.js?v=1094"></script>
-  <script src="js/supabase-client.js?v=1094"></script>
-  <script src="js/localdb.js?v=1094"></script>
-  <script src="js/sync-manager.js?v=1094"></script>
-  <script src="js/m3-loading-indicator.js?v=1094"></script>
-  <script src="js/utils.js?v=1094"></script>
-  <script src="js/i18n.js?v=1094"></script>
-  <script src="js/allergen-data.js?v=1094"></script>
-  <script src="js/menu-data.js?v=1094"></script>
-  <script src="js/lib/pdf.min.js?v=1094"></script>
-  <script src="js/restaurant-menu.js?v=1094"></script>
-  <script src="js/db.js?v=1094"></script>
-  <script src="js/auth.js?v=1094"></script>
-  <script src="js/dashboard.js?v=1094"></script>
-  <script src="js/share-modal.js?v=1094"></script>
-  <script src="js/help-modal.js?v=1094"></script>
-  <script src="js/admin-users.js?v=1094"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=1094"></script>
-  <script src="js/suppliers-manager.js?v=1094"></script>
-  <script src="js/tasks-manager.js?v=1094"></script>
+  <script src="js/config.js?v=1095"></script>
+  <script src="js/supabase-client.js?v=1095"></script>
+  <script src="js/localdb.js?v=1095"></script>
+  <script src="js/sync-manager.js?v=1095"></script>
+  <script src="js/m3-loading-indicator.js?v=1095"></script>
+  <script src="js/utils.js?v=1095"></script>
+  <script src="js/i18n.js?v=1095"></script>
+  <script src="js/allergen-data.js?v=1095"></script>
+  <script src="js/menu-data.js?v=1095"></script>
+  <script src="js/lib/pdf.min.js?v=1095"></script>
+  <script src="js/restaurant-menu.js?v=1095"></script>
+  <script src="js/db.js?v=1095"></script>
+  <script src="js/auth.js?v=1095"></script>
+  <script src="js/dashboard.js?v=1095"></script>
+  <script src="js/share-modal.js?v=1095"></script>
+  <script src="js/help-modal.js?v=1095"></script>
+  <script src="js/admin-users.js?v=1095"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=1095"></script>
+  <script src="js/suppliers-manager.js?v=1095"></script>
+  <script src="js/tasks-manager.js?v=1095"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=1094"></script>
-  <script src="js/core/push.js?v=1094"></script>
-  <script src="js/notifications.js?v=1094"></script>
-  <script src="js/ui.js?v=1094"></script>
-  <script src="js/sw-register.js?v=1094"></script>
-<script src="js/pwa-install.js?v=1094"></script>
-  <script src="js/gemini-client.js?v=1094"></script>
-  <script type="module" src="js/url-importer.js?v=1094"></script>
+  <script type="module" src="js/core/firebase.js?v=1095"></script>
+  <script src="js/core/push.js?v=1095"></script>
+  <script src="js/notifications.js?v=1095"></script>
+  <script src="js/ui.js?v=1095"></script>
+  <script src="js/sw-register.js?v=1095"></script>
+<script src="js/pwa-install.js?v=1095"></script>
+  <script src="js/gemini-client.js?v=1095"></script>
+  <script type="module" src="js/url-importer.js?v=1095"></script>
 
 
   <script type="module">

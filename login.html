@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1094">
+<html lang="es" data-app-version="1095">
 
 <head>
     <meta charset="utf-8" />
@@ -48,8 +48,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=1094">
-    <link rel="stylesheet" href="css/components.css?v=1094">
+    <link rel="stylesheet" href="css/styles.css?v=1095">
+    <link rel="stylesheet" href="css/components.css?v=1095">
 
     <style>
         :root {
@@ -325,52 +325,126 @@
         .hidden-m3 {
             display: none !important;
         }
-        @media (max-width: 600px) {
+        /* ─── En móvil: Diseño integrado nativo a pantalla completa con scroll fluido ─── */
+        @media (max-width: 768px) {
             body {
-                padding: 12px 10px;
+                padding: 0 !important;
+                margin: 0 !important;
+                background-color: #ffffff !important;
+                background: #ffffff !important;
+                min-height: 100dvh !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow-y: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
             }
 
             .login-container {
-                width: 100%;
-                max-width: 420px;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 100dvh !important;
+                height: auto !important;
+                max-height: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
             }
 
             .login-card-expressive {
-                width: 100%;
-                max-width: 420px;
-                min-height: clamp(490px, 72vh, 560px);
-                border-radius: 26px;
-                padding: 34px 20px 28px 20px;
-                gap: 16px;
-                box-shadow:
-                    0 14px 38px -10px rgba(0, 0, 0, 0.12),
-                    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 100dvh !important;
+                height: auto !important;
+                max-height: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: #ffffff !important;
+                backdrop-filter: none !important;
+                animation: none !important;
+                padding: calc(28px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 16px)) 24px !important;
+                gap: 20px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+                overflow-y: visible !important;
+                flex: 1 !important;
+            }
+
+            .language-toggle {
+                top: calc(16px + env(safe-area-inset-top, 0px)) !important;
+                right: 20px !important;
             }
 
             .login-header {
-                margin-bottom: 2px;
+                margin-top: clamp(8px, 2vh, 20px) !important;
+                margin-bottom: 0 !important;
+            }
+
+            .login-brand {
+                gap: 6px !important;
             }
 
             .login-brand img {
-                width: 44px;
-                height: 44px;
+                width: 44px !important;
+                height: 44px !important;
+            }
+
+            .login-title {
+                font-size: clamp(22px, 3.2vh, 26px) !important;
+            }
+
+            .login-subtitle {
+                font-size: 13px !important;
+                margin-top: 4px !important;
+            }
+
+            #unified-form {
+                gap: 14px !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 380px !important;
             }
 
             .m3-field-container {
-                margin-bottom: 16px;
+                margin-bottom: 16px !important;
             }
 
             .m3-field-input {
-                height: 52px;
+                height: 50px !important;
+                font-size: 15px !important;
             }
 
             .btn-m3-full {
-                min-height: 50px;
-                margin-top: 6px;
+                min-height: 50px !important;
+                font-size: 15px !important;
+                border-radius: 14px !important;
+                margin-top: 6px !important;
+                box-shadow: 0 8px 24px rgba(0, 166, 118, 0.28) !important;
+            }
+
+            .login-card-footer-group {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 8px !important;
+                margin-top: auto !important;
+                padding-bottom: 6px !important;
+                width: 100% !important;
+                max-width: 380px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
             }
 
             .btn-m3-text {
-                padding: 8px 10px;
+                padding: 8px 10px !important;
+                font-size: 13.5px !important;
             }
         }
     </style>
@@ -391,7 +465,7 @@
                     <img src="assets/icons/icon.svg" width="40" height="40" alt="Logo" />
                     <h1
                         style="color: var(--logo-color); font-weight: 800; font-size: clamp(22px, 3vh, 26px); letter-spacing: -0.5px; margin: 0;">
-                        Recipe Pantry</h1>
+                        Recipe <span style="color: #1B1B1F;">Pantry</span></h1>
                 </div>
                 <h2 id="auth-title" class="login-title" style="display:none;"></h2>
                 <p id="auth-subtitle" class="login-subtitle" data-i18n="authSubtitleLogin">Ingresa a tu colección
@@ -442,6 +516,7 @@
                 </button>
             </form>
 
+            <div class="login-card-footer-group" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; width: 100%;">
             <div id="forgot-password-container" style="text-align: center; margin-top: 2px;">
                 <a href="recovery.html" data-i18n="forgotPasswordLink" style="color: #4B5563; font-size: 13px; text-decoration: underline; font-weight: 500;">
                     ¿Olvidaste tu contraseña?
@@ -457,16 +532,17 @@
                 style="color: var(--on-surface-variant); font-size: 12.5px; padding: 4px;">
                 <span id="btn-back" data-i18n="btnBack">Volver al inicio</span>
             </button>
+            </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=1094"></script>
-    <script src="js/supabase-client.js?v=1094"></script>
-    <script src="js/i18n.js?v=1094"></script>
-    <script src="js/auth.js?v=1094"></script>
-    <script src="js/utils.js?v=1094"></script>
+    <script src="js/config.js?v=1095"></script>
+    <script src="js/supabase-client.js?v=1095"></script>
+    <script src="js/i18n.js?v=1095"></script>
+    <script src="js/auth.js?v=1095"></script>
+    <script src="js/utils.js?v=1095"></script>
 
     <script>
         let isLogin = true;
