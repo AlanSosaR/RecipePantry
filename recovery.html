@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1101">
+<html lang="es" data-app-version="1102">
 
 <head>
     <meta charset="utf-8" />
@@ -10,12 +10,12 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=1101">
-    <link rel="stylesheet" href="css/components.css?v=1101">
+    <link rel="stylesheet" href="css/styles.css?v=1102">
+    <link rel="stylesheet" href="css/components.css?v=1102">
 
     <style>
         :root {
@@ -36,45 +36,165 @@
             font-family: var(--font-body);
         }
 
-        .recovery-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px) saturate(180%);
-            border-radius: 28px;
-            box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.12);
-            padding: clamp(24px, 3.8vh, 32px) clamp(20px, 5vw, 28px) clamp(20px, 3.2vh, 26px);
-            border: 1px solid var(--outline-variant);
+        .recovery-container {
+            position: relative;
             width: 100%;
-            max-width: 390px;
-            max-height: min(94vh, 600px);
+            max-width: 420px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        .recovery-card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow:
+                0 20px 48px -12px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+            border: 1px solid var(--outline-variant);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            transition: all var(--m3-duration-long) var(--m3-easing);
+            width: 100%;
+            max-width: 420px;
+            height: auto;
+            max-height: min(94vh, 680px);
             overflow-y: auto;
+            overflow-x: hidden;
             scrollbar-width: none;
+            position: relative;
             box-sizing: border-box;
-            text-align: center;
             animation: m3-fade-up 0.6s var(--m3-easing) forwards;
         }
         .recovery-card::-webkit-scrollbar { display: none; }
 
-        .recovery-header { margin-bottom: clamp(14px, 2vh, 20px); }
-        .recovery-title { font-weight: 800; font-size: clamp(20px, 3vh, 24px); color: #111827; margin: 0 0 6px 0; }
-        .recovery-subtitle { font-size: clamp(12px, 1.5vh, 13.5px); color: var(--on-surface-variant); line-height: 1.5; margin: 0; }
+        /* ─── Cabecera Verde Curva (.hero-part) ─── */
+        .hero-part {
+            background: var(--primary, #10B981);
+            height: clamp(100px, 15vh, 125px);
+            min-height: 95px;
+            position: relative;
+            border-bottom-left-radius: 50% 28%;
+            border-bottom-right-radius: 50% 28%;
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            display: flex;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 1;
+        }
 
-        .m3-field-container { position: relative; margin-bottom: 8px; width: 100%; text-align: left; }
+        .hero-circle {
+            position: absolute;
+            bottom: clamp(-60px, -8.2vh, -52px);
+            width: clamp(120px, 16.5vh, 136px);
+            height: clamp(120px, 16.5vh, 136px);
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.11);
+            z-index: 2;
+        }
+
+        .hero-circle-inner {
+            width: clamp(94px, 13vh, 108px);
+            height: clamp(94px, 13vh, 108px);
+            background: var(--primary, #10B981);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .hero-circle-inner .material-symbols-outlined {
+            font-size: clamp(48px, 6.6vh, 56px) !important;
+            color: #ffffff !important;
+        }
+
+        .recovery-body-content {
+            padding: clamp(76px, 10.5vh, 90px) clamp(20px, 5vw, 28px) clamp(24px, 3.5vh, 32px);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .recovery-header {
+            margin-bottom: 4px;
+        }
+
+        .recovery-title {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(21px, 3vh, 25px);
+            color: var(--text-main, #1B1B1F);
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .recovery-subtitle {
+            font-size: clamp(12.5px, 1.5vh, 13.5px);
+            color: var(--on-surface-variant);
+            line-height: 1.45;
+            margin: 0 auto;
+            max-width: 320px;
+        }
+
+        .m3-field-container {
+            position: relative;
+            margin-bottom: 8px;
+            width: 100%;
+            text-align: left;
+        }
+
         .m3-field-input {
-            width: 100%; height: 56px; background: transparent;
-            border: 1.5px solid var(--outline-variant); border-radius: 12px;
-            padding: 0 16px; font-size: 16px; color: var(--on-surface);
-            outline: none; transition: all 0.2s; box-sizing: border-box;
+            width: 100%;
+            height: 52px;
+            background: transparent;
+            border: 1.5px solid var(--outline-variant);
+            border-radius: 12px;
+            padding: 0 14px;
+            font-size: 15px;
+            color: var(--on-surface);
+            outline: none;
+            transition: all 0.2s;
+            box-sizing: border-box;
         }
-        .m3-field-input:focus { border-color: var(--primary); border-width: 2px; }
+
+        .m3-field-input:focus {
+            border-color: var(--primary);
+            border-width: 2px;
+            padding: 0 13.5px;
+        }
+
         .m3-field-label {
-            position: absolute; left: 12px; top: 18px; padding: 0 4px;
-            font-size: 16px; color: var(--on-surface-variant); pointer-events: none;
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0 4px;
+            font-size: 14px;
+            color: var(--on-surface-variant);
+            pointer-events: none;
             transition: all 0.2s var(--m3-easing);
+            background: transparent;
         }
+
         .m3-field-input:focus + .m3-field-label, 
         .m3-field-input:not(:placeholder-shown) + .m3-field-label {
-            top: -10px; left: 12px; font-size: 12px; font-weight: 700;
-            color: var(--primary); background: white;
+            top: 0;
+            transform: translateY(-50%);
+            left: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            background: white;
         }
 
         .validation-status {
@@ -85,22 +205,59 @@
             transition: all 0.3s;
             height: 16px;
             margin-left: 4px;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
 
         .btn-m3-full {
-            width: 100%; min-height: 48px; border-radius: 28px; border: none;
-            font-weight: 700; font-size: 16px; cursor: pointer;
-            background: var(--primary); color: white;
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            transition: all 0.3s; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
-            margin-top: 16px;
+            width: 100%;
+            min-height: 50px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s var(--m3-easing);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.28);
+            margin-top: 8px;
         }
-        .btn-m3-full:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-m3-full:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        .btn-m3-text { border: none; background: none; color: var(--primary); font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 24px; padding: 8px 16px; border-radius: 20px; transition: background 0.2s; }
-        .btn-m3-text:hover { background: rgba(16, 185, 129, 0.08); }
+        .btn-m3-full:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(5, 150, 105, 0.4);
+            filter: brightness(1.06);
+        }
+
+        .btn-m3-full:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-m3-text {
+            border: none;
+            background: none;
+            color: var(--on-surface-variant);
+            font-weight: 600;
+            font-size: 13.5px;
+            cursor: pointer;
+            margin-top: 14px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: background 0.2s, color 0.2s;
+            width: 100%;
+        }
+
+        .btn-m3-text:hover {
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--text-main);
+        }
 
         @keyframes m3-fade-up {
             from { opacity: 0; transform: translateY(20px); }
@@ -110,6 +267,7 @@
         .success-state {
             display: none;
             animation: m3-fade-up 0.5s var(--m3-easing);
+            padding: 10px 0;
         }
 
         .success-icon {
@@ -121,66 +279,187 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
+            margin: 0 auto 16px;
+        }
+
+        /* ─── En móvil: Diseño integrado nativo a pantalla completa ─── */
+        @media (max-width: 768px) {
+            body {
+                padding: 0 !important;
+                margin: 0 !important;
+                background-color: #ffffff !important;
+                background: #ffffff !important;
+                min-height: 100dvh !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow-y: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+            }
+
+            .recovery-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 100dvh !important;
+                height: auto !important;
+                max-height: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
+            }
+
+            .recovery-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 100dvh !important;
+                height: auto !important;
+                max-height: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: #ffffff !important;
+                backdrop-filter: none !important;
+                animation: none !important;
+                padding: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
+                overflow-y: visible !important;
+            }
+
+            .hero-part {
+                width: 100% !important;
+                height: clamp(125px, 18vh, 155px) !important;
+                min-height: 115px !important;
+                border-radius: 0 !important;
+                border-bottom-left-radius: 50% 28% !important;
+                border-bottom-right-radius: 50% 28% !important;
+                padding-top: env(safe-area-inset-top, 0px) !important;
+            }
+
+            .hero-circle {
+                bottom: -58px !important;
+                width: 128px !important;
+                height: 128px !important;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10) !important;
+            }
+
+            .hero-circle-inner {
+                width: 102px !important;
+                height: 102px !important;
+            }
+
+            .hero-circle-inner .material-symbols-outlined {
+                font-size: 52px !important;
+            }
+
+            .recovery-body-content {
+                padding: clamp(92px, 13vh, 108px) 24px calc(24px + env(safe-area-inset-bottom, 16px)) 24px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
+                justify-content: flex-start !important;
+                max-width: 420px !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .recovery-title {
+                font-size: clamp(22px, 3.2vh, 26px) !important;
+                margin: 10px 0 6px 0 !important;
+            }
+
+            .recovery-subtitle {
+                font-size: clamp(12.5px, 1.6vh, 13.5px) !important;
+                margin-bottom: 8px !important;
+            }
+
+            .btn-m3-full {
+                min-height: 50px !important;
+                font-size: 15px !important;
+                border-radius: 14px !important;
+                margin-top: 12px !important;
+            }
+
+            .btn-m3-text {
+                margin-top: 16px !important;
+                padding: 10px 14px !important;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="recovery-card">
-        <!-- Flow: Recovery Form -->
-        <div id="recovery-form-state">
-            <div class="recovery-header">
-                <img src="assets/icons/icon.svg" width="48" height="48" alt="Logo" style="margin-bottom: 16px;" />
-                <h1 class="recovery-title" data-i18n="recoveryTitle">¿Olvidaste tu contraseña?</h1>
-                <p class="recovery-subtitle" data-i18n="recoverySubtitle">Introduce tu email y te enviaremos un enlace para restablecerla.</p>
+    <div class="recovery-container">
+        <div class="recovery-card fade-m3">
+            <div class="hero-part">
+                <div class="hero-circle">
+                    <div class="hero-circle-inner">
+                        <span class="material-symbols-outlined">menu_book</span>
+                    </div>
+                </div>
             </div>
 
-            <form id="recovery-form" novalidate>
-                <div class="m3-field-container">
-                    <input class="m3-field-input" id="email" type="email" placeholder=" " required oninput="validateEmail(this.value)" />
-                    <label class="m3-field-label" for="email" data-i18n="lblEmail">Email</label>
-                    <span id="email-status" class="validation-status"></span>
+            <div class="recovery-body-content">
+                <!-- Flow: Recovery Form -->
+                <div id="recovery-form-state">
+                    <div class="recovery-header">
+                        <h1 class="recovery-title" data-i18n="recoveryTitle">¿Olvidaste tu contraseña?</h1>
+                        <p class="recovery-subtitle" data-i18n="recoverySubtitle">Introduce tu email y te enviaremos un enlace para restablecerla.</p>
+                    </div>
+
+                    <form id="recovery-form" novalidate style="margin-top: 14px;">
+                        <div class="m3-field-container">
+                            <input class="m3-field-input" id="email" type="email" placeholder=" " required oninput="validateEmail(this.value)" />
+                            <label class="m3-field-label" for="email" data-i18n="lblEmail">Email</label>
+                            <span id="email-status" class="validation-status"></span>
+                        </div>
+
+                        <button type="submit" id="btn-submit" class="btn-m3-full" disabled>
+                            <span id="btn-text" data-i18n="recoveryBtn">Enviar enlace</span>
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </form>
+
+                    <button type="button" onclick="window.location.href='/login'" class="btn-m3-text" data-i18n="recoveryBack">
+                        Volver al inicio de sesión
+                    </button>
                 </div>
 
-                <button type="submit" id="btn-submit" class="btn-m3-full" disabled>
-                    <span id="btn-text" data-i18n="recoveryBtn">Enviar enlace</span>
-                    <span class="material-symbols-outlined">send</span>
-                </button>
-            </form>
-
-            <button type="button" onclick="window.location.href='/login'" class="btn-m3-text" data-i18n="recoveryBack">
-                Volver al inicio de sesión
-            </button>
-        </div>
-
-        <!-- Flow: Success Message -->
-        <div id="recovery-success-state" class="success-state">
-            <div class="success-icon">
-                <span class="material-symbols-outlined" style="font-size: 40px;">mail</span>
+                <!-- Flow: Success Message -->
+                <div id="recovery-success-state" class="success-state">
+                    <div class="success-icon">
+                        <span class="material-symbols-outlined" style="font-size: 40px;">mail</span>
+                    </div>
+                    <h1 class="recovery-title" data-i18n="recoverySuccessTitle">Email enviado</h1>
+                    <p class="recovery-subtitle" data-i18n="recoverySuccessDesc">Hemos enviado un enlace a <strong id="submitted-email">tu correo</strong>. Revisa también tu carpeta de correo no deseado.</p>
+                    
+                    <button class="btn-m3-full" onclick="window.location.href='/login'" style="background: #374151; margin-top: 20px;">
+                        <span data-i18n="btnBackToLogin">Ir al login</span>
+                        <span class="material-symbols-outlined">login</span>
+                    </button>
+                </div>
             </div>
-            <h1 class="recovery-title" data-i18n="recoverySuccessTitle">Email enviado</h1>
-            <p class="recovery-subtitle" data-i18n="recoverySuccessDesc">Hemos enviado un enlace a <strong id="submitted-email">tu correo</strong>. Revisa también tu carpeta de correo no deseado.</p>
-            
-            <button class="btn-m3-full" onclick="window.location.href='/login'" style="background: #374151;">
-                <span data-i18n="btnBackToLogin">Ir al login</span>
-                <span class="material-symbols-outlined">login</span>
-            </button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=1101"></script>
-    <script src="js/supabase-client.js?v=1101"></script>
-    <script src="js/i18n.js?v=1101"></script>
-    <script src="js/auth.js?v=1101"></script>
-    <script src="js/utils.js?v=1101"></script>
+    <script src="js/config.js?v=1102"></script>
+    <script src="js/supabase-client.js?v=1102"></script>
+    <script src="js/i18n.js?v=1102"></script>
+    <script src="js/auth.js?v=1102"></script>
+    <script src="js/utils.js?v=1102"></script>
 
     <script>
         function validateEmail(email) {
             const btn = document.getElementById('btn-submit');
             const status = document.getElementById('email-status');
-            const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             
             if (!email) {
                 status.textContent = '';
@@ -234,4 +513,3 @@
     </script>
 </body>
 </html>
-
