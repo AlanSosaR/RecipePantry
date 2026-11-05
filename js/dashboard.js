@@ -8076,8 +8076,18 @@ class SearchHistory {
 
     selectSupplier(supId) {
         this.dashboard.closeMobileSearch();
-        if (window.suppliersManager && typeof window.suppliersManager.openSupplierDetail === 'function') {
-            window.suppliersManager.openSupplierDetail(supId);
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.blur();
+        }
+        if (clearBtn) clearBtn.classList.add('hidden');
+        if (window.suppliersManager) {
+            window.suppliersManager.searchQuery = '';
+            if (typeof window.suppliersManager.openSupplierDetail === 'function') {
+                window.suppliersManager.openSupplierDetail(supId);
+            }
         }
     }
 

@@ -1308,6 +1308,22 @@
             this.selectedSupplierDetailId = supplierId;
             this.currentSubView = 'supplier-detail';
             document.body.classList.add('supplier-detail-active');
+
+            // Vaciar completamente el buscador global al acceder al proveedor
+            this.searchQuery = '';
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.blur();
+            }
+            if (clearBtn) {
+                clearBtn.classList.add('hidden');
+            }
+            if (window.dashboard && window.dashboard.searchHistory) {
+                window.dashboard.searchHistory.hideSuggestions();
+            }
+
             // Persistir estado en la URL para que F5 restaure la misma vista
             try {
                 const url = new URL(window.location.href);
