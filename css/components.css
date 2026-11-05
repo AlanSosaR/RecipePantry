@@ -18784,105 +18784,108 @@ body.supplier-detail-active .suppliers-subview-page {
     }
 }
 
-/* ── Material 3 Expressive Action Bottom Sheet & AI List Scanner ── */
-.tasks-action-sheet {
-    max-height: 85vh;
-    padding: 10px 20px 28px 20px;
-    box-sizing: border-box;
+/* ── Material 3 Expressive Speed Dial & AI List Scanner ── */
+.tasks-fab-speed-dial-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.38);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 39;
+    animation: fadeIn 0.18s ease-out;
 }
 
-.tasks-action-options-list {
+.tasks-fab-menu {
+    position: absolute;
+    bottom: 68px;
+    right: 0;
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 12px;
+    z-index: 41;
+    animation: fabSlideUp 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.tasks-action-option-card {
+@keyframes fabSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.tasks-fab-item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    background: #FFFFFF;
-    border: 1.5px solid #E5E7EB;
-    border-radius: 20px;
-    padding: 14px 16px;
+    gap: 10px;
     cursor: pointer;
     user-select: none;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.tasks-action-option-card:hover {
-    border-color: #12B078;
-    background: #F0FDF4;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(18, 176, 120, 0.12);
+.tasks-fab-item:hover {
+    transform: translateX(-3px) scale(1.02);
 }
 
-.tasks-action-option-card:active {
-    transform: scale(0.98);
+.tasks-fab-label {
+    background: #FFFFFF;
+    color: #18181B;
+    font-family: var(--font-display, 'Poppins', sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
 }
 
-.tasks-action-icon-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
+.tasks-fab-item:hover .tasks-fab-label {
+    background: #F8FAFC;
+    color: #12B078;
+}
+
+.tasks-fab-mini-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
     color: #FFFFFF;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
-.tasks-action-icon-circle .material-symbols-outlined {
-    font-size: 26px;
-}
-
-.tasks-action-cam {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-}
-
-.tasks-action-gal {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
-}
-
-.tasks-action-manual {
-    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
-}
-
-.tasks-action-text-col {
-    flex: 1;
-    min-width: 0;
-}
-
-.tasks-action-item-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #18181B;
-    font-family: var(--font-display, 'Poppins', sans-serif);
-    line-height: 1.3;
-}
-
-.tasks-action-item-desc {
-    font-size: 12px;
-    color: #6B7280;
-    font-family: var(--font-display, 'Poppins', sans-serif);
-    margin-top: 2px;
-    line-height: 1.35;
-}
-
-.tasks-action-chevron {
-    color: #9CA3AF;
+.tasks-fab-mini-circle .material-symbols-outlined {
     font-size: 22px;
-    transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.tasks-action-option-card:hover .tasks-action-chevron {
-    color: #12B078;
-    transform: translateX(3px);
+.tasks-fab-cam {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.tasks-fab-gallery {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+}
+
+.tasks-fab-manual {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+}
+
+.tasks-fab-mini-circle:hover {
+    transform: scale(1.12);
+}
+
+.tasks-fab-mini-circle:active {
+    transform: scale(0.92);
 }
 
 /* Banner de acceso rápido escáner en modal manual */

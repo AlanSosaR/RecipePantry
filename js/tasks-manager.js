@@ -1326,74 +1326,44 @@
                         <!-- Cards renderizadas dinámicamente -->
                     </div>
 
-                    <!-- FLOATING ACTION BUTTON (Icon only +) -->
+                    <!-- BACKDROP PARA SPEED DIAL -->
+                    <div id="tasksFabSpeedDialBackdrop" class="tasks-fab-speed-dial-backdrop" onclick="window.tasksManager.closeFabMenu()" style="display: none;"></div>
+
+                    <!-- FLOATING ACTION BUTTON (M3 Expressive Speed Dial) -->
                     <div class="tasks-fab-container" id="tasksFabContainer">
-                        <button type="button" onclick="window.tasksManager.openActionSheet()" class="tasks-fab-circle" aria-label="Nueva Tarea o Escanear Lista" title="Nueva Tarea o Escanear">
-                            <span class="material-symbols-outlined">add</span>
+                        <!-- Speed Dial Menu (Desplegable) -->
+                        <div id="tasksFabMenu" class="tasks-fab-menu" style="display: none;">
+                            <!-- Opción 1: Escanear con Cámara -->
+                            <div class="tasks-fab-item" onclick="window.tasksManager.triggerCameraScan()">
+                                <span class="tasks-fab-label">Escanear lista con Cámara</span>
+                                <button type="button" class="tasks-fab-mini-circle tasks-fab-cam" aria-label="Escanear con Cámara" title="Escanear con Cámara">
+                                    <span class="material-symbols-outlined">photo_camera</span>
+                                </button>
+                            </div>
+                            <!-- Opción 2: Subir foto / Galería -->
+                            <div class="tasks-fab-item" onclick="window.tasksManager.triggerGalleryScan()">
+                                <span class="tasks-fab-label">Subir foto de lista</span>
+                                <button type="button" class="tasks-fab-mini-circle tasks-fab-gallery" aria-label="Subir foto de lista" title="Subir foto de lista">
+                                    <span class="material-symbols-outlined">image</span>
+                                </button>
+                            </div>
+                            <!-- Opción 3: Tarea manual -->
+                            <div class="tasks-fab-item" onclick="window.tasksManager.openCreateModalFromFab()">
+                                <span class="tasks-fab-label">Nueva tarea manual</span>
+                                <button type="button" class="tasks-fab-mini-circle tasks-fab-manual" aria-label="Nueva tarea manual" title="Nueva tarea manual">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botón Principal FAB -->
+                        <button type="button" onclick="window.tasksManager.toggleFabMenu()" id="tasksMainFabCircle" class="tasks-fab-circle" aria-label="Nueva Tarea o Escanear Lista" title="Nueva Tarea o Escanear">
+                            <span class="material-symbols-outlined" id="tasksMainFabIcon">add</span>
                         </button>
 
                         <!-- Inputs de archivo ocultos para Cámara y Galería -->
                         <input type="file" id="prepListCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="window.tasksManager.handleScanImageSelected(event)">
                         <input type="file" id="prepListGalleryInput" accept="image/*" style="display:none;" onchange="window.tasksManager.handleScanImageSelected(event)">
-                    </div>
-
-                    <!-- BOTTOM SHEET DE ACCIONES PARA TAREAS (Material 3 Expressive) -->
-                    <div id="tasksActionSheetBackdrop" class="tasks-backdrop" onclick="window.tasksManager.closeActionSheet()" style="display: none;"></div>
-                    <div id="tasksActionBottomSheet" class="tasks-bottom-sheet tasks-action-sheet" style="display: none;">
-                        <!-- Drag Handle -->
-                        <div style="padding: 6px 0 14px 0; margin-top: -6px; display: flex; justify-content: center; cursor: grab;">
-                            <div style="width: 44px; height: 5px; background: #D1D5DB; border-radius: 9999px;"></div>
-                        </div>
-
-                        <!-- Header -->
-                        <div class="tasks-bottom-sheet-header" style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px;">
-                            <div>
-                                <h3 style="font-size: 19px; font-weight: 800; color: #18181B; margin: 0; font-family: var(--font-display, 'Poppins', sans-serif);">¿Qué deseas agregar?</h3>
-                                <p style="font-size: 12.5px; color: #71717A; margin: 2px 0 0 0; font-family: var(--font-display, 'Poppins', sans-serif);">Elige una opción para tu Prep List de hoy</p>
-                            </div>
-                            <button type="button" onclick="window.tasksManager.closeActionSheet()" class="prep-scan-close-btn" aria-label="Cerrar">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
-                            </button>
-                        </div>
-
-                        <!-- Opciones en Lista Expressive M3 -->
-                        <div class="tasks-action-options-list">
-                            <!-- Opción 1: Escanear lista con Cámara -->
-                            <div class="tasks-action-option-card" onclick="window.tasksManager.triggerCameraScan()">
-                                <div class="tasks-action-icon-circle tasks-action-cam">
-                                    <span class="material-symbols-outlined">photo_camera</span>
-                                </div>
-                                <div class="tasks-action-text-col">
-                                    <div class="tasks-action-item-title">Escanear lista con Cámara</div>
-                                    <div class="tasks-action-item-desc">Toma una foto a una pizarra o nota y la IA creará las tareas</div>
-                                </div>
-                                <span class="material-symbols-outlined tasks-action-chevron">chevron_right</span>
-                            </div>
-
-                            <!-- Opción 2: Subir foto de lista -->
-                            <div class="tasks-action-option-card" onclick="window.tasksManager.triggerGalleryScan()">
-                                <div class="tasks-action-icon-circle tasks-action-gal">
-                                    <span class="material-symbols-outlined">image</span>
-                                </div>
-                                <div class="tasks-action-text-col">
-                                    <div class="tasks-action-item-title">Subir foto de lista</div>
-                                    <div class="tasks-action-item-desc">Elige una imagen desde tu galería o archivos</div>
-                                </div>
-                                <span class="material-symbols-outlined tasks-action-chevron">chevron_right</span>
-                            </div>
-
-                            <!-- Opción 3: Escribir tarea manual -->
-                            <div class="tasks-action-option-card" onclick="window.tasksManager.openCreateModalFromSheet()">
-                                <div class="tasks-action-icon-circle tasks-action-manual">
-                                    <span class="material-symbols-outlined">edit_note</span>
-                                </div>
-                                <div class="tasks-action-text-col">
-                                    <div class="tasks-action-item-title">Escribir tarea manual</div>
-                                    <div class="tasks-action-item-desc">Crea una tarea individualmente y vincula una receta</div>
-                                </div>
-                                <span class="material-symbols-outlined tasks-action-chevron">chevron_right</span>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- MODAL / BOTTOM SHEET CREAR NUEVA TAREA -->
@@ -2889,48 +2859,47 @@
                 .replace(/'/g, '&#39;');
         }
 
-        /** Abre el Bottom Sheet de selección de acciones (Material 3 Expressive) */
-        openActionSheet() {
-            const backdrop = document.getElementById('tasksActionSheetBackdrop');
-            const sheet = document.getElementById('tasksActionBottomSheet');
-            if (backdrop && sheet) {
-                backdrop.style.display = 'block';
-                sheet.style.display = 'block';
-            }
-        }
-
-        /** Cierra el Bottom Sheet de selección de acciones */
-        closeActionSheet() {
-            const backdrop = document.getElementById('tasksActionSheetBackdrop');
-            const sheet = document.getElementById('tasksActionBottomSheet');
-            if (backdrop && sheet) {
-                backdrop.style.display = 'none';
-                sheet.style.display = 'none';
-            }
-        }
-
-        /** Alias para compatibilidad */
+        /** Alterna la apertura del menú flotante Speed Dial (M3 Expressive) */
         toggleFabMenu() {
-            this.openActionSheet();
+            this.isFabMenuOpen = !this.isFabMenuOpen;
+            const menu = document.getElementById('tasksFabMenu');
+            const backdrop = document.getElementById('tasksFabSpeedDialBackdrop');
+            const icon = document.getElementById('tasksMainFabIcon');
+            const fab = document.getElementById('tasksMainFabCircle');
+            
+            if (this.isFabMenuOpen) {
+                if (menu) menu.style.display = 'flex';
+                if (backdrop) backdrop.style.display = 'block';
+                if (icon) icon.style.transform = 'rotate(45deg)';
+                if (fab) fab.setAttribute('aria-expanded', 'true');
+            } else {
+                this.closeFabMenu();
+            }
         }
 
+        /** Cierra el menú Speed Dial */
         closeFabMenu() {
-            this.closeActionSheet();
+            this.isFabMenuOpen = false;
+            const menu = document.getElementById('tasksFabMenu');
+            const backdrop = document.getElementById('tasksFabSpeedDialBackdrop');
+            const icon = document.getElementById('tasksMainFabIcon');
+            const fab = document.getElementById('tasksMainFabCircle');
+            
+            if (menu) menu.style.display = 'none';
+            if (backdrop) backdrop.style.display = 'none';
+            if (icon) icon.style.transform = 'rotate(0deg)';
+            if (fab) fab.setAttribute('aria-expanded', 'false');
         }
 
+        /** Abre el modal de creación manual desde el FAB */
         openCreateModalFromFab() {
-            this.openCreateModalFromSheet();
-        }
-
-        /** Abre el modal de creación manual desde el action sheet */
-        openCreateModalFromSheet() {
-            this.closeActionSheet();
+            this.closeFabMenu();
             this.openCreateModal();
         }
 
         /** Dispara el selector de cámara para escanear lista */
         triggerCameraScan() {
-            this.closeActionSheet();
+            this.closeFabMenu();
             this.closeCreateModal();
             const camInput = document.getElementById('prepListCameraInput');
             if (camInput) {
@@ -2941,7 +2910,7 @@
 
         /** Dispara el selector de galería/archivo */
         triggerGalleryScan() {
-            this.closeActionSheet();
+            this.closeFabMenu();
             this.closeCreateModal();
             const galInput = document.getElementById('prepListGalleryInput');
             if (galInput) {
