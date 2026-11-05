@@ -4257,6 +4257,68 @@ select.input-field {
     }
 }
 
+/* ─── Material 3 Expressive Outlined Text Field para Modal de Carpeta ─── */
+.folder-modal-m3-field {
+    margin-top: 8px;
+    margin-bottom: 0;
+    position: relative;
+    width: 100%;
+}
+
+.folder-modal-m3-field .m3-field-input {
+    height: 56px !important;
+    border-radius: var(--radius-lg, 16px) !important;
+    border: 1.5px solid #79747E !important;
+    background: #ffffff !important;
+    color: var(--text-main, #1D1B20) !important;
+    font-size: 16px !important;
+    font-family: var(--font-display, Poppins, sans-serif) !important;
+    padding: 16px 18px !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+.folder-modal-m3-field .m3-field-input:hover {
+    border-color: #1D1B20 !important;
+}
+
+.folder-modal-m3-field .m3-field-input:focus {
+    border-color: var(--primary, #006C4C) !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #006C4C) 15%, transparent) !important;
+}
+
+.folder-modal-m3-field .m3-field-label {
+    background: #ffffff !important;
+    left: 14px !important;
+    padding: 0 6px !important;
+    font-family: var(--font-display, Poppins, sans-serif) !important;
+    color: var(--text-secondary, #49454F) !important;
+    font-size: 14.5px !important;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    z-index: 5;
+    line-height: 1;
+}
+
+.folder-modal-m3-field .m3-field-input:focus + .m3-field-label {
+    color: var(--primary-dark, #006C4C) !important;
+    font-weight: 700 !important;
+    top: 0 !important;
+    transform: translateY(-50%) scale(0.85) !important;
+}
+
+.folder-modal-m3-field .m3-field-input:not(:focus):not(:placeholder-shown) + .m3-field-label {
+    color: var(--text-secondary, #49454F) !important;
+    font-weight: 600 !important;
+    top: 0 !important;
+    transform: translateY(-50%) scale(0.85) !important;
+}
+
 /* ─── Modal "Crear Carpeta" Estilo Dropbox (Screenshot 1:1) ─── */
 .dropbox-folder-modal {
     background: #ffffff !important;
@@ -4373,7 +4435,7 @@ select.input-field {
 .folder-modal-footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     margin-top: 28px;
 }
 
