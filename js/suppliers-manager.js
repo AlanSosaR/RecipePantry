@@ -2367,6 +2367,31 @@ renderItemCard(item, supplierId) {
             document.body.classList.remove("product-side-sheet-open");
             this.updateFabVisibility();
 
+            // Si el producto fue buscado en el buscador global, resetearlo completamente al salir
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (this.searchQuery || (searchInput && searchInput.value)) {
+                this.searchQuery = '';
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.blur();
+                }
+                if (clearBtn) clearBtn.classList.add('hidden');
+                if (window.dashboard) {
+                    if (window.dashboard.searchHistory) {
+                        window.dashboard.searchHistory.hideSuggestions();
+                    }
+                    if (typeof window.dashboard.closeMobileSearch === 'function') {
+                        window.dashboard.closeMobileSearch(null, true);
+                    }
+                }
+                const supplierId = this.selectedSupplierDetailId || ((typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search).get('supplier') : null);
+                const mount = document.getElementById('supplier-products-mount');
+                if (mount && supplierId && typeof this.renderSupplierProductsListHTML === 'function') {
+                    mount.innerHTML = this.renderSupplierProductsListHTML(supplierId);
+                }
+            }
+
             const sheet = document.getElementById("productSideSheet");
             const backdrop = document.getElementById("productSideSheetBackdrop");
             const layout = document.getElementById("supplierCatalogLayout");
