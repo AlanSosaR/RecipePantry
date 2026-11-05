@@ -45,10 +45,15 @@ class ProfileManager {
             this.btnSave.onclick = (e) => this.handleSave(e);
         }
 
-        const avatarContainer = document.getElementById('profile-hero-avatar');
+        const avatarContainers = [
+            document.getElementById('profile-hero-avatar'),
+            document.getElementById('profile-hero-avatar-mobile')
+        ].filter(Boolean);
         const avatarInput = document.getElementById('avatar-upload-input');
-        if (avatarContainer && avatarInput) {
-            avatarContainer.addEventListener('click', () => avatarInput.click());
+        if (avatarContainers.length > 0 && avatarInput) {
+            avatarContainers.forEach(container => {
+                container.addEventListener('click', () => avatarInput.click());
+            });
             avatarInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
         }
 
@@ -249,24 +254,30 @@ class ProfileManager {
     }
 
     updateProfileVisuals(user) {
-        // Actualizar avatar grande del perfil
-        const initialsEl = document.getElementById('avatar-initials');
-        const imgEl = document.getElementById('avatar-img');
+        // Actualizar avatar grande del perfil (Desktop y Mobile)
+        const initialsElements = [
+            document.getElementById('avatar-initials'),
+            document.getElementById('avatar-initials-mobile')
+        ].filter(Boolean);
+        const imgElements = [
+            document.getElementById('avatar-img'),
+            document.getElementById('avatar-img-mobile')
+        ].filter(Boolean);
 
         if (user.avatar_url) {
-            if (imgEl) {
-                imgEl.src = user.avatar_url;
-                imgEl.style.display = 'block';
-                imgEl.style.opacity = '1';
-            }
-            if (initialsEl) initialsEl.style.display = 'none';
+            imgElements.forEach(img => {
+                img.src = user.avatar_url;
+                img.style.display = 'block';
+                img.style.opacity = '1';
+            });
+            initialsElements.forEach(init => init.style.display = 'none');
         } else {
-            if (imgEl) imgEl.style.display = 'none';
-            if (initialsEl) {
-                const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
-                initialsEl.textContent = initials;
-                initialsEl.style.display = 'block';
-            }
+            imgElements.forEach(img => img.style.display = 'none');
+            const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
+            initialsElements.forEach(init => {
+                init.textContent = initials;
+                init.style.display = 'block';
+            });
         }
 
         // Sincronizar con el sidebar si está presente (v201 fix)
@@ -287,15 +298,24 @@ class ProfileManager {
         // Limpiar input
         e.target.value = '';
 
-        // Previsualización inmediata
-        const avatarImg = document.getElementById('avatar-img');
-        const initialsEl = document.getElementById('avatar-initials');
+        // Previsualización inmediata (Desktop y Mobile)
+        const imgElements = [
+            document.getElementById('avatar-img'),
+            document.getElementById('avatar-img-mobile')
+        ].filter(Boolean);
+        const initialsElements = [
+            document.getElementById('avatar-initials'),
+            document.getElementById('avatar-initials-mobile')
+        ].filter(Boolean);
         
-        if (avatarImg) {
-            avatarImg.src = URL.createObjectURL(file);
-            avatarImg.style.display = 'block';
-            avatarImg.style.opacity = '0.5';
-            if (initialsEl) initialsEl.style.display = 'none';
+        if (imgElements.length > 0) {
+            const previewUrl = URL.createObjectURL(file);
+            imgElements.forEach(img => {
+                img.src = previewUrl;
+                img.style.display = 'block';
+                img.style.opacity = '0.5';
+            });
+            initialsElements.forEach(init => init.style.display = 'none');
         }
 
         try {
