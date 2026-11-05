@@ -4259,10 +4259,10 @@ select.input-field {
 
 /* ─── Selector de personas específicas para Carpetas (M3 Expressive) ─── */
 .folder-specific-users-section {
-    margin-top: 14px;
+    margin-top: 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     animation: m3FadeIn 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
@@ -4343,8 +4343,9 @@ select.input-field {
 }
 
 .folder-user-suggestions-dropdown {
-    max-height: 180px;
+    max-height: 135px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     background: #ffffff;
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 14px;
@@ -4352,6 +4353,21 @@ select.input-field {
     display: flex;
     flex-direction: column;
     z-index: 20;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.folder-user-suggestions-dropdown::-webkit-scrollbar {
+    width: 5px;
+}
+
+.folder-user-suggestions-dropdown::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 6px;
+}
+
+.folder-user-suggestions-dropdown::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .folder-user-suggestions-dropdown.hidden {
@@ -4362,7 +4378,7 @@ select.input-field {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
+    padding: 8px 12px;
     cursor: pointer;
     transition: background 0.12s ease;
     border-bottom: 1px solid #f3f4f6;
@@ -4485,12 +4501,30 @@ select.input-field {
     border-radius: 20px;
     width: 440px;
     max-width: calc(100vw - 32px);
+    max-height: min(85vh, 580px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 24px 26px 22px 26px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
     border: none;
     font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     animation: dropboxModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.dropbox-folder-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropbox-folder-modal::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 6px;
+}
+
+.dropbox-folder-modal::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 @keyframes dropboxModalFadeIn {
@@ -4595,7 +4629,7 @@ select.input-field {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    margin-top: 28px;
+    margin-top: 20px;
 }
 
 .btn-folder-config {

@@ -4106,6 +4106,12 @@ class DashboardManager {
             if (specificSection) {
                 specificSection.classList.remove('hidden');
                 this.initFolderUserSearch();
+                setTimeout(() => {
+                    const modalContent = document.querySelector('#createFolderModal .dropbox-folder-modal');
+                    if (modalContent) {
+                        modalContent.scrollTo({ top: modalContent.scrollHeight, behavior: 'smooth' });
+                    }
+                }, 60);
             }
         }
     }
