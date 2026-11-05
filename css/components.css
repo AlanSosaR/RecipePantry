@@ -19328,6 +19328,39 @@ m3-loading-indicator canvas {
     transform: scale(0.97);
 }
 
+/* Botón cerrar (X) del Side Sheet M3 - Feedback rojo al seleccionar/pasar cursor */
+.m3-product-side-sheet .btn-icon-m3.close,
+#btnSideSheetClose {
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
+}
+
+.m3-product-side-sheet .btn-icon-m3.close:hover,
+#btnSideSheetClose:hover,
+.m3-product-side-sheet .btn-icon-m3.close:focus-visible,
+#btnSideSheetClose:focus-visible {
+    background-color: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.m3-product-side-sheet .btn-icon-m3.close:hover .material-symbols-outlined,
+#btnSideSheetClose:hover .material-symbols-outlined,
+.m3-product-side-sheet .btn-icon-m3.close:focus-visible .material-symbols-outlined,
+#btnSideSheetClose:focus-visible .material-symbols-outlined {
+    color: #dc2626 !important;
+}
+
+.m3-product-side-sheet .btn-icon-m3.close:active,
+#btnSideSheetClose:active {
+    background-color: #fecaca !important;
+    color: #b91c1c !important;
+    transform: scale(0.92) !important;
+}
+
+.m3-product-side-sheet .btn-icon-m3.close:active .material-symbols-outlined,
+#btnSideSheetClose:active .material-symbols-outlined {
+    color: #b91c1c !important;
+}
+
 /* Botón de acceso directo a crear orden / ver pedido de este proveedor en Side Sheet */
 #btnSideSheetGoToOrder {
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;

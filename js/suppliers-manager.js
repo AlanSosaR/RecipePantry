@@ -2470,13 +2470,16 @@ renderItemCard(item, supplierId) {
                     <!-- Fila 1: Botón Cerrar Panel (X) en su propia fila en la esquina superior derecha -->
                     <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
                         <button type="button" 
-                                class="btn-icon-m3 close" 
+                                class="btn-icon-m3 close btn-side-sheet-close" 
+                                id="btnSideSheetClose"
                                 title="${isEn ? "Close panel" : "Cerrar panel"}"
                                 onclick="window.suppliersManager.closeProductSideSheet()"
-                                style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background 0.15s ease;"
-                                onmouseenter="this.style.background='#e2e5e4'"
-                                onmouseleave="this.style.background='#f3f5f4'">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                                style="width: 34px; height: 34px; border-radius: 50%; background: #f3f5f4; color: #1a1c19; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;"
+                                onmouseenter="this.style.backgroundColor='#fee2e2'; this.style.color='#dc2626';"
+                                onmouseleave="this.style.backgroundColor='#f3f5f4'; this.style.color='#1a1c19';"
+                                onmousedown="this.style.backgroundColor='#fecaca'; this.style.color='#b91c1c'; this.style.transform='scale(0.92)';"
+                                onmouseup="this.style.backgroundColor='#fee2e2'; this.style.color='#dc2626'; this.style.transform='scale(1)';">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: inherit;">close</span>
                         </button>
                     </div>
 
