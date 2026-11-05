@@ -5229,7 +5229,7 @@ select.input-field {
 .sidebar-user-profile:hover .notas-avatar-circle,
 .user-avatar-m3:hover,
 .notas-avatar-circle:hover {
-    transform: scale(1.06);
+    transform: none;
     box-shadow: none;
 }
 
@@ -5237,7 +5237,7 @@ select.input-field {
 .sidebar-user-profile:active .notas-avatar-circle,
 .user-avatar-m3:active,
 .notas-avatar-circle:active {
-    transform: scale(0.95);
+    transform: none;
     transition: transform 0.15s ease;
 }
 
@@ -5424,15 +5424,30 @@ select.input-field {
         outline: none !important;
     }
 
+    /* Al pasar el cursor, se expande el aro blanco exterior con física de resorte sin deformar la foto interior */
     .sidebar-user-profile:hover .user-avatar-ring,
-    .sidebar-user-profile:hover .user-avatar-wrapper {
-        transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
+    .sidebar-user-profile:hover .user-avatar-wrapper,
+    .sidebar-user-profile .user-avatar-ring:hover {
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12) !important;
     }
 
     .sidebar-user-profile:hover .user-avatar-m3,
-    .sidebar-user-profile:hover .notas-avatar-circle {
+    .sidebar-user-profile:hover .notas-avatar-circle,
+    .sidebar-user-profile .user-avatar-m3:hover {
+        transform: none !important;
         box-shadow: none !important;
+    }
+
+    .sidebar-user-profile:active .user-avatar-ring,
+    .sidebar-user-profile:active .user-avatar-wrapper {
+        transform: scale(0.97) !important;
+        transition: transform 0.15s ease !important;
+    }
+
+    .sidebar-user-profile:active .user-avatar-m3,
+    .sidebar-user-profile:active .notas-avatar-circle {
+        transform: none !important;
     }
 
     .sidebar-user-profile .user-info-m3,
