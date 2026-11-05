@@ -1586,7 +1586,7 @@
 
                     <!-- MODAL / BOTTOM SHEET DE REVISIÓN DE TAREAS DETECTADAS -->
                     <div id="prepScanPreviewBackdrop" onclick="window.tasksManager.closeScanPreviewModal()" class="tasks-backdrop" style="display: none;"></div>
-                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none; position: relative;">
+                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none;">
                         <!-- Drag Handle -->
                         <div class="prep-scan-drag-area">
                             <div class="prep-scan-drag-handle"></div>
@@ -3034,26 +3034,42 @@ REGLAS OBLIGATORIAS:
         /** Extrae array de tareas desde respuesta de texto de IA */
         extractTasksFromJson(text) {
             if (!text) return [];
+            let rawList = null;
             try {
                 const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
                 const parsed = JSON.parse(cleaned);
-                if (Array.isArray(parsed.tasks)) return parsed.tasks;
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed.tasks)) rawList = parsed.tasks;
+                else if (Array.isArray(parsed.tareas)) rawList = parsed.tareas;
+                else if (Array.isArray(parsed.items)) rawList = parsed.items;
+                else if (Array.isArray(parsed)) rawList = parsed;
             } catch (e) {
                 const match = text.match(/\{[\s\S]*\}/);
                 if (match) {
                     try {
                         const parsed = JSON.parse(match[0]);
-                        if (Array.isArray(parsed.tasks)) return parsed.tasks;
+                        if (Array.isArray(parsed.tasks)) rawList = parsed.tasks;
+                        else if (Array.isArray(parsed.tareas)) rawList = parsed.tareas;
+                        else if (Array.isArray(parsed.items)) rawList = parsed.items;
+                        else if (Array.isArray(parsed)) rawList = parsed;
                     } catch (err) {}
                 }
             }
+
+            if (Array.isArray(rawList) && rawList.length > 0) {
+                return rawList.map(item => {
+                    if (typeof item === 'string') return { title: item.trim(), qty: '' };
+                    const title = item.title || item.nombre || item.tarea || item.name || item.text || item.item || '';
+                    const qty = item.qty || item.cantidad || item.amount || '';
+                    return { title: String(title).trim(), qty: String(qty).trim() };
+                }).filter(t => t.title.length > 0);
+            }
+
             // Fallback: procesar líneas de texto
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('{') && !l.startsWith('}') && !l.startsWith('"tasks"'));
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('{') && !l.startsWith('}') && !l.startsWith('"tasks"') && !l.startsWith('"tareas"'));
             return lines.map(line => {
                 const clean = line.replace(/^[-*•\d.)\]\s]+/, '').replace(/^["']|["'],?$/g, '').trim();
                 return { title: clean, qty: '' };
-            }).filter(t => t.title.length > 2);
+            }).filter(t => t.title.length > 1);
         }
 
         /** Muestra modal de carga de escaneo */
@@ -3101,9 +3117,9 @@ REGLAS OBLIGATORIAS:
 
         /** Abre el modal de previsualización y edición de tareas detectadas */
         openScanPreviewModal(tasks) {
-            this.scannedDraftTasks = tasks.map(t => {
-                let title = String(t.title || '').trim();
-                const qty = String(t.qty || '').trim();
+            this.scannedDraftTasks = (tasks || []).map(t => {
+                let title = typeof t === 'string' ? t.trim() : String(t.title || t.nombre || t.tarea || '').trim();
+                const qty = typeof t === 'object' && t ? String(t.qty || t.cantidad || '').trim() : '';
                 if (qty && !title.toLowerCase().includes(qty.toLowerCase())) {
                     title = `${title} ${qty}`.trim();
                 }
@@ -3118,6 +3134,7 @@ REGLAS OBLIGATORIAS:
             if (sheet && backdrop) {
                 backdrop.style.display = 'block';
                 sheet.style.display = 'flex';
+                sheet.scrollTop = 0;
                 this.renderScannedDraftItems();
             }
         }
