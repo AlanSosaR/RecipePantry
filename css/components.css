@@ -5137,6 +5137,16 @@ select.input-field {
     background: transparent;
 }
 
+/* Estado activo del perfil de usuario (indicador visual de ubicación) */
+.sidebar-user-profile.active {
+    background: #d7f5e8 !important;
+}
+
+.sidebar-user-profile.active .user-greeting {
+    color: #0d5f3a !important;
+    font-weight: 700 !important;
+}
+
 .user-avatar-wrapper,
 .user-avatar-ring,
 .notas-avatar-ring {
@@ -20116,6 +20126,31 @@ body.product-side-sheet-open #m3FabBackdrop {
         flex-shrink: 0 !important;
     }
 
+    /* ─── Indicador Activo de Perfil en Desktop (idéntico a los demás nav-items activos) ─── */
+    .sidebar-user-profile.active,
+    .notas-sidebar-profile.active {
+        background: #d7f5e8 !important;
+        color: #0d5f3a !important;
+        border-radius: 16px !important;
+        margin: 2px 12px 10px 12px !important;
+        width: calc(100% - 24px) !important;
+        padding: 6px 12px 6px 12px !important;
+        box-shadow: 0 2px 6px rgba(13, 95, 58, 0.08) !important;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+    }
+
+    .sidebar-user-profile.active .user-greeting,
+    .notas-sidebar-profile.active .notas-sidebar-username {
+        color: #0d5f3a !important;
+        font-weight: 700 !important;
+    }
+
+    .sidebar-user-profile.active .user-avatar-ring,
+    .notas-sidebar-profile.active .notas-avatar-ring {
+        border-color: #0d5f3a !important;
+        background: #ffffff !important;
+    }
+
     .user-avatar-m3,
     .notas-avatar-circle {
         font-size: 16px !important;
@@ -20217,6 +20252,16 @@ body.product-side-sheet-open #m3FabBackdrop {
         box-sizing: border-box !important;
         justify-content: center !important;
         align-items: center !important;
+    }
+
+    .sidebar.sidebar--slim .sidebar-user-profile.active,
+    .sidebar.sidebar--slim .notas-sidebar-profile.active {
+        background: #d7f5e8 !important;
+        border-radius: 14px !important;
+        width: 48px !important;
+        height: 48px !important;
+        padding: 0 !important;
+        margin: 0 auto 8px auto !important;
     }
 
     .sidebar.sidebar--slim .user-info-m3,

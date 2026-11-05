@@ -117,15 +117,22 @@ window.updateGlobalUserUI = function () {
         }
     });
 
-    // Make sidebar profile clickable
+    // Make sidebar profile clickable and highlight when active
     const profileSection = document.querySelector('.sidebar-user-profile');
-    if (profileSection && !profileSection.dataset.listenerAdded) {
-        profileSection.style.cursor = 'pointer';
-        profileSection.title = 'Editar Perfil';
-        profileSection.onclick = () => {
-            window.location.href = 'profile.html';
-        };
-        profileSection.dataset.listenerAdded = 'true';
+    if (profileSection) {
+        const isProfilePage = window.location.pathname.includes('profile') || window.location.href.includes('profile');
+        if (isProfilePage) {
+            profileSection.classList.add('active');
+        }
+
+        if (!profileSection.dataset.listenerAdded) {
+            profileSection.style.cursor = 'pointer';
+            profileSection.title = 'Editar Perfil';
+            profileSection.onclick = () => {
+                window.location.href = 'profile.html';
+            };
+            profileSection.dataset.listenerAdded = 'true';
+        }
     }
 
     // Actualizar visibilidad de accesos especiales (Proveedores, Tareas)
