@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1089">
+<html lang="es" data-app-version="1090">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=1089">
-  <link rel="stylesheet" href="css/components.css?v=1089">
-  <script src="js/m3-loading-indicator.js?v=1089"></script>
+  <link rel="stylesheet" href="css/styles.css?v=1090">
+  <link rel="stylesheet" href="css/components.css?v=1090">
+  <script src="js/m3-loading-indicator.js?v=1090"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -225,21 +225,21 @@
 
     .hero-circle {
       position: absolute;
-      bottom: clamp(-50px, -6.5vh, -40px);
-      width: clamp(90px, 13vh, 110px);
-      height: clamp(90px, 13vh, 110px);
+      bottom: clamp(-54px, -7.5vh, -45px);
+      width: clamp(108px, 15vh, 124px);
+      height: clamp(108px, 15vh, 124px);
       background: white;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.10);
       z-index: 2;
     }
 
     .hero-circle-inner {
-      width: clamp(62px, 8.5vh, 76px);
-      height: clamp(62px, 8.5vh, 76px);
+      width: clamp(84px, 12vh, 98px);
+      height: clamp(84px, 12vh, 98px);
       background: var(--primary-green);
       border-radius: 50%;
       display: flex;
@@ -248,7 +248,7 @@
       color: white;
     }
     .hero-circle-inner .material-symbols-outlined {
-      font-size: clamp(30px, 4.2vh, 38px) !important;
+      font-size: clamp(40px, 5.6vh, 48px) !important;
     }
 
     .content-part {
@@ -398,18 +398,22 @@
       }
 
       .hero-circle {
-        bottom: clamp(-49px, -7vh, -41px);
-        width: clamp(98px, 14vh, 114px);
-        height: clamp(98px, 14vh, 114px);
+        bottom: clamp(-54px, -7.5vh, -46px);
+        width: clamp(110px, 15.5vh, 126px);
+        height: clamp(110px, 15.5vh, 126px);
       }
 
       .hero-circle-inner {
-        width: clamp(70px, 10vh, 82px);
-        height: clamp(70px, 10vh, 82px);
+        width: clamp(86px, 12.2vh, 100px);
+        height: clamp(86px, 12.2vh, 100px);
+      }
+
+      .hero-circle-inner .material-symbols-outlined {
+        font-size: clamp(42px, 5.8vh, 50px) !important;
       }
 
       .content-part {
-        padding: clamp(58px, 8vh, 70px) 20px 24px 20px;
+        padding: clamp(62px, 8.8vh, 76px) 20px 24px 20px;
       }
 
       .landing-title {
@@ -1015,35 +1019,35 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="js/config.js?v=1089"></script>
-  <script src="js/supabase-client.js?v=1089"></script>
-  <script src="js/localdb.js?v=1089"></script>
-  <script src="js/sync-manager.js?v=1089"></script>
-  <script src="js/m3-loading-indicator.js?v=1089"></script>
-  <script src="js/utils.js?v=1089"></script>
-  <script src="js/i18n.js?v=1089"></script>
-  <script src="js/allergen-data.js?v=1089"></script>
-  <script src="js/menu-data.js?v=1089"></script>
-  <script src="js/lib/pdf.min.js?v=1089"></script>
-  <script src="js/restaurant-menu.js?v=1089"></script>
-  <script src="js/db.js?v=1089"></script>
-  <script src="js/auth.js?v=1089"></script>
-  <script src="js/dashboard.js?v=1089"></script>
-  <script src="js/share-modal.js?v=1089"></script>
-  <script src="js/help-modal.js?v=1089"></script>
-  <script src="js/admin-users.js?v=1089"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=1089"></script>
-  <script src="js/suppliers-manager.js?v=1089"></script>
-  <script src="js/tasks-manager.js?v=1089"></script>
+  <script src="js/config.js?v=1090"></script>
+  <script src="js/supabase-client.js?v=1090"></script>
+  <script src="js/localdb.js?v=1090"></script>
+  <script src="js/sync-manager.js?v=1090"></script>
+  <script src="js/m3-loading-indicator.js?v=1090"></script>
+  <script src="js/utils.js?v=1090"></script>
+  <script src="js/i18n.js?v=1090"></script>
+  <script src="js/allergen-data.js?v=1090"></script>
+  <script src="js/menu-data.js?v=1090"></script>
+  <script src="js/lib/pdf.min.js?v=1090"></script>
+  <script src="js/restaurant-menu.js?v=1090"></script>
+  <script src="js/db.js?v=1090"></script>
+  <script src="js/auth.js?v=1090"></script>
+  <script src="js/dashboard.js?v=1090"></script>
+  <script src="js/share-modal.js?v=1090"></script>
+  <script src="js/help-modal.js?v=1090"></script>
+  <script src="js/admin-users.js?v=1090"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=1090"></script>
+  <script src="js/suppliers-manager.js?v=1090"></script>
+  <script src="js/tasks-manager.js?v=1090"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=1089"></script>
-  <script src="js/core/push.js?v=1089"></script>
-  <script src="js/notifications.js?v=1089"></script>
-  <script src="js/ui.js?v=1089"></script>
-  <script src="js/sw-register.js?v=1089"></script>
-<script src="js/pwa-install.js?v=1089"></script>
-  <script src="js/gemini-client.js?v=1089"></script>
-  <script type="module" src="js/url-importer.js?v=1089"></script>
+  <script type="module" src="js/core/firebase.js?v=1090"></script>
+  <script src="js/core/push.js?v=1090"></script>
+  <script src="js/notifications.js?v=1090"></script>
+  <script src="js/ui.js?v=1090"></script>
+  <script src="js/sw-register.js?v=1090"></script>
+<script src="js/pwa-install.js?v=1090"></script>
+  <script src="js/gemini-client.js?v=1090"></script>
+  <script type="module" src="js/url-importer.js?v=1090"></script>
 
 
   <script type="module">
