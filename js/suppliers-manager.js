@@ -82,6 +82,22 @@
             this.initReactiveAuth();
             this.initGlobalSearch();
 
+            // Sincronizar navegación atrás/adelante del navegador para proveedores
+            window.addEventListener('popstate', () => {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const view = urlParams.get('view');
+                    const supplierParam = urlParams.get('supplier');
+                    if (view === 'suppliers' || (!view && this.currentSubView !== 'list')) {
+                        if (!supplierParam && (this.currentSubView === 'supplier-detail' || Boolean(this.selectedSupplierDetailId))) {
+                            this.backToList();
+                        } else if (supplierParam && supplierParam !== this.selectedSupplierDetailId) {
+                            this.openSupplierDetail(supplierParam);
+                        }
+                    }
+                } catch (e) {}
+            });
+
             this._lastMenuClosedSupplierId = null;
             this._lastMenuClosedTime = 0;
         }
@@ -3030,6 +3046,21 @@ renderItemCard(item, supplierId) {
             this.editingSupplierId = null;
             this.editingItemId = null;
             this.activeOrderSupplierId = null;
+
+            // Limpiar completamente el buscador global al salir del proveedor y regresar al listado
+            this.searchQuery = '';
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            if (clearBtn) {
+                clearBtn.classList.add('hidden');
+            }
+            if (window.dashboard && window.dashboard.searchHistory) {
+                window.dashboard.searchHistory.hideSuggestions();
+            }
+
             this.updateFabVisibility();
             this.updateSearchPlaceholder();
             // Limpiar el parámetro de detalle de la URL para que F5 no reabra el proveedor

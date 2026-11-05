@@ -1150,6 +1150,11 @@ class DashboardManager {
                 url.searchParams.delete('subview');
                 window.history.replaceState({ view, folder: this.currentFolder }, '', url.toString());
             } catch (e) {}
+        } else if (window.suppliersManager) {
+            // Si se pulsa Proveedores en el menú lateral estando en el detalle, regresar a la lista limpia
+            if (window.suppliersManager.currentSubView === 'supplier-detail' || Boolean(window.suppliersManager.selectedSupplierDetailId)) {
+                window.suppliersManager.backToList();
+            }
         }
 
         if (['allergens', 'menu', 'help', 'settings', 'suppliers', 'tasks'].includes(view)) {
