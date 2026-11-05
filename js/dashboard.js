@@ -571,6 +571,19 @@ class DashboardManager {
             // Actualizar datos de usuario en la UI
             this.updateUserUI();
 
+            // Mostrar snackbar de bienvenida personalizado al iniciar sesión
+            const welcomeMsg = sessionStorage.getItem('rp_welcome_message');
+            if (welcomeMsg) {
+                sessionStorage.removeItem('rp_welcome_message');
+                setTimeout(() => {
+                    if (window.utils?.showToast) {
+                        window.utils.showToast(welcomeMsg, 'success', 3500);
+                    } else if (window.showToast) {
+                        window.showToast(welcomeMsg, 'success');
+                    }
+                }, 600);
+            }
+
             this.currentOffset = 0;
             if (!this.selectedRecipes) this.selectedRecipes = new Set();
             this.isSelectionMode = false;
