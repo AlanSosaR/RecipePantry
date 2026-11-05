@@ -1587,9 +1587,9 @@
                     <!-- MODAL / BOTTOM SHEET DE REVISIÓN DE TAREAS DETECTADAS -->
                     <div id="prepScanPreviewBackdrop" onclick="window.tasksManager.closeScanPreviewModal()" class="tasks-backdrop" style="display: none;"></div>
                     <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none;">
-                        <!-- Drag Handle -->
-                        <div class="prep-scan-drag-area">
-                            <div class="prep-scan-drag-handle"></div>
+                        <!-- Drag Handle (Material 3 Expressive) -->
+                        <div class="prep-scan-drag-area" id="prepScanDragArea" title="Arrastra hacia arriba para expandir a toda la pantalla" style="cursor: grab; touch-action: none; padding: 10px 0 14px 0; display: flex; justify-content: center; user-select: none;">
+                            <div class="prep-scan-drag-handle" id="prepScanDragHandle" style="width: 44px; height: 5px; background: #D1D5DB; border-radius: 9999px; transition: width 0.2s, background 0.2s;"></div>
                         </div>
                         <!-- Botón cerrar en esquina superior derecha -->
                         <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-close-btn" aria-label="Cerrar" title="Cerrar">
@@ -3134,7 +3134,9 @@ REGLAS OBLIGATORIAS:
             if (sheet && backdrop) {
                 backdrop.style.display = 'block';
                 sheet.style.display = 'flex';
+                sheet.classList.remove('is-expanded');
                 sheet.scrollTop = 0;
+                this.initScanPreviewGestures();
                 this.renderScannedDraftItems();
             }
         }
@@ -3143,9 +3145,115 @@ REGLAS OBLIGATORIAS:
         closeScanPreviewModal() {
             const sheet = document.getElementById('prepScanPreviewSheet');
             const backdrop = document.getElementById('prepScanPreviewBackdrop');
-            if (sheet) sheet.style.display = 'none';
+            if (sheet) {
+                sheet.style.display = 'none';
+                sheet.classList.remove('is-expanded');
+            }
             if (backdrop) backdrop.style.display = 'none';
             this.scannedDraftTasks = [];
+        }
+
+        /** Inicializa gestos táctiles para expandir el Bottom Sheet de tareas a pantalla completa */
+        initScanPreviewGestures() {
+            const sheet = document.getElementById('prepScanPreviewSheet');
+            if (!sheet || sheet._scanGesturesInit) return;
+            sheet._scanGesturesInit = true;
+
+            let startY = 0;
+            let currentY = 0;
+            let isTracking = false;
+            let isHandleDrag = false;
+
+            const onTouchStart = (e) => {
+                const touch = e.touches ? e.touches[0] : e;
+                startY = touch.clientY;
+                currentY = startY;
+                isTracking = true;
+
+                const dragArea = e.target.closest('#prepScanDragArea') || e.target.closest('.tasks-bottom-sheet-header');
+                isHandleDrag = Boolean(dragArea);
+            };
+
+            const onTouchMove = (e) => {
+                if (!isTracking) return;
+                const touch = e.touches ? e.touches[0] : e;
+                currentY = touch.clientY;
+                const deltaY = currentY - startY;
+
+                // Deslizar hacia arriba: expandir a pantalla completa
+                if (deltaY < -20 && (isHandleDrag || sheet.scrollTop <= 0)) {
+                    sheet.classList.add('is-expanded');
+                } else if (deltaY > 50 && isHandleDrag) {
+                    if (sheet.classList.contains('is-expanded')) {
+                        sheet.classList.remove('is-expanded');
+                    }
+                }
+            };
+
+            const onTouchEnd = (e) => {
+                if (!isTracking) return;
+                const deltaY = currentY - startY;
+                isTracking = false;
+
+                if (deltaY < -30 && (isHandleDrag || sheet.scrollTop <= 0)) {
+                    sheet.classList.add('is-expanded');
+                } else if (deltaY > 60 && isHandleDrag) {
+                    if (sheet.classList.contains('is-expanded')) {
+                        sheet.classList.remove('is-expanded');
+                    } else {
+                        this.closeScanPreviewModal();
+                    }
+                }
+            };
+
+            sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+            sheet.addEventListener('touchmove', onTouchMove, { passive: true });
+            sheet.addEventListener('touchend', onTouchEnd, { passive: true });
+
+            const dragArea = document.getElementById('prepScanDragArea');
+            if (dragArea) {
+                dragArea.addEventListener('pointerdown', (e) => {
+                    startY = e.clientY;
+                    currentY = startY;
+                    isTracking = true;
+                    isHandleDrag = true;
+
+                    const onPointerMove = (moveEvt) => {
+                        if (!isTracking) return;
+                        currentY = moveEvt.clientY;
+                        const delta = currentY - startY;
+                        if (delta < -20) {
+                            sheet.classList.add('is-expanded');
+                        } else if (delta > 40 && sheet.classList.contains('is-expanded')) {
+                            sheet.classList.remove('is-expanded');
+                        }
+                    };
+
+                    const onPointerUp = (upEvt) => {
+                        isTracking = false;
+                        const delta = currentY - startY;
+                        if (delta < -25) {
+                            sheet.classList.add('is-expanded');
+                        } else if (delta > 60) {
+                            if (sheet.classList.contains('is-expanded')) {
+                                sheet.classList.remove('is-expanded');
+                            } else {
+                                this.closeScanPreviewModal();
+                            }
+                        }
+                        window.removeEventListener('pointermove', onPointerMove);
+                        window.removeEventListener('pointerup', onPointerUp);
+                    };
+
+                    window.addEventListener('pointermove', onPointerMove);
+                    window.addEventListener('pointerup', onPointerUp);
+                });
+
+                dragArea.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    sheet.classList.toggle('is-expanded');
+                });
+            }
         }
 
         /** Renderiza la lista de tareas en el modal de confirmación (Línea única + Swipe a la derecha para eliminar) */

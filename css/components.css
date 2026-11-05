@@ -19090,11 +19090,28 @@ body.supplier-detail-active .suppliers-subview-page {
     padding: 12px 20px 28px 20px !important;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.28) !important;
     z-index: 60 !important;
-    max-height: 88vh !important;
+    max-height: 85vh;
     display: flex !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
     animation: slideUpTasksSheet 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), max-height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.2s ease !important;
+}
+
+.tasks-scan-preview-sheet.is-expanded {
+    height: 95vh !important;
+    max-height: 96vh !important;
+    border-top-left-radius: 32px !important;
+    border-top-right-radius: 32px !important;
+}
+
+.tasks-scan-preview-sheet.is-expanded .prep-scan-items-container {
+    max-height: 68vh !important;
+}
+
+.tasks-scan-preview-sheet.is-expanded .prep-scan-drag-handle {
+    background: #9CA3AF !important;
+    width: 52px !important;
 }
 
 .prep-scan-drag-area {
