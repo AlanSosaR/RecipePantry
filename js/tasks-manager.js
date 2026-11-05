@@ -1560,6 +1560,8 @@
                     <!-- MODAL DE CARGA / ESCANEO CON IA -->
                     <div id="prepScanLoadingModal" class="tasks-scan-loading-modal" style="display: none;">
                         <div class="tasks-scan-loading-content">
+                            <!-- Drag handle para vista Bottom Sheet en móvil -->
+                            <div class="tasks-scan-loading-drag-handle"></div>
                             <div class="tasks-scan-pulse-ring">
                                 <span class="material-symbols-outlined tasks-scan-pulse-icon">auto_awesome</span>
                             </div>

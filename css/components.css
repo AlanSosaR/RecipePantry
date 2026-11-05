@@ -18981,6 +18981,11 @@ body.supplier-detail-active .suppliers-subview-page {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+}
+
+.tasks-scan-loading-drag-handle {
+    display: none;
 }
 
 .tasks-scan-pulse-ring {
@@ -19326,6 +19331,33 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 @media (max-width: 768px) {
+    /* Modal de carga convertido en Bottom Sheet en móvil */
+    .tasks-scan-loading-modal {
+        align-items: flex-end !important;
+        justify-content: center !important;
+        padding: 0 !important;
+    }
+
+    .tasks-scan-loading-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        border-radius: 28px 28px 0 0 !important;
+        padding: 12px 22px 34px 22px !important;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.28) !important;
+        animation: slideUpTasksSheet 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        box-sizing: border-box !important;
+    }
+
+    .tasks-scan-loading-drag-handle {
+        display: block !important;
+        width: 44px;
+        height: 5px;
+        background: #D1D5DB;
+        border-radius: 9999px;
+        margin: 0 auto 16px auto;
+        flex-shrink: 0;
+    }
+
     .prep-scan-input-qty {
         max-width: 90px;
     }
