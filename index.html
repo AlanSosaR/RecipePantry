@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1088">
+<html lang="es" data-app-version="1089">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=1088">
-  <link rel="stylesheet" href="css/components.css?v=1088">
-  <script src="js/m3-loading-indicator.js?v=1088"></script>
+  <link rel="stylesheet" href="css/styles.css?v=1089">
+  <link rel="stylesheet" href="css/components.css?v=1089">
+  <script src="js/m3-loading-indicator.js?v=1089"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -194,9 +194,9 @@
     }
 
     .landing-unified-card {
-      width: min(420px, 100%);
-      min-height: clamp(520px, 76vh, 620px);
-      max-height: min(94vh, 680px);
+      width: min(440px, 100%);
+      min-height: clamp(560px, 82vh, 670px);
+      max-height: min(96vh, 720px);
       background: white;
       border-radius: 28px;
       overflow-y: auto;
@@ -212,8 +212,8 @@
 
     .hero-part {
       background: var(--primary-green);
-      height: clamp(120px, 17vh, 150px);
-      min-height: 110px;
+      height: clamp(130px, 18vh, 160px);
+      min-height: 120px;
       position: relative;
       border-bottom-left-radius: 50% 30%;
       border-bottom-right-radius: 50% 30%;
@@ -379,69 +379,69 @@
     #landing-section:not(.hidden)~#dashboard-app { display: none; }
     @media (max-width: 600px) {
       .mode-landing-wrapper {
-        padding: 12px 10px;
+        padding: 10px 8px;
         align-items: center;
       }
 
       .landing-unified-card {
         width: 100%;
-        max-width: 420px;
-        min-height: clamp(520px, 80vh, 640px);
-        max-height: min(96vh, 700px);
+        max-width: 440px;
+        min-height: clamp(570px, 88vh, 680px);
+        max-height: min(97vh, 740px);
         border-radius: 26px;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.13);
       }
 
       .hero-part {
-        height: clamp(125px, 18vh, 155px);
-        min-height: 120px;
+        height: clamp(138px, 20vh, 170px);
+        min-height: 130px;
       }
 
       .hero-circle {
-        bottom: clamp(-46px, -6vh, -38px);
-        width: clamp(92px, 13vh, 106px);
-        height: clamp(92px, 13vh, 106px);
+        bottom: clamp(-49px, -7vh, -41px);
+        width: clamp(98px, 14vh, 114px);
+        height: clamp(98px, 14vh, 114px);
       }
 
       .hero-circle-inner {
-        width: clamp(66px, 9vh, 76px);
-        height: clamp(66px, 9vh, 76px);
+        width: clamp(70px, 10vh, 82px);
+        height: clamp(70px, 10vh, 82px);
       }
 
       .content-part {
-        padding: clamp(54px, 7.5vh, 64px) 20px 24px 20px;
+        padding: clamp(58px, 8vh, 70px) 20px 24px 20px;
       }
 
       .landing-title {
-        font-size: clamp(24px, 3.2vh, 28px);
+        font-size: clamp(25px, 3.3vh, 29px);
       }
 
       .landing-subtitle {
-        font-size: clamp(13.5px, 1.8vh, 15px);
+        font-size: clamp(14px, 1.85vh, 15.5px);
       }
 
       .pantry-description {
-        margin-bottom: 16px;
-        max-width: 330px;
+        margin-bottom: 18px;
+        max-width: 340px;
       }
 
       .features-grid {
         gap: 12px;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
       }
 
       .feature-card {
-        padding: 12px 8px;
+        padding: 14px 10px;
       }
 
       .btn-comenzar {
-        min-height: 48px;
-        font-size: 15px;
-        padding: 12px 16px;
+        min-height: 52px;
+        font-size: 15.5px;
+        padding: 13px 18px;
       }
 
       .landing-card-footer {
-        margin-top: 14px;
+        margin-top: 16px;
       }
     }
   </style>
@@ -1015,35 +1015,35 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="js/config.js?v=1088"></script>
-  <script src="js/supabase-client.js?v=1088"></script>
-  <script src="js/localdb.js?v=1088"></script>
-  <script src="js/sync-manager.js?v=1088"></script>
-  <script src="js/m3-loading-indicator.js?v=1088"></script>
-  <script src="js/utils.js?v=1088"></script>
-  <script src="js/i18n.js?v=1088"></script>
-  <script src="js/allergen-data.js?v=1088"></script>
-  <script src="js/menu-data.js?v=1088"></script>
-  <script src="js/lib/pdf.min.js?v=1088"></script>
-  <script src="js/restaurant-menu.js?v=1088"></script>
-  <script src="js/db.js?v=1088"></script>
-  <script src="js/auth.js?v=1088"></script>
-  <script src="js/dashboard.js?v=1088"></script>
-  <script src="js/share-modal.js?v=1088"></script>
-  <script src="js/help-modal.js?v=1088"></script>
-  <script src="js/admin-users.js?v=1088"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=1088"></script>
-  <script src="js/suppliers-manager.js?v=1088"></script>
-  <script src="js/tasks-manager.js?v=1088"></script>
+  <script src="js/config.js?v=1089"></script>
+  <script src="js/supabase-client.js?v=1089"></script>
+  <script src="js/localdb.js?v=1089"></script>
+  <script src="js/sync-manager.js?v=1089"></script>
+  <script src="js/m3-loading-indicator.js?v=1089"></script>
+  <script src="js/utils.js?v=1089"></script>
+  <script src="js/i18n.js?v=1089"></script>
+  <script src="js/allergen-data.js?v=1089"></script>
+  <script src="js/menu-data.js?v=1089"></script>
+  <script src="js/lib/pdf.min.js?v=1089"></script>
+  <script src="js/restaurant-menu.js?v=1089"></script>
+  <script src="js/db.js?v=1089"></script>
+  <script src="js/auth.js?v=1089"></script>
+  <script src="js/dashboard.js?v=1089"></script>
+  <script src="js/share-modal.js?v=1089"></script>
+  <script src="js/help-modal.js?v=1089"></script>
+  <script src="js/admin-users.js?v=1089"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=1089"></script>
+  <script src="js/suppliers-manager.js?v=1089"></script>
+  <script src="js/tasks-manager.js?v=1089"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=1088"></script>
-  <script src="js/core/push.js?v=1088"></script>
-  <script src="js/notifications.js?v=1088"></script>
-  <script src="js/ui.js?v=1088"></script>
-  <script src="js/sw-register.js?v=1088"></script>
-<script src="js/pwa-install.js?v=1088"></script>
-  <script src="js/gemini-client.js?v=1088"></script>
-  <script type="module" src="js/url-importer.js?v=1088"></script>
+  <script type="module" src="js/core/firebase.js?v=1089"></script>
+  <script src="js/core/push.js?v=1089"></script>
+  <script src="js/notifications.js?v=1089"></script>
+  <script src="js/ui.js?v=1089"></script>
+  <script src="js/sw-register.js?v=1089"></script>
+<script src="js/pwa-install.js?v=1089"></script>
+  <script src="js/gemini-client.js?v=1089"></script>
+  <script type="module" src="js/url-importer.js?v=1089"></script>
 
 
   <script type="module">
