@@ -346,6 +346,7 @@
         /** Selecciona una fecha del carrusel */
         selectDate(dateStr) {
             this.selectedDate = dateStr;
+            this.isCompletedFolderOpen = false;
             if (dateStr) {
                 const [y, m] = dateStr.split('-');
                 this.currentViewYear = parseInt(y, 10);
@@ -2905,7 +2906,8 @@
                     cardEl.classList.add('task-card-archiving-out');
                     await new Promise(resolve => setTimeout(resolve, 180));
                 }
-                // La carpeta de Realizadas se mantiene en su estado actual (el usuario la abre manualmente si lo desea)
+                // La carpeta de Realizadas se mantiene SIEMPRE cerrada al completar tareas para no confundir al usuario
+                this.isCompletedFolderOpen = false;
             }
 
             let isNowCompleted = false;

@@ -7511,8 +7511,12 @@ class SearchHistory {
             if (isDetail && activeId) {
                 const currentSupplier = (mgr && mgr.suppliers) ? mgr.suppliers.find(s => s.id === activeId) : null;
                 const supName = currentSupplier ? (currentSupplier.name || '') : '';
+                const imageUrl = currentSupplier ? (currentSupplier.image_url || '') : '';
+                const initials = supName ? supName.trim().substring(0, 2).toUpperCase() : '';
                 return {
                     icon: 'inventory_2',
+                    imageUrl: imageUrl,
+                    initials: initials,
                     title: supName
                         ? (isEn ? ('Search products in ' + supName) : ('Buscar productos en ' + supName))
                         : (isEn ? 'Search products' : 'Buscar productos'),
@@ -7570,9 +7574,24 @@ class SearchHistory {
 
     renderEmptyStateForView(view, isEn) {
         const config = this.getEmptyStateConfig(view, isEn);
+        const iconOrAvatar = config.imageUrl ? `
+            <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; background: var(--surface, #F8FAFC); border: 2px solid var(--border, #E4E4E7); box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0;">
+                <img referrerpolicy="no-referrer" src="${config.imageUrl}" alt="${this.escapeHtml(config.title)}" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';" />
+                <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; font-family: var(--font-display);">
+                    ${this.escapeHtml(config.initials || 'PR')}
+                </div>
+            </div>
+        ` : (config.initials ? `
+            <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; background: #e8f7f0; color: #0d7a50; font-weight: 800; font-size: 22px; font-family: var(--font-display); border: 2px solid var(--border, #E4E4E7); box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0;">
+                ${this.escapeHtml(config.initials)}
+            </div>
+        ` : `
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary, #059669); margin-bottom: 12px;">${config.icon}</span>
+        `);
+
         this.suggestionsEl.innerHTML = `
             <div class="search-empty-state-m3">
-                <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary, #059669); margin-bottom: 12px;">${config.icon}</span>
+                ${iconOrAvatar}
                 <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 600; color: var(--text-main);">${config.title}</h4>
                 <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); max-width: 280px; text-align: center;">${config.text}</p>
             </div>
@@ -7694,13 +7713,26 @@ class SearchHistory {
                 </div>
                 <div class="search-results-list" style="display: flex; flex-direction: column; gap: 4px;">
                     ${matches.slice(0, 30).map(it => {
-                        const highlighted = this.highlightText(it.name || 'Producto', query);
-                        const meta = [it.sku ? `SKU: ${it.sku}` : '', it.package_format || it.unit || ''].filter(Boolean).join(' • ');
-                        return `
-                            <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectSupplierItem('${it.id}', '${it.supplier_id}')">
-                                <div class="result-tile-icon-box">
-                                    <span class="material-symbols-outlined">inventory_2</span>
+                        const highlighted = this.highlightText(it.name || (isEn ? 'Product' : 'Producto'), query);
+                        const meta = [it.sku ? (`SKU: ` + it.sku) : '', it.package_format || it.unit || '', it.category || ''].filter(Boolean).join(' • ');
+                        const initials = (it.name || '??').trim().substring(0, 2).toUpperCase();
+                        const iconOrImg = it.image_url ? `
+                            <div class="result-tile-icon-box" style="border-radius: 50%; overflow: hidden; position: relative;">
+                                <img referrerpolicy="no-referrer" src="${it.image_url}" alt="${this.escapeHtml(it.name || '')}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" loading="lazy" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';" />
+                                <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: var(--font-display);">
+                                    ${this.escapeHtml(initials)}
                                 </div>
+                            </div>
+                        ` : `
+                            <div class="result-tile-icon-box" style="border-radius: 50%; overflow: hidden;">
+                                <div style="width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: var(--font-display);">
+                                    ${this.escapeHtml(initials)}
+                                </div>
+                            </div>
+                        `;
+                        return `
+                            <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectSupplierItem(\'${it.id}\', \'${it.supplier_id}\')">
+                                ${iconOrImg}
                                 <div class="result-tile-info">
                                     <div class="result-tile-title">${highlighted}</div>
                                     <div class="result-tile-meta">${this.escapeHtml(meta || (isEn ? 'Product' : 'Producto'))}</div>
@@ -7746,11 +7778,24 @@ class SearchHistory {
                 ${matches.slice(0, 30).map(s => {
                     const highlighted = this.highlightText(s.name || 'Proveedor', query);
                     const meta = [s.category || '', s.contact_name || ''].filter(Boolean).join(' • ');
-                    return `
-                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectSupplier('${s.id}')">
-                            <div class="result-tile-icon-box">
-                                <span class="material-symbols-outlined">local_shipping</span>
+                    const initials = (s.name || 'PR').trim().substring(0, 2).toUpperCase();
+                    const iconOrImg = s.image_url ? `
+                        <div class="result-tile-icon-box" style="border-radius: 50%; overflow: hidden; position: relative;">
+                            <img referrerpolicy="no-referrer" src="${s.image_url}" alt="${this.escapeHtml(s.name || '')}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" loading="lazy" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';" />
+                            <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: var(--font-display);">
+                                ${this.escapeHtml(initials)}
                             </div>
+                        </div>
+                    ` : `
+                        <div class="result-tile-icon-box" style="border-radius: 50%; overflow: hidden;">
+                            <div style="width: 100%; height: 100%; border-radius: 50%; background: #e8f7f0; color: #0d7a50; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: var(--font-display);">
+                                ${this.escapeHtml(initials)}
+                            </div>
+                        </div>
+                    `;
+                    return `
+                        <div class="search-result-tile-m3" onclick="window.dashboard.searchHistory.selectSupplier(\'${s.id}\')">
+                            ${iconOrImg}
                             <div class="result-tile-info">
                                 <div class="result-tile-title">${highlighted}</div>
                                 <div class="result-tile-meta">${this.escapeHtml(meta || (isEn ? 'Supplier' : 'Proveedor'))}</div>
