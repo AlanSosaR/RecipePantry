@@ -5190,7 +5190,7 @@ select.input-field {
     justify-content: center;
     font-weight: 800;
     font-size: 32px;
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+    box-shadow: none;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
     background-size: cover;
     background-position: center;
@@ -5230,7 +5230,7 @@ select.input-field {
 .user-avatar-m3:hover,
 .notas-avatar-circle:hover {
     transform: scale(1.06);
-    box-shadow: 0 12px 28px rgba(16, 185, 129, 0.35);
+    box-shadow: none;
 }
 
 .sidebar-user-profile:active .user-avatar-m3,
@@ -5391,7 +5391,7 @@ select.input-field {
         transition: all 0.3s var(--m3-easing) !important;
     }
 
-    /* Insignia Central Flotante (.hero-circle): Anillo exterior blanco con sombra suave que solapa la frontera entre la cabecera verde y el área blanca */
+    /* Insignia Central Flotante (.hero-circle): Anillo exterior blanco con sombra suave neutra idéntica a las páginas de inicio */
     .sidebar-user-profile .user-avatar-ring,
     .sidebar-user-profile .user-avatar-wrapper,
     .notas-sidebar-profile .notas-avatar-ring {
@@ -5400,9 +5400,10 @@ select.input-field {
         min-width: 108px !important;
         border-radius: 50% !important;
         border: none !important;
+        outline: none !important;
         padding: 6px !important;
         background: #ffffff !important;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12) !important;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
         position: relative !important;
         z-index: 2 !important;
         margin-top: 40px !important;
@@ -5414,10 +5415,24 @@ select.input-field {
         transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease !important;
     }
 
+    /* Eliminar cualquier sombra o efecto verde para que sea igual que las páginas de inicio */
+    .sidebar-user-profile .user-avatar-m3,
+    .sidebar-user-profile .user-avatar-wrapper .user-avatar-m3,
+    .notas-sidebar-profile .notas-avatar-circle {
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+    }
+
     .sidebar-user-profile:hover .user-avatar-ring,
     .sidebar-user-profile:hover .user-avatar-wrapper {
         transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16) !important;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .sidebar-user-profile:hover .user-avatar-m3,
+    .sidebar-user-profile:hover .notas-avatar-circle {
+        box-shadow: none !important;
     }
 
     .sidebar-user-profile .user-info-m3,
