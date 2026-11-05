@@ -2277,6 +2277,31 @@ renderItemCard(item, supplierId) {
             const item = this.items.find(it => String(it.id) === String(productId));
             if (!item) return;
 
+            // Reiniciar el buscador global al abrir la descripción/panel del producto
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (this.searchQuery || (searchInput && searchInput.value)) {
+                this.searchQuery = '';
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.blur();
+                }
+                if (clearBtn) clearBtn.classList.add('hidden');
+                if (window.dashboard) {
+                    if (window.dashboard.searchHistory) {
+                        window.dashboard.searchHistory.hideSuggestions();
+                    }
+                    if (typeof window.dashboard.closeMobileSearch === 'function') {
+                        window.dashboard.closeMobileSearch(null, true);
+                    }
+                }
+                const targetSupId = item.supplier_id || this.selectedSupplierDetailId;
+                const mount = document.getElementById('supplier-products-mount');
+                if (mount && targetSupId && typeof this.renderSupplierProductsListHTML === 'function') {
+                    mount.innerHTML = this.renderSupplierProductsListHTML(targetSupId);
+                }
+            }
+
             this.activeSideSheetProductId = String(productId);
             this._isPhotoZoomed = false;
 

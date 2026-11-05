@@ -8151,10 +8151,26 @@ class SearchHistory {
     }
 
     selectSupplierItem(itemId, supplierId) {
-        this.dashboard.closeMobileSearch();
+        if (this.dashboard && typeof this.dashboard.closeMobileSearch === 'function') {
+            this.dashboard.closeMobileSearch(null, true);
+        }
+        this.hideSuggestions();
         const searchInput = document.getElementById('searchInput');
-        if (searchInput) searchInput.blur();
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.blur();
+        }
+        if (clearBtn) clearBtn.classList.add('hidden');
         if (window.suppliersManager) {
+            window.suppliersManager.searchQuery = '';
+            const targetSupplierId = supplierId || window.suppliersManager.selectedSupplierDetailId;
+            if (targetSupplierId && typeof window.suppliersManager.renderSupplierProductsListHTML === 'function') {
+                const mount = document.getElementById('supplier-products-mount');
+                if (mount) {
+                    mount.innerHTML = window.suppliersManager.renderSupplierProductsListHTML(targetSupplierId);
+                }
+            }
             if (typeof window.suppliersManager.openProductSideSheet === 'function') {
                 window.suppliersManager.openProductSideSheet(itemId);
             } else if (typeof window.suppliersManager.openItemModal === 'function') {
