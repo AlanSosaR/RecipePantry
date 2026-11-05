@@ -268,7 +268,36 @@
                 if (searchViewContent) searchViewContent.classList.add('hidden');
             };
 
-            this.closeMobileSearch = closeMobileSearch;
+            const handleSearchBack = (e) => {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                if (searchInput) {
+                    searchInput.value = '';
+                    this.searchQuery = '';
+                    this.renderNotesList();
+                }
+                if (clearNotasBtn) clearNotasBtn.classList.add('hidden');
+                closeMobileSearch(e);
+            };
+            this.handleSearchBack = handleSearchBack;
+            this.closeMobileSearch = (e, clearText = false) => {
+                const isFromBackBtn = Boolean(e && (
+                    (e.currentTarget && e.currentTarget.id === 'btnNotasSearchBack') ||
+                    (e.target && typeof e.target.closest === 'function' && e.target.closest('#btnNotasSearchBack'))
+                ));
+                if (clearText || isFromBackBtn) {
+                    if (searchInput) {
+                        searchInput.value = '';
+                        this.searchQuery = '';
+                        this.renderNotesList();
+                    }
+                    if (clearNotasBtn) clearNotasBtn.classList.add('hidden');
+                }
+                closeMobileSearch(e);
+            };
+            const btnNotasSearchBack = document.getElementById('btnNotasSearchBack');
+            if (btnNotasSearchBack) {
+                btnNotasSearchBack.addEventListener('click', handleSearchBack);
+            }
             this.clearSearchInput = (e) => {
                 if (e) { e.preventDefault(); e.stopPropagation(); }
                 if (searchInput) {

@@ -29,10 +29,36 @@ class DashboardManager {
         }
     }
 
-    closeMobileSearch(e) {
+    closeMobileSearch(e, clearText = false) {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
+        }
+        const isFromBackBtn = Boolean(e && (
+            (e.currentTarget && e.currentTarget.id === 'btnSearchBack') ||
+            (e.target && typeof e.target.closest === 'function' && e.target.closest('#btnSearchBack'))
+        ));
+        if (clearText || isFromBackBtn) {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.blur();
+            }
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (this.currentView === 'allergens') {
+                this.handleAllergenSearch('');
+            } else if (this.currentView === 'menu') {
+                if (window.restaurantMenu) window.restaurantMenu.setSearchQuery('');
+            } else if (this.currentView === 'suppliers') {
+                if (window.suppliersManager) window.suppliersManager.handleSearch('');
+            } else if (this.currentView === 'tasks') {
+                if (window.tasksManager) window.tasksManager.handleSearch('');
+            } else if (this.currentView === 'help' && window.adminUsersManager) {
+                if (window.adminUsersManager.isSuperAdmin()) window.adminUsersManager.handleSearch('');
+            } else {
+                this.loadRecipes({ search: '' });
+            }
         }
         const topBar = document.getElementById('mainTopBar');
         if (topBar) {
@@ -46,6 +72,14 @@ class DashboardManager {
         if (this.searchHistory) {
             this.searchHistory.hideSuggestions();
         }
+    }
+
+    handleSearchBack(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.closeMobileSearch(e, true);
     }
 
     clearSearchInput(e) {
@@ -887,7 +921,7 @@ class DashboardManager {
 
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    this.closeMobileSearch();
+                    this.handleSearchBack(e);
                 } else if (e.key === 'Enter') {
                     const q = searchInput.value.trim();
                     if (this.currentView === 'menu' && window.restaurantMenu) {
@@ -1504,7 +1538,14 @@ class DashboardManager {
             } else {
                 searchInput.placeholder = isEn ? 'Search supplier...' : 'Buscar proveedor...';
             }
-            searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
+            if (isSupplierDetail) {
+                if (mgr && mgr.searchQuery && !mgr._isSearchingSupplierProducts) {
+                    mgr.searchQuery = '';
+                }
+                searchInput.value = (mgr && mgr.searchQuery) || '';
+            } else {
+                searchInput.value = (window.suppliersManager && window.suppliersManager.searchQuery) || '';
+            }
             if (clearBtn) {
                 clearBtn.classList.toggle('hidden', !searchInput.value);
             }
@@ -8075,7 +8116,9 @@ class SearchHistory {
     }
 
     selectSupplier(supId) {
-        this.dashboard.closeMobileSearch();
+        if (this.dashboard && typeof this.dashboard.closeMobileSearch === 'function') {
+            this.dashboard.closeMobileSearch(null, true);
+        }
         const searchInput = document.getElementById('searchInput');
         const clearBtn = document.getElementById('clearSearch');
         if (searchInput) {
@@ -8085,9 +8128,25 @@ class SearchHistory {
         if (clearBtn) clearBtn.classList.add('hidden');
         if (window.suppliersManager) {
             window.suppliersManager.searchQuery = '';
-            if (typeof window.suppliersManager.openSupplierDetail === 'function') {
-                window.suppliersManager.openSupplierDetail(supId);
-            }
+        }
+        if (this.dashboard && this.dashboard.currentView !== 'suppliers') {
+            this.dashboard.switchView('suppliers');
+            setTimeout(() => {
+                const sInput = document.getElementById('searchInput');
+                const cBtn = document.getElementById('clearSearch');
+                if (sInput) { sInput.value = ''; sInput.blur(); }
+                if (cBtn) cBtn.classList.add('hidden');
+                if (window.suppliersManager) {
+                    window.suppliersManager.searchQuery = '';
+                    if (typeof window.suppliersManager.openSupplierDetail === 'function') {
+                        window.suppliersManager.openSupplierDetail(supId);
+                    }
+                }
+            }, 100);
+            return;
+        }
+        if (window.suppliersManager && typeof window.suppliersManager.openSupplierDetail === 'function') {
+            window.suppliersManager.openSupplierDetail(supId);
         }
     }
 

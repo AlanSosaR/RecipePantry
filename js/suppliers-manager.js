@@ -75,6 +75,7 @@
                 } else if (supplierParam) {
                     this.selectedSupplierDetailId = supplierParam;
                     this.currentSubView = 'supplier-detail';
+                    this.searchQuery = '';
                 }
             } catch (e) { /* ignore */ }
 
@@ -1645,6 +1646,21 @@
         renderSupplierDetailPage(supplierId) {
             if (!this.container) return;
             document.body.classList.add('supplier-detail-active');
+
+            // Asegurar que al ingresar al detalle del proveedor el buscador global esté completamente vacío
+            this.searchQuery = '';
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.blur();
+            }
+            if (clearBtn) {
+                clearBtn.classList.add('hidden');
+            }
+            if (window.dashboard && window.dashboard.searchHistory) {
+                window.dashboard.searchHistory.hideSuggestions();
+            }
             this.updateFabVisibility();
             this.updateSearchPlaceholder();
             const isEn = this.isEnglish();
