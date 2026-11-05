@@ -20842,11 +20842,14 @@ body.body-drive:has(.top-bar-m3.search-mobile-active) .bottom-nav-m3 {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.result-tile-title mark {
-    background: #fef08a;
-    color: #854d0e;
-    padding: 1px 3px;
-    border-radius: 4px;
+.result-tile-title mark,
+.search-result-tile-m3 mark {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: var(--primary-dark, #059669) !important;
+    font-weight: 800 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
 }
 .result-tile-meta {
     font-size: 12px;
