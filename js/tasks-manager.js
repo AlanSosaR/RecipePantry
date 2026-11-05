@@ -705,6 +705,16 @@
                     this.checkTrailReminder();
                 }
             });
+
+            // Disparar prueba automática inmediata (una vez por sesión para visualización inmediata)
+            const params = new URLSearchParams(window.location.search);
+            const forceTest = params.has('testTrail') || params.has('test');
+            if (forceTest || !sessionStorage.getItem('rp_trail_sample_sent_v1116')) {
+                sessionStorage.setItem('rp_trail_sample_sent_v1116', 'true');
+                setTimeout(() => {
+                    this.sendTrailNotification(false);
+                }, 1000);
+            }
         }
 
         /** Obtiene el nombre amigable del usuario actual para personalizar notificaciones */
@@ -4021,6 +4031,11 @@
 
     // Instancia global disponible en window
     window.tasksManager = new TasksManager();
+    window.sendTrailTest = () => {
+        if (window.tasksManager) {
+            window.tasksManager.sendTrailNotification(false);
+        }
+    };
 })();
 
 
