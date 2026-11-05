@@ -3994,10 +3994,9 @@ class DashboardManager {
             modal.classList.remove('hidden');
             const isMobile = window.innerWidth <= 768;
             if (input) {
-                input.value = 'Nueva carpeta';
+                input.value = '';
                 setTimeout(() => {
                     input.focus();
-                    input.select();
                 }, isMobile ? 250 : 50);
             }
             if (isMobile) {
