@@ -19328,6 +19328,28 @@ m3-loading-indicator canvas {
     transform: scale(0.97);
 }
 
+/* Botón de acceso directo a crear orden / ver pedido de este proveedor en Side Sheet */
+#btnSideSheetGoToOrder {
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+#btnSideSheetGoToOrder:hover {
+    background: #f0fdf4 !important;
+    border-color: var(--primary-light, #a7f3d0) !important;
+}
+#btnSideSheetGoToOrder:active {
+    transform: scale(0.98);
+}
+#btnSideSheetGoToOrder .side-sheet-order-arrow,
+#btnSideSheetGoToOrder span.material-symbols-outlined.side-sheet-order-arrow,
+#btnSideSheetGoToOrder span.material-symbols-outlined:last-child {
+    color: var(--primary, #10b981) !important;
+}
+#btnSideSheetGoToOrder:hover .side-sheet-order-arrow,
+#btnSideSheetGoToOrder:hover span.material-symbols-outlined.side-sheet-order-arrow,
+#btnSideSheetGoToOrder:hover span.material-symbols-outlined:last-child {
+    color: var(--primary-dark, #059669) !important;
+}
+
 /* Ocultar el FAB principal cuando el Side Sheet esté abierto */
 body.product-side-sheet-open #mainFabBtn,
 body.product-side-sheet-open .fab-m3,

@@ -2639,10 +2639,10 @@ renderItemCard(item, supplierId) {
                         </div>
 
                         <!-- Botón de acceso directo a crear orden / ver pedido de este proveedor -->
-                        <button type="button" class="context-menu-item" id="btnSideSheetGoToOrder" style="padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; width: 100%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; border-radius: var(--radius-md); font-family: var(--font-display); transition: background 0.15s ease;">
-                            <span class="material-symbols-outlined" style="color: var(--primary-dark); font-size: 20px;">shopping_cart_checkout</span>
-                            <span style="flex: 1; text-align: left; font-weight: 600; font-size: 13.5px; color: var(--text-main);">${isEn ? "Go to order list" : "Ir a la lista de órdenes"}</span>
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary, #10b981);">chevron_right</span>
+                        <button type="button" class="btn-side-sheet-order-link" id="btnSideSheetGoToOrder" style="padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; width: 100%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; border-radius: var(--radius-md); font-family: var(--font-display); transition: background 0.15s ease;">
+                            <span class="material-symbols-outlined" style="color: var(--primary-dark, #059669) !important; font-size: 20px !important;">shopping_cart_checkout</span>
+                            <span style="flex: 1; text-align: left; font-weight: 600; font-size: 13.5px; color: var(--text-main); font-family: var(--font-display);">${isEn ? "Go to order list" : "Ir a la lista de órdenes"}</span>
+                            <span class="material-symbols-outlined side-sheet-order-arrow" style="font-size: 18px !important; color: var(--primary, #10b981) !important;">chevron_right</span>
                         </button>
 
                         ${item.notes ? `
