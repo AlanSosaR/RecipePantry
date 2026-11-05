@@ -5379,33 +5379,124 @@ class DashboardManager {
             this._panelRecipeId = recipeId;
             this._panelPermission = permission;
 
-            const renderIngredients = (scale) => ingredients.map(ing => {
-                const unit = isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es;
-                const ingName = isEn ? (ing.name_en || ing.name_es) : ing.name_es;
+            const isSubrecipeItem = (ing) => {
+                if (window.isSubrecipeItem) return window.isSubrecipeItem(ing);
+                const unit = (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) || '';
+                const ingName = (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || '';
+                const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
+                    ? String(ing.quantity).trim()
+                    : '';
+                if (originalQty && parseFloat(originalQty) > 0) return false;
+                const text = `${unit || ''} ${ingName || ''}`.replace(/\s+/g, ' ').trim();
+                if (!text) return false;
+                if (/^[-*#(\[\s]*\d+/i.test(text) && !/:\s*$/.test(text)) return false;
+                if (/^[-*#(\[\s]*(for\b|para\b|to serve\b|para servir\b)/i.test(text)) return true;
+                if (/^[-*#(\[\s]*(?:\d+[\.\)\-\s]+)?[^:]{2,80}:\s*(\([^)]+\))?$/i.test(text)) return true;
+                if (/\b(dredge|dip|sauce|glaze|marinade|topping|filling|batter|crust|rub|frosting|dressing|syrup|dough|salsa|relleno|masa|adobo|cobertura|marinado|crema|base)\b/i.test(text) && /[:\)]\s*$/.test(text)) return true;
+                return false;
+            };
 
-                if (window.isSubrecipeItem && window.isSubrecipeItem(ing)) {
-                    let cleanTitle = `${unit || ''} ${ingName || ''}`.replace(/^[:\s\-*#]+|[:\s\-*#]+$/g, '').trim();
-                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+            const renderIngredients = (scale) => {
+                const isReduced = scale < 1;
+                const isIncreased = scale > 1;
+                const pillClass = isReduced ? 'qty-reduced' : (isIncreased ? 'qty-increased' : '');
+
+                return ingredients.map(ing => {
+                    const unit = (isEn ? (ing.unit_en || ing.unit_es) : ing.unit_es) || '';
+                    const ingName = (isEn ? (ing.name_en || ing.name_es) : ing.name_es) || '';
+                    const originalQty = (ing.quantity !== undefined && ing.quantity !== null && String(ing.quantity).trim() !== 'null' && String(ing.quantity).trim() !== 'undefined')
+                        ? String(ing.quantity).trim()
+                        : '';
+
+                    if (isSubrecipeItem(ing)) {
+                        let cleanTitle = `${unit} ${ingName}`.replace(/^[:\s\-*#]+|[:\s\-*#]+$/g, '').trim();
+                        cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+                        return `
+                            <div class="m3-subrecipe-header-container" style="margin-top: 18px; margin-bottom: 8px;">
+                                <div class="m3-subrecipe-pill">
+                                    <span class="material-symbols-outlined subrecipe-pill-icon" style="font-size: 16px;">bookmark</span>
+                                    <span>${cleanTitle}</span>
+                                </div>
+                            </div>`;
+                    }
+
+                    let renderedContent = '';
+
+                    if (scale === 1) {
+                        // Modo Normal: números e indicadores/unidades (g, lb, etc.) resaltados en verde oficial (#10B981)
+                        const unitList = 'g|gr|grs|gramos?|kg|kilos?|kilogramos?|ml|mls|mililitros?|l|lt|lts|litros?|oz|lb|lbs|libras?|tbsp|cda|cdas|cucharadas?|tsp|cdita|cditas|cucharaditas?|taza|tazas|cup|cups|ud|uds|pz|pza|pzas|piezas?|clove|cloves|dientes?|pinch|pizca|pizcas';
+                        const qtyUnitRegex = new RegExp(`(^|[\s(\[])((\d+\s+\d+\/\d+|\d+\/\d+|\d+[.,]\d+|\d+)(\s*(?:${unitList})\b)?)`, 'i');
+
+                        if (originalQty) {
+                            const qtyUnit = `${originalQty} ${unit}`.trim();
+                            renderedContent = `<span class="ingredient-num-normal">${qtyUnit}</span> <span class="ingredient-name-text">${ingName}</span>`;
+                        } else {
+                            const rawText = `${unit} ${ingName}`.replace(/\s+/g, ' ').trim();
+                            let hasMatched = false;
+                            renderedContent = rawText.replace(qtyUnitRegex, (match, prefix, fullQty) => {
+                                if (hasMatched) return match;
+                                hasMatched = true;
+                                return `${prefix}<span class="ingredient-num-normal">${fullQty.trim()}</span> `;
+                            }).replace(/\s+/g, ' ').trim();
+                        }
+                    } else {
+                        // Modo Escalado: Píldora Terracota al reducir (#e55b43), Píldora Verde al aumentar (#10B981)
+                        if (originalQty) {
+                            const val = window.utils ? window.utils.parseToDecimal(originalQty) : parseFloat(originalQty);
+                            if (val !== null && !isNaN(val) && val > 0) {
+                                const scaled = val * scale;
+                                const formattedQty = window.utils && window.utils.formatAmount
+                                    ? window.utils.formatAmount(scaled, unit)
+                                    : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
+                                const pillText = `${formattedQty} ${unit}`.trim();
+                                renderedContent = `
+                                    <span class="ingredient-qty-pill ${pillClass}">${pillText}</span>
+                                    <span class="ingredient-name-text">${ingName}</span>
+                                `.trim();
+                            } else {
+                                renderedContent = `${originalQty} ${unit} ${ingName}`.replace(/\s+/g, ' ').trim();
+                            }
+                        } else {
+                            const rawText = `${unit} ${ingName}`.trim();
+                            const regex = /(\d+\s+\d+\/\d+|\d+\/\d+|\d+[\.,]\d+|\d+)(\s*(?:g|gr|grs|gramos?|kg|kilos?|kilogramos?|ml|mls|mililitros?|l|lt|lts|litros?|oz|lb|tbsp|tsp|cda|cdita|taza|cup|ud|pz|pza|piezas?|clove|cloves|dientes?)\b)?/i;
+                            let hasMatched = false;
+
+                            const scaledText = rawText.replace(regex, (match, numStr, unitStr, offset, fullStr) => {
+                                const prevChar = offset > 0 ? fullStr[offset - 1] : '';
+                                if (/[a-zA-Z]/.test(prevChar)) return match;
+                                if (hasMatched) return match;
+
+                                const val = window.utils ? window.utils.parseToDecimal(numStr) : parseFloat(numStr);
+                                if (val === null || isNaN(val) || val <= 0) return match;
+                                hasMatched = true;
+
+                                const scaled = val * scale;
+                                const matchedUnit = (unitStr || '').trim();
+                                const formattedQty = window.utils && window.utils.formatAmount
+                                    ? window.utils.formatAmount(scaled, matchedUnit)
+                                    : (window.utils ? window.utils.formatQuantity(scaled) : scaled.toString());
+                                const pillText = `${formattedQty}${matchedUnit ? ' ' + matchedUnit : ''}`.trim();
+                                return `<span class="ingredient-qty-pill ${pillClass}">${pillText}</span>`;
+                            });
+
+                            if (hasMatched) {
+                                renderedContent = scaledText;
+                            } else {
+                                renderedContent = rawText;
+                            }
+                        }
+                    }
+
                     return `
-                        <div class="m3-subrecipe-header-container" style="margin-top: 14px; margin-bottom: 6px;">
-                            <div class="m3-subrecipe-pill">
-                                <span class="material-symbols-outlined subrecipe-pill-icon" style="font-size: 16px;">bookmark</span>
-                                <span>${cleanTitle}</span>
+                        <label class="m3-ingredient-item">
+                            <input class="hidden" type="checkbox" onchange="this.parentElement.classList.toggle('checked')"/>
+                            <div class="m3-checkbox-premium">
+                                <span class="material-symbols-outlined">check</span>
                             </div>
-                        </div>`;
-                }
-
-                const originalText = `${ing.quantity || ''} ${unit || ''} ${ingName}`.trim();
-                const text = (window.utils?.scaleText) ? window.utils.scaleText(originalText, scale) : originalText;
-                return `
-                    <label class="m3-ingredient-item">
-                        <input class="hidden" type="checkbox" onchange="this.parentElement.classList.toggle('checked')"/>
-                        <div class="m3-checkbox-premium">
-                            <span class="material-symbols-outlined">check</span>
-                        </div>
-                        <span class="m3-ingredient-text">${text}</span>
-                    </label>`;
-            }).join('');
+                            <span class="m3-ingredient-text">${renderedContent}</span>
+                        </label>`;
+                }).join('');
+            };
 
             const renderSteps = () => steps.map((step, idx) => {
                 const instruction = isEn ? (step.instruction_en || step.instruction_es) : step.instruction_es;
@@ -5421,8 +5512,8 @@ class DashboardManager {
             }).join('');
 
             document.getElementById('panelDetailBody').innerHTML = `
-                <div class="pc-detail-scroll">
-                    <header class="recipe-hero-header">
+                <header class="pc-detail-sticky-header recipe-hero-header">
+                    <div class="pc-detail-sticky-inner">
                         <div class="m3-stepper-selector" id="panelServingSelector">
                             <div class="stepper-pill-horizontal">
                                 <div class="stepper-label-group">
@@ -5440,8 +5531,10 @@ class DashboardManager {
                                 </div>
                             </div>
                         </div>
-                    </header>
+                    </div>
+                </header>
 
+                <div class="pc-detail-scroll">
                     <div class="content-sections">
                         ${description ? `
                         <section class="section-group">
@@ -5529,36 +5622,50 @@ class DashboardManager {
                 });
             }
 
-            // Escalado de porciones en el panel
-            const fractionalSteps = [0.125, 0.25, 0.5, 0.75, 1];
+            // Escalado de porciones en el panel (exacto a la vista móvil)
+            const fractionalSteps = [0.25, 1 / 3, 0.5, 1];
             const updatePanelScale = (newScale) => {
-                if (newScale < 0.125) return;
+                if (newScale < 0.24) return;
                 this._panelScale = newScale;
-                let label = '';
-                if (newScale === 0.125) label = '1/8';
-                else if (newScale === 0.25) label = '1/4';
-                else if (newScale === 0.5) label = '1/2';
-                else if (newScale === 0.75) label = '3/4';
-                else label = newScale % 1 === 0 ? String(newScale) : newScale.toFixed(2).replace(/\.?0+$/, '');
+
+                let mainDisplay = '';
+                if (newScale < 1) {
+                    const divFactor = Math.round(1 / newScale);
+                    mainDisplay = `÷${divFactor}`;
+                } else if (newScale % 1 === 0) {
+                    mainDisplay = String(newScale);
+                } else {
+                    mainDisplay = parseFloat(newScale.toFixed(2)).toString();
+                }
 
                 const portionDisplay = document.getElementById('panelPortionDisplay');
                 const portionText = document.getElementById('panelPortionText');
                 const ingList = document.getElementById('panelIngredientsList');
-                if (portionDisplay) portionDisplay.textContent = label;
                 const decBtn = document.getElementById('panelBtnDecrease');
                 const incBtn = document.getElementById('panelBtnIncrease');
+
+                if (portionDisplay) {
+                    portionDisplay.textContent = mainDisplay;
+                    if (newScale < 1) {
+                        portionDisplay.style.color = '#e55b43';
+                    } else if (newScale > 1) {
+                        portionDisplay.style.color = '#10B981';
+                    } else {
+                        portionDisplay.style.color = '#1B1B1F';
+                    }
+                }
+
                 if (portionText) {
                     if (newScale === 1) {
                         portionText.textContent = isEn ? 'Original recipe' : 'Receta original';
                         portionText.style.color = '#64748B';
-                    } else if (newScale > 1) {
-                        portionText.textContent = isEn ? `Multiplied recipe × ${label}` : `Receta multiplicada × ${label}`;
-                        portionText.style.color = 'var(--primary, #10B981)';
+                        portionText.style.display = 'block';
                     } else {
-                        portionText.textContent = isEn ? `Reduced recipe ÷ ${Math.round(1/newScale)}` : `Receta reducida ÷ ${Math.round(1/newScale)}`;
-                        portionText.style.color = '#e55b43';
+                        portionText.textContent = '';
+                        portionText.style.display = 'none';
                     }
                 }
+
                 if (decBtn) {
                     if (newScale < 1) decBtn.classList.add('active-halo');
                     else decBtn.classList.remove('active-halo');
@@ -5567,19 +5674,29 @@ class DashboardManager {
                     if (newScale > 1) incBtn.classList.add('active-halo');
                     else incBtn.classList.remove('active-halo');
                 }
-                if (ingList) ingList.innerHTML = renderIngredients(newScale);
+
+                if (ingList) {
+                    ingList.innerHTML = renderIngredients(newScale);
+                }
             };
 
             document.getElementById('panelBtnIncrease')?.addEventListener('click', () => {
                 let next;
-                if (this._panelScale < 1) next = fractionalSteps.find(s => s > this._panelScale + 0.001) || 2;
-                else next = Math.floor(this._panelScale) + 1;
+                if (this._panelScale < 1) {
+                    next = fractionalSteps.find(s => s > this._panelScale + 0.001) || 2;
+                } else {
+                    next = Math.floor(this._panelScale) + 1;
+                }
                 updatePanelScale(next);
             });
+
             document.getElementById('panelBtnDecrease')?.addEventListener('click', () => {
                 let prev;
-                if (this._panelScale <= 1) prev = [...fractionalSteps].reverse().find(s => s < this._panelScale - 0.001) || 0.125;
-                else prev = Math.ceil(this._panelScale) - 1;
+                if (this._panelScale <= 1) {
+                    prev = [...fractionalSteps].reverse().find(s => s < this._panelScale - 0.001) || 0.25;
+                } else {
+                    prev = Math.ceil(this._panelScale) - 1;
+                }
                 updatePanelScale(prev);
             });
 
