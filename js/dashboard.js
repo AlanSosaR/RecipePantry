@@ -208,7 +208,10 @@ class DashboardManager {
 
         if (emptyState) emptyState.classList.add('hidden');
         const dashHeader = document.querySelector('.dashboard-header');
-        if (dashHeader) dashHeader.classList.add('hidden');
+        if (dashHeader) {
+            dashHeader.classList.add('hidden');
+            dashHeader.style.setProperty('display', 'none', 'important');
+        }
 
         const breadcrumb = document.getElementById('folderBreadcrumb');
         if (breadcrumb) {
@@ -5420,23 +5423,22 @@ class DashboardManager {
             document.getElementById('panelDetailBody').innerHTML = `
                 <div class="pc-detail-scroll">
                     <header class="recipe-hero-header">
-                        <h1 class="recipe-hero-title">
-                            <span class="text-primary">${firstWord}</span> ${restTitle}
-                        </h1>
                         <div class="m3-stepper-selector" id="panelServingSelector">
                             <div class="stepper-pill-horizontal">
-                                <span class="stepper-label-text">SELECCIONAR PORCIONES</span>
+                                <div class="stepper-label-group">
+                                    <span class="stepper-label-text">SELECCIONAR PORCIONES</span>
+                                    <span id="panelPortionText" class="recipe-portion-text">${isEn ? 'Original recipe' : 'Receta original'}</span>
+                                </div>
                                 <div class="stepper-controls">
-                                    <button class="stepper-btn" id="panelBtnDecrease">
+                                    <button class="stepper-btn stepper-btn-decrease" id="panelBtnDecrease" title="${isEn ? 'Decrease' : 'Reducir porciones'}">
                                         <span class="material-symbols-outlined">remove</span>
                                     </button>
                                     <span id="panelPortionDisplay" class="portion-value">1</span>
-                                    <button class="stepper-btn" id="panelBtnIncrease">
+                                    <button class="stepper-btn stepper-btn-increase" id="panelBtnIncrease" title="${isEn ? 'Increase' : 'Aumentar porciones'}">
                                         <span class="material-symbols-outlined">add</span>
                                     </button>
                                 </div>
                             </div>
-                            <span id="panelPortionText" class="recipe-portion-text">Receta original</span>
                         </div>
                     </header>
 
@@ -5543,10 +5545,27 @@ class DashboardManager {
                 const portionText = document.getElementById('panelPortionText');
                 const ingList = document.getElementById('panelIngredientsList');
                 if (portionDisplay) portionDisplay.textContent = label;
+                const decBtn = document.getElementById('panelBtnDecrease');
+                const incBtn = document.getElementById('panelBtnIncrease');
                 if (portionText) {
-                    if (newScale === 1) portionText.textContent = 'Receta original';
-                    else if (newScale > 1) portionText.textContent = `Receta multiplicada × ${label}`;
-                    else portionText.textContent = `Receta reducida ÷ ${Math.round(1/newScale)}`;
+                    if (newScale === 1) {
+                        portionText.textContent = isEn ? 'Original recipe' : 'Receta original';
+                        portionText.style.color = '#64748B';
+                    } else if (newScale > 1) {
+                        portionText.textContent = isEn ? `Multiplied recipe × ${label}` : `Receta multiplicada × ${label}`;
+                        portionText.style.color = 'var(--primary, #10B981)';
+                    } else {
+                        portionText.textContent = isEn ? `Reduced recipe ÷ ${Math.round(1/newScale)}` : `Receta reducida ÷ ${Math.round(1/newScale)}`;
+                        portionText.style.color = '#e55b43';
+                    }
+                }
+                if (decBtn) {
+                    if (newScale < 1) decBtn.classList.add('active-halo');
+                    else decBtn.classList.remove('active-halo');
+                }
+                if (incBtn) {
+                    if (newScale > 1) incBtn.classList.add('active-halo');
+                    else incBtn.classList.remove('active-halo');
                 }
                 if (ingList) ingList.innerHTML = renderIngredients(newScale);
             };
@@ -5605,6 +5624,7 @@ class DashboardManager {
         const dashHeader = document.querySelector('.dashboard-header');
         if (dashHeader && !this.currentFolder && !this.isSelectionMode) {
             dashHeader.classList.remove('hidden');
+            dashHeader.style.removeProperty('display');
         }
 
         const fab = document.querySelector('.fab-m3');

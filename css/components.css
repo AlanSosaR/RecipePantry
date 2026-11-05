@@ -21611,13 +21611,20 @@ body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item.nav-logout-m3 .m
 .top-bar-recipe-title {
     margin: 0 !important;
     font-family: var(--font-display, "Poppins", sans-serif) !important;
-    font-size: 1.25rem !important;
-    font-weight: 700 !important;
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
     color: var(--on-surface, #1B1B1F) !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     line-height: 1.2 !important;
+}
+
+@media (min-width: 1024px) {
+    .top-bar-recipe-title {
+        font-size: 2.1rem !important;
+    }
 }
 
 .top-bar-recipe-title .text-primary {
@@ -21631,9 +21638,122 @@ body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item.nav-logout-m3 .m
     flex-shrink: 0 !important;
 }
 
+/* En PC al abrir receta: ocultar dashboard-header, breadcrumb y carousel */
+body:has(.top-bar-m3.recipe-detail-active) .dashboard-header,
+.dashboard-app:has(.top-bar-m3.recipe-detail-active) .dashboard-header,
+body:has(.top-bar-m3.recipe-detail-active) #suggestedCarouselSection,
+.dashboard-app:has(.top-bar-m3.recipe-detail-active) #suggestedCarouselSection,
 body:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar,
 .dashboard-app:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar {
     display: none !important;
+}
+
+/* Eliminar titulo duplicado en el cuerpo en PC (ya esta en el header) */
+.pc-detail-scroll .recipe-hero-title {
+    display: none !important;
+}
+
+.pc-detail-scroll .recipe-hero-header {
+    text-align: left !important;
+    margin-bottom: 24px !important;
+}
+
+/* Selector de Porciones con el Mismo Diseno y Efecto del Movil en PC */
+.pc-detail-scroll .m3-stepper-selector {
+    margin: 0 0 24px 0 !important;
+    width: 100% !important;
+}
+
+.pc-detail-scroll .stepper-pill-horizontal {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.pc-detail-scroll .stepper-label-group {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+}
+
+.pc-detail-scroll .stepper-label-text {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+    color: var(--on-surface, #1B1B1F) !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+}
+
+.pc-detail-scroll .recipe-portion-text {
+    font-size: 12px !important;
+    color: #64748B !important;
+    font-weight: 500 !important;
+    transition: color 0.2s ease !important;
+}
+
+.pc-detail-scroll .stepper-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    background: #E8F8F3 !important;
+    padding: 6px 14px !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08) !important;
+}
+
+.pc-detail-scroll .stepper-btn {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #FFFFFF !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.pc-detail-scroll .stepper-btn-decrease {
+    background: #e55b43 !important;
+    box-shadow: 0 4px 10px rgba(229, 91, 67, 0.28) !important;
+}
+
+.pc-detail-scroll .stepper-btn-decrease:hover {
+    background: #cf4933 !important;
+    transform: scale(1.08) !important;
+}
+
+.pc-detail-scroll .stepper-btn-decrease:active {
+    transform: scale(0.92) !important;
+}
+
+.pc-detail-scroll .stepper-btn-increase {
+    background: #10B981 !important;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.28) !important;
+}
+
+.pc-detail-scroll .stepper-btn-increase:hover {
+    background: #059669 !important;
+    transform: scale(1.08) !important;
+}
+
+.pc-detail-scroll .stepper-btn-increase:active {
+    transform: scale(0.92) !important;
+}
+
+.pc-detail-scroll .portion-value {
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    color: #1B1B1F !important;
+    min-width: 28px !important;
+    text-align: center !important;
 }
 
 /* Permitir seleccion de texto y elementos dentro del detalle de receta */
