@@ -9320,7 +9320,7 @@ body.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
     border-radius: 18px !important;
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    z-index: 2000;
+    z-index: 10060 !important;
     padding: 6px 0 !important;
     display: flex;
     flex-direction: column;
@@ -9442,7 +9442,7 @@ body.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
     background: rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
-    z-index: 2990;
+    z-index: 10050 !important;
     opacity: 0;
     animation: m3FadeIn 0.22s ease forwards;
 }
@@ -9465,7 +9465,7 @@ body.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
     border-bottom-right-radius: 0 !important;
     border: none !important;
     box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.22) !important;
-    z-index: 3000 !important;
+    z-index: 10060 !important;
     padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px !important;
     max-height: 92vh;
     overflow-y: auto !important;
@@ -21243,6 +21243,33 @@ body.body-drive:has(.top-bar-m3.search-mobile-active) .bottom-nav-m3 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.result-tile-more-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full, 999px);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary, #64748b);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    padding: 0;
+    margin-left: auto;
+}
+.result-tile-more-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text-main, #0f172a);
+}
+.result-tile-more-btn:active {
+    transform: scale(0.92);
+}
+.result-tile-more-btn .material-symbols-outlined {
+    font-size: 22px;
+    color: inherit;
 }
 .result-tile-arrow {
     font-size: 20px;

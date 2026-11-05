@@ -5602,7 +5602,7 @@ class DashboardManager {
             const addedMsg = window.i18n ? window.i18n.t('favAdded') : 'Añadido a favoritos';
             const removedMsg = window.i18n ? window.i18n.t('favRemoved') : 'Eliminado de favoritos';
             window.utils.showToast(result.isFavorite ? addedMsg : removedMsg, 'success');
-            const recipe = this.currentRecipes.find(r => String(r.id) === String(recipeId));
+            const recipe = (this.currentRecipes && this.currentRecipes.find(r => String(r.id) === String(recipeId))) || (this.allRecipesCache && this.allRecipesCache.find(r => String(r.id) === String(recipeId)));
             if (recipe) {
                 recipe.is_favorite = result.isFavorite;
                 this.renderRecipesGrid(this.currentRecipes);
@@ -5650,7 +5650,7 @@ class DashboardManager {
         }
         if (existingBackdrop) existingBackdrop.remove();
 
-        const recipe = this.currentRecipes.find(r => String(r.id) === String(recipeId));
+        const recipe = (this.currentRecipes && this.currentRecipes.find(r => String(r.id) === String(recipeId))) || (this.allRecipesCache && this.allRecipesCache.find(r => String(r.id) === String(recipeId)));
         if (!recipe) return;
 
         const isMobile = window.innerWidth < 600;
@@ -7958,7 +7958,9 @@ class SearchHistory {
                                 <div class="result-tile-title">${highlightedName}</div>
                                 <div class="result-tile-meta">${this.escapeHtml(folder)}${time}</div>
                             </div>
-                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                            <button type="button" class="btn-icon-m3 result-tile-more-btn" title="${isEn ? 'More options' : 'Más opciones'}" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${recipe.id}', event)">
+                                <span class="material-symbols-outlined">more_vert</span>
+                            </button>
                         </div>
                     `;
                 }).join('')}
@@ -8230,7 +8232,9 @@ class SearchHistory {
                                 <div class="result-tile-title">${highlighted}</div>
                                 <div class="result-tile-meta">${this.escapeHtml(allergensStr)}</div>
                             </div>
-                            <span class="material-symbols-outlined result-tile-arrow">arrow_forward</span>
+                            <button type="button" class="btn-icon-m3 result-tile-more-btn" title="${isEn ? 'More options' : 'Más opciones'}" onclick="event.stopPropagation(); window.dashboard.showMoreOptions('${r.id}', event)">
+                                <span class="material-symbols-outlined">more_vert</span>
+                            </button>
                         </div>
                     `;
                 }).join('')}
