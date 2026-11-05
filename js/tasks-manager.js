@@ -1586,22 +1586,24 @@
 
                     <!-- MODAL / BOTTOM SHEET DE REVISIÓN DE TAREAS DETECTADAS -->
                     <div id="prepScanPreviewBackdrop" onclick="window.tasksManager.closeScanPreviewModal()" class="tasks-backdrop" style="display: none;"></div>
-                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none;">
+                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none; position: relative;">
+                        <!-- Drag Handle -->
                         <div class="prep-scan-drag-area">
                             <div class="prep-scan-drag-handle"></div>
                         </div>
-                        <div class="tasks-bottom-sheet-header">
+                        <!-- Botón cerrar en esquina superior derecha -->
+                        <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-close-btn" aria-label="Cerrar" title="Cerrar">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                        <div class="tasks-bottom-sheet-header" style="padding-right: 44px;">
                             <div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span class="material-symbols-outlined" style="color: #12B078; font-size: 24px;">fact_check</span>
                                     <h3 style="font-size: 18px; font-weight: 800; color: #18181B; margin: 0;">Tareas Detectadas</h3>
                                     <span id="prepScanTotalBadge" class="prep-scan-counter-badge">0</span>
                                 </div>
-                                <p style="font-size: 12px; color: #71717A; margin: 3px 0 0 0;">Revisa, edita o desmarca las tareas antes de agregarlas al To-Do</p>
+                                <p style="font-size: 12px; color: #71717A; margin: 3px 0 0 0;">Desliza a la derecha para eliminar un ítem</p>
                             </div>
-                            <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-close-btn" aria-label="Cerrar">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
-                            </button>
                         </div>
 
                         <!-- Barra de herramientas: Seleccionar todas + Añadir manual extra -->
@@ -3099,11 +3101,17 @@ REGLAS OBLIGATORIAS:
 
         /** Abre el modal de previsualización y edición de tareas detectadas */
         openScanPreviewModal(tasks) {
-            this.scannedDraftTasks = tasks.map(t => ({
-                title: String(t.title || '').trim(),
-                qty: String(t.qty || '').trim(),
-                selected: true
-            })).filter(t => t.title.length > 0);
+            this.scannedDraftTasks = tasks.map(t => {
+                let title = String(t.title || '').trim();
+                const qty = String(t.qty || '').trim();
+                if (qty && !title.toLowerCase().includes(qty.toLowerCase())) {
+                    title = `${title} ${qty}`.trim();
+                }
+                return {
+                    title: title,
+                    selected: true
+                };
+            }).filter(t => t.title.length > 0);
 
             const sheet = document.getElementById('prepScanPreviewSheet');
             const backdrop = document.getElementById('prepScanPreviewBackdrop');
@@ -3123,7 +3131,7 @@ REGLAS OBLIGATORIAS:
             this.scannedDraftTasks = [];
         }
 
-        /** Renderiza la lista de tareas en el modal de confirmación */
+        /** Renderiza la lista de tareas en el modal de confirmación (Línea única + Swipe a la derecha para eliminar) */
         renderScannedDraftItems() {
             const container = document.getElementById('prepScanItemsContainer');
             const badge = document.getElementById('prepScanTotalBadge');
@@ -3160,32 +3168,129 @@ REGLAS OBLIGATORIAS:
             }
 
             container.innerHTML = this.scannedDraftTasks.map((t, idx) => `
-                <div class="prep-scan-item-card ${t.selected ? 'is-selected' : ''}" data-idx="${idx}">
-                    <label class="prep-scan-item-checkbox-wrap">
-                        <input type="checkbox" ${t.selected ? 'checked' : ''} onchange="window.tasksManager.toggleScannedTaskSelected(${idx}, this.checked)">
-                    </label>
-                    <div class="prep-scan-item-fields">
-                        <input 
-                            type="text" 
-                            class="prep-scan-input-title" 
-                            value="${this.escapeHtml(t.title)}" 
-                            placeholder="Nombre de la tarea"
-                            oninput="window.tasksManager.updateScannedTaskTitle(${idx}, this.value)"
-                        >
-                        <input 
-                            type="text" 
-                            class="prep-scan-input-qty" 
-                            value="${this.escapeHtml(t.qty)}" 
-                            placeholder="Cant. (ej: 5 kg)"
-                            title="Cantidad o porciones"
-                            oninput="window.tasksManager.updateScannedTaskQty(${idx}, this.value)"
-                        >
-                    </div>
-                    <button type="button" onclick="window.tasksManager.removeScannedTask(${idx})" class="prep-scan-item-delete" title="Eliminar de la lista">
+                <div class="prep-scan-swipe-container" data-idx="${idx}">
+                    <!-- Fondo rojo revelado al deslizar a la derecha para eliminar -->
+                    <div class="prep-scan-swipe-delete-bg">
                         <span class="material-symbols-outlined">delete</span>
-                    </button>
+                        <span>Eliminar</span>
+                    </div>
+                    <!-- Tarjeta deslizable de una sola línea -->
+                    <div class="prep-scan-item-card ${t.selected ? 'is-selected' : ''}"
+                         onpointerdown="window.tasksManager.handleScanItemPointerDown(event, ${idx})"
+                         onpointermove="window.tasksManager.handleScanItemPointerMove(event, ${idx})"
+                         onpointerup="window.tasksManager.handleScanItemPointerUp(event, ${idx})"
+                         onpointercancel="window.tasksManager.handleScanItemPointerUp(event, ${idx})">
+                        <label class="prep-scan-item-checkbox-wrap" onpointerdown="event.stopPropagation();">
+                            <input type="checkbox" ${t.selected ? 'checked' : ''} onchange="window.tasksManager.toggleScannedTaskSelected(${idx}, this.checked)">
+                        </label>
+                        <div class="prep-scan-item-fields">
+                            <input 
+                                type="text" 
+                                class="prep-scan-input-title" 
+                                value="${this.escapeHtml(t.title)}" 
+                                placeholder="Escribe o edita la tarea..."
+                                oninput="window.tasksManager.updateScannedTaskTitle(${idx}, this.value)"
+                                onpointerdown="event.stopPropagation();"
+                            >
+                        </div>
+                        <button type="button" class="prep-scan-pc-delete-btn" onclick="window.tasksManager.removeScannedTask(${idx})" title="Eliminar ítem" onpointerdown="event.stopPropagation();">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        /** Manejadores de gesto Swipe a la derecha para eliminar ítem escaneado */
+        handleScanItemPointerDown(e, idx) {
+            if (e.target.closest('input') || e.target.closest('button')) return;
+            const card = e.currentTarget;
+            this._scanSwipeState = {
+                idx,
+                card,
+                startX: e.clientX,
+                startY: e.clientY,
+                currentX: e.clientX,
+                isSwiping: false,
+                isVerticalScroll: false
+            };
+        }
+
+        handleScanItemPointerMove(e, idx) {
+            if (!this._scanSwipeState || this._scanSwipeState.idx !== idx) return;
+            if (this._scanSwipeState.isVerticalScroll) return;
+
+            const deltaX = e.clientX - this._scanSwipeState.startX;
+            const deltaY = e.clientY - this._scanSwipeState.startY;
+
+            if (!this._scanSwipeState.isSwiping) {
+                if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 6) {
+                    this._scanSwipeState.isVerticalScroll = true;
+                    return;
+                }
+                if (deltaX > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    this._scanSwipeState.isSwiping = true;
+                    const container = this._scanSwipeState.card.closest('.prep-scan-swipe-container');
+                    if (container) container.style.overflow = 'hidden';
+                    if (this._scanSwipeState.card.setPointerCapture) {
+                        try { this._scanSwipeState.card.setPointerCapture(e.pointerId); } catch (_) {}
+                    }
+                }
+            }
+
+            if (this._scanSwipeState.isSwiping) {
+                this._scanSwipeState.currentX = e.clientX;
+                const card = this._scanSwipeState.card;
+                const container = card.closest('.prep-scan-swipe-container');
+                const delBg = container ? container.querySelector('.prep-scan-swipe-delete-bg') : null;
+
+                if (deltaX > 0) {
+                    if (delBg) delBg.style.opacity = Math.min(deltaX / 70, 1);
+                    const translateX = deltaX > 140 ? 140 + (deltaX - 140) * 0.25 : deltaX;
+                    card.style.transition = 'none';
+                    card.style.transform = `translateX(${translateX}px)`;
+                } else {
+                    card.style.transform = 'translateX(0)';
+                    if (delBg) delBg.style.opacity = '0';
+                }
+            }
+        }
+
+        handleScanItemPointerUp(e, idx) {
+            if (!this._scanSwipeState || this._scanSwipeState.idx !== idx) return;
+            const state = this._scanSwipeState;
+            this._scanSwipeState = null;
+
+            const deltaX = e.clientX - state.startX;
+            const card = state.card;
+
+            if (card && card.releasePointerCapture) {
+                try { card.releasePointerCapture(e.pointerId); } catch (_) {}
+            }
+
+            if (state.isSwiping) {
+                const container = card.closest('.prep-scan-swipe-container');
+                const delBg = container ? container.querySelector('.prep-scan-swipe-delete-bg') : null;
+
+                // Deslizado a la derecha más de 70px -> Eliminar ítem
+                if (deltaX > 70) {
+                    if (container) container.style.overflow = 'hidden';
+                    card.style.transition = 'transform 0.22s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease-out';
+                    card.style.transform = 'translateX(110%)';
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        this.removeScannedTask(idx);
+                    }, 200);
+                    return;
+                }
+
+                card.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                card.style.transform = 'translateX(0)';
+                setTimeout(() => {
+                    if (delBg) delBg.style.opacity = '0';
+                    if (container) container.style.overflow = 'hidden';
+                }, 250);
+            }
         }
 
         toggleScannedTaskSelected(idx, checked) {
@@ -3206,12 +3311,6 @@ REGLAS OBLIGATORIAS:
             }
         }
 
-        updateScannedTaskQty(idx, val) {
-            if (this.scannedDraftTasks[idx]) {
-                this.scannedDraftTasks[idx].qty = val;
-            }
-        }
-
         removeScannedTask(idx) {
             this.scannedDraftTasks.splice(idx, 1);
             this.renderScannedDraftItems();
@@ -3220,7 +3319,6 @@ REGLAS OBLIGATORIAS:
         addNewScannedRow() {
             this.scannedDraftTasks.push({
                 title: '',
-                qty: '',
                 selected: true
             });
             this.renderScannedDraftItems();
@@ -3246,7 +3344,7 @@ REGLAS OBLIGATORIAS:
             const newTasksPayload = selectedItems.map((item, idx) => {
                 const payload = {
                     title: item.title.trim(),
-                    qty: item.qty ? item.qty.trim() : '',
+                    qty: '',
                     category: 'diario',
                     is_daily: false,
                     days_of_week: null,

@@ -19108,7 +19108,10 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 .prep-scan-close-btn {
-    background: rgba(0,0,0,0.04);
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.05);
     border: none;
     width: 36px;
     height: 36px;
@@ -19118,11 +19121,16 @@ body.supplier-detail-active .suppliers-subview-page {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10;
 }
 
-.prep-scan-close-btn:hover {
-    background: rgba(0,0,0,0.08);
+.prep-scan-close-btn:hover,
+.prep-scan-close-btn:active,
+.prep-scan-close-btn:focus {
+    background: #FEE2E2 !important;
+    color: #EF4444 !important;
+    transform: scale(1.08);
 }
 
 .prep-scan-toolbar {
@@ -19180,15 +19188,58 @@ body.supplier-detail-active .suppliers-subview-page {
     max-height: 48vh;
 }
 
-.prep-scan-item-card {
+/* Contenedor swipeable para cada tarea escaneada */
+.prep-scan-swipe-container {
+    position: relative;
+    border-radius: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    user-select: none;
+    touch-action: pan-y;
+}
+
+/* Fondo rojo revelado al deslizar hacia la derecha */
+.prep-scan-swipe-delete-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+    border-radius: inherit;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: flex-start;
+    padding-left: 20px;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 13px;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.prep-scan-swipe-delete-bg .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.prep-scan-item-card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     background: #FFFFFF;
     border: 1.5px solid #E5E7EB;
     border-radius: 14px;
-    padding: 8px 10px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    width: 100%;
+    cursor: grab;
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.prep-scan-item-card:active {
+    cursor: grabbing;
 }
 
 .prep-scan-item-card.is-selected {
@@ -19211,52 +19262,35 @@ body.supplier-detail-active .suppliers-subview-page {
 
 .prep-scan-item-fields {
     flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
 }
 
+/* Campo de texto en una sola línea completa adaptado al dispositivo */
 .prep-scan-input-title {
-    flex: 2;
-    border: 1px solid #E5E7EB;
-    border-radius: 10px;
-    padding: 8px 12px;
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 8px;
     font-family: var(--font-display, 'Poppins', sans-serif);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: #18181B;
-    background: #FFFFFF;
+    background: transparent;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, background 0.15s;
+    box-sizing: border-box;
 }
 
 .prep-scan-input-title:focus {
     border-color: #12B078;
-    box-shadow: 0 0 0 3px rgba(18, 176, 120, 0.12);
-}
-
-.prep-scan-input-qty {
-    flex: 1;
-    max-width: 120px;
-    border: 1px solid #E5E7EB;
-    border-radius: 10px;
-    padding: 8px 10px;
-    font-family: var(--font-display, 'Poppins', sans-serif);
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #0D9665;
-    background: #F8FAFC;
-    outline: none;
-    transition: border-color 0.15s;
-}
-
-.prep-scan-input-qty:focus {
-    border-color: #12B078;
     background: #FFFFFF;
     box-shadow: 0 0 0 3px rgba(18, 176, 120, 0.12);
 }
 
-.prep-scan-item-delete {
+/* Botón de papelera en PC (hover discreto, oculto en móvil donde se usa swipe) */
+.prep-scan-pc-delete-btn {
     background: none;
     border: none;
     color: #9CA3AF;
@@ -19267,12 +19301,23 @@ body.supplier-detail-active .suppliers-subview-page {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.15s, background 0.15s;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s, background 0.15s;
 }
 
-.prep-scan-item-delete:hover {
+.prep-scan-item-card:hover .prep-scan-pc-delete-btn {
+    opacity: 1;
+}
+
+.prep-scan-pc-delete-btn:hover {
     color: #EF4444;
     background: #FEE2E2;
+}
+
+@media (max-width: 768px) {
+    .prep-scan-pc-delete-btn {
+        display: none !important;
+    }
 }
 
 .prep-scan-footer {
@@ -19358,9 +19403,6 @@ body.supplier-detail-active .suppliers-subview-page {
         flex-shrink: 0;
     }
 
-    .prep-scan-input-qty {
-        max-width: 90px;
-    }
     .prep-scan-items-container {
         max-height: 52vh;
     }
