@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1084">
+<html lang="es" data-app-version="1085">
 
 <head>
     <meta charset="utf-8" />
@@ -48,8 +48,8 @@
         rel="stylesheet" />
 
     <!-- Core Styles -->
-    <link rel="stylesheet" href="css/styles.css?v=1084">
-    <link rel="stylesheet" href="css/components.css?v=1084">
+    <link rel="stylesheet" href="css/styles.css?v=1085">
+    <link rel="stylesheet" href="css/components.css?v=1085">
 
     <style>
         :root {
@@ -74,7 +74,7 @@
         .login-container {
             position: relative;
             width: 100%;
-            max-width: 390px;
+            max-width: 420px;
             z-index: 10;
             display: flex;
             justify-content: center;
@@ -94,7 +94,7 @@
             gap: clamp(12px, 1.8vh, 16px);
             transition: all var(--m3-duration-long) var(--m3-easing);
             width: 100%;
-            max-width: 390px;
+            max-width: 420px;
             max-height: min(94vh, 640px);
             overflow-y: auto;
             scrollbar-width: none;
@@ -324,6 +324,39 @@
         .hidden-m3 {
             display: none !important;
         }
+        @media (max-width: 600px) {
+            body {
+                padding: 12px 10px;
+            }
+
+            .login-container {
+                width: 100%;
+                max-width: 420px;
+            }
+
+            .login-card-expressive {
+                width: 100%;
+                max-width: 420px;
+                border-radius: 24px;
+                padding: 26px 18px 22px 18px;
+                gap: 14px;
+                box-shadow:
+                    0 14px 38px -10px rgba(0, 0, 0, 0.12),
+                    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+            }
+
+            .m3-field-container {
+                margin-bottom: 14px;
+            }
+
+            .m3-field-input {
+                height: 50px;
+            }
+
+            .btn-m3-full {
+                min-height: 48px;
+            }
+        }
     </style>
 </head>
 
@@ -413,11 +446,11 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js?v=1084"></script>
-    <script src="js/supabase-client.js?v=1084"></script>
-    <script src="js/i18n.js?v=1084"></script>
-    <script src="js/auth.js?v=1084"></script>
-    <script src="js/utils.js?v=1084"></script>
+    <script src="js/config.js?v=1085"></script>
+    <script src="js/supabase-client.js?v=1085"></script>
+    <script src="js/i18n.js?v=1085"></script>
+    <script src="js/auth.js?v=1085"></script>
+    <script src="js/utils.js?v=1085"></script>
 
     <script>
         let isLogin = true;
