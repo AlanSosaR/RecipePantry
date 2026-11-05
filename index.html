@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1090">
+<html lang="es" data-app-version="1091">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=1090">
-  <link rel="stylesheet" href="css/components.css?v=1090">
-  <script src="js/m3-loading-indicator.js?v=1090"></script>
+  <link rel="stylesheet" href="css/styles.css?v=1091">
+  <link rel="stylesheet" href="css/components.css?v=1091">
+  <script src="js/m3-loading-indicator.js?v=1091"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -267,6 +267,10 @@
       color: var(--primary-green);
       margin: 0 0 4px 0;
     }
+    .landing-title .landing-title-dark,
+    .landing-title-dark {
+      color: var(--text-black, #1B1B1F);
+    }
     .landing-subtitle {
       font-size: clamp(13px, 1.7vh, 15px);
       color: var(--text-grey);
@@ -472,7 +476,7 @@
         </div>
       </div>
       <div id="view-landing" class="content-part">
-        <h1 class="landing-title">Recipe Pantry</h1>
+        <h1 class="landing-title">Recipe <span class="landing-title-dark">Pantry</span></h1>
         <p class="landing-subtitle"><span data-i18n="pantrySubtitle">Tu recetario, siempre contigo</span></p>
         <p class="pantry-description" data-i18n="pantryDescription">Guarda tus recetas y conecta con otros profesionales y amigos que comparten tu pasión</p>
         <div class="features-grid">
@@ -1019,35 +1023,35 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="js/config.js?v=1090"></script>
-  <script src="js/supabase-client.js?v=1090"></script>
-  <script src="js/localdb.js?v=1090"></script>
-  <script src="js/sync-manager.js?v=1090"></script>
-  <script src="js/m3-loading-indicator.js?v=1090"></script>
-  <script src="js/utils.js?v=1090"></script>
-  <script src="js/i18n.js?v=1090"></script>
-  <script src="js/allergen-data.js?v=1090"></script>
-  <script src="js/menu-data.js?v=1090"></script>
-  <script src="js/lib/pdf.min.js?v=1090"></script>
-  <script src="js/restaurant-menu.js?v=1090"></script>
-  <script src="js/db.js?v=1090"></script>
-  <script src="js/auth.js?v=1090"></script>
-  <script src="js/dashboard.js?v=1090"></script>
-  <script src="js/share-modal.js?v=1090"></script>
-  <script src="js/help-modal.js?v=1090"></script>
-  <script src="js/admin-users.js?v=1090"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=1090"></script>
-  <script src="js/suppliers-manager.js?v=1090"></script>
-  <script src="js/tasks-manager.js?v=1090"></script>
+  <script src="js/config.js?v=1091"></script>
+  <script src="js/supabase-client.js?v=1091"></script>
+  <script src="js/localdb.js?v=1091"></script>
+  <script src="js/sync-manager.js?v=1091"></script>
+  <script src="js/m3-loading-indicator.js?v=1091"></script>
+  <script src="js/utils.js?v=1091"></script>
+  <script src="js/i18n.js?v=1091"></script>
+  <script src="js/allergen-data.js?v=1091"></script>
+  <script src="js/menu-data.js?v=1091"></script>
+  <script src="js/lib/pdf.min.js?v=1091"></script>
+  <script src="js/restaurant-menu.js?v=1091"></script>
+  <script src="js/db.js?v=1091"></script>
+  <script src="js/auth.js?v=1091"></script>
+  <script src="js/dashboard.js?v=1091"></script>
+  <script src="js/share-modal.js?v=1091"></script>
+  <script src="js/help-modal.js?v=1091"></script>
+  <script src="js/admin-users.js?v=1091"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=1091"></script>
+  <script src="js/suppliers-manager.js?v=1091"></script>
+  <script src="js/tasks-manager.js?v=1091"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=1090"></script>
-  <script src="js/core/push.js?v=1090"></script>
-  <script src="js/notifications.js?v=1090"></script>
-  <script src="js/ui.js?v=1090"></script>
-  <script src="js/sw-register.js?v=1090"></script>
-<script src="js/pwa-install.js?v=1090"></script>
-  <script src="js/gemini-client.js?v=1090"></script>
-  <script type="module" src="js/url-importer.js?v=1090"></script>
+  <script type="module" src="js/core/firebase.js?v=1091"></script>
+  <script src="js/core/push.js?v=1091"></script>
+  <script src="js/notifications.js?v=1091"></script>
+  <script src="js/ui.js?v=1091"></script>
+  <script src="js/sw-register.js?v=1091"></script>
+<script src="js/pwa-install.js?v=1091"></script>
+  <script src="js/gemini-client.js?v=1091"></script>
+  <script type="module" src="js/url-importer.js?v=1091"></script>
 
 
   <script type="module">
