@@ -3987,6 +3987,8 @@ class DashboardManager {
         this.closeNewDropboxMenu();
         const modal = document.getElementById('createFolderModal');
         const input = document.getElementById('newFolderModalInput');
+        this.folderShareSelectedUsers = [];
+        this.renderFolderSelectedUsersChips();
         this.setFolderAccessType('only_me');
         if (modal) {
             modal.classList.remove('hidden');
@@ -4078,6 +4080,7 @@ class DashboardManager {
         const radioOnlyMe = document.getElementById('folderAccessOnlyMe');
         const radioSpecific = document.getElementById('folderAccessSpecific');
 
+        const specificSection = document.getElementById('folderSpecificUsersSection');
         if (type === 'only_me') {
             if (cardOnlyMe) cardOnlyMe.classList.add('active');
             if (cardSpecific) cardSpecific.classList.remove('active');
@@ -4089,6 +4092,7 @@ class DashboardManager {
                 iconSpecific.style.display = 'none';
             }
             if (radioOnlyMe) radioOnlyMe.checked = true;
+            if (specificSection) specificSection.classList.add('hidden');
         } else {
             if (cardSpecific) cardSpecific.classList.add('active');
             if (cardOnlyMe) cardOnlyMe.classList.remove('active');
@@ -4100,6 +4104,138 @@ class DashboardManager {
                 iconOnlyMe.style.display = 'none';
             }
             if (radioSpecific) radioSpecific.checked = true;
+            if (specificSection) {
+                specificSection.classList.remove('hidden');
+                this.initFolderUserSearch();
+            }
+        }
+    }
+
+    async loadUsersForFolderShare() {
+        if (this._folderShareUsersCache && this._folderShareUsersCache.length > 0) {
+            return this._folderShareUsersCache;
+        }
+        if (!window.supabaseClient) return [];
+        try {
+            const { data: users, error } = await window.supabaseClient
+                .from('users')
+                .select('id, auth_user_id, email, first_name, last_name, prefix, avatar_url, settings')
+                .order('first_name', { ascending: true });
+            if (error) throw error;
+            const myAuthId = window.authManager?.currentUser?.auth_user_id;
+            const myId = window.authManager?.currentUser?.id;
+            this._folderShareUsersCache = (users || []).filter(u => u.id !== myId && u.auth_user_id !== myAuthId);
+            return this._folderShareUsersCache;
+        } catch (e) {
+            console.warn('Error loading users for folder share:', e);
+            return [];
+        }
+    }
+
+    async initFolderUserSearch() {
+        const input = document.getElementById('folderUserSearchInput');
+        const dropdown = document.getElementById('folderUserSuggestions');
+        if (!input || !dropdown) return;
+
+        const users = await this.loadUsersForFolderShare();
+
+        if (!input._boundFolderSearch) {
+            input._boundFolderSearch = true;
+
+            const handleSearch = () => {
+                const query = (input.value || '').trim().toLowerCase();
+                const selectedIds = new Set((this.folderShareSelectedUsers || []).map(u => u.id));
+                const filtered = (users || []).filter(u => {
+                    if (selectedIds.has(u.id)) return false;
+                    if (!query) return true;
+                    const fullName = `${u.prefix || ''} ${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+                    const email = (u.email || '').toLowerCase();
+                    return fullName.includes(query) || email.includes(query);
+                });
+
+                if (filtered.length === 0) {
+                    dropdown.innerHTML = '<div style="padding: 12px; font-size: 13px; color: #6b7280; text-align: center;">No se encontraron personas</div>';
+                    dropdown.classList.remove('hidden');
+                    return;
+                }
+
+                dropdown.innerHTML = filtered.map(u => {
+                    const initials = ((u.first_name?.[0] || '') + (u.last_name?.[0] || '')).toUpperCase() || (u.email?.[0] || '?').toUpperCase();
+                    const name = `${u.prefix ? u.prefix + ' ' : ''}${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email;
+                    const avatarHtml = u.avatar_url 
+                        ? `<img src="${u.avatar_url}" class="folder-user-suggestion-avatar" alt="${name}">`
+                        : `<div class="folder-user-suggestion-avatar">${initials}</div>`;
+                    return `
+                        <div class="folder-user-suggestion-item" data-user-id="${u.id}">
+                            ${avatarHtml}
+                            <div class="folder-user-suggestion-info">
+                                <span class="folder-user-suggestion-name">${name}</span>
+                                <span class="folder-user-suggestion-email">${u.email || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                dropdown.querySelectorAll('.folder-user-suggestion-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const uid = item.getAttribute('data-user-id');
+                        const selectedUser = users.find(u => u.id === uid);
+                        if (selectedUser) {
+                            if (!this.folderShareSelectedUsers) this.folderShareSelectedUsers = [];
+                            this.folderShareSelectedUsers.push(selectedUser);
+                            this.renderFolderSelectedUsersChips();
+                            input.value = '';
+                            dropdown.classList.add('hidden');
+                        }
+                    });
+                });
+
+                dropdown.classList.remove('hidden');
+            };
+
+            input.addEventListener('input', handleSearch);
+            input.addEventListener('focus', handleSearch);
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#folderSpecificUsersSection')) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+    }
+
+    renderFolderSelectedUsersChips() {
+        const container = document.getElementById('folderSelectedUsersChips');
+        if (!container) return;
+        const users = this.folderShareSelectedUsers || [];
+        if (users.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = users.map(u => {
+            const initials = ((u.first_name?.[0] || '') + (u.last_name?.[0] || '')).toUpperCase() || (u.email?.[0] || '?').toUpperCase();
+            const name = `${u.prefix ? u.prefix + ' ' : ''}${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email;
+            const avatarHtml = u.avatar_url 
+                ? `<img src="${u.avatar_url}" class="folder-user-chip-avatar" alt="${name}">`
+                : `<div class="folder-user-chip-avatar">${initials}</div>`;
+            return `
+                <div class="folder-user-chip">
+                    ${avatarHtml}
+                    <span>${name}</span>
+                    <button type="button" class="folder-user-chip-remove" onclick="window.dashboard.removeFolderShareUser('${u.id}')" title="Quitar">×</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    removeFolderShareUser(userId) {
+        if (!this.folderShareSelectedUsers) return;
+        this.folderShareSelectedUsers = this.folderShareSelectedUsers.filter(u => u.id !== userId);
+        this.renderFolderSelectedUsersChips();
+        const input = document.getElementById('folderUserSearchInput');
+        if (input && typeof input.focus === 'function') {
+            input.focus();
         }
     }
 
@@ -4112,21 +4248,65 @@ class DashboardManager {
         }
 
         const isSpecific = document.getElementById('folderAccessSpecific')?.checked;
+        const selectedUsers = isSpecific ? (this.folderShareSelectedUsers || []) : [];
         this.closeFolderModal();
 
         const created = await window.db.createFolder(name);
         await this.renderFolders();
         this.renderRecipesGrid(this.currentRecipes);
 
-        window.showToast(
-            window.i18n && window.i18n.getLang() === 'en' 
-                ? `Folder "${created}" created` 
-                : `Carpeta "${created}" creada con éxito`, 
-            'success'
-        );
+        if (isSpecific && selectedUsers.length > 0 && window.supabaseClient) {
+            const currentUserId = window.authManager?.currentUser?.id;
+            const names = selectedUsers.map(u => `${u.prefix ? u.prefix + ' ' : ''}${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email).join(', ');
 
-        if (isSpecific && window.shareModal) {
-            window.shareModal.open(created, 'folder');
+            for (const user of selectedUsers) {
+                try {
+                    // 1. Agregar la carpeta a users.settings.folders del perfil de esa persona
+                    const { data: recipientUser } = await window.supabaseClient
+                        .from('users')
+                        .select('id, settings')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (recipientUser) {
+                        const curSettings = recipientUser.settings || {};
+                        let curFolders = Array.isArray(curSettings.folders) ? curSettings.folders : [];
+                        if (!curFolders.some(f => f.toLowerCase() === created.toLowerCase())) {
+                            curFolders.push(created);
+                            curSettings.folders = curFolders;
+                            await window.supabaseClient.from('users').update({ settings: curSettings }).eq('id', user.id);
+                        }
+                    }
+
+                    // 2. Notificación en Supabase
+                    await window.supabaseClient.from('notifications').insert([{
+                        user_id: user.id,
+                        from_user_id: currentUserId,
+                        leido: false,
+                        type: 'folder_shared',
+                        metadata: {
+                            folder_name: created,
+                            message: `Te han compartido la carpeta "${created}"`
+                        }
+                    }]);
+                } catch (err) {
+                    console.warn(`Error compartiendo carpeta con usuario ${user.id}:`, err);
+                }
+            }
+
+            window.showToast(
+                window.i18n && window.i18n.getLang() === 'en'
+                    ? `Folder "${created}" created and shared with ${names}`
+                    : `Carpeta "${created}" creada y compartida con ${names}`,
+                'success'
+            );
+        } else {
+            window.showToast(
+                window.i18n && window.i18n.getLang() === 'en' 
+                    ? `Folder "${created}" created` 
+                    : `Carpeta "${created}" creada con éxito`, 
+                'success'
+            );
         }
     }
 
