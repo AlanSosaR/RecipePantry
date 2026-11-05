@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-app-version="1109">
+<html lang="es" data-app-version="1110">
 
 <head>
   <meta charset="UTF-8" />
@@ -42,9 +42,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=1109">
-  <link rel="stylesheet" href="css/components.css?v=1109">
-  <script src="js/m3-loading-indicator.js?v=1109"></script>
+  <link rel="stylesheet" href="css/styles.css?v=1110">
+  <link rel="stylesheet" href="css/components.css?v=1110">
+  <script src="js/m3-loading-indicator.js?v=1110"></script>
   <script>
     const hasSession = Object.keys(localStorage).some(key => key.includes('auth-token'));
     if (hasSession) {
@@ -683,6 +683,26 @@
         <button id="hamburger-menu" class="btn-menu-m3-premium mobile-only" onclick="window.dashboard.toggleSidebar(true)">
           <span class="material-symbols-outlined">menu</span>
         </button>
+        <!-- Recipe Detail PC Header (Visible solo cuando se abre una receta en PC) -->
+        <div id="topBarRecipeDetail" class="top-bar-recipe-detail">
+          <div class="top-bar-recipe-left">
+            <button class="btn-back-circle-m3" id="topBarBtnRecipeBack" onclick="window.dashboard && window.dashboard.closeDetailPanel && window.dashboard.closeDetailPanel()" title="Volver">
+              <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h2 id="topBarRecipeTitle" class="top-bar-recipe-title"></h2>
+          </div>
+          <div class="top-bar-recipe-actions" id="topBarRecipeActions">
+            <button class="m3-icon-btn" id="topBarBtnFavorite" title="Favorito" onclick="window.dashboard && window.dashboard.togglePanelFavorite && window.dashboard.togglePanelFavorite()">
+              <span class="material-symbols-outlined">favorite</span>
+            </button>
+            <button class="m3-icon-btn" id="topBarBtnEdit" title="Editar" onclick="window.dashboard && window.dashboard.editPanelRecipe && window.dashboard.editPanelRecipe()">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="m3-icon-btn" id="topBarBtnDelete" style="color:var(--error);" title="Eliminar" onclick="window.dashboard && window.dashboard.deletePanelRecipe && window.dashboard.deletePanelRecipe()">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </div>
 <!-- Contenedor con position:relative para anclar el popover (funciona en desktop y móvil) -->
         <div class="dropbox-new-wrapper desktop-only" style="position:relative; display:inline-block;">
           <!-- Botón + Nuevo estilo Dropbox (Desktop) -->
@@ -1130,35 +1150,35 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="js/config.js?v=1109"></script>
-  <script src="js/supabase-client.js?v=1109"></script>
-  <script src="js/localdb.js?v=1109"></script>
-  <script src="js/sync-manager.js?v=1109"></script>
-  <script src="js/m3-loading-indicator.js?v=1109"></script>
-  <script src="js/utils.js?v=1109"></script>
-  <script src="js/i18n.js?v=1109"></script>
-  <script src="js/allergen-data.js?v=1109"></script>
-  <script src="js/menu-data.js?v=1109"></script>
-  <script src="js/lib/pdf.min.js?v=1109"></script>
-  <script src="js/restaurant-menu.js?v=1109"></script>
-  <script src="js/db.js?v=1109"></script>
-  <script src="js/auth.js?v=1109"></script>
-  <script src="js/dashboard.js?v=1109"></script>
-  <script src="js/share-modal.js?v=1109"></script>
-  <script src="js/help-modal.js?v=1109"></script>
-  <script src="js/admin-users.js?v=1109"></script>
-  <script src="js/lib/jspdf.umd.min.js?v=1109"></script>
-  <script src="js/suppliers-manager.js?v=1109"></script>
-  <script src="js/tasks-manager.js?v=1109"></script>
+  <script src="js/config.js?v=1110"></script>
+  <script src="js/supabase-client.js?v=1110"></script>
+  <script src="js/localdb.js?v=1110"></script>
+  <script src="js/sync-manager.js?v=1110"></script>
+  <script src="js/m3-loading-indicator.js?v=1110"></script>
+  <script src="js/utils.js?v=1110"></script>
+  <script src="js/i18n.js?v=1110"></script>
+  <script src="js/allergen-data.js?v=1110"></script>
+  <script src="js/menu-data.js?v=1110"></script>
+  <script src="js/lib/pdf.min.js?v=1110"></script>
+  <script src="js/restaurant-menu.js?v=1110"></script>
+  <script src="js/db.js?v=1110"></script>
+  <script src="js/auth.js?v=1110"></script>
+  <script src="js/dashboard.js?v=1110"></script>
+  <script src="js/share-modal.js?v=1110"></script>
+  <script src="js/help-modal.js?v=1110"></script>
+  <script src="js/admin-users.js?v=1110"></script>
+  <script src="js/lib/jspdf.umd.min.js?v=1110"></script>
+  <script src="js/suppliers-manager.js?v=1110"></script>
+  <script src="js/tasks-manager.js?v=1110"></script>
   <!-- Firebase Push Notifications -->
-  <script type="module" src="js/core/firebase.js?v=1109"></script>
-  <script src="js/core/push.js?v=1109"></script>
-  <script src="js/notifications.js?v=1109"></script>
-  <script src="js/ui.js?v=1109"></script>
-  <script src="js/sw-register.js?v=1109"></script>
-<script src="js/pwa-install.js?v=1109"></script>
-  <script src="js/gemini-client.js?v=1109"></script>
-  <script type="module" src="js/url-importer.js?v=1109"></script>
+  <script type="module" src="js/core/firebase.js?v=1110"></script>
+  <script src="js/core/push.js?v=1110"></script>
+  <script src="js/notifications.js?v=1110"></script>
+  <script src="js/ui.js?v=1110"></script>
+  <script src="js/sw-register.js?v=1110"></script>
+<script src="js/pwa-install.js?v=1110"></script>
+  <script src="js/gemini-client.js?v=1110"></script>
+  <script type="module" src="js/url-importer.js?v=1110"></script>
 
 
   <script type="module">

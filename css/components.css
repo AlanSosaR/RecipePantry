@@ -9775,9 +9775,13 @@ body.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
     border-radius: 14px !important;
 }
 
+.m3-sheet-header h4 .text-primary {
+    color: var(--primary, #10B981) !important;
+}
+
 .m3-modal-bottom-sheet .context-menu-item .material-symbols-outlined {
     font-size: 22px !important;
-    color: #111827 !important;
+    color: var(--primary, #10B981) !important;
 }
 
 .m3-modal-bottom-sheet .context-menu-item.danger,
@@ -20080,7 +20084,7 @@ body.product-side-sheet-open #m3FabBackdrop {
     /* 2. Sidebar estilizada y proporcionada en Desktop */
     .sidebar {
         width: 240px !important;
-        padding: 16px 0 20px 0 !important;
+        padding: 0 0 20px 0 !important;
     }
 
     .sidebar-logo {
@@ -20095,7 +20099,7 @@ body.product-side-sheet-open #m3FabBackdrop {
         flex-direction: row !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        padding: 8px 20px 14px 20px !important;
+        padding: 14px 20px 14px 20px !important;
         margin: 0 0 10px 0 !important;
         width: 100% !important;
         box-sizing: border-box !important;
@@ -20103,6 +20107,12 @@ body.product-side-sheet-open #m3FabBackdrop {
         position: relative !important;
         border-radius: 0 !important;
         text-align: left !important;
+        transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+    }
+
+    .sidebar-user-profile:not(.active):hover,
+    .notas-sidebar-profile:not(.active):hover {
+        background: rgba(16, 185, 129, 0.05) !important;
     }
 
     /* En PC Desktop NUNCA mostrar la cabecera verde curva */
@@ -20126,17 +20136,17 @@ body.product-side-sheet-open #m3FabBackdrop {
         flex-shrink: 0 !important;
     }
 
-    /* ─── Indicador Activo de Perfil en Desktop (idéntico a los demás nav-items activos) ─── */
+    /* ─── Indicador Activo de Perfil en Desktop: Marca TODO el espacio edge-to-edge ─── */
     .sidebar-user-profile.active,
     .notas-sidebar-profile.active {
         background: #d7f5e8 !important;
         color: #0d5f3a !important;
-        border-radius: 16px !important;
-        margin: 2px 12px 10px 12px !important;
-        width: calc(100% - 24px) !important;
-        padding: 6px 12px 6px 12px !important;
-        box-shadow: 0 2px 6px rgba(13, 95, 58, 0.08) !important;
-        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+        border-radius: 0 !important;
+        margin: 0 0 10px 0 !important;
+        width: 100% !important;
+        padding: 14px 20px 14px 20px !important;
+        box-shadow: none !important;
+        transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
     }
 
     .sidebar-user-profile.active .user-greeting,
@@ -21565,4 +21575,63 @@ body.sidebar-open .sidebar.sidebar--slim .sidebar-nav .nav-item.nav-logout-m3 .m
 .nav-item.nav-logout-m3:hover .material-symbols-outlined {
     color: var(--error, #EF4444) !important;
     opacity: 0.85;
+}
+
+
+/* ─── Top Bar Recipe Detail Mode (Desktop) ─── */
+.top-bar-recipe-detail {
+    display: none;
+}
+
+.top-bar-m3.recipe-detail-active .dropbox-new-wrapper,
+.top-bar-m3.recipe-detail-active .search-container-m3,
+.top-bar-m3.recipe-detail-active .top-bar-actions-m3,
+.top-bar-m3.recipe-detail-active #hamburger-menu {
+    display: none !important;
+}
+
+.top-bar-m3.recipe-detail-active .top-bar-recipe-detail {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    height: 100% !important;
+    gap: 16px !important;
+    animation: pc-detail-fade 0.2s ease-out !important;
+}
+
+.top-bar-recipe-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+.top-bar-recipe-title {
+    margin: 0 !important;
+    font-family: var(--font-display, "Poppins", sans-serif) !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: var(--on-surface, #1B1B1F) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+}
+
+.top-bar-recipe-title .text-primary {
+    color: var(--primary, #10B981) !important;
+}
+
+.top-bar-recipe-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+}
+
+body:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar,
+.dashboard-app:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar {
+    display: none !important;
 }

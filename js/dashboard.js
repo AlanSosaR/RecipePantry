@@ -5197,6 +5197,21 @@ class DashboardManager {
         };
         window.addEventListener('popstate', this._panelPopstateHandler, { once: true });
 
+        // Actualizar Top Bar principal en PC para mostrar el nombre de la receta y ocultar búsqueda/nuevo/notificaciones
+        const mainTopBar = document.getElementById('mainTopBar');
+        if (mainTopBar) {
+            mainTopBar.classList.add('recipe-detail-active');
+            const topBarTitle = document.getElementById('topBarRecipeTitle');
+            if (topBarTitle) {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const initialName = isEn ? (recipe?.name_en || recipe?.name_es) : (recipe?.name_es || recipe?.name_en || 'Receta');
+                const parts = initialName.split(' ');
+                const fw = parts[0] || '';
+                const rest = parts.slice(1).join(' ');
+                topBarTitle.innerHTML = rest ? `<span class="text-primary">${fw}</span> ${rest}` : `<span class="text-primary">${fw}</span>`;
+            }
+        }
+
         // Ocultar header de dashboard y empty state mientras se muestra detalle
         if (emptyState) emptyState.classList.add('hidden');
         const dashHeader = document.querySelector('.dashboard-header');
@@ -5258,6 +5273,76 @@ class DashboardManager {
             const titleParts = (name || 'Receta').split(' ');
             const firstWord = titleParts[0];
             const restTitle = titleParts.slice(1).join(' ');
+            const topBarTitleEl = document.getElementById('topBarRecipeTitle');
+            if (topBarTitleEl) {
+                topBarTitleEl.innerHTML = `<span class="text-primary">${firstWord}</span> ${restTitle}`;
+            }
+
+            // Conectar acciones en Top Bar principal
+            const topBarFavBtn = document.getElementById('topBarBtnFavorite');
+            const topBarEditBtn = document.getElementById('topBarBtnEdit');
+            const topBarDeleteBtn = document.getElementById('topBarBtnDelete');
+
+            const syncFavUi = (fav) => {
+                if (topBarFavBtn) {
+                    if (fav) {
+                        topBarFavBtn.classList.add('active');
+                        topBarFavBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+                        topBarFavBtn.style.color = 'var(--primary, #10B981)';
+                    } else {
+                        topBarFavBtn.classList.remove('active');
+                        topBarFavBtn.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+                        topBarFavBtn.style.color = '';
+                    }
+                }
+            };
+            syncFavUi(rec.is_favorite);
+
+            window.dashboard.togglePanelFavorite = async () => {
+                const res = await window.db.toggleFavorite(recipeId, this._panelRecipe.is_favorite);
+                if (res.success) {
+                    this._panelRecipe.is_favorite = res.isFavorite;
+                    syncFavUi(res.isFavorite);
+                    const pFav = document.getElementById('panelBtnFavorite');
+                    if (pFav) {
+                        if (res.isFavorite) {
+                            pFav.classList.add('active');
+                            pFav.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+                        } else {
+                            pFav.classList.remove('active');
+                            pFav.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+                        }
+                    }
+                    window.utils?.showToast(res.isFavorite ? '❤️ Añadido a favoritos' : 'Eliminado de favoritos', 'success');
+                }
+            };
+
+            window.dashboard.editPanelRecipe = () => {
+                this.editRecipe(recipeId);
+            };
+
+            window.dashboard.deletePanelRecipe = () => {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const rName = isEn ? (recipe.name_en || recipe.name_es) : recipe.name_es;
+                const confirmMsg = rName
+                    ? (isEn ? `Are you sure you want to delete "${rName}"?` : `¿Seguro que desea eliminar "${rName}"?`)
+                    : (window.i18n ? window.i18n.t('deleteConfirm') : '¿Seguro que desea eliminar la receta?');
+                window.showActionSnackbar?.(confirmMsg, 'ELIMINAR', async () => {
+                    const res = await window.db.deleteRecipe(recipeId);
+                    if (res.success) {
+                        window.utils?.showToast('Receta eliminada', 'success');
+                        setTimeout(() => this.closeDetailPanel(), 800);
+                    }
+                });
+            };
+
+            if (!isOwner || permission) {
+                if (topBarEditBtn) topBarEditBtn.style.display = 'none';
+                if (topBarDeleteBtn) topBarDeleteBtn.style.display = 'none';
+            } else {
+                if (topBarEditBtn) topBarEditBtn.style.display = '';
+                if (topBarDeleteBtn) topBarDeleteBtn.style.display = '';
+            }
 
             const ingredients = rec.ingredients || [];
             const steps = rec.steps || rec.preparation_steps || [];
@@ -5489,6 +5574,12 @@ class DashboardManager {
     }
 
     _closeDetailPanelInternal() {
+        // Restaurar mainTopBar en PC
+        const mainTopBar = document.getElementById('mainTopBar');
+        if (mainTopBar) {
+            mainTopBar.classList.remove('recipe-detail-active');
+        }
+
         // Restaurar el header del dashboard solo si no estamos dentro de una carpeta
         const dashHeader = document.querySelector('.dashboard-header');
         if (dashHeader && !this.currentFolder && !this.isSelectionMode) {
@@ -5683,11 +5774,15 @@ class DashboardManager {
             const folderName = recipe.pantry_es || (isEn ? 'General' : 'General');
             const dateStr = recipe.updated_at ? new Date(recipe.updated_at).toLocaleDateString(isEn ? 'en-US' : 'es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
             const servingsStr = recipe.servings ? `${recipe.servings} ${isEn ? 'servings' : 'porciones'}` : '';
+            const nameParts = (recipeName || '').split(' ');
+            const firstWord = nameParts[0] || '';
+            const restTitle = nameParts.slice(1).join(' ');
+            const formattedTitle = restTitle ? `<span class="text-primary">${firstWord}</span> ${restTitle}` : `<span class="text-primary">${firstWord}</span>`;
 
             let sheetHTML = `
                 <div class="m3-sheet-drag-handle" title="Toca o desliza para expandir"></div>
                 <div class="m3-sheet-header">
-                    <h4>${recipeName}</h4>
+                    <h4>${formattedTitle}</h4>
                     ${sharedLabelHTML}
                 </div>
                 <div class="m3-sheet-details-expanded">
