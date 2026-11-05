@@ -707,6 +707,37 @@
             });
         }
 
+        /** Obtiene el nombre amigable del usuario actual para personalizar notificaciones */
+        getUserFriendlyName() {
+            try {
+                const profile = window.authManager?.currentUser || 
+                    JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+                
+                // 1. first_name (ej. "Alan", "Kp Alan")
+                const fName = (profile?.first_name || '').trim();
+                if (fName) {
+                    return fName;
+                }
+                
+                // 2. full_name o display_name
+                const fullName = (profile?.full_name || profile?.display_name || '').trim();
+                if (fullName) {
+                    return fullName.split(' ')[0];
+                }
+                
+                // 3. Email (ej. alan@... -> "Alan")
+                const email = (profile?.email || window.authManager?.session?.user?.email || '').trim();
+                if (email && email.includes('@')) {
+                    const emailPart = email.split('@')[0];
+                    return emailPart.charAt(0).toUpperCase() + emailPart.slice(1);
+                }
+                
+                return profile?.prefix || 'Chef';
+            } catch (e) {
+                return 'Chef';
+            }
+        }
+
         /** Verifica si la tarea de Trail está pendiente y si pasó al menos 1 hora desde el último recordatorio */
         checkTrailReminder() {
             if (!this.canAccessTasks()) return;
@@ -725,20 +756,33 @@
 
             const now = Date.now();
             const ONE_HOUR_MS = 60 * 60 * 1000;
-            const lastNotifiedStr = localStorage.getItem('rp_trail_last_notified_timestamp');
+            const currentUserId = window.authManager?.currentUser?.id || 
+                                  window.authManager?.session?.user?.id || 
+                                  (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id) || 
+                                  'default';
+            const userCacheKey = `rp_trail_last_notified_${currentUserId}`;
+            const lastNotifiedStr = localStorage.getItem(userCacheKey) || localStorage.getItem('rp_trail_last_notified_timestamp');
             const lastNotified = lastNotifiedStr ? parseInt(lastNotifiedStr, 10) : 0;
 
             // Si nunca se notificó o ya pasó al menos 1 hora
             if (!lastNotified || (now - lastNotified) >= ONE_HOUR_MS) {
                 this.sendTrailNotification();
+                localStorage.setItem(userCacheKey, now.toString());
                 localStorage.setItem('rp_trail_last_notified_timestamp', now.toString());
             }
         }
 
-        /** Dispara la notificación push / navegador e in-app para hacer el Trail */
+        /** Dispara la notificación push / navegador e in-app para hacer el Trail personalizada por usuario */
         async sendTrailNotification(force = false) {
-            const notifTitle = '📋 Recordatorio: Hacer el Trail';
-            const notifBody = 'Aún no has completado el Trail de hoy. Toca aquí para abrir web.trailapp.com.';
+            const userName = this.getUserFriendlyName();
+            const isEn = window.i18n && window.i18n.getLang() === 'en';
+
+            const notifTitle = isEn 
+                ? `📋 Trail Reminder - ${userName}` 
+                : `📋 Recordatorio: Hacer el Trail`;
+            const notifBody = isEn 
+                ? `${userName}, you have today's Trail pending. Tap here to open web.trailapp.com.` 
+                : `${userName}, tienes pendiente hacer el Trail de hoy. Toca aquí para abrir web.trailapp.com.`;
             const trailUrl = 'https://web.trailapp.com/u/sign_in#/';
 
             let pushSent = false;
@@ -749,7 +793,7 @@
                     try {
                         const perm = await Notification.requestPermission();
                         if (perm !== 'granted' && force) {
-                            this.notify('Activa los permisos de notificación para recibir avisos.', 'warning');
+                            this.notify(isEn ? 'Enable notification permissions to receive reminders.' : 'Activa los permisos de notificación para recibir avisos.', 'warning');
                         }
                     } catch (e) {}
                 }
@@ -782,11 +826,22 @@
                 }
             }
 
-            // 2. Notificación In-App (Toast visible)
+            // 2. Notificación en Centro de Notificaciones (campana) si está disponible
+            if (window.notificationManager && typeof window.notificationManager.addTrailNotification === 'function') {
+                window.notificationManager.addTrailNotification(userName);
+            }
+
+            // 3. Notificación In-App (Toast visible personalizado)
             if (force) {
-                this.notify(pushSent ? '🔔 Notificación push de prueba enviada.' : '⏰ Recordatorio Trail: pendiente por completar.', 'info', 4000);
+                const forceMsg = pushSent 
+                    ? (isEn ? '🔔 Push notification reminder sent.' : '🔔 Notificación push de prueba enviada.')
+                    : (isEn ? `⏰ Trail Reminder: ${userName}, pending to complete.` : `⏰ Recordatorio Trail: ${userName}, pendiente por completar.`);
+                this.notify(forceMsg, 'info', 4000);
             } else {
-                this.notify('⏰ Recordatorio: Tienes pendiente hacer el Trail diario.', 'warning', 7000);
+                const pendingMsg = isEn 
+                    ? `⏰ ${userName}, you have the daily Trail pending.` 
+                    : `⏰ ${userName}, tienes pendiente hacer el Trail diario.`;
+                this.notify(pendingMsg, 'warning', 7000);
             }
         }
 
@@ -2955,8 +3010,24 @@
 
             if (isNowCompleted) {
                 if (isTrail) {
-                    this.notify('¡Excelente! Has completado el Trail diario. Se pausaron los recordatorios.', 'success', 3500);
+                    const userName = this.getUserFriendlyName();
+                    const isEn = window.i18n && window.i18n.getLang() === 'en';
+                    this.notify(isEn 
+                        ? `Awesome ${userName}! You completed the daily Trail. Reminders paused.` 
+                        : `¡Excelente ${userName}! Has completado el Trail diario. Se pausaron los recordatorios.`, 'success', 3500);
+                    const currentUserId = window.authManager?.currentUser?.id || 
+                                          window.authManager?.session?.user?.id || 
+                                          (JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}').id) || 
+                                          'default';
+                    localStorage.setItem(`rp_trail_last_notified_${currentUserId}`, Date.now().toString());
                     localStorage.setItem('rp_trail_last_notified_timestamp', Date.now().toString());
+                    if (window.notificationManager && window.notificationManager.notifications) {
+                        window.notificationManager.notifications = window.notificationManager.notifications.filter(n => n.id !== 'trail-reminder-1');
+                        window.notificationManager.updateBadge();
+                        if (window.notificationManager.menu && !window.notificationManager.menu.classList.contains('hidden')) {
+                            window.notificationManager.renderMenu();
+                        }
+                    }
                 } else {
                     this.notify(`"${task.title}" marcada como lista`, 'success');
                 }

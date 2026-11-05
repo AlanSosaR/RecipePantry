@@ -434,6 +434,40 @@ class NotificationManager {
         }
     }
 
+    addTrailNotification(userName) {
+        if (!this.isReady) {
+            this.pendingNotifications.push(() => this.addTrailNotification(userName));
+            return;
+        }
+
+        const notifId = 'trail-reminder-1';
+        if (sessionStorage.getItem('rp_dismissed_trail_notification') === 'true' || 
+            (this._dismissedIds && this._dismissedIds.has(notifId))) {
+            return;
+        }
+
+        // Evitar duplicados
+        if (this.notifications.some(n => n.type === 'trail_reminder')) return;
+
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const name = (userName || 'Chef').trim();
+
+        this.notifications.unshift({
+            id: notifId,
+            type: 'trail_reminder',
+            recipeName: isEn ? `Trail Reminder - ${name}` : `Recordatorio Trail - ${name}`,
+            sender: 'Trail App',
+            userName: name,
+            timestamp: new Date().toISOString(),
+            leido: false
+        });
+
+        this.updateBadge();
+        if (this.menu && !this.menu.classList.contains('hidden')) {
+            this.renderMenu();
+        }
+    }
+
     showBellTooltip(title, subtitle) {
         if (document.getElementById('bell-tooltip-offline')) return;
         const bellWrapper = document.querySelector('.notifications-wrapper');
@@ -660,6 +694,40 @@ class NotificationManager {
                                         style="padding:8px 14px; background:#f1f5f9; color:#111827; border:1px solid #cbd5e1; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;"
                                         title="${isEn ? 'Dismiss' : 'Cerrar'}">
                                         ✕
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (n.type === 'trail_reminder') {
+                const isEn = window.i18n && window.i18n.getLang() === 'en';
+                const name = (n.userName || 'Chef').trim();
+                const msg = isEn ? `${name}, you have today's Trail pending to complete.` : `${name}, tienes pendiente hacer el Trail diario.`;
+                const btnOpen = isEn ? 'Open Trail' : 'Abrir Trail';
+                const btnDismiss = isEn ? 'Dismiss' : 'Entendido';
+                return `
+                    <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid #f1f5f9;">
+                        <div style="display:flex; align-items:flex-start; gap:12px;">
+                            <div class="notification-avatar" style="flex-shrink:0; background:#e0f2fe; color:#0284c7; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:18px;">
+                                📋
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <span style="color:#111827 !important; font-weight:800; display:block; font-size:15px; letter-spacing:-0.2px;">${n.recipeName}</span>
+                                <span style="color:#111827 !important; font-size:13px; font-weight:500; display:block; margin-top:4px; line-height:1.4;">${msg}</span>
+                                <div style="display:flex; gap:8px; margin-top:12px;">
+                                    <button onclick="event.stopPropagation(); window.open('https://web.trailapp.com/u/sign_in#/', '_blank'); window.notificationManager.dismissNotification('${n.id}')"
+                                            class="btn-accept-m3"
+                                            style="padding:8px 14px; font-size:12px; font-weight:700; border-radius:9999px; background:#0284C7; color:#FFFFFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(2,132,199,0.25);">
+                                        <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+                                        ${btnOpen}
+                                    </button>
+                                    <button onclick="event.stopPropagation(); window.notificationManager.dismissNotification('${n.id}')"
+                                            class="btn-reject-m3"
+                                            style="padding:8px 12px; font-size:12px; font-weight:600; border-radius:9999px; background:#F4F4F5; color:#71717A; border:none; cursor:pointer;">
+                                        ${btnDismiss}
                                     </button>
                                 </div>
                             </div>
