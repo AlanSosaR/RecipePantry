@@ -17,9 +17,12 @@ class NotificationManager {
             this._dismissedIds = saved ? new Set(JSON.parse(saved)) : new Set();
             this._dismissedIds.delete('update-1');
             this._dismissedIds.delete('sync-prompt-1');
+            this._dismissedIds.delete('trail-reminder-1');
         } catch (e) {
             this._dismissedIds = new Set();
         }
+        this._listenersBound = false;
+        this._lastRenderedKeys = '';
     }
 
     async init() {
@@ -39,25 +42,29 @@ class NotificationManager {
             this.pendingNotifications = [];
         }
 
-        // Cerrar menú al hacer clic fuera
-        document.addEventListener('mousedown', (e) => {
-            if (this.menu && !this.menu.classList.contains('hidden')) {
-                const btn = document.getElementById('btn-notifications');
-                if (btn && !this.menu.contains(e.target) && !btn.contains(e.target)) {
-                    this.menu.classList.add('hidden');
-                }
-            }
-        });
+        if (!this._listenersBound) {
+            this._listenersBound = true;
 
-        // Refrescar notificaciones al volver a la app o enfocar la pantalla
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
+            // Cerrar menú al hacer clic fuera
+            document.addEventListener('mousedown', (e) => {
+                if (this.menu && !this.menu.classList.contains('hidden')) {
+                    const btn = document.getElementById('btn-notifications');
+                    if (btn && !this.menu.contains(e.target) && !btn.contains(e.target)) {
+                        this.menu.classList.add('hidden');
+                    }
+                }
+            });
+
+            // Refrescar notificaciones al volver a la app o enfocar la pantalla
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    this.fetchNotifications();
+                }
+            });
+            window.addEventListener('focus', () => {
                 this.fetchNotifications();
-            }
-        });
-        window.addEventListener('focus', () => {
-            this.fetchNotifications();
-        });
+            });
+        }
 
         // Comprobar si acabamos de actualizar para mostrar confirmación de éxito
         if (sessionStorage.getItem('recipe_pantry_just_updated')) {
@@ -199,8 +206,10 @@ class NotificationManager {
                 };
             });
 
-            // Preservar notificaciones locales (update, sync)
-            const localNotifications = this.notifications.filter(n => ['app_update', 'offline_sync'].includes(n.type));
+            // Preservar notificaciones locales (update, sync, trail_reminder, welcome)
+            const localNotifications = this.notifications.filter(n =>
+                ['app_update', 'offline_sync', 'trail_reminder', 'welcome'].includes(n.type)
+            );
             this.notifications = [...localNotifications, ...serverNotifications];
             
             // Eliminar duplicados por ID
@@ -218,9 +227,12 @@ class NotificationManager {
                 this.notifications = this.notifications.filter(n => !this._dismissedIds.has(n.id));
             }
 
-            this.updateBadge();
+            this.updateBadge({ preserveOpenMenu: true });
             if (this.menu && !this.menu.classList.contains('hidden')) {
-                this.renderMenu();
+                const currentKeys = this.notifications.map(n => `${n.id}:${n.type}:${n.recipeName}`).join('|');
+                if (this._lastRenderedKeys !== currentKeys) {
+                    this.renderMenu();
+                }
             }
         } catch (err) {
             console.error('❌ [Notifications] Error en fetchNotifications:', err);
@@ -302,7 +314,7 @@ class NotificationManager {
         });
     }
 
-    updateBadge() {
+    updateBadge(options = {}) {
         if (!this.badge) {
             this.badge = document.getElementById('notifications-badge');
         }
@@ -328,6 +340,11 @@ class NotificationManager {
             }
         } else {
             if (this.badge) this.badge.classList.add('hidden');
+            const isMenuOpen = this.menu && !this.menu.classList.contains('hidden');
+            if (options && options.preserveOpenMenu && isMenuOpen) {
+                this.lastCount = unreadCount;
+                return;
+            }
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
                 if (actionsContainer) actionsContainer.classList.add('hidden');
@@ -340,7 +357,7 @@ class NotificationManager {
                 if (btn) btn.classList.remove('hidden');
                 if (topBar) topBar.classList.remove('no-notifications');
             }
-            if (this.menu && !this.menu.classList.contains('hidden')) {
+            if (isMenuOpen) {
                 this.menu.classList.add('hidden');
             }
         }
@@ -354,13 +371,16 @@ class NotificationManager {
      */
     _dismissLocally(notificationId) {
         if (!notificationId) return;
-        this._dismissedIds.add(notificationId);
-        // Persistir en localStorage para sobrevivir refresco de página
-        try {
-            // Mantener solo los últimos 50 IDs para no saturar localStorage
-            const arr = Array.from(this._dismissedIds).slice(-50);
-            localStorage.setItem('rp_dismissed_notif_ids', JSON.stringify(arr));
-        } catch (e) {}
+        const isTransientLocal = ['update-1', 'sync-prompt-1', 'trail-reminder-1'].includes(notificationId);
+        if (!isTransientLocal) {
+            this._dismissedIds.add(notificationId);
+            // Persistir en localStorage para sobrevivir refresco de página
+            try {
+                // Mantener solo los últimos 50 IDs para no saturar localStorage
+                const arr = Array.from(this._dismissedIds).slice(-50);
+                localStorage.setItem('rp_dismissed_notif_ids', JSON.stringify(arr));
+            } catch (e) {}
+        }
         this.notifications = this.notifications.filter(n => n.id !== notificationId);
         this.updateBadge();
         this.renderMenu();
@@ -434,23 +454,41 @@ class NotificationManager {
         }
     }
 
-    addTrailNotification(userName) {
+    addTrailNotification(userName, force = false) {
         if (!this.isReady) {
-            this.pendingNotifications.push(() => this.addTrailNotification(userName));
+            this.pendingNotifications.push(() => this.addTrailNotification(userName, force));
             return;
         }
 
         const notifId = 'trail-reminder-1';
-        if (sessionStorage.getItem('rp_dismissed_trail_notification') === 'true' || 
-            (this._dismissedIds && this._dismissedIds.has(notifId))) {
-            return;
+        if (force) {
+            sessionStorage.removeItem('rp_dismissed_trail_notification');
+            if (this._dismissedIds) this._dismissedIds.delete(notifId);
         }
 
-        // Evitar duplicados
-        if (this.notifications.some(n => n.type === 'trail_reminder')) return;
+        if (sessionStorage.getItem('rp_dismissed_trail_notification') === 'true') {
+            return;
+        }
+        if (this._dismissedIds) {
+            this._dismissedIds.delete(notifId);
+        }
 
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         const name = (userName || 'Chef').trim();
+
+        // Si ya existe, actualizar el nombre del usuario en caso de que se haya hidratado después
+        const existing = this.notifications.find(n => n.type === 'trail_reminder');
+        if (existing) {
+            if (name && name !== 'Chef' && existing.userName !== name) {
+                existing.userName = name;
+                existing.recipeName = isEn ? `Trail Reminder - ${name}` : `Recordatorio Trail - ${name}`;
+                if (this.menu && !this.menu.classList.contains('hidden')) {
+                    this.renderMenu();
+                }
+            }
+            this.updateBadge({ preserveOpenMenu: true });
+            return;
+        }
 
         this.notifications.unshift({
             id: notifId,
@@ -462,7 +500,7 @@ class NotificationManager {
             leido: false
         });
 
-        this.updateBadge();
+        this.updateBadge({ preserveOpenMenu: true });
         if (this.menu && !this.menu.classList.contains('hidden')) {
             this.renderMenu();
         }
@@ -631,6 +669,8 @@ class NotificationManager {
         }
         if (!this.list) return;
 
+        this._lastRenderedKeys = this.notifications.map(n => `${n.id}:${n.type}:${n.recipeName}`).join('|');
+
         const isEn = window.i18n && window.i18n.getLang() === 'en';
 
         if (this.notifications.length === 0) {
@@ -709,7 +749,7 @@ class NotificationManager {
                 const btnOpen = isEn ? 'Open Trail' : 'Abrir Trail';
                 const btnDismiss = isEn ? 'Dismiss' : 'Entendido';
                 return `
-                    <div class="notification-item unread" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid #f1f5f9;">
+                    <div class="notification-item unread" onclick="event.stopPropagation();" style="background:transparent !important; padding:14px 16px; border-bottom:1px solid #f1f5f9; cursor:default;">
                         <div style="display:flex; align-items:flex-start; gap:12px;">
                             <div class="notification-avatar" style="flex-shrink:0; background:#e0f2fe; color:#0284c7; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:18px;">
                                 📋
@@ -718,13 +758,13 @@ class NotificationManager {
                                 <span style="color:#111827 !important; font-weight:800; display:block; font-size:15px; letter-spacing:-0.2px;">${n.recipeName}</span>
                                 <span style="color:#111827 !important; font-size:13px; font-weight:500; display:block; margin-top:4px; line-height:1.4;">${msg}</span>
                                 <div style="display:flex; gap:8px; margin-top:12px;">
-                                    <button onclick="event.stopPropagation(); window.open('https://web.trailapp.com/u/sign_in#/', '_blank'); window.notificationManager.dismissNotification('${n.id}')"
+                                    <button type="button" onclick="event.stopPropagation(); window.notificationManager.handleOpenTrail('${n.id}')"
                                             class="btn-accept-m3"
                                             style="padding:8px 14px; font-size:12px; font-weight:700; border-radius:9999px; background:#0284C7; color:#FFFFFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(2,132,199,0.25);">
                                         <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
                                         ${btnOpen}
                                     </button>
-                                    <button onclick="event.stopPropagation(); window.notificationManager.dismissNotification('${n.id}')"
+                                    <button type="button" onclick="event.stopPropagation(); window.notificationManager.dismissNotification('${n.id}')"
                                             class="btn-reject-m3"
                                             style="padding:8px 12px; font-size:12px; font-weight:600; border-radius:9999px; background:#F4F4F5; color:#71717A; border:none; cursor:pointer;">
                                         ${btnDismiss}
@@ -1319,6 +1359,12 @@ class NotificationManager {
         }
     }
 
+    handleOpenTrail(notificationId = 'trail-reminder-1') {
+        window.open('https://web.trailapp.com/u/sign_in#/', '_blank', 'noopener,noreferrer');
+        this.dismissNotification(notificationId);
+        this.closeMenu();
+    }
+
     dismissNotification(notificationId) {
         if (notificationId && (notificationId === 'update-1' || notificationId.startsWith('update-'))) {
             const btn = document.getElementById('btn-notifications');
@@ -1328,6 +1374,9 @@ class NotificationManager {
         }
         if (notificationId && notificationId.startsWith('sync-')) {
             localStorage.setItem('recipepantry_offline_prompt_dismissed', 'true');
+        }
+        if (notificationId && (notificationId === 'trail-reminder-1' || notificationId.startsWith('trail-'))) {
+            sessionStorage.setItem('rp_dismissed_trail_notification', 'true');
         }
         this._dismissLocally(notificationId);
     }

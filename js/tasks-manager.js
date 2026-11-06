@@ -701,19 +701,32 @@
                 }, 3 * 60 * 1000);
             }
 
-            // Al volver al navegador o app
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    this.checkTrailReminder();
-                }
-            });
+            // Al volver al navegador o app (registrar una sola vez)
+            if (!this._trailVisibilityBound) {
+                this._trailVisibilityBound = true;
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') {
+                        this.checkTrailReminder();
+                    }
+                });
+            }
 
-            // Disparar prueba automática inmediata (una vez por sesión para visualización inmediata)
+            // Disparar recordatorio inicial por sesión solo si el Trail sigue pendiente hoy (o si se fuerza por URL)
             const params = new URLSearchParams(window.location.search);
             const forceTest = params.has('testTrail') || params.has('test');
             if (forceTest || !sessionStorage.getItem('rp_trail_sample_sent_v1116')) {
                 sessionStorage.setItem('rp_trail_sample_sent_v1116', 'true');
                 setTimeout(() => {
+                    if (!forceTest) {
+                        const todayStr = this.getTodayDateString();
+                        const trailTask = (this.tasks || []).find(t =>
+                            (t.title && t.title.toLowerCase().includes('trail')) ||
+                            (t.qty && t.qty.includes('trailapp.com'))
+                        );
+                        if (trailTask && this.isTaskCompletedForDate(trailTask, todayStr)) {
+                            return;
+                        }
+                    }
                     this.sendTrailNotification(false);
                 }, 1000);
             }
@@ -763,7 +776,22 @@
             // Si no existe o ya está completada para el día de hoy, detener recordatorios
             const todayStr = this.getTodayDateString();
             if (!trailTask || this.isTaskCompletedForDate(trailTask, todayStr)) {
+                if (trailTask && this.isTaskCompletedForDate(trailTask, todayStr) && window.notificationManager?.notifications) {
+                    const hadTrail = window.notificationManager.notifications.some(n => n.id === 'trail-reminder-1');
+                    if (hadTrail) {
+                        window.notificationManager.notifications = window.notificationManager.notifications.filter(n => n.id !== 'trail-reminder-1');
+                        window.notificationManager.updateBadge();
+                        if (window.notificationManager.menu && !window.notificationManager.menu.classList.contains('hidden')) {
+                            window.notificationManager.renderMenu();
+                        }
+                    }
+                }
                 return;
+            }
+
+            // Mantener la notificación en la campana mientras el Trail siga pendiente hoy y no haya sido descartada manualmente
+            if (window.notificationManager && typeof window.notificationManager.addTrailNotification === 'function') {
+                window.notificationManager.addTrailNotification(this.getUserFriendlyName(), false);
             }
 
             const now = Date.now();
@@ -840,7 +868,7 @@
 
             // 2. Notificación en Centro de Notificaciones (campana) si está disponible
             if (window.notificationManager && typeof window.notificationManager.addTrailNotification === 'function') {
-                window.notificationManager.addTrailNotification(userName);
+                window.notificationManager.addTrailNotification(userName, true);
             }
 
             // 3. Notificación In-App (Toast visible personalizado)
@@ -1117,6 +1145,7 @@
                     this.updateCarouselBadges();
                     this.hydrateMissingRecipes();
                     await this.rolloverPendingTasks();
+                    this.checkTrailReminder();
                 }
 
                 // Cargar recetas de la despensa para el selector de recetas
