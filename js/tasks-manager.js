@@ -1586,13 +1586,13 @@
 
                     <!-- MODAL / BOTTOM SHEET DE REVISIÓN DE TAREAS DETECTADAS -->
                     <div id="prepScanPreviewBackdrop" onclick="window.tasksManager.closeScanPreviewModal()" class="tasks-backdrop" style="display: none;"></div>
-                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none;">
+                    <div id="prepScanPreviewSheet" class="tasks-bottom-sheet tasks-scan-preview-sheet" style="display: none !important;">
                         <!-- Drag Handle (Material 3 Expressive) -->
                         <div class="prep-scan-drag-area" id="prepScanDragArea" title="Arrastra hacia arriba para expandir a toda la pantalla" style="cursor: grab; touch-action: none; padding: 10px 0 14px 0; display: flex; justify-content: center; user-select: none;">
                             <div class="prep-scan-drag-handle" id="prepScanDragHandle" style="width: 44px; height: 5px; background: #D1D5DB; border-radius: 9999px; transition: width 0.2s, background 0.2s;"></div>
                         </div>
                         <!-- Botón cerrar en esquina superior derecha -->
-                        <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-close-btn" aria-label="Cerrar" title="Cerrar">
+                        <button type="button" onclick="event.stopPropagation(); window.tasksManager.closeScanPreviewModal();" class="prep-scan-close-btn" aria-label="Cerrar" title="Cerrar">
                             <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
                         </button>
                         <div class="tasks-bottom-sheet-header" style="padding-right: 44px;">
@@ -1625,7 +1625,7 @@
 
                         <!-- Footer con acciones principales -->
                         <div class="prep-scan-footer">
-                            <button type="button" onclick="window.tasksManager.closeScanPreviewModal()" class="prep-scan-btn-cancel">
+                            <button type="button" onclick="event.stopPropagation(); window.tasksManager.closeScanPreviewModal();" class="prep-scan-btn-cancel">
                                 Cancelar
                             </button>
                             <button type="button" onclick="window.tasksManager.commitScannedTasks()" id="prepScanSubmitBtn" class="prep-scan-btn-submit">
@@ -3133,7 +3133,8 @@ REGLAS OBLIGATORIAS:
             const backdrop = document.getElementById('prepScanPreviewBackdrop');
             if (sheet && backdrop) {
                 backdrop.style.display = 'block';
-                sheet.style.display = 'flex';
+                sheet.style.removeProperty('display');
+                sheet.style.setProperty('display', 'flex', 'important');
                 sheet.classList.remove('is-expanded');
                 sheet.scrollTop = 0;
                 this.initScanPreviewGestures();
@@ -3146,7 +3147,8 @@ REGLAS OBLIGATORIAS:
             const sheet = document.getElementById('prepScanPreviewSheet');
             const backdrop = document.getElementById('prepScanPreviewBackdrop');
             if (sheet) {
-                sheet.style.display = 'none';
+                sheet.style.removeProperty('display');
+                sheet.style.setProperty('display', 'none', 'important');
                 sheet.classList.remove('is-expanded');
             }
             if (backdrop) backdrop.style.display = 'none';
