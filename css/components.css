@@ -22478,3 +22478,53 @@ body:has(.top-bar-m3.recipe-detail-active) .pc-detail-topbar,
     user-select: text !important;
     -webkit-user-select: text !important;
 }
+
+/* M3 Expressive Switch */
+.m3-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    border-radius: var(--radius-xl, 24px);
+    background: var(--bg, #F8FAFC);
+    border: 1px solid #E2E8F0;
+}
+.m3-switch-row.is-on { background: var(--primary-light, #ECFDF5); }
+.m3-switch-title { font-size: 14px; font-weight: 700; color: var(--text-main, #0F172A); }
+.m3-switch-sub { font-size: 12px; font-weight: 400; color: #64748B; margin-top: 2px; }
+.m3-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 52px;
+    height: 32px;
+    padding: 0;
+    border-radius: var(--radius-full, 9999px);
+    border: 2px solid #94A3B8;
+    background: #E2E8F0;
+    cursor: pointer;
+    transition: background 0.25s, border-color 0.25s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.m3-switch.is-on { background: var(--primary, #10B981); border-color: var(--primary, #10B981); }
+.m3-switch:active { transform: scale(0.97); }
+.m3-switch:focus-visible { outline: 3px solid var(--primary, #10B981); outline-offset: 3px; }
+.m3-switch-thumb {
+    position: absolute;
+    top: 50%;
+    left: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s;
+}
+.m3-switch:hover .m3-switch-thumb { box-shadow: 0 0 0 8px rgba(100, 116, 139, 0.08); }
+.m3-switch:active .m3-switch-thumb { width: 28px; height: 28px; left: 2px; box-shadow: 0 0 0 8px rgba(100, 116, 139, 0.12); }
+.m3-switch.is-on .m3-switch-thumb { left: 22px; width: 24px; height: 24px; background: var(--on-primary, #FFFFFF); color: var(--primary-dark, #047857); }
+.m3-switch.is-on:hover .m3-switch-thumb { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1); }
+.m3-switch.is-on:active .m3-switch-thumb { left: 20px; width: 28px; height: 28px; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.14); }
+.m3-switch-thumb .material-symbols-outlined { font-size: 16px; font-weight: 700; }

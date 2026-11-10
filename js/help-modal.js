@@ -779,6 +779,16 @@ class SettingsViewManager {
         }
     }
 
+    handleDisablePushHint() {
+        // Los navegadores no permiten revocar el permiso por código
+        const isEn = window.i18n && window.i18n.getLang() === 'en';
+        const msg = isEn
+            ? 'To turn notifications off, change the permission in your browser site settings.'
+            : 'Para desactivar las notificaciones, cambia el permiso en los ajustes del sitio de tu navegador.';
+        if (window.utils?.showToast) window.utils.showToast(msg, 'info', 4500);
+        else if (window.showToast) window.showToast(msg, 'info');
+    }
+
     async handleRecheckPushPermission() {
         const isEn = window.i18n && window.i18n.getLang() === 'en';
         
@@ -823,20 +833,15 @@ class SettingsViewManager {
 
         if (permission === 'granted') {
             container.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: 600; color: #065F46; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 14px; padding: 12px 16px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-symbols-outlined" style="font-size: 20px; color: #10B981;">check_circle</span>
-                        <div>
-                            <div style="font-weight: 700; color: #047857;">${isEn ? 'Notifications Active' : 'Notificaciones activadas'}</div>
-                            <div style="font-size: 12px; font-weight: 500; color: #065F46; margin-top: 2px;">${isEn ? 'Receiving task alerts and reminders' : 'Recibiendo alertas de tareas y avisos'}</div>
-                        </div>
+                <div class="m3-switch-row is-on">
+                    <div class="m3-switch-label">
+                        <div class="m3-switch-title">${isEn ? 'Notifications Active' : 'Notificaciones activadas'}</div>
+                        <div class="m3-switch-sub">${isEn ? 'Receiving task alerts and reminders' : 'Recibiendo alertas de tareas y avisos'}</div>
                     </div>
-                    <button type="button" onclick="window.helpModal.handleTestPushNotification()"
-                        style="border: 1px solid #10B981; background: #FFFFFF; color: #059669; padding: 6px 14px; border-radius: 100px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15); transition: all 0.2s;"
-                        onmouseover="this.style.background='#F0FDF4'"
-                        onmouseout="this.style.background='#FFFFFF'">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">send</span>
-                        <span>${isEn ? 'Test Notification' : 'Probar Notificación'}</span>
+                    <button type="button" role="switch" aria-checked="true" class="m3-switch is-on"
+                        aria-label="${isEn ? 'Notifications' : 'Notificaciones'}"
+                        onclick="window.helpModal.handleDisablePushHint()">
+                        <span class="m3-switch-thumb"><span class="material-symbols-outlined">check</span></span>
                     </button>
                 </div>
             `;
@@ -864,20 +869,15 @@ class SettingsViewManager {
         } else {
             // default
             container.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; font-weight: 600; color: #92400E; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 14px; padding: 12px 16px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-symbols-outlined" style="font-size: 20px; color: #F59E0B;">notification_important</span>
-                        <div>
-                            <div style="font-weight: 700; color: #B45309;">${isEn ? 'Notifications Not Enabled' : 'Notificaciones no activadas'}</div>
-                            <div style="font-size: 12px; font-weight: 500; color: #92400E; margin-top: 2px;">${isEn ? 'Enable permissions to receive alerts' : 'Actívalas para recibir alertas y recordatorios'}</div>
-                        </div>
+                <div class="m3-switch-row">
+                    <div class="m3-switch-label">
+                        <div class="m3-switch-title">${isEn ? 'Notifications Not Enabled' : 'Notificaciones no activadas'}</div>
+                        <div class="m3-switch-sub">${isEn ? 'Enable permissions to receive alerts' : 'Actívalas para recibir alertas y recordatorios'}</div>
                     </div>
-                    <button type="button" onclick="window.helpModal.handleRequestPushNotification()"
-                        style="border: none; background: #10B981; color: white; padding: 8px 18px; border-radius: 100px; font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28); transition: all 0.2s;"
-                        onmouseover="this.style.background='#059669'"
-                        onmouseout="this.style.background='#10B981'">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">notifications_active</span>
-                        <span>${isEn ? 'Enable Notifications' : 'Activar Notificaciones'}</span>
+                    <button type="button" role="switch" aria-checked="false" class="m3-switch"
+                        aria-label="${isEn ? 'Notifications' : 'Notificaciones'}"
+                        onclick="window.helpModal.handleRequestPushNotification()">
+                        <span class="m3-switch-thumb"></span>
                     </button>
                 </div>
             `;
