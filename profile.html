@@ -495,10 +495,12 @@
           <span class="material-symbols-outlined">health_and_safety</span>
           <span data-i18n="navAllergies">Alergias</span>
         </a>
+        <!-- 
         <a href="/#favorites" class="nav-item" title="Favoritos">
           <span class="material-symbols-outlined">star</span>
           <span data-i18n="navFavorites">Favoritos</span>
         </a>
+        -->
         <a href="/?view=suppliers" class="nav-item hidden" id="navItemSuppliers" title="Proveedores y Órdenes">
           <span class="material-symbols-outlined">local_shipping</span>
           <span data-i18n="navSuppliers">Proveedores</span>
@@ -507,9 +509,7 @@
           <span class="material-symbols-outlined">settings</span>
           <span data-i18n="navHelp">Configuración</span>
         </a>
-        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()" title="Cerrar Sesión">
-          <span class="material-symbols-outlined">logout</span>
-          <span data-i18n="navLogout">Cerrar Sesión</span>
+        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()" style="display: none;">
         </a>
       </nav>
       <div class="sidebar-footer">

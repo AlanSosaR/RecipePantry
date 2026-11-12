@@ -1,4 +1,18 @@
 
+// No mostrar las ligaduras como texto mientras se descarga la fuente de iconos.
+if (document.fonts) {
+    document.documentElement.classList.add('icons-loading');
+    const revealIcons = () => {
+        if (document.fonts.check('24px "Material Symbols Outlined"', 'menu')) {
+            document.documentElement.classList.remove('icons-loading');
+        }
+    };
+    document.fonts.load('24px "Material Symbols Outlined"', 'menu')
+        .then(fonts => { if (fonts.length) revealIcons(); })
+        .catch(() => { /* Mantener el espacio sin mostrar nombres de iconos. */ });
+    document.fonts.addEventListener('loadingdone', revealIcons);
+}
+
 window.setupMobileMenu = function () {
     const btnMenuMobile = document.getElementById('btnMenuMobile');
     const sidebar = document.querySelector('.sidebar');
@@ -48,6 +62,8 @@ window.toggleSidebar = function (open) {
     if (open) {
         sidebar.classList.add('active');
         sidebar.classList.remove('sidebar--slim');
+        // Siempre abrir el menú mostrando el perfil (arriba del todo)
+        sidebar.scrollTop = 0;
         if (overlay) overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         document.body.classList.add('sidebar-open');
@@ -399,5 +415,162 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => container.remove(), 300);
         }
     };
+
+    // ─── Componente Interactivo Slide to Logout M3 Expressive ───
+    window.initSlideToLogout = function() {
+        const logoutLinks = document.querySelectorAll('.nav-item.nav-logout-m3');
+        logoutLinks.forEach(link => {
+            if (link.dataset.sliderInitialized) return;
+            link.dataset.sliderInitialized = 'true';
+
+            // Crear el slider interactivo
+            const sliderWrap = document.createElement('div');
+            sliderWrap.className = 'nav-logout-slider-container';
+            sliderWrap.innerHTML = `
+                <div class="m3-slide-to-logout" id="m3SlideLogout" role="slider" aria-label="Desliza para cerrar sesión">
+                    <div class="m3-slide-track-fill" id="m3SlideFill"></div>
+                    <span class="m3-slide-text" id="m3SlideText">
+                        <span>Desliza para salir</span>
+                    </span>
+                    <div class="m3-slide-thumb" id="m3SlideThumb">
+                        <span class="material-symbols-outlined">logout</span>
+                    </div>
+                </div>
+            `;
+
+            // Insertar después del enlace original para no romper el orden del DOM
+            if (link.nextSibling) {
+                link.parentNode.insertBefore(sliderWrap, link.nextSibling);
+            } else {
+                link.parentNode.appendChild(sliderWrap);
+            }
+            link.style.setProperty('display', 'none', 'important');
+
+            const slider = sliderWrap.querySelector('.m3-slide-to-logout');
+            const thumb = sliderWrap.querySelector('.m3-slide-thumb');
+            const fill = sliderWrap.querySelector('.m3-slide-track-fill');
+            const text = sliderWrap.querySelector('.m3-slide-text');
+
+            const desktopLogout = document.createElement('button');
+            desktopLogout.type = 'button';
+            desktopLogout.className = 'desktop-logout-button';
+            desktopLogout.setAttribute('aria-label', 'Cerrar sesión');
+            desktopLogout.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">logout</span><span class="desktop-logout-label">Cerrar sesión</span>';
+            sliderWrap.appendChild(desktopLogout);
+            desktopLogout.addEventListener('click', async () => {
+                if (desktopLogout.disabled) return;
+                desktopLogout.disabled = true;
+                desktopLogout.setAttribute('aria-busy', 'true');
+                const label = desktopLogout.querySelector('.desktop-logout-label');
+                const icon = desktopLogout.querySelector('.material-symbols-outlined');
+                label.textContent = 'Cerrando sesión…';
+                icon.textContent = 'progress_activity';
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    await window.authManager.signOut();
+                } catch (_) {
+                    desktopLogout.disabled = false;
+                    desktopLogout.removeAttribute('aria-busy');
+                    label.textContent = 'Reintentar cierre';
+                    icon.textContent = 'logout';
+                }
+            });
+
+            let isDragging = false;
+            let isClosing = false;
+            let startX = 0;
+            let currentX = 0;
+            let maxSlide = 0;
+
+            const updateMaxSlide = () => {
+                const sliderWidth = slider.clientWidth;
+                const thumbWidth = thumb.offsetWidth;
+                maxSlide = Math.max(sliderWidth - thumbWidth - 8, 40);
+            };
+
+            const onStart = (clientX) => {
+                if (isClosing) return;
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar && sidebar.classList.contains('sidebar--slim')) {
+                    if (window.authManager && window.authManager.signOut) {
+                        window.authManager.signOut();
+                    }
+                    return;
+                }
+                isDragging = true;
+                slider.classList.add('is-dragging');
+                startX = clientX;
+                currentX = 0;
+                updateMaxSlide();
+                thumb.style.transition = 'none';
+                fill.style.transition = 'none';
+            };
+
+            const onMove = (clientX) => {
+                if (!isDragging) return;
+                const deltaX = clientX - startX;
+                currentX = Math.max(0, Math.min(deltaX, maxSlide));
+                
+                thumb.style.transform = `translateX(${currentX}px)`;
+                fill.style.width = `${currentX + 46}px`;
+
+                const progress = currentX / maxSlide;
+                text.style.opacity = `${Math.max(1 - progress * 1.5, 0)}`;
+            };
+
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                if (currentX >= maxSlide) {
+                    thumb.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
+                    fill.style.transition = 'width 0.2s cubic-bezier(0.2, 0, 0, 1)';
+                    thumb.style.transform = `translateX(${maxSlide}px)`;
+                    fill.style.width = `100%`;
+                    slider.style.background = '#EF4444';
+                    slider.style.borderColor = '#EF4444';
+                    
+                    // Restaurar el texto que se desvanece durante el arrastre.
+                    isClosing = true;
+                    slider.setAttribute('aria-busy', 'true');
+                    slider.setAttribute('aria-disabled', 'true');
+                    text.setAttribute('role', 'status');
+                    text.style.opacity = '1';
+                    text.style.setProperty('transform', 'none', 'important');
+                    thumb.style.visibility = 'hidden';
+                    text.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true" style="animation: rotate 1s linear infinite;">progress_activity</span><span>Cerrando sesión…</span>';
+
+                    setTimeout(() => {
+                        if (window.authManager && window.authManager.signOut) {
+                            window.authManager.signOut();
+                        } else if (link && link.onclick) {
+                            link.onclick();
+                        }
+                    }, 1000);
+                } else {
+                    slider.classList.remove('is-dragging');
+                    thumb.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    fill.style.transition = 'width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    thumb.style.transform = 'translateX(0px)';
+                    fill.style.width = '48px';
+                    text.style.opacity = '1';
+                }
+            };
+
+            thumb.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX), { passive: true });
+            window.addEventListener('touchmove', (e) => { if (isDragging) onMove(e.touches[0].clientX); }, { passive: true });
+            window.addEventListener('touchend', onEnd);
+
+            thumb.addEventListener('mousedown', (e) => onStart(e.clientX));
+            window.addEventListener('mousemove', (e) => { if (isDragging) onMove(e.clientX); });
+            window.addEventListener('mouseup', onEnd);
+        });
+    };
+
+    // Auto-ejecución inmediata y tras eventos de navegación
+    window.initSlideToLogout();
+    window.addEventListener('load', window.initSlideToLogout);
+    window.addEventListener('popstate', window.initSlideToLogout);
+    window.addEventListener('auth-changed', () => setTimeout(window.initSlideToLogout, 100));
 
 });

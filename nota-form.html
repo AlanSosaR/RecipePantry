@@ -662,14 +662,17 @@
 
         <!-- SIDEBAR — idéntico a notas.html -->
         <aside id="main-sidebar" class="sidebar notas-sidebar">
-            <div class="notas-sidebar-profile">
-                <div class="notas-avatar-ring">
-                    <div class="notas-avatar-circle user-avatar-m3" id="notas-avatar-container">
+            <!-- Profile Header (M3 Expressive Dashboard Style) -->
+            <div class="sidebar-user-profile notas-sidebar-profile" onclick="window.location.href='/profile'" style="cursor: pointer;" title="Editar Perfil">
+                <div class="user-avatar-ring notas-avatar-ring">
+                    <div class="user-avatar-m3 notas-avatar-circle" id="notas-avatar-container">
                         <img id="sidebar-user-avatar" src="" alt="Profile" style="display:none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-                        <span id="sidebar-user-initials" class="user-initials-m3 notas-initials">?</span>
+                        <span id="sidebar-user-initials" class="user-initials-m3 notas-initials"></span>
                     </div>
                 </div>
-                <h3 id="sidebar-user-greeting" class="notas-sidebar-username">Chef</h3>
+                <div class="user-info-m3">
+                    <span id="sidebar-user-greeting" class="user-greeting notas-sidebar-username" data-i18n="chefGreeting">Chef</span>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <a href="/" class="nav-item">
@@ -692,10 +695,12 @@
                     <span class="material-symbols-outlined">health_and_safety</span>
                     <span data-i18n="navAllergies">Alergias</span>
                 </a>
+                <!-- 
                 <a href="/?view=favorites" class="nav-item">
                     <span class="material-symbols-outlined">star</span>
                     <span data-i18n="navFavorites">Favoritos</span>
                 </a>
+                -->
                 <a href="/?view=suppliers" class="nav-item hidden" id="navItemSuppliers" title="Proveedores y Órdenes">
                     <span class="material-symbols-outlined">local_shipping</span>
                     <span data-i18n="navSuppliers">Proveedores</span>
@@ -704,10 +709,7 @@
                     <span class="material-symbols-outlined">settings</span>
                     <span data-i18n="navHelp">Configuración</span>
                 </a>
-                <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span data-i18n="navLogout">Cerrar Sesión</span>
-                </a>
+                <a class="nav-item nav-logout-m3" hidden aria-hidden="true" style="display: none !important;"></a>
             </nav>
         </aside>
 

@@ -646,7 +646,7 @@
           <span class="material-symbols-outlined">checklist</span>
           <span data-i18n="navTasks">Prep Diario</span>
         </a>
-        <a href="#" class="nav-item" onclick="window.location.href='/notas'" title="Notas">
+        <a href="/notas" class="nav-item" title="Notas">
           <span class="material-symbols-outlined">edit_note</span>
           <span data-i18n="navNotes">Notas</span>
         </a>
@@ -666,9 +666,7 @@
           <span class="material-symbols-outlined">settings</span>
           <span data-i18n="navHelp">Configuración</span>
         </a>
-        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()" title="Cerrar Sesión">
-          <span class="material-symbols-outlined">logout</span>
-          <span data-i18n="navLogout">Cerrar Sesión</span>
+        <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()" style="display: none;">
         </a>
       </nav>
       <div class="sidebar-footer">

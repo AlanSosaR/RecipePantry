@@ -564,6 +564,14 @@
                 font-size: 13.5px !important;
             }
         }
+        #btn-submit[aria-busy="true"] .material-symbols-outlined {
+            animation: login-spin 0.9s linear infinite;
+        }
+        #btn-submit-text { white-space: normal; }
+        @keyframes login-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            #btn-submit[aria-busy="true"] .material-symbols-outlined { animation: none; }
+        }
     </style>
 </head>
 
@@ -930,7 +938,15 @@
 
             if (hasError) return;
 
+            if (btn.disabled) return;
             btn.disabled = true;
+            let redirectPending = false;
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const originalIcon = icon.textContent;
+            icon.textContent = 'progress_activity';
+            icon.setAttribute('aria-hidden', 'true');
+            btn.setAttribute('aria-busy', 'true');
+            span.setAttribute('role', 'status');
             const originalTxt = span.textContent;
             span.textContent = isLogin ? (window.i18n ? window.i18n.t('msgEntering') : "Ingresando...") : (window.i18n ? window.i18n.t('msgCreating') : "Creando...");
 
@@ -954,11 +970,14 @@
                         }
 
                         const welcomeMsg = isEn 
-                            ? `👋 Welcome back, ${userName}!` 
-                            : `👋 ¡Bienvenido de nuevo, ${userName}!`;
+                            ? `Welcome back, ${userName}!` 
+                            : `¡Bienvenido de nuevo, ${userName}!`;
 
-                        window.showToast(welcomeMsg, "success");
-                        sessionStorage.setItem('rp_welcome_message', welcomeMsg);
+                        redirectPending = true;
+                        btn.setAttribute('aria-busy', 'false');
+                        icon.textContent = 'check_circle';
+                        span.textContent = welcomeMsg;
+                        sessionStorage.removeItem('rp_welcome_message');
 
                         setTimeout(() => {
                             const hashRedirect = localStorage.getItem('redirect_after_login');
@@ -1039,8 +1058,12 @@
                 // Fallo de red / excepción inesperada: también inline, sin snackbar
                 await handleAuthError(err, { email });
             } finally {
-                btn.disabled = false;
-                span.textContent = originalTxt;
+                if (!redirectPending) {
+                    btn.disabled = false;
+                    btn.setAttribute('aria-busy', 'false');
+                    icon.textContent = originalIcon;
+                    span.textContent = originalTxt;
+                }
             }
         });
 

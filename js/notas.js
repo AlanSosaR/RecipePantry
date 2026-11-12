@@ -7,7 +7,8 @@
             this.checklistItems = [];
             this.loading = true;
             this.searchQuery = '';
-            this.viewMode = localStorage.getItem('notes_view_mode') || 'grid';
+            // Vista inicial: PC en cuadrícula, móvil en lista.
+            this.viewMode = window.matchMedia('(min-width: 1024px)').matches ? 'grid' : 'list';
             this.init();
         }
 
@@ -72,7 +73,20 @@
         // ── Avatar: reusar la misma lógica de Recetas (ui.js) ─────────────
         async updateAvatar(user) {
             const greetingEl = document.getElementById('sidebar-user-greeting');
-            const authUser = window.authManager.session?.user;
+            const authUser = window.authManager?.session?.user;
+
+            // 1. Asignación síncrona inmediata desde caché local para 0ms de retardo
+            const cachedUser = window.authManager?.currentUser || JSON.parse(localStorage.getItem('recipe_pantry_user_profile') || '{}');
+            const targetUser = user || cachedUser;
+            if (targetUser) {
+                const prefix = targetUser.prefix || 'Chef';
+                const fName  = targetUser.first_name || '';
+                const lName  = targetUser.last_name  || '';
+                let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
+                if (!fName && !lName) fullName = prefix;
+                if (greetingEl) greetingEl.textContent = fullName;
+                document.querySelectorAll('.notas-sidebar-username').forEach(el => el.textContent = fullName);
+            }
 
             try {
                 // Ensure we have the user profile
@@ -101,7 +115,38 @@
                     const lName  = user.last_name  || '';
                     let fullName = `${prefix} ${fName} ${lName}`.replace(/\s+/g, ' ').trim();
                     if (!fName && !lName) fullName = prefix;
+                    
                     if (greetingEl) greetingEl.textContent = fullName;
+                    document.querySelectorAll('.notas-sidebar-username').forEach(el => el.textContent = fullName);
+
+                    // Update avatar
+                    const avatarContainer = document.querySelector('.notas-avatar-circle');
+                    if (avatarContainer) {
+                        if (user.avatar_url) {
+                            let imgTag = avatarContainer.querySelector('img');
+                            if (!imgTag) {
+                                imgTag = document.createElement('img');
+                                imgTag.style.width = '100%';
+                                imgTag.style.height = '100%';
+                                imgTag.style.borderRadius = '50%';
+                                imgTag.style.objectFit = 'cover';
+                                avatarContainer.appendChild(imgTag);
+                            }
+                            imgTag.src = user.avatar_url;
+                            imgTag.style.display = 'block';
+                            const initialsSpan = avatarContainer.querySelector('.notas-initials');
+                            if (initialsSpan) initialsSpan.style.display = 'none';
+                        } else {
+                            const imgTag = avatarContainer.querySelector('img');
+                            if (imgTag) imgTag.style.display = 'none';
+                            const initialsSpan = avatarContainer.querySelector('.notas-initials');
+                            if (initialsSpan) initialsSpan.style.display = 'block';
+                        }
+                    }
+                    
+                    if (window.updateGlobalUserUI) {
+                        window.updateGlobalUserUI();
+                    }
                 }
             } catch (e) {
                 console.warn("Avatar update error:", e);
@@ -373,11 +418,11 @@
             }
 
             if (btn) {
-                btn.title = isList ? 'Vista de cuadrícula' : 'Vista de lista';
+                btn.title = isList ? 'Vista de lista. Cambiar a cuadrícula' : 'Vista de cuadrícula. Cambiar a lista';
                 btn.setAttribute('aria-label', btn.title);
             }
             if (icon) {
-                icon.textContent = isList ? 'grid_view' : 'view_agenda';
+                icon.textContent = isList ? 'view_agenda' : 'grid_view';
             }
         }
 

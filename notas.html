@@ -59,14 +59,16 @@
              ═══════════════════════════════════════ -->
         <aside id="main-sidebar" class="sidebar notas-sidebar">
 
-            <!-- Profile Header (Stitch Design) -->
-            <div class="notas-sidebar-profile" onclick="window.location.href='/profile'" style="cursor: pointer;" title="Editar Perfil">
-                <div class="notas-avatar-ring">
-                    <div class="notas-avatar-circle user-avatar-m3" id="notas-avatar-container">
-                        <span id="sidebar-user-initials" class="user-initials-m3 notas-initials">?</span>
+            <!-- Profile Header (M3 Expressive Dashboard Style) -->
+            <div class="sidebar-user-profile notas-sidebar-profile" onclick="window.location.href='/profile'" style="cursor: pointer;" title="Editar Perfil">
+                <div class="user-avatar-ring notas-avatar-ring">
+                    <div class="user-avatar-m3 notas-avatar-circle" id="notas-avatar-container">
+                        <span id="sidebar-user-initials" class="user-initials-m3 notas-initials"></span>
                     </div>
                 </div>
-                <h3 id="sidebar-user-greeting" class="notas-sidebar-username">Chef</h3>
+                <div class="user-info-m3">
+                    <span id="sidebar-user-greeting" class="user-greeting notas-sidebar-username" data-i18n="chefGreeting">Chef</span>
+                </div>
             </div>
 
             <!-- Navigation Links -->
@@ -91,10 +93,12 @@
                     <span class="material-symbols-outlined">health_and_safety</span>
                     <span data-i18n="navAllergies">Alergias</span>
                 </a>
+<!-- 
                 <a href="/?view=favorites" class="nav-item">
                     <span class="material-symbols-outlined">star</span>
                     <span data-i18n="navFavorites">Favoritos</span>
                 </a>
+                -->
                 <a href="/?view=suppliers" class="nav-item hidden" id="navItemSuppliers" title="Proveedores y Órdenes">
                     <span class="material-symbols-outlined">local_shipping</span>
                     <span data-i18n="navSuppliers">Proveedores</span>
@@ -103,13 +107,20 @@
                     <span class="material-symbols-outlined">settings</span>
                     <span data-i18n="navHelp">Configuración</span>
                 </a>
-                <a href="#" class="nav-item nav-logout-m3" onclick="window.authManager.signOut()">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span data-i18n="navLogout">Cerrar Sesión</span>
-                </a>
+                <!-- Logout Button removed as requested -->
+                <a class="nav-item nav-logout-m3" hidden aria-hidden="true" style="display: none !important;"></a>
             </nav>
 
         </aside>
+        <script>
+            // Aplicar el ancho guardado antes de pintar el contenido principal.
+            try {
+                if (window.matchMedia('(min-width: 1024px)').matches &&
+                    localStorage.getItem('recipe_pantry_sidebar_slim') === 'true') {
+                    document.getElementById('main-sidebar').classList.add('sidebar--slim');
+                }
+            } catch (_) { /* El almacenamiento puede estar deshabilitado. */ }
+        </script>
 
         <!-- ═══════════════════════════════════════
              MAIN CONTENT
@@ -164,8 +175,8 @@
                     <div id="searchViewContent" class="search-view-content-m3 hidden"></div>
                 </div>
                 <div class="notas-top-bar-actions">
-                    <button id="btnViewMode" class="btn-icon-m3" onclick="window.notasManager && window.notasManager.toggleViewMode()" title="Vista de lista" aria-label="Cambiar vista">
-                        <span class="material-symbols-outlined" id="viewModeIcon">view_agenda</span>
+                    <button id="btnViewMode" class="btn-icon-m3" onclick="window.notasManager && window.notasManager.toggleViewMode()" title="Vista de cuadrícula. Cambiar a lista" aria-label="Vista de cuadrícula. Cambiar a lista">
+                        <span class="material-symbols-outlined" id="viewModeIcon">grid_view</span>
                     </button>
                 </div>
             </header>
@@ -181,6 +192,15 @@
 
                 <!-- Main Container -->
                 <div class="notas-container" id="notas-main-container">
+                    <script>
+                        // La vista inicial no depende de la respuesta de autenticación.
+                        const notesInitialList = !window.matchMedia('(min-width: 1024px)').matches;
+                        document.getElementById('notas-main-container').classList.toggle('view-list', notesInitialList);
+                        document.getElementById('viewModeIcon').textContent = notesInitialList ? 'view_agenda' : 'grid_view';
+                        const notesViewButton = document.getElementById('btnViewMode');
+                        notesViewButton.title = notesInitialList ? 'Vista de lista. Cambiar a cuadrícula' : 'Vista de cuadrícula. Cambiar a lista';
+                        notesViewButton.setAttribute('aria-label', notesViewButton.title);
+                    </script>
 
                     <!-- Loading State -->
                     <div class="loading-spinner-container" id="loading-state">
