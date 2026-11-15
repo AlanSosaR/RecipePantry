@@ -18913,7 +18913,7 @@ body.supplier-detail-active .suppliers-subview-page {
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(2px);
-    z-index: 50;
+    z-index: 10050;
 }
 
 .tasks-bottom-sheet {
@@ -18928,7 +18928,7 @@ body.supplier-detail-active .suppliers-subview-page {
     border-top-right-radius: 28px;
     padding: 12px 22px 0 22px;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
-    z-index: 51;
+    z-index: 10060;
     max-height: 85vh;
     flex-direction: column;
     overflow: hidden;
@@ -18938,10 +18938,13 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 .tasks-bottom-sheet.is-expanded {
-    height: 94vh;
-    max-height: 96vh;
-    border-top-left-radius: 32px;
-    border-top-right-radius: 32px;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
 }
 
 .tasks-bottom-sheet.is-expanded #prepBottomSheetHandle {

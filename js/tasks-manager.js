@@ -2316,9 +2316,11 @@
                 const touch = e.touches ? e.touches[0] : e;
                 currentY = touch.clientY;
                 const deltaY = currentY - startY;
+                const formEl = document.getElementById('prepTaskForm');
+                const atTop = !formEl || formEl.scrollTop <= 0;
 
                 // Si se arrastra hacia arriba desde el asa o cuando el scroll interno está al tope
-                if (deltaY < -20 && (isHandleDrag || sheet.scrollTop <= 0)) {
+                if (deltaY < -20 && (isHandleDrag || atTop)) {
                     sheet.classList.add('is-expanded');
                 } else if (deltaY > 50 && isHandleDrag) {
                     if (sheet.classList.contains('is-expanded')) {
@@ -2331,9 +2333,11 @@
                 if (!isTracking) return;
                 const deltaY = currentY - startY;
                 isTracking = false;
+                const formEl = document.getElementById('prepTaskForm');
+                const atTop = !formEl || formEl.scrollTop <= 0;
 
                 // Deslizar hacia arriba: abrir todo el bottom sheet
-                if (deltaY < -30 && (isHandleDrag || sheet.scrollTop <= 0)) {
+                if (deltaY < -30 && (isHandleDrag || atTop)) {
                     sheet.classList.add('is-expanded');
                 } else if (deltaY > 60 && isHandleDrag) {
                     if (sheet.classList.contains('is-expanded')) {
@@ -2341,6 +2345,8 @@
                     } else {
                         this.closeCreateModal();
                     }
+                } else if (Math.abs(deltaY) < 8 && e.target.closest('#prepBottomSheetDragArea')) {
+                    sheet.classList.toggle('is-expanded');
                 }
             };
 
