@@ -1543,7 +1543,7 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+                            <div class="tasks-bottom-sheet-footer">
                                 <button type="button" onclick="window.tasksManager.closeCreateModal()" style="
                                     flex: 1;
                                     height: 50px;

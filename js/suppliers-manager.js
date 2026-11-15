@@ -1474,6 +1474,11 @@
                     ` : ''}
                 </div>
 
+                <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.suppliersManager.openItemForm(null, '${supplier.id}');">
+                    <span class="material-symbols-outlined" style="color: var(--primary);">add_circle</span>
+                    <span>${isEn ? 'Add Product' : 'Agregar Producto'}</span>
+                </button>
+
                 ${whatsappUrl ? `
                     <button type="button" class="context-menu-item" onclick="window.suppliersManager.closeSupplierBottomSheet(); window.open('${whatsappUrl}', '_blank');">
                         <span class="material-symbols-outlined" style="color: #25D366;">chat</span>
@@ -3017,20 +3022,28 @@ renderItemCard(item, supplierId) {
             }
         }
 
-        /** Navega a la vista de formulario de proveedor (Crear o Editar) */
+        /** Navega a la vista de formulario de proveedor (En móvil abre Bottom Sheet, en PC página completa) */
         openSupplierForm(supplierId = null) {
             if (window.dashboard && window.dashboard.currentView !== 'suppliers') {
                 window.dashboard.switchView('suppliers');
+            }
+            if (window.innerWidth <= 768) {
+                this.openSupplierFormBottomSheet(supplierId);
+                return;
             }
             this.editingSupplierId = supplierId;
             this.currentSubView = 'supplier-form';
             this.render();
         }
 
-        /** Navega a la vista de formulario de producto (Crear o Editar con foto) */
+        /** Navega a la vista de formulario de producto (En móvil abre Bottom Sheet, en PC página completa) */
         openItemForm(itemId = null, preselectedSupplierId = null) {
             if (window.dashboard && window.dashboard.currentView !== 'suppliers') {
                 window.dashboard.switchView('suppliers');
+            }
+            if (window.innerWidth <= 768) {
+                this.openItemFormBottomSheet(itemId, preselectedSupplierId);
+                return;
             }
             this.editingItemId = itemId;
             this.preselectedSupplierId = preselectedSupplierId;
@@ -3168,6 +3181,102 @@ renderItemCard(item, supplierId) {
             btn.style.color = isActive ? 'var(--primary-dark)' : 'var(--text-secondary)';
         }
 
+        /** Abre el selector de hora M3 Expressive para el campo indicado */
+        openM3TimePicker(inputId) {
+            const hiddenInput = document.getElementById(inputId);
+            const displayEl = document.getElementById(`${inputId}Display`);
+            if (!hiddenInput) return;
+
+            const existing = document.getElementById('m3TimePickerBackdrop');
+            if (existing) existing.remove();
+
+            const isEn = this.isEnglish();
+            const rawVal = (hiddenInput.value || '18:00').trim();
+            const parts = rawVal.split(':');
+            let initH = Math.min(23, Math.max(0, parseInt(parts[0], 10) || 18));
+            let initM = Math.min(59, Math.max(0, parseInt(parts[1], 10) || 0));
+            const pad2 = (n) => String(n).padStart(2, '0');
+
+            const backdrop = document.createElement('div');
+            backdrop.className = 'm3-timepicker-backdrop';
+            backdrop.id = 'm3TimePickerBackdrop';
+            backdrop.onclick = (e) => {
+                if (e.target === backdrop) backdrop.remove();
+            };
+
+            const presets = ['12:00', '15:00', '17:00', '18:00', '20:00', '22:00'];
+
+            backdrop.innerHTML = `
+                <div class="m3-timepicker-dialog" role="dialog" aria-modal="true" aria-label="${isEn ? 'Select time' : 'Seleccionar hora'}">
+                    <div class="m3-timepicker-header">
+                        <span class="m3-timepicker-title">${isEn ? 'Select time (24h)' : 'Seleccionar hora (24h)'}</span>
+                    </div>
+
+                    <div class="m3-timepicker-input-mode-container">
+                        <div class="m3-timepicker-display-row">
+                            <div>
+                                <input type="number" id="m3TpHourInput" min="0" max="23" inputmode="numeric" value="${pad2(initH)}" class="m3-timepicker-text-input" />
+                                <div class="m3-timepicker-input-caption">${isEn ? 'Hour' : 'Hora'}</div>
+                            </div>
+                            <span class="m3-timepicker-separator" style="padding-bottom: 18px;">:</span>
+                            <div>
+                                <input type="number" id="m3TpMinInput" min="0" max="59" inputmode="numeric" value="${pad2(initM)}" class="m3-timepicker-text-input" />
+                                <div class="m3-timepicker-input-caption">${isEn ? 'Minute' : 'Minuto'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
+                        ${presets.map(t => `
+                            <button type="button" class="m3-tp-preset-chip" data-time="${t}" style="
+                                padding: 6px 12px;
+                                border-radius: var(--radius-full);
+                                border: 1px solid ${rawVal === t ? 'var(--primary)' : 'var(--border)'};
+                                background: ${rawVal === t ? 'var(--primary-light)' : 'var(--surface)'};
+                                color: ${rawVal === t ? 'var(--primary-dark)' : 'var(--text-main)'};
+                                font-size: 12.5px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                font-family: var(--font-display);
+                            ">${t}</button>
+                        `).join('')}
+                    </div>
+
+                    <div class="m3-timepicker-actions" style="justify-content: flex-end; gap: 8px;">
+                        <button type="button" id="m3TpCancelBtn" class="m3-timepicker-btn-text btn-cancel">
+                            ${isEn ? 'Cancel' : 'Cancelar'}
+                        </button>
+                        <button type="button" id="m3TpOkBtn" class="m3-timepicker-btn-text">
+                            ${isEn ? 'OK' : 'Aceptar'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(backdrop);
+
+            const hourInput = backdrop.querySelector('#m3TpHourInput');
+            const minInput = backdrop.querySelector('#m3TpMinInput');
+
+            backdrop.querySelectorAll('.m3-tp-preset-chip').forEach(chip => {
+                chip.onclick = () => {
+                    const [ph, pm] = chip.dataset.time.split(':');
+                    hourInput.value = ph;
+                    minInput.value = pm;
+                };
+            });
+
+            backdrop.querySelector('#m3TpCancelBtn').onclick = () => backdrop.remove();
+            backdrop.querySelector('#m3TpOkBtn').onclick = () => {
+                const h = Math.min(23, Math.max(0, parseInt(hourInput.value, 10) || 0));
+                const m = Math.min(59, Math.max(0, parseInt(minInput.value, 10) || 0));
+                const finalTime = `${pad2(h)}:${pad2(m)}`;
+                hiddenInput.value = finalTime;
+                if (displayEl) displayEl.textContent = finalTime;
+                backdrop.remove();
+            };
+        }
+
         // Aliases para compatibilidad hacia atrás
         openSupplierModal(supplierId = null) { return this.openSupplierForm(supplierId); }
         openItemModal(itemId = null, preselectedSupplierId = null) { return this.openItemForm(itemId, preselectedSupplierId); }
@@ -3175,56 +3284,161 @@ renderItemCard(item, supplierId) {
         closeModal() { return this.backToList(); }
         ensureModals() {}
 
-        /**
-         * Renderiza la página completa para Nuevo / Editar Proveedor (con Fotografía y Tipo)
-         */
-        renderSupplierFormPage() {
-            if (!this.container) return;
+        /** Cierra el Bottom Sheet móvil de formulario si está abierto */
+        closeFormBottomSheet() {
+            const backdrop = document.getElementById('m3FormSheetBackdrop');
+            const sheet = document.getElementById('m3FormSheet');
+            if (backdrop) backdrop.remove();
+            if (sheet) sheet.remove();
+        }
+
+        /** Abre un Bottom Sheet M3 Expressive con header fijo, cuerpo scrollable y footer fijo */
+        _openFormBottomSheet({ title, subtitle, formId, submitLabel, submitBtnId, onSubmit, bodyHTML }) {
+            this.closeSupplierBottomSheet();
+            this.closeFormBottomSheet();
             const isEn = this.isEnglish();
-            const supplierId = this.editingSupplierId;
+
+            const backdrop = document.createElement('div');
+            backdrop.className = 'm3-sheet-backdrop';
+            backdrop.id = 'm3FormSheetBackdrop';
+            backdrop.onclick = () => this.closeFormBottomSheet();
+
+            const sheet = document.createElement('div');
+            sheet.className = 'm3-modal-bottom-sheet m3-form-bottom-sheet';
+            sheet.id = 'm3FormSheet';
+            sheet.onclick = (e) => e.stopPropagation();
+
+            sheet.innerHTML = `
+                <div class="m3-form-sheet-header">
+                    <div class="m3-sheet-drag-handle" id="m3FormSheetHandle" style="margin-bottom: 10px; cursor: pointer;"></div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="min-width: 0; flex: 1;">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; line-height: 1.2;">${title}</h2>
+                            ${subtitle ? `<p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.3;">${subtitle}</p>` : ''}
+                        </div>
+                        <button type="button" class="btn-icon-m3" onclick="window.suppliersManager.closeFormBottomSheet()" aria-label="${isEn ? 'Close' : 'Cerrar'}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--text-secondary);">close</span>
+                        </button>
+                    </div>
+                </div>
+                <form id="${formId}" onsubmit="${onSubmit}" class="m3-form-sheet-body">
+                    ${bodyHTML}
+                </form>
+                <div class="m3-form-sheet-footer">
+                    <button type="button" onclick="window.suppliersManager.closeFormBottomSheet()" class="btn-supplier-cancel" style="flex: 1; max-width: 140px; justify-content: center;">
+                        ${isEn ? 'Cancel' : 'Cancelar'}
+                    </button>
+                    <button type="submit" form="${formId}" id="${submitBtnId}" class="btn-supplier-save" style="flex: 2; max-width: 240px; justify-content: center;">
+                        ${submitLabel}
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(backdrop);
+            document.body.appendChild(sheet);
+
+            const toggleFullscreen = (forceState = null) => {
+                const next = forceState !== null ? forceState : !sheet.classList.contains('is-fullscreen');
+                sheet.style.transition = '';
+                sheet.style.height = '';
+                sheet.style.transform = '';
+                sheet.classList.toggle('is-fullscreen', next);
+            };
+
+            const handleEl = sheet.querySelector('#m3FormSheetHandle');
+            const headerEl = sheet.querySelector('.m3-form-sheet-header');
+            if (handleEl) handleEl.onclick = () => toggleFullscreen();
+
+            if (headerEl) {
+                let startY = 0;
+                let diffY = 0;
+                let baseHeight = 0;
+                let wasFullscreen = false;
+
+                headerEl.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    diffY = 0;
+                    wasFullscreen = sheet.classList.contains('is-fullscreen');
+                    baseHeight = sheet.offsetHeight || Math.round(window.innerHeight * 0.92);
+                }, { passive: true });
+
+                headerEl.addEventListener('touchmove', (e) => {
+                    diffY = e.touches[0].clientY - startY;
+                    sheet.style.setProperty('transition', 'none', 'important');
+                    if (!wasFullscreen && diffY < 0) {
+                        const targetH = Math.min(window.innerHeight, baseHeight - diffY);
+                        sheet.style.setProperty('height', `${targetH}px`, 'important');
+                        sheet.style.transform = '';
+                    } else if (wasFullscreen && diffY > 0) {
+                        const targetH = Math.max(window.innerHeight * 0.72, window.innerHeight - diffY);
+                        sheet.style.setProperty('height', `${targetH}px`, 'important');
+                        sheet.style.transform = '';
+                    } else if (!wasFullscreen && diffY > 0) {
+                        sheet.style.transform = `translateY(${diffY}px)`;
+                    }
+                }, { passive: true });
+
+                headerEl.addEventListener('touchend', () => {
+                    sheet.style.removeProperty('transition');
+                    sheet.style.removeProperty('height');
+                    sheet.style.transform = '';
+                    if (!wasFullscreen && diffY < -35) {
+                        toggleFullscreen(true);
+                    } else if (wasFullscreen && diffY > 40) {
+                        toggleFullscreen(false);
+                    } else if (!wasFullscreen && diffY > 90) {
+                        this.closeFormBottomSheet();
+                    }
+                    diffY = 0;
+                }, { passive: true });
+            }
+        }
+
+        /** Abre el formulario de Nuevo / Editar Proveedor en Bottom Sheet (solo móvil) */
+        openSupplierFormBottomSheet(supplierId = null) {
+            const isEn = this.isEnglish();
             const supplier = supplierId ? this.suppliers.find(s => s.id === supplierId) : null;
             const isEditing = Boolean(supplier);
+            this._pendingSupplierImageBlob = null;
 
+            this._openFormBottomSheet({
+                title: isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor'),
+                subtitle: isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte',
+                formId: 'supplierFullForm',
+                submitBtnId: 'btnSaveSupplier',
+                submitLabel: isEditing ? (isEn ? 'Save Changes' : 'Guardar Cambios') : (isEn ? 'Create Supplier' : 'Crear Proveedor'),
+                onSubmit: `window.suppliersManager.saveSupplier(event, '${supplierId || ''}')`,
+                bodyHTML: this._getSupplierFormFieldsHTML(supplier)
+            });
+        }
+
+        /** Abre el formulario de Nuevo / Editar Producto en Bottom Sheet (solo móvil) */
+        openItemFormBottomSheet(itemId = null, preselectedSupplierId = null) {
+            const isEn = this.isEnglish();
+            const item = itemId ? this.items.find(it => it.id === itemId) : null;
+            const isEditing = Boolean(item);
+            const supId = item?.supplier_id || preselectedSupplierId || this.selectedSupplierDetailId || (this.suppliers[0]?.id || '');
+            this._pendingImageBlob = null;
+
+            this._openFormBottomSheet({
+                title: isEditing ? (isEn ? 'Edit Product' : 'Editar Producto') : (isEn ? 'New Product' : 'Nuevo Producto'),
+                subtitle: isEn ? 'Assign photo, name, format and supplier' : 'Asigna foto, nombre, formato y proveedor',
+                formId: 'itemFullForm',
+                submitBtnId: 'btnSaveItem',
+                submitLabel: isEditing ? (isEn ? 'Update Product' : 'Guardar Cambios') : (isEn ? 'Add Product' : 'Agregar Producto'),
+                onSubmit: `window.suppliersManager.saveItem(event, '${itemId || ''}')`,
+                bodyHTML: this._getItemFormFieldsHTML(item, supId)
+            });
+        }
+
+        /** Genera los campos del formulario de Proveedor (compartido entre PC y Bottom Sheet móvil) */
+        _getSupplierFormFieldsHTML(supplier) {
+            const isEn = this.isEnglish();
             const activeDays = supplier && Array.isArray(supplier.delivery_days) ? supplier.delivery_days : ['mon', 'wed', 'fri'];
             const cutoff = supplier?.cutoff_time ? supplier.cutoff_time.substring(0, 5) : '18:00';
             const supCategory = supplier?.category || 'otros';
 
-            this.container.innerHTML = `
-                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
-                    <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 y salto de línea claro -->
-                    <div class="supplier-form-desktop-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
-                        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
-                            ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
-                        </h2>
-                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.4;">
-                            ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
-                        </p>
-                    </div>
-
-                    <!-- Header Integrado Móvil (Reemplaza la barra superior en móvil) -->
-                    <header class="supplier-item-form-header">
-                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-                            <button type="button" 
-                                    onclick="window.suppliersManager.backToList()" 
-                                    class="btn-icon-m3 btn-back-green" 
-                                    title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
-                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
-                                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">arrow_back</span>
-                            </button>
-                            <div style="min-width: 0; flex: 1;">
-                                <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
-                                    ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
-                                </h1>
-                                <p style="margin: 1px 0 0 0; font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
-                                    ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
-                                </p>
-                            </div>
-                        </div>
-                    </header>
-
-                    <!-- Formulario Plano y Adaptable a Móvil (Sin tarjeta ni contenedor restrictivo) -->
-                    <form id="supplierFullForm" onsubmit="window.suppliersManager.saveSupplier(event, '${supplierId || ''}')" style="display: flex; flex-direction: column; gap: 20px;">
-                        
+            return `
                         <!-- 1. Fotografía / Logo del Proveedor (Plano) -->
                         <div style="padding-bottom: 18px; border-bottom: 1px solid var(--border);">
                             <label style="display: block; font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
@@ -3371,6 +3585,166 @@ renderItemCard(item, supplierId) {
                             <textarea id="supNotes" rows="3" placeholder=" " class="m3-field-input">${supplier?.notes || ''}</textarea>
                             <label for="supNotes" class="m3-field-label">${isEn ? 'Notes / Delivery Instructions (Optional)' : 'Notas / Instrucciones de Pedido (Opcional)'}</label>
                         </div>
+            `;
+        }
+
+        /** Genera los campos del formulario de Producto (compartido entre PC y Bottom Sheet móvil) */
+        _getItemFormFieldsHTML(item, supId) {
+            const isEn = this.isEnglish();
+            return `
+                        <!-- Proveedor Asignado y Nombre (M3 Expressive Outlined) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <select id="itemSupplierId" required class="m3-field-select">
+                                    ${this.suppliers.length === 0 ? `
+                                        <option value="">${isEn ? 'No suppliers available - create one first' : 'Sin proveedores - crea uno primero'}</option>
+                                    ` : this.suppliers.map(s => `
+                                        <option value="${s.id}" ${s.id === supId ? 'selected' : ''}>${s.name}</option>
+                                    `).join('')}
+                                </select>
+                                <label for="itemSupplierId" class="m3-field-label">${isEn ? 'Assigned Supplier *' : 'Proveedor Asignado *'}</label>
+                            </div>
+
+                            <div class="m3-field-container">
+                                <input type="text" id="itemName" required value="${item?.name || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemName" class="m3-field-label">${isEn ? 'Product Name *' : 'Nombre del Producto *'}</label>
+                            </div>
+                        </div>
+
+                        <!-- Fotografía del Producto (Plana, sin caja contenedora) -->
+                        <div style="padding-bottom: 18px; border-bottom: 1px solid var(--border);">
+                            <label style="display: block; font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+                                ${isEn ? 'Product Photograph (Optional)' : 'Fotografía del Producto (Opcional)'}
+                            </label>
+                            <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--text-secondary);">
+                                ${isEn ? 'Add an image to identify the product quickly when creating orders.' : 'Sube o toma una foto para reconocer el producto al armar pedidos. Se optimiza automáticamente.'}
+                            </p>
+
+                            <div style="display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;">
+                                <div id="itemPhotoPreviewBox" style="
+                                    width: 68px;
+                                    height: 68px;
+                                    border-radius: 14px;
+                                    background: var(--bg);
+                                    border: 2px dashed var(--border);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    overflow: hidden;
+                                    flex-shrink: 0;
+                                    position: relative;
+                                ">
+                                    <img id="itemPhotoImg" src="${item?.image_url || ''}" style="${item?.image_url ? 'display: block;' : 'display: none;'} width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('itemPhotoIcon').style.display='block';" />
+                                    <span id="itemPhotoIcon" class="material-symbols-outlined" style="${item?.image_url ? 'display: none;' : 'display: block;'} font-size: 30px; color: var(--text-secondary);">photo_camera</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 220px;">
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <label class="btn-supplier-cancel" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; height: 36px; padding: 0 14px;">
+                                            <span class="material-symbols-outlined" style="font-size: 17px;">upload</span>
+                                            <span>${isEn ? 'Select Photo' : 'Seleccionar Foto'}</span>
+                                            <input type="file" id="itemPhotoFile" accept="image/*" style="display: none;" onchange="window.suppliersManager.handleImageSelected(this)" />
+                                        </label>
+
+                                        <label class="btn-supplier-cancel" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; height: 36px; padding: 0 14px;">
+                                            <span class="material-symbols-outlined" style="font-size: 17px;">photo_camera</span>
+                                            <span>${isEn ? 'Take Photo' : 'Tomar Foto'}</span>
+                                            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="window.suppliersManager.handleImageSelected(this)" />
+                                        </label>
+
+                                        <button type="button" id="btnRemovePhoto" onclick="window.suppliersManager.removePhoto()" style="${item?.image_url ? 'display: inline-flex;' : 'display: none;'} align-items: center; gap: 4px; height: 36px; padding: 0 12px; border-radius: var(--radius-full); font-size: 12.5px; font-weight: 700; background: var(--surface); color: var(--error); border: 1px solid var(--border); cursor: pointer;">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                            <span>${isEn ? 'Remove' : 'Quitar Foto'}</span>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="itemImageUrl" value="${item?.image_url || ''}" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoría y Formato / Unidad (M3 Expressive Outlined) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <select id="itemCategory" class="m3-field-select">
+                                    ${this.CATEGORIES.map(c => `
+                                        <option value="${c.label}" ${item?.category === c.label ? 'selected' : ''}>${c.displayLabel || c.label}</option>
+                                    `).join('')}
+                                </select>
+                                <label for="itemCategory" class="m3-field-label">${isEn ? 'Category' : 'Categoría'}</label>
+                            </div>
+
+                            <div class="m3-field-container">
+                                <input type="text" id="itemFormat" value="${item?.package_format || item?.unit || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemFormat" class="m3-field-label">${isEn ? 'Packaging Format / Unit' : 'Formato de Presentación / Unidad'}</label>
+                            </div>
+                        </div>
+
+                        <!-- Código SKU y Precio Unitario (Tabla normalizada supplier_item_catalog) -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
+                            <div class="m3-field-container">
+                                <input type="text" id="itemSku" value="${item?.sku || ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemSku" class="m3-field-label">${isEn ? 'Supplier SKU Code (e.g. BAG1011, 02873C)' : 'Código SKU del Proveedor (ej. BAG1011, 02873C)'}</label>
+                            </div>
+                            <div class="m3-field-container">
+                                <input type="number" step="0.01" min="0" id="itemUnitPrice" value="${item?.unit_price !== null && item?.unit_price !== undefined ? item.unit_price : ''}" placeholder=" " class="m3-field-input" />
+                                <label for="itemUnitPrice" class="m3-field-label">${isEn ? 'Unit Price (£ GBP)' : 'Precio Unitario (£ GBP)'}</label>
+                            </div>
+                        </div>
+
+                        <!-- Notas del Producto (M3 Expressive Outlined) -->
+                        <div class="m3-field-container">
+                            <input type="text" id="itemNotes" value="${item?.notes || ''}" placeholder=" " class="m3-field-input" />
+                            <label for="itemNotes" class="m3-field-label">${isEn ? 'Product Notes (Optional)' : 'Notas u Observaciones del Producto (Opcional)'}</label>
+                        </div>
+            `;
+        }
+
+        /**
+         * Renderiza la página completa para Nuevo / Editar Proveedor (con Fotografía y Tipo)
+         */
+        renderSupplierFormPage() {
+            if (!this.container) return;
+            const isEn = this.isEnglish();
+            const supplierId = this.editingSupplierId;
+            const supplier = supplierId ? this.suppliers.find(s => s.id === supplierId) : null;
+            const isEditing = Boolean(supplier);
+
+            this.container.innerHTML = `
+                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
+                    <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 y salto de línea claro -->
+                    <div class="supplier-form-desktop-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
+                            ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
+                        </h2>
+                        <p style="margin: 0; font-size: 13.5px; color: var(--text-secondary); line-height: 1.4;">
+                            ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
+                        </p>
+                    </div>
+
+                    <!-- Header Integrado Móvil (Reemplaza la barra superior en móvil) -->
+                    <header class="supplier-item-form-header">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                            <button type="button" 
+                                    onclick="window.suppliersManager.backToList()" 
+                                    class="btn-icon-m3 btn-back-green" 
+                                    title="${isEn ? 'Back to Suppliers' : 'Volver a Proveedores'}" 
+                                    style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: all 0.2s var(--m3-easing); flex-shrink: 0;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; color: var(--primary-dark);">arrow_back</span>
+                            </button>
+                            <div style="min-width: 0; flex: 1;">
+                                <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    ${isEditing ? (isEn ? 'Edit Supplier' : 'Editar Proveedor') : (isEn ? 'New Supplier' : 'Nuevo Proveedor')}
+                                </h1>
+                                <p style="margin: 1px 0 0 0; font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    ${isEn ? 'Configure logo, category, delivery schedule and cut-off' : 'Configura logo, tipo, días de reparto y horario de corte'}
+                                </p>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Formulario Plano y Adaptable a Móvil (Sin tarjeta ni contenedor restrictivo) -->
+                    <form id="supplierFullForm" onsubmit="window.suppliersManager.saveSupplier(event, '${supplierId || ''}')" style="display: flex; flex-direction: column; gap: 20px;">
+                        ${this._getSupplierFormFieldsHTML(supplier)}
 
                         <!-- Botones inferiores de acción (Únicos botones de Guardar / Cancelar) -->
                         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--border); flex-wrap: wrap;">
@@ -3507,7 +3881,12 @@ renderItemCard(item, supplierId) {
 
                 this._pendingSupplierImageBlob = null;
                 this.saveCache();
-                this.backToList();
+                if (document.getElementById('m3FormSheet')) {
+                    this.closeFormBottomSheet();
+                    this.render();
+                } else {
+                    this.backToList();
+                }
             } catch (err) {
                 console.error('Error guardando proveedor:', err);
                 this.notify(err.message || 'Error guardando proveedor', 'error');
@@ -3601,7 +3980,7 @@ renderItemCard(item, supplierId) {
             const supId = item?.supplier_id || this.preselectedSupplierId || (this.suppliers[0]?.id || '');
 
             this.container.innerHTML = `
-                <div class="suppliers-subview-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px 80px 16px; font-family: var(--font-display);">
+                <div class="suppliers-subview-page supplier-item-form-page" style="max-width: 760px; margin: 0 auto; padding: 0 16px; font-family: var(--font-display);">
                     <!-- Header en PC / Desktop: Título + Subtítulo con flujo natural M3 y salto de línea claro -->
                     <div class="supplier-form-desktop-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
                         <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; line-height: 1.2;">
@@ -3634,115 +4013,11 @@ renderItemCard(item, supplierId) {
                     </header>
 
                     <!-- Formulario Plano y Adaptable a Móvil (Sin tarjeta ni contenedor restrictivo) -->
-                    <form id="itemFullForm" onsubmit="window.suppliersManager.saveItem(event, '${itemId || ''}')" style="display: flex; flex-direction: column; gap: 20px;">
-                        
-                        <!-- Proveedor Asignado y Nombre (M3 Expressive Outlined) -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
-                            <div class="m3-field-container">
-                                <select id="itemSupplierId" required class="m3-field-select">
-                                    ${this.suppliers.length === 0 ? `
-                                        <option value="">${isEn ? 'No suppliers available - create one first' : 'Sin proveedores - crea uno primero'}</option>
-                                    ` : this.suppliers.map(s => `
-                                        <option value="${s.id}" ${s.id === supId ? 'selected' : ''}>${s.name}</option>
-                                    `).join('')}
-                                </select>
-                                <label for="itemSupplierId" class="m3-field-label">${isEn ? 'Assigned Supplier *' : 'Proveedor Asignado *'}</label>
-                            </div>
+                    <form id="itemFullForm" onsubmit="window.suppliersManager.saveItem(event, '${itemId || ''}')" style="display: flex; flex-direction: column; gap: 20px; flex: 1;">
+                        ${this._getItemFormFieldsHTML(item, supId)}
 
-                            <div class="m3-field-container">
-                                <input type="text" id="itemName" required value="${item?.name || ''}" placeholder=" " class="m3-field-input" />
-                                <label for="itemName" class="m3-field-label">${isEn ? 'Product Name *' : 'Nombre del Producto *'}</label>
-                            </div>
-                        </div>
-
-                        <!-- Fotografía del Producto (Plana, sin caja contenedora) -->
-                        <div style="padding-bottom: 18px; border-bottom: 1px solid var(--border);">
-                            <label style="display: block; font-size: 13.5px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
-                                ${isEn ? 'Product Photograph (Optional)' : 'Fotografía del Producto (Opcional)'}
-                            </label>
-                            <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--text-secondary);">
-                                ${isEn ? 'Add an image to identify the product quickly when creating orders.' : 'Sube o toma una foto para reconocer el producto al armar pedidos. Se optimiza automáticamente.'}
-                            </p>
-
-                            <div style="display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;">
-                                <div id="itemPhotoPreviewBox" style="
-                                    width: 68px;
-                                    height: 68px;
-                                    border-radius: 14px;
-                                    background: var(--bg);
-                                    border: 2px dashed var(--border);
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    overflow: hidden;
-                                    flex-shrink: 0;
-                                    position: relative;
-                                ">
-                                    <img id="itemPhotoImg" src="${item?.image_url || ''}" style="${item?.image_url ? 'display: block;' : 'display: none;'} width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('itemPhotoIcon').style.display='block';" />
-                                    <span id="itemPhotoIcon" class="material-symbols-outlined" style="${item?.image_url ? 'display: none;' : 'display: block;'} font-size: 30px; color: var(--text-secondary);">photo_camera</span>
-                                </div>
-
-                                <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 220px;">
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <label class="btn-supplier-cancel" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; height: 36px; padding: 0 14px;">
-                                            <span class="material-symbols-outlined" style="font-size: 17px;">upload</span>
-                                            <span>${isEn ? 'Select Photo' : 'Seleccionar Foto'}</span>
-                                            <input type="file" id="itemPhotoFile" accept="image/*" style="display: none;" onchange="window.suppliersManager.handleImageSelected(this)" />
-                                        </label>
-
-                                        <label class="btn-supplier-cancel" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; height: 36px; padding: 0 14px;">
-                                            <span class="material-symbols-outlined" style="font-size: 17px;">photo_camera</span>
-                                            <span>${isEn ? 'Take Photo' : 'Tomar Foto'}</span>
-                                            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="window.suppliersManager.handleImageSelected(this)" />
-                                        </label>
-
-                                        <button type="button" id="btnRemovePhoto" onclick="window.suppliersManager.removePhoto()" style="${item?.image_url ? 'display: inline-flex;' : 'display: none;'} align-items: center; gap: 4px; height: 36px; padding: 0 12px; border-radius: var(--radius-full); font-size: 12.5px; font-weight: 700; background: var(--surface); color: var(--error); border: 1px solid var(--border); cursor: pointer;">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                                            <span>${isEn ? 'Remove' : 'Quitar Foto'}</span>
-                                        </button>
-                                    </div>
-                                    <input type="hidden" id="itemImageUrl" value="${item?.image_url || ''}" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Categoría y Formato / Unidad (M3 Expressive Outlined) -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
-                            <div class="m3-field-container">
-                                <select id="itemCategory" class="m3-field-select">
-                                    ${this.CATEGORIES.map(c => `
-                                        <option value="${c.label}" ${item?.category === c.label ? 'selected' : ''}>${c.displayLabel || c.label}</option>
-                                    `).join('')}
-                                </select>
-                                <label for="itemCategory" class="m3-field-label">${isEn ? 'Category' : 'Categoría'}</label>
-                            </div>
-
-                            <div class="m3-field-container">
-                                <input type="text" id="itemFormat" value="${item?.package_format || item?.unit || ''}" placeholder=" " class="m3-field-input" />
-                                <label for="itemFormat" class="m3-field-label">${isEn ? 'Packaging Format / Unit' : 'Formato de Presentación / Unidad'}</label>
-                            </div>
-                        </div>
-
-                        <!-- Código SKU y Precio Unitario (Tabla normalizada supplier_item_catalog) -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px;">
-                            <div class="m3-field-container">
-                                <input type="text" id="itemSku" value="${item?.sku || ''}" placeholder=" " class="m3-field-input" />
-                                <label for="itemSku" class="m3-field-label">${isEn ? 'Supplier SKU Code (e.g. BAG1011, 02873C)' : 'Código SKU del Proveedor (ej. BAG1011, 02873C)'}</label>
-                            </div>
-                            <div class="m3-field-container">
-                                <input type="number" step="0.01" min="0" id="itemUnitPrice" value="${item?.unit_price !== null && item?.unit_price !== undefined ? item.unit_price : ''}" placeholder=" " class="m3-field-input" />
-                                <label for="itemUnitPrice" class="m3-field-label">${isEn ? 'Unit Price (£ GBP)' : 'Precio Unitario (£ GBP)'}</label>
-                            </div>
-                        </div>
-
-                        <!-- Notas del Producto (M3 Expressive Outlined) -->
-                        <div class="m3-field-container">
-                            <input type="text" id="itemNotes" value="${item?.notes || ''}" placeholder=" " class="m3-field-input" />
-                            <label for="itemNotes" class="m3-field-label">${isEn ? 'Product Notes (Optional)' : 'Notas u Observaciones del Producto (Opcional)'}</label>
-                        </div>
-
-                        <!-- Botones inferiores de acción (Únicos botones de Guardar / Cancelar) -->
-                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--border); flex-wrap: wrap;">
+                        <!-- Botones inferiores de acción fijos en el footer -->
+                        <div class="supplier-item-form-footer">
                             <button type="button" onclick="window.suppliersManager.backToList()" class="btn-supplier-cancel" style="flex: 1; max-width: 140px; justify-content: center;">
                                 ${isEn ? 'Cancel' : 'Cancelar'}
                             </button>
@@ -3954,7 +4229,12 @@ renderItemCard(item, supplierId) {
 
                 this._pendingImageBlob = null;
                 this.saveCache();
-                this.backToList();
+                if (document.getElementById('m3FormSheet')) {
+                    this.closeFormBottomSheet();
+                    this.render();
+                } else {
+                    this.backToList();
+                }
             } catch (err) {
                 console.error('Error guardando producto:', err);
                 this.notify(err.message || 'Error guardando producto', 'error');
