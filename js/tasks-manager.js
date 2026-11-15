@@ -1428,7 +1428,7 @@
                             <span class="material-symbols-outlined tasks-scan-promo-arrow">arrow_forward</span>
                         </div>
 
-                        <form onsubmit="window.tasksManager.handleCreateTaskSubmit(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                        <form id="prepTaskForm" onsubmit="window.tasksManager.handleCreateTaskSubmit(event)" style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 16px; -webkit-overflow-scrolling: touch;">
                             <!-- Input oculto para identificar modo edición -->
                             <input type="hidden" id="editingTaskId" value="">
                             <!-- Field 1: Nombre de la tarea (M3 Expressive) -->
@@ -1542,48 +1542,48 @@
                                 <div id="prepTaskDaysList" style="display: flex; gap: 6px; justify-content: space-between;">
                                 </div>
                             </div>
-
-                            <div class="tasks-bottom-sheet-footer">
-                                <button type="button" onclick="window.tasksManager.closeCreateModal()" style="
-                                    flex: 1;
-                                    height: 50px;
-                                    border-radius: 9999px;
-                                    font-family: var(--font-display, 'Poppins', sans-serif);
-                                    font-size: 13.5px;
-                                    font-weight: 700;
-                                    color: #4B5563;
-                                    background: #F1F5F9;
-                                    border: none;
-                                    cursor: pointer;
-                                    transition: all 0.15s ease;
-                                "
-                                onmouseover="this.style.background='#E2E8F0';"
-                                onmouseout="this.style.background='#F1F5F9';"
-                                >
-                                    Cancelar
-                                </button>
-                                <button type="submit" style="
-                                    flex: 2;
-                                    height: 50px;
-                                    border-radius: 9999px;
-                                    font-family: var(--font-display, 'Poppins', sans-serif);
-                                    font-size: 13.5px;
-                                    font-weight: 800;
-                                    color: #FFFFFF;
-                                    background: #12B078;
-                                    border: none;
-                                    box-shadow: 0 4px 14px rgba(18, 176, 120, 0.35);
-                                    cursor: pointer;
-                                    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-                                "
-                                onmouseover="this.style.background='#0D9665'; this.style.transform='translateY(-1px)';"
-                                onmouseout="this.style.background='#12B078'; this.style.transform='translateY(0)';"
-                                onmousedown="this.style.transform='scale(0.98)';"
-                                >
-                                    <span id="prepTaskSubmitBtnText">Guardar Tarea</span>
-                                </button>
-                            </div>
                         </form>
+
+                        <div class="tasks-bottom-sheet-footer">
+                            <button type="button" onclick="window.tasksManager.closeCreateModal()" style="
+                                flex: 1;
+                                height: 50px;
+                                border-radius: 9999px;
+                                font-family: var(--font-display, 'Poppins', sans-serif);
+                                font-size: 13.5px;
+                                font-weight: 700;
+                                color: #4B5563;
+                                background: #F1F5F9;
+                                border: none;
+                                cursor: pointer;
+                                transition: all 0.15s ease;
+                            "
+                            onmouseover="this.style.background='#E2E8F0';"
+                            onmouseout="this.style.background='#F1F5F9';"
+                            >
+                                Cancelar
+                            </button>
+                            <button type="submit" form="prepTaskForm" style="
+                                flex: 2;
+                                height: 50px;
+                                border-radius: 9999px;
+                                font-family: var(--font-display, 'Poppins', sans-serif);
+                                font-size: 13.5px;
+                                font-weight: 800;
+                                color: #FFFFFF;
+                                background: #12B078;
+                                border: none;
+                                box-shadow: 0 4px 14px rgba(18, 176, 120, 0.35);
+                                cursor: pointer;
+                                transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                            "
+                            onmouseover="this.style.background='#0D9665'; this.style.transform='translateY(-1px)';"
+                            onmouseout="this.style.background='#12B078'; this.style.transform='translateY(0)';"
+                            onmousedown="this.style.transform='scale(0.98)';"
+                            >
+                                <span id="prepTaskSubmitBtnText">Guardar Tarea</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- MODAL DE CARGA / ESCANEO CON IA -->
@@ -2402,7 +2402,7 @@
             const sheet = document.getElementById('prepTaskBottomSheet');
             if (backdrop && sheet) {
                 backdrop.style.display = 'block';
-                sheet.style.display = 'block';
+                sheet.style.display = 'flex';
                 sheet.classList.remove('is-expanded');
                 this.initBottomSheetGestures();
 
@@ -2444,7 +2444,7 @@
             if (!backdrop || !sheet) return;
 
             backdrop.style.display = 'block';
-            sheet.style.display = 'block';
+            sheet.style.display = 'flex';
             sheet.classList.remove('is-expanded');
             this.initBottomSheetGestures();
 

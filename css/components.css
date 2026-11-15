@@ -18930,7 +18930,8 @@ body.supplier-detail-active .suppliers-subview-page {
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
     z-index: 51;
     max-height: 85vh;
-    overflow-y: auto;
+    flex-direction: column;
+    overflow: hidden;
     overscroll-behavior: contain;
     animation: slideUpTasksSheet 0.3s cubic-bezier(0.2, 0, 0, 1);
     transition: height 0.28s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.28s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.2s ease;
@@ -18949,13 +18950,12 @@ body.supplier-detail-active .suppliers-subview-page {
 }
 
 .tasks-bottom-sheet-footer {
-    position: sticky;
-    bottom: 0;
+    flex-shrink: 0;
     z-index: 10;
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 6px -22px 0 -22px;
+    margin: 0 -22px 0 -22px;
     padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)) 22px;
     background: #FFFFFF;
     border-top: 1px solid #E2E8F0;
