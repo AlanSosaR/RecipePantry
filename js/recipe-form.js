@@ -164,6 +164,10 @@ class RecipeFormManager {
         if (btnBack) {
             btnBack.addEventListener('click', () => {
                 const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('embed') === 'sheet' && window.parent !== window) {
+                    window.parent.postMessage({ type: 'recipe-sheet-close' }, '*');
+                    return;
+                }
                 const folder = urlParams.get('folder');
                 const returnTo = urlParams.get('returnTo');
                 if (returnTo === 'folder' && folder) {
@@ -800,6 +804,10 @@ class RecipeFormManager {
 
             // Redirección SIEMPRE a la vista previa de la receta con f=1 para sincronización total y fresca
             const targetFolder = selectedFolder ? encodeURIComponent(selectedFolder) : '';
+            if (new URLSearchParams(window.location.search).get('embed') === 'sheet' && window.parent !== window) {
+                window.parent.postMessage({ type: 'recipe-sheet-saved', recipeId, folder: targetFolder }, '*');
+                return;
+            }
             window.location.href = `/recipe-detail?id=${recipeId}&f=1${targetFolder ? '&folder=' + targetFolder : ''}`;
 
         } catch (err) {

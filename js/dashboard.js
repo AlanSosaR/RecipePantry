@@ -1239,6 +1239,17 @@ class DashboardManager {
                     el.style.removeProperty('display');
                 }
             });
+            // Restaurar visibilidad del botón FAB (+) al regresar al recetario
+            const fabBtn = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+            if (fabBtn) {
+                fabBtn.classList.remove('hidden');
+                fabBtn.style.removeProperty('display');
+            }
+            const fabMenuContainer = document.getElementById('m3FabMenuContainer');
+            if (fabMenuContainer) {
+                fabMenuContainer.classList.remove('hidden');
+                fabMenuContainer.style.removeProperty('display');
+            }
         }
 
         if (view === 'favorites') {
@@ -1429,10 +1440,16 @@ class DashboardManager {
             breadcrumb.classList.add('hidden');
             breadcrumb.style.display = 'none';
         }
-        const fab = document.querySelector('.fab-m3');
-        if (fab) fab.classList.remove('hidden');
+        const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+        if (fab) {
+            fab.classList.remove('hidden');
+            fab.style.removeProperty('display');
+        }
         const fabContainer = document.getElementById('m3FabMenuContainer');
-        if (fabContainer) fabContainer.classList.remove('hidden');
+        if (fabContainer) {
+            fabContainer.classList.remove('hidden');
+            fabContainer.style.removeProperty('display');
+        }
 
         if (this.isSelectionMode) this.clearSelection();
 
@@ -1506,10 +1523,16 @@ class DashboardManager {
             breadcrumb.classList.add('hidden');
             breadcrumb.style.display = 'none';
         }
-        const fab = document.querySelector('.fab-m3');
-        if (fab) fab.classList.remove('hidden');
+        const fab = document.getElementById('mainFabBtn') || document.querySelector('.fab-m3');
+        if (fab) {
+            fab.classList.remove('hidden');
+            fab.style.removeProperty('display');
+        }
         const fabContainer = document.getElementById('m3FabMenuContainer');
-        if (fabContainer) fabContainer.classList.remove('hidden');
+        if (fabContainer) {
+            fabContainer.classList.remove('hidden');
+            fabContainer.style.removeProperty('display');
+        }
 
         if (this.isSelectionMode) this.clearSelection();
 
@@ -2943,11 +2966,139 @@ class DashboardManager {
             this.promptNewFolder();
         } else if (option === 'document') {
             const folderParam = this.currentFolder ? `?folder=${encodeURIComponent(this.currentFolder)}&returnTo=folder` : '';
-            window.location.href = `/recipe-form${folderParam}`;
+            if (window.innerWidth <= 768) {
+                this.openRecipeFormBottomSheet(folderParam);
+            } else {
+                window.location.href = `/recipe-form${folderParam}`;
+            }
         } else if (option === 'scan') {
             const folderParam = this.currentFolder ? `?folder=${encodeURIComponent(this.currentFolder)}&returnTo=folder` : '';
             window.location.href = `/ocr${folderParam}`;
         }
+    }
+
+    /** Cierra el Bottom Sheet móvil de Nueva Receta */
+    closeRecipeFormBottomSheet() {
+        const backdrop = document.getElementById('m3RecipeSheetBackdrop');
+        const sheet = document.getElementById('m3RecipeSheet');
+        if (backdrop) backdrop.remove();
+        if (sheet) sheet.remove();
+        if (this._recipeSheetMessageHandler) {
+            window.removeEventListener('message', this._recipeSheetMessageHandler);
+            this._recipeSheetMessageHandler = null;
+        }
+    }
+
+    /** Abre el formulario de Nueva Receta en un Bottom Sheet M3 Expressive (solo móvil) */
+    openRecipeFormBottomSheet(folderParam = '') {
+        this.closeRecipeFormBottomSheet();
+        const isEn = (window.i18n && window.i18n.getLang() === 'en') || document.documentElement.lang === 'en';
+        const extraParams = folderParam ? `&${folderParam.replace(/^\?/, '')}` : '';
+        const iframeSrc = `/recipe-form?embed=sheet${extraParams}`;
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'm3-sheet-backdrop';
+        backdrop.id = 'm3RecipeSheetBackdrop';
+        backdrop.onclick = () => this.closeRecipeFormBottomSheet();
+
+        const sheet = document.createElement('div');
+        sheet.className = 'm3-modal-bottom-sheet m3-form-bottom-sheet m3-recipe-bottom-sheet';
+        sheet.id = 'm3RecipeSheet';
+        sheet.onclick = (e) => e.stopPropagation();
+
+        sheet.innerHTML = `
+            <div class="m3-form-sheet-header">
+                <div class="m3-sheet-drag-handle" id="m3RecipeSheetHandle" style="margin-bottom: 10px; cursor: pointer;"></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${isEn ? 'New Recipe' : 'Nueva Receta'}
+                        </h2>
+                    </div>
+                    <button type="button" id="m3RecipeSheetCloseBtn" class="btn-icon-m3" aria-label="${isEn ? 'Close' : 'Cerrar'}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;">
+                        <span class="material-symbols-outlined" style="font-size: 20px; color: var(--text-secondary);">close</span>
+                    </button>
+                </div>
+            </div>
+            <iframe src="${iframeSrc}" title="${isEn ? 'New Recipe' : 'Nueva Receta'}" style="width: 100%; height: 100%; flex: 1; min-height: 0; border: none; background: #FFFFFF;"></iframe>
+        `;
+
+        document.body.appendChild(backdrop);
+        document.body.appendChild(sheet);
+
+        const setFullscreen = (next) => {
+            sheet.style.removeProperty('transition');
+            sheet.style.removeProperty('height');
+            sheet.style.transform = '';
+            sheet.classList.toggle('is-fullscreen', next);
+        };
+
+        const handleEl = sheet.querySelector('#m3RecipeSheetHandle');
+        const closeBtn = sheet.querySelector('#m3RecipeSheetCloseBtn');
+        const headerEl = sheet.querySelector('.m3-form-sheet-header');
+
+        if (handleEl) handleEl.onclick = () => setFullscreen(!sheet.classList.contains('is-fullscreen'));
+        if (closeBtn) closeBtn.onclick = () => this.closeRecipeFormBottomSheet();
+
+        if (headerEl) {
+            let startY = 0;
+            let diffY = 0;
+            let baseHeight = 0;
+            let wasFullscreen = false;
+
+            headerEl.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                diffY = 0;
+                wasFullscreen = sheet.classList.contains('is-fullscreen');
+                baseHeight = sheet.offsetHeight || Math.round(window.innerHeight * 0.88);
+            }, { passive: true });
+
+            headerEl.addEventListener('touchmove', (e) => {
+                diffY = e.touches[0].clientY - startY;
+                sheet.style.setProperty('transition', 'none', 'important');
+                if (!wasFullscreen && diffY < 0) {
+                    const targetH = Math.min(window.innerHeight, baseHeight - diffY);
+                    sheet.style.setProperty('height', `${targetH}px`, 'important');
+                    sheet.style.transform = '';
+                } else if (wasFullscreen && diffY > 0) {
+                    const targetH = Math.max(window.innerHeight * 0.72, window.innerHeight - diffY);
+                    sheet.style.setProperty('height', `${targetH}px`, 'important');
+                    sheet.style.transform = '';
+                } else if (!wasFullscreen && diffY > 0) {
+                    sheet.style.transform = `translateY(${diffY}px)`;
+                }
+            }, { passive: true });
+
+            headerEl.addEventListener('touchend', () => {
+                sheet.style.removeProperty('transition');
+                sheet.style.removeProperty('height');
+                sheet.style.transform = '';
+                if (!wasFullscreen && diffY < -35) {
+                    setFullscreen(true);
+                } else if (wasFullscreen && diffY > 40) {
+                    setFullscreen(false);
+                } else if (!wasFullscreen && diffY > 90) {
+                    this.closeRecipeFormBottomSheet();
+                }
+                diffY = 0;
+            }, { passive: true });
+        }
+
+        this._recipeSheetMessageHandler = (event) => {
+            if (!event.data || typeof event.data !== 'object') return;
+            if (event.data.type === 'recipe-sheet-close') {
+                this.closeRecipeFormBottomSheet();
+            } else if (event.data.type === 'recipe-sheet-saved') {
+                const { recipeId, folder } = event.data;
+                this.closeRecipeFormBottomSheet();
+                if (recipeId) {
+                    window.location.href = `/recipe-detail?id=${recipeId}&f=1${folder ? '&folder=' + folder : ''}`;
+                } else if (typeof this.loadRecipes === 'function') {
+                    this.loadRecipes();
+                }
+            }
+        };
+        window.addEventListener('message', this._recipeSheetMessageHandler);
     }
 
     // ─── Gestión de Carpetas Privadas ────────────────────────────

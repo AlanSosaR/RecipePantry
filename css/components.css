@@ -9872,6 +9872,10 @@ body.selection-mode-active .list-header-m3 .m3-checkbox-wrapper,
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
 }
 
+.m3-recipe-bottom-sheet {
+    height: 88dvh;
+}
+
 @keyframes m3SheetSlideUp {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
