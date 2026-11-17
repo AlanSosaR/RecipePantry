@@ -8202,7 +8202,8 @@ body.dark-theme .folder-more-btn:hover {
     cursor: pointer;
     transition: background 0.2s;
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 0;
     background: #FFFFFF;
 }
 
